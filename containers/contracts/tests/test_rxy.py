@@ -22,19 +22,34 @@ def load_rxy():
 
 
 class RxyTests(unittest.TestCase):
-    def run_idxstats(self, rows: str, *arguments: str) -> dict[str, object]:
+    def run_idxstats(
+        self,
+        rows: str,
+        *arguments: str,
+        profile: str = "human-skoglund-2013",
+    ) -> dict[str, object]:
         module = load_rxy()
         with tempfile.TemporaryDirectory() as temporary_directory:
             path = Path(temporary_directory) / "idxstats.tsv"
             path.write_text(rows, encoding="utf-8")
             output = io.StringIO()
-            result = module.main(["--idxstats", str(path), *arguments], stdout=output)
+            result = module.main(
+                [
+                    "--idxstats",
+                    str(path),
+                    "--classification-profile",
+                    profile,
+                    *arguments,
+                ],
+                stdout=output,
+            )
         self.assertEqual(result, 0)
         return json.loads(output.getvalue())
 
     def test_reports_female_from_upper_confidence_bound(self) -> None:
         report = self.run_idxstats("chr1\t1000\t5000\t0\nchrX\t1000\t1000\t0\nchrY\t1000\t0\t0\n")
         self.assertEqual(report["classification"], "female")
+        self.assertEqual(report["classification_profile"], "human-skoglund-2013")
         self.assertEqual(report["y_fraction"], 0.0)
         self.assertTrue(report["sufficient_data"])
 
@@ -57,6 +72,16 @@ class RxyTests(unittest.TestCase):
         self.assertEqual(report["observed_x_contigs"], ["NC_009175.3"])
         self.assertEqual(report["observed_y_contigs"], ["NC_009176.3"])
 
+    def test_ratio_only_reports_observation_without_classification(self) -> None:
+        report = self.run_idxstats(
+            "chrX\t1000\t800\t0\nchrY\t1000\t200\t0\n",
+            profile="ratio-only",
+        )
+        self.assertEqual(report["classification"], "not_assessed")
+        self.assertEqual(report["y_fraction"], 0.2)
+        self.assertTrue(report["read_depth_sufficient"])
+        self.assertFalse(report["sufficient_data"])
+
     def test_rejects_reference_without_declared_y_chromosome(self) -> None:
         module = load_rxy()
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -69,7 +94,15 @@ class RxyTests(unittest.TestCase):
                 SystemExit,
                 "declared Y chromosome contigs are absent from the alignment reference",
             ):
-                module.main(["--idxstats", str(path)], stdout=io.StringIO())
+                module.main(
+                    [
+                        "--idxstats",
+                        str(path),
+                        "--classification-profile",
+                        "human-skoglund-2013",
+                    ],
+                    stdout=io.StringIO(),
+                )
 
     def test_rejects_malformed_idxstats(self) -> None:
         module = load_rxy()
@@ -77,7 +110,15 @@ class RxyTests(unittest.TestCase):
             path = Path(temporary_directory) / "idxstats.tsv"
             path.write_text("chrX\t1000\tnot-a-count\t0\n", encoding="utf-8")
             with self.assertRaises(SystemExit):
-                module.main(["--idxstats", str(path)], stdout=io.StringIO())
+                module.main(
+                    [
+                        "--idxstats",
+                        str(path),
+                        "--classification-profile",
+                        "human-skoglund-2013",
+                    ],
+                    stdout=io.StringIO(),
+                )
 
 
 if __name__ == "__main__":

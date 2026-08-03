@@ -4,7 +4,7 @@
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 ARG OCI_CREATED=governed-by-build-evidence
-ARG TOOL_VERSION=1.0.0
+ARG TOOL_VERSION=2.0.0
 LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
       org.opencontainers.image.revision="governed-by-build-evidence" \
       org.opencontainers.image.created="${OCI_CREATED}" \
@@ -25,8 +25,8 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 COPY containers/tools/rxy/rxy /usr/local/bin/rxy
 RUN chmod 0755 /usr/local/bin/rxy && \
-    test "$(sha256sum /usr/local/bin/rxy | cut -d ' ' -f 1)" = 1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38 && \
-    rxy --version | grep -F 'rxy 1.0.0'
+    test "$(sha256sum /usr/local/bin/rxy | cut -d ' ' -f 1)" = b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8 && \
+    rxy --version | grep -F 'rxy 2.0.0'
 
 USER 65532:65532
 WORKDIR /work

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Infer chromosomal sex from X/Y mapped-read counts."""
+"""Report R_y from X/Y mapped-read counts under an explicit interpretation profile."""
 
 from __future__ import annotations
 
@@ -11,17 +11,19 @@ import sys
 from pathlib import Path
 from typing import Iterable, TextIO
 
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 DEFAULT_X_CONTIGS = ("X", "chrX")
 DEFAULT_Y_CONTIGS = ("Y", "chrY")
+HUMAN_FEMALE_LIMIT = 0.016
+HUMAN_MALE_LIMIT = 0.075
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="rxy",
         description=(
-            "Infer chromosomal sex using the R_y proportion of Y-aligned reads "
-            "among reads aligned to X or Y."
+            "Report the R_y proportion of Y-aligned reads among reads aligned "
+            "to X or Y, with no implicit species-specific classification."
         ),
     )
     parser.add_argument("--version", action="version", version=f"rxy {VERSION}")
@@ -47,8 +49,17 @@ def _parser() -> argparse.ArgumentParser:
         metavar="NAME",
         help="exact Y contig name; repeat to accept aliases",
     )
-    parser.add_argument("--female-limit", type=float, default=0.016)
-    parser.add_argument("--male-limit", type=float, default=0.075)
+    parser.add_argument(
+        "--classification-profile",
+        required=True,
+        choices=("human-skoglund-2013", "custom", "ratio-only"),
+        help=(
+            "classification authority: fixed published human thresholds, "
+            "explicit custom thresholds, or an unclassified R_y observation"
+        ),
+    )
+    parser.add_argument("--female-limit", type=float)
+    parser.add_argument("--male-limit", type=float)
     parser.add_argument("--minimum-sex-reads", type=int, default=100)
     return parser
 
@@ -103,8 +114,9 @@ def _report(
     y_reads: int,
     observed_x_contigs: set[str],
     observed_y_contigs: set[str],
-    female_limit: float,
-    male_limit: float,
+    classification_profile: str,
+    female_limit: float | None,
+    male_limit: float | None,
     minimum_sex_reads: int,
 ) -> dict[str, object]:
     sex_reads = x_reads + y_reads
@@ -118,11 +130,14 @@ def _report(
     lower = max(0.0, y_fraction - margin) if margin is not None else None
     upper = min(1.0, y_fraction + margin) if margin is not None else None
 
-    if sex_reads < minimum_sex_reads:
+    read_depth_sufficient = sex_reads >= minimum_sex_reads
+    if not read_depth_sufficient:
         classification = "insufficient"
-    elif upper is not None and upper < female_limit:
+    elif classification_profile == "ratio-only":
+        classification = "not_assessed"
+    elif upper is not None and female_limit is not None and upper < female_limit:
         classification = "female"
-    elif lower is not None and lower > male_limit:
+    elif lower is not None and male_limit is not None and lower > male_limit:
         classification = "male"
     else:
         classification = "ambiguous"
@@ -143,7 +158,9 @@ def _report(
         "female_limit": female_limit,
         "male_limit": male_limit,
         "minimum_sex_reads": minimum_sex_reads,
+        "classification_profile": classification_profile,
         "classification": classification,
+        "read_depth_sufficient": read_depth_sufficient,
         "sufficient_data": sufficient,
         "confidence": 0.95 if sufficient else 0.0,
         "x_to_y_ratio": x_reads / y_reads if y_reads else 0.0,
@@ -151,12 +168,39 @@ def _report(
     }
 
 
+def _classification_thresholds(
+    profile: str,
+    female_limit: float | None,
+    male_limit: float | None,
+) -> tuple[float | None, float | None]:
+    if profile == "human-skoglund-2013":
+        if female_limit is not None or male_limit is not None:
+            raise ValueError("the human-skoglund-2013 profile has fixed published thresholds")
+        return HUMAN_FEMALE_LIMIT, HUMAN_MALE_LIMIT
+    if profile == "ratio-only":
+        if female_limit is not None or male_limit is not None:
+            raise ValueError("the ratio-only profile does not accept classification thresholds")
+        return None, None
+    if female_limit is None or male_limit is None:
+        raise ValueError("the custom profile requires --female-limit and --male-limit")
+    if not 0.0 <= female_limit < male_limit <= 1.0:
+        raise ValueError("custom limits must satisfy 0 <= female < male <= 1")
+    return female_limit, male_limit
+
+
 def main(argv: list[str] | None = None, stdout: TextIO = sys.stdout) -> int:
     args = _parser().parse_args(argv)
-    if not 0.0 <= args.female_limit < args.male_limit <= 1.0:
-        raise SystemExit("rxy: female and male limits must satisfy 0 <= female < male <= 1")
     if args.minimum_sex_reads < 1:
         raise SystemExit("rxy: --minimum-sex-reads must be positive")
+
+    try:
+        female_limit, male_limit = _classification_thresholds(
+            args.classification_profile,
+            args.female_limit,
+            args.male_limit,
+        )
+    except ValueError as error:
+        raise SystemExit(f"rxy: {error}") from error
 
     x_contigs = set(args.x_contigs or DEFAULT_X_CONTIGS)
     y_contigs = set(args.y_contigs or DEFAULT_Y_CONTIGS)
@@ -190,8 +234,9 @@ def main(argv: list[str] | None = None, stdout: TextIO = sys.stdout) -> int:
         y_reads,
         observed_x_contigs,
         observed_y_contigs,
-        args.female_limit,
-        args.male_limit,
+        args.classification_profile,
+        female_limit,
+        male_limit,
         args.minimum_sex_reads,
     )
     report["input"] = str(args.input if args.input is not None else args.idxstats)

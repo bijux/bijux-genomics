@@ -19,7 +19,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.revision governed-by-build-evidence
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses Apache-2.0
-    org.opencontainers.image.version 1.0.0
+    org.opencontainers.image.version 2.0.0
     org.opencontainers.image.tool rxy
     org.opencontainers.image.title rxy
 
@@ -42,16 +42,16 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends python3 samtools=1.19.2-1build2
     chmod 0755 /usr/local/bin/rxy
-    test "$(sha256sum /usr/local/bin/rxy | cut -d ' ' -f 1)" = 1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38
-    rxy --version | grep -F 'rxy 1.0.0'
+    test "$(sha256sum /usr/local/bin/rxy | cut -d ' ' -f 1)" = b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8
+    rxy --version | grep -F 'rxy 2.0.0'
     rm -rf /var/lib/apt/lists/*
 
 %runscript
     exec /usr/local/bin/rxy "$@"
 
 %test
-    rxy --version | grep -F 'rxy 1.0.0'
+    rxy --version | grep -F 'rxy 2.0.0'
     rxy --help >/dev/null
 
 %help
-    Bijux Genomics R_y chromosomal-sex inference with explicit contig controls.
+    Bijux Genomics R_y observation with explicit contig and interpretation profiles.
