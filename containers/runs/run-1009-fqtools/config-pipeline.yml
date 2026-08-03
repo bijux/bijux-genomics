@@ -1,0 +1,42 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1009
+  campaign: horse-wgs-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.validate
+  tool: fqtools
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132
+  commit: a7690273fbf58648d4adf485d7d4037e0f983132
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fqtools-2.3-linux-amd64-a0f39cc7e90e.sif
+  sha256: a0f39cc7e90e778b603d41d23780a0add9bb0ded2849d73d0787f4e1d7c96488
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-pair1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+commands:
+  version: [fqtools, --version]
+  help: [fqtools, --help]
+  real: [fqtools, validate, /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz]
+  negative: [fqtools, validate, /governed-missing.fastq.gz]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fqtools/run-1009
+  required_files: [real.stdout.log]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 2048
+  walltime: 00:30:00
+  scratch_mb: 1024
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance:
+  version_regex: '^2[.]3$'
+  negative_exit_nonzero: true

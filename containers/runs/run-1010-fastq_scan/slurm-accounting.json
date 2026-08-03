@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T14:10:17.749533+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "d9788a62775888256e900c0db408dacfed968e9d1d40e5e9e23a547ed22c9fae",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "2",
+      "Elapsed": "00:00:02",
+      "ElapsedRaw": "2",
+      "ExitCode": "0:0",
+      "JobID": "3457604",
+      "JobName": "fastq-qc-fastq_scan-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn010",
+      "ReqMem": "2G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1010",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457604",
+  "submit_script_sha256": "00dfc6cf4f71bd69bfde02c3ed284df79b5148c1d850cbb5d9307531cc98cad0"
+}

@@ -1,0 +1,126 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/seqpurge-2026_06-linux-amd64-890faffc5519.sif",
+    "sha256": "890faffc55199eb4bbf40a2394d1ca6781f400e9c3e18e28a0de1f92de3ed705",
+    "size_bytes": 291708928
+  },
+  "repository_commit": "58233a97a6ff6f4523cae1eb9d2b631f297d0520",
+  "run_id": "run-1012",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457613",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "fe10c07c6d289f8474b49e593f87811a2e6f14c68fb451ed21c3538f822ebd3f",
+      "size_bytes": 2608
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "54056665deec48212e71250a289d4c68b7cc6c04c7854683575007f3c1eaeaa7",
+      "size_bytes": 4327
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "53c7cb4c9d7a550a07f4d863e5faf4dc09deeebea7a6125c54b6b9746fa60749",
+      "size_bytes": 3538
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "a3e7188484f6c91664e429558304d4c88f6d83fa8f00bbebd3faf2a34ed685c4",
+      "size_bytes": 195
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "bd62cc96b1e29bbb9eb99919d4bc96aab11039dd60390b54e0e5272fa682bea7",
+      "size_bytes": 931
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "c43922ffd6183ef0aadf0d6722c0fbd182a1fde912591ae2c91228111ac9d60b",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "856fb33231a27eb6f74011ec07c60acde7754c509c5b7d8365dee056713a145a",
+      "size_bytes": 1062
+    },
+    {
+      "path": "summary.txt",
+      "sha256": "368b37b47e7eb87bc14d786f6539744b10e4f24543ebf0854a7259070bb6f814",
+      "size_bytes": 1548
+    },
+    {
+      "path": "trimmed_1.fastq.gz",
+      "sha256": "18777e63af75a340d60dc52bc96a197b832ac65479054ce574a0367cdbfeb22a",
+      "size_bytes": 8945157
+    },
+    {
+      "path": "trimmed_2.fastq.gz",
+      "sha256": "717e39c3ab8a62c3cf86bc6e8c947c2fd7b739d62740a4e40167759573e66dc8",
+      "size_bytes": 9162121
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "ad89aee9c8bafe6f876a7b85d0b3d97e87177678a8e59fc803ab21c124400abe",
+      "size_bytes": 17
+    }
+  ],
+  "source_result": "results/container-validation/seqpurge/run-1012",
+  "tool": "seqpurge",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "fe10c07c6d289f8474b49e593f87811a2e6f14c68fb451ed21c3538f822ebd3f",
+      "size_bytes": 2608
+    },
+    "evidence.json": {
+      "sha256": "54056665deec48212e71250a289d4c68b7cc6c04c7854683575007f3c1eaeaa7",
+      "size_bytes": 4327
+    },
+    "slurm-accounting.json": {
+      "sha256": "bd62cc96b1e29bbb9eb99919d4bc96aab11039dd60390b54e0e5272fa682bea7",
+      "size_bytes": 931
+    }
+  }
+}

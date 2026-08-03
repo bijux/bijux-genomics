@@ -1,0 +1,61 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1011
+  campaign: horse-wgs-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq-to-bam
+  stage: bam.convert
+  tool: samtools
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132
+  commit: a7690273fbf58648d4adf485d7d4037e0f983132
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif
+  sha256: 5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f
+data:
+  inputs:
+    - id: bwa-run-1004-alignment-sam
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1004/real.stdout.log
+      sha256: f531b482cc3738c84959675da5ebccab2844b30d6d4f4449aed870aab87dc87a
+commands:
+  version:
+    - samtools
+    - --version
+  help:
+    - samtools
+    - --help
+  real:
+    - samtools
+    - view
+    - -@
+    - '4'
+    - -b
+    - -o
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1011/aligned.bam
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1004/real.stdout.log
+  negative:
+    - samtools
+    - view
+    - /governed-missing-alignment.sam
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1011
+  required_files:
+    - aligned.bam
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 8192
+  walltime: 01:00:00
+  scratch_mb: 2048
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^samtools 1[.]20(?:\n|$)'
+  negative_exit_nonzero: true
