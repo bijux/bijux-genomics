@@ -77,6 +77,8 @@ class BenchmarkEvidenceTests(unittest.TestCase):
         report = {
             "stage_id": "bam.genotyping",
             "run_id": "run-2001",
+            "evidence_tier": "qualification",
+            "benchmark_profile_id": "bam-biological-inference",
             "verdict": "passed",
             "interpretation": "Candidate-site recovery is not genotype accuracy.",
             "scientific_question": "Can the governed execution recover candidate sites?",
@@ -91,6 +93,7 @@ class BenchmarkEvidenceTests(unittest.TestCase):
                 "warmup_repetitions": 1,
                 "measured_repetitions": 3,
                 "corpus_catalog_ids": ["corpus"],
+                "corpus_ids": ["ancient-horse-alignment-qualification"],
                 "reference_catalog_ids": ["reference"],
                 "database_catalog_ids": ["database"],
                 "result_artifact": "genotypes.tsv",

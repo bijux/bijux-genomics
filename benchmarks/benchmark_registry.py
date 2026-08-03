@@ -23,6 +23,12 @@ REQUIRED_PERFORMANCE_METRICS = {
     "input_bytes",
     "output_bytes",
 }
+COMPARATIVE_PERFORMANCE_METRICS = REQUIRED_PERFORMANCE_METRICS | {
+    "cpu_utilization_percent",
+    "filesystem_read_bytes",
+    "filesystem_write_bytes",
+    "throughput_input_bytes_per_second",
+}
 
 
 class RegistryError(RuntimeError):
@@ -115,6 +121,13 @@ def validate_registry(
         run_id = require_text(campaign, "run_id")
         stage_id = require_text(campaign, "stage_id")
         slug = require_text(campaign, "slug")
+        evidence_tier = require_text(campaign, "evidence_tier")
+        if evidence_tier not in {"qualification", "comparative"}:
+            raise RegistryError(
+                "benchmark evidence_tier must be qualification or comparative"
+            )
+        require_text(campaign, "profile_id")
+        require_text_list(campaign, "corpus_ids")
         if RUN_PATTERN.fullmatch(run_id) is None:
             raise RegistryError(f"benchmark run ID is outside run-2001+: {run_id}")
         expected_slug = re.sub(r"[^a-z0-9]+", "-", stage_id.lower()).strip("-")
@@ -195,6 +208,12 @@ def validate_registry(
             raise RegistryError(
                 f"benchmark performance metrics are incomplete for {stage_id}"
             )
+        if evidence_tier == "comparative" and not COMPARATIVE_PERFORMANCE_METRICS.issubset(
+            performance_metrics
+        ):
+            raise RegistryError(
+                f"comparative performance metrics are incomplete for {stage_id}"
+            )
         if campaign.get("runtime") != "apptainer":
             raise RegistryError("stage benchmarks must use Apptainer")
         if campaign.get("scheduler") != "slurm":
@@ -232,7 +251,9 @@ def coverage_report(
     for stage_id, tools in sorted(stage_tools.items()):
         campaign = defined.get(stage_id)
         execution_status = "not_defined"
+        definition_status = "missing"
         if campaign:
+            definition_status = str(campaign["evidence_tier"])
             execution_status = "not_admitted"
             if evidence_root is not None:
                 evidence_path = (
@@ -268,16 +289,22 @@ def coverage_report(
                 "stage_id": stage_id,
                 "retained_tools": sorted(tools),
                 "campaign_run_id": campaign.get("run_id") if campaign else None,
-                "definition_status": "defined" if campaign else "missing",
+                "definition_status": definition_status,
                 "execution_status": execution_status,
             }
         )
     admitted = sum(row["execution_status"] == "admitted" for row in rows)
+    qualification = sum(
+        row["definition_status"] == "qualification" for row in rows
+    )
+    comparative = sum(row["definition_status"] == "comparative" for row in rows)
     return {
         "schema_version": "bijux.container.stage_benchmark_coverage.v1",
         "summary": {
             "retained_stage_count": len(rows),
             "defined_stage_count": len(defined),
+            "qualification_stage_count": qualification,
+            "comparative_stage_count": comparative,
             "admitted_stage_count": admitted,
             "missing_stage_count": len(rows) - len(defined),
         },
@@ -291,15 +318,18 @@ def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -
     summary = report["summary"]
     lines = [
         "<!-- GENERATED FILE - DO NOT EDIT -->",
-        "<!-- source: containers/benchmarks/benchmark_registry.py -->",
+        "<!-- source: benchmarks/benchmark_registry.py -->",
         "# Stage benchmark coverage",
         "",
-        "A defined campaign has complete retained-tool closure and a reproducible",
-        "measurement contract. It is not marked executed until Slurm evidence is",
-        "admitted separately.",
+        "A qualification campaign proves container execution, retained-tool closure,",
+        "and a reproducible measurement contract. It is not a comparative scientific",
+        "benchmark. Comparative readiness is governed separately by the corpus portfolio,",
+        "truth strategy, cohort size, output contract, and downstream substitution probes.",
         "",
         f"- Retained stages: **{summary['retained_stage_count']}**",
         f"- Defined campaigns: **{summary['defined_stage_count']}**",
+        f"- Qualification-only campaigns: **{summary['qualification_stage_count']}**",
+        f"- Comparative campaigns: **{summary['comparative_stage_count']}**",
         f"- Admitted campaigns: **{summary['admitted_stage_count']}**",
         f"- Missing campaigns: **{summary['missing_stage_count']}**",
         "",

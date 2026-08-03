@@ -373,6 +373,8 @@ def create_report(
         "verdict": comparison_verdict(comparison),
         "run_id": run_id,
         "stage_id": campaign["stage_id"],
+        "evidence_tier": campaign["evidence_tier"],
+        "benchmark_profile_id": campaign["profile_id"],
         "scientific_question": campaign["scientific_question"],
         "comparison_scope": campaign["comparison_scope"],
         "accuracy_claim": campaign["accuracy_claim"],
@@ -385,6 +387,7 @@ def create_report(
             "warmup_repetitions": campaign["warmup_repetitions"],
             "measured_repetitions": campaign["measured_repetitions"],
             "tool_closure": campaign["tool_ids"],
+            "corpus_ids": campaign["corpus_ids"],
             "corpus_catalog_ids": campaign["corpus_catalog_ids"],
             "reference_catalog_ids": campaign["reference_catalog_ids"],
             "database_catalog_ids": campaign["database_catalog_ids"],
@@ -402,10 +405,18 @@ def render_markdown(report: dict[str, Any]) -> str:
     design = report["design"]
     lines = [
         "<!-- GENERATED FILE - DO NOT EDIT -->",
-        "<!-- source: containers/benchmarks/benchmark_evidence.py -->",
-        f"# {report['stage_id']} benchmark",
+        "<!-- source: benchmarks/benchmark_evidence.py -->",
+        f"# {report['stage_id']} {report['evidence_tier']}",
         "",
         f"**Verdict: {report['verdict']}.** {report['interpretation']}",
+        "",
+        (
+            "This is qualification evidence. It proves the declared execution and "
+            "metric contract on the named data, but it is not a comparative scientific "
+            "benchmark and must not be used to rank tools."
+            if report["evidence_tier"] == "qualification"
+            else "This is comparative evidence governed by the declared scientific profile."
+        ),
         "",
         "## Scientific scope",
         "",
@@ -418,6 +429,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "## Design",
         "",
         f"- Campaign: `{report['run_id']}`",
+        f"- Evidence tier: `{report['evidence_tier']}`",
+        f"- Scientific profile: `{report['benchmark_profile_id']}`",
         f"- Tool closure: {', '.join(f'`{tool}`' for tool in design['tool_closure'])}",
         f"- Execution: {design['runtime']} under {design['scheduler']}, container-only",
         "- Threads by tool: "
@@ -428,6 +441,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Cache policy: {design['cache_policy']}",
         f"- Repetitions: {design['warmup_repetitions']} warmup and {design['measured_repetitions']} measured",
         f"- Corpus: {', '.join(f'`{item}`' for item in design['corpus_catalog_ids'])}",
+        f"- Corpus portfolio: {', '.join(f'`{item}`' for item in design['corpus_ids'])}",
         f"- Reference: {', '.join(f'`{item}`' for item in design['reference_catalog_ids'])}",
         "- Databases: "
         + (

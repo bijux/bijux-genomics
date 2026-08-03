@@ -16,7 +16,7 @@ benchmark_registry = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = benchmark_registry
 SPEC.loader.exec_module(benchmark_registry)
 
-ROOT = Path(__file__).parents[3]
+ROOT = Path(__file__).parents[2]
 
 
 class BenchmarkRegistryTests(unittest.TestCase):
@@ -25,13 +25,14 @@ class BenchmarkRegistryTests(unittest.TestCase):
             ROOT / "containers/contracts/catalog.toml"
         )
         self.registry = benchmark_registry.load_toml(
-            ROOT / "containers/benchmarks/campaigns.toml"
+            ROOT / "benchmarks/campaigns.toml"
         )
 
     def test_campaigns_cover_every_retained_tool_for_the_stage(self) -> None:
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
 
         self.assertEqual(campaigns[0]["stage_id"], "bam.genotyping")
+        self.assertEqual(campaigns[0]["evidence_tier"], "qualification")
         self.assertEqual(campaigns[0]["tool_ids"], ["bcftools"])
         self.assertEqual(campaigns[1]["stage_id"], "bam.coverage")
         self.assertEqual(campaigns[1]["tool_ids"], ["bedtools", "mosdepth", "samtools"])
@@ -94,6 +95,8 @@ class BenchmarkRegistryTests(unittest.TestCase):
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
 
         self.assertEqual(report["summary"]["defined_stage_count"], 4)
+        self.assertEqual(report["summary"]["qualification_stage_count"], 4)
+        self.assertEqual(report["summary"]["comparative_stage_count"], 0)
         self.assertEqual(report["summary"]["admitted_stage_count"], 0)
         self.assertGreater(report["summary"]["missing_stage_count"], 1)
 
