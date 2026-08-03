@@ -1191,15 +1191,20 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         let upstream =
             catalog_row.get("upstream").and_then(toml::Value::as_str).unwrap_or_default();
         let license = {
-            let spdx = table_string(&license_row, "spdx");
-            if !spdx.is_empty() {
-                spdx
+            let catalog_license = table_string(&catalog_row, "license");
+            if !catalog_license.is_empty() {
+                catalog_license
             } else {
-                let upstream = table_string(version_row, "upstream_license");
-                if upstream.is_empty() {
-                    "unknown".to_string()
+                let spdx = table_string(&license_row, "spdx");
+                if !spdx.is_empty() {
+                    spdx
                 } else {
-                    upstream
+                    let upstream = table_string(version_row, "upstream_license");
+                    if upstream.is_empty() {
+                        "unknown".to_string()
+                    } else {
+                        upstream
+                    }
                 }
             }
         };
