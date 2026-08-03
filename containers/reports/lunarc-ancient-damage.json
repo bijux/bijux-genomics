@@ -315,6 +315,102 @@
         "gelman_diagnostic": 1.000006,
         "gelman_upper_confidence_limit": 1.000031
       }
+    },
+    {
+      "tool": "damageprofiler",
+      "run_id": "run-1110",
+      "repository_commit": "692c078e4a08607d98bce357900477fcbd3a260d",
+      "slurm_job_id": "3458152",
+      "status": "failed",
+      "failure_class": "direct_bam_recalculation_and_negative_input_contract",
+      "elapsed_seconds": 26,
+      "image_sha256": "860802600f732b9f038487a19117fea7a013734975879204235b2edc3caa5de8",
+      "build_evidence_sha256": "302c665f2c810e92625849445158cd3b9a57606b4212e2d0661dc8d2ad446d0a",
+      "evidence_sha256": "be46960ffd0989d743af94a3d91a0a40f538098dff3554d4267bb051b36a206b",
+      "accounting_sha256": "13b83e292f2f690a955f1b05bc79fd32615120d3059a286500fd8a0888852f"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1111",
+      "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+      "slurm_job_id": "3458153",
+      "status": "failed",
+      "failure_class": "calmd_help_exit_contract",
+      "elapsed_seconds": 17,
+      "image_sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+      "evidence_sha256": "b81d7a380cd712140800521038d58d49e8108fc3110547e0dbc330442751258d",
+      "accounting_sha256": "553b0e3271d99c71ed5be0c9597a0347250f05d67f6dbfab7186087746e94866",
+      "retained_output_sha256": "8f6b56f8699512142726bf2f1911680897443ccd03f22affc56ebca614719716"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1112",
+      "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+      "slurm_job_id": "3458154",
+      "status": "passed",
+      "elapsed_seconds": 17,
+      "image_sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+      "build_evidence_sha256": "9f0b39e8c8b5947f92e4c519d540fe2eb025b469f175c9dbecd518a2052fe0aa0",
+      "evidence_sha256": "8d4cdeaf60ee3d74d3cfd4a4a8ab7afa649994fd9384bc1203def343729e9a89",
+      "accounting_sha256": "cdb494223635d3f2df174ab6f93572c638502ebcd17f0de85cff1791f3a31693",
+      "output_sha256": "8f6b56f8699512142726bf2f1911680897443ccd03f22affc56ebca614719716",
+      "output_bytes": 86363579,
+      "operation": "recalculate_md_and_nm_tags"
+    },
+    {
+      "tool": "damageprofiler",
+      "run_id": "run-1113",
+      "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+      "slurm_job_id": "3458155",
+      "status": "failed",
+      "failure_class": "missing_harfbuzz_runtime",
+      "elapsed_seconds": 7,
+      "image_sha256": "eb310de6eefec837f53969e20b164b9e813ed69d11e599bb231268b7962fdb52",
+      "build_evidence_sha256": "09d87eba4f18b974cd5031b0fdef10ffb82f43d3edc885c14662dfc650e9a918",
+      "evidence_sha256": "d6810f161349031ddac1dd819673e33fda398562401b10da404718e2afd3c6fd",
+      "accounting_sha256": "66b0ba55570c2699f836473593c974996a5df7e5c50d7a7fcdc4126c865b5914"
+    },
+    {
+      "tool": "damageprofiler",
+      "run_id": "run-1114",
+      "repository_commit": "cb582d90ed023a6cd54d1ee309e0ac404e8927f2",
+      "slurm_job_id": "3458159",
+      "status": "failed",
+      "failure_class": "missing_font_configuration",
+      "elapsed_seconds": 7,
+      "image_sha256": "4c135c9ca508fa0edb68ae59472cb4dafd2fde99cfcfcb9e73f79e6607f60420",
+      "build_evidence_sha256": "359265a8164cc3930fb0c55ec85c5057086b337c17a86b4c397a888fc157a9f2",
+      "evidence_sha256": "1f1932c0720056bd20cc9a0f1c338d258506f75e88f040128e275bd21153344a",
+      "accounting_sha256": "114897f9a8959ba0e4293c3f19c5d478255a2d48fe433b43cee04d36d660cb00"
+    },
+    {
+      "tool": "damageprofiler",
+      "run_id": "run-1115",
+      "repository_commit": "2b7081b7f8deb3c75bb71c59d6a5d538aa153c26",
+      "slurm_job_id": "3458162",
+      "status": "passed",
+      "elapsed_seconds": 9,
+      "image_sha256": "f4378bded3587306c997c6c7bb3eb8f83be3beb29d4bb17bab432962d8c97f13",
+      "image_size_bytes": 169828352,
+      "build_evidence_sha256": "107b3a3e5ca6db6551bcff8e614a11926c42e1405e12459b2ab2bfdc8cc8b0f9",
+      "evidence_sha256": "85d8523da9f1f89fbdcd6d34b100492fd88b260749022af01fc4e5b23541a471",
+      "accounting_sha256": "8105cd219644b38de703c4d08acee4654ae375624468f4648e89c915502f789a",
+      "outputs": {
+        "c_to_t_5p_sha256": "6b5c826376db1fa1518431b5999547dd2b93aee07ac63393d600e23c393e334b",
+        "g_to_a_3p_sha256": "d7bec1c6af1c577ca0e80dcd9f9e06f96ae99499c39a0981828c3710c015f2ae",
+        "misincorporation_sha256": "f7e03e8116235db75854fcff9deeaebd8667be75080a6af08b1a5508e695a92b",
+        "summary_json_sha256": "d019698f44e5fd8018000dea898dbe889c3c69aa9c19c09dadd82427b3e954eb",
+        "log_sha256": "6d1ce7d6e9ab3ba645f284091574d0b456aeb8e90e994aab86812ff13d871c94",
+        "plot_5p_svg_sha256": "0846fb9a8c939eb3fc2b643ea41fb75121b56d4bfe531b4771cd8342e309f83b",
+        "plot_3p_svg_sha256": "b30362cc995cf236c6e641ca037a45180af6937d21d8fdcdd6996cee1f0cb38e"
+      },
+      "observations": {
+        "c_to_t_5p": 0.003997039230199852,
+        "g_to_a_3p": 0.00367764238605438,
+        "mean_read_length": 98.51771720264975,
+        "median_read_length": 101.0,
+        "read_length_standard_deviation": 14.44743005770224
+      }
     }
   ]
 }
