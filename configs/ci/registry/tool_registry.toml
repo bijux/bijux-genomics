@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 9483c001d347e4556b234cd1d723067fa865b680
+# source_commit: 9d9dcae8aa2daa158c4864df4b1375c08dea6b22
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -736,10 +736,10 @@ version = "1.1"
 default_version = "1.1"
 upstream = "https://github.com/Integrative-Transcriptomics/DamageProfiler"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "GPL-3.0-only"
 citation = "paper:https://academic.oup.com/bioinformatics/article/37/20/3652/6247758"
-pinned_commit = "git:3be52404124ae294f0eaf2fa622fe8af548bb6ed"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:009a5d6a638f73ef9b7f9e3cf0182e184a176d8b9e9344d33a850f2b7945a126"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/damageprofiler:1.1"
 runtimes = ["docker", "apptainer"]
 container = true
@@ -747,7 +747,7 @@ version_cmd = "damageprofiler --version"
 help_cmd = "damageprofiler --help"
 smoke_version_cmd = "damageprofiler --version"
 smoke_help_cmd = "damageprofiler --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "DamageProfiler v1[.]1"
 healthcheck_cmd = "damageprofiler --help"
 expected_bin = "damageprofiler"
 expected_artifacts = ["damage_profile", "damage_plot"]

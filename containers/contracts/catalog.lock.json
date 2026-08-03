@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "eb1af67df9e78e74e81d4df796650460ce92565c2b015aee526594b0a6c55dfa",
+  "source_sha256": "c3025fb6ea219b5270d3b2a0c3a30821d833e7b6af42f6857604f72b82da6e24",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -88,7 +88,7 @@
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
       "apptainer_definition": "containers/apptainer/angsd.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.angsd",
-      "contract_sha256": "5155403bd3fb0d2ff9a3a74f921b7f3c3393d0989c07946207a5544ae3b987ab"
+      "contract_sha256": "e26ae6ca6d5ec5a5cad2785116fb6877aaaaf0ee6d7007c3a0dc0f65b8f52331"
     },
     {
       "id": "atropos",
@@ -398,12 +398,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-only",
+      "source_sha256": "009a5d6a638f73ef9b7f9e3cf0182e184a176d8b9e9344d33a850f2b7945a126",
       "pinned_commit": "3be52404124ae294f0eaf2fa622fe8af548bb6ed",
       "apptainer_definition": "containers/apptainer/damageprofiler.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.damageprofiler",
-      "contract_sha256": "d325460c9722d6e6812b0098427255ddbec453c9eefaec67b853aac2ee02bcc4"
+      "contract_sha256": "a72639b7ee545af3792d27966463ffc5ae8ce304c75ed94c82a009e264ad7198"
     },
     {
       "id": "diamond",
