@@ -3,7 +3,7 @@
   "sources": {
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "9bd407332d3a217f8ecf9e8259c6d63442a41be5e93d2bb070431462ef560cbd"
+      "sha256": "95c11fd56889594d73101d133b647e3bacf58c26d17c2c3ee96bcba2b7aad7d6"
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",

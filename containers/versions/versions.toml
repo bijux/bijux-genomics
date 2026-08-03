@@ -610,9 +610,11 @@ pinned_commit = "63138fc8b7ae33eb0490a8ef707b61befa2f51d4"
 
 [preseq]
 version = "3.2.0"
-source = "https://github.com/smithlabcode/preseq"
-date_pinned = "2026-02-16"
+source = "https://github.com/smithlabcode/preseq/releases/download/v3.2.0/preseq-3.2.0.tar.gz"
+date_pinned = "2026-08-03"
 pinned_commit = "3dc2a7b1a2d3fdadedaeffebdceb29ea88dbd8bb"
+source_sha256 = "95b81c9054e0d651de398585c7e96b807ad98f0bdc541b3e46665febbe2134d9"
+upstream_license = "GPL-3.0-or-later"
 
 [seqfu]
 version = "1.26.0"

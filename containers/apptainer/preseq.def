@@ -18,9 +18,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %labels
     org.opencontainers.image.source https://github.com/smithlabcode/preseq
     org.opencontainers.image.title preseq
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 3dc2a7b1a2d3fdadedaeffebdceb29ea88dbd8bb
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 3.2.0
     org.opencontainers.image.tool preseq
 %environment
@@ -30,20 +30,33 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export VERSION_PRESEQ=3.2.0
 %post
     set -eux
+    # NETWORK_SOURCE_VERIFIED_BY_LOCK
     umask 022
+    VERSION_PRESEQ=3.2.0
+    PRESEQ_SHA256=95b81c9054e0d651de398585c7e96b807ad98f0bdc541b3e46665febbe2134d9
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
-    apt-get install -y --no-install-recommends samtools
-    cat > /usr/local/bin/preseq <<'EOS'
-#!/usr/bin/env sh
-set -eu
-case "${1:-}" in
-  --version) echo "${VERSION_PRESEQ}"; exit 0 ;;
-  --help|-h|"") echo "preseq compatibility wrapper"; exit 0 ;;
-esac
-exec samtools stats "$@"
-EOS
-    chmod 0755 /usr/local/bin/preseq
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
+        libhts-dev
+
+    curl --fail --location --silent --show-error \
+        "https://github.com/smithlabcode/preseq/releases/download/v${VERSION_PRESEQ}/preseq-${VERSION_PRESEQ}.tar.gz" \
+        --output /tmp/preseq.tar.gz
+    echo "${PRESEQ_SHA256}  /tmp/preseq.tar.gz" | sha256sum --check --strict
+    tar --extract --gzip --file /tmp/preseq.tar.gz --directory /tmp
+    cd "/tmp/preseq-${VERSION_PRESEQ}"
+    ./configure --prefix=/usr/local --enable-hts
+    make -j2
+    make install
+
+    install -d -m 0755 /opt/preseq/test-data
+    install -m 0644 data/SRR1301329_1M_hist.txt /opt/preseq/test-data/counts.hist
+    preseq c_curve -H -o /tmp/preseq-self-test.txt /opt/preseq/test-data/counts.hist
+    test -s /tmp/preseq-self-test.txt
+    rm -rf "/tmp/preseq-${VERSION_PRESEQ}" /tmp/preseq.tar.gz /tmp/preseq-self-test.txt
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
@@ -52,4 +65,11 @@ EOS
         exec preseq "$@"
     fi
 %help
-    preseq compatibility image.
+    This image provides upstream Preseq 3.2.0 with HTSlib support for BAM input.
+
+%test
+    preseq 2>&1 | grep -F 'Version: 3.2.0'
+    preseq --help 2>&1 | grep -F 'Usage:   preseq <command>'
+    preseq c_curve -H -o /tmp/preseq-curve.txt /opt/preseq/test-data/counts.hist
+    test -s /tmp/preseq-curve.txt
+    if preseq c_curve -H /input/does-not-exist.hist >/dev/null 2>&1; then exit 1; fi

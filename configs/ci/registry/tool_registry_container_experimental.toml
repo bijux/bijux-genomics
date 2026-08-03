@@ -141,6 +141,7 @@ domains = ["bam"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "preseq"
+license = "GPL-3.0-or-later"
 smoke_version_cmd = "preseq --version"
 smoke_help_cmd = "preseq --help"
 dockerfile = "containers/docker/Dockerfile.arm64.preseq"
