@@ -34,7 +34,7 @@ repository commit. A stale source remains auditable but contributes no pass.
 |---|---:|
 | `catalog` | 85 |
 | `source` | 85 |
-| `build` | 84 |
+| `build` | 85 |
 | `runtime` | 85 |
 | `stage` | 47 |
 | `real_data` | 47 |
@@ -42,7 +42,7 @@ repository commit. A stale source remains auditable but contributes no pass.
 | `benchmark` | 4 |
 | `security` | 0 |
 | `release` | 0 |
-| `freshness` | 84 |
+| `freshness` | 85 |
 
 ## Tool matrix
 
@@ -67,7 +67,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `bcftools` | `1.20` | retained | pass | pass | missing | missing | pass | missing | missing | **unverified** |
 | `beagle` | `5.4` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `bedtools` | `2.31.1` | retained | pass | pass | pass | missing | pass | missing | missing | **unverified** |
-| `bijux_dna` | `0.1.0` | retained | missing | pass | missing | missing | missing | missing | missing | **unverified** |
+| `bijux_dna` | `0.1.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `bowtie2` | `2.5.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bowtie2_build` | `2.5.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bracken` | `2.9` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |

@@ -27,7 +27,7 @@
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
-      "sha256": "9421db8bdb82bfe35b39cc319227633bc2e521e8ec317a83180ddfd3bbcc256a"
+      "sha256": "e8c4e15942c5addea19520e0ccaefacc1e7cd5fa3a45e52b8a833bdf6fbcbe04"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
@@ -35,15 +35,15 @@
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
-      "sha256": "e3d099075c681d26f4596ab1337ba089b099fd937260fcd886d254598b2feabe"
+      "sha256": "a9598fcdf3f01e73c45724d132adae9cf63e5d8a1564e6c3a72c9404465f295c"
     }
   },
   "summary": {
     "dimension_passes": {
       "benchmark": 4,
-      "build": 84,
+      "build": 85,
       "catalog": 85,
-      "freshness": 84,
+      "freshness": 85,
       "real_data": 47,
       "release": 0,
       "runtime": 85,
@@ -577,9 +577,9 @@
       "declared_real_test_stage": "fastq.detect_duplicates_premerge",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -588,20 +588,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bijux_dna",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],

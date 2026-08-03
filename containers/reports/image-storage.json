@@ -10,31 +10,24 @@
     "plan_applied": true
   },
   "historical_dependencies_preserved": 3,
-  "moved_file_count": 3,
+  "moved_file_count": 2,
   "moved_images": [
     {
       "category": "obsolete",
-      "name": "bedtools-2.31.1-linux-amd64-4e2c0d7c8141.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/2738ed91e391016513bbcaa17a783245970c0bb0/obsolete/bedtools-2.31.1-linux-amd64-4e2c0d7c8141.sif",
-      "sha256": "4e2c0d7c8141fe95d9e0d6cdff8a2042b7f1344c0adc6cbd4d21e577f50a1ebd",
-      "size_bytes": 45846528
+      "name": "bijux_dna-0.1.0-linux-amd64-ed8434190891.sif",
+      "quarantine_path": "containers/apptainer/.quarantine/5a2f9252ed08b6a55b6d086828d850c0b961dbfc/obsolete/bijux_dna-0.1.0-linux-amd64-ed8434190891.sif",
+      "sha256": "ed8434190891ee95da032f818ad10f62fcee8ee5453a404c1861455681a78e8a",
+      "size_bytes": 460161024
     },
     {
       "category": "obsolete",
-      "name": "mosdepth-0.3.11-linux-amd64-79e73d45f00f.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/2738ed91e391016513bbcaa17a783245970c0bb0/obsolete/mosdepth-0.3.11-linux-amd64-79e73d45f00f.sif",
-      "sha256": "79e73d45f00f841ba587d400ea641165b39dea15c2fde3ec080d99a9024b580b",
-      "size_bytes": 38264832
-    },
-    {
-      "category": "obsolete",
-      "name": "samtools-1.20-linux-amd64-4bc914c8549b.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/2738ed91e391016513bbcaa17a783245970c0bb0/obsolete/samtools-1.20-linux-amd64-4bc914c8549b.sif",
-      "sha256": "4bc914c8549bd325b57927f693d21f6c37e463e8a3d2b5e4dc5d3ad19e1d0861",
-      "size_bytes": 122355712
+      "name": "bijux_dna-0.1.0-linux-amd64-fa2e18e4b00a.sif",
+      "quarantine_path": "containers/apptainer/.quarantine/5a2f9252ed08b6a55b6d086828d850c0b961dbfc/obsolete/bijux_dna-0.1.0-linux-amd64-fa2e18e4b00a.sif",
+      "sha256": "fa2e18e4b00a0d54d0e024ef12b5a3b8793c9f42434d8936fcb1b3b1997e838b",
+      "size_bytes": 460161024
     }
   ],
-  "moved_size_bytes": 206467072,
+  "moved_size_bytes": 920322048,
   "post_storage_summary": {
     "historical_dependency_count": 3,
     "staged_image_count": 0,
@@ -50,16 +43,16 @@
     "command": "python3 -B containers/contracts/image_storage.py rollback --image-root <governed-containers-root>/apptainer --plan <governed-plan-path>",
     "mode": "same_filesystem_quarantine"
   },
-  "repository_commit": "2738ed91e391016513bbcaa17a783245970c0bb0",
+  "repository_commit": "5a2f9252ed08b6a55b6d086828d850c0b961dbfc",
   "schema_version": "bijux.container.image_storage_report.v1",
   "source_artifacts": {
     "post_storage_inventory": {
-      "sha256": "1a7cebdb50a3db6ddcf4042401595f47592bafdf15e895ee70f982c8d642701c",
-      "study_relative_path": "containers/evidence/inventory/2738ed91e391016513bbcaa17a783245970c0bb0/after-storage.json"
+      "sha256": "7777edc2adb367ae35851998e2c89627d729cc199e55f0bc43189b49bf74aa14",
+      "study_relative_path": "containers/evidence/inventory/5a2f9252ed08b6a55b6d086828d850c0b961dbfc/after-storage.json"
     },
     "storage_plan": {
-      "sha256": "e67645a4b03fc56df7d1af3af28af3f714740fb0d13abd4c72dc6ec7dcab0e5d",
-      "study_relative_path": "containers/evidence/inventory/2738ed91e391016513bbcaa17a783245970c0bb0/image-storage-plan.json"
+      "sha256": "50776e0cef5829660551d51348a44cb1564463c0908a38f9240dc30331434bdf",
+      "study_relative_path": "containers/evidence/inventory/5a2f9252ed08b6a55b6d086828d850c0b961dbfc/image-storage-plan.json"
     }
   },
   "verdict": "passed"

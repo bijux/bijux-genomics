@@ -70,7 +70,7 @@ qualification remain independent requirements.
 | `kraken2` | `2.1.3` | retained | **current** | 1 |
 | `krakenuniq` | `1.0.4` | retained | **current** | 0 |
 | `leehom` | `1.2.18` | retained | **current** | 1 |
-| `lighter` | `1.1.3` | retained | **current** | 0 |
+| `lighter` | `1.1.3` | retained | **current** | 1 |
 | `mapdamage2` | `2.2.2` | retained | **current** | 1 |
 | `metaphlan` | `4.1.1` | retained | **current** | 0 |
 | `minimac4` | `4.1.6` | retained | **current** | 0 |

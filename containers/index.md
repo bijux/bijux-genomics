@@ -14,12 +14,12 @@ steps alone establishes scientific validity or release readiness.
   benchmark evidence across two stage campaigns. No tool yet has scientific,
   security, or release acceptance.
 - [Canonical image storage](reports/image-storage.md): the latest governed
-  reconciliation moved three superseded SIFs into a checksummed, reversible
+  reconciliation moved superseded SIFs into a checksummed, reversible
   quarantine and left no unknown, staged, or unreferenced obsolete image.
 - [Complete-roster rebuild](reports/lunarc-image-rebuild.md): a previous frozen
   commit rebuilt 87 then-retained Apptainer images. The [current targeted
-  refresh](reports/lunarc-image-refresh.md) records the three recipes rebuilt
-  after the roster and runtime-measurement contracts changed.
+  refresh](reports/lunarc-image-refresh.md) records recipes rebuilt after
+  repository-owned build inputs changed.
 - [Image inventory](reports/image-inventory.md) and [runtime
   verification](reports/runtime-verification.md): all 85 supported tools have
   admitted images and passing version/help records. Qualification independently

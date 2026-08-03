@@ -1,6 +1,6 @@
 {
   "catalog_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
-  "created_at_utc": "2026-08-03T17:53:14.196910+00:00",
+  "created_at_utc": "2026-08-03T18:37:05.693141+00:00",
   "evidence_root": "study://containers/evidence",
   "historical_images": [
     {
@@ -35,9 +35,9 @@
       "study": "governed execution-site study root"
     },
     "raw_schema_version": "bijux.container.image_inventory.v1",
-    "raw_sha256": "1a7cebdb50a3db6ddcf4042401595f47592bafdf15e895ee70f982c8d642701c"
+    "raw_sha256": "7777edc2adb367ae35851998e2c89627d729cc199e55f0bc43189b49bf74aa14"
   },
-  "repository_commit": "2738ed91e391016513bbcaa17a783245970c0bb0",
+  "repository_commit": "5a2f9252ed08b6a55b6d086828d850c0b961dbfc",
   "runs_root": "repository://containers/runs",
   "schema_version": "bijux.container.image_inventory_publication.v1",
   "staged_images": [],
@@ -1096,7 +1096,7 @@
                   "path": "rustfmt.toml"
                 },
                 {
-                  "git_object": "182fba4f42f126cbb400c3b13c61fa63779a4e32",
+                  "git_object": "25a212fa7d79ea695aca7f42aafa0e93d0b6e588",
                   "path": "crates"
                 },
                 {
@@ -1122,23 +1122,23 @@
               "definition_matches_current": true,
               "definition_sha256": "4780b0580a53484294792924cc9124d2e9b9dcf371bfc62ca8ddad5a7523265f",
               "image_matches": true,
-              "path": "study://containers/evidence/bijux_dna-0.1.0-5a7e64cf5cbe.build.json",
-              "repository_commit": "32a447d03b36aeb617de08fda69f8b9fb1ff0f56",
+              "path": "study://containers/evidence/bijux_dna-0.1.0-4cb58a275c33.build.json",
+              "repository_commit": "5a2f9252ed08b6a55b6d086828d850c0b961dbfc",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "bijux_dna-0.1.0-linux-amd64-5a7e64cf5cbe.sif",
-          "path": "study://containers/apptainer/bijux_dna-0.1.0-linux-amd64-5a7e64cf5cbe.sif",
+          "name": "bijux_dna-0.1.0-linux-amd64-4cb58a275c33.sif",
+          "path": "study://containers/apptainer/bijux_dna-0.1.0-linux-amd64-4cb58a275c33.sif",
           "real_run_references": 0,
-          "sha256": "5a7e64cf5cbe13f9af7396a32a082348c844c992351074a8f8b66ac37735ccde",
+          "sha256": "4cb58a275c3301f2eb29a0227f0407746955c68e02824f2368349ec074935b4e",
           "size_bytes": 460161024
         }
       ],
-      "selected_image": "study://containers/apptainer/bijux_dna-0.1.0-linux-amd64-5a7e64cf5cbe.sif",
-      "selected_image_sha256": "5a7e64cf5cbe13f9af7396a32a082348c844c992351074a8f8b66ac37735ccde",
+      "selected_image": "study://containers/apptainer/bijux_dna-0.1.0-linux-amd64-4cb58a275c33.sif",
+      "selected_image_sha256": "4cb58a275c3301f2eb29a0227f0407746955c68e02824f2368349ec074935b4e",
       "state": "current",
       "support_disposition": "retained",
       "tool": "bijux_dna",
@@ -3519,7 +3519,7 @@
           "immutable_name": true,
           "name": "lighter-1.1.3-linux-amd64-92cc08026046.sif",
           "path": "study://containers/apptainer/lighter-1.1.3-linux-amd64-92cc08026046.sif",
-          "real_run_references": 0,
+          "real_run_references": 1,
           "sha256": "92cc08026046243b181c59feda88dc464f9d5e60f746581b9bd7e2534d8031d9",
           "size_bytes": 30830592
         }

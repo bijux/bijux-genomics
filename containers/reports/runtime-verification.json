@@ -3,32 +3,32 @@
     "path": "repository://containers/contracts/catalog.toml",
     "sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8"
   },
-  "finished_at_utc": "2026-08-03T17:53:44.928949+00:00",
+  "finished_at_utc": "2026-08-03T18:37:42.127102+00:00",
   "inventory": {
-    "path": "study://containers/evidence/inventory/2738ed91e391016513bbcaa17a783245970c0bb0/after-storage.json",
-    "sha256": "1a7cebdb50a3db6ddcf4042401595f47592bafdf15e895ee70f982c8d642701c"
+    "path": "study://containers/evidence/inventory/5a2f9252ed08b6a55b6d086828d850c0b961dbfc/after-storage.json",
+    "sha256": "7777edc2adb367ae35851998e2c89627d729cc199e55f0bc43189b49bf74aa14"
   },
-  "prepared_at_utc": "2026-08-03T17:53:33.010298+00:00",
+  "prepared_at_utc": "2026-08-03T18:37:30.094352+00:00",
   "publication": {
     "path_schemes": {
       "repository": "frozen repository root",
       "study": "governed execution-site study root"
     },
     "raw_schema_version": "bijux.container.runtime_verification.v1",
-    "raw_sha256": "a23675170f6dccd15378fdec5eab7e0ed3326c65ab6cda44a1e1a256e7526944"
+    "raw_sha256": "8bc27adb504b957965881098d347b9468f2f8a67d23ec78f2e53eb1114106d52"
   },
   "repository": {
-    "commit": "2738ed91e391016513bbcaa17a783245970c0bb0",
+    "commit": "5a2f9252ed08b6a55b6d086828d850c0b961dbfc",
     "path": "repository://."
   },
   "repository_clean": true,
-  "repository_commit": "2738ed91e391016513bbcaa17a783245970c0bb0",
+  "repository_commit": "5a2f9252ed08b6a55b6d086828d850c0b961dbfc",
   "schema_version": "bijux.container.runtime_verification_publication.v1",
   "site": {
     "host": "cosmos3.int.lunarc",
     "id": "lunarc"
   },
-  "started_at_utc": "2026-08-03T17:53:33.093097+00:00",
+  "started_at_utc": "2026-08-03T18:37:30.177984+00:00",
   "status": "passed",
   "summary": {
     "passed": 85
@@ -43,11 +43,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.460658+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.292918+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.594780+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.425480+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "58b397c95e49a9e0386d11a2fc458874d1279e1892fddfb997f1bb344da25d02",
-          "stdout": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         },
@@ -57,11 +57,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.292246+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.102894+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.424817+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.184816+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "7a0cb94485e2ae7a62d7c5d1e83a880cb505b7c7cfeeb43cdd52cf68d3e3ff66",
-          "stdout": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/adapterremoval-1e4c5f903b0f-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         }
@@ -89,11 +89,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.502565+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.335567+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.539093+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.368344+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "5139a52c8a925cda3ec7379bcf00c9ee85d7742bfc49aeaafffb16129b496515",
           "timed_out": false
         },
@@ -103,11 +103,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.334811+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.102762+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.366182+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.184490+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/addeam-e38dba1873ef-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "e6fa3f9707bbf26fb9dc818cda925f4585cbfd8f0f740133d4c4f7ef7306dd9d",
           "timed_out": false
         }
@@ -135,11 +135,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.996117+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.475026+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.318230+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.624912+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "28c61b346c96a4db905e6d0b00b4475f282d0dccdadb498f6144367a07802614",
           "timed_out": false
         },
@@ -149,11 +149,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.474320+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.098730+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.624262+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.185087+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/alientrimmer-bfb53d825576-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "81824dba6d71d2996baef3cc5f77008ebc34656848b502292277b3feffab5d82",
           "timed_out": false
         }
@@ -182,11 +182,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.707688+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.287530+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.867685+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.378623+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "cc9238819f64f83397251a47836ab8b14cc63bc4baa9497a302686f70a391087",
           "timed_out": false
         },
@@ -196,11 +196,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.286430+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.100349+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.371025+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.184982+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/atropos-f3da78f939df-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "d5af38c42a7471a571b114cabfcf1f96e4ca2333f44603e6ba5b4c7a96eb75a6",
           "timed_out": false
         }
@@ -229,11 +229,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.756992+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.282101+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.923039+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.373832+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "5471668caf2794e340fdce22264326a7426ae58db759537420d6a4cfa6cd19ea",
           "timed_out": false
         },
@@ -243,11 +243,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.281334+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.100219+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.366937+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.184541+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/authenticct-dcc1ff3ccb14-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "ac5273afc683fc7b0b274e5781a6c1dac9f576db27bfff4bc5c7679d9eda5866",
           "timed_out": false
         }
@@ -275,11 +275,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.508738+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.287584+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.542581+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.368834+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "b8dce2adb2c898189d1276e9d79acfb787b224300d9a2efad28345026dc35c87",
-          "stdout": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         },
@@ -289,11 +289,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.286572+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.103860+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.367133+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.184680+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bamtools-86b2b0ba5187-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "b1da93d5a2193f4e83bb28eaa51ddad7a01cef795d9aed27b87291bdf6ee5c61",
           "timed_out": false
         }
@@ -321,11 +321,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.453090+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.282087+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.539194+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.368576+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "ed2f9320643e4127f16b02df57942572904b2e5eb5df1aa292983520dea0976a",
           "timed_out": false
         },
@@ -335,11 +335,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.281086+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.102458+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.366699+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.184943+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bamutil-6a5d8a01f8ac-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "48558810e60205d9531b671e21078183c82768167f11ce24cf2e90afd2c56539",
           "timed_out": false
         }
@@ -367,11 +367,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.667564+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.292928+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.692976+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.368460+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "035619d889e93becf56c999b7e8ac0384a25ef79a3458140203afe06fa04d9e3",
           "timed_out": false
         },
@@ -381,11 +381,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.291900+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.120691+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.366585+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.184870+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bayeshammer-08f39496d51e-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "fce2e88900623bc2fd8022a045c4d9c229e610c9cb9f7db4028d17b22e96771d",
           "timed_out": false
         }
@@ -413,11 +413,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.271272+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.019260+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.443693+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.271423+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "69a78f0ef38768ebee17bc91516377822d7b8229d1a30e0351e9e4159c69b84e",
           "timed_out": false
         },
@@ -427,11 +427,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.018407+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.456177+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.268150+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.542846+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bbduk-311312e5aec7-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "6ca8730c99d7fee64f9a2bda15e3228f062ea3a542d15140713b4be66e918f3f",
           "timed_out": false
         }
@@ -459,11 +459,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.320881+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.035187+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.592189+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.420712+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e47e5b01878dbb2b64d97ee6e106107e0109d4c6b9771e5a6813e580e9c45ee9",
           "timed_out": false
         },
@@ -473,11 +473,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.034488+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.464109+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.419938+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.542714+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bbmerge-ecad046ab356-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "e2839c008c01a9392e7d3b72bfb059bf28ac730dc22160410f3a0bf8d05425c5",
           "timed_out": false
         }
@@ -505,11 +505,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.150055+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.825603+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.267419+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.872351+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "7e63e570bf2f0833a0ef85dd89d9ab270561910ce3342ac105cc15f36d14ccd6",
           "timed_out": false
         },
@@ -519,11 +519,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.824734+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.505050+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.868577+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.549607+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bcftools-5aec1233868c-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "2f0708a9210a04f2e6add5d9fcddd92853688e85391ac65eb5c48bef42863a40",
           "timed_out": false
         }
@@ -551,11 +551,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.967464+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.732090+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/beagle-e8088d563458-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.117874+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.872474+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/beagle-e8088d563458-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/beagle-e8088d563458-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/beagle-e8088d563458-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "bc11ca37b002d6e98ba0516b2eb26753076c35ea47c7d63e78b4cf5b14035533",
           "timed_out": false
         },
@@ -565,11 +565,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.731275+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.511530+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/beagle-e8088d563458-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.868506+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.597252+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/beagle-e8088d563458-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/beagle-e8088d563458-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/beagle-e8088d563458-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "2b367d3c00845da516ae3caae2124d303bac7bb27ece361e2acbe0b7f91e29fb",
           "timed_out": false
         }
@@ -597,11 +597,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.065790+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.843406+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.369753+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.968299+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "95b77a1b319b2bb5aef97af0d893bf6b6d6c5544fc0f27f29b0e5b89c85da87d",
           "timed_out": false
         },
@@ -611,11 +611,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:33.842476+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.670130+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:30.967558+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.719750+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bedtools-fe469da8f256-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "0577f8bb261a44762497546cb1f7738a91b91633e8a6b48de3eb61dd82e00fcf",
           "timed_out": false
         }
@@ -643,11 +643,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.270618+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.029184+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bijux_dna-5a7e64cf5cbe-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.492123+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.272128+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bijux_dna-4cb58a275c33-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bijux_dna-5a7e64cf5cbe-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bijux_dna-4cb58a275c33-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "94ddd9436d0cae2d3b6ded644d259abb8204c2ab81170bd20a87ef012ca7d916",
           "timed_out": false
         },
@@ -657,11 +657,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.028359+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.709974+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bijux_dna-5a7e64cf5cbe-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.268502+00:00",
+          "started_at_utc": "2026-08-03T18:37:30.872515+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bijux_dna-4cb58a275c33-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bijux_dna-5a7e64cf5cbe-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bijux_dna-4cb58a275c33-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "4eca7e33011a3e55e62e9ceff15a5c4fe664ff5896db3b89210b41897b7456d1",
           "timed_out": false
         }
@@ -671,8 +671,8 @@
         "bijux-dna",
         "--help"
       ],
-      "image": "study://containers/apptainer/bijux_dna-0.1.0-linux-amd64-5a7e64cf5cbe.sif",
-      "image_sha256": "5a7e64cf5cbe13f9af7396a32a082348c844c992351074a8f8b66ac37735ccde",
+      "image": "study://containers/apptainer/bijux_dna-0.1.0-linux-amd64-4cb58a275c33.sif",
+      "image_sha256": "4cb58a275c3301f2eb29a0227f0407746955c68e02824f2368349ec074935b4e",
       "status": "passed",
       "version": "0.1.0",
       "version_command": [
@@ -689,11 +689,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.436894+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.168851+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.563036+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.344259+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "c5e894b0a2a83cb820f5fa94f9bca177edb0b3c190a0683dddcaebc534fb6fb9",
           "timed_out": false
         },
@@ -703,11 +703,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.167982+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.970408+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.343483+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.122296+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bowtie2-776df15097a2-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "541e495e5a2502b9531b0e7bf57e3be963d82a3396a4fdfa0ffec6091158c80b",
           "timed_out": false
         }
@@ -735,11 +735,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.490150+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.221235+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.714158+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.441336+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "97686a7612fd6d5da6763c8e667c8c4c3b4e5dab4eb24d3f081e6cd77987d4c7",
           "timed_out": false
         },
@@ -749,11 +749,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.220517+00:00",
-          "started_at_utc": "2026-08-03T17:53:33.998966+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.440572+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.271325+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bowtie2_build-fd62a849e63c-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "73a027d5d7faef378a122e88467bc53441808493cd958a514f8ebb4ac06b0f90",
           "timed_out": false
         }
@@ -781,11 +781,11 @@
             "-h"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.462222+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.294982+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bracken-505bfb060787-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.661046+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.489360+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bracken-505bfb060787-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "fe09cce9a79b701aa98d90ce26fd7f0f051e770b49508b3d19e81c9845b395d8",
-          "stdout": "study://containers/evidence/runtime-logs/bracken-505bfb060787-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bracken-505bfb060787-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3a70b1a47b367924c30b6b4c71bbb4980373421289ee1473d68a86fed2cabb7",
           "timed_out": false
         },
@@ -795,11 +795,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.294350+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.069538+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bracken-505bfb060787-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.488616+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.320717+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bracken-505bfb060787-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bracken-505bfb060787-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bracken-505bfb060787-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "ea0dcece486dda9bca3b09bbb9eb7ede28470bf545f6e69292e632cb28989830",
           "timed_out": false
         }
@@ -827,11 +827,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.493270+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.321888+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.714290+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.544402+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "de36ce9a1937acf14df7f665632799939c8798b6b969c94bafbaa3ce31b77d6d",
           "timed_out": false
         },
@@ -841,11 +841,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.320799+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.153317+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.543646+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.372489+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/bwa-ab68130e8ba1-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "ab99e401a7ebf0b82dfb35c17608acd5b6447308d8a436fa1bc2d36fd3eeb469",
           "timed_out": false
         }
@@ -873,11 +873,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.663861+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.446592+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.835147+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.617340+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "f04f5e605292eb9c056f2af5883bfb0f944b80cceb840b4f07f8f29d5ab76a03",
           "timed_out": false
         },
@@ -887,11 +887,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.445939+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.273815+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.616452+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.446549+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/centrifuge-b9e7cfcc0a27-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "75736d5811a6567b06f0ab712fb202f1da67bccfb07bbe8186a1302176c24627",
           "timed_out": false
         }
@@ -919,11 +919,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.868901+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.699510+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.089926+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.918129+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "6bc741971da17a98cec9440a9a10275cbf80f2376512135ee3938c2a2049d300",
           "timed_out": false
         },
@@ -933,11 +933,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.698930+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.277805+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.917009+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.495051+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/clumpify-e962fe90ab3b-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "e2c38bb24a8378c52ebe9b8c2bb8f7bdb8d1852caf7b8020719b2db85efe63e1",
           "timed_out": false
         }
@@ -965,11 +965,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.669971+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.498501+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.904547+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.734500+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "67ce58d87e28837a65f943a220cd701be0716b9d70a966f16be2589920b9c67f",
           "timed_out": false
         },
@@ -979,11 +979,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.493495+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.326266+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.733800+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.566260+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/contammix-6f804efa0982-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "a534ecc2df1bfbd59e686c2b12ae265dc7c2b918fa523cbe50b4abbbf8f41841",
           "timed_out": false
         }
@@ -1011,11 +1011,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.176322+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.808689+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.290648+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.917844+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "db93817f2e1ccbdfc570953eebe938398efa8cf8b1d67594ae5047744ce1d251",
           "timed_out": false
         },
@@ -1025,11 +1025,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.807966+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.440079+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.916669+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.595513+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/cutadapt-851e42cd86db-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "2e5d3cf3acb0a8d0cc0e152cde65449f85111c01edb6c7cd6a3cbf9ea06aea9d",
           "timed_out": false
         }
@@ -1057,11 +1057,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.108207+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.936381+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.301826+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.133487+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "37bda01c0b99e187e3d37537cf3a95db5f2739f478f968a538a87dd46872c14b",
           "timed_out": false
         },
@@ -1071,11 +1071,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.935761+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.465137+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.132709+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.664050+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/dada2-4d19a6844065-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "b714e21c0bf7ac53083483f9db46e8790ae5f84c58f76f40c1374cec9cfba2bc",
           "timed_out": false
         }
@@ -1103,11 +1103,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.335125+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.916197+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.613813+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.196120+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "da829097f4f51e65626ba5228fc3a8b59f53f51c3168537db6886c3e306bc706",
           "timed_out": false
         },
@@ -1117,11 +1117,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.915484+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.493067+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.195446+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.718088+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/damageprofiler-993d198dfbfc-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "39dd8649e29e6c00d7318fec7b2fcb6f66c8146e8dd399ce50e5c53a1794daf6",
           "timed_out": false
         }
@@ -1149,11 +1149,11 @@
             "help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.939945+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.720550+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.058133+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.888978+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "18709b4a4dbe061bb60883e94dc847e3ddbb6171b35cf49c289504f7aa525f9c",
           "timed_out": false
         },
@@ -1163,11 +1163,11 @@
             "version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.719908+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.498572+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:31.888380+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.718057+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/diamond-1de2be3e8a72-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "9fda3c944984124a2ff52a379acb93a6b766cc35a9cc5904a05ffbc221414b49",
           "timed_out": false
         }
@@ -1195,11 +1195,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.212151+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.941412+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.279198+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.056388+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "7364c0c543f559157b1220c918c2e343a83525ba71df6da6a963f2fed73439b4",
           "timed_out": false
         },
@@ -1209,11 +1209,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.939809+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.667111+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.055547+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.838102+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/dustmasker-326bdca0f7a6-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "654e96d2848bc5cbe134a473a16fbfc33fc4213850cc0bf9bd1ba718d2e61a23",
           "timed_out": false
         }
@@ -1241,11 +1241,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.108568+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.841092+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.349996+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.077561+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "f9117db597c49bce889c3407ef07a18f4fa1f9e3a83d466815bce0bcc4410f46",
           "timed_out": false
         },
@@ -1255,11 +1255,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.840493+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.673644+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.076996+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.907989+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/eagle-1d7f41ed5a8b-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "a5790da7253d3423a01cd7b27fd5d07cb804a08664163fff6a5088ce568776ff",
           "timed_out": false
         }
@@ -1287,11 +1287,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.101502+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.931195+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.264664+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.096892+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "48447e9efa6fe7681407403b330c60f3e288f0783f30b17648507d04e1a8ddb7",
           "timed_out": false
         },
@@ -1301,11 +1301,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:34.930475+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.760353+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.095630+00:00",
+          "started_at_utc": "2026-08-03T18:37:31.926502+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/eigensoft-ce02065a98f8-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "ccdc6b2d303cc262f51a0bd9cb409113166259f2136ed8678b54eef2a055042e",
           "timed_out": false
         }
@@ -1333,11 +1333,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.211909+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.042773+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.403391+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.233673+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "97ad7a61d4a867b2704eaec6a234f7669409ab85e87d7648d5d75c0faadcce8a",
-          "stdout": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         },
@@ -1347,11 +1347,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.041850+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.871995+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.233008+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.061749+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastp-5a4dec89b718-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "78c9f16cc130afcabb1232545c79cf96a43d42c11ea9df076dbe26ac645514ca",
           "timed_out": false
         }
@@ -1379,11 +1379,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.286909+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.119105+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.440170+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.265646+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "b4f319f46731be81c5ccd02c6095ef7e4d54761ada1c89acd996c1117bc511d7",
           "timed_out": false
         },
@@ -1393,11 +1393,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.114626+00:00",
-          "started_at_utc": "2026-08-03T17:53:34.945656+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.264354+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.093289+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastq_scan-11b4f4ea3401-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "6a932c610184b9c1a9dcd4fc99446b23bc33f6119c7bddda325378a2fb4d58fc",
           "timed_out": false
         }
@@ -1425,11 +1425,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.542314+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.324183+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.712320+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.490901+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "3096556265cb90d80c0dd52568105d4a914e8ae56c1144e7a93db6668dd109a2",
           "timed_out": false
         },
@@ -1439,11 +1439,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.323515+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.104650+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.490249+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.270485+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastq_screen-fd8bf688996b-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "27ef2b36abff1478c4aaab772c8eed706b252ecd0b367cedee6f113e8844957f",
           "timed_out": false
         }
@@ -1471,11 +1471,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.507173+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.284405+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.670935+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.450964+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "c5dcd6532d0f6183b36e179d62de1250fd08b6cb3762650a6f0b7931ca778947",
           "timed_out": false
         },
@@ -1485,11 +1485,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.283670+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.111946+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.450299+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.281971+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastqc-aa6a9b814775-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "e8cd237d3ff818e7320597cfb3052a9771269c76148ab99dffce75ed550ccec9",
           "timed_out": false
         }
@@ -1517,11 +1517,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.458617+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.287429+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.587408+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.418525+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "488f6a6e348ea30c8df2eda4d97d038e4d9406791a9484b11e57312edb3bbc4c",
           "timed_out": false
         },
@@ -1531,11 +1531,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.284993+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.116897+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.417139+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.293838+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastqvalidator-1ead71df0ae6-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "390f508b86f7514a46f45366a72681a4ecd71f4a274a1bd3cdceb219cae77444",
           "timed_out": false
         }
@@ -1563,11 +1563,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.521309+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.351710+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.643920+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.473491+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "532934cc7f7118cae6c36ff1fcbd140349184ac6f5316d66ae35c21b2049d262",
           "timed_out": false
         },
@@ -1577,11 +1577,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.350732+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.179732+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.472739+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.305427+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fastx_clipper-021a9ea66099-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "70c731ce2a0812364d6d5cbb473b9598bdfd53c01b02ab25cdd7b3d05847454c",
           "timed_out": false
         }
@@ -1609,11 +1609,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.557254+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.389722+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.694141+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.521812+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "a9d47110b7838ed56735daae4056322ca42e33435a69884a2620cb31976b7a39",
           "timed_out": false
         },
@@ -1623,11 +1623,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.388991+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.215952+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.520981+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.353234+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/flash2-6e65aab9ecd1-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "3d0fa6dd7d03b06850e8ae6a762bb1a25d375634698e167283746e1d4e216eee",
           "timed_out": false
         }
@@ -1655,11 +1655,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.563014+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.392688+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.747346+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.577450+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "389c5e686600be4690c4c5665686cca1c581b5b5bfad3f8b1263e40de51c1d81",
           "timed_out": false
         },
@@ -1669,11 +1669,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.391908+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.221169+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.576660+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.406381+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/fqtools-fc26f7f00bc2-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "46d6a707252c8abec32df03288964d143d870a40a6ade123708a2266fdb354d2",
           "timed_out": false
         }
@@ -1701,11 +1701,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.741580+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.423496+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/gatk-0112d68648de-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.087365+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.719185+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/gatk-0112d68648de-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/gatk-0112d68648de-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/gatk-0112d68648de-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "95407ec396cadd1fa12aab94d51f20e17dcd9e9b3cef1e629fe613ee0d064b8e",
           "timed_out": false
         },
@@ -1715,12 +1715,12 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.422843+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.292862+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/gatk-0112d68648de-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.718250+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.443557+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/gatk-0112d68648de-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "46a944048fb29f11c3c77a4208ef6ac2844023e61eb76a5e8575a28fbd22ae1e",
-          "stdout": "study://containers/evidence/runtime-logs/gatk-0112d68648de-2738ed91e391.version.stdout.log",
-          "stdout_sha256": "b4c1718b3406e16a81fe395b68dd24f0f6fd7fd303aa530f0e5b2515703c820d",
+          "stdout": "study://containers/evidence/runtime-logs/gatk-0112d68648de-5a2f9252ed08.version.stdout.log",
+          "stdout_sha256": "bf72179b2e405368d1718f714fc184b309663c6cda8304733768679b33fb53ed",
           "timed_out": false
         }
       },
@@ -1747,11 +1747,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.678201+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.506918+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.927180+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.759907+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "bf009dc78a1209010eed18bfa57d9ff47bc88d5373c461d8266a049bcbe25b8d",
           "timed_out": false
         },
@@ -1761,11 +1761,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.506228+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.338589+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.759161+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.590966+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/germline-d2f7768cb753-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "acc2546b6e27cd36cbd938f2e4731d07bd86deba9d3409334b7c08d1fafaf7f8",
           "timed_out": false
         }
@@ -1793,12 +1793,12 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.853432+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.686384+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/glimpse-982677cff533-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.004598+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.836755+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/glimpse-982677cff533-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/glimpse-982677cff533-2738ed91e391.help.stdout.log",
-          "stdout_sha256": "77dcf3a8eb067a82e14bd74e708029fb881ec576cc026bc2624c5a1cad4ff612",
+          "stdout": "study://containers/evidence/runtime-logs/glimpse-982677cff533-5a2f9252ed08.help.stdout.log",
+          "stdout_sha256": "fa367ae199348a312e5d2f9847ecab1bd5151f5f638a5f7c16b38521aaf0d35f",
           "timed_out": false
         },
         "version": {
@@ -1807,11 +1807,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.685625+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.462533+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/glimpse-982677cff533-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.835721+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.617225+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/glimpse-982677cff533-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/glimpse-982677cff533-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/glimpse-982677cff533-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "3c1743f747d9693aaabc04cdea0f146cf5f096332b3d648ae187b746379b49f8",
           "timed_out": false
         }
@@ -1839,11 +1839,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.054113+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.782768+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.187667+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.919841+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "c3200e492a40ce31480dfc49e31d5b62e0c578b46ff59bcdc83c54b5b125ad6b",
           "timed_out": false
         },
@@ -1853,11 +1853,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.782115+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.512737+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.919104+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.647186+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/ibdhap-c7b70facc21f-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "8b4000755bc1a1f1175e2d4cdb59b76b87fad4ce35a18b6f0353ebe8133aa4ab",
           "timed_out": false
         }
@@ -1885,11 +1885,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.321106+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.949008+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/ibdne-06948f417474-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.461932+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.092928+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/ibdne-06948f417474-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/ibdne-06948f417474-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/ibdne-06948f417474-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "8c43f024bb3f0d54089e45fb062e12933065d1756c75cc2e65ef3936fe24df82",
           "timed_out": false
         },
@@ -1899,11 +1899,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.948269+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.524978+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/ibdne-06948f417474-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.092285+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.673904+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/ibdne-06948f417474-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/ibdne-06948f417474-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/ibdne-06948f417474-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "105499d5b3d13ac9ebfdc809e19a5131c479f858675262a98303b0c4ff56d43a",
           "timed_out": false
         }
@@ -1931,11 +1931,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.337047+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.967754+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.500663+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.076307+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "a54d8126f2677f1459af100004632e7e7122770c11ac4535a7c675f0718fdf97",
           "timed_out": false
         },
@@ -1945,11 +1945,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.967012+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.545844+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.075606+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.697089+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/ibdseq-8f1343e9ccf5-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "02977b8ddb96ed12f741e98213009f53d9a166570f09ae7b7787d080ea9399a3",
           "timed_out": false
         }
@@ -1977,11 +1977,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.899838+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.732841+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.106558+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.938246+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "ff1ac7b78d5f28d7936564a2ece985b5dce6c94c75d54cacc1ed8c09a1d9ec97",
           "timed_out": false
         },
@@ -1991,11 +1991,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.732035+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.560530+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.937473+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.716271+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/kaiju-926cf010fc95-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "4f5ba6a3e380bf810cc968b58d30a8d7163eafe9e2fb1ad19bdc6d9d64a1e549",
           "timed_out": false
         }
@@ -2023,11 +2023,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.004430+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.785964+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/king-72b84e1c242f-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.191411+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.970078+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/king-72b84e1c242f-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/king-72b84e1c242f-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/king-72b84e1c242f-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "12656f604df571c6c026224b33314e1e50e1309f467e5f78f53a9ccceb56ded1",
           "timed_out": false
         },
@@ -2037,11 +2037,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.785322+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.566576+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/king-72b84e1c242f-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:32.969225+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.750548+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/king-72b84e1c242f-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/king-72b84e1c242f-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/king-72b84e1c242f-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "80f31302765f236d3aef3f470a5a13a1d503b6950606e653492ab86455c51e9e",
           "timed_out": false
         }
@@ -2069,11 +2069,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.074346+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.850300+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.316948+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.099355+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "62df0dc613b2b81eb86ab4bcef7a634722ced1ed83c2a2797abcebbe4cd48a30",
-          "stdout": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         },
@@ -2083,11 +2083,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:35.849413+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.681885+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.098571+00:00",
+          "started_at_utc": "2026-08-03T18:37:32.930915+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/kraken2-9e2c890084ae-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "faf0ef011a68641ec99af2d3b70c89bf59a0c0c101f158f7bede0e06e85ea156",
           "timed_out": false
         }
@@ -2115,11 +2115,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.298245+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.080968+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.444120+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.227126+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "86dea2d53639804bc703ef5bf2e1889b5a476929cc29409d11fcdf396efdaf54",
-          "stdout": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         },
@@ -2129,11 +2129,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.075365+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.857363+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.226370+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.008664+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/krakenuniq-816406554808-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "a5e34d9092795421d3321659ec77c825f2d519dea7e33551b4d474848bd695d4",
           "timed_out": false
         }
@@ -2161,11 +2161,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.241996+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.072325+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.450689+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.278972+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "bb28ce9e3d88874a1dba04332e6d06b1660457ef64807674e1075443ccda2e02",
           "timed_out": false
         },
@@ -2175,11 +2175,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.071682+00:00",
-          "started_at_utc": "2026-08-03T17:53:35.903760+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.278057+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.110326+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/leehom-6bd4a3bc00ac-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "4d94288e832e32e055e6ebc05508b2c559842cf9a877cafe392ce55e65f866e5",
           "timed_out": false
         }
@@ -2207,11 +2207,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.346672+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.179581+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/lighter-92cc08026046-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.534390+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.363170+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/lighter-92cc08026046-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/lighter-92cc08026046-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/lighter-92cc08026046-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "d3c58d04d2ae022611cafbc2d28622e7023e2588fb3ee44dddfdb297b3d7843e",
           "timed_out": false
         },
@@ -2221,11 +2221,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.178742+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.007933+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/lighter-92cc08026046-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.362584+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.191658+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/lighter-92cc08026046-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/lighter-92cc08026046-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/lighter-92cc08026046-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "0fa347924f66b40ee13a62b09d5050a8f5098efaf8a749844d99609798add4c6",
           "timed_out": false
         }
@@ -2253,11 +2253,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.548917+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.227656+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.685160+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.365582+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "28f6480f7cfef4122dd9a9757d501b8095d05364e63fb203dbe956629899fd46",
           "timed_out": false
         },
@@ -2267,11 +2267,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.226882+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.058106+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.363505+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.196957+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/mapdamage2-170350d440ec-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "7a27b402b3c36f7248792c401030986da2f3901519e1be3d4240f1e0d66a5fbc",
           "timed_out": false
         }
@@ -2299,11 +2299,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.425638+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.768862+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.826513+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.120515+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "c26eb257c0a1438c240ef161dd2fc709d92516087eb047936fd53b01939204f5",
           "timed_out": false
         },
@@ -2313,11 +2313,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.767994+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.078632+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.119745+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.320628+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/metaphlan-cd932a769ffd-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "46a2ad34ba0e8532b30d1b92cf6602c283789021a34c6bf79af05f4d4736526e",
           "timed_out": false
         }
@@ -2345,11 +2345,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.617630+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.417355+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.817491+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.621684+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "281ccebea21338d313364f1b91c783b1747d34ab820e0e388037d44a129a3d54",
           "timed_out": false
         },
@@ -2359,11 +2359,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.416581+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.245902+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.620878+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.447752+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/minimac4-6c4e7a7bc291-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "153d1f2ed4f1a4c05c309caae1b84e7a49187873e5f02fc2cbd33c9196a6aaa3",
           "timed_out": false
         }
@@ -2391,11 +2391,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.667505+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.472524+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.817642+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.624145+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "b2054fffd41eb394364624f33bf1c27e52e17aba7d4298fa6d3af55605063a52",
           "timed_out": false
         },
@@ -2405,11 +2405,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.471836+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.301725+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.621979+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.454711+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/mosdepth-8bd0a039c887-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "4f86469579220e8ad804b88821e9d00c4e4172320e80d307459a448cc0ac41b2",
           "timed_out": false
         }
@@ -2437,11 +2437,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.669258+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.002665+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.900501+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.226166+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "4e8489847a9a7e1ed1404c9de6710e32973062e394149011a8864379cc52ba0b",
           "timed_out": false
         },
@@ -2451,11 +2451,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.002007+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.325153+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.225241+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.465577+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/multiqc-a289ebed6731-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "846d2ee233d32a10ec08ff8373c3f07027153d710a709e64d079c64ac3e0e54a",
           "timed_out": false
         }
@@ -2483,11 +2483,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.779775+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.512047+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.967555+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.674941+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "1480b25900e1e83c46e3d861dc487c9c41672408ddbaf925ecd1e01cd53b411d",
           "timed_out": false
         },
@@ -2497,11 +2497,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.511146+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.341126+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.674188+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.504545+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/musket-29f1d05a21f7-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "1523e9e982ff804c6d979e1bb2c6f3d7bae35307e8ce458bffc0d12a442b98da",
           "timed_out": false
         }
@@ -2529,11 +2529,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.767786+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.523088+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.978644+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.708335+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "24ffa72dcd8f00425303841709fbfd18f97955beda36ca5ea15588c2fa9aa3d8",
           "timed_out": false
         },
@@ -2543,11 +2543,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.522475+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.351091+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:33.707708+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.538273+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/pear-4806e0c8cd74-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "fd51233354c9a61adaf49572b45f44f7e9cc76fc2465ea25beca00ef95856ee1",
           "timed_out": false
         }
@@ -2575,11 +2575,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.119142+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.829510+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/picard-5d820089bef7-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.374534+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.070374+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/picard-5d820089bef7-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/picard-5d820089bef7-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/picard-5d820089bef7-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "d946feb893f5a4a74e83c588c8f4a968c418f24d873802a015c9552da49c70f8",
           "timed_out": false
         },
@@ -2589,11 +2589,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.828802+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.554342+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/picard-5d820089bef7-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.069495+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.690690+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/picard-5d820089bef7-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/picard-5d820089bef7-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/picard-5d820089bef7-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "89e61bd278d809214a2d0fa8ff4ee4c6d2294f7ae3f471feb748119f1de65dc0",
           "timed_out": false
         }
@@ -2621,11 +2621,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.966294+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.796586+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.367632+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.100519+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "01bca925f4c10429e9db90b677a40b096f33b3a58eb463e773d726f37c1062e6",
           "timed_out": false
         },
@@ -2635,11 +2635,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.795927+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.624733+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.099757+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.823676+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/plink-98799b4a18f7-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "07ccf88dba2965c49f204b77c88fcb28077ab6d41c7a8013105e2b9c98652596",
           "timed_out": false
         }
@@ -2667,11 +2667,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.195176+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.891108+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/plink2-763891b09066-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.418370+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.116673+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/plink2-763891b09066-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/plink2-763891b09066-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/plink2-763891b09066-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "5e9d2516da44570e078bc977ef6defbe49cc57168052f5e5a99cb10cef3716ce",
           "timed_out": false
         },
@@ -2681,11 +2681,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.889130+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.671800+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/plink2-763891b09066-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.115940+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.823904+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/plink2-763891b09066-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/plink2-763891b09066-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/plink2-763891b09066-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "0679d2acd0a4dae53b308efd08d8a801f35ea064f6bb1c50df59c0a81e47437e",
           "timed_out": false
         }
@@ -2713,11 +2713,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.384277+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.044651+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.558274+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.239880+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "71d8643bf4980a72d37bca19cb22f228d5656aa469016d673a8753f6284d99ab",
           "timed_out": false
         },
@@ -2727,11 +2727,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.043675+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.772453+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.238913+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.971546+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/pmdtools-e4cb3b88e80c-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "b016bbbd706164b41e3343a0834ece218810d5477daf96a0a248fd89fc9f15e8",
           "timed_out": false
         }
@@ -2758,11 +2758,11 @@
             "preseq"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.217733+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.952004+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.417728+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.154690+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "d0256159eba1465cc38725cf21b3b9631b599805255a7e985c9a95e61922a630",
-          "stdout": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         },
@@ -2771,11 +2771,11 @@
             "preseq"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:36.951216+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.783694+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.153840+00:00",
+          "started_at_utc": "2026-08-03T18:37:33.982269+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "d0256159eba1465cc38725cf21b3b9631b599805255a7e985c9a95e61922a630",
-          "stdout": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/preseq-642d42a2241b-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         }
@@ -2801,11 +2801,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.391655+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.218384+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.869408+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.590978+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "d605d7202909f07831b5f937ae4e3e62a0cfd939de2856e2d44b250c3a3a52b6",
           "timed_out": false
         },
@@ -2815,11 +2815,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.217589+00:00",
-          "started_at_utc": "2026-08-03T17:53:36.971028+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.589857+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.372322+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/prinseq-7ecba3ff62a0-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "775b1d37e100c1ab83a8519d9857a82a21501bb930f2e66e8b3089845af94158",
           "timed_out": false
         }
@@ -2847,11 +2847,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:44.921884+00:00",
-          "started_at_utc": "2026-08-03T17:53:41.268898+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:42.121787+00:00",
+          "started_at_utc": "2026-08-03T18:37:38.468779+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "40343490695397aeff2746d85baf34ce8ec2738ce8298eadda5bd637d50b4ddd",
           "timed_out": false
         },
@@ -2861,11 +2861,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:41.267886+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.199732+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:38.467733+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.422127+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/pydamage-956d357ef53b-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "e442c28fa674f249424909be4176816a383d40700ec56c3de5e0d3efb0f67962",
           "timed_out": false
         }
@@ -2893,11 +2893,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.218045+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.749028+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.467465+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.999424+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "9de17ba7b3dacdacbc86becbb5102cfe50b0a4b24289f581a7251ae714c203b6",
           "timed_out": false
         },
@@ -2907,11 +2907,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.746643+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.224836+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.998654+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.428757+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/qualimap-accceeabb450-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "022804d19c8fe566dc00dca4721c1eadf6ed71164d647a2e77493ac87c4fe3a6",
           "timed_out": false
         }
@@ -2939,11 +2939,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.835737+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.668534+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.049100+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.880612+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "5432d47d58a202433cfbd81d2255ebd5bc60916bd132d3d93d0040ed22732e98",
           "timed_out": false
         },
@@ -2953,11 +2953,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.667654+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.388540+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:34.879883+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.562471+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/rcorrector-4c954c144c1f-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "4b37e3bfcd2372e1fb3bd53f78b82131ca13417a924f2bc360b7c5ed78ba1357",
           "timed_out": false
         }
@@ -2985,11 +2985,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.032273+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.763879+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.467803+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.145876+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "c834511f749d872718c05e73cf15d4b6be617a862e916b11fa9d51734f3e7642",
           "timed_out": false
         },
@@ -2999,11 +2999,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.763280+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.395696+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.144968+00:00",
+          "started_at_utc": "2026-08-03T18:37:34.873663+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/rxy-058cc31a0bba-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "d83f9b39c7a8795ff3f119049e1fc61e10148eef293e128f82e98c8f804dfb87",
           "timed_out": false
         }
@@ -3031,11 +3031,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.239131+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.966318+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/samtools-a29122faccca-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.592241+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.271751+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/samtools-a29122faccca-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/samtools-a29122faccca-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/samtools-a29122faccca-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "c2683ee6f1b4c188b5ace5b3834b9b904224a239fe29f04e1e60d34d11251daf",
           "timed_out": false
         },
@@ -3045,11 +3045,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:37.965539+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.746754+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/samtools-a29122faccca-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.271101+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.053395+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/samtools-a29122faccca-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/samtools-a29122faccca-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/samtools-a29122faccca-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "74ced0742d39983660c8edd3752e77c9c339a736ee6204371b00a591fc21a7da",
           "timed_out": false
         }
@@ -3077,11 +3077,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.227502+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.009688+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.481520+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.259269+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "22500d74f1dc3dab70cb5516c8390f8110c440487c97761c4aa8ac5d22abe39f",
           "timed_out": false
         },
@@ -3091,11 +3091,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.008996+00:00",
-          "started_at_utc": "2026-08-03T17:53:37.840203+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.258421+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.091719+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/schmutzi-c3fd26217d07-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "d84422432eb8cd9dfa7d0b17ab58990c7fcc34f528d6ead81c60d363099786dc",
           "timed_out": false
         }
@@ -3123,11 +3123,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.568069+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.307894+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.017568+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.754585+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "303749447ab68a869e869fb8e8813bfe14ad7e10185415a234abd6dfb5b270cc",
           "timed_out": false
         },
@@ -3137,11 +3137,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.307014+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.034034+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.753891+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.474756+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqfu-ba6d5e5acd51-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "acef448c3973160e815171b20f8788735d99b01e7bf551b3619bbde1ae1db7a8",
           "timed_out": false
         }
@@ -3169,11 +3169,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.688335+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.418881+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.041886+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.718824+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "81156e17316f7bab453b6f098058969c7dd9d1fba550c421cc7ee8c0fcca10ee",
           "timed_out": false
         },
@@ -3183,11 +3183,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.392432+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.222509+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.717571+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.474825+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqkit-4646ad26f815-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "336cb7d0a668d52f8092dcd6b96cb5e320d0a562ece575b2fa2feac311fac9df",
           "timed_out": false
         }
@@ -3215,11 +3215,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.737845+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.468309+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.918775+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.611477+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "a208da4cae2501ccdcd629ac4bfa3a10de7872a90b8a38a290e8c024b704d6f6",
           "timed_out": false
         },
@@ -3229,11 +3229,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.467578+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.231624+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.610550+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.493108+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqkit_stats-315f69cd4225-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "8938d1d6d5bd39dd65f6910f6710f65f7163f50b575dbbc2982164479007bfe4",
           "timed_out": false
         }
@@ -3261,11 +3261,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.680724+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.511419+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.067497+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.865788+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "207af809741af1ef719c127796b8bd31ec93ed0f06b3fbc9aeb4555c411c1e33",
           "timed_out": false
         },
@@ -3275,11 +3275,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.510678+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.243374+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:35.864967+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.597295+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqprep-bd029bbe8716-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "7d6457eca2b28bae7be228f5d381686169e1b52a74f4557734e081079c328330",
           "timed_out": false
         }
@@ -3307,11 +3307,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.317219+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.746837+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.691375+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.218942+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "53c7cb4c9d7a550a07f4d863e5faf4dc09deeebea7a6125c54b6b9746fa60749",
           "timed_out": false
         },
@@ -3321,11 +3321,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.743939+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.572866+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.217858+00:00",
+          "started_at_utc": "2026-08-03T18:37:35.923343+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqpurge-a4630d15d26d-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "ad89aee9c8bafe6f876a7b85d0b3d97e87177678a8e59fc803ab21c124400abe",
           "timed_out": false
         }
@@ -3353,11 +3353,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.086428+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.918770+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.387339+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.218886+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "17ce3cb55f05f9384f8f708ea04b631ea1d2b4e139ec06fc342dbeda3d73d20b",
           "timed_out": false
         },
@@ -3367,11 +3367,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.917719+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.685174+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.217455+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.025420+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/seqtk-3900bdb9da68-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "582fc0bab72233fcbb6659fb2a727894a86221b6890f06cc6f66929a81bad631",
           "timed_out": false
         }
@@ -3399,11 +3399,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.136207+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.962730+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.484385+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.317326+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "5c056ae55c63d98cf010fe3f5e72875ebe1e5e49b1e02a9dafc3d4239cedf264",
           "timed_out": false
         },
@@ -3413,11 +3413,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.961718+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.693286+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.316691+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.047972+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/shapeit-c9ec868c1d69-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "bae08d125053a41a41120f13db54200706c022ec2341b43ef9cf15adfa957217",
           "timed_out": false
         }
@@ -3445,11 +3445,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.136103+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.968153+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.457814+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.290363+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "989688d5c93a1d6b56c352dc81586bfbd08c8334394fb7485563b46303de216c",
           "timed_out": false
         },
@@ -3459,11 +3459,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:38.963305+00:00",
-          "started_at_utc": "2026-08-03T17:53:38.744034+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.289028+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.072199+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/shapeit5-7ea8771dbe98-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "5a6091b0ff4a4dada8e70bb49c4ee1aea6df5ab540739b3fe18839c3e64b77dc",
           "timed_out": false
         }
@@ -3491,11 +3491,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.430857+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.261104+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.718718+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.551450+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "3b3963b7cfe00cf54b99746878916df9660e4ebc425d73a74be07dbe829f3d22",
           "timed_out": false
         },
@@ -3505,11 +3505,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.260376+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.092396+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.550485+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.379596+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/skewer-a7df1c6a970a-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "0077a5bc9e92fd6f69964db00a55695a1e4aa4b527fe12d6cf83ed9576abba98",
           "timed_out": false
         }
@@ -3537,11 +3537,11 @@
             "-h"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.561268+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.344065+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.785525+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.565809+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "d8e05f71dbcf7ac141e5469a62b4b095b38044df4c9e6db1d5c4f867c5d275c5",
           "timed_out": false
         },
@@ -3551,11 +3551,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.343449+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.123774+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.564855+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.394249+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/sortmerna-59c40eb65971-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "76b75968a16cf5581333b6edcd20f119f27e536568b32c3022d07088a71b54f1",
           "timed_out": false
         }
@@ -3583,11 +3583,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.733480+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.415086+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.009770+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.740929+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "035619d889e93becf56c999b7e8ac0384a25ef79a3458140203afe06fa04d9e3",
           "timed_out": false
         },
@@ -3597,11 +3597,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.414289+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.141728+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.739884+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.465242+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/spades-86d228d1fd57-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "8d101f01ae2086fe5c4f09f0c7dd3ddb25be995728225d26763a36176a6e24a6",
           "timed_out": false
         }
@@ -3629,11 +3629,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.489151+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.313949+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/star-5b3b34e03434-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.831817+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.660540+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/star-5b3b34e03434-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/star-5b3b34e03434-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/star-5b3b34e03434-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "cd02bf9b963fc1eb1720be4e7231a9c6090662422491310f09815d96ae82895d",
           "timed_out": false
         },
@@ -3643,11 +3643,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.313262+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.141761+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/star-5b3b34e03434-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.659522+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.491407+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/star-5b3b34e03434-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/star-5b3b34e03434-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/star-5b3b34e03434-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "576fbf9acc5a4e3bfaac9345654fc49c8dbe02ed89748b24cd7b1f0b740e0054",
           "timed_out": false
         }
@@ -3675,11 +3675,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.757970+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.540585+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.168803+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.915667+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "c2a4f8abe3026abe8e43734b33b4bd8b8748558ff4dfeb38ba1247e7924e3d70",
           "timed_out": false
         },
@@ -3689,11 +3689,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.539865+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.322854+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:36.914974+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.696448+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/trim_galore-087384956eb1-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "c1eebb776a1fb64e29d138b1e44b67b794001183cc12005e359a28ca7b3e455a",
           "timed_out": false
         }
@@ -3721,11 +3721,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:40.386687+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.918500+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.718257+00:00",
+          "started_at_utc": "2026-08-03T18:37:37.193111+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "4405bf6acf7a8cedb026542573995fdba56ead8d80bc7e74e03adf4d2cd83a81",
-          "stdout": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "timed_out": false
         },
@@ -3735,11 +3735,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.917906+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.430949+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.192353+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.723715+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/trimmomatic-01240e7c745a-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "6e716944a37478a3abecebd10460577aacbaa7f3ee9b75328e1e6a00d1df6f02",
           "timed_out": false
         }
@@ -3767,11 +3767,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:43.970964+00:00",
-          "started_at_utc": "2026-08-03T17:53:41.819684+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:41.220313+00:00",
+          "started_at_utc": "2026-08-03T18:37:39.118443+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "98f42a35dd83fbe08c158d573d2888d4e25600cb4890a042473376201d96e345",
           "timed_out": false
         },
@@ -3781,11 +3781,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:41.818698+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.438861+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:39.117714+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.790891+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/umi_tools-76cc4aa60c99-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "4b05ab0d8134f9ceaac3e906f5852c841627586538aca3e8b90b8c75f652df39",
           "timed_out": false
         }
@@ -3813,11 +3813,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.967988+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.717488+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.375736+00:00",
+          "started_at_utc": "2026-08-03T18:37:37.057187+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "8541ab6642359f00fd0be6010e632fd9ace98337a67627a74de99d6e599072ee",
           "timed_out": false
         },
@@ -3827,11 +3827,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.716557+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.495369+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.056460+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.831486+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/verifybamid2-a9fec4b09f93-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "3e881d7057e02b109c3f8d1fdb493f9fa3c7d92c87ba0e2d1dba4421823c266e",
           "timed_out": false
         }
@@ -3859,11 +3859,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:40.016582+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.735167+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.229198+00:00",
+          "started_at_utc": "2026-08-03T18:37:37.007397+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "3a57a98afcb4d19b21b6986fa25384a2dcabd7a4d0ae75f9d05e5a1c56daad1d",
-          "stdout": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "29927815f4bf945bcb5dc77de89f3d6c40d46c403f25ecc6df170dfa5ff88516",
           "timed_out": false
         },
@@ -3873,11 +3873,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:39.732927+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.566141+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.006595+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.838743+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/vsearch-9b6328bfcd1a-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "03c26f1471e321b232113b8d799bfaad8c2f4b863288c182dee3a1d67770fdc2",
           "timed_out": false
         }
@@ -3905,11 +3905,11 @@
             "--help"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:41.768738+00:00",
-          "started_at_utc": "2026-08-03T17:53:40.622915+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-2738ed91e391.help.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:38.968356+00:00",
+          "started_at_utc": "2026-08-03T18:37:37.919726+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-5a2f9252ed08.help.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-2738ed91e391.help.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-5a2f9252ed08.help.stdout.log",
           "stdout_sha256": "805e6287f013adb1e7e432f732c55448464cff134e9415564479e63b72ec0ef2",
           "timed_out": false
         },
@@ -3919,11 +3919,11 @@
             "--version"
           ],
           "exit_code": 0,
-          "finished_at_utc": "2026-08-03T17:53:40.621962+00:00",
-          "started_at_utc": "2026-08-03T17:53:39.674948+00:00",
-          "stderr": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-2738ed91e391.version.stderr.log",
+          "finished_at_utc": "2026-08-03T18:37:37.919007+00:00",
+          "started_at_utc": "2026-08-03T18:37:36.906178+00:00",
+          "stderr": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-5a2f9252ed08.version.stderr.log",
           "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "stdout": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-2738ed91e391.version.stdout.log",
+          "stdout": "study://containers/evidence/runtime-logs/yleaf-e27021f4578f-5a2f9252ed08.version.stdout.log",
           "stdout_sha256": "845992615dde15690c76607f50a3b66d3c080b734414fd640e3451bbebfc375c",
           "timed_out": false
         }
