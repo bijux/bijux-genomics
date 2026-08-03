@@ -18,6 +18,8 @@ except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
 
 
 REPORT_SCHEMA = "bijux.container.qualification_report.v1"
+INVENTORY_PUBLICATION_SCHEMA = "bijux.container.image_inventory_publication.v1"
+RUNTIME_PUBLICATION_SCHEMA = "bijux.container.runtime_verification_publication.v1"
 DIMENSIONS = (
     "catalog",
     "source",
@@ -87,6 +89,14 @@ def derive_report(
     inventory = load_json(inventory_path)
     runtime = load_json(runtime_path)
     runs = load_json(runs_path)
+    if inventory.get("schema_version") != INVENTORY_PUBLICATION_SCHEMA:
+        raise QualificationError(
+            "qualification requires a published image inventory without operator paths"
+        )
+    if runtime.get("schema_version") != RUNTIME_PUBLICATION_SCHEMA:
+        raise QualificationError(
+            "qualification requires published runtime evidence without operator paths"
+        )
     inventory_tools = {
         row["tool"]: row for row in inventory.get("tools", []) if isinstance(row, dict)
     }

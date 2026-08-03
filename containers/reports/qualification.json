@@ -7,7 +7,7 @@
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
-      "sha256": "4741130daad86a745745753adfe7652ebec3c0a54eb681325e4feb97578f2c1f"
+      "sha256": "becddf58a61bc4a93de5c96c188ef45f74b1090f6b27344f845bdfc55cd21cf4"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
@@ -15,7 +15,7 @@
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
-      "sha256": "e4bdc431b32efc449094d8430c305b67f05f9d649c0a48590154ed40d3fd57c3"
+      "sha256": "119a314f7cc3b1dc2add31e31be45e96a05e28f8bfbc18c45c279077561c28be"
     }
   },
   "summary": {

@@ -34,6 +34,7 @@ class QualificationReportTests(unittest.TestCase):
             inventory.write_text(
                 json.dumps(
                     {
+                        "schema_version": qualification.INVENTORY_PUBLICATION_SCHEMA,
                         "repository_commit": "commit",
                         "tools": [{"tool": "tool", "state": "current"}],
                     }
@@ -44,6 +45,7 @@ class QualificationReportTests(unittest.TestCase):
             runtime.write_text(
                 json.dumps(
                     {
+                        "schema_version": qualification.RUNTIME_PUBLICATION_SCHEMA,
                         "repository_commit": "commit",
                         "tools": {"tool": {"status": "passed"}},
                     }
@@ -100,6 +102,7 @@ class QualificationReportTests(unittest.TestCase):
             inventory.write_text(
                 json.dumps(
                     {
+                        "schema_version": qualification.INVENTORY_PUBLICATION_SCHEMA,
                         "repository_commit": "commit",
                         "tools": [{"tool": "tool", "state": "current"}],
                     }
@@ -110,6 +113,7 @@ class QualificationReportTests(unittest.TestCase):
             runtime.write_text(
                 json.dumps(
                     {
+                        "schema_version": qualification.RUNTIME_PUBLICATION_SCHEMA,
                         "repository_commit": "commit",
                         "tools": {"tool": {"status": "passed"}},
                     }
@@ -143,6 +147,45 @@ class QualificationReportTests(unittest.TestCase):
         self.assertEqual(tool["dimensions"]["stage"], "missing")
         self.assertEqual(tool["dimensions"]["real_data"], "missing")
         self.assertEqual(tool["mismatched_passing_stages"], ["fastq.trim_reads"])
+
+    def test_raw_execution_evidence_is_not_publishable_qualification_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            catalog = root / "catalog.toml"
+            catalog.write_text(
+                'evidence_dimensions = ["catalog", "source", "build", "runtime", '
+                '"stage", "real_data", "science", "benchmark", "security", '
+                '"release", "freshness"]\n'
+                "tools = []\n",
+                encoding="utf-8",
+            )
+            inventory = root / "inventory.json"
+            inventory.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "bijux.container.image_inventory.v1",
+                        "tools": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            runtime = root / "runtime.json"
+            runtime.write_text(
+                json.dumps(
+                    {
+                        "schema_version": qualification.RUNTIME_PUBLICATION_SCHEMA,
+                        "tools": {},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            runs = root / "runs.json"
+            runs.write_text('{"runs": []}\n', encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                qualification.QualificationError, "published image inventory"
+            ):
+                qualification.derive_report(catalog, inventory, runtime, runs)
 
     def test_generated_report_check_rejects_drift(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
