@@ -1,0 +1,54 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1076
+  campaign: public-fastq-quality-profile-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.detect_adapters
+  tool: fastqc
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/46d84160c0510c0440ec9645e9cf7de2c767f703
+  commit: 46d84160c0510c0440ec9645e9cf7de2c767f703
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqc-0.12.1-linux-amd64-67d35b581fd8.sif
+  sha256: 67d35b581fd832f7ffb40618001a1d92cb12a45490784457e5edfeb352a2bcad
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+commands:
+  version: [fastqc, --version]
+  help: [fastqc, --help]
+  real:
+    - fastqc
+    - --outdir
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastqc/run-1076
+    - --threads
+    - '2'
+    - --nogroup
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+  negative: [fastqc, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastqc/run-1076
+  required_files:
+    - ERR1021817.read-prefix-100000_1_fastqc.html
+    - ERR1021817.read-prefix-100000_1_fastqc.zip
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^FastQC v0[.]12[.]1$'
+  negative_exit_nonzero: true
