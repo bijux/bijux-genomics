@@ -10,6 +10,9 @@ use super::{
     PathBuf, Result, Utc, VersionMapItem, Workspace,
 };
 
+const VERSION_LOCK_GENERATOR_PATH: &str =
+    "crates/bijux-dna-dev/src/commands/containers/versioning.rs";
+
 fn choose_lock_build_date_utc(
     git_timestamp: &str,
     existing_lock: Option<&serde_json::Value>,
@@ -182,6 +185,7 @@ pub(super) fn check_lock_change_discipline(
             "--",
             "containers/versions/versions.toml",
             "containers/versions/lock.json",
+            VERSION_LOCK_GENERATOR_PATH,
         ])
         .output()
         .with_context(|| "inspect lock discipline diff".to_string())?;
@@ -189,14 +193,15 @@ pub(super) fn check_lock_change_discipline(
     let has_versions =
         changed.lines().any(|line| line.trim() == "containers/versions/versions.toml");
     let has_lock = changed.lines().any(|line| line.trim() == "containers/versions/lock.json");
-    if has_versions && !has_lock {
+    let has_generator = changed.lines().any(|line| line.trim() == VERSION_LOCK_GENERATOR_PATH);
+    if (has_versions || has_generator) && !has_lock {
         return Ok(ContainerCommandOutcome::failure(
-            "lock change discipline: versions.toml changed but lock.json did not\n",
+            "lock change discipline: version source or generator changed but lock.json did not\n",
         ));
     }
-    if !has_versions && has_lock {
+    if !has_versions && !has_generator && has_lock {
         return Ok(ContainerCommandOutcome::failure(
-            "lock change discipline: lock.json changed without versions.toml change\n",
+            "lock change discipline: lock.json changed without version source or generator change\n",
         ));
     }
     success_line("lock change discipline: OK")
@@ -582,7 +587,7 @@ pub(super) fn check_promotion_lock_integrity(
 pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
     let version_map: serde_json::Value =
         serde_json::from_str(&extract_version_map_content(workspace)?)?;
-    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers/mod.rs");
+    let generator_path = workspace.path(VERSION_LOCK_GENERATOR_PATH);
     let versions_path = workspace.path("containers/versions/versions.toml");
     let build_date_utc = lock_build_date_utc(workspace, &versions_path)?;
 
@@ -814,7 +819,7 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
     let lock: serde_json::Value =
         serde_json::from_str(&read_utf8(&workspace.path("containers/versions/lock.json"))?)?;
     let versions_path = workspace.path("containers/versions/versions.toml");
-    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers/mod.rs");
+    let generator_path = workspace.path(VERSION_LOCK_GENERATOR_PATH);
     let mut errors = Vec::new();
     if lock
         .get("schema_version")
