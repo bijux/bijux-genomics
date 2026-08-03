@@ -1,8 +1,19 @@
 #!/usr/bin/env sh
 set -eu
 
+native_information() {
+    set +e
+    native_output="$(/usr/local/libexec-shapeit 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Version       : 4.2.2'; then
+        printf 'error: unexpected SHAPEIT information probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
-    --version) echo 'shapeit 4.2.2' ;;
+    --version) native_information; printf 'shapeit 4.2.2\n' ;;
     --help|-h|"") exec /usr/local/libexec-shapeit --help ;;
     *) exec /usr/local/libexec-shapeit "$@" ;;
 esac

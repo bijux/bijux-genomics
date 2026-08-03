@@ -1,16 +1,19 @@
 #!/usr/bin/env sh
 set -eu
 
+native_help() {
+    native_output="$(java -jar /opt/ibdseq/ibdseq.jar 2>&1)"
+    if ! printf '%s\n' "$native_output" | grep -Fq 'ibdseq r1206'; then
+        printf 'error: IBDSeq help omits release r1206\n' >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
-    --version) echo 'ibdseq r1206' ;;
+    --version) native_help; printf 'ibdseq r1206\n' ;;
     --help|-h|"")
-        set +e
-        java -jar /opt/ibdseq/ibdseq.jar
-        status=$?
-        set -e
-        if [ "$status" -ne 0 ] && [ "$status" -ne 1 ]; then
-            exit "$status"
-        fi
+        native_help
+        printf '%s\n' "$native_output"
         ;;
     *) exec java -jar /opt/ibdseq/ibdseq.jar "$@" ;;
 esac
