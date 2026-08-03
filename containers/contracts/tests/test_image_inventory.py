@@ -176,6 +176,76 @@ class ImageInventoryTests(unittest.TestCase):
         self.assertIn("Scientific and security", report)
         self.assertIn("**missing**", report)
 
+    def test_publication_replaces_governed_roots_with_stable_schemes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study_root = root / "study"
+            repository = root / "repository"
+            image = study_root / "containers" / "apptainer" / "samtools.sif"
+            catalog = repository / "containers" / "contracts" / "catalog.toml"
+            image.parent.mkdir(parents=True)
+            catalog.parent.mkdir(parents=True)
+            source = root / "inventory.json"
+            source.write_text(
+                json.dumps(
+                    {
+                        "schema_version": inventory.INVENTORY_SCHEMA,
+                        "image_root": str(image.parent),
+                        "catalog": str(catalog),
+                        "summary": {"tool_count": 1},
+                        "tools": [{"tool": "samtools", "selected_image": str(image)}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            source_sha256 = inventory.sha256_file(source)
+            output = root / "published.json"
+
+            result = inventory.publish_inventory(
+                source, study_root, repository, output
+            )
+
+        self.assertEqual(result["schema_version"], inventory.PUBLICATION_SCHEMA)
+        self.assertEqual(
+            result["image_root"], "study://containers/apptainer"
+        )
+        self.assertEqual(
+            result["catalog"], "repository://containers/contracts/catalog.toml"
+        )
+        self.assertEqual(
+            result["tools"][0]["selected_image"],
+            "study://containers/apptainer/samtools.sif",
+        )
+        self.assertEqual(
+            result["publication"]["raw_sha256"], source_sha256
+        )
+
+    def test_publication_rejects_absolute_paths_outside_governed_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "inventory.json"
+            source.write_text(
+                json.dumps(
+                    {
+                        "schema_version": inventory.INVENTORY_SCHEMA,
+                        "summary": {"tool_count": 0},
+                        "tools": [],
+                        "untrusted": "/unmanaged/evidence.json",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                inventory.ImageInventoryError, "outside governed roots"
+            ):
+                inventory.publish_inventory(
+                    source,
+                    root / "study",
+                    root / "repository",
+                    root / "published.json",
+                )
+
     def test_referenced_unsupported_image_is_a_historical_dependency(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
