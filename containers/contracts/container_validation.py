@@ -329,6 +329,7 @@ def freeze_repository(
     governance_path: Path,
     checkout_scope: str = "contracts",
     checkout_paths: tuple[str, ...] = (),
+    source_namespace: str = "source-freezes",
 ) -> Path:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ContractError("frozen repository commit must be a full Git commit")
@@ -337,6 +338,8 @@ def freeze_repository(
             "frozen repository scope must be contracts, sources, or complete"
         )
     if checkout_scope == "sources":
+        if re.fullmatch(r"[a-z][a-z0-9-]*", source_namespace) is None:
+            raise ContractError("source freeze namespace must be a durable path identity")
         if not checkout_paths:
             raise ContractError("source freeze requires at least one checkout path")
         for value in checkout_paths:
@@ -345,6 +348,8 @@ def freeze_repository(
                 raise ContractError(f"source freeze path is unsafe: {value}")
     elif checkout_paths:
         raise ContractError("checkout paths are valid only for a source freeze")
+    elif source_namespace != "source-freezes":
+        raise ContractError("source freeze namespace is valid only for a source freeze")
     governance = load_governance(governance_path)
     active_repository: Path = governance["active_repository"]
     frozen_repositories: Path = governance["frozen_repositories"]
@@ -359,7 +364,7 @@ def freeze_repository(
         source_identity = hashlib.sha256(
             "\0".join(sorted(set(checkout_paths))).encode("utf-8")
         ).hexdigest()[:12]
-        target = frozen_repositories / "image-builds" / f"{commit}-{source_identity}"
+        target = frozen_repositories / source_namespace / f"{commit}-{source_identity}"
     else:
         target = frozen_repositories / "image-builds" / commit
     if target.exists():
@@ -1905,6 +1910,7 @@ def parser() -> argparse.ArgumentParser:
         default="contracts",
     )
     freeze.add_argument("--path", action="append", default=[])
+    freeze.add_argument("--namespace", default="source-freezes")
     collect = commands.add_parser("collect-accounting")
     collect.add_argument("--manifest", type=Path, required=True)
     collect.add_argument("--governance", type=Path)
@@ -1937,6 +1943,7 @@ def main() -> int:
                     args.governance,
                     checkout_scope=args.scope,
                     checkout_paths=tuple(args.path),
+                    source_namespace=args.namespace,
                 )
             )
             return 0

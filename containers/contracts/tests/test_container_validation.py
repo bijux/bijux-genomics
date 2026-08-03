@@ -316,7 +316,7 @@ class GovernanceContractTests(unittest.TestCase):
                 container_validation.git_output(complete, "status", "--porcelain"),
                 "",
             )
-            self.assertEqual(sources.parent.name, "image-builds")
+            self.assertEqual(sources.parent.name, "source-freezes")
             self.assertTrue(sources.name.startswith(f"{commit}-"))
             self.assertEqual(
                 (sources / "other" / "unselected.txt").read_text(),

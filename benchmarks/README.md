@@ -95,7 +95,8 @@ python3 -B containers/contracts/container_validation.py freeze-repository \
   --governance containers/contracts/sites/lunarc.yml \
   --commit "$commit" \
   --scope sources \
-  --path benchmarks
+  --path benchmarks \
+  --namespace benchmark-campaigns
 ```
 
 The materializer streams each file into a private partial path, verifies the

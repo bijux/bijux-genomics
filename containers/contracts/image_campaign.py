@@ -209,6 +209,7 @@ def create_execution(
         governance_path,
         checkout_scope="sources",
         checkout_paths=source_roots,
+        source_namespace="image-builds",
     )
     execution = {
         "schema_version": CAMPAIGN_EVIDENCE_SCHEMA,
