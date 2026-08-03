@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "c3025fb6ea219b5270d3b2a0c3a30821d833e7b6af42f6857604f72b82da6e24",
+  "source_sha256": "5785287108c25b33eaa3be4cd5d3ae2c37ae8830080b8f66462f2dd05a6ce5db",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -413,12 +413,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/bbuchfink/diamond",
-      "license": "NOASSERTION",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53",
       "pinned_commit": "1130513e06223ffd12c74a11e8e2c967e108a825",
       "apptainer_definition": "containers/apptainer/diamond.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.diamond",
-      "contract_sha256": "6327cc544aca37c3bd3951268f4b252ab4c5574f14334b23946d9940290a6edc"
+      "contract_sha256": "dbbd0e798062712f9e54b1f537ffe4a24edd1385936545fc5c475f5182ed9289"
     },
     {
       "id": "dustmasker",
