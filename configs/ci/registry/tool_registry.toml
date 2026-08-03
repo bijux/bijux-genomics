@@ -1863,7 +1863,7 @@ citation = "paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246
 pinned_commit = "git:307e84021ab3561c38fbee2854bef3eba8e6cfda"
 pin_strategy = "source_commit"
 container_ref = "bijuxdna/sortmerna:4.3.7"
-runtimes = ["docker", "apptainer"]
+runtimes = ["apptainer"]
 container = true
 version_cmd = "sortmerna --version"
 help_cmd = "sortmerna --help"
@@ -1875,7 +1875,7 @@ expected_bin = "sortmerna"
 expected_artifacts = ["rrna_filtered_reads_r1", "rrna_filtered_reads_r2", "rrna_removed_reads_r1", "rrna_removed_reads_r2", "rrna_report_tsv", "rrna_report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/Dockerfile.arm64.sortmerna"
+dockerfile = ""
 apptainer_def = "containers/apptainer/sortmerna.def"
 require_labels = true
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "7c4fae13c7346c09e013195e143f2cd3ee7f28739dab93c605394173abf5c8ca",
+  "source_sha256": "4f702fe3b3556c45ac39b0d701d41f05e9e55c11f03488fed68a9070a752c361",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -881,8 +881,8 @@
       "source_sha256": "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.plink",
-      "contract_sha256": "a85ee313b7e23b6d0d99027cc0d5ff9852df1765e6ea91b36ccb6d30cbaa461f"
+      "dockerfile": "",
+      "contract_sha256": "9479d9958f81c4c7ac3bf6258cfc3ecbbe82dc70fadac13fc598460cd3f4de87"
     },
     {
       "id": "plink2",

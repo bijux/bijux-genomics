@@ -4,10 +4,10 @@ use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
     container_support_summary, docker_tool_ids, dockerfile_paths, env_or_default, env_or_empty,
     failure_lines, fs, images_metadata, iso_root_path, load_toml, read_json, read_utf8,
-    registry_tool_rows, success_line, table_array_strings, table_string, tool_status_manifest,
-    tool_versions, toolkit_bundles, write_ensure_images_plan_report, write_vuln_hook_report,
-    BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex, Result, Utc, WalkDir,
-    Workspace,
+    registry_tool_rows, success_line, table_array_strings, table_bool, table_string,
+    tool_status_manifest, tool_versions, toolkit_bundles, write_ensure_images_plan_report,
+    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex,
+    Result, Utc, WalkDir, Workspace,
 };
 
 pub(in super::super) fn check_tool_name_collision(
@@ -589,21 +589,19 @@ pub(in super::super) fn check_docker_arm64_completeness(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let docker = docker_tool_ids(workspace)?;
-    let mut required = BTreeSet::new();
-    for row in registry_tool_rows(workspace)? {
-        let tool = {
-            let id = table_string(&row, "id");
-            if id.is_empty() {
-                table_string(&row, "tool_id")
-            } else {
-                id
-            }
-        };
-        let runtimes = table_array_strings(&row, "runtimes");
-        if !tool.is_empty() && runtimes.iter().any(|runtime| runtime == "docker") {
-            required.insert(tool);
-        }
-    }
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let required = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .filter(|row| {
+            table_string(row, "support_disposition") == "retained"
+                && table_bool(row, "docker_arm64_supported")
+        })
+        .map(|row| table_string(row, "id"))
+        .collect::<BTreeSet<_>>();
     let waiver_path = workspace.path("containers/contracts/docker-waivers.toml");
     let mut waived = BTreeSet::new();
     if waiver_path.exists() {

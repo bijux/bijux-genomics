@@ -119,7 +119,7 @@ authorship. Upstream source and license remain catalog-owned facts.
 | `ngsbriggs` | `unsupported` | `none` | `none` |
 | `pear` | `retained` | `bijux-genomics` | `arm64` |
 | `picard` | `retained` | `bijux-genomics` | `arm64` |
-| `plink` | `retained` | `bijux-genomics` | `arm64` |
+| `plink` | `retained` | `bijux-genomics` | `none` |
 | `plink2` | `retained` | `bijux-genomics` | `arm64` |
 | `pmdtools` | `retained` | `bijux-genomics` | `arm64` |
 | `preseq` | `retained` | `bijux-genomics` | `arm64` |
