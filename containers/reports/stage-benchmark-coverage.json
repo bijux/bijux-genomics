@@ -161,9 +161,9 @@
       "stage_id": "bam.length_filter"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "campaign_run_id": "run-2004",
+      "definition_status": "defined",
+      "execution_status": "not_admitted",
       "retained_tools": [
         "picard",
         "samtools"
@@ -725,8 +725,8 @@
   ],
   "summary": {
     "admitted_stage_count": 3,
-    "defined_stage_count": 3,
-    "missing_stage_count": 68,
+    "defined_stage_count": 4,
+    "missing_stage_count": 67,
     "retained_stage_count": 71
   }
 }

@@ -7,9 +7,9 @@ measurement contract. It is not marked executed until Slurm evidence is
 admitted separately.
 
 - Retained stages: **71**
-- Defined campaigns: **3**
+- Defined campaigns: **4**
 - Admitted campaigns: **3**
-- Missing campaigns: **68**
+- Missing campaigns: **67**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ admitted separately.
 | `bam.insert_size` | `picard` | — | missing | not_defined |
 | `bam.kinship` | `king` | — | missing | not_defined |
 | `bam.length_filter` | `picard`, `samtools` | — | missing | not_defined |
-| `bam.mapping_summary` | `picard`, `samtools` | — | missing | not_defined |
+| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | defined | not_admitted |
 | `bam.mapq_filter` | `bamtools`, `samtools` | — | missing | not_defined |
 | `bam.markdup` | `picard`, `samtools` | — | missing | not_defined |
 | `bam.overlap_correction` | `bamutil` | — | missing | not_defined |

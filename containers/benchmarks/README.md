@@ -60,6 +60,16 @@ operational proxy: mapping to EquCab3 depends on the reference and upstream
 alignment, and contamination can map too. The report must not relabel this
 reproducible mapping statistic as biological ground truth.
 
+The BAM mapping-summary campaign compares Picard and Samtools with one
+explicit primary-record contract. Picard's `PAIR` and `UNPAIRED` categories
+are summed; its `FIRST_OF_PAIR` and `SECOND_OF_PAIR` rows are excluded to avoid
+double counting. Samtools supplies the corresponding primary, primary-mapped,
+and paired-in-sequencing counts. Exact count agreement is required. The
+campaign deliberately allocates one CPU to both tools because these summary
+operations do not expose equivalent useful parallelism. Agreement proves that
+the integrations interpret BAM flags consistently for this corpus, not that
+the upstream alignments are true.
+
 After accounting collection, validate every archived contract, output digest,
 input lock, resource row, repetition, and Slurm identity before publishing the
 small report:
@@ -88,6 +98,14 @@ python3 -B containers/benchmarks/benchmark_evidence.py \
   --stage-result-root "$STUDY/results/benchmarks/run-2003-bam-endogenous-content" \
   --json-output containers/reports/run-2003-bam-endogenous-content.json \
   --markdown-output containers/reports/run-2003-bam-endogenous-content.md
+
+python3 -B containers/benchmarks/benchmark_evidence.py \
+  --registry containers/benchmarks/campaigns.toml \
+  --catalog containers/contracts/catalog.toml \
+  --run-id run-2004 \
+  --stage-result-root "$STUDY/results/benchmarks/run-2004-bam-mapping-summary" \
+  --json-output containers/reports/run-2004-bam-mapping-summary.json \
+  --markdown-output containers/reports/run-2004-bam-mapping-summary.md
 ```
 
 The reviewed [BAM-genotyping report](../reports/run-2001-bam-genotyping.md)

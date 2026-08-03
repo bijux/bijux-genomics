@@ -139,12 +139,12 @@ def validate_registry(
             )
         for key in (
             "corpus_catalog_ids",
-            "reference_catalog_ids",
             "input_size_keys",
             "scientific_metrics",
             "limitations",
         ):
             require_text_list(campaign, key)
+        require_text_list(campaign, "reference_catalog_ids", allow_empty=True)
         require_text_list(campaign, "database_catalog_ids", allow_empty=True)
         comparison_metrics = campaign.get("comparison_metrics")
         if not isinstance(comparison_metrics, list):

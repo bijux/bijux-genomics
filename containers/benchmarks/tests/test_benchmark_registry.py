@@ -41,6 +41,12 @@ class BenchmarkRegistryTests(unittest.TestCase):
         )
         self.assertEqual(campaigns[2]["stage_id"], "bam.endogenous_content")
         self.assertEqual(campaigns[2]["tool_ids"], ["samtools"])
+        self.assertEqual(campaigns[3]["stage_id"], "bam.mapping_summary")
+        self.assertEqual(campaigns[3]["tool_ids"], ["picard", "samtools"])
+        self.assertEqual(
+            benchmark_registry.threads_by_tool(campaigns[3]),
+            {"picard": 1, "samtools": 1},
+        )
 
     def test_per_tool_threads_must_cover_the_tool_closure(self) -> None:
         self.registry["campaigns"][1]["threads_by_tool"].pop("samtools")
@@ -50,6 +56,11 @@ class BenchmarkRegistryTests(unittest.TestCase):
             "threads_by_tool must cover the exact tool closure",
         ):
             benchmark_registry.validate_registry(self.registry, self.catalog)
+
+    def test_reference_free_summary_campaign_is_valid(self) -> None:
+        campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
+
+        self.assertEqual(campaigns[3]["reference_catalog_ids"], [])
 
     def test_omitting_a_retained_tool_is_rejected(self) -> None:
         self.registry["campaigns"][0]["tool_ids"] = []
@@ -82,7 +93,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
 
-        self.assertEqual(report["summary"]["defined_stage_count"], 3)
+        self.assertEqual(report["summary"]["defined_stage_count"], 4)
         self.assertEqual(report["summary"]["admitted_stage_count"], 0)
         self.assertGreater(report["summary"]["missing_stage_count"], 1)
 

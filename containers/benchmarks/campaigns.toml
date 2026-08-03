@@ -137,3 +137,52 @@ limitations = [
   "Mapped-read fraction does not distinguish authentic ancient horse molecules from contamination that also maps to EquCab3.",
   "The corpus is one low-coverage ancient horse library and does not establish population-wide or protocol-wide behavior.",
 ]
+
+[[campaigns]]
+run_id = "run-2004"
+slug = "bam-mapping-summary"
+domain = "bam"
+stage_id = "bam.mapping_summary"
+scientific_question = "Do the retained BAM summary tools report the same primary-read and primary-mapped-read counts for a governed ancient horse alignment, and what resources does each implementation consume?"
+comparison_scope = "primary mapping counts from one governed coordinate-sorted EquCab3 BAM"
+tool_ids = ["picard", "samtools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "mapping-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 1
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "cross_tool_primary_mapping_summary_consistency_not_alignment_truth"
+interpretation = "This campaign compares Picard and Samtools primary-read accounting under one explicit aggregation contract. Exact agreement establishes interoperable BAM flag interpretation for this corpus; it does not establish that the upstream alignments are biologically correct."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "primary_reads",
+  "mapped_primary_reads",
+  "mapped_primary_fraction",
+  "paired_primary_reads",
+]
+comparison_metrics = [
+  {id = "primary_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "mapped_primary_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "mapped_primary_fraction", absolute_tolerance = 0.000000000001, relative_tolerance = 0.000000001},
+  {id = "paired_primary_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+]
+limitations = [
+  "The corpus is one low-coverage ancient horse library and cannot establish agreement across all aligners, sequencing technologies, or BAM flag combinations.",
+  "Picard PAIR and UNPAIRED categories are deliberately aggregated to match Samtools primary-record semantics; FIRST_OF_PAIR and SECOND_OF_PAIR rows are excluded because including them would double-count paired records.",
+  "Exact count agreement checks summary interoperability, not mapping accuracy against an independent alignment truth set.",
+  "Both tools run with one allocated CPU because the measured summary operations do not expose equivalent useful parallelism.",
+]
