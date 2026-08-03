@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/mosdepth-0.3.11-linux-amd64-21697c7ae591.sif",
+    "sha256": "21697c7ae5919429ded46ea4aead6f2b93edf234271e4389655d79f4012db8f5",
+    "size_bytes": 38400000
+  },
+  "repository_commit": "6fa5d55f3b092de162f7f136461037431aaea494",
+  "run_id": "run-1088",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458072",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "91b410817c8d1282ebc477c81fd02d39f92b20ee653057a2016d655951ea269c",
+      "size_bytes": 2039
+    },
+    {
+      "path": "coverage.mosdepth.global.dist.txt",
+      "sha256": "3f77304e5fae4b838f0927885cf3dc40b5d765aeeead8c8e81859b7578c4df31",
+      "size_bytes": 12002
+    },
+    {
+      "path": "coverage.mosdepth.summary.txt",
+      "sha256": "3852c282e5947c21094fc90de091027941ee812a04475a05788914d97a7e1761",
+      "size_bytes": 8060
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "951942a53bb8e7823715c5489bdf35d3ae81e965e874ec6d416e93fd730fe3d1",
+      "size_bytes": 3570
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "b2054fffd41eb394364624f33bf1c27e52e17aba7d4298fa6d3af55605063a52",
+      "size_bytes": 2559
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "8ecadd7029ad33aae6efc6d8b1c2e12144dc28febc3c7febf11a9f250d30e753",
+      "size_bytes": 62
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "0d1e179d1b502e9c61bac66349663552444237df50c87c81f6ad624cf00eb730",
+      "size_bytes": 922
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "aa9042811da8ed28ea5f856a476895be2239529f437f83c1ed65bf28cf11d8cf",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "fee3b0f178c6b9ceb5cf5d66c6c886d3a2b825388f6977ed269834b4fbf80bf5",
+      "size_bytes": 1052
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "4f86469579220e8ad804b88821e9d00c4e4172320e80d307459a448cc0ac41b2",
+      "size_bytes": 16
+    }
+  ],
+  "source_result": "results/container-validation/mosdepth/run-1088",
+  "tool": "mosdepth",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "91b410817c8d1282ebc477c81fd02d39f92b20ee653057a2016d655951ea269c",
+      "size_bytes": 2039
+    },
+    "evidence.json": {
+      "sha256": "951942a53bb8e7823715c5489bdf35d3ae81e965e874ec6d416e93fd730fe3d1",
+      "size_bytes": 3570
+    },
+    "slurm-accounting.json": {
+      "sha256": "0d1e179d1b502e9c61bac66349663552444237df50c87c81f6ad624cf00eb730",
+      "size_bytes": 922
+    }
+  }
+}

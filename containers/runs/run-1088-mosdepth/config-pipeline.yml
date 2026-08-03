@@ -1,0 +1,57 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1088
+  campaign: public-bam-coverage-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000-equcab3
+  sample: ERR1021817
+  domain: bam
+  stage: bam.coverage
+  tool: mosdepth
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/6fa5d55f3b092de162f7f136461037431aaea494
+  commit: 6fa5d55f3b092de162f7f136461037431aaea494
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mosdepth-0.3.11-linux-amd64-21697c7ae591.sif
+  sha256: 21697c7ae5919429ded46ea4aead6f2b93edf234271e4389655d79f4012db8f5
+data:
+  inputs:
+    - id: samtools-aligned-sorted-bam
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1027/aligned.sorted.bam
+      sha256: 02ead42cfecbcbfd1a27c0508428f2ad34eebabe8e1e70fb0d8caa6d436bc4d9
+    - id: samtools-aligned-sorted-bam-csi
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1027/aligned.sorted.bam.csi
+      sha256: d20cf00ca40b8bcaf1a633aaa1c37353b32114f434b12eabaa0a21b87acbbbce
+commands:
+  version: [mosdepth, --version]
+  help: [mosdepth, --help]
+  real:
+    - mosdepth
+    - --threads
+    - '2'
+    - --no-per-base
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/mosdepth/run-1088/coverage
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1027/aligned.sorted.bam
+  negative: [mosdepth, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/mosdepth/run-1088
+  required_files:
+    - coverage.mosdepth.global.dist.txt
+    - coverage.mosdepth.summary.txt
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 4096
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^mosdepth 0[.]3[.]11$'
+  negative_exit_nonzero: true

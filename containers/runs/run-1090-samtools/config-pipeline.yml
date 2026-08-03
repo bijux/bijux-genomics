@@ -1,0 +1,52 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1090
+  campaign: public-ancient-bam-sam-materialization
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.validate
+  tool: samtools
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/00f23822e64a47d42396f6c9dc0c567746aa5ba8
+  commit: 00f23822e64a47d42396f6c9dc0c567746aa5ba8
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif
+  sha256: 5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f
+data:
+  inputs:
+    - id: ena-err2112767-sorted-bam
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+      sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87
+commands:
+  version: [samtools, --version]
+  help: [samtools, view, --help]
+  real:
+    - samtools
+    - view
+    - -h
+    - -o
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1090/ERR2112767.sorted.sam
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+  negative: [samtools, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1090
+  required_files:
+    - ERR2112767.sorted.sam
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^samtools 1[.]20$'
+  negative_exit_nonzero: true

@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "alientrimmer",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "89cccf3c14593fda1d389a25921f98c37fdb30bb0dcba76a4f5243fefbf28489"
+    },
+    "negative": {
+      "argv": [
+        "alientrimmer",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "89cccf3c14593fda1d389a25921f98c37fdb30bb0dcba76a4f5243fefbf28489"
+    },
+    "real": {
+      "argv": [
+        "alientrimmer",
+        "-1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "-2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "-a",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/repository-asset-seed/reference/contaminants/references/univec.fasta",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/alientrimmer/run-1089/trimmed",
+        "-z",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "2c7f1828c89bb4048438641a8c92882340f4de6181242f6679c8b253253043ab"
+    },
+    "version": {
+      "argv": [
+        "alientrimmer",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "81824dba6d71d2996baef3cc5f77008ebc34656848b502292277b3feffab5d82"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": "container_validation",
+  "failures": [
+    "negative command unexpectedly succeeded"
+  ],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/alientrimmer-3.2-linux-amd64-5b4cb0770404.sif",
+    "sha256": "5b4cb0770404aad2b8a5288e90be805d2c2a10e17033d369f12e6e5aee12b8da",
+    "size_bytes": 177602560
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "ena-err1021817-read-prefix-100000-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    },
+    {
+      "id": "univec-illumina-adapter",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/repository-asset-seed/reference/contaminants/references/univec.fasta",
+      "sha256": "1dcfb14abd8a2f05d03c5db42a43f57f8d9dfeea73d09f72c17f7b45529041d4"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "trimmed.1.fastq.gz",
+      "sha256": "fc4ec9d5aaa302f92c5e770c40161749ae026e2d9b1f6f217bc009d612e9d1d0",
+      "size_bytes": 8756213
+    },
+    {
+      "path": "trimmed.2.fastq.gz",
+      "sha256": "2a8d5253730925ff98913659afec68c57a867ce0edde07259a2c99ef9d95bc41",
+      "size_bytes": 9005796
+    }
+  ],
+  "pipeline_sha256": "2c1c14ce7509446fc67c4102a6d9be620e8555e9b94b1086265d81693d979952",
+  "repository_clean": true,
+  "repository_commit": "d5f7a6cb43a31d13ba77c6582c70512caa051bed",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/d5f7a6cb43a31d13ba77c6582c70512caa051bed",
+  "run_id": "run-1089",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn087",
+    "slurm_job_id": "3458074",
+    "started_at_utc": "2026-08-02T23:06:39.855175+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn087",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}
