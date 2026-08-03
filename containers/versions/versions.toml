@@ -217,6 +217,8 @@ version = "2.3"
 source = "https://github.com/alastair-droop/fqtools"
 date_pinned = "2026-02-12"
 pinned_commit = "63c6fa707fabc7569c2f256b8bcfc6ebb760f72a"
+source_sha256 = "209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6"
+upstream_license = "GPL-3.0-only"
 
 [germline]
 version = "1.5.3"

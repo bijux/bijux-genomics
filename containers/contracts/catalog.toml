@@ -1019,7 +1019,7 @@ real_test_input_kind = "fastq"
 [[tools]]
 id = "fqtools"
 display_name = "fqtools"
-purpose = "Provides validator execution for governed genomics stages."
+purpose = "Validates single-end and paired-end FASTQ structure and sequence alphabets before governed transformations consume the reads."
 version = "2.3"
 support_disposition = "retained"
 qualification = "unverified"
