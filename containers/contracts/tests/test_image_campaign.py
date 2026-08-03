@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 CONTRACTS = Path(__file__).parents[1]
 sys.path.insert(0, str(CONTRACTS))
@@ -17,6 +18,34 @@ SPEC.loader.exec_module(campaign)
 
 
 class ImageCampaignTests(unittest.TestCase):
+    def test_build_runs_from_frozen_repository(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repository = root / "repository"
+            definition = repository / "containers/apptainer/samtools.def"
+            definition.parent.mkdir(parents=True)
+            definition.write_text("Bootstrap: docker\n", encoding="utf-8")
+            image_root = root / "images"
+            evidence_root = root / "evidence"
+            with mock.patch.object(
+                campaign.subprocess,
+                "run",
+                return_value=mock.Mock(returncode=1),
+            ) as run:
+                result = campaign.build_one(
+                    "samtools",
+                    "1.20",
+                    "a" * 40,
+                    root / "governance.yml",
+                    repository,
+                    image_root,
+                    evidence_root,
+                    1,
+                )
+
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(run.call_args.kwargs["cwd"], repository)
+
     def test_selection_contains_only_supported_noncurrent_images(self) -> None:
         selected = campaign.selected_tools(
             {

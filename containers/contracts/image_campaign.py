@@ -223,6 +223,7 @@ def build_one(
         completed = subprocess.run(
             ["apptainer", "build", str(staged), str(definition)],
             check=False,
+            cwd=repository,
             stdout=stream,
             stderr=subprocess.STDOUT,
         )
