@@ -379,6 +379,8 @@ version = "0.60"
 source = "https://github.com/pontussk/PMDtools"
 date_pinned = "2026-02-12"
 pinned_commit = "18b5901e93d417ea91fd675b499e401deadfe3c5"
+source_sha256 = "47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405"
+upstream_license = "GPL-3.0-only"
 
 [prinseq]
 version = "1.2.4"

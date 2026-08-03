@@ -2,64 +2,75 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: pmdtools
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: exact upstream tag commit archive with a governed SHA-256 digest
+# Upstream source: https://github.com/pontussk/PMDtools/tree/0.60
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu base and source archive
+# Runtime UID policy: caller identity with caller-owned input and output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.source https://github.com/pontussk/PMDtools
+    org.opencontainers.image.revision 18b5901e93d417ea91fd675b499e401deadfe3c5
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 0.60
     org.opencontainers.image.tool pmdtools
-    org.opencontainers.image.title pmdtools
+    org.opencontainers.image.title PMDtools
 
 %environment
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+    export DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/tools/pmdtools/python3-release-metadata.patch /opt/pmdtools-python3-release-metadata.patch
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
-        git python3 python3-lib2to3 ca-certificates && \
-        rm -rf /var/lib/apt/lists/*
+    PMDTOOLS_COMMIT=18b5901e93d417ea91fd675b499e401deadfe3c5
+    PMDTOOLS_SHA256=47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405
+    apt-get update
+    apt-get install -y --no-install-recommends ca-certificates curl patch python3 samtools
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        "https://codeload.github.com/pontussk/PMDtools/tar.gz/${PMDTOOLS_COMMIT}" \
+        --output /opt/pmdtools.tar.gz
+    echo "${PMDTOOLS_SHA256}  /opt/pmdtools.tar.gz" | sha256sum --check --strict
+    tar --extract --gzip --file /opt/pmdtools.tar.gz --directory /opt
+    patch --directory "/opt/PMDtools-${PMDTOOLS_COMMIT}" --strip=1 \
+        --input /opt/pmdtools-python3-release-metadata.patch
+    install -m 0755 "/opt/PMDtools-${PMDTOOLS_COMMIT}/pmdtools.0.60.py" /usr/local/bin/pmdtools
 
-    git clone --depth 1 https://github.com/pontussk/PMDtools.git /opt/pmdtools
-    cd /opt/pmdtools
-    git checkout cc91fb8d870eadc4566d0bb3fbbc92fa96cd1363
-    python3 -m lib2to3 -w /opt/pmdtools/pmdtools.0.60.py
+    install -d -m 0755 /opt/pmdtools/test-data
+    printf '@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\nread1\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tIIII\tMD:Z:4\n' \
+        > /opt/pmdtools/test-data/minimal.sam
+    samtools view -b -o /opt/pmdtools/test-data/minimal.bam /opt/pmdtools/test-data/minimal.sam
+    pmdtools --version | grep -Fx 'pmdtools v0.60'
+    pmdtools --help >/dev/null
+    samtools view -h /opt/pmdtools/test-data/minimal.bam | pmdtools --dry --header \
+        | grep -F 'read1'
 
-    cat > /usr/local/bin/pmdtools <<'SH'
-#!/bin/sh
-set -eu
-if [ "${1:-}" = "--version" ]; then
-  echo "0.60"
-  exit 0
-fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
-  exec python3 /opt/pmdtools/pmdtools.0.60.py --help
-fi
-exec python3 /opt/pmdtools/pmdtools.0.60.py "$@"
-SH
-    chmod +x /usr/local/bin/pmdtools
+    rm -rf "/opt/PMDtools-${PMDTOOLS_COMMIT}" /opt/pmdtools.tar.gz \
+        /opt/pmdtools-python3-release-metadata.patch
+    apt-get purge -y --auto-remove curl patch
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
 %runscript
     exec /usr/local/bin/pmdtools "$@"
 
 %help
-    Apptainer image for PMDtools.
-    Default runscript forwards arguments to pmdtools.
+    PMDtools 0.60 from the exact upstream release commit, with samtools for
+    converting governed BAM inputs to the SAM stream required by PMDtools.
+
+%test
+    pmdtools --version | grep -Fx 'pmdtools v0.60'
+    pmdtools --help >/dev/null
+    samtools view -h /opt/pmdtools/test-data/minimal.bam | pmdtools --dry --header \
+        | grep -F 'read1'
+    if pmdtools --definitely-invalid-option >/dev/null 2>&1; then exit 1; fi
