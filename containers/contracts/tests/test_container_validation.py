@@ -11,6 +11,7 @@ from typing import Any
 from unittest import mock
 
 EXECUTOR = Path(__file__).parents[1] / "container_validation.py"
+sys.path.insert(0, str(EXECUTOR.parent))
 SPEC = importlib.util.spec_from_file_location("container_validation", EXECUTOR)
 assert SPEC is not None and SPEC.loader is not None
 container_validation = importlib.util.module_from_spec(SPEC)

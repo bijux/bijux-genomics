@@ -48,6 +48,11 @@ images. The same commands repopulate the canonical `apptainer/` directory after
 an explicitly reviewed storage migration by setting `rebuild_root` to the
 configured containers root.
 
+Image freshness covers the complete recipe input identity: the definition and
+the Git object for every repository-owned `%files` source. Changing a wrapper,
+patch, installer, or bundled data tree therefore marks the prior image stale
+even when the `.def` file itself is unchanged.
+
 ```console
 image_commit="$(git rev-parse HEAD)"
 containers_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers"
