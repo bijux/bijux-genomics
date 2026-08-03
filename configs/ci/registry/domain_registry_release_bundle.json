@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "1f0375ab12344bf1ef175019326921a7dd67753f",
-  "bundle_checksum_sha256": "f91593bc5be2a98f42d794d313c09add58287516be3618111a8a802a3d65fc83",
+  "source_commit": "49f670f4bfd6ac79fdadfc69456c693bf9d168e3",
+  "bundle_checksum_sha256": "37917bcef0ce8ed9b5c4b59f78b2c8a9087e5e789df1a1bc5580c5743c509a11",
   "domains": [
     {
       "domain_id": "bam",
@@ -3129,7 +3129,7 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "1.0.0",
+          "default_version": "1.0",
           "upstream": "https://github.com/maxibor/pydamage",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -3149,7 +3149,7 @@
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "bijuxdna/pydamage:1.0.0",
+            "image": "bijuxdna/pydamage:1.0",
             "digest": ""
           }
         },
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "083781031609a7bf453628d9bd03e4327945af1429d15c8fca44cc4cd07684f4"
+      "checksum_sha256": "0ba831eb44a805dad899e6b2b1dbc3bdd37c4ee7378457b4c11f23bff03faea7"
     },
     {
       "domain_id": "fastq",
@@ -13502,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "8848b9524f278abfee6682a087dd018f5891882c029e7abdff0a374df5249945"
+      "checksum_sha256": "236702f6d5d02c159695f2a2e432de6c6cc23983c5163a13f608696b4b230659"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "abab913dd89f88a526802afebfc3b2f904608a490984f6127c5f6f2241261500"
+      "checksum_sha256": "8173b3c643ad17c13a31693f537feccc4502d46f192c025b6a1d1e9e395ce298"
     }
   ]
 }

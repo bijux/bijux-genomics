@@ -194,7 +194,7 @@ stage_id = "bam.damage"
 tool_id = "pydamage"
 execution_mode = "containerized"
 install_kind = "container"
-container_id = "bijuxdna/pydamage:1.0.0"
+container_id = "bijuxdna/pydamage:1.0"
 command_entrypoint = "pydamage"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 

@@ -73,7 +73,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `metaphlan` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/biobakery/MetaPhlAn` | `4.1.1` | `sha256:db3f6105a8466aa493be0acc3a11f0d205a8c8b6b1f6778e95b700ac262dff92` |
 | `minimac4` | `planned` | `non-bijux` | `GPL-3.0-only` | `https://github.com/statgen/Minimac4` | `4.1.6` | `sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3` |
 | `mosdepth` | `production` | `bijux` | `MIT` | `https://github.com/brentp/mosdepth` | `0.3.11` | `sha256:4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2` |
-| `multiqc` | `production` | `bijux` | `NOASSERTION` | `https://github.com/multiqc/multiqc` | `1.21` | `sha256:4e2b7aa385bc8c26eec70c46b244b5fd0da27c11a46a3ea1fd8901ff8e835809` |
+| `multiqc` | `production` | `bijux` | `NOASSERTION` | `https://github.com/multiqc/multiqc` | `1.24` | `sha256:991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb` |
 | `musket` | `production` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/musket/` | `1.1` | `sha256:306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba` |
 | `ngsbriggs` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz` | `0.01` | `sha256:afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7` |
 | `pear` | `production` | `bijux` | `NOASSERTION` | `https://cme.h-its.org/exelixis/web/software/pear/` | `0.9.6` | `sha256:f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b` |
@@ -83,7 +83,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `pmdtools` | `production` | `bijux` | `NOASSERTION` | `https://github.com/pontussk/PMDtools` | `0.60` | `sha256:08ce5fd237b9555976e918eeef376f2d149474cd8b9f56e78a4fd9a77c9bb36b` |
 | `preseq` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/smithlabcode/preseq` | `3.2.0` | `sha256:64ba0ddd9cf6ac5af43dac29ca81570bb54a6d5c0a2b8681c71552ec13581114` |
 | `prinseq` | `production` | `bijux` | `NOASSERTION` | `https://github.com/Adrian-Cantu/PRINSEQ-plus-plus` | `1.2.4` | `sha256:957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3` |
-| `pydamage` | `production` | `bijux` | `NOASSERTION` | `https://github.com/maxibor/pydamage` | `0.80` | `sha256:ed7af646980160fd8646c75f3330dcb09a610967e275a4a15da40f0efafcd314` |
+| `pydamage` | `production` | `bijux` | `NOASSERTION` | `https://github.com/maxibor/pydamage` | `1.0` | `sha256:f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f` |
 | `qualimap` | `experimental` | `bijux` | `NOASSERTION` | `https://bitbucket.org/kokonech/qualimap` | `2.3` | `sha256:2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40` |
 | `rcorrector` | `production` | `bijux` | `NOASSERTION` | `https://github.com/mourisl/Rcorrector` | `1.0.7` | `sha256:33274474f6215e3b78829a2b7f86b5a0f6f191d1da7a2da96cba67f1fb4605a8` |
 | `rxy` | `production` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-genomics` | `1.0.0` | `sha256:c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b` |
@@ -99,7 +99,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `shapeit5` | `production` | `non-bijux` | `MIT` | `https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz` | `5.1.1` | `sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8` |
 | `skewer` | `production` | `bijux` | `MIT` | `https://github.com/relipmoc/skewer` | `0.2.2` | `sha256:695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169` |
 | `sortmerna` | `production` | `bijux` | `NOASSERTION` | `https://github.com/biocore/sortmerna` | `4.3.7` | `sha256:c82be49fb7077411860e0d4e3c28b422c2930312ec70168bdb17d96483d613ee` |
-| `spades` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/ablab/spades` | `4.0.0` | `sha256:bd9a84eff7621bf1e21225325bccb311c06f634999d75b1e1471060f4d929eac` |
+| `spades` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
 | `star` | `production` | `bijux` | `NOASSERTION` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e` |
 | `trim_galore` | `production` | `bijux` | `NOASSERTION` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:8efa46f091785659e6cc36e8bf0d89c2beaead17f11ff793c64c57b93b9d33ec` |
 | `trimmomatic` | `production` | `bijux` | `NOASSERTION` | `http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca` |

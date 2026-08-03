@@ -886,20 +886,20 @@
       "version": "0.3.11"
     },
     {
-      "entry_sha256": "556189fcdcf33142ac34df53c96be48a001816216f24078f47270a6986172e37",
+      "entry_sha256": "1304bea95c85e420b75293fb84df318fc740df5eb8703238092b2fc2349bae7b",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "abe4d3d8a0aaebada77dc5ffcb0c352c23d8de82",
+      "pinned_commit": "3c55b3c3f1194e5256a77048535c064e8509487e",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/multiqc/multiqc",
-      "source_sha256": "",
+      "source_sha256": "991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb",
       "status": "production",
       "tool": "multiqc",
-      "version": "1.21"
+      "version": "1.24"
     },
     {
       "entry_sha256": "cb9c2dd4ed8260e3990943edb2af6e42c0ceed961b873dbb4425225215a3db08",
@@ -1046,20 +1046,20 @@
       "version": "1.2.4"
     },
     {
-      "entry_sha256": "5959fc2b7ecd4900496b0dd7708510c1b14c53168cb8d3a5b2a9700e11b5c05f",
+      "entry_sha256": "ffbc26e61410ad4d668830485f3b7c7fcee0ec722a2c8901a4da6264a917a340",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "65f40b4dec0d414d1cb3962e8692f3e990e68491",
+      "pinned_commit": "08f1d0f2d1981d350decbf10964f989e9567ddbf",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/maxibor/pydamage",
-      "source_sha256": "",
+      "source_sha256": "f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f",
       "status": "production",
       "tool": "pydamage",
-      "version": "0.80"
+      "version": "1.0"
     },
     {
       "entry_sha256": "b54df9ad7fe8aac3bc77ea89096b46444dc71ae10beb402b4ef2c80989169967",
@@ -1302,20 +1302,20 @@
       "version": "4.3.7"
     },
     {
-      "entry_sha256": "5b0018e2220d793dff1bb0ff357b6d65e56a7bdfcfb20d023800ddc7fcf07608",
+      "entry_sha256": "e25ed49c3719ca8ed3ba8b7059cde68fd0de2896beda511587d979637f64dd91",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "38af83de44403f833a32073fd47ba469d998efd1",
+      "pinned_commit": "7fee3c1050a732faef8a0d93d70861015a96f44e",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/ablab/spades",
-      "source_sha256": "",
+      "source_sha256": "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985",
       "status": "production",
       "tool": "spades",
-      "version": "4.0.0"
+      "version": "4.2.0"
     },
     {
       "entry_sha256": "a41275615f16085660ffe4844b3e6ba5ddce4aa06d4d98dfd44f8fa0b04064b9",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "0661d75bbbed58fbc47dc4745ae6ab7d36a2309164096bffa29a11fb4838b08c",
+  "source_sha256": "901e5942155a5e473603abb05ebb200eb2f3ffab590ad65ec85e16e6dc4cf418",
   "version_map_source": "artifacts/containers/version_map.json"
 }

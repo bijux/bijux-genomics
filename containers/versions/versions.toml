@@ -338,10 +338,11 @@ source_sha256 = "4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef
 upstream_license = "MIT"
 
 [multiqc]
-version = "1.21"
+version = "1.24"
 source = "https://github.com/multiqc/multiqc"
-date_pinned = "2026-02-12"
-pinned_commit = "abe4d3d8a0aaebada77dc5ffcb0c352c23d8de82"
+date_pinned = "2026-08-03"
+pinned_commit = "3c55b3c3f1194e5256a77048535c064e8509487e"
+source_sha256 = "991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb"
 
 [musket]
 version = "1.1"
@@ -387,10 +388,11 @@ pinned_commit = "3dde89b381c9df27792478f68e7e4f3bca4d45ff"
 source_sha256 = "957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3"
 
 [pydamage]
-version = "0.80"
+version = "1.0"
 source = "https://github.com/maxibor/pydamage"
-date_pinned = "2026-02-12"
-pinned_commit = "65f40b4dec0d414d1cb3962e8692f3e990e68491"
+date_pinned = "2026-08-03"
+pinned_commit = "08f1d0f2d1981d350decbf10964f989e9567ddbf"
+source_sha256 = "f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f"
 
 [qualimap]
 version = "2.3"
@@ -476,10 +478,11 @@ date_pinned = "2026-02-12"
 pinned_commit = "307e84021ab3561c38fbee2854bef3eba8e6cfda"
 
 [spades]
-version = "4.0.0"
+version = "4.2.0"
 source = "https://github.com/ablab/spades"
-date_pinned = "2026-02-12"
-pinned_commit = "38af83de44403f833a32073fd47ba469d998efd1"
+date_pinned = "2026-08-03"
+pinned_commit = "7fee3c1050a732faef8a0d93d70861015a96f44e"
+source_sha256 = "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985"
 
 [star]
 version = "2.7.11b"

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 1f0375ab12344bf1ef175019326921a7dd67753f
+# source_commit: 49f670f4bfd6ac79fdadfc69456c693bf9d168e3
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1310,22 +1310,22 @@ status = "production"
 stage_ids = ["bam.qc_pre", "fastq.report_qc"]
 bindings = ["bam.qc_pre", "fastq.report_qc"]
 tool_role = "qc"
-version = "1.21"
-default_version = "1.21"
+version = "1.24"
+default_version = "1.24"
 upstream = "https://github.com/multiqc/multiqc"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/"
-pinned_commit = "git:abe4d3d8a0aaebada77dc5ffcb0c352c23d8de82"
-pin_strategy = "source_commit"
-container_ref = "bijuxdna/multiqc:1.21"
+pinned_commit = "sha256:991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb"
+pin_strategy = "source_sha256"
+container_ref = "bijuxdna/multiqc:1.24"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "multiqc --version"
 help_cmd = "multiqc --help"
 smoke_version_cmd = "multiqc --version"
 smoke_help_cmd = "multiqc --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "^multiqc, version 1[.]24$"
 healthcheck_cmd = "multiqc --help"
 expected_bin = "multiqc"
 expected_artifacts = ["governed_qc_inputs_manifest", "multiqc_data", "multiqc_report", "report_json"]
@@ -1582,22 +1582,22 @@ status = "production"
 stage_ids = ["bam.damage"]
 bindings = ["bam.damage"]
 tool_role = "transform"
-version = "0.80"
-default_version = "0.80"
+version = "1.0"
+default_version = "1.0"
 upstream = "https://github.com/maxibor/pydamage"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "paper:https://pubmed.ncbi.nlm.nih.gov/34395085/"
-pinned_commit = "git:65f40b4dec0d414d1cb3962e8692f3e990e68491"
-pin_strategy = "source_commit"
-container_ref = "bijuxdna/pydamage:0.80"
+pinned_commit = "sha256:f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f"
+pin_strategy = "source_sha256"
+container_ref = "bijuxdna/pydamage:1.0"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "pydamage --version"
 help_cmd = "pydamage --help"
 smoke_version_cmd = "pydamage --version"
 smoke_help_cmd = "pydamage --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "^pydamage, version 1[.]0$"
 healthcheck_cmd = "pydamage --help"
 expected_bin = "pydamage"
 expected_artifacts = ["damage_profile"]

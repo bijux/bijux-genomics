@@ -515,7 +515,7 @@ mod tests {
             ("bam.damage", "mapdamage2", "bijuxdna/mapdamage2:2.2.2"),
             ("bam.damage", "ngsbriggs", "bijuxdna/ngsbriggs:0.1.3"),
             ("bam.damage", "pmdtools", "bijuxdna/pmdtools:0.60"),
-            ("bam.damage", "pydamage", "bijuxdna/pydamage:1.0.0"),
+            ("bam.damage", "pydamage", "bijuxdna/pydamage:1.0"),
         ] {
             let stage_id = StageId::new(stage_name.to_string());
             let tool_id = ToolId::new(tool_name);

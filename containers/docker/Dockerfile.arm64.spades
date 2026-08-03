@@ -19,6 +19,7 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 
 ARG  VERSION_SPADES=4.2.0
+ARG  SPADES_SOURCE_SHA256=96895bc2e86c2b597321072021d6e908da25c0ba5fc89016131cb4a0971768a4
 ENV  DEBIAN_FRONTEND=noninteractive \
      TZ=UTC \
      VERSION_SPADES=${VERSION_SPADES}
@@ -43,6 +44,7 @@ RUN set -eux; \
     ### source + compile
     wget -q https://github.com/ablab/spades/archive/refs/tags/v${VERSION_SPADES}.tar.gz \
          -O /tmp/spades.tar.gz && \
+    echo "${SPADES_SOURCE_SHA256}  /tmp/spades.tar.gz" | sha256sum -c - && \
     tar -xzf /tmp/spades.tar.gz -C /opt && \
     cd /opt/spades-${VERSION_SPADES} && \
     ./spades_compile.sh && \
