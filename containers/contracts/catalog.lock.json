@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "e75193fe08f488f78bb8a90b65d2d03d3e4f25abddd71b5cd19fc825d4f6d788",
+  "source_sha256": "e65590fc54d2bac64cf29f53755b729aee90e2d28f4171dbff2d511764252695",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -733,16 +733,16 @@
     {
       "id": "lighter",
       "display_name": "Lighter",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/mourisl/Lighter",
       "license": "GPL-3.0",
-      "source_sha256": "",
-      "pinned_commit": "fecf71152ee923033358306264aaed0a693622cd",
+      "source_sha256": "c8a251c410805f82dad77e40661f0faf14ec82dedb3ff717094ba8ff4ef94465",
+      "pinned_commit": "d8621db12352895662404b38a4b61862eaf60f6a",
       "apptainer_definition": "containers/apptainer/lighter.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.lighter",
-      "contract_sha256": "f5bb5e5fc29337a46cc79c57ddd38cd2298ebd5532bf96f09fa8fbb7f2c1870c"
+      "contract_sha256": "610b638002210d970c6d98c93643a281379239ed5c5d650d78f0b5c08767211c"
     },
     {
       "id": "mapdamage2",

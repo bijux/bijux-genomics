@@ -1,81 +1,45 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
+# Container recipe license: GPL-3.0-only.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ARG TOOL_VERSION=1.1.3
+ARG LIGHTER_SOURCE_SHA256=c8a251c410805f82dad77e40661f0faf14ec82dedb3ff717094ba8ff4ef94465
+ENV DEBIAN_FRONTEND=noninteractive \
+    LIGHTER_VERSION=${TOOL_VERSION} \
+    LIGHTER_SOURCE_SHA256=${LIGHTER_SOURCE_SHA256}
+COPY containers/tools/lighter/install /opt/lighter-build/install
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends build-essential ca-certificates curl zlib1g-dev && \
+    chmod 0755 /opt/lighter-build/install && \
+    BIJUX_BUILD_JOBS=2 /opt/lighter-build/install
+
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=1.1.3
+LABEL org.opencontainers.image.source="https://github.com/mourisl/Lighter" \
+      org.opencontainers.image.revision="d8621db12352895662404b38a4b61862eaf60f6a" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="lighter"
-LABEL org.opencontainers.image.title="lighter"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-
-ARG  VERSION_LIGHTER=1.1.2
-ENV  VERSION_LIGHTER=${VERSION_LIGHTER} \
-     DEBIAN_FRONTEND=noninteractive \
-     TZ=UTC
-
-# ------------------------------------------------------------------
-# 1. Build Lighter
-# ------------------------------------------------------------------
-RUN set -eux; \
-    ### Define build-time vs runtime dependencies
-    BUILD_DEPS="build-essential curl" && \
-    RUNTIME_DEPS="zlib1g-dev ca-certificates" && \
-    \
-    ### Install all dependencies
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        $BUILD_DEPS \
-        $RUNTIME_DEPS ; \
-    \
-    ### source + compile
-    curl -L --retry 5 --retry-delay 3 --connect-timeout 20 --max-time 300 \
-        -o /tmp/lighter.tar.gz \
-        "https://github.com/mourisl/Lighter/archive/refs/tags/v${VERSION_LIGHTER}.tar.gz" && \
-    tar -xzf /tmp/lighter.tar.gz -C /opt && \
-    cd /opt/Lighter-${VERSION_LIGHTER} && \
-    # fix GCC‑12 strictness
-    sed -i '1i#include <string.h>' main.cpp && \
-    sed -r -i '/char[[:space:]]+code\[128\]/,/};/d' main.cpp && \
-    sed -i '/code\[65\]/i static char code[128]; memset(code,(signed char)-1,sizeof(code));' main.cpp && \
-    make -j"$(nproc)" CXXFLAGS="-Wall -O3 -std=c++03 -Wno-narrowing" && \
-    install -m 0755 lighter /usr/local/bin/lighter-bin && \
-    \
-    ### tidy up: ONLY purge the build-time dependencies
-    cd / && rm -rf /opt/Lighter-${VERSION_LIGHTER} /tmp/lighter.tar.gz && \
-    apt-get purge -y --auto-remove $BUILD_DEPS && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# ------------------------------------------------------------------
-# 2. Thin wrapper (optional)
-# ------------------------------------------------------------------
-RUN printf '%s\n' \
-  '#!/usr/bin/env bash' \
-  'set -e' \
-  'show_and_succeed() {' \
-  '  local tmp' \
-  '  tmp=$(mktemp)' \
-  '  "$@" >"$tmp" 2>&1 || true' \
-  '  cat "$tmp"' \
-  '  rm -f "$tmp"' \
-  '  exit 0' \
-  '}' \
-  'case "$1" in' \
-  '  --version) echo "$VERSION_LIGHTER"; exit 0 ;;' \
-  '  --help|-h|"") show_and_succeed /usr/local/bin/lighter-bin ;;' \
-  'esac' \
-  'exec /usr/local/bin/lighter-bin "$@"' \
-  > /usr/local/bin/lighter && chmod +x /usr/local/bin/lighter
-
-WORKDIR /data
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="lighter" \
+      org.opencontainers.image.title="Lighter" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV LANG=C LC_ALL=C TZ=UTC
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends zlib1g && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=builder /usr/local/libexec/lighter-bin /usr/local/libexec/lighter-bin
+COPY containers/tools/lighter/lighter /usr/local/bin/lighter
+RUN chmod 0755 /usr/local/bin/lighter /usr/local/libexec/lighter-bin && \
+    lighter --version | grep -Fx 'Lighter v1.1.3' && \
+    lighter --help | grep -F 'Usage: ./lighter [OPTIONS]'
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["lighter"]
 CMD ["--help"]

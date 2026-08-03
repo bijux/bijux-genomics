@@ -294,10 +294,12 @@ source_sha256 = "87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95c
 pinned_commit = "fea84b803aefb00b05386d802b5382d7d268f3be"
 
 [lighter]
-version = "1.1.2"
+version = "1.1.3"
 source = "https://github.com/mourisl/Lighter"
-date_pinned = "2026-02-12"
-pinned_commit = "fecf71152ee923033358306264aaed0a693622cd"
+date_pinned = "2026-08-03"
+pinned_commit = "d8621db12352895662404b38a4b61862eaf60f6a"
+source_sha256 = "c8a251c410805f82dad77e40661f0faf14ec82dedb3ff717094ba8ff4ef94465"
+upstream_license = "GPL-3.0"
 
 [mapdamage2]
 version = "2.2.2"

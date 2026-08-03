@@ -89,7 +89,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `kraken2` | `2.1.3` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `krakenuniq` | `1.0.4` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `leehom` | `1.2.18` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
-| `lighter` | `1.1.2` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `lighter` | `1.1.3` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `mapdamage2` | `2.2.2` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `metaphlan` | `4.1.1` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `minimac4` | `4.1.6` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |

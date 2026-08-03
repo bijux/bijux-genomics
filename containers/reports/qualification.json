@@ -3,7 +3,7 @@
   "sources": {
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "e75193fe08f488f78bb8a90b65d2d03d3e4f25abddd71b5cd19fc825d4f6d788"
+      "sha256": "e65590fc54d2bac64cf29f53755b729aee90e2d28f4171dbff2d511764252695"
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
@@ -1678,7 +1678,7 @@
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
-      "version": "1.1.2"
+      "version": "1.1.3"
     },
     {
       "declared_real_test_stage": "bam.damage",
