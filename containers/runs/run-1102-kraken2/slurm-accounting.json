@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T00:52:07.676761+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "fc49520827f7f744e7c6d5b92019c19424412e746aacafae23c39e86b79cbcc5",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "4",
+      "Elapsed": "00:00:02",
+      "ElapsedRaw": "2",
+      "ExitCode": "0:0",
+      "JobID": "3458124",
+      "JobName": "fastq-screen_taxonomy-kraken2-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1102",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458124",
+  "submit_script_sha256": "ba508d56297303a7e31ca6391e5f037878b7bacd36e05adaca9c760d49b1a047"
+}

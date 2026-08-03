@@ -1,0 +1,86 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1101
+  campaign: public-fastq-reference-alignment-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: bam
+  stage: bam.align
+  tool: bowtie2
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/b5a58ac70e8deb09184cc20535fa86d019147e3c
+  commit: b5a58ac70e8deb09184cc20535fa86d019147e3c
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bowtie2-2.5.4-linux-amd64-71a296b7b15f.sif
+  sha256: 71a296b7b15f5b59c9213910cfad03a7393624b099b2f973041a18c0fb98b558
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+    - id: bowtie2-index-forward-primary
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.1.bt2
+      sha256: 945f5044ebd8db69239aabff27c93076b9803c6c38a10e92b16f26d4ef2dd744
+    - id: bowtie2-index-forward-secondary
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.2.bt2
+      sha256: 427b2699b8344bb7bcd9dc0d069135a3e523388b52693fe9b4a4fc0469a48d11
+    - id: bowtie2-index-forward-offsets
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.3.bt2
+      sha256: a9b6e245ee52e756e9a37f7ff284df5f420ff79bc9bcc19602d7cac80fcefc33
+    - id: bowtie2-index-forward-names
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.4.bt2
+      sha256: dc622d329ff6a15985bd4835cec68b89687eb2f23e33de54d59b70a8ddf0be6e
+    - id: bowtie2-index-reverse-primary
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.rev.1.bt2
+      sha256: 08ef156df383cc0e1d838a4af7507acc85c7b19a809d7fab5e92fe47bd760e5a
+    - id: bowtie2-index-reverse-secondary
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.rev.2.bt2
+      sha256: 8c06a53480c19c563e4d4343f4e413fdac442b901ed863f9cffa8b72e46f76f1
+commands:
+  version: [bowtie2, --version]
+  help: [bowtie2, --help]
+  real:
+    - bowtie2
+    - --very-sensitive
+    - --threads
+    - '2'
+    - -x
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase
+    - '-1'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - '-2'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    - -S
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2/run-1101/equcab3-first-megabase.sam
+  negative: [bowtie2, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2/run-1101
+  required_files:
+    - equcab3-first-megabase.sam
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 1024
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^Bowtie 2 2[.]5[.]4$'
+  negative_exit_nonzero: true
