@@ -19,7 +19,7 @@ LABEL org.opencontainers.image.source="https://github.com/alexdobin/STAR" \
 
 ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
-    apt-get install -y --no-install-recommends libbz2-1.0 zlib1g && \
+    apt-get install -y --no-install-recommends libbz2-1.0 libgomp1 zlib1g && \
     apt-get install -y --no-install-recommends curl g++ make xxd libbz2-dev zlib1g-dev && \
     curl --fail --location --proto '=https' --tlsv1.2 \
       --output /opt/star.tar.gz \

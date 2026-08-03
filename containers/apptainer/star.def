@@ -36,7 +36,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     umask 022
     export DEBIAN_FRONTEND=noninteractive
     /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
-    apt-get install -y --no-install-recommends libbz2-1.0 zlib1g
+    apt-get install -y --no-install-recommends libbz2-1.0 libgomp1 zlib1g
     apt-get install -y --no-install-recommends curl g++ make xxd libbz2-dev zlib1g-dev
     curl --fail --location --proto '=https' --tlsv1.2 --output /opt/star.tar.gz https://codeload.github.com/alexdobin/STAR/tar.gz/b1edc1208d91a53bf40ebae8669f71d50b994851
     echo '65976afe9b8c5dbda05282c7c02ba27d0f908a7eb83ec12e3fca86ed5eb91cac  /opt/star.tar.gz' | sha256sum --check --strict
