@@ -32,3 +32,21 @@ cache repetitions. Candidate-site recovery is reported honestly: the Ensembl
 panel is independent of the ancient horse sample, but it is not a truth
 genotype. A later truth-backed campaign must use masked or independently
 validated genotypes before making an accuracy or concordance claim.
+
+After accounting collection, validate every archived contract, output digest,
+input lock, resource row, repetition, and Slurm identity before publishing the
+small report:
+
+```console
+python3 -B containers/benchmarks/benchmark_evidence.py \
+  --registry containers/benchmarks/campaigns.toml \
+  --catalog containers/contracts/catalog.toml \
+  --run-id run-2001 \
+  --stage-result-root "$STUDY/results/benchmarks/run-2001-bam-genotyping" \
+  --json-output containers/reports/run-2001-bam-genotyping.json \
+  --markdown-output containers/reports/run-2001-bam-genotyping.md
+```
+
+The reviewed [BAM-genotyping report](../reports/run-2001-bam-genotyping.md)
+records performance and candidate-site observations without importing the
+large run products into Git.
