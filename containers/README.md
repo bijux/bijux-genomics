@@ -110,6 +110,13 @@ python3 -B containers/contracts/image_campaign.py report \
   --markdown-output containers/reports/lunarc-image-rebuild.md
 ```
 
+`config-campaign.json` deliberately selects the complete supported roster for
+a full reproducibility proof. After that proof exists, use
+`config-refresh.json` with a fresh canonical inventory to select only recipes
+whose definition or repository-owned `%files` inputs are missing or stale.
+The selection remains evidence-derived; operators do not hand-maintain a tool
+list or declare an old image current.
+
 The tracked [complete-roster rebuild report](reports/lunarc-image-rebuild.md)
 is the reviewed source/build/freshness summary for this campaign.
 The later [current-image refresh report](reports/lunarc-image-refresh.md)

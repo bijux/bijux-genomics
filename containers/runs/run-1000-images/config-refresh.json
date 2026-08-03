@@ -1,0 +1,14 @@
+{
+  "description": "Build and admit every catalog-supported Apptainer image whose complete recipe identity is missing or stale.",
+  "evidence_dimensions": [
+    "source",
+    "build",
+    "freshness"
+  ],
+  "repository_resolution": "clean_current_head_at_execution",
+  "run_id": "run-1000",
+  "runtime": "apptainer",
+  "schema_version": "bijux.container.image_campaign.v1",
+  "selection": "catalog_apptainer_supported_noncurrent",
+  "site": "lunarc"
+}
