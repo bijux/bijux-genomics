@@ -7,7 +7,7 @@
 # Tool ID: pear
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 

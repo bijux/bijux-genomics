@@ -7,7 +7,7 @@
 # Tool ID: gatk
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
@@ -18,8 +18,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %labels
     org.opencontainers.image.source https://github.com/broadinstitute/gatk
     org.opencontainers.image.title gatk
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.revision 76edc75c26504da94bbaee66584e107e76ee15de
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 4.6.2.0
     org.opencontainers.image.tool gatk

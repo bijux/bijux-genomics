@@ -37,6 +37,9 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
     let required_labels = canonical_container_label_keys();
     let mut errors = Vec::new();
     let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)")?;
+    let revision_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.revision\s+([^\s]+)\s*$")?;
+    let created_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.created\s+([^\s]+)\s*$")?;
+    let legacy_version_re = Regex::new(r"(?m)^\s*VERSION\s+([^\s]+)\s*$")?;
     let from_re = Regex::new(r"(?m)^\s*From:\s+(.+?)\s*$")?;
     let interactive_re = Regex::new(r"\b(read -p|select |dialog|whiptail)\b")?;
     let umask_re = Regex::new(r"(?m)^\s*umask\s+0?22\s*$")?;
@@ -151,6 +154,32 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                 ));
             }
         }
+        for (label, captures) in [
+            ("revision", revision_re.captures(&text)),
+            ("created", created_re.captures(&text)),
+            ("VERSION", legacy_version_re.captures(&text)),
+        ] {
+            let Some(captures) = captures else {
+                continue;
+            };
+            let value = captures
+                .get(1)
+                .map(|value| value.as_str().trim().trim_matches('"').to_ascii_lowercase())
+                .unwrap_or_default();
+            if provenance_label_is_placeholder(&value) {
+                errors.push(format!(
+                    "{rel}: placeholder image provenance label {label}={value} is forbidden"
+                ));
+            }
+        }
+        if created_re
+            .captures(&text)
+            .and_then(|captures| captures.get(1))
+            .map(|value| value.as_str())
+            != Some("governed-by-build-evidence")
+        {
+            errors.push(format!("{rel}: image.created must defer to immutable build evidence"));
+        }
         if let Some(captures) = from_re.captures(&text) {
             let from_line = captures.get(1).map(|value| value.as_str().trim()).unwrap_or_default();
             if !from_line.contains("@sha256:") {
@@ -201,6 +230,10 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         return success_line("apptainer hardening: OK");
     }
     failure_lines("apptainer hardening: failed", &errors)
+}
+
+fn provenance_label_is_placeholder(value: &str) -> bool {
+    matches!(value.trim().to_ascii_lowercase().as_str(), "unknown" | "pending" | "latest" | "")
 }
 
 fn apt_tls_peer_verification_disabled(post: &str) -> bool {
@@ -1199,7 +1232,8 @@ pub(super) fn merge_outcomes(
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
-        apt_tls_peer_verification_disabled, merge_bijux_command_env, recipe_ignores_build_failure,
+        apt_tls_peer_verification_disabled, merge_bijux_command_env,
+        provenance_label_is_placeholder, recipe_ignores_build_failure,
     };
 
     #[test]
@@ -1230,5 +1264,13 @@ mod tests {
         assert!(recipe_ignores_build_failure("cargo build --release || true"));
         assert!(!recipe_ignores_build_failure("make --directory /opt/tool -j2"));
         assert!(!recipe_ignores_build_failure("tool --help >/dev/null 2>&1 || true"));
+    }
+
+    #[test]
+    fn apptainer_policy_rejects_placeholder_provenance_labels() {
+        assert!(provenance_label_is_placeholder("unknown"));
+        assert!(provenance_label_is_placeholder(" PENDING "));
+        assert!(!provenance_label_is_placeholder("76edc75c26504da94bbaee66584e107e76ee15de"));
+        assert!(!provenance_label_is_placeholder("governed-by-build-evidence"));
     }
 }

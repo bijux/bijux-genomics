@@ -7,7 +7,7 @@
 # Tool ID: umi_tools
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
@@ -23,8 +23,8 @@ From: python@sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca
     org.opencontainers.image.licenses Apache-2.0
 
     org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.revision 3f2cb4f41e07fe4a6cea3b3389f534bee957176b
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 1.1.6
     org.opencontainers.image.tool umi_tools
