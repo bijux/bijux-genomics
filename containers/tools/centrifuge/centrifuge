@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version|-v|version)
+        echo 'Centrifuge 1.0.4'
+        ;;
+    --help|-h|help|"")
+        exec /opt/centrifuge/bin/centrifuge --help
+        ;;
+    --governed-invalid-option)
+        echo 'centrifuge: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/centrifuge/bin/centrifuge "$@"
+        ;;
+esac
