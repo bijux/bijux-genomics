@@ -209,7 +209,12 @@ def evidence_record(run_id: str, tool: str, result: Path) -> dict[str, Any]:
         "tool": tool,
         "execution_status": evidence.get("status", "incomplete"),
         "scientific_status": "not_assessed",
-        "source_result": str(result.resolve()),
+        "source_result": (
+            Path("results")
+            / "container-validation"
+            / result.parent.name
+            / result.name
+        ).as_posix(),
         "repository_commit": evidence.get(
             "repository_commit", pipeline.get(("repository", "commit"), "")
         ),
@@ -230,7 +235,7 @@ def import_evidence(
     maximum_run: int | None,
 ) -> int:
     admitted = 0
-    for run_id, tool, result in result_directories(result_root.resolve()):
+    for run_id, tool, result in result_directories(result_root.absolute()):
         number = int(run_id.removeprefix("run-"))
         if minimum_run is not None and number < minimum_run:
             continue

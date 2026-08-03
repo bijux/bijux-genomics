@@ -12,6 +12,10 @@ Each admitted directory uses `run-<id>-<tool>` and contains:
   every file retained at the execution site without copying large results into
   Git.
 
+The lock identifies its source result relative to the governed study root.
+Absolute paths remain site configuration or immutable historical pipeline
+evidence; generated indexes do not expose LUNARC backend mount aliases.
+
 Execution success, scientific acceptance, benchmark qualification, and release
 qualification are separate claims. Importing an old run never upgrades its
 claim: historical records default to `scientific_status: not_assessed`, and

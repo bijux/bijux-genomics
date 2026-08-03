@@ -63,6 +63,10 @@ class RunEvidenceTests(unittest.TestCase):
         self.assertEqual(records[0]["run_id"], "run-1001")
         self.assertEqual(records[0]["execution_status"], "passed")
         self.assertEqual(records[0]["scientific_status"], "not_assessed")
+        self.assertEqual(
+            records[0]["source_result"],
+            "results/container-validation/adapterremoval/run-1001",
+        )
         self.assertIn("config-pipeline.yml", records[0]["tracked_files"])
 
     def test_credential_value_fields_are_rejected(self) -> None:
