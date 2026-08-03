@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/centrifuge-1.0.4-linux-amd64-ef902ccdea50.sif",
+    "sha256": "ef902ccdea50babb3c1627156469589f645f6473294650ca0304023aa211d0ec",
+    "size_bytes": 60235776
+  },
+  "repository_commit": "71bc19ce7b89a7abe7aff3a2ac2058c3067c8468",
+  "run_id": "run-1106",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458128",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "0770c52320d597f3eb79f1c46c48840be9b6d23e7ff11e2f12a7936430263ec5",
+      "size_bytes": 3843
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "fbc8dd4fc0ce271db1a8f7d30ccd045df146d816b653d7a5a146dbb095f41b49",
+      "size_bytes": 5538
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "f04f5e605292eb9c056f2af5883bfb0f944b80cceb840b4f07f8f29d5ab76a03",
+      "size_bytes": 4065
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "e793d8eec10d2763b06a6bddb9421d90247419830132a9e6f7214e2f6cdba542",
+      "size_bytes": 64
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "6d80015d33661e84148ebce0b4d1675c0506f369035fdf7ba2f71a2523c29eb9",
+      "size_bytes": 255
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "single-reference.classifications.tsv",
+      "sha256": "a36600e0f92b312cdac95b6baa3992c64aeb36231e4c27f930ad9c8040282830",
+      "size_bytes": 4388753
+    },
+    {
+      "path": "single-reference.report.tsv",
+      "sha256": "ea1242c7dc61db18a65eacd3a30be67c212ea5d40d2c1aeb9cbcdcd4403c6535",
+      "size_bytes": 129
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "45726535bb8ffe1a5db51245ecfbe2b6f1007e5cc041e334c27aadf11ac1dfd1",
+      "size_bytes": 931
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "27541230f97d3569fd8925ca16bf41cf5c3de707af473552046d53a29f4e78e7",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "4ba074b4585c8e166c54306d99d6cc64ce68680d309b77b90ebc5bef5e0ce252",
+      "size_bytes": 1073
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "75736d5811a6567b06f0ab712fb202f1da67bccfb07bbe8186a1302176c24627",
+      "size_bytes": 17
+    }
+  ],
+  "source_result": "results/container-validation/centrifuge/run-1106",
+  "tool": "centrifuge",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "0770c52320d597f3eb79f1c46c48840be9b6d23e7ff11e2f12a7936430263ec5",
+      "size_bytes": 3843
+    },
+    "evidence.json": {
+      "sha256": "fbc8dd4fc0ce271db1a8f7d30ccd045df146d816b653d7a5a146dbb095f41b49",
+      "size_bytes": 5538
+    },
+    "slurm-accounting.json": {
+      "sha256": "45726535bb8ffe1a5db51245ecfbe2b6f1007e5cc041e334c27aadf11ac1dfd1",
+      "size_bytes": 931
+    }
+  }
+}

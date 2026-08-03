@@ -1,0 +1,115 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: viral.abundance.tsv",
+    "required output is absent or empty: viral.bracken-report.tsv"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bracken-2.9-linux-amd64-aa477f012d9f.sif",
+    "sha256": "aa477f012d9f7b54ecf92ae39c4b2071d7174f9df4d6c163e1e97ea9af0e73c7",
+    "size_bytes": 44494848
+  },
+  "repository_commit": "85cac66cc13746a64b5cdea7d54e411851112cb7",
+  "run_id": "run-1103",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458125",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "874d5b6b656220ba83261f90e74d951fa17deac7e4016f7af5d967731d001190",
+      "size_bytes": 2513
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "009c8aa624c1709483beba6d8d8bbb397f108b7db31e8ee904d8e4f78b48bcfa",
+      "size_bytes": 3984
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "fe09cce9a79b701aa98d90ce26fd7f0f051e770b49508b3d19e81c9845b395d8",
+      "size_bytes": 42
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "e3a70b1a47b367924c30b6b4c71bbb4980373421289ee1473d68a86fed2cabb7",
+      "size_bytes": 676
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "a1231193e20ca4c4d0c0e620602569025e3b67d0678e7da79c1cea1c893c5594",
+      "size_bytes": 61
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "17b28ba4156a8b394df904e88104247a264d4ce0c1366120e4580a7c75c2c0d3",
+      "size_bytes": 58
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "98141cad7e8c7bb4cd5e7b97fb17e477732eff0f21aefd8a3d602d5ea79dea91",
+      "size_bytes": 430
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "c84296ec301666f1bbb409cae5d34ca4ee0837247912452f4881a5c9b65c8326",
+      "size_bytes": 917
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "fa3c0163ecebe660b8b398f8a6d6f890ea776702ca8963ffbe27ae22ee624be8",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "7604fd2cbb92416e10753714cb1bb8f42d24b6b1bfa43348ee4771dd65728256",
+      "size_bytes": 1047
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "ea0dcece486dda9bca3b09bbb9eb7ede28470bf545f6e69292e632cb28989830",
+      "size_bytes": 12
+    }
+  ],
+  "source_result": "results/container-validation/bracken/run-1103",
+  "tool": "bracken",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "874d5b6b656220ba83261f90e74d951fa17deac7e4016f7af5d967731d001190",
+      "size_bytes": 2513
+    },
+    "evidence.json": {
+      "sha256": "009c8aa624c1709483beba6d8d8bbb397f108b7db31e8ee904d8e4f78b48bcfa",
+      "size_bytes": 3984
+    },
+    "slurm-accounting.json": {
+      "sha256": "c84296ec301666f1bbb409cae5d34ca4ee0837247912452f4881a5c9b65c8326",
+      "size_bytes": 917
+    }
+  }
+}
