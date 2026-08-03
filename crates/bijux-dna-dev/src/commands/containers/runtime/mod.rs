@@ -35,8 +35,18 @@ pub(super) fn check_apptainer_cache_policy(
 
 pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let required_labels = canonical_container_label_keys();
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let expected_sources = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .map(|tool| (table_string(tool, "id"), table_string(tool, "upstream")))
+        .collect::<BTreeMap<_, _>>();
     let mut errors = Vec::new();
     let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)")?;
+    let source_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.source\s+([^\s]+)\s*$")?;
     let revision_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.revision\s+([^\s]+)\s*$")?;
     let created_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.created\s+([^\s]+)\s*$")?;
     let legacy_version_re = Regex::new(r"(?m)^\s*VERSION\s+([^\s]+)\s*$")?;
@@ -63,6 +73,17 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
             if !text.contains(label) {
                 errors.push(format!("{rel}: missing label {label}"));
             }
+        }
+        let sources = source_re
+            .captures_iter(&text)
+            .filter_map(|captures| captures.get(1))
+            .map(|value| value.as_str().to_string())
+            .collect::<Vec<_>>();
+        let expected_source = expected_sources.get(tool_id).map(String::as_str).unwrap_or_default();
+        if sources.as_slice() != [expected_source] {
+            errors.push(format!(
+                "{rel}: image.source must occur once and equal catalog upstream {expected_source:?}; found {sources:?}"
+            ));
         }
         for (alias, keys) in [
             ("tool", vec!["org.opencontainers.image.tool", "tool"]),

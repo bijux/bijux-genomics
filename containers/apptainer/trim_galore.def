@@ -22,7 +22,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.title Trim Galore!
     org.opencontainers.image.licenses Apache-2.0
 
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
     org.opencontainers.image.revision 4edff97d22f3837d42a29e4afbfaeb6e07ffb11b
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0

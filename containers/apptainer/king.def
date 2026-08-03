@@ -17,7 +17,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %labels
     VERSION 2.3.0
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
+    org.opencontainers.image.source https://www.kingrelatedness.com/executables/Linux-king230.tar.gz
     org.opencontainers.image.revision sha256:5a00cb504b56e3a05c8aa2b4531b1f85c9947e7c9aa89bfec7afd72b28663b39
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0

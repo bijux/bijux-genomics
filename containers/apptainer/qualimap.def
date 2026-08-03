@@ -16,7 +16,7 @@ Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    org.opencontainers.image.source https://bitbucket.org/kokonech/qualimap
+    org.opencontainers.image.source https://bitbucket.org/kokonech/qualimap/src
     org.opencontainers.image.revision 2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-2.0-only
