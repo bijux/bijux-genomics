@@ -121,6 +121,11 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                     "{rel}: disabling apt TLS peer verification is forbidden; use the governed snapshot bootstrap"
                 ));
             }
+            if recipe_ignores_build_failure(post) {
+                errors.push(format!(
+                    "{rel}: build commands must not convert failures into successful images"
+                ));
+            }
             if post.contains("latest")
                 || post.contains("main")
                 || post.contains("master")
@@ -200,6 +205,16 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
 
 fn apt_tls_peer_verification_disabled(post: &str) -> bool {
     post.contains("Acquire::https::Verify-Peer=false")
+}
+
+fn recipe_ignores_build_failure(recipe: &str) -> bool {
+    recipe.lines().any(|line| {
+        let command = line.split('#').next().unwrap_or_default();
+        command.contains("|| true")
+            && ["make ", "make -", "make --", "cmake --build", "cargo build"]
+                .iter()
+                .any(|build| command.contains(build))
+    })
 }
 
 pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
@@ -1183,7 +1198,9 @@ pub(super) fn merge_outcomes(
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::{apt_tls_peer_verification_disabled, merge_bijux_command_env};
+    use super::{
+        apt_tls_peer_verification_disabled, merge_bijux_command_env, recipe_ignores_build_failure,
+    };
 
     #[test]
     fn merge_bijux_command_env_preserves_explicit_values() {
@@ -1205,5 +1222,13 @@ mod tests {
         assert!(!apt_tls_peer_verification_disabled(
             "/bin/sh /usr/local/sbin/bijux-configure-apt-snapshot"
         ));
+    }
+
+    #[test]
+    fn apptainer_policy_rejects_ignored_build_failures() {
+        assert!(recipe_ignores_build_failure("make -j2 || true"));
+        assert!(recipe_ignores_build_failure("cargo build --release || true"));
+        assert!(!recipe_ignores_build_failure("make --directory /opt/tool -j2"));
+        assert!(!recipe_ignores_build_failure("tool --help >/dev/null 2>&1 || true"));
     }
 }

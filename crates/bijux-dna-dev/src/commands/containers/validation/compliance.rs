@@ -794,6 +794,11 @@ pub(in super::super) fn check_docker_hardening(
         if pipe_shell_re.is_match(&text) {
             errors.push(format!("{rel}: forbidden curl|bash or wget|sh pattern"));
         }
+        if recipe_ignores_build_failure(&text) {
+            errors.push(format!(
+                "{rel}: build commands must not convert failures into successful images"
+            ));
+        }
         let first_from = text
             .lines()
             .find(|line| line.trim().starts_with("FROM "))
@@ -862,6 +867,16 @@ pub(in super::super) fn check_docker_hardening(
         return success_line("docker hardening: OK");
     }
     failure_lines("docker hardening: failed", &errors)
+}
+
+fn recipe_ignores_build_failure(recipe: &str) -> bool {
+    recipe.lines().any(|line| {
+        let command = line.split('#').next().unwrap_or_default();
+        command.contains("|| true")
+            && ["make ", "make -", "make --", "cmake --build", "cargo build"]
+                .iter()
+                .any(|build| command.contains(build))
+    })
 }
 
 pub(in super::super) fn check_docker_labels(
@@ -1664,7 +1679,15 @@ pub(in super::super) fn check_smoke_inputs_policy(
 
 #[cfg(test)]
 mod tests {
-    use super::docker_apt_policy_violations;
+    use super::{docker_apt_policy_violations, recipe_ignores_build_failure};
+
+    #[test]
+    fn hardening_policy_rejects_ignored_build_failures() {
+        assert!(recipe_ignores_build_failure("RUN make -j2 || true"));
+        assert!(recipe_ignores_build_failure("RUN cmake --build build || true"));
+        assert!(!recipe_ignores_build_failure("RUN make -j2"));
+        assert!(!recipe_ignores_build_failure("RUN tool --help >/dev/null 2>&1 || true"));
+    }
 
     #[test]
     fn apt_policy_accepts_exact_bootstrap_before_snapshot_activation() {

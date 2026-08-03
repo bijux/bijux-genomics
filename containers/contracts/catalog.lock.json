@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "e65590fc54d2bac64cf29f53755b729aee90e2d28f4171dbff2d511764252695",
+  "source_sha256": "ed57f07561f19294bdd5794bf18ce8a5b98b7523f48f457817236b6a63367b40",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1018,11 +1018,11 @@
       "support_reason": "",
       "upstream": "https://github.com/grenaud/schmutzi",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "653daf69b241d89647e5a6273fb97c4b9366a5252e4d955651514e800082b426",
       "pinned_commit": "a42e6a90b2cb6ee395f17c87ceeb76bde5127017",
       "apptainer_definition": "containers/apptainer/schmutzi.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.schmutzi",
-      "contract_sha256": "6dfd74d53662afe67b027592be398685e47437d879079bacd5ae8a38f7eaf4e3"
+      "contract_sha256": "2d43f2384027907754b4f633cfdcde2d6fad36f3d4cd302a2ac2557aa2b70368"
     },
     {
       "id": "seqfu",

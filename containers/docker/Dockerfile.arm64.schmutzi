@@ -1,50 +1,66 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
 #
-# Container definition license: GPL-3.0.
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
-FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+# VERSION_SOURCE: containers/contracts/catalog.toml
+FROM ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates cmake curl g++ make zlib1g-dev && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        --output /opt/schmutzi.tar.gz \
+        https://codeload.github.com/grenaud/schmutzi/tar.gz/a42e6a90b2cb6ee395f17c87ceeb76bde5127017 && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        --output /opt/libgab.tar.gz \
+        https://codeload.github.com/grenaud/libgab/tar.gz/2789928a40469ae1e4ab3b085d8f0f250d1f6b72 && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        --output /opt/bamtools.tar.gz \
+        https://codeload.github.com/pezmaster31/bamtools/tar.gz/48233a28881f887b5847a031c5febbee19fcb3ad && \
+    printf '%s  %s\n' \
+        '653daf69b241d89647e5a6273fb97c4b9366a5252e4d955651514e800082b426' /opt/schmutzi.tar.gz \
+        '72c4442ffe592e0a36bdd9d6bb53962c0918a5fceea6c3b65c7cfcd0b3d45873' /opt/libgab.tar.gz \
+        'aaf3f12d95813c7d5e531f824505d731864ddcb6c21ce41f64bc8d43b96ebcc2' /opt/bamtools.tar.gz \
+        | sha256sum --check --strict && \
+    mkdir -p /opt/schmutzi /opt/schmutzi/libgab /opt/schmutzi/bamtools && \
+    tar --extract --gzip --file /opt/schmutzi.tar.gz \
+        --directory /opt/schmutzi --strip-components 1 && \
+    tar --extract --gzip --file /opt/libgab.tar.gz \
+        --directory /opt/schmutzi/libgab --strip-components 1 && \
+    tar --extract --gzip --file /opt/bamtools.tar.gz \
+        --directory /opt/schmutzi/bamtools --strip-components 1 && \
+    make --directory /opt/schmutzi -j2 && \
+    test -x /opt/schmutzi/schmutzi.pl && \
+    test -x /opt/schmutzi/contDeam.pl && \
+    test -x /opt/schmutzi/endoCaller && \
+    test -x /opt/schmutzi/mtCont
+
+FROM ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG TOOL_VERSION=1.5.4
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="schmutzi"
-LABEL org.opencontainers.image.title="schmutzi"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y --no-install-recommends \
-    git build-essential zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev \
-    ca-certificates && rm -rf /var/lib/apt/lists/*
-
-RUN git clone --depth 1 https://github.com/grenaud/schmutzi.git /opt/schmutzi && \
-    cd /opt/schmutzi && git checkout d11884ccf71666f9fa64188ee74947a7a3c86fb5 && \
-    make -j"$(nproc)" || true
-
-FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ENV DEBIAN_FRONTEND=noninteractive
-RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y --no-install-recommends \
-    ca-certificates perl python3 samtools && rm -rf /var/lib/apt/lists/*
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates gzip libstdc++6 perl python3 r-base-core \
+        r-cran-fitdistrplus r-cran-mass samtools zlib1g && \
+    rm -rf /var/lib/apt/lists/*
 COPY --from=builder /opt/schmutzi /opt/schmutzi
-RUN cat > /usr/local/bin/schmutzi <<'SH' && chmod +x /usr/local/bin/schmutzi
-#!/bin/sh
-set -eu
-if [ "${1:-}" = "--version" ]; then
-  echo "d11884c"
-  exit 0
-fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
-  echo "schmutzi wrapper: run schmutzi scripts under /opt/schmutzi"; exit 0
-fi
-exec "$@"
-SH
+COPY --chmod=0555 containers/tools/schmutzi/schmutzi /usr/local/bin/schmutzi
+RUN test "${TOOL_VERSION}" = '1.5.4'
+LABEL org.opencontainers.image.source="https://github.com/grenaud/schmutzi" \
+      org.opencontainers.image.revision="a42e6a90b2cb6ee395f17c87ceeb76bde5127017" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="schmutzi" \
+      org.opencontainers.image.title="Schmutzi" \
+      org.opencontainers.image.base.name="ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV PATH=/opt/schmutzi:/usr/local/bin:/usr/bin:/bin \
+    LANG=C \
+    LC_ALL=C \
+    TZ=UTC
+USER 65532:65532
 ENTRYPOINT ["/usr/local/bin/schmutzi"]
 CMD ["--help"]
