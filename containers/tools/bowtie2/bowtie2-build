@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version|-v|version)
+        echo 'Bowtie 2 Build 2.5.4'
+        ;;
+    --help|-h|help|"")
+        exec /opt/bowtie2/bowtie2-build --help
+        ;;
+    --governed-invalid-option)
+        echo 'bowtie2-build: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/bowtie2/bowtie2-build "$@"
+        ;;
+esac
