@@ -1,4 +1,5 @@
 {
+  "campaign_scope": "targeted",
   "checks": {
     "all_selected_images_current": true,
     "all_selected_records_match_inventory": true,
@@ -14,9 +15,9 @@
     "freshness"
   ],
   "execution_summary": {
-    "passed": 2
+    "passed": 3
   },
-  "finished_at_utc": "2026-08-03T17:04:37.588420+00:00",
+  "finished_at_utc": "2026-08-03T17:42:50.204850+00:00",
   "inventory_summary": {
     "historical_dependency_count": 3,
     "staged_image_count": 0,
@@ -37,10 +38,10 @@
     "security",
     "release"
   ],
-  "repository_commit": "32a447d03b36aeb617de08fda69f8b9fb1ff0f56",
+  "repository_commit": "915f5feb3091a3c78127fdddd9e0377e79b7ed33",
   "run_id": "run-1000",
   "schema_version": "bijux.container.image_rebuild_report.v1",
-  "selected_tool_count": 2,
+  "selected_tool_count": 3,
   "site": {
     "host": "cosmos3.int.lunarc",
     "id": "lunarc"
@@ -48,43 +49,57 @@
   "source_artifacts": {
     "after_build_inventory": {
       "name": "after-storage.json",
-      "sha256": "fda830f4f70750062281cff44640517c8fbdf4c1d8853f82eb2728570334e8d0",
+      "sha256": "ebe4b74936bab5516aec735b506d352f7edaf5e08d492fae55668ecad5d0edf7",
       "study_relative_path": "containers/inventory/after-storage.json"
     },
     "execution": {
       "name": "execution.json",
-      "sha256": "01d6a8bfac626dae5e222920e2a9c213514552b7f1f946bcfc1f8430de94a8d0",
+      "sha256": "e6d507181649e3af2334710f5de88d6746d4bfbb949df47b7063daf42fd642fc",
       "study_relative_path": "containers/campaign/execution.json"
     }
   },
   "tools": [
     {
-      "attempt_count": 1,
-      "build_log_name": "bijux_dna-4780b0580a53-32a447d03b36-attempt-1.log",
-      "build_log_sha256": "af43138998e6d1e73fe21615736522515b880625086aca627c2eef71da5aef83",
-      "failed_attempt_count": 0,
-      "image_name": "bijux_dna-0.1.0-linux-amd64-5a7e64cf5cbe.sif",
-      "image_sha256": "5a7e64cf5cbe13f9af7396a32a082348c844c992351074a8f8b66ac37735ccde",
-      "image_size_bytes": 460161024,
+      "attempt_count": 2,
+      "build_log_name": "bedtools-28f7fb3e96f6-915f5feb3091-attempt-2.log",
+      "build_log_sha256": "112abcf6e352ad22f70f335f33d288cbcc05634d2775df23aae6fccfdc3b5f98",
+      "failed_attempt_count": 1,
+      "image_name": "bedtools-2.31.1-linux-amd64-fe469da8f256.sif",
+      "image_sha256": "fe469da8f256a3a5730207531c03886b72675fecadbed2b3979c29e34634597e",
+      "image_size_bytes": 45867008,
       "inventory_matches_execution": true,
       "inventory_state": "current",
       "status": "passed",
-      "tool": "bijux_dna",
-      "version": "0.1.0"
+      "tool": "bedtools",
+      "version": "2.31.1"
     },
     {
       "attempt_count": 1,
-      "build_log_name": "picard-87b8a8ebfda6-32a447d03b36-attempt-1.log",
-      "build_log_sha256": "3fb15c079232a0d558713a5c0f2becff6b7f9e99a61f9e6395402415f56d713e",
+      "build_log_name": "mosdepth-8950ad750256-915f5feb3091-attempt-1.log",
+      "build_log_sha256": "0cbb64fa048b09b8bc096ebabb56b0bb89bf662b94926ea8354dc5bf76e69e1c",
       "failed_attempt_count": 0,
-      "image_name": "picard-3.3.0-linux-amd64-5d820089bef7.sif",
-      "image_sha256": "5d820089bef7854e698a7014f79df3f7b47568ed78b30e85842e9434ca6dcc92",
-      "image_size_bytes": 160616448,
+      "image_name": "mosdepth-0.3.11-linux-amd64-8bd0a039c887.sif",
+      "image_sha256": "8bd0a039c887f56a6fa9d68e0ac94edfc1177843bc1321eb5e941a1f516dde04",
+      "image_size_bytes": 38289408,
       "inventory_matches_execution": true,
       "inventory_state": "current",
       "status": "passed",
-      "tool": "picard",
-      "version": "3.3.0"
+      "tool": "mosdepth",
+      "version": "0.3.11"
+    },
+    {
+      "attempt_count": 1,
+      "build_log_name": "samtools-5b2f988d30a3-915f5feb3091-attempt-1.log",
+      "build_log_sha256": "82b5acc75f74f3766b0a159d2267ead97082fe10596dc743d32e14c73fb78c70",
+      "failed_attempt_count": 0,
+      "image_name": "samtools-1.20-linux-amd64-a29122faccca.sif",
+      "image_sha256": "a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f",
+      "image_size_bytes": 122376192,
+      "inventory_matches_execution": true,
+      "inventory_state": "current",
+      "status": "passed",
+      "tool": "samtools",
+      "version": "1.20"
     }
   ],
   "verdict": "passed"

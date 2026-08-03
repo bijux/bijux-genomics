@@ -19,30 +19,30 @@
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
-      "sha256": "75feeb8ce9a9cbb0a07a7beba4e5cc3dccb132b3223f703b3f75b7ae459be53a"
+      "sha256": "9421db8bdb82bfe35b39cc319227633bc2e521e8ec317a83180ddfd3bbcc256a"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
-      "sha256": "7a5091a2c0a0709af80031626dc3eabe9942fc33cc256a79274a9a6704b7dc23"
+      "sha256": "ba3d97ca1b79a68d13e2bab33cd75220032d798a8ed472d1f1e9919d142870a4"
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
-      "sha256": "41871d07112690e18a5d673d3be642ad203bf34289443d21ef37fc8b6a266dbd"
+      "sha256": "e3d099075c681d26f4596ab1337ba089b099fd937260fcd886d254598b2feabe"
     }
   },
   "summary": {
     "dimension_passes": {
       "benchmark": 1,
-      "build": 6,
+      "build": 85,
       "catalog": 85,
-      "freshness": 6,
-      "real_data": 46,
+      "freshness": 85,
+      "real_data": 47,
       "release": 0,
       "runtime": 85,
       "science": 0,
       "security": 0,
       "source": 85,
-      "stage": 46
+      "stage": 47
     },
     "qualification": {
       "unsupported": 4,
@@ -56,9 +56,9 @@
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -67,22 +67,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "adapterremoval",
       "mismatched_passing_stages": [
         "fastq.trim_reads"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -98,9 +94,9 @@
       "declared_real_test_stage": "bam.damage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -109,22 +105,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "addeam",
       "mismatched_passing_stages": [
         "bam.damage_profile"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -140,9 +132,9 @@
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -151,18 +143,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "alientrimmer",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -209,9 +197,9 @@
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -220,18 +208,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "atropos",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -249,9 +233,9 @@
       "declared_real_test_stage": "bam.authenticity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -260,18 +244,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "authenticct",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -289,9 +269,9 @@
       "declared_real_test_stage": "bam.filter",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -300,18 +280,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bamtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -329,9 +305,9 @@
       "declared_real_test_stage": "bam.overlap_correction",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -340,18 +316,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bamutil",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -369,9 +341,9 @@
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -380,18 +352,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bayeshammer",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -409,9 +377,9 @@
       "declared_real_test_stage": "fastq.filter_low_complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -420,22 +388,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bbduk",
       "mismatched_passing_stages": [
         "fastq.trim"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -451,9 +415,9 @@
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -462,18 +426,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bbmerge",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -532,9 +492,9 @@
       "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -543,22 +503,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "beagle",
       "mismatched_passing_stages": [
         "vcf.phasing"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -574,9 +530,9 @@
       "declared_real_test_stage": "bam.coverage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -585,18 +541,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bedtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -614,9 +566,9 @@
       "declared_real_test_stage": "fastq.detect_duplicates_premerge",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -625,20 +577,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bijux_dna",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -654,9 +602,9 @@
       "declared_real_test_stage": "bam.align",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -665,18 +613,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bowtie2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -694,9 +638,9 @@
       "declared_real_test_stage": "fastq.index_reference",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -705,18 +649,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bowtie2_build",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -734,9 +674,9 @@
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -745,18 +685,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bracken",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -774,9 +710,9 @@
       "declared_real_test_stage": "bam.align",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -785,18 +721,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "bwa",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -814,9 +746,9 @@
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -825,18 +757,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "centrifuge",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -854,9 +782,9 @@
       "declared_real_test_stage": "fastq.remove_duplicates",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -865,22 +793,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "clumpify",
       "mismatched_passing_stages": [
         "fastq.deduplicate"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -896,9 +820,9 @@
       "declared_real_test_stage": "bam.contamination",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -907,18 +831,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "contammix",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -936,9 +856,9 @@
       "declared_real_test_stage": "fastq.normalize_primers",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -947,18 +867,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "cutadapt",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -976,9 +892,9 @@
       "declared_real_test_stage": "fastq.infer_asvs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -987,18 +903,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "dada2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1016,9 +928,9 @@
       "declared_real_test_stage": "bam.authenticity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1027,22 +939,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "damageprofiler",
       "mismatched_passing_stages": [
         "bam.damage"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1058,9 +966,9 @@
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1069,18 +977,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "diamond",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1098,9 +1002,9 @@
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1109,22 +1013,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "dustmasker",
       "mismatched_passing_stages": [
         "reference.mask_low_complexity"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1140,9 +1040,9 @@
       "declared_real_test_stage": "vcf.phasing",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1151,18 +1051,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "eagle",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1180,9 +1076,9 @@
       "declared_real_test_stage": "vcf.pca",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1191,22 +1087,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "eigensoft",
       "mismatched_passing_stages": [
         "vcf.principal_components"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1222,9 +1114,9 @@
       "declared_real_test_stage": "fastq.filter_low_complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1233,18 +1125,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "fastp",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1262,9 +1150,9 @@
       "declared_real_test_stage": "fastq.profile_overrepresented_sequences",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1273,18 +1161,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "fastq_scan",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1302,9 +1186,9 @@
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1313,20 +1197,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "fastq_screen",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1342,9 +1222,9 @@
       "declared_real_test_stage": "fastq.detect_adapters",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1353,18 +1233,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "fastqc",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1382,9 +1258,9 @@
       "declared_real_test_stage": "fastq.validate_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1393,18 +1269,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "fastqvalidator",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1451,9 +1323,9 @@
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1462,18 +1334,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "fastx_clipper",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1491,9 +1359,9 @@
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1502,18 +1370,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "flash2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1531,9 +1395,9 @@
       "declared_real_test_stage": "fastq.validate_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1542,18 +1406,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "fqtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1571,9 +1431,9 @@
       "declared_real_test_stage": "bam.recalibration",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1582,20 +1442,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "gatk",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1611,9 +1467,9 @@
       "declared_real_test_stage": "vcf.ibd",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1622,22 +1478,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "germline",
       "mismatched_passing_stages": [
         "vcf.ibd_segments"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1653,9 +1505,9 @@
       "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1664,20 +1516,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "glimpse",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1693,9 +1541,9 @@
       "declared_real_test_stage": "vcf.ibd",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1704,22 +1552,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "ibdhap",
       "mismatched_passing_stages": [
         "vcf.ibd_state_probabilities"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1735,9 +1579,9 @@
       "declared_real_test_stage": "vcf.demography",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1746,18 +1590,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "ibdne",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1775,9 +1615,9 @@
       "declared_real_test_stage": "vcf.ibd",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1786,18 +1626,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "ibdseq",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1844,9 +1680,9 @@
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1855,20 +1691,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "kaiju",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1884,9 +1716,9 @@
       "declared_real_test_stage": "bam.kinship",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1895,20 +1727,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "king",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -1924,9 +1752,9 @@
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1935,18 +1763,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "kraken2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -1964,9 +1788,9 @@
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1975,20 +1799,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "krakenuniq",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2004,9 +1824,9 @@
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2015,22 +1835,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "leehom",
       "mismatched_passing_stages": [
         "adapter-trimming-and-merging"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2046,37 +1862,33 @@
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
-        "real_data": "missing",
+        "freshness": "passed",
+        "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
-        "stage": "missing"
+        "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "lighter",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "stage",
-        "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
-      "passing_real_test_runs": [],
+      "passing_real_test_runs": [
+        "run-1139"
+      ],
       "qualification": "unverified",
-      "real_run_attempts": 0,
-      "real_run_passes": 0,
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
       "support_disposition": "retained",
       "unadmitted_image_benchmark_runs": [],
       "version": "1.1.3"
@@ -2086,9 +1898,9 @@
       "declared_real_test_stage": "bam.damage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2097,18 +1909,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "mapdamage2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2162,9 +1970,9 @@
       "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2173,20 +1981,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "minimac4",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2202,9 +2006,9 @@
       "declared_real_test_stage": "bam.coverage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2213,18 +2017,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "mosdepth",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2280,9 +2080,9 @@
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2291,18 +2091,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "musket",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2349,9 +2145,9 @@
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2360,18 +2156,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "pear",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2389,9 +2181,9 @@
       "declared_real_test_stage": "bam.duplication_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2400,22 +2192,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "picard",
       "mismatched_passing_stages": [
         "bam.mapping_summary"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2431,9 +2219,9 @@
       "declared_real_test_stage": "vcf.admixture",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2442,22 +2230,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "plink",
       "mismatched_passing_stages": [
         "vcf.allele_frequency"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2473,9 +2257,9 @@
       "declared_real_test_stage": "vcf.admixture",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2484,22 +2268,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "plink2",
       "mismatched_passing_stages": [
         "vcf.export_ped"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2515,9 +2295,9 @@
       "declared_real_test_stage": "bam.authenticity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2526,18 +2306,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "pmdtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2555,9 +2331,9 @@
       "declared_real_test_stage": "bam.complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2566,18 +2342,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "preseq",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2595,9 +2367,9 @@
       "declared_real_test_stage": "fastq.filter_low_complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2606,22 +2378,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "prinseq",
       "mismatched_passing_stages": [
         "low-complexity-filter"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2673,9 +2441,9 @@
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2684,22 +2452,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "qualimap",
       "mismatched_passing_stages": [
         "bam.quality_control"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2715,9 +2479,9 @@
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2726,20 +2490,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "rcorrector",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2755,9 +2515,9 @@
       "declared_real_test_stage": "bam.sex",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2766,20 +2526,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "rxy",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2795,9 +2551,9 @@
       "declared_real_test_stage": "bam.coverage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2806,22 +2562,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "samtools",
       "mismatched_passing_stages": [
         "bam.validate"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2837,9 +2589,9 @@
       "declared_real_test_stage": "bam.contamination",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2848,20 +2600,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "schmutzi",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2877,9 +2625,9 @@
       "declared_real_test_stage": "fastq.profile_read_lengths",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2888,18 +2636,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "seqfu",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2917,9 +2661,9 @@
       "declared_real_test_stage": "fastq.filter_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2928,22 +2672,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "seqkit",
       "mismatched_passing_stages": [
         "fastq.profile_reads"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2959,9 +2699,9 @@
       "declared_real_test_stage": "fastq.profile_read_lengths",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2970,18 +2710,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "seqkit_stats",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -2999,9 +2735,9 @@
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3010,18 +2746,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "seqprep",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3039,9 +2771,9 @@
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -3050,22 +2782,18 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "seqpurge",
       "mismatched_passing_stages": [
         "adapter-trimming"
       ],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -3081,9 +2809,9 @@
       "declared_real_test_stage": "fastq.validate_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3092,18 +2820,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "seqtk",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3121,9 +2845,9 @@
       "declared_real_test_stage": "vcf.phasing",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3132,18 +2856,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "shapeit",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3161,9 +2881,9 @@
       "declared_real_test_stage": "vcf.phasing",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3172,18 +2892,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "shapeit5",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3201,9 +2917,9 @@
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3212,18 +2928,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "skewer",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3241,9 +2953,9 @@
       "declared_real_test_stage": "fastq.deplete_rrna",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -3252,20 +2964,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "sortmerna",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -3317,9 +3025,9 @@
       "declared_real_test_stage": "fastq.index_reference",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -3328,20 +3036,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "star",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -3357,9 +3061,9 @@
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3368,18 +3072,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "trim_galore",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3397,9 +3097,9 @@
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3408,18 +3108,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "trimmomatic",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3473,9 +3169,9 @@
       "declared_real_test_stage": "bam.contamination",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -3484,20 +3180,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "verifybamid2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -3513,9 +3205,9 @@
       "declared_real_test_stage": "fastq.cluster_otus",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -3524,18 +3216,14 @@
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "vsearch",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [
@@ -3553,9 +3241,9 @@
       "declared_real_test_stage": "bam.haplogroups",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -3564,20 +3252,16 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_recipe_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "yleaf",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],

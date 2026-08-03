@@ -1,6 +1,6 @@
 {
   "catalog_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
-  "created_at_utc": "2026-08-03T17:11:20.688768+00:00",
+  "created_at_utc": "2026-08-03T17:53:14.196910+00:00",
   "evidence_root": "study://containers/evidence",
   "historical_images": [
     {
@@ -35,9 +35,9 @@
       "study": "governed execution-site study root"
     },
     "raw_schema_version": "bijux.container.image_inventory.v1",
-    "raw_sha256": "16dd9f16151f88886421feace80346376644751bceb6d7fa0d5b9d4db8d42f3e"
+    "raw_sha256": "1a7cebdb50a3db6ddcf4042401595f47592bafdf15e895ee70f982c8d642701c"
   },
-  "repository_commit": "04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f",
+  "repository_commit": "2738ed91e391016513bbcaa17a783245970c0bb0",
   "runs_root": "repository://containers/runs",
   "schema_version": "bijux.container.image_inventory_publication.v1",
   "staged_images": [],
@@ -60,6 +60,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -84,6 +90,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -119,6 +126,28 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "75b1d027f88673b1d045d368d777efbb734e1ccc",
+                  "path": "containers/tools/addeam/requirements.lock"
+                },
+                {
+                  "git_object": "064bc9eabea276096be9d901204d2eff295da1ad",
+                  "path": "containers/tools/addeam/bam2prof-offline-build.patch"
+                },
+                {
+                  "git_object": "3db1347e2227f24d30a6f0d00594b18b458e72ba",
+                  "path": "containers/tools/addeam/profile-execution.patch"
+                },
+                {
+                  "git_object": "944786ab7826aeb7c58aca2b4c257bbd7c1d9ac3",
+                  "path": "containers/tools/addeam/install"
+                },
+                {
+                  "git_object": "815fab7c64c915fe1c833fc656c3c926dd749f54",
+                  "path": "containers/tools/addeam/addeam"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -143,6 +172,32 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "75b1d027f88673b1d045d368d777efbb734e1ccc",
+                  "path": "containers/tools/addeam/requirements.lock"
+                },
+                {
+                  "git_object": "064bc9eabea276096be9d901204d2eff295da1ad",
+                  "path": "containers/tools/addeam/bam2prof-offline-build.patch"
+                },
+                {
+                  "git_object": "3db1347e2227f24d30a6f0d00594b18b458e72ba",
+                  "path": "containers/tools/addeam/profile-execution.patch"
+                },
+                {
+                  "git_object": "944786ab7826aeb7c58aca2b4c257bbd7c1d9ac3",
+                  "path": "containers/tools/addeam/install"
+                },
+                {
+                  "git_object": "815fab7c64c915fe1c833fc656c3c926dd749f54",
+                  "path": "containers/tools/addeam/addeam"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -178,6 +233,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -202,6 +258,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "47cd6f59c1b437ab2ce65a88ea4ee53b312e2c27",
+                  "path": "containers/tools/alientrimmer/alientrimmer"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -247,6 +313,24 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "63c1f123c3e7f5c4028f30651d12cab40f68942c",
+                  "path": "containers/tools/atropos/requirements.lock"
+                },
+                {
+                  "git_object": "46677b8335f24777f23600323ecceef9cfa5e6ac",
+                  "path": "containers/tools/atropos/python-collections-compatibility.patch"
+                },
+                {
+                  "git_object": "4b2260dfdfc64a7da46b27b903e102ad7d194314",
+                  "path": "containers/tools/atropos/install"
+                },
+                {
+                  "git_object": "632eff36495e0b0b714eb7f8ce7c3bc43c918a3e",
+                  "path": "containers/tools/atropos/atropos"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -271,6 +355,28 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "63c1f123c3e7f5c4028f30651d12cab40f68942c",
+                  "path": "containers/tools/atropos/requirements.lock"
+                },
+                {
+                  "git_object": "46677b8335f24777f23600323ecceef9cfa5e6ac",
+                  "path": "containers/tools/atropos/python-collections-compatibility.patch"
+                },
+                {
+                  "git_object": "4b2260dfdfc64a7da46b27b903e102ad7d194314",
+                  "path": "containers/tools/atropos/install"
+                },
+                {
+                  "git_object": "632eff36495e0b0b714eb7f8ce7c3bc43c918a3e",
+                  "path": "containers/tools/atropos/atropos"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -306,6 +412,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "810c974db6651025545d9a7c4025763005d09b3c",
+                  "path": "containers/tools/authenticct/requirements.lock"
+                },
+                {
+                  "git_object": "642784544b2663f868409017e06207fcff0d00c1",
+                  "path": "containers/tools/authenticct/authenticct"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -330,6 +446,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "810c974db6651025545d9a7c4025763005d09b3c",
+                  "path": "containers/tools/authenticct/requirements.lock"
+                },
+                {
+                  "git_object": "642784544b2663f868409017e06207fcff0d00c1",
+                  "path": "containers/tools/authenticct/authenticct"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -365,6 +495,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "3a85b76caa48adb72ba843080d7e4a41277ec043",
+                  "path": "containers/tools/bamtools/bamtools"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -389,6 +525,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "3a85b76caa48adb72ba843080d7e4a41277ec043",
+                  "path": "containers/tools/bamtools/bamtools"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -424,6 +570,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "368f15006fc3ec0ba95a9b083a281a9bd2e365d1",
+                  "path": "containers/tools/bamutil/bamutil"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -448,6 +604,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "368f15006fc3ec0ba95a9b083a281a9bd2e365d1",
+                  "path": "containers/tools/bamutil/bamutil"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -483,6 +645,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "bf4933713e28c749a9f5c038371593c3c316cd25",
+                  "path": "containers/tools/bayeshammer/install"
+                },
+                {
+                  "git_object": "e3e9ece66647886dcdae5638f1bae17f02876932",
+                  "path": "containers/tools/bayeshammer/bayeshammer"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -507,6 +683,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "bf4933713e28c749a9f5c038371593c3c316cd25",
+                  "path": "containers/tools/bayeshammer/install"
+                },
+                {
+                  "git_object": "e3e9ece66647886dcdae5638f1bae17f02876932",
+                  "path": "containers/tools/bayeshammer/bayeshammer"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -542,6 +728,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "9333aee9d2a04ea6c4443d256046d6a4eec2804c",
+                  "path": "containers/tools/bbmap/bbmap-interface"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -566,6 +762,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -601,6 +798,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -625,6 +823,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "9333aee9d2a04ea6c4443d256046d6a4eec2804c",
+                  "path": "containers/tools/bbmap/bbmap-interface"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -660,6 +868,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -684,6 +893,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -719,6 +929,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -743,6 +954,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "3dff3420dee61fda5b1d073a488be417df9eeb49",
+                  "path": "containers/tools/beagle/beagle"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -778,30 +999,12 @@
           "admitted": true,
           "build_evidence": [
             {
-              "build_context_matches_commit": true,
-              "build_context_matches_current": true,
-              "definition_matches_commit": true,
-              "definition_matches_current": true,
-              "definition_sha256": "6ee611233f1070d314e76c26ce636caeb0aa6164741960bb74397b29fa30a233",
-              "image_matches": true,
-              "path": "study://containers/evidence/bedtools-2.31.1-4e2c0d7c8141.build.json",
-              "repository_commit": "7714cf2c15cc11d1fb0717c7bac5b0acb42b1482",
-              "status": "passed"
-            }
-          ],
-          "current_recipe": true,
-          "disposition": "canonical",
-          "immutable_name": true,
-          "name": "bedtools-2.31.1-linux-amd64-4e2c0d7c8141.sif",
-          "path": "study://containers/apptainer/bedtools-2.31.1-linux-amd64-4e2c0d7c8141.sif",
-          "real_run_references": 0,
-          "sha256": "4e2c0d7c8141fe95d9e0d6cdff8a2042b7f1344c0adc6cbd4d21e577f50a1ebd",
-          "size_bytes": 45846528
-        },
-        {
-          "admitted": true,
-          "build_evidence": [
-            {
+              "build_context": [
+                {
+                  "git_object": "f9f7ede830500d9353fe4efa1d7aa531208e9cdd",
+                  "path": "containers/tools/bedtools/bedtools"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -821,10 +1024,44 @@
           "real_run_references": 1,
           "sha256": "e74534c14624fff630e0fc50a8c1f167c847424b9884c6b23a99823734ce664b",
           "size_bytes": 45842432
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "bc3ae97ee25a157ca78060944b033d9d42eefd75",
+                  "path": "containers/tools/bedtools/bedtools"
+                }
+              ],
+              "build_context_matches_commit": true,
+              "build_context_matches_current": true,
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "28f7fb3e96f6060d65e96e5ffee0b1f0b3b7671075bd01c7a04d43535e7fd177",
+              "image_matches": true,
+              "path": "study://containers/evidence/bedtools-2.31.1-fe469da8f256.build.json",
+              "repository_commit": "915f5feb3091a3c78127fdddd9e0377e79b7ed33",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bedtools-2.31.1-linux-amd64-fe469da8f256.sif",
+          "path": "study://containers/apptainer/bedtools-2.31.1-linux-amd64-fe469da8f256.sif",
+          "real_run_references": 0,
+          "sha256": "fe469da8f256a3a5730207531c03886b72675fecadbed2b3979c29e34634597e",
+          "size_bytes": 45867008
         }
       ],
-      "selected_image": "study://containers/apptainer/bedtools-2.31.1-linux-amd64-4e2c0d7c8141.sif",
-      "selected_image_sha256": "4e2c0d7c8141fe95d9e0d6cdff8a2042b7f1344c0adc6cbd4d21e577f50a1ebd",
+      "selected_image": "study://containers/apptainer/bedtools-2.31.1-linux-amd64-fe469da8f256.sif",
+      "selected_image_sha256": "fe469da8f256a3a5730207531c03886b72675fecadbed2b3979c29e34634597e",
       "state": "current",
       "support_disposition": "retained",
       "tool": "bedtools",
@@ -837,6 +1074,48 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "9f9c8e92825d772c0bb3a0ce80915fa0432ca1f6",
+                  "path": ".cargo"
+                },
+                {
+                  "git_object": "952a1baf6d3e7fa440c53fca80f63354d1f061e5",
+                  "path": "Cargo.toml"
+                },
+                {
+                  "git_object": "cb8b4af0e18ace385f27535ab7083a26e516b3ae",
+                  "path": "Cargo.lock"
+                },
+                {
+                  "git_object": "8934eb4a5fabfca2502492140bfb51e89f9e0394",
+                  "path": "rust-toolchain.toml"
+                },
+                {
+                  "git_object": "10c16985c14a1008774a4e4ff65c7405ecf4fb89",
+                  "path": "rustfmt.toml"
+                },
+                {
+                  "git_object": "182fba4f42f126cbb400c3b13c61fa63779a4e32",
+                  "path": "crates"
+                },
+                {
+                  "git_object": "f003998792f998bc7c6515856f55c79443dd8e2f",
+                  "path": "configs"
+                },
+                {
+                  "git_object": "0df1b4ad1eb3b5a918f0cddc0a671b328137c468",
+                  "path": "domain"
+                },
+                {
+                  "git_object": "97602340738c28c41968daf5edd7e74950bd9a77",
+                  "path": "benchmarks"
+                },
+                {
+                  "git_object": "de10fadf23ad2591eb145dd8f26c66732d0f9408",
+                  "path": "assets"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -872,6 +1151,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "18969dd30e7216ad6c429a830f36e758d2f322c6",
+                  "path": "containers/tools/bowtie2/install"
+                },
+                {
+                  "git_object": "9e20a525361ca0e12c3519489f12a2f0c472f8de",
+                  "path": "containers/tools/bowtie2/bowtie2"
+                },
+                {
+                  "git_object": "6a02829c5bb591fea973d0157653788ba8d1bf34",
+                  "path": "containers/tools/bowtie2/bowtie2-build"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -896,6 +1189,24 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "18969dd30e7216ad6c429a830f36e758d2f322c6",
+                  "path": "containers/tools/bowtie2/install"
+                },
+                {
+                  "git_object": "9e20a525361ca0e12c3519489f12a2f0c472f8de",
+                  "path": "containers/tools/bowtie2/bowtie2"
+                },
+                {
+                  "git_object": "6a02829c5bb591fea973d0157653788ba8d1bf34",
+                  "path": "containers/tools/bowtie2/bowtie2-build"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -931,6 +1242,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "18969dd30e7216ad6c429a830f36e758d2f322c6",
+                  "path": "containers/tools/bowtie2/install"
+                },
+                {
+                  "git_object": "9e20a525361ca0e12c3519489f12a2f0c472f8de",
+                  "path": "containers/tools/bowtie2/bowtie2"
+                },
+                {
+                  "git_object": "6a02829c5bb591fea973d0157653788ba8d1bf34",
+                  "path": "containers/tools/bowtie2/bowtie2-build"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -955,6 +1280,24 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "18969dd30e7216ad6c429a830f36e758d2f322c6",
+                  "path": "containers/tools/bowtie2/install"
+                },
+                {
+                  "git_object": "9e20a525361ca0e12c3519489f12a2f0c472f8de",
+                  "path": "containers/tools/bowtie2/bowtie2"
+                },
+                {
+                  "git_object": "6a02829c5bb591fea973d0157653788ba8d1bf34",
+                  "path": "containers/tools/bowtie2/bowtie2-build"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -990,6 +1333,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "1e0c738559bb8e9be18eff80939aa549df72770c",
+                  "path": "containers/tools/bracken/install"
+                },
+                {
+                  "git_object": "33a9ff8dea957e89cc07119ec2986a61ebaf4021",
+                  "path": "containers/tools/bracken/bracken"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1014,6 +1371,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "1e0c738559bb8e9be18eff80939aa549df72770c",
+                  "path": "containers/tools/bracken/install"
+                },
+                {
+                  "git_object": "33a9ff8dea957e89cc07119ec2986a61ebaf4021",
+                  "path": "containers/tools/bracken/bracken"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1049,6 +1416,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1073,6 +1441,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "f536a736ddc5e8c151bccd245b31026451a901ea",
+                  "path": "containers/tools/bwa/bwa"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1108,6 +1486,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "028f68bc5e51689e74dc841f3dda7df34a8ad8bf",
+                  "path": "containers/tools/centrifuge/install"
+                },
+                {
+                  "git_object": "ea5e40db21e310d69fbc4224427201e6331edd8b",
+                  "path": "containers/tools/centrifuge/centrifuge"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1132,6 +1524,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "028f68bc5e51689e74dc841f3dda7df34a8ad8bf",
+                  "path": "containers/tools/centrifuge/install"
+                },
+                {
+                  "git_object": "ea5e40db21e310d69fbc4224427201e6331edd8b",
+                  "path": "containers/tools/centrifuge/centrifuge"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1167,6 +1569,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1191,6 +1594,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "9333aee9d2a04ea6c4443d256046d6a4eec2804c",
+                  "path": "containers/tools/bbmap/bbmap-interface"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1226,6 +1639,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "495129142ee0f812694338ad65a46106ff3b6b42",
+                  "path": "containers/tools/contammix/install"
+                },
+                {
+                  "git_object": "5d0fb6d605623dc58bac444a29bdd5d4e8cd06cf",
+                  "path": "containers/tools/contammix/contammix"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1250,6 +1673,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "495129142ee0f812694338ad65a46106ff3b6b42",
+                  "path": "containers/tools/contammix/install"
+                },
+                {
+                  "git_object": "5d0fb6d605623dc58bac444a29bdd5d4e8cd06cf",
+                  "path": "containers/tools/contammix/contammix"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1285,6 +1722,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "cbac0b3a58a1de99203580b984ab66444a2fc1b6",
+                  "path": "containers/tools/cutadapt/install"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1309,6 +1752,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "571b8722bd62b4e6555fa1164df4fda8d6afddd3",
+                  "path": "containers/tools/cutadapt/install"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1344,6 +1797,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "cab00c4a6c476acaf6f7dd57f5613c6f908ac084",
+                  "path": "containers/tools/dada2/dada2"
+                },
+                {
+                  "git_object": "037f3d7d3aff1ab32df61e6877c1e2802562a376",
+                  "path": "containers/tools/dada2/infer-asvs.R"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1368,6 +1835,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1403,6 +1871,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "b200acdd870ec19ddc162c692d34764dd80271a7",
+                  "path": "containers/tools/damageprofiler/install"
+                },
+                {
+                  "git_object": "551d45372994345b4b9067b51ff351f9891615dd",
+                  "path": "containers/tools/damageprofiler/damageprofiler"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1427,6 +1909,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "b200acdd870ec19ddc162c692d34764dd80271a7",
+                  "path": "containers/tools/damageprofiler/install"
+                },
+                {
+                  "git_object": "551d45372994345b4b9067b51ff351f9891615dd",
+                  "path": "containers/tools/damageprofiler/damageprofiler"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1462,6 +1954,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "2165c1d92291f9174bddbb63fead665c17ce7b99",
+                  "path": "containers/tools/diamond/install"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1486,6 +1988,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "2165c1d92291f9174bddbb63fead665c17ce7b99",
+                  "path": "containers/tools/diamond/install"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1521,6 +2029,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "cb9ffeed36bbc26d99f419fe5529448933b3df52",
+                  "path": "containers/tools/dustmasker/dustmasker"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1545,6 +2063,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1580,6 +2099,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "f09b6229701179ea40f1e2042f2a5c344ecb37ef",
+                  "path": "containers/tools/eagle/eagle"
+                },
+                {
+                  "git_object": "b99785025f7ce0c31e8a56d7baa8d8d5440f2fd5",
+                  "path": "containers/tools/eagle/portable-aligned-memory.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1604,6 +2137,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1639,6 +2173,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "3c81254255ec08d497fc28ef9f96c6c74708cee9",
+                  "path": "containers/tools/eigensoft/smartpca"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1663,6 +2203,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "3c81254255ec08d497fc28ef9f96c6c74708cee9",
+                  "path": "containers/tools/eigensoft/smartpca"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1698,6 +2248,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "542d5f74d6793564758936c4b1318845955e2c93",
+                  "path": "containers/tools/fastp/fastp"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1722,6 +2278,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "542d5f74d6793564758936c4b1318845955e2c93",
+                  "path": "containers/tools/fastp/fastp"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1757,6 +2323,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "692849786a05a05b8980b487e90c151c0fccc0b4",
+                  "path": "containers/tools/fastq_scan/fastq_scan"
+                },
+                {
+                  "git_object": "48a9de21a95aa94f1cd832afe77fad7efad00cdf",
+                  "path": "containers/tools/fastq_scan/install"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1781,6 +2361,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "692849786a05a05b8980b487e90c151c0fccc0b4",
+                  "path": "containers/tools/fastq_scan/fastq_scan"
+                },
+                {
+                  "git_object": "48a9de21a95aa94f1cd832afe77fad7efad00cdf",
+                  "path": "containers/tools/fastq_scan/install"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1816,6 +2406,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1851,6 +2447,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "026591091e6998605eb0f8ae6c0cc9e2db3afaa2",
+                  "path": "containers/tools/fastqc/fastqc"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1875,6 +2477,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "026591091e6998605eb0f8ae6c0cc9e2db3afaa2",
+                  "path": "containers/tools/fastqc/fastqc"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1910,6 +2522,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "c0259be663636abdefe44e67ad908ef9b4f8e043",
+                  "path": "containers/tools/fastqvalidator/fastqvalidator"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -1934,6 +2556,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "c0259be663636abdefe44e67ad908ef9b4f8e043",
+                  "path": "containers/tools/fastqvalidator/fastqvalidator"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -1979,6 +2607,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "7297098f62bb05be936668488772a31ec29ed790",
+                  "path": "containers/tools/fastx_clipper/fastx_clipper"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2003,6 +2641,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "c4d110090668aa014c83be6a59fb7d4c1140d1fc",
+                  "path": "containers/tools/fastx_clipper/fastx_clipper"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2038,6 +2682,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "683c7a34d03d6a7bf47981590560bc0f955961a0",
+                  "path": "containers/tools/flash2/flash2"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2062,6 +2712,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "683c7a34d03d6a7bf47981590560bc0f955961a0",
+                  "path": "containers/tools/flash2/flash2"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2097,6 +2757,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2121,6 +2782,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "7ef3d4f57b27981fc5d55d30239d94a3029cc9fb",
+                  "path": "containers/tools/fqtools/fqtools"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2156,6 +2827,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2191,6 +2868,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "c11457235e15a318df592e4257ce12494f9fb585",
+                  "path": "containers/tools/germline/germline"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2215,6 +2898,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "c11457235e15a318df592e4257ce12494f9fb585",
+                  "path": "containers/tools/germline/germline"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2250,6 +2943,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "fc884319b53f7e6ca5557d053d103678c7b50d67",
+                  "path": "containers/tools/glimpse/glimpse"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2285,6 +2988,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "ce1cb5c424c80757475a48647b9a0a67f4958930",
+                  "path": "containers/tools/ibdhap/ibdhap"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2309,6 +3018,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "ce1cb5c424c80757475a48647b9a0a67f4958930",
+                  "path": "containers/tools/ibdhap/ibdhap"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2344,6 +3063,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "247e8331e68d55e5edd145585071453577e271ce",
+                  "path": "containers/tools/ibdne/ibdne"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2368,6 +3097,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2403,6 +3133,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "214cc190d6938f6c3d783bff8a54852d26fb5d5e",
+                  "path": "containers/tools/ibdseq/ibdseq"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2427,6 +3167,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2472,6 +3213,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "74a26fa60ca2ad3ae50a447bc068eb6932fc49f2",
+                  "path": "containers/tools/kaiju/kaiju"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2507,6 +3258,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "5d1ba8f6a7955ca2af593b3136302734272fa6ae",
+                  "path": "containers/tools/king/king"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2542,6 +3299,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "314ffc5b4a398c0708dc4af97d1ee3e77d633ea0",
+                  "path": "containers/tools/kraken2/install"
+                },
+                {
+                  "git_object": "615adbd51aab828d3806cb207b68235093fece27",
+                  "path": "containers/tools/kraken2/kraken2"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2566,6 +3333,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "314ffc5b4a398c0708dc4af97d1ee3e77d633ea0",
+                  "path": "containers/tools/kraken2/install"
+                },
+                {
+                  "git_object": "615adbd51aab828d3806cb207b68235093fece27",
+                  "path": "containers/tools/kraken2/kraken2"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2601,6 +3382,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2636,6 +3423,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "5626e0414692d8ed2203aa19ba5d23a76b3b3623",
+                  "path": "containers/tools/leehom/leehom"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2660,6 +3457,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2695,6 +3493,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "98a5f309cf83003b4e625c72ef2f1992cf7fa3d4",
+                  "path": "containers/tools/lighter/install"
+                },
+                {
+                  "git_object": "54790d711ab004e36dd6626157bdb0fc9685e6c2",
+                  "path": "containers/tools/lighter/lighter"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2730,6 +3538,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "3b6cbe74cb63c13bb14bcb7b5c85ab94adc425cd",
+                  "path": "containers/tools/mapdamage2/mapdamage2"
+                },
+                {
+                  "git_object": "f8440bdbc72f2eb91b3135b1c433b0a2e99dab87",
+                  "path": "containers/tools/mapdamage2/patches/skip-r-library-check-without-r.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2754,6 +3576,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2789,6 +3612,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2824,6 +3648,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "f4f9ee36b13fdaf592f1f1aba2dc8e069f43fb46",
+                  "path": "containers/tools/minimac4/minimac4"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2859,6 +3693,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "857cbaf8d5e590cbf4fd77ecee3252b60d7bc8a3",
+                  "path": "containers/tools/mosdepth/mosdepth"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -2883,29 +3723,39 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "857cbaf8d5e590cbf4fd77ecee3252b60d7bc8a3",
+                  "path": "containers/tools/mosdepth/mosdepth"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
               "definition_matches_current": true,
-              "definition_sha256": "70a0d0c947a4c1abf579a55e69f9193d91cab5cb6caa8dff96235b102fb211e5",
+              "definition_sha256": "8950ad75025697dd8be55d3df25ae551bfd1ccd21701d91f990664d42d47a8ba",
               "image_matches": true,
-              "path": "study://containers/evidence/mosdepth-0.3.11-79e73d45f00f.build.json",
-              "repository_commit": "7714cf2c15cc11d1fb0717c7bac5b0acb42b1482",
+              "path": "study://containers/evidence/mosdepth-0.3.11-8bd0a039c887.build.json",
+              "repository_commit": "915f5feb3091a3c78127fdddd9e0377e79b7ed33",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "mosdepth-0.3.11-linux-amd64-79e73d45f00f.sif",
-          "path": "study://containers/apptainer/mosdepth-0.3.11-linux-amd64-79e73d45f00f.sif",
+          "name": "mosdepth-0.3.11-linux-amd64-8bd0a039c887.sif",
+          "path": "study://containers/apptainer/mosdepth-0.3.11-linux-amd64-8bd0a039c887.sif",
           "real_run_references": 0,
-          "sha256": "79e73d45f00f841ba587d400ea641165b39dea15c2fde3ec080d99a9024b580b",
-          "size_bytes": 38264832
+          "sha256": "8bd0a039c887f56a6fa9d68e0ac94edfc1177843bc1321eb5e941a1f516dde04",
+          "size_bytes": 38289408
         }
       ],
-      "selected_image": "study://containers/apptainer/mosdepth-0.3.11-linux-amd64-79e73d45f00f.sif",
-      "selected_image_sha256": "79e73d45f00f841ba587d400ea641165b39dea15c2fde3ec080d99a9024b580b",
+      "selected_image": "study://containers/apptainer/mosdepth-0.3.11-linux-amd64-8bd0a039c887.sif",
+      "selected_image_sha256": "8bd0a039c887f56a6fa9d68e0ac94edfc1177843bc1321eb5e941a1f516dde04",
       "state": "current",
       "support_disposition": "retained",
       "tool": "mosdepth",
@@ -2918,6 +3768,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2942,6 +3793,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -2977,6 +3829,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "78d243502b64d1b47c8acb29de9456823d28e403",
+                  "path": "containers/tools/musket/musket"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3001,6 +3863,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3046,6 +3909,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "95ade2583093103218ce2bd75460de2679e15239",
+                  "path": "containers/tools/pear/pear"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3070,6 +3943,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3105,6 +3979,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3129,6 +4004,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "08f4f21a3b81dabaf67baa233cbadd23f15e59d3",
+                  "path": "containers/tools/picard/picard"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3164,6 +4049,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3188,6 +4079,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3223,6 +4115,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3247,6 +4145,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3282,6 +4181,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "ce46b5fd19a38385cb8189a7985a1e11491bf2fb",
+                  "path": "containers/tools/pmdtools/python3-release-metadata.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3306,6 +4211,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "ce46b5fd19a38385cb8189a7985a1e11491bf2fb",
+                  "path": "containers/tools/pmdtools/python3-release-metadata.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3341,6 +4252,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "727aa01549caa9672e47e36d065b7f0098d7f340",
+                  "path": "containers/tools/preseq/gcc-cstdint.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3365,6 +4282,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "727aa01549caa9672e47e36d065b7f0098d7f340",
+                  "path": "containers/tools/preseq/gcc-cstdint.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3400,6 +4323,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3424,6 +4353,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3459,6 +4389,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3483,6 +4414,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3518,6 +4450,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "1e7ae420da31ec0bffe94c11bff60b0ad3e42245",
+                  "path": "containers/tools/qualimap/qualimap"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3542,6 +4484,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3577,6 +4520,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "5cadb4d83fe1a9d158bf4b478d733f79fd295f72",
+                  "path": "containers/tools/rcorrector/rcorrector"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3612,6 +4561,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "055f1c7c092b279c20f5af69c48d7a35017309d1",
+                  "path": "containers/tools/rxy/rxy"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3647,30 +4606,7 @@
           "admitted": true,
           "build_evidence": [
             {
-              "build_context_matches_commit": true,
-              "build_context_matches_current": true,
-              "definition_matches_commit": true,
-              "definition_matches_current": true,
-              "definition_sha256": "32db875f92345a2eff88dfb27b0f45926dd8bf3fc2017d11284d970dfd1c2542",
-              "image_matches": true,
-              "path": "study://containers/evidence/samtools-1.20-4bc914c8549b.build.json",
-              "repository_commit": "7714cf2c15cc11d1fb0717c7bac5b0acb42b1482",
-              "status": "passed"
-            }
-          ],
-          "current_recipe": true,
-          "disposition": "canonical",
-          "immutable_name": true,
-          "name": "samtools-1.20-linux-amd64-4bc914c8549b.sif",
-          "path": "study://containers/apptainer/samtools-1.20-linux-amd64-4bc914c8549b.sif",
-          "real_run_references": 0,
-          "sha256": "4bc914c8549bd325b57927f693d21f6c37e463e8a3d2b5e4dc5d3ad19e1d0861",
-          "size_bytes": 122355712
-        },
-        {
-          "admitted": true,
-          "build_evidence": [
-            {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3690,10 +4626,40 @@
           "real_run_references": 1,
           "sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
           "size_bytes": 122355712
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
+              "build_context_matches_commit": true,
+              "build_context_matches_current": true,
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "5b2f988d30a3ff97464ab2ee43dd14a1047d1414eddfbaed78ec2e9d92cee041",
+              "image_matches": true,
+              "path": "study://containers/evidence/samtools-1.20-a29122faccca.build.json",
+              "repository_commit": "915f5feb3091a3c78127fdddd9e0377e79b7ed33",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "samtools-1.20-linux-amd64-a29122faccca.sif",
+          "path": "study://containers/apptainer/samtools-1.20-linux-amd64-a29122faccca.sif",
+          "real_run_references": 0,
+          "sha256": "a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f",
+          "size_bytes": 122376192
         }
       ],
-      "selected_image": "study://containers/apptainer/samtools-1.20-linux-amd64-4bc914c8549b.sif",
-      "selected_image_sha256": "4bc914c8549bd325b57927f693d21f6c37e463e8a3d2b5e4dc5d3ad19e1d0861",
+      "selected_image": "study://containers/apptainer/samtools-1.20-linux-amd64-a29122faccca.sif",
+      "selected_image_sha256": "a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f",
       "state": "current",
       "support_disposition": "retained",
       "tool": "samtools",
@@ -3706,6 +4672,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "87c5d47df14a5cab93c955cd1352716ae545c075",
+                  "path": "containers/tools/schmutzi/bamtools-gcc13.patch"
+                },
+                {
+                  "git_object": "35b6c7e72bda7dc4fa4633019116782807c76f87",
+                  "path": "containers/tools/schmutzi/schmutzi"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3741,6 +4721,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3765,6 +4746,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3800,6 +4787,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "3515a0c6bbd8a490f3a27d7bb94db0d9839d91ca",
+                  "path": "containers/tools/seqkit/seqkit"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3824,6 +4821,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "3515a0c6bbd8a490f3a27d7bb94db0d9839d91ca",
+                  "path": "containers/tools/seqkit/seqkit"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3859,6 +4862,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "0d7a0a168444ca67e624bb3c4ed15367134195f9",
+                  "path": "containers/tools/seqkit_stats/seqkit_stats"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3883,6 +4896,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "0d7a0a168444ca67e624bb3c4ed15367134195f9",
+                  "path": "containers/tools/seqkit_stats/seqkit_stats"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3918,6 +4937,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "6b5ab8245b4a684eb056893ba5e7dd09732efd54",
+                  "path": "containers/tools/seqprep/seqprep"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -3942,6 +4967,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "f276dc484d0992d0c303329ee453cfa0a9a5c616",
+                  "path": "containers/tools/seqprep/seqprep"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -3977,6 +5012,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4001,6 +5037,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "01c241c07e44c08dd52e029ad421e54c287946fd",
+                  "path": "containers/tools/seqpurge/seqpurge"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4036,6 +5082,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "e34e1208ce3e2ffeae9994b03ede184e64e904e3",
+                  "path": "containers/tools/seqtk/seqtk"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4060,6 +5116,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "881c28f39b3dc7073228a23c53fbd7e04e10c65a",
+                  "path": "containers/tools/seqtk/seqtk"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4095,6 +5157,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4119,6 +5182,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "e5104ee0969070eb31f34739ecb73a42adeddd33",
+                  "path": "containers/tools/shapeit/shapeit"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4154,6 +5227,7 @@
           "admitted": false,
           "build_evidence": [
             {
+              "build_context": null,
               "build_context_matches_commit": false,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4178,6 +5252,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "2a9037467c2623b403a7b8ad864d262644d01adc",
+                  "path": "containers/tools/shapeit5/shapeit5"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4213,6 +5297,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "6da8f53acb5e814c66e1c4ba77b943500b26e50f",
+                  "path": "containers/tools/skewer/skewer"
+                },
+                {
+                  "git_object": "3783295e77434aa02c2702ae4affabfab741e1c2",
+                  "path": "containers/tools/skewer/gcc-compatibility.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4237,6 +5335,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "357e80350295da6851a3f02dd5704114f2498c00",
+                  "path": "containers/tools/skewer/skewer"
+                },
+                {
+                  "git_object": "3783295e77434aa02c2702ae4affabfab741e1c2",
+                  "path": "containers/tools/skewer/gcc-compatibility.patch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4272,6 +5380,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4307,6 +5421,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4331,6 +5446,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4366,6 +5482,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4401,6 +5523,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "571b8722bd62b4e6555fa1164df4fda8d6afddd3",
+                  "path": "containers/tools/cutadapt/install"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4425,6 +5557,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4460,6 +5593,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "847a2009b7ad8d72e40cc32f98724d9434831770",
+                  "path": "containers/tools/trimmomatic/trimmomatic"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4484,6 +5627,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4519,6 +5663,7 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4554,6 +5699,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "2282c27d1f756c7025545c2812c45e63e4f90493",
+                  "path": "containers/tools/verifybamid2/verifybamid2"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4589,6 +5744,12 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "d2a9b0576b8f99027e8e9430b29fe50bb3ece440",
+                  "path": "containers/tools/vsearch/vsearch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": false,
               "definition_matches_commit": true,
@@ -4613,6 +5774,16 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "d2a9b0576b8f99027e8e9430b29fe50bb3ece440",
+                  "path": "containers/tools/vsearch/vsearch"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,
@@ -4648,6 +5819,20 @@
           "admitted": true,
           "build_evidence": [
             {
+              "build_context": [
+                {
+                  "git_object": "a44ce26a491270d5a5089ff0c58b12b13eb923e4",
+                  "path": "containers/contracts/configure-apt-snapshot"
+                },
+                {
+                  "git_object": "c2f5428f724cad49e6870b9a8ef09da3ab00fba1",
+                  "path": "containers/tools/yleaf/requirements.lock"
+                },
+                {
+                  "git_object": "5f308b58aada965ef8583f2cf8e3cc027dadfc40",
+                  "path": "containers/tools/yleaf/yleaf"
+                }
+              ],
               "build_context_matches_commit": true,
               "build_context_matches_current": true,
               "definition_matches_commit": true,

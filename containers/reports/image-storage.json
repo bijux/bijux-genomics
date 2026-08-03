@@ -10,255 +10,31 @@
     "plan_applied": true
   },
   "historical_dependencies_preserved": 3,
-  "moved_file_count": 35,
+  "moved_file_count": 3,
   "moved_images": [
     {
       "category": "obsolete",
-      "name": "alientrimmer-3.2-linux-amd64-1a894b95acf4.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/alientrimmer-3.2-linux-amd64-1a894b95acf4.sif",
-      "sha256": "1a894b95acf427105c8c93d2475c97dd047bbc63f85995c0b9016100d2a16f85",
-      "size_bytes": 177463296
+      "name": "bedtools-2.31.1-linux-amd64-4e2c0d7c8141.sif",
+      "quarantine_path": "containers/apptainer/.quarantine/2738ed91e391016513bbcaa17a783245970c0bb0/obsolete/bedtools-2.31.1-linux-amd64-4e2c0d7c8141.sif",
+      "sha256": "4e2c0d7c8141fe95d9e0d6cdff8a2042b7f1344c0adc6cbd4d21e577f50a1ebd",
+      "size_bytes": 45846528
     },
     {
       "category": "obsolete",
-      "name": "bbduk-39.06-linux-amd64-1a7dc6a90e7b.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/bbduk-39.06-linux-amd64-1a7dc6a90e7b.sif",
-      "sha256": "1a7dc6a90e7b4778a2ff7267f4701be9c916008c1ebbf505361dbbca8d0e40b8",
-      "size_bytes": 116957184
+      "name": "mosdepth-0.3.11-linux-amd64-79e73d45f00f.sif",
+      "quarantine_path": "containers/apptainer/.quarantine/2738ed91e391016513bbcaa17a783245970c0bb0/obsolete/mosdepth-0.3.11-linux-amd64-79e73d45f00f.sif",
+      "sha256": "79e73d45f00f841ba587d400ea641165b39dea15c2fde3ec080d99a9024b580b",
+      "size_bytes": 38264832
     },
     {
       "category": "obsolete",
-      "name": "bbmerge-39.06-linux-amd64-8d7eac3a1965.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/bbmerge-39.06-linux-amd64-8d7eac3a1965.sif",
-      "sha256": "8d7eac3a1965b71489d6c24638cfa14f9b1509ff7333d200f613dd0cdea69909",
-      "size_bytes": 116957184
-    },
-    {
-      "category": "obsolete",
-      "name": "bcftools-1.20-linux-amd64-6f7cdc3f6e83.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/bcftools-1.20-linux-amd64-6f7cdc3f6e83.sif",
-      "sha256": "6f7cdc3f6e830f69c44fdc164c140ce8e82b52eecb14dc1e237fdd04a22f0f99",
-      "size_bytes": 63156224
-    },
-    {
-      "category": "obsolete",
-      "name": "bijux_dna-0.1.0-linux-amd64-a1f974c28c92.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/bijux_dna-0.1.0-linux-amd64-a1f974c28c92.sif",
-      "sha256": "a1f974c28c927b5f4c695d2d2c24c28c7187974b32477c74ad20d1237e83a486",
-      "size_bytes": 460128256
-    },
-    {
-      "category": "obsolete",
-      "name": "bijux_dna-0.1.0-linux-amd64-dc55c564c575.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/bijux_dna-0.1.0-linux-amd64-dc55c564c575.sif",
-      "sha256": "dc55c564c575190ffb94975f4099e154021819ef212f30604f977ea4f367c1fd",
-      "size_bytes": 459919360
-    },
-    {
-      "category": "obsolete",
-      "name": "bwa-0.7.17-linux-amd64-a12a4e24c6cf.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/bwa-0.7.17-linux-amd64-a12a4e24c6cf.sif",
-      "sha256": "a12a4e24c6cf9bcee14e51b7d8e31873ac84dd11eaf8287a6fab688be7b72f35",
-      "size_bytes": 103317504
-    },
-    {
-      "category": "obsolete",
-      "name": "clumpify-39.06-linux-amd64-14c6a7de5caa.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/clumpify-39.06-linux-amd64-14c6a7de5caa.sif",
-      "sha256": "14c6a7de5caa198c2fb35f97bc0fe4ec0ee79c4480d8d298159024e3f4758855",
-      "size_bytes": 116957184
-    },
-    {
-      "category": "obsolete",
-      "name": "cutadapt-4.9-linux-amd64-6da7c39ddb36.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/cutadapt-4.9-linux-amd64-6da7c39ddb36.sif",
-      "sha256": "6da7c39ddb3601e13a66a3a93ca6a9b2d5ab4738677b161b78cde95296413439",
-      "size_bytes": 70537216
-    },
-    {
-      "category": "obsolete",
-      "name": "fastq_screen-0.15.3-linux-amd64-a7cc81909148.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/fastq_screen-0.15.3-linux-amd64-a7cc81909148.sif",
-      "sha256": "a7cc819091480d041ccf4d699bbbefb728ba02b4d20f32f78a81f9e154030cef",
-      "size_bytes": 46452736
-    },
-    {
-      "category": "obsolete",
-      "name": "fastx_clipper-0.0.14-linux-amd64-bc54cc233692.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/fastx_clipper-0.0.14-linux-amd64-bc54cc233692.sif",
-      "sha256": "bc54cc2336929e04879aed99e2a4eb4fdd25c824e760b9d49d7ad7a3e3c16aeb",
-      "size_bytes": 31559680
-    },
-    {
-      "category": "obsolete",
-      "name": "fqtools-2.3-linux-amd64-ade0872ac698.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/fqtools-2.3-linux-amd64-ade0872ac698.sif",
-      "sha256": "ade0872ac69837cd2d080947250ab41ccbba02d99dc11193520937de519b3188",
-      "size_bytes": 111202304
-    },
-    {
-      "category": "obsolete",
-      "name": "gatk-4.6.2.0-linux-amd64-9057f042ae58.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/gatk-4.6.2.0-linux-amd64-9057f042ae58.sif",
-      "sha256": "9057f042ae588d62f5b8539bdbbc8daa44ae1c6ad6fe0200944bd228b21de643",
-      "size_bytes": 806256640
-    },
-    {
-      "category": "obsolete",
-      "name": "germline-1.5.3-linux-amd64-7c9bc32127d9.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/germline-1.5.3-linux-amd64-7c9bc32127d9.sif",
-      "sha256": "7c9bc32127d93a73f5c881f5e095e36e38cc902ab72e3d77b42901e68a597403",
-      "size_bytes": 30781440
-    },
-    {
-      "category": "obsolete",
-      "name": "glimpse-1.1.1-linux-amd64-0fac06ffca29.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/glimpse-1.1.1-linux-amd64-0fac06ffca29.sif",
-      "sha256": "0fac06ffca298d98a774f0532c42c3582a331766a0521fd20fd673493e3471fe",
-      "size_bytes": 194019328
-    },
-    {
-      "category": "obsolete",
-      "name": "ibdhap-3.4-linux-amd64-b0ac1b0a58e4.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/ibdhap-3.4-linux-amd64-b0ac1b0a58e4.sif",
-      "sha256": "b0ac1b0a58e417152c02a87b95b647985c78aaa1067ef1da66f1c74d6509e032",
-      "size_bytes": 43503616
-    },
-    {
-      "category": "obsolete",
-      "name": "kaiju-1.10.0-linux-amd64-89985e105b54.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/kaiju-1.10.0-linux-amd64-89985e105b54.sif",
-      "sha256": "89985e105b5419a6c5b179f8f5d19ac76a7b772af31144fc5123952bb4b758df",
-      "size_bytes": 33050624
-    },
-    {
-      "category": "obsolete",
-      "name": "king-2.3.0-linux-amd64-1dd81b328b10.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/king-2.3.0-linux-amd64-1dd81b328b10.sif",
-      "sha256": "1dd81b328b10094962cd891b1c7227c636ebd7f16567d5bb51ada4aedf683a01",
-      "size_bytes": 34893824
-    },
-    {
-      "category": "obsolete",
-      "name": "krakenuniq-1.0.4-linux-amd64-2d1206ab18f7.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/krakenuniq-1.0.4-linux-amd64-2d1206ab18f7.sif",
-      "sha256": "2d1206ab18f7f21df3c3e8690c78e2d9ac5b3d69976198521e2900f26d14dd91",
-      "size_bytes": 55177216
-    },
-    {
-      "category": "obsolete",
-      "name": "lighter-1.1.3-linux-amd64-4daa759e5a91.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/lighter-1.1.3-linux-amd64-4daa759e5a91.sif",
-      "sha256": "4daa759e5a917db8c6111002b923549c5858892a2f53d63bdb38788f1d714125",
-      "size_bytes": 30830592
-    },
-    {
-      "category": "obsolete",
-      "name": "metaphlan-4.1.1-linux-amd64-25bcb1fe0112.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/metaphlan-4.1.1-linux-amd64-25bcb1fe0112.sif",
-      "sha256": "25bcb1fe01124c279060e3a652a20dfadcc0107df2695b949a8c24d94e51d650",
-      "size_bytes": 348401664
-    },
-    {
-      "category": "obsolete",
-      "name": "minimac4-4.1.6-linux-amd64-9ced0aebf2a6.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/minimac4-4.1.6-linux-amd64-9ced0aebf2a6.sif",
-      "sha256": "9ced0aebf2a63337f006c4433b4da05519530d477f5be1d4f529633fbe40239f",
-      "size_bytes": 168591360
-    },
-    {
-      "category": "obsolete",
-      "name": "picard-3.3.0-linux-amd64-4a87eeff8ac4.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/picard-3.3.0-linux-amd64-4a87eeff8ac4.sif",
-      "sha256": "4a87eeff8ac488096d923b640a40bc1b0c605422e094ac25fe32b8dc93b1cf84",
-      "size_bytes": 160620544
-    },
-    {
-      "category": "obsolete",
-      "name": "picard-3.3.0-linux-amd64-a69cf8855519.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/picard-3.3.0-linux-amd64-a69cf8855519.sif",
-      "sha256": "a69cf8855519ad4fd232e6e12d274c96128591be48652d715b8b10d1c81577ba",
-      "size_bytes": 160616448
-    },
-    {
-      "category": "obsolete",
-      "name": "rcorrector-1.0.7-linux-amd64-413c8b1fb329.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/rcorrector-1.0.7-linux-amd64-413c8b1fb329.sif",
-      "sha256": "413c8b1fb329e34209ba0a48bee3b83e10c072a82384101299671e3c149b3e54",
-      "size_bytes": 142594048
-    },
-    {
-      "category": "obsolete",
-      "name": "rxy-2.0.0-linux-amd64-8dbfa75e2892.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/rxy-2.0.0-linux-amd64-8dbfa75e2892.sif",
-      "sha256": "8dbfa75e28927582f0e2831b9906a9f8eb61ac168396c886dea72699f8cc88d7",
-      "size_bytes": 46592000
-    },
-    {
-      "category": "obsolete",
-      "name": "schmutzi-1.5.4-linux-amd64-f8c686d1be5c.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/schmutzi-1.5.4-linux-amd64-f8c686d1be5c.sif",
-      "sha256": "f8c686d1be5c921ce25b4af653bd4ecdbb7244aec3842ddf30fb28010bfc0a49",
-      "size_bytes": 163659776
-    },
-    {
-      "category": "obsolete",
-      "name": "sortmerna-4.3.7-linux-amd64-21a8905e7c3c.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/sortmerna-4.3.7-linux-amd64-21a8905e7c3c.sif",
-      "sha256": "21a8905e7c3ced815a5f366084e30836308a91fe8885ba689005eb2db32571ab",
-      "size_bytes": 34775040
-    },
-    {
-      "category": "obsolete",
-      "name": "star-2.7.11b-linux-amd64-4f9df61e0f60.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/star-2.7.11b-linux-amd64-4f9df61e0f60.sif",
-      "sha256": "4f9df61e0f60c62520038b3008aed9413e84471a70cd85030e757b49223a6e4c",
-      "size_bytes": 32333824
-    },
-    {
-      "category": "obsolete",
-      "name": "trim_galore-0.6.10-linux-amd64-84a8667dc18e.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/trim_galore-0.6.10-linux-amd64-84a8667dc18e.sif",
-      "sha256": "84a8667dc18e25d2f99d11dd90b738caf0da2dc0e34ab64e42eb46381138d391",
-      "size_bytes": 368676864
-    },
-    {
-      "category": "obsolete",
-      "name": "trim_galore-0.6.10-linux-amd64-ac660f35441a.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/trim_galore-0.6.10-linux-amd64-ac660f35441a.sif",
-      "sha256": "ac660f35441ac810d6ad3f2716739cf07c4b4077059d7d08b3bfdbda7bbb3cd6",
-      "size_bytes": 368676864
-    },
-    {
-      "category": "obsolete",
-      "name": "trimmomatic-0.39-linux-amd64-b6759fd48872.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/trimmomatic-0.39-linux-amd64-b6759fd48872.sif",
-      "sha256": "b6759fd4887276a68ecc5c44723da3de4a1536e7145c7ee4f30a20e7ba5cd207",
-      "size_bytes": 99295232
-    },
-    {
-      "category": "obsolete",
-      "name": "umi_tools-1.1.6-linux-amd64-3c790b90bbb2.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/umi_tools-1.1.6-linux-amd64-3c790b90bbb2.sif",
-      "sha256": "3c790b90bbb21a0016f44ce82667006871af398ca6add0db350cda169532d92e",
-      "size_bytes": 325095424
-    },
-    {
-      "category": "obsolete",
-      "name": "verifybamid2-2.0.1-linux-amd64-a9208f6c433d.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/verifybamid2-2.0.1-linux-amd64-a9208f6c433d.sif",
-      "sha256": "a9208f6c433d5c878c10047a6ac53dbffa6608f8a8d392be18d1b603ff3122f5",
-      "size_bytes": 315506688
-    },
-    {
-      "category": "obsolete",
-      "name": "yleaf-4.1.4-linux-amd64-0b0a95d2e78a.sif",
-      "quarantine_path": "containers/apptainer/.quarantine/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/obsolete/yleaf-4.1.4-linux-amd64-0b0a95d2e78a.sif",
-      "sha256": "0b0a95d2e78a186976eb3e1622cb49221422d700a7b9cf7f4c6c772811e01c4a",
-      "size_bytes": 268779520
+      "name": "samtools-1.20-linux-amd64-4bc914c8549b.sif",
+      "quarantine_path": "containers/apptainer/.quarantine/2738ed91e391016513bbcaa17a783245970c0bb0/obsolete/samtools-1.20-linux-amd64-4bc914c8549b.sif",
+      "sha256": "4bc914c8549bd325b57927f693d21f6c37e463e8a3d2b5e4dc5d3ad19e1d0861",
+      "size_bytes": 122355712
     }
   ],
-  "moved_size_bytes": 6107336704,
+  "moved_size_bytes": 206467072,
   "post_storage_summary": {
     "historical_dependency_count": 3,
     "staged_image_count": 0,
@@ -274,16 +50,16 @@
     "command": "python3 -B containers/contracts/image_storage.py rollback --image-root <governed-containers-root>/apptainer --plan <governed-plan-path>",
     "mode": "same_filesystem_quarantine"
   },
-  "repository_commit": "32a447d03b36aeb617de08fda69f8b9fb1ff0f56",
+  "repository_commit": "2738ed91e391016513bbcaa17a783245970c0bb0",
   "schema_version": "bijux.container.image_storage_report.v1",
   "source_artifacts": {
     "post_storage_inventory": {
-      "sha256": "fda830f4f70750062281cff44640517c8fbdf4c1d8853f82eb2728570334e8d0",
-      "study_relative_path": "containers/evidence/inventory/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/after-storage.json"
+      "sha256": "1a7cebdb50a3db6ddcf4042401595f47592bafdf15e895ee70f982c8d642701c",
+      "study_relative_path": "containers/evidence/inventory/2738ed91e391016513bbcaa17a783245970c0bb0/after-storage.json"
     },
     "storage_plan": {
-      "sha256": "a8f0bc2671798d833fa4cb0fab84db783499a874577ae45a6ac311c8ec99dee2",
-      "study_relative_path": "containers/evidence/inventory/32a447d03b36aeb617de08fda69f8b9fb1ff0f56/image-storage-plan.json"
+      "sha256": "e67645a4b03fc56df7d1af3af28af3f714740fb0d13abd4c72dc6ec7dcab0e5d",
+      "study_relative_path": "containers/evidence/inventory/2738ed91e391016513bbcaa17a783245970c0bb0/image-storage-plan.json"
     }
   },
   "verdict": "passed"
