@@ -18,6 +18,42 @@ SPEC.loader.exec_module(campaign)
 
 
 class ImageCampaignTests(unittest.TestCase):
+    def test_image_source_roots_follow_definition_file_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            definition = repository / "containers/apptainer/bijux_dna.def"
+            definition.parent.mkdir(parents=True)
+            (repository / "containers/tools/bijux_dna").mkdir(parents=True)
+            (repository / "crates").mkdir()
+            (repository / "Cargo.toml").write_text("[workspace]\n")
+            definition.write_text(
+                "Bootstrap: docker\n\n"
+                "%files\n"
+                "    containers/tools/bijux_dna /opt/tools\n"
+                "    crates /opt/source/crates\n"
+                "    Cargo.toml /opt/source/Cargo.toml\n"
+                "%post\n"
+                "    true\n",
+                encoding="utf-8",
+            )
+
+            roots = campaign.image_source_roots(repository, ["bijux_dna"])
+
+        self.assertEqual(roots, ("containers", "crates"))
+
+    def test_image_source_roots_reject_missing_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            definition = repository / "containers/apptainer/samtools.def"
+            definition.parent.mkdir(parents=True)
+            definition.write_text(
+                "Bootstrap: docker\n\n%files\n    missing/tool /opt/tool\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(campaign.ContractError, "source is absent"):
+                campaign.image_source_roots(repository, ["samtools"])
+
     def test_build_runs_from_frozen_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

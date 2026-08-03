@@ -282,6 +282,12 @@ class GovernanceContractTests(unittest.TestCase):
                     governance_path,
                     checkout_scope="complete",
                 )
+                sources = container_validation.freeze_repository(
+                    commit,
+                    governance_path,
+                    checkout_scope="sources",
+                    checkout_paths=("other",),
+                )
 
             self.assertEqual(frozen.name, commit)
             self.assertEqual(
@@ -310,6 +316,42 @@ class GovernanceContractTests(unittest.TestCase):
                 container_validation.git_output(complete, "status", "--porcelain"),
                 "",
             )
+            self.assertEqual(sources.parent.name, "image-builds")
+            self.assertTrue(sources.name.startswith(f"{commit}-"))
+            self.assertEqual(
+                (sources / "other" / "unselected.txt").read_text(),
+                "complete tree\n",
+            )
+            self.assertFalse(
+                (sources / "containers" / "contracts" / "tracked.txt").exists()
+            )
+            self.assertEqual(
+                container_validation.git_output(sources, "status", "--porcelain"),
+                "",
+            )
+
+    def test_source_freeze_rejects_an_empty_or_escaping_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            governance_path = Path(directory) / "governance.yml"
+            with self.assertRaisesRegex(
+                container_validation.ContractError,
+                "at least one checkout path",
+            ):
+                container_validation.freeze_repository(
+                    "a" * 40,
+                    governance_path,
+                    checkout_scope="sources",
+                )
+            with self.assertRaisesRegex(
+                container_validation.ContractError,
+                "unsafe",
+            ):
+                container_validation.freeze_repository(
+                    "a" * 40,
+                    governance_path,
+                    checkout_scope="sources",
+                    checkout_paths=("../outside",),
+                )
 
 
 class CurrentPipelineContractTests(unittest.TestCase):

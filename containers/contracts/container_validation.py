@@ -328,11 +328,23 @@ def freeze_repository(
     commit: str,
     governance_path: Path,
     checkout_scope: str = "contracts",
+    checkout_paths: tuple[str, ...] = (),
 ) -> Path:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ContractError("frozen repository commit must be a full Git commit")
-    if checkout_scope not in {"contracts", "complete"}:
-        raise ContractError("frozen repository scope must be contracts or complete")
+    if checkout_scope not in {"contracts", "sources", "complete"}:
+        raise ContractError(
+            "frozen repository scope must be contracts, sources, or complete"
+        )
+    if checkout_scope == "sources":
+        if not checkout_paths:
+            raise ContractError("source freeze requires at least one checkout path")
+        for value in checkout_paths:
+            path = Path(value)
+            if path.is_absolute() or ".." in path.parts or not path.parts:
+                raise ContractError(f"source freeze path is unsafe: {value}")
+    elif checkout_paths:
+        raise ContractError("checkout paths are valid only for a source freeze")
     governance = load_governance(governance_path)
     active_repository: Path = governance["active_repository"]
     frozen_repositories: Path = governance["frozen_repositories"]
@@ -341,11 +353,15 @@ def freeze_repository(
             "active LUNARC repository must be clean before freezing a run"
         )
     git_output(active_repository, "cat-file", "-e", f"{commit}^{{commit}}")
-    target = (
-        frozen_repositories / commit
-        if checkout_scope == "contracts"
-        else frozen_repositories / "image-builds" / commit
-    )
+    if checkout_scope == "contracts":
+        target = frozen_repositories / commit
+    elif checkout_scope == "sources":
+        source_identity = hashlib.sha256(
+            "\0".join(sorted(set(checkout_paths))).encode("utf-8")
+        ).hexdigest()[:12]
+        target = frozen_repositories / "image-builds" / f"{commit}-{source_identity}"
+    else:
+        target = frozen_repositories / "image-builds" / commit
     if target.exists():
         if git_output(target, "rev-parse", "HEAD") != commit:
             raise ContractError(
@@ -363,7 +379,7 @@ def freeze_repository(
         "add",
         "--detach",
     ]
-    if checkout_scope == "contracts":
+    if checkout_scope in {"contracts", "sources"}:
         worktree_arguments.append("--no-checkout")
     worktree_arguments.extend([str(target), commit])
     completed = subprocess.run(
@@ -380,15 +396,20 @@ def freeze_repository(
         raise ContractError(
             f"cannot create frozen worktree: {completed.stderr.strip()}{cleanup_note}"
         )
+    sparse_paths = (
+        FROZEN_CHECKOUT_PATHS
+        if checkout_scope == "contracts"
+        else tuple(sorted(set(checkout_paths)))
+    )
     checkout_commands = (
         (
             (
-                ("sparse-checkout", "set", "--cone", *FROZEN_CHECKOUT_PATHS),
+                ("sparse-checkout", "set", "--cone", *sparse_paths),
                 "configure frozen sparse checkout",
             ),
             (("read-tree", "-mu", "HEAD"), "populate frozen sparse checkout"),
         )
-        if checkout_scope == "contracts"
+        if checkout_scope in {"contracts", "sources"}
         else ()
     )
     for arguments, label in checkout_commands:

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import shlex
 import socket
 import subprocess
 import sys
@@ -91,6 +92,48 @@ def selected_tools(inventory: dict[str, Any], selection: str) -> list[str]:
     return sorted(str(tool["tool"]) for tool in tools)
 
 
+def image_source_roots(repository: Path, tools: list[str]) -> tuple[str, ...]:
+    """Return the minimal tracked roots required by selected image definitions."""
+    roots = {"containers"}
+    for tool in tools:
+        definition = repository / "containers" / "apptainer" / f"{tool}.def"
+        try:
+            lines = definition.read_text(encoding="utf-8").splitlines()
+        except OSError as exc:
+            raise ContractError(f"cannot read image definition: {definition}") from exc
+        in_files = False
+        for raw_line in lines:
+            line = raw_line.strip()
+            if line.startswith("%files"):
+                in_files = True
+                continue
+            if line.startswith("%"):
+                in_files = False
+            if not in_files or not line or line.startswith("#"):
+                continue
+            try:
+                fields = shlex.split(line)
+            except ValueError as exc:
+                raise ContractError(
+                    f"cannot parse %files source in {definition}: {line}"
+                ) from exc
+            if not fields:
+                continue
+            source = Path(fields[0])
+            if source.is_absolute() or ".." in source.parts:
+                raise ContractError(
+                    f"image definition has unsafe tracked source: {definition}: {source}"
+                )
+            candidate = repository / source
+            if not candidate.exists():
+                raise ContractError(
+                    f"image definition source is absent: {definition}: {source}"
+                )
+            if len(source.parts) > 1 or candidate.is_dir():
+                roots.add(source.parts[0])
+    return tuple(sorted(roots))
+
+
 def admission_roots(
     containers_root: Path,
     image_root: Path | None,
@@ -139,16 +182,18 @@ def create_execution(
         raise ContractError(
             "image inventory must be regenerated from the active commit"
         )
-    frozen_repository = freeze_repository(
-        commit,
-        governance_path,
-        checkout_scope="complete",
-    )
     tools = selected_tools(inventory, str(campaign["selection"]))
     versions = load_tool_versions(catalog_path)
     unknown = sorted(set(tools) - set(versions))
     if unknown:
         raise ContractError(f"inventory selected tools absent from catalog: {unknown}")
+    source_roots = image_source_roots(repository, tools)
+    frozen_repository = freeze_repository(
+        commit,
+        governance_path,
+        checkout_scope="sources",
+        checkout_paths=source_roots,
+    )
     execution = {
         "schema_version": CAMPAIGN_EVIDENCE_SCHEMA,
         "run_id": campaign["run_id"],
@@ -163,6 +208,7 @@ def create_execution(
         "image_root": str(admission_root),
         "evidence_root": str(evidence_root),
         "frozen_repository": str(frozen_repository),
+        "frozen_source_roots": list(source_roots),
         "campaign": {
             "path": str(campaign_path),
             "sha256": sha256_file(campaign_path),
