@@ -248,15 +248,45 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         raise ContractError(f"unsupported Apptainer architecture: {architecture}")
 
     slurm = require_mapping(config, "slurm")
-    require_keys(
-        slurm,
-        {"account", "partitions", "scratch_root"},
-        "governance Slurm policy",
-    )
+    required_slurm_fields = {"account", "partitions"}
+    allowed_slurm_fields = {
+        *required_slurm_fields,
+        "scratch_environment",
+        "scratch_root",
+    }
+    missing_slurm_fields = required_slurm_fields.difference(slurm)
+    unknown_slurm_fields = set(slurm).difference(allowed_slurm_fields)
+    if missing_slurm_fields:
+        raise ContractError(
+            "governance Slurm policy is missing required fields: "
+            f"{sorted(missing_slurm_fields)}"
+        )
+    if unknown_slurm_fields:
+        raise ContractError(
+            "governance Slurm policy contains unknown fields: "
+            f"{sorted(unknown_slurm_fields)}"
+        )
     account = require_text(slurm, "account")
-    scratch_root = Path(require_text(slurm, "scratch_root"))
-    if not scratch_root.is_absolute() or not scratch_root.is_dir():
-        raise ContractError("slurm.scratch_root must be an existing absolute directory")
+    scratch_fields = {"scratch_environment", "scratch_root"}.intersection(slurm)
+    if len(scratch_fields) != 1:
+        raise ContractError(
+            "governance Slurm policy must declare exactly one of "
+            "scratch_environment or scratch_root"
+        )
+    scratch_environment: str | None = None
+    scratch_root: Path | None = None
+    if "scratch_environment" in scratch_fields:
+        scratch_environment = require_text(slurm, "scratch_environment")
+        if re.fullmatch(r"[A-Z][A-Z0-9_]*", scratch_environment) is None:
+            raise ContractError(
+                "slurm.scratch_environment must be an uppercase environment name"
+            )
+    else:
+        scratch_root = Path(require_text(slurm, "scratch_root"))
+        if not scratch_root.is_absolute() or not scratch_root.is_dir():
+            raise ContractError(
+                "slurm.scratch_root must be an existing absolute directory"
+            )
     partitions = slurm.get("partitions")
     if (
         not isinstance(partitions, list)
@@ -280,7 +310,8 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         "apptainer_architecture": architecture,
         "slurm_account": account,
         "slurm_partitions": partitions,
-        "slurm_scratch_root": scratch_root.resolve(),
+        "slurm_scratch_environment": scratch_environment,
+        "slurm_scratch_root": scratch_root.resolve() if scratch_root else None,
     }
 
 
@@ -1070,6 +1101,22 @@ def tool_output_root(contract: dict[str, Any]) -> Path:
     return result_root
 
 
+def governed_scratch_root(governance: dict[str, Any]) -> Path:
+    environment = governance["slurm_scratch_environment"]
+    if environment is not None:
+        value = os.environ.get(environment)
+        if not value:
+            raise ContractError(
+                f"{environment} is absent from the Slurm execution environment"
+            )
+        root = Path(value)
+    else:
+        root = governance["slurm_scratch_root"]
+    if not isinstance(root, Path) or not root.is_absolute() or not root.is_dir():
+        raise ContractError("governed Slurm scratch must be an existing absolute path")
+    return root.resolve()
+
+
 def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -> int:
     contract = validate_contracts(governance_path, pipeline_path, credential_path)
     started_at = dt.datetime.now(dt.timezone.utc)
@@ -1088,9 +1135,10 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
     if not scratch_value:
         raise ContractError("TMPDIR is absent from the Slurm execution environment")
     scratch_path = Path(scratch_value).resolve()
+    scratch_root = governed_scratch_root(contract["governance"])
     require_under(
         scratch_path,
-        contract["governance"]["slurm_scratch_root"],
+        scratch_root,
         "Slurm scratch",
     )
     if not scratch_path.is_dir():
@@ -1226,15 +1274,32 @@ def render_slurm(
     scratch_preflight = ""
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2:
         required_scratch_kib = resources["scratch_mb"] * 1024
-        scratch_root = contract["governance"]["slurm_scratch_root"]
-        scratch_root_shell = shlex.quote(str(scratch_root))
+        scratch_environment = contract["governance"]["slurm_scratch_environment"]
+        if scratch_environment is None:
+            scratch_root = contract["governance"]["slurm_scratch_root"]
+            scratch_setup = (
+                "readonly GOVERNED_SCRATCH_ROOT=" + shlex.quote(str(scratch_root))
+            )
+        else:
+            scratch_setup = (
+                f'if [[ -z "${{{scratch_environment}:-}}" ]]; then\n'
+                f'  echo "{scratch_environment} is unavailable on the allocated node" >&2\n'
+                "  exit 72\n"
+                "fi\n"
+                f'readonly GOVERNED_SCRATCH_ROOT="${{{scratch_environment}}}"'
+            )
         scratch_preflight = f"""if [[ ! "${{SLURM_JOB_ID:-}}" =~ ^[0-9]+$ ]]; then
   echo "Slurm job identity is unavailable" >&2
   exit 72
 fi
-readonly JOB_SCRATCH=$(mktemp -d {scratch_root_shell}/bijux-genomics-${{SLURM_JOB_ID}}-XXXXXX)
+{scratch_setup}
+if [[ "$GOVERNED_SCRATCH_ROOT" != /* || ! -d "$GOVERNED_SCRATCH_ROOT" ]]; then
+  echo "governed Slurm scratch is not an existing absolute directory" >&2
+  exit 72
+fi
+readonly JOB_SCRATCH=$(mktemp -d "${{GOVERNED_SCRATCH_ROOT%/}}/bijux-genomics-${{SLURM_JOB_ID}}-XXXXXX")
 cleanup_scratch() {{
-  if [[ "$JOB_SCRATCH" != {scratch_root_shell}/bijux-genomics-${{SLURM_JOB_ID}}-* ]]; then
+  if [[ "$JOB_SCRATCH" != "${{GOVERNED_SCRATCH_ROOT%/}}"/bijux-genomics-"${{SLURM_JOB_ID}}"-* ]]; then
     echo "refusing to remove unexpected scratch path: $JOB_SCRATCH" >&2
     return 73
   fi

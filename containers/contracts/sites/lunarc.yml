@@ -13,6 +13,6 @@ runtime:
   apptainer_architecture: linux/amd64
 slurm:
   account: lu2026-2-20
-  scratch_root: /tmp
+  scratch_environment: SNIC_TMP
   partitions:
     - lu48

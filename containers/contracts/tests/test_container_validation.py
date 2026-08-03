@@ -70,6 +70,72 @@ class GovernanceContractTests(unittest.TestCase):
         self.assertEqual(resolved["slurm_account"], "science")
         self.assertEqual(resolved["slurm_partitions"], ["compute"])
 
+    def test_compute_local_scratch_can_be_declared_by_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            slurm = governance["slurm"]
+            assert isinstance(slurm, dict)
+            slurm.pop("scratch_root")
+            slurm["scratch_environment"] = "SNIC_TMP"
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                resolved = container_validation.validate_governance(governance)
+
+        self.assertEqual(resolved["slurm_scratch_environment"], "SNIC_TMP")
+        self.assertIsNone(resolved["slurm_scratch_root"])
+
+    def test_scratch_authority_must_be_unambiguous(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            slurm = governance["slurm"]
+            assert isinstance(slurm, dict)
+            slurm["scratch_environment"] = "SNIC_TMP"
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError, "exactly one"
+                ),
+            ):
+                container_validation.validate_governance(governance)
+
+    def test_compute_environment_resolves_to_existing_absolute_scratch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scratch = Path(directory).resolve()
+            governance = {
+                "slurm_scratch_environment": "SNIC_TMP",
+                "slurm_scratch_root": None,
+            }
+            with mock.patch.dict(
+                container_validation.os.environ,
+                {"SNIC_TMP": str(scratch)},
+                clear=False,
+            ):
+                resolved = container_validation.governed_scratch_root(governance)
+
+        self.assertEqual(resolved, scratch)
+
+    def test_relative_compute_scratch_is_rejected(self) -> None:
+        governance = {
+            "slurm_scratch_environment": "SNIC_TMP",
+            "slurm_scratch_root": None,
+        }
+        with (
+            mock.patch.dict(
+                container_validation.os.environ,
+                {"SNIC_TMP": "relative-scratch"},
+                clear=False,
+            ),
+            self.assertRaisesRegex(
+                container_validation.ContractError, "existing absolute"
+            ),
+        ):
+            container_validation.governed_scratch_root(governance)
+
     def test_execution_outside_the_declared_site_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -245,7 +311,12 @@ class GovernanceContractTests(unittest.TestCase):
 
 
 class CurrentPipelineContractTests(unittest.TestCase):
-    def make_contracts(self, root: Path) -> tuple[Path, Path, Path]:
+    def make_contracts(
+        self,
+        root: Path,
+        *,
+        scratch_environment: str | None = None,
+    ) -> tuple[Path, Path, Path]:
         study = root / "study"
         image_root = study / "containers" / "apptainer"
         data_root = study / "data" / "corpora" / "sample"
@@ -272,7 +343,11 @@ class CurrentPipelineContractTests(unittest.TestCase):
             "slurm": {
                 "account": "science",
                 "partitions": ["compute"],
-                "scratch_root": str(root),
+                **(
+                    {"scratch_environment": scratch_environment}
+                    if scratch_environment
+                    else {"scratch_root": str(root)}
+                ),
             },
         }
         governance_path.write_text(
@@ -564,6 +639,27 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertIn("refusing to remove unexpected scratch path", rendered)
         self.assertIn("available_scratch_kib < 1048576", rendered)
         self.assertIn("umask 027", rendered)
+
+    def test_slurm_script_uses_the_site_compute_local_scratch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root, scratch_environment="SNIC_TMP")
+            script = root / "submit.sh"
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                container_validation.render_slurm(*paths, script)
+            rendered = script.read_text(encoding="utf-8")
+            syntax = subprocess.run(
+                ["bash", "-n", str(script)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+        self.assertEqual(syntax.returncode, 0, syntax.stderr)
+        self.assertIn('readonly GOVERNED_SCRATCH_ROOT="${SNIC_TMP}"', rendered)
+        self.assertIn("SNIC_TMP is unavailable on the allocated node", rendered)
 
     def test_slurm_render_reuses_the_submission_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

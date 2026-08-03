@@ -38,9 +38,17 @@
     },
     "slurm": {
       "type": "object",
-      "required": ["account", "partitions", "scratch_root"],
+      "required": ["account", "partitions"],
+      "oneOf": [
+        {"required": ["scratch_environment"]},
+        {"required": ["scratch_root"]}
+      ],
       "properties": {
         "account": {"type": "string", "minLength": 1},
+        "scratch_environment": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
         "scratch_root": {"type": "string", "pattern": "^/"},
         "partitions": {
           "type": "array",
