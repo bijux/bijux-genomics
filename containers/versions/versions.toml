@@ -550,8 +550,11 @@ source_sha256 = "c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e2766
 [diamond]
 version = "2.1.10"
 source = "https://github.com/bbuchfink/diamond"
-date_pinned = "2026-02-16"
+date_pinned = "2026-08-03"
+status = "production"
+upstream_license = "GPL-3.0-or-later"
 pinned_commit = "1130513e06223ffd12c74a11e8e2c967e108a825"
+source_sha256 = "f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53"
 
 [dustmasker]
 version = "2.15.0"
