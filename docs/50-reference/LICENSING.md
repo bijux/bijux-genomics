@@ -15,7 +15,7 @@ This page does not replace legal review for downstream redistribution obligation
 - Container image/tool licenses are tracked under:
   - [../../containers/licenses/README.md](../../containers/licenses/README.md)
   - [../../containers/versions/versions.toml](../../containers/versions/versions.toml) (`upstream_license`)
-- Non-bijux packaged tools must declare provenance and license in:
+- Every packaged tool must declare catalog-owned provenance and license in:
   - [../../containers/docs/UPSTREAM_SOURCES.md](../../containers/docs/UPSTREAM_SOURCES.md)
 
 ## Examples

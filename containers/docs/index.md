@@ -46,7 +46,7 @@ output.
 - Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
-- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
+- Upstream provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
 
 ## Container implementation surface
 

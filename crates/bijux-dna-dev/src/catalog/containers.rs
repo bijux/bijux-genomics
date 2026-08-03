@@ -342,9 +342,9 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckMissingImages,
         ),
         native(
-            "check-non-bijux-sources",
-            "Validate NON_BIJUX_SOURCES.md coverage for upstream-derived Apptainer definitions.",
-            NativeContainerCommandKey::CheckNonBijuxSources,
+            "check-upstream-provenance",
+            "Validate catalog-owned source, license, and immutable upstream identities.",
+            NativeContainerCommandKey::CheckUpstreamProvenance,
         ),
         native(
             "check-owners",

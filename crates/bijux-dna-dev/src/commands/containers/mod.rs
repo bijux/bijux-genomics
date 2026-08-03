@@ -38,16 +38,15 @@ use self::content_support::{
 use self::registry_catalog::{
     apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
     canonical_metadata_labels, docker_image_labels, docker_tool_ids, dockerfile_paths,
-    governed_container_file_ids, images_metadata, is_non_bijux_apptainer_source,
-    missing_container_label_markers, registry_tool_map, registry_tool_rows, tool_status_manifest,
-    toolkit_bundles,
+    governed_container_file_ids, images_metadata, missing_container_label_markers,
+    registry_tool_map, registry_tool_rows, tool_status_manifest, toolkit_bundles,
 };
 use self::runtime::{
     check_apptainer_cache_policy, check_apptainer_frontend_reproducibility,
     check_apptainer_frontend_security, check_apptainer_frontend_smoke_proof,
     check_apptainer_frontend_version_output_lock, check_apptainer_hardening,
     check_apptainer_post_pins, check_apptainer_version_label_sync, check_bijux_apptainer_built,
-    check_missing_images, check_non_bijux_sources, check_owners, check_registry_vs_defs,
+    check_missing_images, check_owners, check_registry_vs_defs, check_upstream_provenance,
     checked_container_type, compare_apptainer_smoke_modes, compare_frontend_local_sif_hash,
     container_artifact_dir, ensure_no_args, env_or_default, env_or_empty,
     generate_local_apptainer_digests, merge_outcomes, primary_tools_csv, required_env,

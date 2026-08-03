@@ -4,12 +4,12 @@ use std::fmt::Write as _;
 
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
-    command_hostname, container_support_summary, docker_tool_ids, failure_lines, fs,
-    is_non_bijux_apptainer_source, iso_root_path, iso_run_id, json_string_pretty, load_toml,
-    lock_items_by_tool, lock_json_path, out_path_arg, path_from_arg, policy_path, read_json,
-    read_utf8, registry_tool_rows, sha256_hex, success_line, table_bool, table_string,
-    tool_versions, validation, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context,
-    Path, PathBuf, ProcessRunner, Regex, Result, WalkDir, Workspace,
+    command_hostname, container_support_summary, docker_tool_ids, failure_lines, fs, iso_root_path,
+    iso_run_id, json_string_pretty, load_toml, lock_items_by_tool, lock_json_path, out_path_arg,
+    path_from_arg, policy_path, read_json, read_utf8, registry_tool_rows, sha256_hex, success_line,
+    table_bool, table_string, tool_versions, validation, write_utf8, BTreeMap, BTreeSet,
+    ContainerCommandOutcome, Context, Path, PathBuf, ProcessRunner, Regex, Result, WalkDir,
+    Workspace,
 };
 
 mod frontend_proofs;
@@ -425,86 +425,62 @@ pub(super) fn check_missing_images(workspace: &Workspace) -> Result<ContainerCom
     success_line("missing images gate: OK")
 }
 
-pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let sources_doc = workspace.path("containers/docs/UPSTREAM_SOURCES.md");
-    if !sources_doc.exists() {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "missing required provenance index: {}\n",
-            sources_doc.display()
-        )));
-    }
-    let defs = apptainer_tool_ids(workspace)
-        .into_iter()
-        .filter(|tool_id| is_non_bijux_apptainer_source(workspace, tool_id))
-        .collect::<BTreeSet<_>>();
-    let text = read_utf8(&sources_doc)?;
-    let row_re = Regex::new(
-        r"\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|\s*(\S+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|",
-    )?;
-    let mut rows = BTreeMap::new();
-    for line in text.lines() {
-        let Some(captures) = row_re.captures(line) else {
-            continue;
-        };
-        rows.insert(
-            captures.get(1).map(|value| value.as_str().to_string()).unwrap_or_default(),
-            (
-                captures.get(2).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(3).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(4).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(5).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(6).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(7).map(|value| value.as_str().to_string()).unwrap_or_default(),
-            ),
-        );
-    }
-    let checksum_re = Regex::new(r"^[0-9a-f]{64}$")?;
+pub(super) fn check_upstream_provenance(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let tools = catalog.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let mut errors = Vec::new();
-    for tool_id in &defs {
-        let Some((def_path, why_non_bijux, upstream, license_field, checksum, patching_rules)) =
-            rows.get(tool_id)
-        else {
-            errors.push(format!("{tool_id}: missing row in NON_BIJUX_SOURCES.md"));
+    for tool in tools {
+        let Some(row) = tool.as_table() else {
+            errors.push("catalog tool entry must be a table".to_string());
             continue;
         };
-        let expected_path = format!("containers/apptainer/{tool_id}.def");
-        if def_path != &expected_path {
+        let tool_id = table_string(row, "id");
+        let upstream = table_string(row, "upstream");
+        let documentation = table_string(row, "documentation");
+        let license = table_string(row, "license");
+        let disposition = table_string(row, "support_disposition");
+        let support_reason = table_string(row, "support_reason");
+        let source_sha = table_string(row, "source_sha256");
+        let commit = table_string(row, "pinned_commit");
+        let resolved_sha = source_sha.len() == 64
+            && source_sha.chars().all(|ch| ch.is_ascii_hexdigit())
+            && source_sha.chars().any(|ch| ch != '0');
+        let resolved_commit = commit.len() == 40
+            && commit.chars().all(|ch| ch.is_ascii_hexdigit())
+            && commit.chars().any(|ch| ch != '0');
+        if tool_id.is_empty() {
+            errors.push("catalog tool entry lacks id".to_string());
+            continue;
+        }
+        if !upstream.starts_with("https://") {
+            errors.push(format!("{tool_id}: upstream must be an HTTPS URL"));
+        }
+        if !documentation.starts_with("https://") {
+            errors.push(format!("{tool_id}: documentation must be an HTTPS URL"));
+        }
+        if license.is_empty() {
+            errors.push(format!("{tool_id}: upstream license must be explicit"));
+        }
+        if disposition == "retained" && !resolved_sha && !resolved_commit {
+            errors.push(format!("{tool_id}: immutable upstream identity is unresolved"));
+        }
+        if disposition != "retained" && support_reason.is_empty() {
             errors.push(format!(
-                "{tool_id}: def path mismatch, expected {expected_path}, got {def_path}"
+                "{tool_id}: non-retained provenance requires an explicit support reason"
             ));
         }
-        if !upstream.starts_with("http://") && !upstream.starts_with("https://") {
-            errors.push(format!("{tool_id}: upstream_source must be URL"));
-        }
-        if why_non_bijux.trim().is_empty() {
-            errors.push(format!("{tool_id}: why_non_bijux must be non-empty"));
-        }
-        if license_field.trim().is_empty() {
-            errors.push(format!("{tool_id}: upstream_license must be non-empty"));
-        }
-        if patching_rules.trim().is_empty() {
-            errors.push(format!("{tool_id}: patching_rules must be non-empty"));
-        }
-        if checksum.starts_with("sha256:") {
-            let digest = checksum.trim_start_matches("sha256:");
-            if digest != "pending" && !checksum_re.is_match(digest) {
-                errors.push(format!(
-                    "{tool_id}: upstream_checksum must be sha256:<64hex> or sha256:pending"
-                ));
+        if table_bool(row, "apptainer_supported") {
+            let definition = table_string(row, "apptainer_definition");
+            let expected = format!("containers/apptainer/{tool_id}.def");
+            if definition != expected || !workspace.path(&definition).is_file() {
+                errors.push(format!("{tool_id}: Apptainer definition must resolve to {expected}"));
             }
-        } else {
-            errors.push(format!("{tool_id}: upstream_checksum must start with sha256:"));
-        }
-    }
-    for tool_id in rows.keys() {
-        if !defs.contains(tool_id) {
-            errors.push(format!("{tool_id}: listed in NON_BIJUX_SOURCES.md but no .def exists"));
         }
     }
     if errors.is_empty() {
-        return success_line("non-bijux source coverage: OK");
+        return success_line("upstream provenance: OK");
     }
-    failure_lines("non-bijux source coverage check failed:", &errors)
+    failure_lines("upstream provenance check failed:", &errors)
 }
 
 pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {

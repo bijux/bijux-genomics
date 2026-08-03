@@ -76,7 +76,7 @@ pub enum NativeContainerCommandKey {
     GenerateLocalApptainerDigests,
     CompareFrontendLocalSifHash,
     CheckMissingImages,
-    CheckNonBijuxSources,
+    CheckUpstreamProvenance,
     CheckOwners,
     CheckRegistryVsDefs,
     CheckToolNameCollision,

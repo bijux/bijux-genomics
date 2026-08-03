@@ -84,7 +84,7 @@ Each package gets:
   [containers/docker/](../docker/)
 - Apptainer build surface:
   [containers/apptainer/](../apptainer/)
-- Non-bijux provenance:
+- Upstream provenance:
   [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md)
 
 ## Pull Contract

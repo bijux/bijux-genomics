@@ -89,7 +89,7 @@ Must export deterministic runtime env:
 
 ## Download/Provenance Policy
 - Network downloads in `%post` require checksum verification or explicit lock-policy marker.
-- Non-bijux definitions must have provenance rows in `containers/docs/UPSTREAM_SOURCES.md`.
+- Every definition must resolve upstream source, license, and immutable identity through the canonical catalog.
 
 ## Runtime UID Safety
 - Definitions must avoid broad write permissions (`chmod 777` forbidden).

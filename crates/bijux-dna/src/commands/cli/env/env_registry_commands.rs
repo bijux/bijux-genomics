@@ -580,21 +580,21 @@ containers_root = "/remote/.cache/bijux-dna-container"
     }
 
     #[test]
-    fn governed_oci_metadata_targets_shared_defs() {
+    fn governed_oci_metadata_targets_every_definition() {
         let defs_root = Path::new("/repo/containers/apptainer");
         assert!(requires_governed_oci_metadata(
             defs_root,
             &defs_root.join("shared").join("fastqc.def")
         ));
-        assert!(!requires_governed_oci_metadata(
+        assert!(requires_governed_oci_metadata(
             defs_root,
-            &defs_root.join("non-bijux").join("external.def")
+            &defs_root.join("external").join("tool.def")
         ));
     }
 }
 
 fn requires_governed_oci_metadata(defs_root: &Path, path: &Path) -> bool {
-    path.starts_with(defs_root.join("shared"))
+    path.starts_with(defs_root)
 }
 
 /// # Errors

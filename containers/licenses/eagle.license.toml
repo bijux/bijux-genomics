@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "eagle"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "GPL-3.0-or-later"
 upstream_license_id = "GPL-3.0-or-later"
 upstream_url = "https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz"

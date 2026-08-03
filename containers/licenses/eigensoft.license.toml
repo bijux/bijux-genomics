@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "eigensoft"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "GPL-2.0"
 upstream_license_id = "GPL-2.0"
 upstream_url = "https://github.com/DReichLab/EIG"

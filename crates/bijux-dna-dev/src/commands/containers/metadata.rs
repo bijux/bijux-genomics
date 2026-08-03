@@ -251,7 +251,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
-        "- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
+        "- Upstream provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
         String::new(),
         "## Container implementation surface".to_string(),
         String::new(),
@@ -615,13 +615,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
     for (tool, (support_disposition, _)) in container_support_summary(workspace)? {
         let row = registry.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
-        let kind = if is_non_bijux_apptainer_source(workspace, &tool)
-            || table_string(&row, "apptainer_def").contains("/non-bijux/")
-        {
-            "non-bijux".to_string()
-        } else {
-            "bijux".to_string()
-        };
+        let kind = "bijux".to_string();
         let source = version_row
             .map(|value| table_string(value, "source"))
             .filter(|value| !value.is_empty())
@@ -781,7 +775,6 @@ pub(super) fn generate_license_metadata(
 
 pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let license_dir = workspace.path("containers/licenses");
-    let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
     let catalog_support = container_support_summary(workspace)?;
@@ -804,7 +797,6 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
         }
     }
     for tool in catalog_support.keys() {
-        let row = registry.get(tool).cloned().unwrap_or_default();
         let meta = license_dir.join(format!("{tool}.license.toml"));
         if !meta.exists() {
             errors.push(format!("missing {}", workspace.rel(&meta).display()));
@@ -833,6 +825,12 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
         }
         if table_string(data, "tool_id") != *tool {
             errors.push(format!("{} tool_id mismatch", workspace.rel(&meta).display()));
+        }
+        if table_string(data, "container_kind") != "bijux" {
+            errors.push(format!(
+                "{} container_kind must identify Bijux Genomics recipe ownership",
+                workspace.rel(&meta).display()
+            ));
         }
         let upstream_url = table_string(data, "upstream_url");
         if !(upstream_url.starts_with("http://") || upstream_url.starts_with("https://")) {
@@ -864,29 +862,26 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
             ));
         }
 
-        let apptainer_def = table_string(&row, "apptainer_def");
-        if apptainer_def.contains("/non-bijux/") || is_non_bijux_apptainer_source(workspace, tool) {
-            let version_row = versions.get(tool).cloned().unwrap_or_default();
-            let source = table_string(&version_row, "source");
-            let version = table_string(&version_row, "version");
-            if source.is_empty() || source != upstream_url {
-                errors.push(format!(
-                    "{} non-bijux upstream_url must match versions.toml source",
-                    workspace.rel(&meta).display()
-                ));
-            }
-            if version.is_empty() || table_string(data, "upstream_version") != version {
-                errors.push(format!(
-                    "{} non-bijux upstream_version must match versions.toml version",
-                    workspace.rel(&meta).display()
-                ));
-            }
-            if checksum == format!("sha256:{}", "0".repeat(64)) {
-                errors.push(format!(
-                    "{} non-bijux upstream_checksum must not be placeholder zeros",
-                    workspace.rel(&meta).display()
-                ));
-            }
+        let version_row = versions.get(tool).cloned().unwrap_or_default();
+        let source = table_string(&version_row, "source");
+        let version = table_string(&version_row, "version");
+        if source.is_empty() || source != upstream_url {
+            errors.push(format!(
+                "{} upstream_url must match versions.toml source",
+                workspace.rel(&meta).display()
+            ));
+        }
+        if version.is_empty() || table_string(data, "upstream_version") != version {
+            errors.push(format!(
+                "{} upstream_version must match versions.toml version",
+                workspace.rel(&meta).display()
+            ));
+        }
+        if checksum == format!("sha256:{}", "0".repeat(64)) {
+            errors.push(format!(
+                "{} upstream_checksum must not be placeholder zeros",
+                workspace.rel(&meta).display()
+            ));
         }
     }
     if errors.is_empty() {

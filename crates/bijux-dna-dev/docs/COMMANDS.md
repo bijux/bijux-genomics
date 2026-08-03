@@ -190,7 +190,7 @@ check-lock-schema
 check-missing-images
 check-network-disclosure
 check-no-secrets
-check-non-bijux-sources
+check-upstream-provenance
 check-owners
 check-qa-matrix-generated
 check-rebuild-repro

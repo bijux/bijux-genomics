@@ -220,9 +220,9 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-missing-images", args)?;
             check_missing_images(workspace)
         }
-        NativeContainerCommandKey::CheckNonBijuxSources => {
-            ensure_no_args("check-non-bijux-sources", args)?;
-            check_non_bijux_sources(workspace)
+        NativeContainerCommandKey::CheckUpstreamProvenance => {
+            ensure_no_args("check-upstream-provenance", args)?;
+            check_upstream_provenance(workspace)
         }
         NativeContainerCommandKey::CheckOwners => {
             ensure_no_args("check-owners", args)?;

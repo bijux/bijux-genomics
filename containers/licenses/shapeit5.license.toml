@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "shapeit5"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "MIT"
 upstream_license_id = "MIT"
 upstream_url = "https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz"

@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "beagle"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "GPL-3.0"
 upstream_license_id = "GPL-3.0"
 upstream_url = "https://faculty.washington.edu/browning/beagle/beagle.html"
