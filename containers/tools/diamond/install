@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/diamond.tar.gz"
+source_dir="$work_dir/source"
+build_dir="$work_dir/build"
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" \
+  'https://github.com/bbuchfink/diamond/archive/1130513e06223ffd12c74a11e8e2c967e108a825.tar.gz'
+printf '%s  %s\n' \
+  'f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53' \
+  "$archive" | sha256sum --check --strict
+mkdir -p "$source_dir"
+tar --extract --gzip --file "$archive" --directory "$source_dir" \
+  --strip-components=1
+
+cmake -S "$source_dir" -B "$build_dir" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/opt/diamond
+cmake --build "$build_dir" --parallel "$(nproc)"
+cmake --install "$build_dir"
+
+/opt/diamond/bin/diamond version | grep -Fx 'diamond version 2.1.10'
+/opt/diamond/bin/diamond help >/dev/null
