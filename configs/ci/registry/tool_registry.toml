@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 2ad16a12cdb568d11e9279344df7eaa830050114
+# source_commit: 9483c001d347e4556b234cd1d723067fa865b680
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -668,10 +668,10 @@ version = "4.9"
 default_version = "4.9"
 upstream = "https://github.com/marcelm/cutadapt"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "MIT"
 citation = "paper:https://journal.embnet.org/index.php/embnetjournal/article/view/200"
-pinned_commit = "git:9276a89d5df9282ff51602b042b40c3b48c98566"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:ca893162f11dbe31cb1956e7611334d6f5fee91a54d4ddd2272ecf427da776dd"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/cutadapt:4.9"
 runtimes = ["docker", "apptainer"]
 container = true
@@ -679,7 +679,7 @@ version_cmd = "cutadapt --version"
 help_cmd = "cutadapt --help"
 smoke_version_cmd = "cutadapt --version"
 smoke_help_cmd = "cutadapt --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "4[.]9"
 healthcheck_cmd = "cutadapt --help"
 expected_bin = "cutadapt"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "normalized_reads_r1", "normalized_reads_r2", "report_json", "primer_orientation_report", "primer_stats_json"]

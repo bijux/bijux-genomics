@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "6e9a329a14de39321efe403233c1703b5f0d368ede2030ee08ac8b3c5829520b",
+  "source_sha256": "eb1af67df9e78e74e81d4df796650460ce92565c2b015aee526594b0a6c55dfa",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -58,7 +58,7 @@
       "pinned_commit": "8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd",
       "apptainer_definition": "containers/apptainer/addeam.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.addeam",
-      "contract_sha256": "81ace7c0e5a0d0178661597f84c9eae087055f62f2a6c94ef4be060958483c61"
+      "contract_sha256": "18014cd91dba43cadf282b4f91346c8f646d2809c6de203e708367c49c69357e"
     },
     {
       "id": "alientrimmer",
@@ -368,12 +368,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/marcelm/cutadapt",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "ca893162f11dbe31cb1956e7611334d6f5fee91a54d4ddd2272ecf427da776dd",
       "pinned_commit": "9276a89d5df9282ff51602b042b40c3b48c98566",
       "apptainer_definition": "containers/apptainer/cutadapt.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.cutadapt",
-      "contract_sha256": "21054de51d6f271358525d9ffdbe6849283e46fc1af8bd39abba4a143a2ec492"
+      "contract_sha256": "a8263f9544227b2491828e39a6fbb88d33dcb7e7610d2a1914f0a7b3b8cef408"
     },
     {
       "id": "dada2",
