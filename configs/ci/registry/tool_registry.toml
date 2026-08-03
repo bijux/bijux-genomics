@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 49f670f4bfd6ac79fdadfc69456c693bf9d168e3
+# source_commit: 14ac7c5079b75b024b200a3fb4430e13ea9b9087
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1520,17 +1520,17 @@ upstream = "https://github.com/smithlabcode/preseq"
 version_rule = "pinned"
 license = "GPL-3.0-or-later"
 citation = "paper:https://www.nature.com/articles/nmeth.2375"
-pinned_commit = "git:3dc2a7b1a2d3fdadedaeffebdceb29ea88dbd8bb"
+pinned_commit = "sha256:95b81c9054e0d651de398585c7e96b807ad98f0bdc541b3e46665febbe2134d9"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/preseq:3.2.0"
 runtimes = ["docker", "apptainer"]
 container = true
-version_cmd = "preseq --version"
-help_cmd = "preseq --help"
-smoke_version_cmd = "preseq --version"
-smoke_help_cmd = "preseq --help"
+version_cmd = "preseq"
+help_cmd = "preseq"
+smoke_version_cmd = "preseq"
+smoke_help_cmd = "preseq"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "preseq --help"
+healthcheck_cmd = "preseq"
 expected_bin = "preseq"
 expected_artifacts = ["complexity_curve"]
 metrics_schema = "bijux.bam.complexity.v1"

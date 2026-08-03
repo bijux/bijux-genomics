@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "49f670f4bfd6ac79fdadfc69456c693bf9d168e3",
-  "bundle_checksum_sha256": "37917bcef0ce8ed9b5c4b59f78b2c8a9087e5e789df1a1bc5580c5743c509a11",
+  "source_commit": "14ac7c5079b75b024b200a3fb4430e13ea9b9087",
+  "bundle_checksum_sha256": "218ec4f0ea53927c02ee70a455163034936184e239947b48ac4788646a6b2733",
   "domains": [
     {
       "domain_id": "bam",
@@ -3105,8 +3105,8 @@
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
           "citation": "paper:https://www.nature.com/articles/nmeth.2375",
-          "version_cmd": "preseq --version",
-          "help_cmd": "preseq --help",
+          "version_cmd": "preseq",
+          "help_cmd": "preseq",
           "stage_ids": [
             "bam.complexity"
           ],
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "0ba831eb44a805dad899e6b2b1dbc3bdd37c4ee7378457b4c11f23bff03faea7"
+      "checksum_sha256": "336a6d19df2f1486d63c2e5dadb05a644d6795eece61f38eb0b32cccb4fde9e3"
     },
     {
       "domain_id": "fastq",
@@ -13502,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "236702f6d5d02c159695f2a2e432de6c6cc23983c5163a13f608696b4b230659"
+      "checksum_sha256": "088cb31005acb4c44c7b4bd12e32072eabec49adb658f668e769ce367c791d50"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "8173b3c643ad17c13a31693f537feccc4502d46f192c025b6a1d1e9e395ce298"
+      "checksum_sha256": "5bb50bacd5a5e85fa36486385c3841ec077d4081fd346e5e79fcc8830065a5e7"
     }
   ]
 }
