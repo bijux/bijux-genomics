@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-
+from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "image_inventory.py"
 SPEC = importlib.util.spec_from_file_location("container_image_inventory", SCRIPT)
@@ -62,6 +61,22 @@ class ImageInventoryTests(unittest.TestCase):
                 "apptainer_supported = true\n"
                 'apptainer_definition = "containers/apptainer/samtools.def"\n',
                 encoding="utf-8",
+            )
+            subprocess.run(["git", "-C", repository, "add", catalog], check=True)
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    repository,
+                    "-c",
+                    "user.name=Bijux Test",
+                    "-c",
+                    "user.email=test@bijux.io",
+                    "commit",
+                    "-qm",
+                    "add container catalog",
+                ],
+                check=True,
             )
             image_root = root / "images"
             evidence_root = root / "evidence"
@@ -142,6 +157,25 @@ class ImageInventoryTests(unittest.TestCase):
         self.assertIn("not a release certificate", report)
         self.assertIn("Scientific and security", report)
         self.assertIn("**missing**", report)
+
+    def test_audit_refuses_to_replace_immutable_inventory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repository, _, _ = self.make_repository(root)
+            output = root / "inventory.json"
+            output.write_text("preserved evidence\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                inventory.ImageInventoryError, "refusing to replace image inventory"
+            ):
+                inventory.audit_images(
+                    repository / "containers" / "contracts" / "catalog.toml",
+                    root / "images",
+                    root / "evidence",
+                    root / "runs",
+                    repository,
+                    output,
+                )
 
 
 if __name__ == "__main__":

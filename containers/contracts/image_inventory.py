@@ -4,14 +4,14 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter
 import datetime as dt
 import hashlib
 import json
-from pathlib import Path
 import re
 import subprocess
 import sys
+from collections import Counter
+from pathlib import Path
 from typing import Any
 
 try:
@@ -190,6 +190,18 @@ def audit_images(
     repository: Path,
     output: Path,
 ) -> dict[str, Any]:
+    if output.exists() or output.is_symlink():
+        raise ImageInventoryError(f"refusing to replace image inventory: {output}")
+    repository_status = subprocess.run(
+        ["git", "-C", str(repository), "status", "--porcelain"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    if repository_status:
+        raise ImageInventoryError(
+            "repository must be clean before recording an image inventory"
+        )
     tools = load_catalog(catalog_path)
     evidence_by_digest = build_evidence(evidence_root)
     references = real_run_references(runs_root)
