@@ -8,10 +8,10 @@ recorded scientific status, and no tool is promoted by this report.
 
 ## Archive boundary
 
-- Governed runs: **121**
+- Governed runs: **123**
 - Tools represented: **64**
-- Execution status: **failed 34**, **incomplete 1**, **passed 86**
-- Scientific status: **not_assessed 121**
+- Execution status: **failed 34**, **incomplete 1**, **passed 88**
+- Scientific status: **not_assessed 123**
 - Unassigned historical identifiers: `run-1081`, `run-1085`
 
 The gaps are not silently filled. Failed and incomplete attempts remain part of
@@ -83,8 +83,8 @@ directory records their paths, sizes, and SHA-256 digests.
 | `shapeit` | 1 | 1 | 0 | [run-1037](../runs/run-1037-shapeit/) | not_assessed |
 | `shapeit5` | 1 | 1 | 0 | [run-1033](../runs/run-1033-shapeit5/) | not_assessed |
 | `skewer` | 1 | 1 | 0 | [run-1079](../runs/run-1079-skewer/) | not_assessed |
-| `trim_galore` | 1 | 0 | 1 | [run-1122](../runs/run-1122-trim_galore/) | not_assessed |
-| `trimmomatic` | 1 | 0 | 1 | [run-1123](../runs/run-1123-trimmomatic/) | not_assessed |
+| `trim_galore` | 2 | 1 | 1 | [run-1124](../runs/run-1124-trim_galore/) | not_assessed |
+| `trimmomatic` | 2 | 1 | 1 | [run-1125](../runs/run-1125-trimmomatic/) | not_assessed |
 | `vsearch` | 1 | 1 | 0 | [run-1084](../runs/run-1084-vsearch/) | not_assessed |
 
 ## Interpretation
