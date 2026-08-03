@@ -22,8 +22,8 @@ or successful command does not become a scientific or release claim.
 | `source` | 87 |
 | `build` | 87 |
 | `runtime` | 87 |
-| `stage` | 65 |
-| `real_data` | 65 |
+| `stage` | 66 |
+| `real_data` | 66 |
 | `science` | 0 |
 | `benchmark` | 0 |
 | `security` | 0 |
@@ -118,7 +118,7 @@ permitted. Unsupported tools use `n/a`.
 | `shapeit5` | `5.1.1` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `skewer` | `0.2.2` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `sortmerna` | `4.3.7` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
-| `spades` | `4.2.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `spades` | `4.2.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `star` | `2.7.11b` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `trim_galore` | `0.6.10` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `trimmomatic` | `0.39` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |

@@ -11,7 +11,7 @@
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
-      "sha256": "c11667212c75f960d3ce20dfd04b7a813a0f5b4db582a7cedb48c9ef844e4e65"
+      "sha256": "6311a4a92b66e483305c4e0dfbb8f31afa758ac7732e7d13d3a63c727a9a5a3f"
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
@@ -24,13 +24,13 @@
       "build": 87,
       "catalog": 87,
       "freshness": 87,
-      "real_data": 65,
+      "real_data": 66,
       "release": 0,
       "runtime": 87,
       "science": 0,
       "security": 0,
       "source": 87,
-      "stage": 65
+      "stage": 66
     },
     "qualification": {
       "unsupported": 2,
@@ -2256,26 +2256,24 @@
         "build": "passed",
         "catalog": "passed",
         "freshness": "passed",
-        "real_data": "missing",
+        "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
-        "stage": "missing"
+        "stage": "passed"
       },
       "id": "spades",
       "missing_dimensions": [
-        "stage",
-        "real_data",
         "science",
         "benchmark",
         "security",
         "release"
       ],
       "qualification": "unverified",
-      "real_run_attempts": 1,
-      "real_run_passes": 0,
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
       "support_disposition": "retained",
       "version": "4.2.0"
     },
