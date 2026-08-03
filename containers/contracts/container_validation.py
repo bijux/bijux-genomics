@@ -16,8 +16,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import tomllib
 import yaml
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 PIPELINE_SCHEMA_V1 = "bijux.container.pipeline.v1"
 PIPELINE_SCHEMA_V2 = "bijux.container.pipeline.v2"

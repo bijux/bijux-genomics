@@ -10,8 +10,12 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-import tomllib
 import yaml
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 
 class SpecificationError(RuntimeError):
