@@ -62,10 +62,12 @@ case "${1:-}" in
   --version)
     native_info
     printf 'KING 2.3.0\n'
+    exit 0
     ;;
   --help|-h|"")
     native_info
     printf '%s\n' "$native_output"
+    exit 0
     ;;
 esac
 exec "$bin" "$@"

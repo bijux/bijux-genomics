@@ -25,6 +25,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %files
     containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+    containers/tools/fqtools/fqtools /usr/local/bin/fqtools
 
 %environment
     export PATH=/usr/local/bin:/usr/bin:/bin
@@ -47,11 +48,13 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     tar --extract --gzip --file /tmp/fqtools.tar.gz --directory /tmp
     make --directory /tmp/fqtools-63c6fa707fabc7569c2f256b8bcfc6ebb760f72a \
         HTSDIR=/usr CFLAGS='-O2 -g -Wall -Wextra -Wno-unused-parameter -fcommon' -j"$(nproc)"
-    install -m 0755 /tmp/fqtools-63c6fa707fabc7569c2f256b8bcfc6ebb760f72a/bin/fqtools /usr/local/bin/fqtools
+    install -m 0755 /tmp/fqtools-63c6fa707fabc7569c2f256b8bcfc6ebb760f72a/bin/fqtools /usr/local/libexec-fqtools
+    chmod 0555 /usr/local/bin/fqtools
     fqtools --version > /tmp/fqtools.version
     grep -F 'fqtools 2.3 ' /tmp/fqtools.version
-    fqtools --help >/dev/null
-    rm -f /tmp/fqtools.version
+    fqtools --help > /tmp/fqtools.help
+    grep -F 'usage: fqtools ' /tmp/fqtools.help
+    rm -f /tmp/fqtools.version /tmp/fqtools.help
     rm -rf /tmp/fqtools-*
     rm -rf /var/lib/apt/lists/*
 
@@ -61,9 +64,10 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %test
     fqtools --version > /tmp/fqtools.version
     grep -F 'fqtools 2.3 ' /tmp/fqtools.version
-    fqtools --help >/dev/null
-    rm -f /tmp/fqtools.version
+    fqtools --help > /tmp/fqtools.help
+    grep -F 'usage: fqtools ' /tmp/fqtools.help
+    rm -f /tmp/fqtools.version /tmp/fqtools.help
 
 %help
     fqtools 2.3 built from the catalog-locked upstream commit.
-    Version and help are provided directly by the upstream executable.
+    Version and help expose the upstream executable's native -v and -h output.
