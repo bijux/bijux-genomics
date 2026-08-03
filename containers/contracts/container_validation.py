@@ -1673,6 +1673,114 @@ def collect_accounting(
     return accounting_path
 
 
+def archive_file_records(root: Path, scope: str) -> list[dict[str, Any]]:
+    records = []
+    for path in sorted(root.rglob("*")):
+        if path.is_symlink():
+            raise ContractError(f"failure evidence must not contain symlinks: {path}")
+        if not path.is_file():
+            continue
+        records.append(
+            {
+                "path": f"{scope}/{path.relative_to(root).as_posix()}",
+                "size_bytes": path.stat().st_size,
+                "sha256": sha256_file(path),
+            }
+        )
+    return records
+
+
+def archive_failed_run(
+    manifest_path: Path,
+    governance_override: Path | None = None,
+) -> Path:
+    manifest_path = manifest_path.resolve()
+    governance_path, pipeline_path, credential_path = manifest_contract_paths(
+        manifest_path, governance_override
+    )
+    contract = validate_contracts(governance_path, pipeline_path, credential_path)
+    submission_root = operational_submission_root(manifest_path, contract)
+    result_root: Path = contract["result_root"]
+    if not submission_root.is_dir() or not result_root.is_dir():
+        raise ContractError(
+            "failure archival requires both submission and result evidence"
+        )
+    job_id_path = submission_root / "slurm-job-id.txt"
+    try:
+        job_id = job_id_path.read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        raise ContractError(f"cannot read failed Slurm job identity: {exc}") from exc
+    if not job_id.isdigit():
+        raise ContractError("failed Slurm job identity must be numeric")
+    evidence_path = result_root / "evidence.json"
+    accounting_path = result_root / "slurm-accounting.json"
+    evidence = load_json(evidence_path)
+    accounting = load_json(accounting_path)
+    if (
+        evidence.get("schema_version") not in {EVIDENCE_SCHEMA_V1, EVIDENCE_SCHEMA_V2}
+        or evidence.get("run_id") != contract["run_id"]
+        or evidence.get("status") != "failed"
+    ):
+        raise ContractError("only terminal failed run evidence can be archived")
+    if (
+        accounting.get("schema_version") != "bijux.slurm.accounting.v1"
+        or accounting.get("run_id") != contract["run_id"]
+        or accounting.get("slurm_job_id") != job_id
+    ):
+        raise ContractError("Slurm accounting does not identify the failed run")
+    tool_id = str(contract["pipeline"]["run"]["tool"])
+    bundle_name = f"{contract['run_id']}-{tool_id}-slurm-{job_id}"
+    failure_root = (
+        contract["governance"]["containers_root"] / "evidence" / "failures"
+    )
+    failure_root.mkdir(parents=True, mode=0o750, exist_ok=True)
+    target = failure_root / bundle_name
+    staging = failure_root / f".{bundle_name}.partial"
+    if target.exists() or staging.exists():
+        raise ContractError(f"refusing to replace failure evidence: {target}")
+    if len({submission_root.stat().st_dev, result_root.stat().st_dev, failure_root.stat().st_dev}) != 1:
+        raise ContractError("failure evidence must remain on one filesystem")
+    files = [
+        *archive_file_records(submission_root, "submission"),
+        *archive_file_records(result_root, "result"),
+    ]
+    staging.mkdir(mode=0o750)
+    try:
+        submission_root.rename(staging / "submission")
+        result_root.rename(staging / "result")
+        write_json(
+            staging / "archive.json",
+            {
+                "schema_version": "bijux.container.failed_run_archive.v1",
+                "run_id": contract["run_id"],
+                "tool": tool_id,
+                "slurm_job_id": job_id,
+                "archived_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "source_paths": {
+                    "submission": (
+                        f"study://containers/evidence/submissions/"
+                        f"{contract['run_id']}-{tool_id}"
+                    ),
+                    "result": (
+                        f"study://results/container-validation/"
+                        f"{contract['run_id']}-{tool_id}"
+                    ),
+                },
+                "evidence_sha256": sha256_file(staging / "result/evidence.json"),
+                "accounting_sha256": sha256_file(
+                    staging / "result/slurm-accounting.json"
+                ),
+                "files": files,
+            },
+        )
+        staging.rename(target)
+    except OSError as exc:
+        raise ContractError(
+            f"failure archival stopped; inspect the recoverable staging path {staging}: {exc}"
+        ) from exc
+    return target
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
@@ -1692,6 +1800,9 @@ def parser() -> argparse.ArgumentParser:
     collect = commands.add_parser("collect-accounting")
     collect.add_argument("--manifest", type=Path, required=True)
     collect.add_argument("--governance", type=Path)
+    archive = commands.add_parser("archive-failure")
+    archive.add_argument("--manifest", type=Path, required=True)
+    archive.add_argument("--governance", type=Path)
     submit = commands.add_parser("submit")
     submit.add_argument("--manifest", type=Path, required=True)
     submit.add_argument("--governance", type=Path)
@@ -1712,6 +1823,9 @@ def main() -> int:
             return 0
         if args.command == "collect-accounting":
             print(collect_accounting(args.manifest, args.governance))
+            return 0
+        if args.command == "archive-failure":
+            print(archive_failed_run(args.manifest, args.governance))
             return 0
         if args.command == "submit":
             print(submit_manifest(args.manifest, args.governance))

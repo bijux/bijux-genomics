@@ -289,6 +289,23 @@ python3 -B containers/contracts/container_validation.py collect-accounting \
   --governance containers/contracts/sites/lunarc.yml
 ```
 
+If the collected `evidence.json` is failed, archive that attempt before
+correcting and resubmitting the same stable run specification:
+
+```console
+python3 -B containers/contracts/container_validation.py archive-failure \
+  --manifest "${run_spec}" \
+  --governance containers/contracts/sites/lunarc.yml
+```
+
+Archival accepts only failed terminal evidence with matching Slurm accounting.
+It hashes every submission and result file, verifies that both trees and the
+failure root share one filesystem, then moves them through a recoverable
+partial directory into
+`containers/evidence/failures/RUN-TOOL-slurm-JOB/`. This frees the canonical
+submission and result paths without deleting the failed attempt or allowing it
+into the final run index. A passed result cannot be archived by this command.
+
 Import one completed run by bounding the identifier. For a full replay, use an
 empty artifact directory so existing tracked evidence is never overwritten:
 

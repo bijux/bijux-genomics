@@ -37,12 +37,20 @@ python3 containers/contracts/container_validation.py submit \
 
 python3 containers/contracts/container_validation.py collect-accounting \
   --manifest MANIFEST
+
+python3 containers/contracts/container_validation.py archive-failure \
+  --manifest MANIFEST
 ```
 
 The executor validates the current hostname against the site contract, rejects
 paths outside the configured study roots, restricts Slurm resources to the
 configured account and partitions, checks every immutable digest, and refuses
 to overwrite an existing result or accounting record.
+
+`archive-failure` is the only supported way to free canonical submission and
+result paths for a corrected attempt with the same stable run identity. It
+requires failed terminal evidence and matching accounting, hashes the complete
+attempt, and performs same-filesystem moves into the governed failure root.
 
 Current pipeline contracts separate host storage from paths visible inside the
 contained runtime. Governed input files mount as unique, safe filenames beneath

@@ -825,6 +825,126 @@ class CurrentPipelineContractTests(unittest.TestCase):
             "slurm-3458665.stderr.log",
         )
 
+    def test_failed_run_archive_frees_only_canonical_execution_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study = root / "study"
+            containers_root = study / "containers"
+            submission = (
+                containers_root / "evidence/submissions/run-2000-tool"
+            )
+            result = study / "results/container-validation/run-2000-tool"
+            manifest = containers_root / "evidence/specifications/run-2000-tool"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3458665\n")
+            (submission / "submit.sh").write_text("#!/bin/bash\nexit 72\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2000",
+                    "status": "failed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2000",
+                    "slurm_job_id": "3458665",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2000",
+                "pipeline": {"run": {"tool": "tool"}},
+                "result_root": result,
+                "governance": {"containers_root": containers_root},
+            }
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                return_value=contract,
+            ):
+                archived = container_validation.archive_failed_run(manifest)
+
+            archive = json.loads((archived / "archive.json").read_text())
+            submission_removed = not submission.exists()
+            result_removed = not result.exists()
+            archived_submission = (archived / "submission/submit.sh").is_file()
+            archived_result = (archived / "result/evidence.json").is_file()
+
+        self.assertTrue(submission_removed)
+        self.assertTrue(result_removed)
+        self.assertEqual(archive["run_id"], "run-2000")
+        self.assertEqual(archive["slurm_job_id"], "3458665")
+        self.assertEqual(
+            {record["path"] for record in archive["files"]},
+            {
+                "result/evidence.json",
+                "result/slurm-accounting.json",
+                "submission/slurm-job-id.txt",
+                "submission/submit.sh",
+            },
+        )
+        self.assertTrue(archived_submission)
+        self.assertTrue(archived_result)
+
+    def test_nonfailed_run_cannot_be_archived(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            containers_root = root / "study/containers"
+            submission = (
+                containers_root / "evidence/submissions/run-2000-tool"
+            )
+            result = root / "study/results/container-validation/run-2000-tool"
+            manifest = containers_root / "evidence/specifications/run-2000-tool"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3458665\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2000",
+                    "status": "passed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2000",
+                    "slurm_job_id": "3458665",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2000",
+                "pipeline": {"run": {"tool": "tool"}},
+                "result_root": result,
+                "governance": {"containers_root": containers_root},
+            }
+            with (
+                mock.patch.object(
+                    container_validation,
+                    "validate_contracts",
+                    return_value=contract,
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError, "only terminal failed"
+                ),
+            ):
+                container_validation.archive_failed_run(manifest)
+            submission_preserved = submission.is_dir()
+            result_preserved = result.is_dir()
+
+        self.assertTrue(submission_preserved)
+        self.assertTrue(result_preserved)
+
 
 class BuildAdmissionTests(unittest.TestCase):
     def test_immutable_name_carries_runtime_and_content_identity(self) -> None:
