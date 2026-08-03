@@ -338,6 +338,48 @@
       "science_scope": "viral_only_runtime_interface"
     },
     {
+      "tool": "centrifuge",
+      "operation": "single_reference_index_build",
+      "run_id": "run-1105",
+      "repository_commit": "71bc19ce7b89a7abe7aff3a2ac2058c3067c8468",
+      "slurm_job_id": "3458127",
+      "status": "passed",
+      "elapsed_seconds": 4,
+      "image_sha256": "ef902ccdea50babb3c1627156469589f645f6473294650ca0304023aa211d0ec",
+      "build_evidence_sha256": "2211ce3fe7a751b326def7e3fd6cb0223cdbf5ea56267e7b9ed8d13285be23d3",
+      "evidence_sha256": "c8fea270187f59362e24c7570b57a8ca6a23efe5fa997df8bf6b94abd41fd5ed",
+      "accounting_sha256": "e3f27371dab0070a5c533dceff316c5429b632101b2cedaf5bffdba7321d6846",
+      "database_catalog_sha256": "7c135f7a056f46e2bea9e62d02585bb13af75952449106c08cf594c07ed7b00e",
+      "reference_accession": "NC_038500.1",
+      "index_shards": [
+        "c9394eda3879ca88336bc06ab8cf15deb5a33cbbfc338c8c4a0d4c8f64911155",
+        "944e6ddde06795f17db952f8b9456992c318f6bd148836d715729b68916ab10e",
+        "da40baa80c50bc3443ee67ed474106c476eabbc4d62247caeaf2e24d851891af",
+        "69381f0c0c759323f11fc0c02668323629cf5002856da4f4946e51dace031dac"
+      ],
+      "science_scope": "single_reference_runtime_interface"
+    },
+    {
+      "tool": "centrifuge",
+      "operation": "paired_fastq_classification",
+      "run_id": "run-1106",
+      "repository_commit": "71bc19ce7b89a7abe7aff3a2ac2058c3067c8468",
+      "slurm_job_id": "3458128",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "image_sha256": "ef902ccdea50babb3c1627156469589f645f6473294650ca0304023aa211d0ec",
+      "build_evidence_sha256": "2211ce3fe7a751b326def7e3fd6cb0223cdbf5ea56267e7b9ed8d13285be23d3",
+      "evidence_sha256": "fbc8dd4fc0ce271db1a8f7d30ccd045df146d816b653d7a5a146dbb095f41b49",
+      "accounting_sha256": "45726535bb8ffe1a5db51245ecfbe2b6f1007e5cc041e334c27aadf11ac1dfd1",
+      "classification_output_sha256": "a36600e0f92b312cdac95b6baa3992c64aeb36231e4c27f930ad9c8040282830",
+      "report_output_sha256": "ea1242c7dc61db18a65eacd3a30be67c212ea5d40d2c1aeb9cbcdcd4403c6535",
+      "database_catalog_sha256": "7c135f7a056f46e2bea9e62d02585bb13af75952449106c08cf594c07ed7b00e",
+      "input_pairs": 100000,
+      "classified_pairs": 8,
+      "reference_accession": "NC_038500.1",
+      "science_scope": "single_reference_runtime_interface"
+    },
+    {
       "tool": "bowtie2",
       "run_id": "run-1101",
       "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",

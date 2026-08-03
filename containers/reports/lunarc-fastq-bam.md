@@ -34,6 +34,8 @@ root.
 | paired-read trimming | AdapterRemoval 2.3.4 | `run-1002` | `3457168` | 4s | two trimmed FASTQ files |
 | viral taxonomy screening | Kraken 2 2.1.3 | `run-1102` | `3458124` | 2s | classifications plus a digest-pinned Kraken report |
 | viral species abundance re-estimation | Bracken 2.9 | `run-1104` | `3458126` | 1s | abundance table plus re-estimated Kraken report |
+| single-reference taxonomy indexing | Centrifuge 1.0.4 | `run-1105` | `3458127` | 4s | four digest-pinned Centrifuge index shards |
+| single-reference taxonomy screening | Centrifuge 1.0.4 | `run-1106` | `3458128` | 2s | classifications plus a digest-pinned Centrifuge report |
 | read alignment | Bowtie 2 2.5.4 | `run-1101` | `3458123` | 5s | 47,621,650-byte SAM stream against a real reference segment |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
@@ -140,6 +142,17 @@ They do not establish a viral infection, contamination source, taxonomic
 accuracy, detection threshold, or absence of non-viral organisms. Those claims
 would require a representative database, controls, independent confirmation,
 and a predeclared scientific acceptance design.
+
+Centrifuge built a four-shard index from the complete public `NC_038500.1`
+reference and the publisher-verified taxonomy files already admitted for the
+viral Kraken database. The dependent run cited every index shard by digest and
+classified eight of 100,000 read pairs to that sole reference. This proves the
+real indexing, compressed paired-FASTQ, classification, and reporting
+interfaces. The single-reference index was deliberately chosen to make the
+runtime evidence small and reproducible; it is not a representative taxonomy
+database. Its count must not be compared directly with Kraken's one assigned
+sequence because the reference sets and classification models differ, and it
+does not establish infection, contamination, sensitivity, or specificity.
 
 BamTools applied its declared mapping-quality expression to the governed
 coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed
