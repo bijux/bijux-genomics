@@ -308,14 +308,7 @@ mod tests {
         assert_eq!(plan.resources.threads, 5);
         assert_eq!(
             plan.command.template,
-            vec![
-                "seqfu",
-                "stats",
-                "--threads",
-                "5",
-                "reads_R1.fastq.gz",
-                "reads_R2.fastq.gz",
-            ]
+            vec!["seqfu", "stats", "--threads", "5", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
         );
     }
 

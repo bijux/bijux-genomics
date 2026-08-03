@@ -8,6 +8,14 @@
       "overrides": {
         "threads": 4
       }
+    },
+    "fastq.profile_read_lengths": {
+      "parameter_schema_version": "bijux.fastq.params.read_length_profile.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults",
+      "overrides": {
+        "threads": 4,
+        "histogram_bins": 100
+      }
     }
   }
 }

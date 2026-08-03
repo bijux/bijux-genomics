@@ -1,3 +1,4 @@
+mod benchmark_contracts;
 mod compose;
 mod pipeline_defaults;
 mod planner;
