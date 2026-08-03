@@ -24,6 +24,7 @@ From: python@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4
     org.opencontainers.image.title Atropos
 
 %files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
     containers/tools/atropos/requirements.lock /opt/atropos-build/requirements.lock
     containers/tools/atropos/python-collections-compatibility.patch /opt/atropos-build/python-collections-compatibility.patch
     containers/tools/atropos/install /opt/atropos-build/install
@@ -44,8 +45,7 @@ From: python@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4
       -e 's#http://deb.debian.org/debian-security#https://snapshot.debian.org/archive/debian-security/20260802T000000Z#g' \
       -e 's#http://deb.debian.org/debian#https://snapshot.debian.org/archive/debian/20260802T000000Z#g' \
       /etc/apt/sources.list.d/debian.sources
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential curl patch
     /opt/atropos-build/install
