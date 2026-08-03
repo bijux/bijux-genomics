@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 14ac7c5079b75b024b200a3fb4430e13ea9b9087
+# source_commit: 1acd337f365c6195dbf9de5d9baa949389fdaac3
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1486,8 +1486,8 @@ upstream = "https://github.com/pontussk/PMDtools"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "paper:https://doi.org/10.1073/pnas.1318934111"
-pinned_commit = "git:18b5901e93d417ea91fd675b499e401deadfe3c5"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/pmdtools:0.60"
 runtimes = ["docker", "apptainer"]
 container = true

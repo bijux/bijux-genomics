@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "e87319f9871ec78271b345ff331792bd3fc23933262887756372ec215b4cd9e0",
+  "source_sha256": "5c6b24ede72ef6c5d8f1dfe7d510f92ffa64ba06ce3b8c9662e3f8234b42850e",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -969,11 +969,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/pontussk/PMDtools",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405",
       "pinned_commit": "18b5901e93d417ea91fd675b499e401deadfe3c5",
       "apptainer_definition": "containers/apptainer/pmdtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.pmdtools",
-      "contract_sha256": "a0062085103507f7d69473736262972b11903c38408516c4ca3309c0b3069ec7"
+      "contract_sha256": "fade4a8f3e7eb5123ab75ec0e860831b003eb8e5d09dc29746e0bb6dc913c836"
     },
     {
       "id": "preseq",

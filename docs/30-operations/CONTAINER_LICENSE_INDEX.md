@@ -80,8 +80,8 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `picard` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/picard` | `3.3.0` | `sha256:a8274ec032205d9b910479b4663375b4380430b0416b53a851b755c37a4c55ca` |
 | `plink` | `experimental` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/` | `1.90b7.2` | `sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3` |
 | `plink2` | `experimental` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/2.0/` | `2.00a6` | `sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec` |
-| `pmdtools` | `production` | `bijux` | `NOASSERTION` | `https://github.com/pontussk/PMDtools` | `0.60` | `sha256:08ce5fd237b9555976e918eeef376f2d149474cd8b9f56e78a4fd9a77c9bb36b` |
-| `preseq` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/smithlabcode/preseq` | `3.2.0` | `sha256:64ba0ddd9cf6ac5af43dac29ca81570bb54a6d5c0a2b8681c71552ec13581114` |
+| `pmdtools` | `production` | `bijux` | `GPL-3.0-only` | `https://github.com/pontussk/PMDtools` | `0.60` | `sha256:47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405` |
+| `preseq` | `experimental` | `bijux` | `GPL-3.0-or-later` | `https://github.com/smithlabcode/preseq/releases/download/v3.2.0/preseq-3.2.0.tar.gz` | `3.2.0` | `sha256:95b81c9054e0d651de398585c7e96b807ad98f0bdc541b3e46665febbe2134d9` |
 | `prinseq` | `production` | `bijux` | `NOASSERTION` | `https://github.com/Adrian-Cantu/PRINSEQ-plus-plus` | `1.2.4` | `sha256:957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3` |
 | `pydamage` | `production` | `bijux` | `NOASSERTION` | `https://github.com/maxibor/pydamage` | `1.0` | `sha256:f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f` |
 | `qualimap` | `experimental` | `bijux` | `NOASSERTION` | `https://bitbucket.org/kokonech/qualimap` | `2.3` | `sha256:2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40` |
@@ -99,7 +99,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `shapeit5` | `production` | `non-bijux` | `MIT` | `https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz` | `5.1.1` | `sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8` |
 | `skewer` | `production` | `bijux` | `MIT` | `https://github.com/relipmoc/skewer` | `0.2.2` | `sha256:695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169` |
 | `sortmerna` | `production` | `bijux` | `NOASSERTION` | `https://github.com/biocore/sortmerna` | `4.3.7` | `sha256:c82be49fb7077411860e0d4e3c28b422c2930312ec70168bdb17d96483d613ee` |
-| `spades` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
+| `spades` | `experimental` | `bijux` | `GPL-2.0-only` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
 | `star` | `production` | `bijux` | `NOASSERTION` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e` |
 | `trim_galore` | `production` | `bijux` | `NOASSERTION` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:8efa46f091785659e6cc36e8bf0d89c2beaead17f11ff793c64c57b93b9d33ec` |
 | `trimmomatic` | `production` | `bijux` | `NOASSERTION` | `http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca` |
