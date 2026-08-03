@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "leehom"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0-only"
+upstream_license_id = "GPL-3.0-only"
 upstream_url = "https://github.com/grenaud/leeHom"
 upstream_version = "1.2.18"
 upstream_checksum = "sha256:87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca"

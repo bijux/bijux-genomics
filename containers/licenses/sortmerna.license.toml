@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "sortmerna"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/biocore/sortmerna"
 upstream_version = "4.3.7"
 upstream_checksum = "sha256:c82be49fb7077411860e0d4e3c28b422c2930312ec70168bdb17d96483d613ee"

@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "verifybamid2"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/Griffan/VerifyBamID"
 upstream_version = "2.0.1"
 upstream_checksum = "sha256:af9a0621cf519a6e2d7f45dc99af81b64aeb419d960de2c6af1a806a37d91ab9"

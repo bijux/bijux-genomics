@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "pmdtools"
 container_kind = "bijux"
-spdx = "GPL-3.0-only"
-upstream_license_id = "GPL-3.0-only"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/pontussk/PMDtools"
 upstream_version = "0.60"
 upstream_checksum = "sha256:47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405"

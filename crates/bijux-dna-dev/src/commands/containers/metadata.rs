@@ -608,12 +608,28 @@ struct LicenseMetadataEntry {
     file_content: String,
 }
 
+fn catalog_tool_rows(workspace: &Workspace) -> Result<BTreeMap<String, toml::value::Table>> {
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let rows = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .filter_map(|row| {
+            let tool_id = table_string(row, "id");
+            (!tool_id.is_empty()).then(|| (tool_id, row.clone()))
+        })
+        .collect();
+    Ok(rows)
+}
+
 fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadataEntry>> {
-    let registry = registry_tool_map(workspace)?;
+    let catalog = catalog_tool_rows(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut entries = Vec::new();
     for (tool, (support_disposition, _)) in container_support_summary(workspace)? {
-        let row = registry.get(&tool).cloned().unwrap_or_default();
+        let row = catalog.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
         let kind = "bijux".to_string();
         let source = version_row
@@ -632,8 +648,10 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
                 (!registry_version.is_empty()).then_some(registry_version)
             })
             .unwrap_or_else(|| "unknown".to_string());
-        let source_sha =
-            version_row.map(|value| table_string(value, "source_sha256")).unwrap_or_default();
+        let source_sha = version_row
+            .map(|value| table_string(value, "source_sha256"))
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| table_string(&row, "source_sha256"));
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
         } else if support_disposition == "unsupported" {
@@ -641,14 +659,16 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
         } else {
             format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
         };
-        let spdx = version_row
-            .map(|value| table_string(value, "upstream_license"))
-            .filter(|value| !value.is_empty())
-            .or_else(|| {
-                let license = table_string(&row, "license_ref");
-                (!license.is_empty()).then_some(license)
-            })
-            .unwrap_or_else(|| "NOASSERTION".to_string());
+        let spdx = {
+            let license = table_string(&row, "license");
+            (!license.is_empty()).then_some(license)
+        }
+        .or_else(|| {
+            version_row
+                .map(|value| table_string(value, "upstream_license"))
+                .filter(|value| !value.is_empty())
+        })
+        .unwrap_or_else(|| "NOASSERTION".to_string());
         let redistribution_note = if support_disposition == "unsupported" {
             "Bijux Genomics does not redistribute this unsupported tool; consult the canonical container catalog for the support rationale."
         } else {
@@ -775,6 +795,7 @@ pub(super) fn generate_license_metadata(
 
 pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let license_dir = workspace.path("containers/licenses");
+    let catalog = catalog_tool_rows(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
     let catalog_support = container_support_summary(workspace)?;
@@ -829,6 +850,16 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
         if table_string(data, "container_kind") != "bijux" {
             errors.push(format!(
                 "{} container_kind must identify Bijux Genomics recipe ownership",
+                workspace.rel(&meta).display()
+            ));
+        }
+        let catalog_license =
+            catalog.get(tool).map(|row| table_string(row, "license")).unwrap_or_default();
+        if catalog_license.is_empty()
+            || table_string(data, "upstream_license_id") != catalog_license
+        {
+            errors.push(format!(
+                "{} upstream_license_id must match the canonical catalog",
                 workspace.rel(&meta).display()
             ));
         }

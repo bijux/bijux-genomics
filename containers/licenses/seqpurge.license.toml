@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "seqpurge"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "MIT"
+upstream_license_id = "MIT"
 upstream_url = "https://github.com/imgag/ngs-bits"
 upstream_version = "2026_06"
 upstream_checksum = "sha256:16bac795ea14ad2ed635435bffd9b5d4de2939bc0b9ed2e87cf0889be91ad4ed"

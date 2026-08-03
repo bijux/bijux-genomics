@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "kaiju"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/bioinformatics-centre/kaiju"
 upstream_version = "1.10.0"
 upstream_checksum = "sha256:a8cc1e366558427bb3a111498565dc5c63d12ef0ef41870a41f2dcd8df318a59"

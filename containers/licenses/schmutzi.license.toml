@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "schmutzi"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/grenaud/schmutzi"
 upstream_version = "1.5.4"
 upstream_checksum = "sha256:46ed7c4f429836afdc96b2f7f1853eef2e1c2ebef679f847fcc443c447d84029"

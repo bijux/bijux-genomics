@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "rxy"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "Apache-2.0"
+upstream_license_id = "Apache-2.0"
 upstream_url = "https://github.com/bijux/bijux-genomics"
 upstream_version = "2.0.0"
 upstream_checksum = "sha256:b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8"
