@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 3b4840993852ec7eaf98dedbde5077d79fbd49f5
+# source_commit: dc7c9d21f24cc8b66fee690c70149ce8aa6d8c04
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -815,7 +815,7 @@ version_cmd = "fastq_scan --version"
 help_cmd = "fastq_scan --help"
 smoke_version_cmd = "fastq_scan --version"
 smoke_help_cmd = "fastq_scan --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "fastq-scan 1[.]0[.]1"
 healthcheck_cmd = "fastq_scan --help"
 expected_bin = "fastq_scan"
 expected_artifacts = ["validation_report", "validated_reads_manifest", "overrepresented_sequences_tsv", "overrepresented_sequences_json", "report_json"]

@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T04:02:44+02:00",
+  "build_date_utc": "2026-08-03T04:07:27+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -486,7 +486,7 @@
       "version": "0.23.4"
     },
     {
-      "entry_sha256": "898d6b87a8b0d3f9589c42395a8b84933c477b650e193889f1185ae2c090b508",
+      "entry_sha256": "89aadf294ebd070adbe3d91e1df1ca7485bfa6cb210fb30e065663b359da3108",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -496,7 +496,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/rpetit3/fastq-scan",
-      "source_sha256": "",
+      "source_sha256": "74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e",
       "status": "production",
       "tool": "fastq_scan",
       "version": "1.0.1"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "e9c146058c3e6fea064145b74ba3d2af27d11dd5abc86eaf190a43052595a301",
+  "source_sha256": "f00231aa1df0449516079d39642125d67ea42c7e8ec89c649c8294f9997aaaae",
   "version_map_source": "artifacts/containers/version_map.json"
 }
