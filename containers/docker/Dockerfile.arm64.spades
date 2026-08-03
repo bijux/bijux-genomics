@@ -11,7 +11,7 @@ ARG TOOL_VERSION=unknown
 LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.licenses="GPL-2.0-only" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="spades"
 LABEL org.opencontainers.image.title="spades"
@@ -55,7 +55,8 @@ RUN set -eux; \
     cp -r share/spades     /usr/local/share/ && \
     \
     ### sanity check – abort build if SPAdes can’t start
-    spades --version | grep -q "${VERSION_SPADES}" ; \
+    spades --version | grep -q "${VERSION_SPADES}" && \
+    spades --test >/dev/null ; \
     \
     ### tidy up: ONLY purge the build-time dependencies
     cd / && rm -rf /opt/spades-${VERSION_SPADES} /tmp/spades.tar.gz && \
