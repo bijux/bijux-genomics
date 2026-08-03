@@ -69,11 +69,13 @@ Build and runtime evidence is current only when the inventory and runtime
 campaign both name the present catalog SHA-256, the runtime campaign names the
 published inventory's raw SHA-256, and both campaigns name the same repository
 commit. Each tool's catalog version, support disposition, Apptainer support,
-and selected image digest must also agree. A benchmark may name the canonical
-image or an admitted historical run dependency only when that exact SIF still
-matches the current recipe. Stale evidence remains visible for audit, but it
-contributes no build, runtime, benchmark, or freshness pass. Benchmark evidence
-does not imply scientific acceptance.
+and selected image digest must also agree. Qualification recomputes the current
+definition digest and every repository-owned `%files` Git object instead of
+trusting the inventory's historical freshness label. A benchmark may name the
+canonical image or an admitted historical run dependency only when that exact
+SIF still matches the current recipe. Stale evidence remains visible for audit,
+but it contributes no build, runtime, benchmark, or freshness pass. Benchmark
+evidence does not imply scientific acceptance.
 
 ```console
 python3 -B containers/contracts/qualification_report.py \

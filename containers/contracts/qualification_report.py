@@ -11,6 +11,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from recipe_identity import build_context_matches
+
 try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
@@ -95,6 +97,42 @@ def catalog_identity_is_resolved(tool: dict[str, Any]) -> bool:
         and bool(str(tool.get("real_test_stage", "")))
         and license_id not in {"", "NOASSERTION"}
     )
+
+
+def published_recipe_matches_repository(
+    tool: dict[str, Any], image: dict[str, Any], repository: Path
+) -> bool:
+    """Verify the selected image against current definition and `%files` inputs."""
+    definition_value = tool.get("apptainer_definition")
+    if not isinstance(definition_value, str) or not definition_value:
+        return image.get("state") == "current"
+    definition_path = Path(definition_value)
+    source = repository / definition_path
+    if not source.is_file():
+        return False
+    definition_sha256 = sha256_file(source)
+    selected_sha256 = image.get("selected_image_sha256")
+    for candidate in image.get("candidates", []):
+        if (
+            not isinstance(candidate, dict)
+            or candidate.get("sha256") != selected_sha256
+            or candidate.get("admitted") is not True
+        ):
+            continue
+        for evidence in candidate.get("build_evidence", []):
+            if (
+                isinstance(evidence, dict)
+                and evidence.get("status") in {"built", "passed"}
+                and evidence.get("definition_sha256") == definition_sha256
+                and build_context_matches(
+                    repository,
+                    "HEAD",
+                    definition_path,
+                    evidence.get("build_context"),
+                )
+            ):
+                return True
+    return False
 
 
 def admitted_benchmark_records(
@@ -200,6 +238,7 @@ def derive_report(
     runtime_path: Path,
     runs_path: Path,
     benchmark_paths: tuple[Path, ...] = (),
+    repository: Path = Path("."),
 ) -> dict[str, Any]:
     catalog = load_catalog(catalog_path)
     inventory = load_json(inventory_path)
@@ -279,10 +318,14 @@ def derive_report(
                 and runtime_record.get("image_sha256")
                 == image.get("selected_image_sha256")
             )
+            recipe_identity_matches = published_recipe_matches_repository(
+                tool, image, repository
+            )
             build_evidence_current = (
                 inventory_catalog_matches
                 and image_identity_matches
                 and image.get("state") == "current"
+                and recipe_identity_matches
             )
             runtime_evidence_current = (
                 runtime_catalog_matches
@@ -346,6 +389,7 @@ def derive_report(
                 (runtime_inventory_matches, "runtime_inventory"),
                 (evidence_commit_agrees, "repository_commit"),
                 (image_identity_matches, "inventory_tool_identity"),
+                (recipe_identity_matches, "inventory_recipe_identity"),
                 (runtime_identity_matches, "runtime_tool_identity"),
             ):
                 if not matches:
@@ -535,6 +579,7 @@ def main() -> int:
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--runtime", type=Path, required=True)
     parser.add_argument("--runs", type=Path, required=True)
+    parser.add_argument("--repository", type=Path, default=Path("."))
     parser.add_argument(
         "--benchmark-report",
         type=Path,
@@ -557,6 +602,7 @@ def main() -> int:
             args.runtime,
             args.runs,
             tuple(args.benchmark_report),
+            args.repository,
         )
         json_content = json.dumps(report, indent=2, sort_keys=True) + "\n"
         markdown_content = render_markdown(report)

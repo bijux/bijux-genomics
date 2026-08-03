@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "qualification_report.py"
+sys.path.insert(0, str(SCRIPT.parent))
 SPEC = importlib.util.spec_from_file_location("container_qualification", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 qualification = importlib.util.module_from_spec(SPEC)
@@ -86,6 +89,91 @@ def write_benchmark_report(
 
 
 class QualificationReportTests(unittest.TestCase):
+    def test_recipe_freshness_includes_committed_files_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            definition = repository / "containers/apptainer/tool.def"
+            source = repository / "containers/tools/tool/tool"
+            definition.parent.mkdir(parents=True)
+            source.parent.mkdir(parents=True)
+            definition.write_text(
+                "Bootstrap: docker\nFrom: example@sha256:abc\n\n%files\n"
+                "    containers/tools/tool/tool /usr/local/bin/tool\n",
+                encoding="utf-8",
+            )
+            source.write_text("original\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "init", "--quiet", "--initial-branch", "main"],
+                cwd=repository,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Bijux Test"],
+                cwd=repository,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "test@bijux.io"],
+                cwd=repository,
+                check=True,
+            )
+            subprocess.run(["git", "add", "."], cwd=repository, check=True)
+            subprocess.run(
+                ["git", "commit", "--quiet", "-m", "fixture"],
+                cwd=repository,
+                check=True,
+            )
+            source_object = subprocess.run(
+                ["git", "rev-parse", "HEAD:containers/tools/tool/tool"],
+                cwd=repository,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            image = {
+                "state": "current",
+                "selected_image_sha256": "a" * 64,
+                "candidates": [
+                    {
+                        "sha256": "a" * 64,
+                        "admitted": True,
+                        "build_evidence": [
+                            {
+                                "status": "passed",
+                                "definition_sha256": qualification.sha256_file(
+                                    definition
+                                ),
+                                "build_context": [
+                                    {
+                                        "path": "containers/tools/tool/tool",
+                                        "git_object": source_object,
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+            tool = {"apptainer_definition": "containers/apptainer/tool.def"}
+
+            self.assertTrue(
+                qualification.published_recipe_matches_repository(
+                    tool, image, repository
+                )
+            )
+            source.write_text("changed\n", encoding="utf-8")
+            subprocess.run(["git", "add", "."], cwd=repository, check=True)
+            subprocess.run(
+                ["git", "commit", "--quiet", "-m", "change source"],
+                cwd=repository,
+                check=True,
+            )
+            self.assertFalse(
+                qualification.published_recipe_matches_repository(
+                    tool, image, repository
+                )
+            )
+
     def test_successful_runtime_is_not_scientific_qualification(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

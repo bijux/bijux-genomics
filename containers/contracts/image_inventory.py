@@ -216,6 +216,7 @@ def candidate_record(
                 "status": record.get("status"),
                 "repository_commit": commit,
                 "definition_sha256": definition_digest,
+                "build_context": record.get("build_context"),
                 "definition_matches_commit": recipe_at_commit == definition_digest,
                 "definition_matches_current": (
                     definition_digest == current_definition_digest

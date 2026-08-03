@@ -10,8 +10,10 @@ steps alone establishes scientific validity or release readiness.
 ## Evidence available now
 
 - [Current qualification](reports/qualification.md): the published inventory
-  and runtime campaign are stale relative to the present catalog, so they
-  contribute zero current build, runtime, or freshness passes.
+  supports 85 current runtime checks, 46 real-data checks, and one governed
+  benchmark. Only six images presently have build provenance whose recipe and
+  repository-owned build inputs can be revalidated against this commit. No
+  tool yet has scientific, security, or release acceptance.
 - [Canonical image storage](reports/image-storage.md): a previous governed
   campaign moved 14 unreferenced obsolete SIFs into a checksummed, reversible
   quarantine. Its counts describe that campaign commit, not the current tree.
@@ -19,9 +21,10 @@ steps alone establishes scientific validity or release readiness.
   commit rebuilt 87 then-retained Apptainer images. This remains historical
   build evidence while the current 85-image roster is rebuilt and published.
 - [Image inventory](reports/image-inventory.md) and [runtime
-  verification](reports/runtime-verification.md): the previous campaign's
-  admitted-image and version/help records remain auditable, but cannot support
-  current qualification until regenerated from the current catalog.
+  verification](reports/runtime-verification.md): all 85 supported tools have
+  admitted images and passing version/help records. The inventory predates
+  complete publication of repository-owned build-input identities, so those
+  historical records do not establish current recipe freshness on their own.
 - [Real executions](reports/run-evidence.md): successful, failed, and incomplete
   LUNARC attempts are all retained; scientific assessment remains separate.
 - [Scientific reports](reports/README.md): reviewed cross-tool reports state the
