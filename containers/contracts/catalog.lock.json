@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "9945687068a988d220dddbb544fb87a92642659ea56393072ef058d42942161c",
+  "source_sha256": "46353fa5a3a7d43dc068dc1f2233cb72c8b040358775c1580dfe04fffb1db060",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -293,12 +293,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/jenniferlu717/Bracken",
-      "license": "NOASSERTION",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "78a24901d40f8e9e826b3de6b7c1feee580e9fcca063e55310710bd1a2d89709",
       "pinned_commit": "c5bfec1929fe30feef21afbde67b16bda44de448",
       "apptainer_definition": "containers/apptainer/bracken.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bracken",
-      "contract_sha256": "296e75668c9a9ad3eb3b02a802e1303f7d004041c6bd508b7d9b554145ca6466"
+      "contract_sha256": "a87a9fb1fd88b25e2759517e610db600e2e72dae53d3ab49a578df506391654c"
     },
     {
       "id": "bwa",
