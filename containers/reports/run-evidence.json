@@ -1308,12 +1308,34 @@
       "source_file_count": 15,
       "source_result": "results/container-validation/fqtools/run-1121",
       "tool": "fqtools"
+    },
+    {
+      "evidence_lock_sha256": "5a292f1a9c594455d870b8ee9496bd89e1fe859b37bddb7aa0c06a61013c86d5",
+      "execution_status": "failed",
+      "repository_commit": "9467d8db6d609815c4ffe1b5c8e4719b2be58b71",
+      "run_id": "run-1122",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458665",
+      "source_file_count": 9,
+      "source_result": "results/container-validation/run-1122-trim_galore",
+      "tool": "trim_galore"
+    },
+    {
+      "evidence_lock_sha256": "f63f717bd250775606d022aa47e3c117c77e9d01e342f1904f926e20d8d89140",
+      "execution_status": "failed",
+      "repository_commit": "9467d8db6d609815c4ffe1b5c8e4719b2be58b71",
+      "run_id": "run-1123",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458666",
+      "source_file_count": 9,
+      "source_result": "results/container-validation/run-1123-trimmomatic",
+      "tool": "trimmomatic"
     }
   ],
   "schema_version": "bijux.container.run_evidence_index.v1",
   "summary": {
     "execution_status": {
-      "failed": 32,
+      "failed": 34,
       "incomplete": 1,
       "passed": 86
     },
@@ -1321,10 +1343,10 @@
       "run-1081",
       "run-1085"
     ],
-    "run_count": 119,
+    "run_count": 121,
     "scientific_status": {
-      "not_assessed": 119
+      "not_assessed": 121
     },
-    "tool_count": 62
+    "tool_count": 64
   }
 }
