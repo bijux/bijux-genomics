@@ -1143,6 +1143,27 @@ def operational_submission_root(
     )
 
 
+def require_current_manifest_path(
+    manifest_path: Path,
+    active_repository: Path,
+    study_root: Path,
+) -> None:
+    allowed_roots = (
+        active_repository / "containers" / "runs",
+        study_root / "containers" / "evidence" / "specifications",
+    )
+    for root in allowed_roots:
+        try:
+            manifest_path.relative_to(root)
+            return
+        except ValueError:
+            continue
+    rendered_roots = ", ".join(str(root) for root in allowed_roots)
+    raise ContractError(
+        f"current manifest must remain under one of: {rendered_roots}: {manifest_path}"
+    )
+
+
 def manifest_contract_paths(
     manifest_path: Path,
     governance_override: Path | None,
@@ -1176,10 +1197,10 @@ def submit_manifest(
         )
         expected_name = contract["run_id"]
     else:
-        require_under(
+        require_current_manifest_path(
             manifest_path,
-            governance["active_repository"] / "containers" / "runs",
-            "tracked run",
+            governance["active_repository"],
+            governance["study_root"],
         )
         expected_name = f"{contract['run_id']}-{contract['pipeline']['run']['tool']}"
     if manifest_path.name != expected_name:

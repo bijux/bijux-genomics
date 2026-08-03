@@ -430,6 +430,32 @@ class CurrentPipelineContractTests(unittest.TestCase):
             ):
                 container_validation.validate_contracts(*paths)
 
+    def test_current_manifest_accepts_governed_execution_specifications(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            active = root / "repository"
+            study = root / "study"
+
+            container_validation.require_current_manifest_path(
+                study
+                / "containers/evidence/specifications/run-2000-tool",
+                active,
+                study,
+            )
+
+    def test_current_manifest_rejects_operator_scratch_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            with self.assertRaisesRegex(
+                container_validation.ContractError,
+                "current manifest must remain under one of",
+            ):
+                container_validation.require_current_manifest_path(
+                    root / "scratch/run-2000-tool",
+                    root / "repository",
+                    root / "study",
+                )
+
     def test_metric_evaluation_records_observed_value(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

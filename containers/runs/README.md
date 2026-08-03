@@ -70,6 +70,37 @@ The historical nested result layout (`<tool>/run-<id>`) is accepted for
 admission only. New results use the flat `run-<id>-<tool>` identity so a run is
 one independently movable and inspectable result directory.
 
+## Submit a current run
+
+An unexecuted specification belongs under the governed execution-site path
+`STUDY/containers/evidence/specifications/run-<id>-<tool>`, not in the Git
+checkout. This avoids an impossible self-reference in which a tracked pipeline
+would need to contain the commit that contains itself. The specification pins
+an already frozen repository commit, immutable images and inputs, stable
+container mount names, predefined metrics, and non-secret credential
+references.
+
+Validate and submit it on LUNARC:
+
+```console
+specification=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1122-trim_galore
+
+python3 containers/contracts/container_validation.py validate \
+  --governance containers/contracts/sites/lunarc.yml \
+  --pipeline "${specification}/config-pipeline.yml" \
+  --credentials "${specification}/config-credential.yml"
+
+python3 containers/contracts/container_validation.py submit \
+  --manifest "${specification}" \
+  --governance containers/contracts/sites/lunarc.yml
+```
+
+Submission copies the resolved contracts and generated Slurm script to the
+immutable operational evidence directory. After the job becomes terminal,
+collect scheduler accounting and import the completed flat result into this
+directory. Only completed or failed evidence is tracked; provisional files do
+not masquerade as a replay record.
+
 ## Migrate historical result paths
 
 The layout migration verifies every result file against the tracked evidence
