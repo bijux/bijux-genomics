@@ -145,15 +145,14 @@ def build_one(
     commit: str,
     governance_path: Path,
     repository: Path,
-    study_root: Path,
+    containers_root: Path,
 ) -> dict[str, Any]:
     definition = repository / "containers" / "apptainer" / f"{tool}.def"
     definition_digest = sha256_file(definition)
-    image_root = study_root / "containers" / "apptainer"
+    image_root = containers_root / "apptainer"
     staged = image_root / ".building" / f"{tool}-{definition_digest[:12]}.sif"
     log = (
-        study_root
-        / "containers"
+        containers_root
         / "evidence"
         / "build-logs"
         / f"{tool}-{definition_digest[:12]}-{commit[:12]}.log"
@@ -252,7 +251,7 @@ def execute_campaign(
                 commit,
                 governance_path,
                 repository,
-                governance["study_root"],
+                governance["containers_root"],
             ): tool
             for tool in pending
         }

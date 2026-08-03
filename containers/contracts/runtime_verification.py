@@ -102,7 +102,7 @@ def prepare_execution(
         image = Path(str(row.get("selected_image", ""))).resolve()
         require_under(
             image,
-            governance["study_root"] / "containers" / "apptainer",
+            governance["containers_root"] / "apptainer",
             f"{tool_id} image",
         )
         image_sha256 = str(row.get("selected_image_sha256", ""))
@@ -234,7 +234,7 @@ def execute_verification(
     if execution.get("status") != "prepared":
         raise ContractError("runtime execution must be in prepared state")
     governance = load_governance(governance_path)
-    log_root = governance["study_root"] / "containers" / "evidence" / "runtime-logs"
+    log_root = governance["containers_root"] / "evidence" / "runtime-logs"
     execution["status"] = "running"
     execution["started_at_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
     execution["worker_count"] = jobs

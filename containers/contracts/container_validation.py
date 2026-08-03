@@ -201,17 +201,35 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         )
 
     paths = require_mapping(config, "paths")
-    require_keys(
-        paths,
-        {"study_root", "active_repository", "frozen_repositories"},
-        "governance paths",
-    )
+    required_paths = {"study_root", "active_repository", "frozen_repositories"}
+    allowed_paths = required_paths | {"containers_root", "data_root", "results_root"}
+    missing_paths = required_paths.difference(paths)
+    unknown_paths = set(paths).difference(allowed_paths)
+    if missing_paths:
+        raise ContractError(
+            f"governance paths is missing required fields: {sorted(missing_paths)}"
+        )
+    if unknown_paths:
+        raise ContractError(
+            f"governance paths contains unknown fields: {sorted(unknown_paths)}"
+        )
     resolved_paths = {}
-    for key in ("study_root", "active_repository", "frozen_repositories"):
+    for key in required_paths:
         declared = Path(require_text(paths, key))
         if not declared.is_absolute():
             raise ContractError(f"paths.{key} must be absolute")
         resolved_paths[key] = declared.resolve()
+    derived_roots = {
+        "containers_root": resolved_paths["study_root"] / "containers",
+        "data_root": resolved_paths["study_root"] / "data",
+        "results_root": resolved_paths["study_root"] / "results",
+    }
+    for key, default in derived_roots.items():
+        declared = Path(str(paths.get(key, default)))
+        if not declared.is_absolute():
+            raise ContractError(f"paths.{key} must be absolute")
+        resolved_paths[key] = declared.resolve()
+        require_under(resolved_paths[key], resolved_paths["study_root"], f"paths.{key}")
     if resolved_paths["active_repository"] == resolved_paths["frozen_repositories"]:
         raise ContractError("active and frozen repository roots must differ")
     if not resolved_paths["study_root"].is_dir():
@@ -254,6 +272,9 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         "site_id": site["id"],
         "hostname": hostname,
         "study_root": resolved_paths["study_root"],
+        "containers_root": resolved_paths["containers_root"],
+        "data_root": resolved_paths["data_root"],
+        "results_root": resolved_paths["results_root"],
         "active_repository": resolved_paths["active_repository"],
         "frozen_repositories": resolved_paths["frozen_repositories"],
         "apptainer_architecture": architecture,
@@ -414,10 +435,10 @@ def validate_credentials(config: dict[str, Any]) -> None:
 def validate_completed_dependencies(
     dependencies: list[dict[str, Any]],
     inputs: list[dict[str, Any]],
-    study_root: Path,
+    results_root: Path,
 ) -> list[dict[str, Any]]:
     """Bind upstream results to passed immutable evidence before submission."""
-    result_root = (study_root / "results" / "container-validation").resolve()
+    result_root = (results_root / "container-validation").resolve()
     records = []
     for dependency in dependencies:
         run_id = dependency["run_id"]
@@ -599,7 +620,7 @@ def validate_pipeline(
     image = require_mapping(config, "image")
     require_keys(image, {"path", "sha256"}, "image")
     image_path = resolved(require_text(image, "path"))
-    require_under(image_path, study_root / "containers" / "apptainer", "image.path")
+    require_under(image_path, governance["containers_root"] / "apptainer", "image.path")
     if not image_path.is_file() or image_path.suffix != ".sif":
         raise ContractError(
             f"image.path must be an existing immutable SIF: {image_path}"
@@ -649,9 +670,9 @@ def validate_pipeline(
             raise ContractError(f"data input {index} path must be absolute")
         input_path = resolved(str(declared_input_path))
         input_root = (
-            study_root / "results"
+            governance["results_root"]
             if input_kind == "upstream_result"
-            else study_root / "data"
+            else governance["data_root"]
         )
         require_under(input_path, input_root, f"data.inputs[{index}].path")
         if not input_path.is_file():
@@ -693,7 +714,7 @@ def validate_pipeline(
         dependencies = validate_completed_dependencies(
             dependencies,
             inputs,
-            study_root,
+            governance["results_root"],
         )
 
     commands = require_mapping(config, "commands")
@@ -712,7 +733,7 @@ def validate_pipeline(
     result_root = resolved(str(declared_result_root))
     require_under(
         result_root,
-        study_root / "results" / "container-validation",
+        governance["results_root"] / "container-validation",
         "outputs.result_root",
     )
     expected_result_name = f"{run_id}-{run['tool']}" if is_current else run_id
@@ -1264,8 +1285,7 @@ def operational_submission_root(
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V1:
         return manifest_path
     return (
-        contract["governance"]["study_root"]
-        / "containers"
+        contract["governance"]["containers_root"]
         / "evidence"
         / "submissions"
         / f"{contract['run_id']}-{contract['pipeline']['run']['tool']}"
@@ -1275,11 +1295,11 @@ def operational_submission_root(
 def require_current_manifest_path(
     manifest_path: Path,
     active_repository: Path,
-    study_root: Path,
+    containers_root: Path,
 ) -> None:
     allowed_roots = (
         active_repository / "containers" / "runs",
-        study_root / "containers" / "evidence" / "specifications",
+        containers_root / "evidence" / "specifications",
     )
     for root in allowed_roots:
         try:
@@ -1333,7 +1353,7 @@ def submit_manifest(
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V1:
         require_under(
             manifest_path,
-            governance["study_root"] / "containers" / "manifests",
+            governance["containers_root"] / "manifests",
             "historical manifest",
         )
         expected_name = contract["run_id"]
@@ -1341,7 +1361,7 @@ def submit_manifest(
         require_current_manifest_path(
             manifest_path,
             governance["active_repository"],
-            governance["study_root"],
+            governance["containers_root"],
         )
         expected_name = f"{contract['run_id']}-{contract['pipeline']['run']['tool']}"
     if manifest_path.name != expected_name:

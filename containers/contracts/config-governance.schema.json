@@ -20,6 +20,9 @@
       "required": ["study_root", "active_repository", "frozen_repositories"],
       "properties": {
         "study_root": {"type": "string", "pattern": "^/"},
+        "containers_root": {"type": "string", "pattern": "^/"},
+        "data_root": {"type": "string", "pattern": "^/"},
+        "results_root": {"type": "string", "pattern": "^/"},
         "active_repository": {"type": "string", "pattern": "^/"},
         "frozen_repositories": {"type": "string", "pattern": "^/"}
       },

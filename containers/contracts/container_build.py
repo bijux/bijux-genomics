@@ -135,8 +135,7 @@ def finalize_image(
         repository, repository_commit, committed_definition
     )
 
-    study_root: Path = governance["study_root"]
-    image_root = study_root / "containers" / "apptainer"
+    image_root = governance["containers_root"] / "apptainer"
     staged_root = image_root / ".building"
     image_path = image_path.resolve()
     require_under(
@@ -147,7 +146,7 @@ def finalize_image(
     if not image_path.is_file() or image_path.suffix != ".sif":
         raise ContractError(f"candidate image is not a SIF file: {image_path}")
 
-    evidence_root = study_root / "containers" / "evidence"
+    evidence_root = governance["containers_root"] / "evidence"
     build_log_path = build_log_path.resolve()
     require_under(build_log_path, evidence_root / "build-logs", "build log")
     if not build_log_path.is_file() or build_log_path.stat().st_size == 0:

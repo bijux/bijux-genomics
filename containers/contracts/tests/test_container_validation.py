@@ -58,6 +58,13 @@ class GovernanceContractTests(unittest.TestCase):
         self.assertEqual(resolved["site_id"], "test-cluster")
         self.assertEqual(resolved["study_root"], (root / "study").resolve())
         self.assertEqual(
+            resolved["containers_root"], (root / "study" / "containers").resolve()
+        )
+        self.assertEqual(resolved["data_root"], (root / "study" / "data").resolve())
+        self.assertEqual(
+            resolved["results_root"], (root / "study" / "results").resolve()
+        )
+        self.assertEqual(
             resolved["active_repository"], (root / "active-repository").resolve()
         )
         self.assertEqual(resolved["slurm_account"], "science")
@@ -76,6 +83,47 @@ class GovernanceContractTests(unittest.TestCase):
                 ),
             ):
                 container_validation.validate_governance(self.governance(root))
+
+    def test_explicit_product_roots_remain_within_the_study(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            paths = governance["paths"]
+            assert isinstance(paths, dict)
+            paths.update(
+                {
+                    "containers_root": str(root / "study" / "container-products"),
+                    "data_root": str(root / "study" / "scientific-inputs"),
+                    "results_root": str(root / "study" / "scientific-results"),
+                }
+            )
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                resolved = container_validation.validate_governance(governance)
+
+        self.assertEqual(
+            resolved["containers_root"],
+            (root / "study" / "container-products").resolve(),
+        )
+
+    def test_product_root_outside_the_study_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            paths = governance["paths"]
+            assert isinstance(paths, dict)
+            paths["results_root"] = str(root / "outside-results")
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "paths.results_root must remain under",
+                ),
+            ):
+                container_validation.validate_governance(governance)
 
     def test_sbatch_cluster_suffix_is_removed_from_numeric_identity(self) -> None:
         self.assertEqual(
@@ -452,7 +500,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 study
                 / "containers/evidence/specifications/run-2000-tool",
                 active,
-                study,
+                study / "containers",
             )
 
     def test_current_manifest_rejects_operator_scratch_paths(self) -> None:
