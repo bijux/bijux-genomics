@@ -99,6 +99,26 @@ python3 -B containers/contracts/container_validation.py freeze-repository \
   --namespace benchmark-campaigns
 ```
 
+Prepare the non-secret pipeline, explicit credential-reference contract, and
+Slurm submission from that frozen source, then submit it:
+
+```console
+specification="$STUDY/data/evidence/materializations/$commit/human-short-read-diversity"
+python3 -B benchmarks/corpus_materialization_spec.py prepare \
+  --governance containers/contracts/sites/lunarc.yml \
+  --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
+  --repository . \
+  --frozen-repository "$frozen" \
+  --output "$specification" \
+  --jobs 4
+python3 -B benchmarks/corpus_materialization_spec.py submit \
+  --specification "$specification"
+```
+
+This transfer job uses site Python only for checksum-pinned public data
+acquisition; it runs no scientific application. FASTQ, BAM, and VCF stage
+campaigns remain strictly container-only.
+
 The materializer streams each file into a private partial path, verifies the
 declared compressed byte count and ENA MD5, and atomically publishes it. It
 then validates every gzip stream and FASTQ record, records read and base
