@@ -7,15 +7,11 @@
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION
-ARG OCI_CREATED
 ARG TOOL_VERSION=0.39
-RUN test -n "${OCI_REVISION}" && \
-    test -n "${OCI_CREATED}" && \
-    test "${TOOL_VERSION}" = '0.39'
+RUN test "${TOOL_VERSION}" = '0.39'
 LABEL org.opencontainers.image.source="https://github.com/usadellab/Trimmomatic" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.revision="e77bb89c70f60cb139393a22e89af47c5c1c69e8" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
       org.opencontainers.image.licenses="GPL-3.0-only" \
       org.opencontainers.image.version="${TOOL_VERSION}" \
       org.opencontainers.image.tool="trimmomatic" \
