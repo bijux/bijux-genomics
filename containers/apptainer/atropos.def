@@ -20,6 +20,7 @@ From: python@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses "MIT AND CC0-1.0"
     org.opencontainers.image.version 1.1.31
+    io.bijux.tool.version 1.1.31
     org.opencontainers.image.tool atropos
     org.opencontainers.image.title Atropos
 

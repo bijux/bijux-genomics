@@ -24,6 +24,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 4.1.1
+    io.bijux.tool.version 4.1.1
     org.opencontainers.image.tool metaphlan
     org.opencontainers.image.title metaphlan
 %environment

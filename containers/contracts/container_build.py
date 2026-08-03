@@ -82,6 +82,47 @@ def immutable_image_name(
     return f"{tool}-{version}-{architecture.replace('/', '-')}-{digest[:12]}.sif"
 
 
+def inspection_labels(inspection: object) -> dict[str, str]:
+    """Return the immutable SIF label map or reject malformed inspection output."""
+    if not isinstance(inspection, dict):
+        raise ContractError("Apptainer inspection root must be an object")
+    data = inspection.get("data")
+    attributes = data.get("attributes") if isinstance(data, dict) else None
+    labels = attributes.get("labels") if isinstance(attributes, dict) else None
+    if not isinstance(labels, dict) or not all(
+        isinstance(key, str) and isinstance(value, str)
+        for key, value in labels.items()
+    ):
+        raise ContractError("Apptainer inspection lacks a string label map")
+    return labels
+
+
+def validate_inspection_identity(
+    inspection: object,
+    tool: str,
+    version: str,
+) -> None:
+    """Require labels that cannot be confused with Docker base-image metadata."""
+    labels = inspection_labels(inspection)
+    expected = {
+        "org.opencontainers.image.tool": tool,
+        "io.bijux.tool.version": version,
+        "org.opencontainers.image.created": "governed-by-build-evidence",
+    }
+    for label, value in expected.items():
+        observed = labels.get(label)
+        if observed != value:
+            raise ContractError(
+                f"candidate image label {label} is {observed!r}, expected {value!r}"
+            )
+    revision = labels.get("org.opencontainers.image.revision", "").strip()
+    if revision.lower() in {"", "unknown", "pending", "latest"}:
+        raise ContractError("candidate image lacks an immutable source revision label")
+    source = labels.get("org.opencontainers.image.source", "")
+    if not source.startswith("https://"):
+        raise ContractError("candidate image lacks an HTTPS upstream source label")
+
+
 def finalize_image(
     governance_path: Path,
     tool: str,
@@ -191,6 +232,7 @@ def finalize_image(
         inspection_record = json.loads(inspection.stdout)
     except json.JSONDecodeError as exc:
         raise ContractError(f"Apptainer inspection is not valid JSON: {exc}") from exc
+    validate_inspection_identity(inspection_record, tool, version)
 
     definition_sha256 = hashlib.sha256(committed_definition).hexdigest()
     identity = f"{tool}-{version}-{image_sha256[:12]}"

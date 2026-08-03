@@ -19,6 +19,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses Apache-2.0
     org.opencontainers.image.version r1206
+    io.bijux.tool.version r1206
     org.opencontainers.image.tool ibdseq
     org.opencontainers.image.title IBDseq
 

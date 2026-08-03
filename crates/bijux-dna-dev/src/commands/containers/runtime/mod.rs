@@ -45,7 +45,7 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         .map(|tool| (table_string(tool, "id"), table_string(tool, "upstream")))
         .collect::<BTreeMap<_, _>>();
     let mut errors = Vec::new();
-    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)")?;
+    let version_re = Regex::new(r"io\.bijux\.tool\.version\s+([^\s]+)")?;
     let source_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.source\s+([^\s]+)\s*$")?;
     let revision_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.revision\s+([^\s]+)\s*$")?;
     let created_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.created\s+([^\s]+)\s*$")?;
@@ -87,7 +87,10 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         }
         for (alias, keys) in [
             ("tool", vec!["org.opencontainers.image.tool", "tool"]),
-            ("version", vec!["org.opencontainers.image.version", "version"]),
+            (
+                "version",
+                vec!["io.bijux.tool.version", "org.opencontainers.image.version", "version"],
+            ),
             ("source", vec!["org.opencontainers.image.source", "source"]),
             ("license_ref", vec!["org.opencontainers.image.licenses", "license_ref"]),
             ("build_date", vec!["org.opencontainers.image.created", "build_date"]),
@@ -349,7 +352,7 @@ pub(super) fn check_apptainer_version_label_sync(
     }
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
-    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)")?;
+    let version_re = Regex::new(r"io\.bijux\.tool\.version\s+([^\n\r]+)")?;
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
         let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
@@ -360,7 +363,7 @@ pub(super) fn check_apptainer_version_label_sync(
         };
         let expected = table_string(row, "version");
         let Some(captures) = version_re.captures(&text) else {
-            errors.push(format!("{rel}: missing org.opencontainers.image.version label"));
+            errors.push(format!("{rel}: missing io.bijux.tool.version label"));
             continue;
         };
         let label_value = captures

@@ -3,13 +3,14 @@ use super::{
     BTreeSet, Context, PathBuf, Result, WalkDir, Workspace,
 };
 
-pub(super) fn canonical_container_label_keys() -> [&'static str; 7] {
+pub(super) fn canonical_container_label_keys() -> [&'static str; 8] {
     [
         "org.opencontainers.image.source",
         "org.opencontainers.image.revision",
         "org.opencontainers.image.created",
         "org.opencontainers.image.licenses",
         "org.opencontainers.image.version",
+        "io.bijux.tool.version",
         "org.opencontainers.image.tool",
         "org.opencontainers.image.title",
     ]

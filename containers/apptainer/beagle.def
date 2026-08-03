@@ -19,6 +19,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 5.4
+    io.bijux.tool.version 5.4
     org.opencontainers.image.tool beagle
     org.opencontainers.image.title beagle
 

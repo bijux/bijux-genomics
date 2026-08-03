@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 EXECUTOR = Path(__file__).parents[1] / "container_validation.py"
@@ -947,6 +948,49 @@ class CurrentPipelineContractTests(unittest.TestCase):
 
 
 class BuildAdmissionTests(unittest.TestCase):
+    def inspection(
+        self,
+        tool: str = "adapterremoval",
+        version: str = "2.3.4",
+    ) -> dict[str, Any]:
+        return {
+            "data": {
+                "attributes": {
+                    "labels": {
+                        "org.opencontainers.image.tool": tool,
+                        "io.bijux.tool.version": version,
+                        "org.opencontainers.image.created": "governed-by-build-evidence",
+                        "org.opencontainers.image.revision": "a" * 40,
+                        "org.opencontainers.image.source": (
+                            "https://github.com/MikkelSchubert/adapterremoval"
+                        ),
+                        "org.opencontainers.image.version": "24.04",
+                    }
+                }
+            }
+        }
+
+    def test_image_identity_uses_tool_version_instead_of_base_version(self) -> None:
+        container_build.validate_inspection_identity(
+            self.inspection(),
+            "adapterremoval",
+            "2.3.4",
+        )
+
+    def test_image_identity_rejects_missing_tool_version(self) -> None:
+        inspection = self.inspection()
+        labels = inspection["data"]["attributes"]["labels"]
+        del labels["io.bijux.tool.version"]
+        with self.assertRaisesRegex(
+            container_build.ContractError,
+            "io.bijux.tool.version",
+        ):
+            container_build.validate_inspection_identity(
+                inspection,
+                "adapterremoval",
+                "2.3.4",
+            )
+
     def test_immutable_name_carries_runtime_and_content_identity(self) -> None:
         name = container_build.immutable_image_name(
             "adapterremoval",

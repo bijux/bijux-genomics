@@ -18,6 +18,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses MIT
     org.opencontainers.image.version 2.5.2
+    io.bijux.tool.version 2.5.2
     org.opencontainers.image.tool bamtools
     org.opencontainers.image.title BamTools
 
