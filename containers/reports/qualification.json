@@ -3,11 +3,11 @@
   "sources": {
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "20082b58f1b55e0bff85077823b4bdf449876704850f975a9a5d5a7f579849e1"
+      "sha256": "72935c1387ac27debb857a7929219815f9bc083e4830f46ee9355c39606ce43f"
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
-      "sha256": "8c1a4b423ed066c43378f39cc41669861bc38d86a167fbd719bf676177508441"
+      "sha256": "3fc7baa902c00d717736c23d6019723e81eb76777a58e1c5038a2ad2798ff127"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
@@ -15,7 +15,7 @@
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
-      "sha256": "c2a301849e09f0b6db089369c52a283a7a51260e17ae3106674b470656f2630f"
+      "sha256": "5f1a0dd78a6608ed68bee66bd004fdc2624370a3ab13630ca541449b6e22258a"
     }
   },
   "summary": {
@@ -1914,7 +1914,7 @@
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "dimensions": {

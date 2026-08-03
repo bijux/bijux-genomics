@@ -1,7 +1,7 @@
 {
-  "catalog_sha256": "20082b58f1b55e0bff85077823b4bdf449876704850f975a9a5d5a7f579849e1",
-  "created_at_utc": "2026-08-03T07:47:05.797597+00:00",
-  "repository_commit": "0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1",
+  "catalog_sha256": "72935c1387ac27debb857a7929219815f9bc083e4830f46ee9355c39606ce43f",
+  "created_at_utc": "2026-08-03T07:58:42.916017+00:00",
+  "repository_commit": "3f552809dca41f718ccfe75ea16105143f7b3be0",
   "schema_version": "bijux.container.image_inventory.v1",
   "staged_images": [],
   "summary": {
@@ -2257,7 +2257,7 @@
           "immutable_name": true,
           "name": "picard-3.3.0-linux-amd64-25435fcde104.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/picard-3.3.0-linux-amd64-25435fcde104.sif",
-          "real_run_references": 0,
+          "real_run_references": 1,
           "sha256": "25435fcde1049d61aca61e59524268d1220dafa336d55c874cbef506cd811ce9",
           "size_bytes": 160747520
         }
@@ -2586,29 +2586,29 @@
             {
               "definition_matches_commit": true,
               "definition_matches_current": true,
-              "definition_sha256": "38b9141b24186cc1c3d78aa5bcc8b5efcda026e0d856f613880f1594b029fdf4",
+              "definition_sha256": "376c738aac10721edc4bd3eaba304beb35febc9d0946a2e4d0d1a18bf2eef4c5",
               "image_matches": true,
-              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/rxy-1.0.0-af27037345c1.build.json",
-              "repository_commit": "99f8d9c9f33ec36ad585fb6b899fc4b3cb49f4b5",
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/rxy-2.0.0-8dbfa75e2892.build.json",
+              "repository_commit": "3f552809dca41f718ccfe75ea16105143f7b3be0",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "rxy-1.0.0-linux-amd64-af27037345c1.sif",
-          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/rxy-1.0.0-linux-amd64-af27037345c1.sif",
+          "name": "rxy-2.0.0-linux-amd64-8dbfa75e2892.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/rxy-2.0.0-linux-amd64-8dbfa75e2892.sif",
           "real_run_references": 0,
-          "sha256": "af27037345c1f9eacce856e5f27ad5b3c7b9cbd0efa90ee7a616d53d3c813401",
+          "sha256": "8dbfa75e28927582f0e2831b9906a9f8eb61ac168396c886dea72699f8cc88d7",
           "size_bytes": 46592000
         }
       ],
-      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/rxy-1.0.0-linux-amd64-af27037345c1.sif",
-      "selected_image_sha256": "af27037345c1f9eacce856e5f27ad5b3c7b9cbd0efa90ee7a616d53d3c813401",
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/rxy-2.0.0-linux-amd64-8dbfa75e2892.sif",
+      "selected_image_sha256": "8dbfa75e28927582f0e2831b9906a9f8eb61ac168396c886dea72699f8cc88d7",
       "state": "current",
       "support_disposition": "retained",
       "tool": "rxy",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "apptainer_supported": true,

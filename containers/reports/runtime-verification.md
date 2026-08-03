@@ -8,12 +8,12 @@ benchmark, security, or release qualification.
 
 ## Evidence boundary
 
-- Repository commit: `0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1`
+- Repository commit: `3f552809dca41f718ccfe75ea16105143f7b3be0`
 - Site: `lunarc` on `cosmos3.int.lunarc`
 - Overall status: **passed**
 - Tool results: **passed 87**, **failed 0**
-- Catalog SHA-256: `20082b58f1b55e0bff85077823b4bdf449876704850f975a9a5d5a7f579849e1`
-- Image inventory SHA-256: `46ea7a886345c039adfd7fc43b037dd56e3deea9efbb17b2c73c29b04d6f33e9`
+- Catalog SHA-256: `72935c1387ac27debb857a7929219815f9bc083e4830f46ee9355c39606ce43f`
+- Image inventory SHA-256: `3fc7baa902c00d717736c23d6019723e81eb76777a58e1c5038a2ad2798ff127`
 - Per-command timeout: **30 seconds**
 - Runtime network: **disabled**
 
@@ -91,7 +91,7 @@ paths and SHA-256 digests are retained in the machine-readable companion
 | `pydamage` | `1.0` | passed | passed | **passed** |
 | `qualimap` | `2.3` | passed | passed | **passed** |
 | `rcorrector` | `1.0.7` | passed | passed | **passed** |
-| `rxy` | `1.0.0` | passed | passed | **passed** |
+| `rxy` | `2.0.0` | passed | passed | **passed** |
 | `samtools` | `1.20` | passed | passed | **passed** |
 | `schmutzi` | `1.5.4` | passed | passed | **passed** |
 | `seqfu` | `1.26.0` | passed | passed | **passed** |

@@ -78,7 +78,7 @@ qualification remain independent requirements.
 | `musket` | `1.1` | retained | **current** | 1 |
 | `ngsbriggs` | `0.01` | retained | **current** | 2 |
 | `pear` | `0.9.6` | retained | **current** | 2 |
-| `picard` | `3.3.0` | retained | **current** | 0 |
+| `picard` | `3.3.0` | retained | **current** | 1 |
 | `plink` | `1.90b7.2` | retained | **current** | 1 |
 | `plink2` | `2.00a6` | retained | **current** | 2 |
 | `pmdtools` | `0.60` | retained | **current** | 1 |
@@ -87,7 +87,7 @@ qualification remain independent requirements.
 | `pydamage` | `1.0` | retained | **current** | 5 |
 | `qualimap` | `2.3` | retained | **current** | 3 |
 | `rcorrector` | `1.0.7` | retained | **current** | 0 |
-| `rxy` | `1.0.0` | retained | **current** | 0 |
+| `rxy` | `2.0.0` | retained | **current** | 0 |
 | `samtools` | `1.20` | retained | **current** | 14 |
 | `schmutzi` | `1.5.4` | retained | **current** | 0 |
 | `seqfu` | `1.26.0` | retained | **current** | 1 |

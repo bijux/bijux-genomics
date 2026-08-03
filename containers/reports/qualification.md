@@ -105,7 +105,7 @@ permitted. Unsupported tools use `n/a`.
 | `pydamage` | `1.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `qualimap` | `2.3` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `rcorrector` | `1.0.7` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
-| `rxy` | `1.0.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `rxy` | `2.0.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `samtools` | `1.20` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `schmutzi` | `1.5.4` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `seqfu` | `1.26.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
