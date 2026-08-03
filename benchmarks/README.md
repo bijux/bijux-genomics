@@ -87,6 +87,17 @@ python3 -B benchmarks/corpus_materialization.py \
   --jobs 4
 ```
 
+For a queued materialization, first freeze only the benchmark-owned source at
+the exact clean commit:
+
+```console
+python3 -B containers/contracts/container_validation.py freeze-repository \
+  --governance containers/contracts/sites/lunarc.yml \
+  --commit "$commit" \
+  --scope sources \
+  --path benchmarks
+```
+
 The materializer streams each file into a private partial path, verifies the
 declared compressed byte count and ENA MD5, and atomically publishes it. It
 then validates every gzip stream and FASTQ record, records read and base

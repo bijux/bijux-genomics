@@ -1899,6 +1899,12 @@ def parser() -> argparse.ArgumentParser:
     freeze = commands.add_parser("freeze-repository")
     freeze.add_argument("--governance", type=Path, required=True)
     freeze.add_argument("--commit", required=True)
+    freeze.add_argument(
+        "--scope",
+        choices=("contracts", "sources", "complete"),
+        default="contracts",
+    )
+    freeze.add_argument("--path", action="append", default=[])
     collect = commands.add_parser("collect-accounting")
     collect.add_argument("--manifest", type=Path, required=True)
     collect.add_argument("--governance", type=Path)
@@ -1925,7 +1931,14 @@ def main() -> int:
         if args.command == "execute":
             return execute(args.governance, args.pipeline, args.credentials)
         if args.command == "freeze-repository":
-            print(freeze_repository(args.commit, args.governance))
+            print(
+                freeze_repository(
+                    args.commit,
+                    args.governance,
+                    checkout_scope=args.scope,
+                    checkout_paths=tuple(args.path),
+                )
+            )
             return 0
         if args.command == "collect-accounting":
             print(collect_accounting(args.manifest, args.governance))
