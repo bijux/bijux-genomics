@@ -1,0 +1,18 @@
+schema_version: bijux.container.pipeline.v1
+run: {id: run-1023, campaign: horse-wgs-container-qualification, corpus: ena-prjeb10854-err1021817-read-prefix-100000, sample: ERR1021817, domain: fastq, stage: fastq.deduplicate, tool: fastuniq, operator: bijan}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/8cee26d799267731746bd3b1679af4f4c8f8f1cc, commit: 8cee26d799267731746bd3b1679af4f4c8f8f1cc, clean: true}
+image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastuniq-1.1-linux-amd64-acd5448128a3.sif, sha256: acd5448128a3cb760ca97ce9ba38e87275e994c6434d33e7c3b04e2b35a3632e}
+data:
+  inputs:
+    - {id: fastuniq-pair-list, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/container-validation/fastuniq/ERR1021817.read-prefix-100000.inputs.txt, sha256: 76ecf9fe7c60fec84a68cbdb96f88903e8369fb0e96586d2c71a0deace8e594e}
+    - {id: fqtools-run-1021-mate1, kind: upstream_result, path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fqtools/run-1021/mate1.fastq, sha256: f95166df34bf2c3ce3b8641f62068a3ab1e3a9bbb1ec71c570035b7d844588e2}
+    - {id: fqtools-run-1022-mate2, kind: upstream_result, path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fqtools/run-1022/mate2.fastq, sha256: 6aeb5d35367d230e90f5709899411f3bcae1bde280d8409931af7ea398f75acc}
+commands:
+  version: [fastuniq, --version]
+  help: [fastuniq, --help]
+  real: [fastuniq, -i, /home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/container-validation/fastuniq/ERR1021817.read-prefix-100000.inputs.txt, -t, q, -o, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastuniq/run-1023/unique_1.fastq, -p, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastuniq/run-1023/unique_2.fastq]
+  negative: [fastuniq, -i, /governed-missing-inputs.txt, -t, q, -o, /tmp/missing.fastq]
+outputs: {result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastuniq/run-1023, required_files: [unique_1.fastq, unique_2.fastq]}
+resources: {account: lu2026-2-20, partition: lu48, cpus: 4, memory_mb: 8192, walltime: '00:30:00', scratch_mb: 2048}
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance: {version_regex: '^1[.]1$', negative_exit_nonzero: true}

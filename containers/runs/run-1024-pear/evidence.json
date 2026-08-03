@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "pear",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "4c72a7cb68a90b5a009787f5d837601801e910c92e695c19105854a8fe2e5393"
+    },
+    "negative": {
+      "argv": [
+        "pear",
+        "-f",
+        "/governed-missing-r1.fastq.gz",
+        "-r",
+        "/governed-missing-r2.fastq.gz",
+        "-o",
+        "/tmp/missing"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "ace458d2b610bd3bd5507e968426314d1e56e10861d08aecd1f73d27c4546f67",
+      "stdout_sha256": "bd9d05ebd2dc9a2eb5723b6fcd8f493a10161de22e41e96a6bf351a12c9e7dbf"
+    },
+    "real": {
+      "argv": [
+        "pear",
+        "-f",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "-r",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/pear/run-1024/reads",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7667c5052c203b952f2f2578ecaef37e27c032a33e3c0aba24d7c75e8a3ab1d9"
+    },
+    "version": {
+      "argv": [
+        "pear",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "fd51233354c9a61adaf49572b45f44f7e9cc76fc2465ea25beca00ef95856ee1"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pear-0.9.6-linux-amd64-5ee0d036b5c0.sif",
+    "sha256": "5ee0d036b5c05228c189d4b3aa39baf5cd47abeba679e6ae2987c9ddfe1a7e10",
+    "size_bytes": 134995968
+  },
+  "inputs": [
+    {
+      "id": "err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "err1021817-read-prefix-100000-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "reads.assembled.fastq",
+      "sha256": "c4feb05060887f4ef17fc2f02da536eff3e94b4ac29e43c9d0c807b6dd3df4df",
+      "size_bytes": 1066978
+    },
+    {
+      "path": "reads.unassembled.forward.fastq",
+      "sha256": "46ebd7b2ca7d6583f7bc5118b7ac4521a527df46e14c0e0bff4ac3aa84d61573",
+      "size_bytes": 25313280
+    },
+    {
+      "path": "reads.unassembled.reverse.fastq",
+      "sha256": "569ceb0e7b8ee6c86ad4501870612e1e5ca22efaf31332ae14bd04ce7ea4247d",
+      "size_bytes": 25044870
+    }
+  ],
+  "pipeline_sha256": "0e8ba13dd89862f84a7d2f2e63eff1eaa2db55b93668643fd2203e9db29849da",
+  "repository_clean": true,
+  "repository_commit": "8cee26d799267731746bd3b1679af4f4c8f8f1cc",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/8cee26d799267731746bd3b1679af4f4c8f8f1cc",
+  "run_id": "run-1024",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn007",
+    "slurm_job_id": "3457654",
+    "started_at_utc": "2026-08-02T15:13:28.536537+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn007",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}
