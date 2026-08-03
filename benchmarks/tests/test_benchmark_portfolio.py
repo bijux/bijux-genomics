@@ -94,13 +94,20 @@ class BenchmarkPortfolioTests(unittest.TestCase):
         report = benchmark_portfolio.readiness_report(self.validate(), self.registry)
 
         self.assertEqual(report["summary"]["stage_count"], 71)
-        self.assertEqual(report["summary"]["ready_count"], 0)
+        self.assertEqual(report["summary"]["ready_count"], 1)
         self.assertEqual(report["summary"]["qualification_campaign_count"], 4)
+        self.assertEqual(report["summary"]["comparative_campaign_count"], 1)
         row = next(
             row for row in report["stages"] if row["stage_id"] == "bam.coverage"
         )
         self.assertEqual(row["campaign_tier"], "qualification")
         self.assertIn("active campaign is qualification-only", row["blockers"])
+        profile_reads = next(
+            row
+            for row in report["stages"]
+            if row["stage_id"] == "fastq.profile_reads"
+        )
+        self.assertEqual(profile_reads["readiness"], "ready")
 
     def test_taxonomy_stage_names_real_edna_and_database_blockers(self) -> None:
         report = benchmark_portfolio.readiness_report(self.validate(), self.registry)

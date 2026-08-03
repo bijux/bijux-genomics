@@ -105,8 +105,8 @@
       "stage_count": 24
     },
     "fastq": {
-      "blocked_count": 27,
-      "ready_count": 0,
+      "blocked_count": 26,
+      "ready_count": 1,
       "stage_count": 27
     },
     "vcf": {
@@ -938,14 +938,12 @@
     },
     {
       "available_comparative_samples": 20,
-      "blockers": [
-        "no execution campaign is defined"
-      ],
-      "campaign_run_id": null,
-      "campaign_tier": null,
+      "blockers": [],
+      "campaign_run_id": "run-2043",
+      "campaign_tier": "comparative",
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
-      "readiness": "blocked",
+      "readiness": "ready",
       "reserved_run_id": "run-2043",
       "retained_tools": [
         "seqfu",
@@ -1511,11 +1509,11 @@
   ],
   "summary": {
     "admitted_comparative_corpus_count": 1,
-    "blocked_count": 71,
-    "comparative_campaign_count": 0,
+    "blocked_count": 70,
+    "comparative_campaign_count": 1,
     "corpus_count": 9,
     "qualification_campaign_count": 4,
-    "ready_count": 0,
+    "ready_count": 1,
     "reserved_run_count": 71,
     "stage_count": 71
   }

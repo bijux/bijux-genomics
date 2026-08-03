@@ -422,9 +422,9 @@
       "stage_id": "fastq.profile_read_lengths"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "campaign_run_id": "run-2043",
+      "definition_status": "comparative",
+      "execution_status": "not_admitted",
       "retained_tools": [
         "seqfu",
         "seqkit",
@@ -725,9 +725,9 @@
   ],
   "summary": {
     "admitted_stage_count": 4,
-    "comparative_stage_count": 0,
-    "defined_stage_count": 4,
-    "missing_stage_count": 67,
+    "comparative_stage_count": 1,
+    "defined_stage_count": 5,
+    "missing_stage_count": 66,
     "qualification_stage_count": 4,
     "retained_stage_count": 71
   }

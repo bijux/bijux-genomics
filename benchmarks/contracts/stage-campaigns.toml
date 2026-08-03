@@ -198,3 +198,61 @@ limitations = [
   "Exact count agreement checks summary interoperability, not mapping accuracy against an independent alignment truth set.",
   "Both tools run with one allocated CPU because the measured summary operations do not expose equivalent useful parallelism.",
 ]
+
+[[campaigns]]
+run_id = "run-2043"
+slug = "fastq-profile-reads"
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+evidence_tier = "comparative"
+profile_id = "fastq-observational-qc"
+corpus_ids = ["human-short-read-diversity"]
+scientific_question = "Do all retained FASTQ profiling tools recover the independently admitted read and base counts across the complete real human short-read diversity cohort, and what resources does each implementation consume?"
+comparison_scope = "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end libraries"
+tool_ids = ["seqfu", "seqkit", "seqkit_stats"]
+corpus_catalog_ids = ["human-short-read-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["fastq_input_bytes"]
+result_artifact = "read-profile.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "read_and_base_count_concordance_with_independent_admission_counts"
+interpretation = "Exact agreement with the read and base counts produced during independent byte-level FASTQ admission establishes parsing correctness for this cohort. It does not validate transformations, biological representativeness, or unobserved FASTQ encodings."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_read_bytes",
+  "filesystem_write_bytes",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "file_count",
+  "read_count",
+  "base_count",
+  "minimum_read_length",
+  "maximum_read_length",
+]
+comparison_metrics = [
+  {id = "file_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "read_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "base_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "minimum_read_length", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "maximum_read_length", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+]
+limitations = [
+  "The cohort is curated for workload diversity and is not population-representative.",
+  "Minimum and maximum read lengths are cross-tool consistency observations because the admission catalog records reads and bases but not length extrema.",
+  "Warm-cache repetitions characterize stable parsing after one warmup and do not measure cold shared-filesystem startup.",
+  "The campaign covers the admitted gzip-compressed Illumina FASTQ files and does not generalize to every valid FASTQ encoding or compression format.",
+]
