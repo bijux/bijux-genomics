@@ -1,7 +1,7 @@
 {
   "catalog_sha256": "9bd407332d3a217f8ecf9e8259c6d63442a41be5e93d2bb070431462ef560cbd",
-  "created_at_utc": "2026-08-03T06:11:38.033116+00:00",
-  "repository_commit": "da2781b3de2ee68d5983c2f112a0147452abb1b3",
+  "created_at_utc": "2026-08-03T06:26:16.588994+00:00",
+  "repository_commit": "4cc9c31248c4da1e50aa5e356174140fbe83a078",
   "schema_version": "bijux.container.image_inventory.v1",
   "staged_images": [],
   "summary": {
@@ -12,7 +12,7 @@
     },
     "tool_count": 89,
     "unknown_image_count": 1,
-    "unreferenced_obsolete_count": 1
+    "unreferenced_obsolete_count": 0
   },
   "tools": [
     {
@@ -2091,7 +2091,7 @@
           "immutable_name": true,
           "name": "multiqc-1.24-linux-amd64-72668c0158ad.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-72668c0158ad.sif",
-          "real_run_references": 0,
+          "real_run_references": 2,
           "sha256": "72668c0158ad9355aad107338ac3de92fa2c53fa66190cea2d267e2f77c8132a",
           "size_bytes": 133935104
         }
@@ -2455,7 +2455,7 @@
           "immutable_name": true,
           "name": "pydamage-1.0-linux-amd64-482276fbaa17.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif",
-          "real_run_references": 0,
+          "real_run_references": 5,
           "sha256": "482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd",
           "size_bytes": 291561472
         }
@@ -3023,11 +3023,11 @@
             }
           ],
           "current_recipe": false,
-          "disposition": "unreferenced_obsolete",
+          "disposition": "historical_run_dependency",
           "immutable_name": true,
           "name": "spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
-          "real_run_references": 0,
+          "real_run_references": 1,
           "sha256": "12ec3751a5ccabc4225569f492434119c2d064f2df04a1433c31bed343469547",
           "size_bytes": 226881536
         },
@@ -3049,7 +3049,7 @@
           "immutable_name": true,
           "name": "spades-4.2.0-linux-amd64-1ac426328807.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-1ac426328807.sif",
-          "real_run_references": 0,
+          "real_run_references": 1,
           "sha256": "1ac4263288074952b2123c2a85ff84d5b12bc93d4247ebe63e7551f0f9defda8",
           "size_bytes": 227045376
         }

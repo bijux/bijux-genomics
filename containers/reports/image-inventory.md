@@ -13,7 +13,7 @@ qualification remain independent requirements.
 - States: **current 87**, **unsupported 2**
 - Unknown immutable images: **1**
 - Interrupted staged images: **0**
-- Unreferenced obsolete images: **1**
+- Unreferenced obsolete images: **0**
 
 ## Catalog coverage
 
@@ -74,7 +74,7 @@ qualification remain independent requirements.
 | `metaphlan` | `4.1.1` | retained | **current** | 0 |
 | `minimac4` | `4.1.6` | retained | **current** | 0 |
 | `mosdepth` | `0.3.11` | retained | **current** | 1 |
-| `multiqc` | `1.24` | retained | **current** | 0 |
+| `multiqc` | `1.24` | retained | **current** | 2 |
 | `musket` | `1.1` | retained | **current** | 1 |
 | `ngsbriggs` | `0.01` | retained | **current** | 2 |
 | `pear` | `0.9.6` | retained | **current** | 2 |
@@ -84,7 +84,7 @@ qualification remain independent requirements.
 | `pmdtools` | `0.60` | retained | **current** | 0 |
 | `preseq` | `3.2.0` | retained | **current** | 0 |
 | `prinseq` | `1.2.4` | retained | **current** | 1 |
-| `pydamage` | `1.0` | retained | **current** | 0 |
+| `pydamage` | `1.0` | retained | **current** | 5 |
 | `qualimap` | `2.3` | retained | **current** | 3 |
 | `rcorrector` | `1.0.7` | retained | **current** | 0 |
 | `rxy` | `1.0.0` | retained | **current** | 0 |
@@ -100,7 +100,7 @@ qualification remain independent requirements.
 | `shapeit5` | `5.1.1` | retained | **current** | 1 |
 | `skewer` | `0.2.2` | retained | **current** | 1 |
 | `sortmerna` | `4.3.7` | retained | **current** | 0 |
-| `spades` | `4.2.0` | retained | **current** | 0 |
+| `spades` | `4.2.0` | retained | **current** | 2 |
 | `star` | `2.7.11b` | retained | **current** | 0 |
 | `trim_galore` | `0.6.10` | retained | **current** | 2 |
 | `trimmomatic` | `0.39` | retained | **current** | 2 |
