@@ -64,6 +64,13 @@ The inventory and runtime inputs must carry publication schemas with
 execution JSON is intentionally rejected because tracked qualification must
 not depend on one operator's absolute paths.
 
+Build and runtime evidence is current only when the inventory and runtime
+campaign both name the present catalog SHA-256, the runtime campaign names the
+published inventory's raw SHA-256, and both campaigns name the same repository
+commit. Each tool's catalog version, support disposition, Apptainer support,
+and selected image digest must also agree. Stale evidence remains visible for
+audit, but it contributes no build, runtime, or freshness pass.
+
 ```console
 python3 -B containers/contracts/qualification_report.py \
   --catalog containers/contracts/catalog.toml \
