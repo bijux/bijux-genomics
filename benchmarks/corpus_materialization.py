@@ -23,10 +23,39 @@ CATALOG_SCHEMA = "bijux.data_catalog.v1"
 CATALOG_ID = re.compile(r"[a-z0-9][a-z0-9-]*")
 MD5 = re.compile(r"[0-9a-f]{32}")
 OpenUrl = Callable[[str, int], BinaryIO]
+SAMPLE_CONTEXT_FIELDS = (
+    "accession",
+    "study_accession",
+    "sample_accession",
+    "experiment_accession",
+    "era",
+    "layout",
+    "size_band",
+    "selection_reason",
+    "scientific_name",
+    "library_source",
+    "library_strategy",
+    "library_selection",
+    "instrument_platform",
+    "instrument_model",
+    "archive_base_count",
+    "archive_read_count",
+    "first_public",
+    "last_updated",
+)
 
 
 class MaterializationError(RuntimeError):
     """Raised when source bytes cannot be admitted as the declared corpus."""
+
+
+def sample_context(sample: dict[str, Any]) -> dict[str, Any]:
+    try:
+        return {key: sample[key] for key in SAMPLE_CONTEXT_FIELDS}
+    except KeyError as exc:
+        raise MaterializationError(
+            f"acquisition plan sample lacks scientific context: {exc.args[0]}"
+        ) from exc
 
 
 def sha256_file(path: Path) -> str:
@@ -280,31 +309,7 @@ def materialize(
             }
         )
     for sample in plan["samples"]:
-        catalog_samples.append(
-            {
-                key: sample[key]
-                for key in (
-                    "accession",
-                    "study_accession",
-                    "sample_accession",
-                    "experiment_accession",
-                    "era",
-                    "layout",
-                    "size_band",
-                    "selection_reason",
-                    "scientific_name",
-                    "library_source",
-                    "library_strategy",
-                    "library_selection",
-                    "instrument_platform",
-                    "instrument_model",
-                    "archive_base_count",
-                    "archive_read_count",
-                    "first_public",
-                    "last_updated",
-                )
-            }
-        )
+        catalog_samples.append(sample_context(sample))
     catalog = {
         "schema_version": CATALOG_SCHEMA,
         "id": plan["portfolio_id"],
