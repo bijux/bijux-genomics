@@ -533,6 +533,7 @@ def validate_pipeline(
     if not isinstance(inputs, list) or not inputs:
         raise ContractError("data.inputs must contain at least one governed input")
     input_binds = []
+    input_mount_paths: set[Path] = set()
     upstream_result_digests: set[str] = set()
     for index, item in enumerate(inputs):
         if not isinstance(item, dict):
@@ -581,11 +582,19 @@ def validate_pipeline(
             upstream_result_digests.add(digest)
         if is_current:
             mount_path = Path(require_text(item, "mount_path"))
-            expected_mount_path = Path("/input") / input_id
-            if mount_path != expected_mount_path:
+            if (
+                mount_path.parent != Path("/input")
+                or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", mount_path.name)
+                is None
+            ):
                 raise ContractError(
-                    f"data input {index} mount_path must equal {expected_mount_path}"
+                    f"data input {index} mount_path must be one safe filename under /input"
                 )
+            if mount_path in input_mount_paths:
+                raise ContractError(
+                    f"data input mount_path is duplicated: {mount_path}"
+                )
+            input_mount_paths.add(mount_path)
             input_binds.append((input_path, mount_path))
         else:
             input_binds.append((input_path, declared_input_path))

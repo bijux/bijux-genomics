@@ -279,7 +279,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                         "id": "public_corpus_sample",
                         "kind": "data",
                         "path": str(input_path),
-                        "mount_path": "/input/public_corpus_sample",
+                        "mount_path": "/input/public-corpus-sample.fastq.gz",
                         "sha256": container_validation.sha256_file(input_path),
                     }
                 ]
@@ -362,7 +362,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertEqual(contract["execution"]["random_seed"], 17)
         self.assertEqual(contract["metrics"][0]["id"], "valid_reads")
         self.assertEqual(
-            contract["input_binds"][0][1], Path("/input/public_corpus_sample")
+            contract["input_binds"][0][1], Path("/input/public-corpus-sample.fastq.gz")
         )
         self.assertEqual(contract["result_mount_path"], Path("/result"))
 
@@ -383,7 +383,29 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 ),
                 self.assertRaisesRegex(
                     container_validation.ContractError,
-                    "mount_path must equal /input/public_corpus_sample",
+                    "mount_path must be one safe filename under /input",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
+    def test_current_contract_rejects_duplicate_container_mounts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            pipeline = container_validation.load_yaml(paths[1])
+            duplicate = dict(pipeline["data"]["inputs"][0])
+            duplicate["id"] = "second_input"
+            pipeline["data"]["inputs"].append(duplicate)
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "data input mount_path is duplicated",
                 ),
             ):
                 container_validation.validate_contracts(*paths)

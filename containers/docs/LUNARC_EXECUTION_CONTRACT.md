@@ -45,11 +45,12 @@ configured account and partitions, checks every immutable digest, and refuses
 to overwrite an existing result or accounting record.
 
 Current pipeline contracts separate host storage from paths visible inside the
-contained runtime. Governed input files mount at `/input/<input_id>` and the
-run result directory mounts at `/result`. Commands must use those stable mount
-paths. This prevents a successful host-side preflight followed by a missing
-file inside `--containall`, and makes commands independent of LUNARC backend
-mount aliases.
+contained runtime. Governed input files mount as unique, safe filenames beneath
+`/input`; the declared filename retains format and compression suffixes such as
+`.bam` or `.fastq.gz`. The run result directory mounts at `/result`. Commands
+must use those stable mount paths. This prevents a successful host-side
+preflight followed by a missing file inside `--containall`, and makes commands
+independent of LUNARC backend mount aliases.
 
 Frontend builds remain in `containers/apptainer/.building` until the admission
 command verifies the recipe at the declared Git commit, the completed build

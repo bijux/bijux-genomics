@@ -67,7 +67,7 @@
               "id": {"type": "string", "minLength": 1},
               "kind": {"enum": ["data", "reference", "database", "upstream_result"]},
               "path": {"type": "string", "minLength": 1},
-              "mount_path": {"type": "string", "pattern": "^/input/[a-z0-9_]+$"},
+              "mount_path": {"type": "string", "pattern": "^/input/[A-Za-z0-9][A-Za-z0-9._-]*$"},
               "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
             },
             "additionalProperties": false
