@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "ec348cec5dc7c4054849f3a5e178dbba6bf9738a",
-  "bundle_checksum_sha256": "80d61488849bd5b8f702f4ef983bd6b2d4b33731c4584ca10c8b9b9c9d1e55d5",
+  "source_commit": "b9e8a26e0f9ffe81778279c8f5f9e7c57ee80303",
+  "bundle_checksum_sha256": "4068a667860ad037240da8e26627bd27c3f441f69145fba694b125fa9c7871be",
   "domains": [
     {
       "domain_id": "bam",
@@ -44,6 +44,7 @@
         "authenticct",
         "bamtools",
         "bamutil",
+        "bcftools",
         "bedtools",
         "bowtie2",
         "bwa",
@@ -92,9 +93,9 @@
         "bam.validate"
       ],
       "governed_tool_ids": [
-        "angsd",
         "authenticct",
         "bamutil",
+        "bcftools",
         "bwa",
         "gatk",
         "king",
@@ -1207,7 +1208,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "BAM genotyping stage contract.",
+          "description": "Likelihood-aware candidate-site genotyping from an indexed BAM and pinned reference resources.",
           "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -1215,22 +1216,32 @@
               "name": "bam",
               "data_type": "bam",
               "cardinality": "One"
+            },
+            {
+              "name": "bam_bai",
+              "data_type": "bai",
+              "cardinality": "One"
+            },
+            {
+              "name": "reference",
+              "data_type": "fasta",
+              "cardinality": "One"
+            },
+            {
+              "name": "sites",
+              "data_type": "vcf.gz",
+              "cardinality": "One"
+            },
+            {
+              "name": "regions",
+              "data_type": "bed",
+              "cardinality": "One"
             }
           ],
           "outputs": [
             {
-              "name": "genotyping_report_json",
-              "data_type": "json",
-              "cardinality": "One"
-            },
-            {
               "name": "genotyping_report",
               "data_type": "json",
-              "cardinality": "One"
-            },
-            {
-              "name": "population_metrics",
-              "data_type": "tsv",
               "cardinality": "One"
             },
             {
@@ -1242,13 +1253,43 @@
               "name": "stage_metrics",
               "data_type": "json",
               "cardinality": "One"
+            },
+            {
+              "name": "genotyping_bcf",
+              "data_type": "bcf",
+              "cardinality": "One"
+            },
+            {
+              "name": "genotyping_vcf",
+              "data_type": "vcf.gz",
+              "cardinality": "One"
+            },
+            {
+              "name": "genotyping_vcf_tbi",
+              "data_type": "tbi",
+              "cardinality": "One"
+            },
+            {
+              "name": "genotyping_gl",
+              "data_type": "json",
+              "cardinality": "One"
             }
           ],
           "required_inputs": [
-            "bam"
+            "bam",
+            "bam_bai",
+            "reference",
+            "sites",
+            "regions"
           ],
           "required_outputs": [
-            "genotyping_report_json"
+            "genotyping_report",
+            "summary",
+            "stage_metrics",
+            "genotyping_bcf",
+            "genotyping_vcf",
+            "genotyping_vcf_tbi",
+            "genotyping_gl"
           ],
           "parameters": [],
           "metrics": [
@@ -1267,10 +1308,10 @@
             "bam_input"
           ],
           "compatible_tools": [
-            "angsd"
+            "bcftools"
           ],
           "assumptions": [
-            "default stage assumptions captured"
+            "The BAM and index share one coordinate-sorted alignment identity, and the reference, sites, regions, and ploidy policy are pinned together."
           ],
           "invariants": [
             "stable_artifact_contract",
@@ -1282,9 +1323,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "gatk"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "bam.haplogroups",
@@ -2564,7 +2603,6 @@
           "version_cmd": "angsd --version",
           "help_cmd": "angsd --help",
           "stage_ids": [
-            "bam.genotyping",
             "bam.kinship",
             "bam.sex"
           ],
@@ -2675,6 +2713,40 @@
           "comparability_notes": "Comparable only within overlap-correction stage with identical paired-end inputs.",
           "container": {
             "image": "bijuxdna/bamutil:1.0.15",
+            "digest": ""
+          }
+        },
+        {
+          "tool_id": "bcftools",
+          "status": "supported",
+          "scope": "pre_hpc_pre_vcf",
+          "role": "",
+          "default_version": "1.20",
+          "upstream": "https://github.com/samtools/bcftools",
+          "pin_strategy": "container_digest",
+          "license": "MIT",
+          "citation": "DOI:10.1093/gigascience/giab008",
+          "version_cmd": "bcftools --version",
+          "help_cmd": "bcftools --help",
+          "stage_ids": [
+            "bam.genotyping"
+          ],
+          "planned_stage_ids": [],
+          "expected_artifacts": [
+            "genotyping_bcf",
+            "genotyping_gl",
+            "genotyping_vcf",
+            "genotyping_vcf_tbi"
+          ],
+          "capabilities": [
+            "bam_input",
+            "genotype_likelihoods",
+            "variant_calling"
+          ],
+          "metrics_schema_id": "bijux.bam.genotyping.v1",
+          "comparability_notes": "Compare only when reference, candidate sites, regions, ploidy, and calling parameters are identical.",
+          "container": {
+            "image": "bijuxdna/bcftools:1.20",
             "digest": ""
           }
         },
@@ -2857,9 +2929,7 @@
           "stage_ids": [
             "bam.recalibration"
           ],
-          "planned_stage_ids": [
-            "bam.genotyping"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "recal_report"
           ],
@@ -3756,11 +3826,27 @@
           "artifact_type": null
         },
         {
+          "artifact_id": "genotyping_bcf",
+          "artifact_type": null
+        },
+        {
+          "artifact_id": "genotyping_gl",
+          "artifact_type": null
+        },
+        {
           "artifact_id": "genotyping_report",
           "artifact_type": null
         },
         {
           "artifact_id": "genotyping_report_json",
+          "artifact_type": null
+        },
+        {
+          "artifact_id": "genotyping_vcf",
+          "artifact_type": null
+        },
+        {
+          "artifact_id": "genotyping_vcf_tbi",
           "artifact_type": null
         },
         {
@@ -4027,9 +4113,9 @@
         },
         {
           "stage_id": "bam.genotyping",
-          "tool_id": "angsd",
+          "tool_id": "bcftools",
           "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
-          "rationale": "Genotyping baseline preserves the governed low-depth ANGSD execution surface.",
+          "rationale": "Genotyping baseline uses a redistributable likelihood-aware caller with indexed BCF and VCF outputs.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -4257,11 +4343,6 @@
           "fixture_path": "domain/bam/fixtures/bam.filter/samtools.txt"
         },
         {
-          "stage_id": "bam.genotyping",
-          "tool_id": "angsd",
-          "fixture_path": "domain/bam/fixtures/bam.genotyping/angsd.txt"
-        },
-        {
           "stage_id": "bam.haplogroups",
           "tool_id": "yleaf",
           "fixture_path": "domain/bam/fixtures/bam.haplogroups/yleaf.txt"
@@ -4358,7 +4439,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "6b8e157a34ff8dec2c4b6c6553454aea2a23e34a74b17448da58c15b006caeb7"
+      "checksum_sha256": "8fac7459b99a69cbef0aacc63b1f55bda8c36f2462bff53fd36200de51e6a9b8"
     },
     {
       "domain_id": "fastq",
@@ -7829,7 +7910,7 @@
           "status": "supported",
           "evidence_status": "supported",
           "scope": "pre_hpc_pre_vcf",
-          "description": "FASTQ stage for read-length profiling.",
+          "description": "Exact per-record FASTQ read-length observation with a tool-independent normalized histogram.",
           "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
           "metrics_schema": "bijux.stage.metrics.v1",
           "inputs": [
@@ -7915,13 +7996,12 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
-            "fastp",
-            "prinseq",
             "seqfu",
-            "seqkit_stats"
+            "seqkit"
           ],
           "assumptions": [
-            "report_json is the governed read-length report contract and the canonical comparison surface for this stage.",
+            "Each backend emits one record identity and exact length per admitted FASTQ record before the governed report is constructed.",
+            "Backend observations must match an independent decoding of the admitted FASTQ inputs before metrics are accepted.",
             "length histogram generation must be deterministic for identical reads.",
             "single-end input omits reads_r2; paired-end input contributes both mates to the histogram."
           ],
@@ -10337,7 +10417,6 @@
           "stage_ids": [
             "fastq.filter_low_complexity",
             "fastq.filter_reads",
-            "fastq.profile_read_lengths",
             "fastq.trim_polyg_tails",
             "fastq.trim_reads"
           ],
@@ -10348,8 +10427,6 @@
             "filtered_fastq_r2",
             "filtered_reads_r1",
             "filtered_reads_r2",
-            "length_distribution_json",
-            "length_distribution_tsv",
             "raw_backend_report_json",
             "report_json",
             "trimmed_reads_r1",
@@ -10883,7 +10960,6 @@
           "stage_ids": [
             "fastq.filter_low_complexity",
             "fastq.filter_reads",
-            "fastq.profile_read_lengths",
             "fastq.trim_reads"
           ],
           "planned_stage_ids": [],
@@ -10893,8 +10969,6 @@
             "filtered_fastq_r2",
             "filtered_reads_r1",
             "filtered_reads_r2",
-            "length_distribution_json",
-            "length_distribution_tsv",
             "report_json",
             "trimmed_reads_r1",
             "trimmed_reads_r2"
@@ -10947,7 +11021,7 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "2.4.0",
+          "default_version": "1.26.0",
           "upstream": "https://github.com/telatin/seqfu2",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -10974,7 +11048,7 @@
           "metrics_schema_id": "bijux.fastq.stats.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "bijuxdna/seqfu:2.4.0",
+            "image": "bijuxdna/seqfu:1.26.0",
             "digest": ""
           }
         },
@@ -10994,6 +11068,7 @@
             "fastq.filter_reads",
             "fastq.normalize_abundance",
             "fastq.profile_overrepresented_sequences",
+            "fastq.profile_read_lengths",
             "fastq.profile_reads",
             "fastq.trim_reads",
             "fastq.trim_terminal_damage"
@@ -11002,6 +11077,8 @@
           "expected_artifacts": [
             "filtered_reads_r1",
             "filtered_reads_r2",
+            "length_distribution_json",
+            "length_distribution_tsv",
             "normalized_abundance_tsv",
             "overrepresented_sequences_json",
             "overrepresented_sequences_tsv",
@@ -11037,17 +11114,13 @@
           "version_cmd": "seqkit_stats --version",
           "help_cmd": "seqkit_stats --help",
           "stage_ids": [
-            "fastq.profile_read_lengths",
             "fastq.profile_reads"
           ],
           "planned_stage_ids": [],
           "expected_artifacts": [
-            "length_distribution_json",
-            "length_distribution_tsv",
             "qc_json",
             "qc_plots_dir",
-            "qc_tsv",
-            "report_json"
+            "qc_tsv"
           ],
           "capabilities": [
             "PE",
@@ -13065,7 +13138,7 @@
         },
         {
           "stage_id": "fastq.profile_read_lengths",
-          "tool_id": "seqkit_stats",
+          "tool_id": "seqkit",
           "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
           "rationale": "Default length histogram baseline provides deterministic pre-trim size distribution.",
           "governance_status": "enforced",
@@ -13312,23 +13385,8 @@
         },
         {
           "stage_id": "fastq.profile_read_lengths",
-          "tool_id": "fastp",
-          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/fastp.txt"
-        },
-        {
-          "stage_id": "fastq.profile_read_lengths",
-          "tool_id": "prinseq",
-          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/prinseq.txt"
-        },
-        {
-          "stage_id": "fastq.profile_read_lengths",
           "tool_id": "seqfu",
           "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqfu.txt"
-        },
-        {
-          "stage_id": "fastq.profile_read_lengths",
-          "tool_id": "seqkit_stats",
-          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqkit_stats.txt"
         },
         {
           "stage_id": "fastq.profile_reads",
@@ -13354,11 +13412,6 @@
           "stage_id": "fastq.remove_duplicates",
           "tool_id": "clumpify",
           "fixture_path": "domain/fastq/fixtures/fastq.remove_duplicates/clumpify.txt"
-        },
-        {
-          "stage_id": "fastq.remove_duplicates",
-          "tool_id": "fastuniq",
-          "fixture_path": "domain/fastq/fixtures/fastq.remove_duplicates/fastuniq.txt"
         },
         {
           "stage_id": "fastq.report_qc",
@@ -13502,7 +13555,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "eabf1f3221e583b770b99dc9e896d281c966d560770a31f0df486c001fab6dff"
+      "checksum_sha256": "651b8baf8f625ae9387a9c8ebd4530174b59aeb23d06315b21f4cd8ac53dd6fa"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16715,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "5d77c23982dc0d54f2fabf1830a61b0230b7ba91fb991435e27f43d0907b8ab3"
+      "checksum_sha256": "5206dcfc48e4a1316b70937d8e4ad9775b3aef9a5e342e93f7cb9d64f4f1ce72"
     }
   ]
 }

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: ec348cec5dc7c4054849f3a5e178dbba6bf9738a
+# source_commit: b9e8a26e0f9ffe81778279c8f5f9e7c57ee80303
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
