@@ -1,6 +1,6 @@
 {
   "catalog_sha256": "91c7ab8334edf43a730d721f8020377347b88cfe1cc1f3b6ff2114065bb26440",
-  "created_at_utc": "2026-08-03T09:27:06.305519+00:00",
+  "created_at_utc": "2026-08-03T09:50:07.162129+00:00",
   "evidence_root": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/evidence",
   "historical_images": [
     {
@@ -13,7 +13,7 @@
     }
   ],
   "image_root": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer",
-  "repository_commit": "c53e1e768744d854eff4678be1d775040a0b0e5a",
+  "repository_commit": "9f1fbb22d6a49a8fa40c755e15eb11db3c2d7c24",
   "runs_root": "/home/bijan/bijux/bijux-genomics/containers/runs",
   "schema_version": "bijux.container.image_inventory.v1",
   "staged_images": [],

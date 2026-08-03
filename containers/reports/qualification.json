@@ -7,7 +7,7 @@
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
-      "sha256": "2856c18505b8b3b132a9aae909adaf933a359a0e83af5bb019a235e4b94b0bbd"
+      "sha256": "4741130daad86a745745753adfe7652ebec3c0a54eb681325e4feb97578f2c1f"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
@@ -15,7 +15,7 @@
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
-      "sha256": "5f1a0dd78a6608ed68bee66bd004fdc2624370a3ab13630ca541449b6e22258a"
+      "sha256": "e4bdc431b32efc449094d8430c305b67f05f9d649c0a48590154ed40d3fd57c3"
     }
   },
   "summary": {
@@ -23,7 +23,7 @@
       "benchmark": 0,
       "build": 87,
       "catalog": 87,
-      "freshness": 0,
+      "freshness": 87,
       "real_data": 48,
       "release": 0,
       "runtime": 87,
@@ -45,7 +45,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -64,8 +64,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -80,7 +79,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -99,8 +98,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -115,7 +113,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -130,8 +128,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1091"
@@ -148,7 +145,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -163,8 +160,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1094"
@@ -181,7 +177,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -196,8 +192,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1098"
@@ -214,7 +209,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -229,8 +224,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1093"
@@ -247,7 +241,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -262,8 +256,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1086"
@@ -280,7 +273,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -295,8 +288,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1087"
@@ -313,7 +305,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -328,8 +320,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1099"
@@ -346,7 +337,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -365,8 +356,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -381,7 +371,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -396,8 +386,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1007"
@@ -414,7 +403,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -433,8 +422,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -449,7 +437,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -468,8 +456,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -484,7 +471,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -499,8 +486,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1074"
@@ -517,7 +503,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -534,8 +520,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -550,7 +535,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -565,8 +550,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1101"
@@ -583,7 +567,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -598,8 +582,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1100"
@@ -616,7 +599,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -631,8 +614,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1104"
@@ -649,7 +631,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -664,8 +646,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1004"
@@ -682,7 +663,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -697,8 +678,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1106"
@@ -715,7 +695,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -734,8 +714,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -750,7 +729,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -765,8 +744,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1108"
@@ -783,7 +761,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -798,8 +776,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1109"
@@ -816,7 +793,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -831,8 +808,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1060"
@@ -849,7 +825,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -868,8 +844,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -884,7 +859,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -899,8 +874,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1117"
@@ -917,7 +891,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -936,8 +910,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -952,7 +925,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -967,8 +940,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1036"
@@ -985,7 +957,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1004,8 +976,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1020,7 +991,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1035,8 +1006,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1075"
@@ -1053,7 +1023,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1068,8 +1038,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1118"
@@ -1086,7 +1055,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1103,8 +1072,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1119,7 +1087,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1134,8 +1102,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1076"
@@ -1152,7 +1119,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1167,8 +1134,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1077"
@@ -1212,7 +1178,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1227,8 +1193,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1119"
@@ -1245,7 +1210,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1260,8 +1225,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1120"
@@ -1278,7 +1242,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1293,8 +1257,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1121"
@@ -1311,7 +1274,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1328,8 +1291,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1344,7 +1306,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1363,8 +1325,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1379,7 +1340,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1396,8 +1357,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1412,7 +1372,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1431,8 +1391,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1447,7 +1406,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1462,8 +1421,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1053"
@@ -1480,7 +1438,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1495,8 +1453,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1052"
@@ -1540,7 +1497,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1557,8 +1514,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1573,7 +1529,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1590,8 +1546,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1606,7 +1561,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1621,8 +1576,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1102"
@@ -1639,7 +1593,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1656,8 +1610,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1672,7 +1625,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1691,8 +1644,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1707,7 +1659,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1724,8 +1676,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1740,7 +1691,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1755,8 +1706,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1050"
@@ -1773,7 +1723,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1790,8 +1740,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1806,7 +1755,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1823,8 +1772,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1839,7 +1787,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1854,8 +1802,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1088"
@@ -1872,7 +1819,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -1891,8 +1838,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -1907,7 +1853,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1922,8 +1868,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1025"
@@ -1940,7 +1885,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1955,8 +1900,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1046"
@@ -1973,7 +1917,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -1988,8 +1932,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1024"
@@ -2006,7 +1949,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2025,8 +1968,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2041,7 +1983,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2060,8 +2002,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2076,7 +2017,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2095,8 +2036,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2111,7 +2051,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2126,8 +2066,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1137"
@@ -2144,7 +2083,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2159,8 +2098,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1136"
@@ -2177,7 +2115,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2196,8 +2134,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2212,7 +2149,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2227,8 +2164,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1134"
@@ -2245,7 +2181,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2264,8 +2200,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2280,7 +2215,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2297,8 +2232,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2313,7 +2247,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2330,8 +2264,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2346,7 +2279,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2365,8 +2298,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2381,7 +2313,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2398,8 +2330,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2414,7 +2345,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2429,8 +2360,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1031"
@@ -2447,7 +2377,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2466,8 +2396,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2482,7 +2411,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2497,8 +2426,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1072"
@@ -2515,7 +2443,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2530,8 +2458,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1082"
@@ -2548,7 +2475,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2567,8 +2494,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2583,7 +2509,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2598,8 +2524,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1073"
@@ -2616,7 +2541,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2631,8 +2556,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1037"
@@ -2649,7 +2573,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2664,8 +2588,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1033"
@@ -2682,7 +2605,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2697,8 +2620,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1079"
@@ -2715,7 +2637,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2732,8 +2654,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2748,7 +2669,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2763,8 +2684,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1135"
@@ -2781,7 +2701,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2798,8 +2718,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2814,7 +2733,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2829,8 +2748,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1124"
@@ -2847,7 +2765,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2862,8 +2780,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1125"
@@ -2880,7 +2797,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2897,8 +2814,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2913,7 +2829,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2930,8 +2846,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
@@ -2946,7 +2861,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
@@ -2961,8 +2876,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [
         "run-1084"
@@ -2979,7 +2893,7 @@
         "benchmark": "missing",
         "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2996,8 +2910,7 @@
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",

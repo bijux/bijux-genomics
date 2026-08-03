@@ -28,7 +28,7 @@ or successful command does not become a scientific or release claim.
 | `benchmark` | 0 |
 | `security` | 0 |
 | `release` | 0 |
-| `freshness` | 0 |
+| `freshness` | 87 |
 
 ## Tool matrix
 
