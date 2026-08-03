@@ -1,0 +1,44 @@
+schema_version = "bijux.container.stage_benchmarks.v1"
+
+[[campaigns]]
+run_id = "run-2001"
+slug = "bam-genotyping"
+domain = "bam"
+stage_id = "bam.genotyping"
+scientific_question = "How reliably and efficiently does each retained BAM genotyping tool recover independently catalogued EquCab3 candidate sites from a real low-coverage ancient horse alignment?"
+comparison_scope = "candidate-site genotyping on one governed 10 Mb EquCab3 interval"
+tool_ids = ["bcftools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = ["equcab3-gcf-002863925.1"]
+database_catalog_ids = [
+  "ensembl-113-equcab3-refseq-known-sites-10mb",
+  "ensembl-113-equcab3-refseq-genotyping-inputs-10mb",
+]
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "candidate_site_recovery_not_genotype_truth"
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "total_records",
+  "covered_sites",
+  "called_genotypes",
+  "alternate_genotypes",
+  "mean_depth_at_covered_sites",
+]
+limitations = [
+  "The Ensembl panel is independent candidate-site evidence but is not a sample-level genotype truth set.",
+  "The first 10 Mb of chromosome 1 is a qualification interval, not a genome-wide accuracy estimate.",
+  "Warm-cache repetitions measure stable tool execution after one unmeasured warmup; they do not estimate cold filesystem startup cost.",
+]
