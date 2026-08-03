@@ -1139,6 +1139,27 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
     for (tool, version_row) in &versions {
         let license_row = licenses.get(tool).cloned().unwrap_or_default();
         let network_row = network.get(tool).cloned().unwrap_or_default();
+        let governed_status = table_string(version_row, "status");
+        let license_record = if license_row.is_empty() && governed_status == "unsupported" {
+            "- Tool license record: not distributed because the tool is unsupported.".to_string()
+        } else {
+            format!(
+                "- Tool license record: [containers/licenses/{tool}.license.toml](../../licenses/{tool}.license.toml)"
+            )
+        };
+        let license = {
+            let spdx = table_string(&license_row, "spdx");
+            if !spdx.is_empty() {
+                spdx
+            } else {
+                let upstream = table_string(version_row, "upstream_license");
+                if upstream.is_empty() {
+                    "unknown".to_string()
+                } else {
+                    upstream
+                }
+            }
+        };
         let mut runtimes = Vec::new();
         if docker_ids.contains(tool) {
             runtimes.push("docker-arm64");
@@ -1172,24 +1193,10 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
                 .to_string(),
             "- License index: [containers/licenses/README.md](../../licenses/README.md)"
                 .to_string(),
-            format!(
-                "- Tool license record: [containers/licenses/{tool}.license.toml](../../licenses/{tool}.license.toml)"
-            ),
+            license_record,
             String::new(),
             format!("- Version: `{}`", table_string(version_row, "version")),
-            format!("- License: `{}`", {
-                let spdx = table_string(&license_row, "spdx");
-                if spdx.is_empty() {
-                    let upstream = table_string(&license_row, "upstream_license");
-                    if upstream.is_empty() {
-                        "unknown".to_string()
-                    } else {
-                        upstream
-                    }
-                } else {
-                    spdx
-                }
-            }),
+            format!("- License: `{license}`"),
             format!(
                 "- Runtime support: `{}`",
                 if runtimes.is_empty() { "none".to_string() } else { runtimes.join(", ") }
