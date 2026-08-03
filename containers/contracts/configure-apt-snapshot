@@ -1,0 +1,58 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026 Bijan Mousavi
+
+set -eu
+
+snapshot_timestamp="20260802T000000Z"
+
+if [ ! -r /etc/os-release ]; then
+    echo "cannot identify the apt distribution: /etc/os-release is absent" >&2
+    exit 1
+fi
+
+# shellcheck disable=SC1091
+. /etc/os-release
+
+case "${ID:-}" in
+    ubuntu)
+        case "${VERSION_CODENAME:-}" in
+            noble) ;;
+            *)
+                echo "unsupported Ubuntu release for governed apt snapshot: ${VERSION_CODENAME:-unknown}" >&2
+                exit 1
+                ;;
+        esac
+        apt-get update
+        apt-get install -y --no-install-recommends ca-certificates=20240203
+        cat > /etc/apt/sources.list.d/ubuntu.sources <<EOF
+Types: deb
+URIs: https://snapshot.ubuntu.com/ubuntu/${snapshot_timestamp}/
+Suites: ${VERSION_CODENAME} ${VERSION_CODENAME}-updates ${VERSION_CODENAME}-security
+Components: main restricted universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+EOF
+        rm -f /etc/apt/sources.list
+        ;;
+    debian)
+        case "${VERSION_CODENAME:-}" in
+            bullseye|bookworm) ;;
+            *)
+                echo "unsupported Debian release for governed apt snapshot: ${VERSION_CODENAME:-unknown}" >&2
+                exit 1
+                ;;
+        esac
+        cat > /etc/apt/sources.list <<EOF
+deb [check-valid-until=no signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://snapshot.debian.org/archive/debian/${snapshot_timestamp}/ ${VERSION_CODENAME} main
+deb [check-valid-until=no signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://snapshot.debian.org/archive/debian-security/${snapshot_timestamp}/ ${VERSION_CODENAME}-security main
+EOF
+        rm -f /etc/apt/sources.list.d/debian.sources
+        ;;
+    *)
+        echo "unsupported apt distribution for governed snapshot: ${ID:-unknown}" >&2
+        exit 1
+        ;;
+esac
+
+printf '%s\n' 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99bijux-snapshot
+apt-get update

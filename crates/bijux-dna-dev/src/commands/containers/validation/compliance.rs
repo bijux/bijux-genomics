@@ -967,20 +967,39 @@ fn docker_apt_policy_violations(rel: &str, dockerfile: &str) -> Result<Vec<Strin
             }
             lines
         });
+    let governed_helper_source = "containers/contracts/configure-apt-snapshot";
+    let governed_helper_target = "/usr/local/sbin/bijux-configure-apt-snapshot";
     let mut snapshot_active = false;
+    let mut governed_helper_available = false;
     let mut errors = Vec::new();
     for instruction in logical_lines {
         if instruction.starts_with("FROM ") {
             snapshot_active = false;
+            governed_helper_available = false;
             continue;
+        }
+        if instruction.starts_with("COPY ")
+            && instruction.contains(governed_helper_source)
+            && instruction.contains(governed_helper_target)
+        {
+            governed_helper_available = true;
+        }
+        let helper_offset = instruction.find(governed_helper_target);
+        if helper_offset.is_some() && !governed_helper_available {
+            errors.push(format!(
+                "{rel}: governed apt snapshot helper is invoked before its canonical source is copied into the build stage"
+            ));
         }
         let snapshot_offsets = immutable_snapshot_re
             .find_iter(&instruction)
             .map(|matched| matched.start())
             .collect::<Vec<_>>();
         for command in apt_install_re.find_iter(&instruction) {
-            let snapshot_precedes_command =
-                snapshot_active || snapshot_offsets.iter().any(|offset| *offset < command.start());
+            let governed_helper_precedes_command = governed_helper_available
+                && helper_offset.is_some_and(|offset| offset < command.start());
+            let snapshot_precedes_command = snapshot_active
+                || governed_helper_precedes_command
+                || snapshot_offsets.iter().any(|offset| *offset < command.start());
             let tail = &instruction[command.end()..];
             let end = tail.find("&&").or_else(|| tail.find("||")).or_else(|| tail.find(';'));
             let package_segment = end.map_or(tail, |index| &tail[..index]);
@@ -1005,6 +1024,9 @@ fn docker_apt_policy_violations(rel: &str, dockerfile: &str) -> Result<Vec<Strin
             }
         }
         if !snapshot_offsets.is_empty() {
+            snapshot_active = true;
+        }
+        if governed_helper_available && helper_offset.is_some() {
             snapshot_active = true;
         }
     }
@@ -1667,6 +1689,33 @@ RUN sed -i 's#deb.debian.org/debian#https://snapshot.debian.org/archive/debian/2
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
         assert!(violations.is_empty(), "{violations:?}");
+    }
+
+    #[test]
+    fn apt_policy_accepts_canonical_snapshot_helper_per_stage() {
+        let dockerfile = r#"
+FROM ubuntu:24.04
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl zlib1g
+"#;
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert!(violations.is_empty(), "{violations:?}");
+    }
+
+    #[test]
+    fn apt_policy_rejects_uncopied_snapshot_helper() {
+        let dockerfile = r#"
+FROM ubuntu:24.04
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl
+"#;
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 2);
+        assert!(violations.iter().any(|row| row.contains("before its canonical source")));
+        assert!(violations.iter().any(|row| row.contains("'curl'")));
     }
 
     #[test]
