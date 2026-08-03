@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T19:21:18.392111+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "e1875a49f9d1f429a3fdc2043b0f57cf559ac74b42d8ee4839b80a06300fa81d",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "92",
+      "Elapsed": "00:00:23",
+      "ElapsedRaw": "23",
+      "ExitCode": "0:0",
+      "JobID": "3457916",
+      "JobName": "fastq-infer_asvs-dada2-F3D0",
+      "MaxRSS": "",
+      "NodeList": "cn284",
+      "ReqMem": "16G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1060",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457916",
+  "submit_script_sha256": "f63a906442ea99e404f7e22a84b35f64d968b2d59852fddc1790b3d314f4d323"
+}
