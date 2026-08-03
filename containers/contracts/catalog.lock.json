@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "5170780d0ded89bf7da046b839be54a1280382e557abcaeafaae75763b0f4354",
+  "source_sha256": "20082b58f1b55e0bff85077823b4bdf449876704850f975a9a5d5a7f579849e1",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -923,12 +923,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/broadinstitute/picard",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc",
       "pinned_commit": "63138fc8b7ae33eb0490a8ef707b61befa2f51d4",
       "apptainer_definition": "containers/apptainer/picard.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.picard",
-      "contract_sha256": "f402917a8c0639e9e38a72328f71945dba608c296c39ab896bd117fbbeecdd61"
+      "contract_sha256": "569b7c16f38fdb0f96a434d17ee19977833afaed6586683209a31720be555d92"
     },
     {
       "id": "plink",

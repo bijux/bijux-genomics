@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 178ad4438a6f4c3f82a01a7c68667d46115dba2a
+# source_commit: 9f49964228ec00ff7457ef652d0e37ba70c0282c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1450,10 +1450,10 @@ version = "3.3.0"
 default_version = "3.3.0"
 upstream = "https://github.com/broadinstitute/picard"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "MIT"
 citation = "software:https://broadinstitute.github.io/picard/"
-pinned_commit = "git:63138fc8b7ae33eb0490a8ef707b61befa2f51d4"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/picard:3.3.0"
 runtimes = ["docker", "apptainer"]
 container = true
@@ -1461,7 +1461,7 @@ version_cmd = "picard --version"
 help_cmd = "picard --help"
 smoke_version_cmd = "picard --version"
 smoke_help_cmd = "picard --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "^picard 3[.]3[.]0$"
 healthcheck_cmd = "picard --help"
 expected_bin = "picard"
 expected_artifacts = ["markdup_bam", "dup_metrics"]

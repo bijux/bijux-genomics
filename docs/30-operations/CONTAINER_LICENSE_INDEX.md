@@ -77,7 +77,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `musket` | `production` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/musket/` | `1.1` | `sha256:306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba` |
 | `ngsbriggs` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz` | `0.01` | `sha256:afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7` |
 | `pear` | `production` | `bijux` | `NOASSERTION` | `https://cme.h-its.org/exelixis/web/software/pear/` | `0.9.6` | `sha256:f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b` |
-| `picard` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/picard` | `3.3.0` | `sha256:a8274ec032205d9b910479b4663375b4380430b0416b53a851b755c37a4c55ca` |
+| `picard` | `experimental` | `bijux` | `MIT` | `https://github.com/broadinstitute/picard` | `3.3.0` | `sha256:58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc` |
 | `plink` | `experimental` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/` | `1.90b7.2` | `sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3` |
 | `plink2` | `experimental` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/2.0/` | `2.00a6` | `sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec` |
 | `pmdtools` | `production` | `bijux` | `GPL-3.0-only` | `https://github.com/pontussk/PMDtools` | `0.60` | `sha256:47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405` |

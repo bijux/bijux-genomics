@@ -12,7 +12,7 @@ output.
 
 - Image inventory: **current 87, unsupported 2** ([details](../reports/image-inventory.md)).
 - Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
-- Governed real executions: **132 attempts**, **91 passed**; scientific status is tracked independently ([details](../reports/run-evidence.md)).
+- Governed real executions: **134 attempts**, **93 passed**; scientific status is tracked independently ([details](../reports/run-evidence.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 
 ## Strict TOC
