@@ -14,7 +14,7 @@ output.
 - Canonical image storage: **passed**, **14 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
 - Complete isolated rebuild: **passed**, **87 retained images** ([details](../reports/lunarc-image-rebuild.md)).
 - Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
-- Final governed real executions: **70 tools**, **70 passed**; scientific status is tracked independently ([details](../reports/run-evidence.md)).
+- Final run records: **70 tools**, **70 execution passes**; **48** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 
 ## Strict TOC

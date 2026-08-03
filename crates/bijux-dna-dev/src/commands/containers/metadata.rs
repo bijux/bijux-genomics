@@ -179,6 +179,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
     let rebuild = read_json(&workspace.path("containers/reports/lunarc-image-rebuild.json"))?;
     let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
     let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
+    let qualification = read_json(&workspace.path("containers/reports/qualification.json"))?;
     let inventory_states = inventory
         .pointer("/summary/states")
         .and_then(serde_json::Value::as_object)
@@ -208,6 +209,14 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         .pointer("/summary/execution_status/passed")
         .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
+    let declared_stage_passes = qualification
+        .pointer("/summary/dimension_passes/real_data")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let scientific_passes = qualification
+        .pointer("/summary/dimension_passes/science")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
         String::new(),
@@ -225,7 +234,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         format!("- Canonical image storage: **{storage_verdict}**, **{storage_moved} obsolete images quarantined reversibly** ([details](../reports/image-storage.md))."),
         format!("- Complete isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images** ([details](../reports/lunarc-image-rebuild.md))."),
         format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
-        format!("- Final governed real executions: **{governed_runs} tools**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
+        format!("- Final run records: **{governed_runs} tools**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),
