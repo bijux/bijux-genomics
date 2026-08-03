@@ -47,7 +47,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     grep -Fx 'picard 3.3.0' /tmp/picard.version
     picard --help > /tmp/picard.help
     grep -F 'USAGE: MarkDuplicates' /tmp/picard.help
-    /usr/bin/time --version | grep -F 'GNU time'
+    /usr/bin/time -V 2>&1 | grep -F 'GNU time'
     rm -f /tmp/picard.version /tmp/picard.help
     rm -rf /var/lib/apt/lists/*
 %runscript
@@ -61,7 +61,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     grep -Fx 'picard 3.3.0' /tmp/picard.version
     picard --help > /tmp/picard.help
     grep -F 'USAGE: MarkDuplicates' /tmp/picard.help
-    /usr/bin/time --version | grep -F 'GNU time'
+    /usr/bin/time -V 2>&1 | grep -F 'GNU time'
     rm -f /tmp/picard.version /tmp/picard.help
 %help
     Picard 3.3.0 from the checksummed upstream release JAR.
