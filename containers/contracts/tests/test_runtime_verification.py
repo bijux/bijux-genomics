@@ -4,6 +4,7 @@ import importlib.util
 from pathlib import Path
 import re
 import sys
+import tempfile
 import unittest
 
 CONTRACTS = Path(__file__).parents[1]
@@ -51,6 +52,41 @@ class RuntimeVerificationTests(unittest.TestCase):
                 "PLINK v2.00a6 AVX2 (23 Nov 2023)",
             )
         )
+
+    def test_report_separates_runtime_from_scientific_qualification(self) -> None:
+        execution = {
+            "schema_version": runtime_verification.EXECUTION_SCHEMA,
+            "status": "passed",
+            "repository_commit": "a" * 40,
+            "site": {"id": "lunarc", "host": "cosmos3"},
+            "summary": {"passed": 1},
+            "catalog": {"sha256": "b" * 64},
+            "inventory": {"sha256": "c" * 64},
+            "timeout_seconds": 30,
+            "tools": {
+                "tool": {
+                    "version": "1.0",
+                    "status": "passed",
+                    "failures": [],
+                    "checks": {
+                        "version": {"exit_code": 0, "timed_out": False},
+                        "help": {"exit_code": 0, "timed_out": False},
+                    },
+                }
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "execution.json"
+            output = root / "report.md"
+            runtime_verification.write_json(source, execution)
+
+            count = runtime_verification.render_report(source, output)
+            report = output.read_text(encoding="utf-8")
+
+        self.assertEqual(count, 1)
+        self.assertIn("| `tool` | `1.0` | passed | passed | **passed** |", report)
+        self.assertIn("does not establish real-data", report)
 
 
 if __name__ == "__main__":

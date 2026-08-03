@@ -275,6 +275,84 @@ def execute_verification(
     return execution
 
 
+def render_report(execution_path: Path, output: Path) -> int:
+    execution = load_json(execution_path)
+    if execution.get("schema_version") != EXECUTION_SCHEMA:
+        raise ContractError("runtime execution schema is not supported")
+    if execution.get("status") not in {"passed", "failed"}:
+        raise ContractError("runtime execution must be terminal before publication")
+    tools = execution.get("tools")
+    if not isinstance(tools, dict) or not tools:
+        raise ContractError("runtime execution contains no tool evidence")
+    summary = execution.get("summary", {})
+    lines = [
+        "<!-- GENERATED FILE - DO NOT EDIT -->",
+        "<!-- source: containers/contracts/runtime_verification.py render-report -->",
+        "# Apptainer runtime verification",
+        "",
+        "This report verifies only catalog-owned version and help entry points for",
+        "admitted Apptainer images. It does not establish real-data, scientific,",
+        "benchmark, security, or release qualification.",
+        "",
+        "## Evidence boundary",
+        "",
+        f"- Repository commit: `{execution['repository_commit']}`",
+        f"- Site: `{execution['site']['id']}` on `{execution['site']['host']}`",
+        f"- Overall status: **{execution['status']}**",
+        f"- Tool results: **passed {summary.get('passed', 0)}**, "
+        f"**failed {summary.get('failed', 0)}**",
+        f"- Catalog SHA-256: `{execution['catalog']['sha256']}`",
+        f"- Image inventory SHA-256: `{execution['inventory']['sha256']}`",
+        f"- Per-command timeout: **{execution['timeout_seconds']} seconds**",
+        "- Runtime network: **disabled**",
+        "",
+        "Stdout and stderr remain in the execution-site evidence tree. Their exact",
+        "paths and SHA-256 digests are retained in the machine-readable companion",
+        "[runtime-verification.json](runtime-verification.json).",
+        "",
+        "## Tool results",
+        "",
+        "| Tool | Version | Version check | Help check | Overall |",
+        "|---|---|---|---|---|",
+    ]
+    for tool_id, tool in sorted(tools.items()):
+        checks = tool.get("checks", {})
+        version_status = (
+            "passed"
+            if checks.get("version", {}).get("exit_code") == 0
+            and not checks.get("version", {}).get("timed_out", False)
+            and "version output did not match the catalog contract"
+            not in tool.get("failures", [])
+            else "failed"
+        )
+        help_status = (
+            "passed"
+            if checks.get("help", {}).get("exit_code") == 0
+            and not checks.get("help", {}).get("timed_out", False)
+            else "failed"
+        )
+        lines.append(
+            f"| `{tool_id}` | `{tool['version']}` | {version_status} | "
+            f"{help_status} | **{tool['status']}** |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Interpretation",
+            "",
+            "A pass means the immutable image started without network access, both",
+            "entry points completed within the declared timeout, and version output",
+            "matched the catalog contract. Real one-sample evidence is collected",
+            "separately through governed Slurm runs under `containers/runs/`.",
+        ]
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output.with_suffix(output.suffix + ".partial")
+    temporary.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    temporary.replace(output)
+    return len(tools)
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
@@ -288,6 +366,9 @@ def parser() -> argparse.ArgumentParser:
     execute.add_argument("--governance", type=Path, required=True)
     execute.add_argument("--jobs", type=int, default=8)
     execute.add_argument("--timeout-seconds", type=int, default=30)
+    report = commands.add_parser("render-report")
+    report.add_argument("--execution", type=Path, required=True)
+    report.add_argument("--output", type=Path, required=True)
     return root
 
 
@@ -299,6 +380,10 @@ def main() -> int:
                 args.inventory, args.catalog, args.governance, args.output
             )
             print(f"prepared runtime verification for {len(execution['tools'])} images")
+            return 0
+        if args.command == "render-report":
+            count = render_report(args.execution, args.output)
+            print(f"reported runtime verification for {count} images")
             return 0
         execution = execute_verification(
             args.execution, args.governance, args.jobs, args.timeout_seconds

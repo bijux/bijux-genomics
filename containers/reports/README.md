@@ -21,6 +21,7 @@ a new run identifier after the cause is corrected.
 
 - [LUNARC Apptainer image inventory](image-inventory.md)
 - [Complete LUNARC run-evidence index](run-evidence.md)
+- [Apptainer version and help verification](runtime-verification.md)
 - [LUNARC ancient-DNA damage validation](lunarc-ancient-damage.md)
 - [LUNARC ancient-DNA genotype-likelihood validation](lunarc-ancient-genotype-likelihoods.md)
 - [LUNARC amplicon ASV validation](lunarc-amplicon-asv.md)
