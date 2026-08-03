@@ -96,17 +96,19 @@ required_quality_dimensions = [
 
 [[corpora]]
 id = "human-short-read-diversity"
-status = "source_defined"
+status = "admitted"
 evidence_scope = "comparative"
 real_data = true
 sample_count = 20
 data_types = ["fastq"]
 roles = ["short_read_diversity", "ancient_and_modern_reads", "single_and_paired_reads"]
 source_specs = ["benchmarks/corpora/human-short-read-diversity.toml"]
+catalog_ids = ["human-short-read-diversity"]
 truth_strategy = "observational_only"
 scientific_rationale = "Twenty public human accessions balance ancient and modern libraries, single- and paired-end layouts, and multiple input-size bands for real workload and robustness measurements."
 limitations = [
-  "The source specification is not yet materialized and checksum-admitted under the governed study data root.",
+  "The cohort is curated for workload diversity and is not population-representative.",
+  "Library strategies and selections vary across studies, so comparisons must stratify or model this context.",
   "Observed biological reads do not by themselves provide base-level transformation truth.",
 ]
 

@@ -9,7 +9,7 @@
         "single_and_paired_reads"
       ],
       "sample_count": 20,
-      "status": "source_defined",
+      "status": "admitted",
       "truth_strategy": "observational_only"
     },
     {
@@ -630,11 +630,9 @@
       "stage_id": "fastq.cluster_otus"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -652,11 +650,9 @@
       "stage_id": "fastq.correct_errors"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -671,11 +667,9 @@
       "stage_id": "fastq.deplete_host"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -690,11 +684,9 @@
       "stage_id": "fastq.deplete_reference_contaminants"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -709,10 +701,8 @@
       "stage_id": "fastq.deplete_rrna"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -727,10 +717,8 @@
       "stage_id": "fastq.detect_adapters"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -745,10 +733,8 @@
       "stage_id": "fastq.detect_duplicates_premerge"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -763,11 +749,9 @@
       "stage_id": "fastq.estimate_library_complexity_prealign"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -782,11 +766,9 @@
       "stage_id": "fastq.extract_umis"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -803,11 +785,9 @@
       "stage_id": "fastq.filter_low_complexity"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -862,11 +842,9 @@
       "stage_id": "fastq.infer_asvs"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -905,11 +883,9 @@
       "stage_id": "fastq.normalize_abundance"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -924,10 +900,8 @@
       "stage_id": "fastq.normalize_primers"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -944,10 +918,8 @@
       "stage_id": "fastq.profile_overrepresented_sequences"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -965,10 +937,8 @@
       "stage_id": "fastq.profile_read_lengths"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -1003,11 +973,9 @@
       "stage_id": "fastq.remove_chimeras"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -1022,10 +990,8 @@
       "stage_id": "fastq.remove_duplicates"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -1061,11 +1027,9 @@
       "stage_id": "fastq.screen_taxonomy"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -1081,11 +1045,9 @@
       "stage_id": "fastq.trim_polyg_tails"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -1113,11 +1075,9 @@
       "stage_id": "fastq.trim_reads"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -1134,10 +1094,8 @@
       "stage_id": "fastq.trim_terminal_damage"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
@@ -1552,7 +1510,7 @@
     }
   ],
   "summary": {
-    "admitted_comparative_corpus_count": 0,
+    "admitted_comparative_corpus_count": 1,
     "blocked_count": 71,
     "comparative_campaign_count": 0,
     "corpus_count": 9,
