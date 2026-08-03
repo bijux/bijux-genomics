@@ -5,6 +5,7 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=1.0.4
@@ -19,7 +20,7 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y --no-install-recommends \
     git build-essential wget perl python3 ca-certificates zlib1g-dev libbz2-dev && \
     rm -rf /var/lib/apt/lists/*
 
@@ -32,8 +33,9 @@ RUN git clone --depth 1 https://github.com/fbreitwieser/krakenuniq.git /opt/krak
     ./install_krakenuniq.sh /opt/krakenuniq/install
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y --no-install-recommends \
     perl python3 ca-certificates zlib1g && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=builder /opt/krakenuniq/install /opt/krakenuniq
