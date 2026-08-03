@@ -28,15 +28,15 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export TZ=UTC
 
 %files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
     containers/tools/shapeit5/shapeit5 /usr/local/bin/shapeit5
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential curl libboost-iostreams-dev libboost-program-options-dev libboost-serialization-dev libbz2-dev libcurl4-gnutls-dev libdeflate-dev libhts-dev liblzma-dev libssl-dev zlib1g-dev
     curl --fail --location --silent --show-error --output /opt/shapeit5.tar.gz https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz
