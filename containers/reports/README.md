@@ -19,6 +19,7 @@ a new run identifier after the cause is corrected.
 
 ## Reports
 
+- [LUNARC Apptainer image inventory](image-inventory.md)
 - [Complete LUNARC run-evidence index](run-evidence.md)
 - [LUNARC ancient-DNA damage validation](lunarc-ancient-damage.md)
 - [LUNARC ancient-DNA genotype-likelihood validation](lunarc-ancient-genotype-likelihoods.md)
