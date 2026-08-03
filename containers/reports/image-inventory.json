@@ -1,0 +1,2903 @@
+{
+  "catalog_sha256": "020e90dcca4acd54208752abc2c7872a173f13b0e4dc66ff23b443b29cc1fa95",
+  "created_at_utc": "2026-08-03T03:40:12.627925+00:00",
+  "repository_commit": "bfa94b4beb166f29fb66151cb21d17118656cca1",
+  "schema_version": "bijux.container.image_inventory.v1",
+  "staged_images": [
+    {
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/.building/bbduk-7c4a22639.sif",
+      "sha256": "69198bab8b605c1dda6e374a359209d716bc5919e26ad48ad87d3ab2f9133221",
+      "size_bytes": 117092352
+    },
+    {
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/.building/clumpify-7c4a22639.sif",
+      "sha256": "11dcc246feea0e04f0bf6b05d55e77c59deaa5bb1c57949caae8e85d296002f5",
+      "size_bytes": 117092352
+    },
+    {
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/.building/seqpurge-a7690273f.sif",
+      "sha256": "ddfef7a16a27464e12b9d2cf2b2c2ab236ba26430483dcf9a72b560696d6f09e",
+      "size_bytes": 291708928
+    }
+  ],
+  "summary": {
+    "staged_image_count": 3,
+    "states": {
+      "current": 65,
+      "missing": 22,
+      "unsupported": 2
+    },
+    "tool_count": 89,
+    "unknown_image_count": 1,
+    "unreferenced_obsolete_count": 5
+  },
+  "tools": [
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "ffa30feb82f5f13a95ed8d9cd6be2bc30f3e9842280465ef4b8c8a38f25b0be2",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/adapterremoval-2.3.4-a662fe75344f.build.json",
+              "repository_commit": "f2c8a8c299de999325ea460c4ae11fd86b86d11b",
+              "status": "built"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "adapterremoval-2.3.4-linux-amd64-a662fe75344f.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/adapterremoval-2.3.4-linux-amd64-a662fe75344f.sif",
+          "real_run_references": 2,
+          "sha256": "a662fe75344f09f9f756dbedf1000f1dcc572d1aff35136e0eeb80fcfd0c2687",
+          "size_bytes": 121462784
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/adapterremoval-2.3.4-linux-amd64-a662fe75344f.sif",
+      "selected_image_sha256": "a662fe75344f09f9f756dbedf1000f1dcc572d1aff35136e0eeb80fcfd0c2687",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "adapterremoval",
+      "version": "2.3.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "6b5ecf70db366ba78caff3598e5cbc988cb61859a392486ed3b3586fc0267707",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/addeam-1.0.0-ab62b1957bb6.build.json",
+              "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "addeam-1.0.0-linux-amd64-ab62b1957bb6.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/addeam-1.0.0-linux-amd64-ab62b1957bb6.sif",
+          "real_run_references": 2,
+          "sha256": "ab62b1957bb66c23aaf8cea8b2f8ba6982a67dfda4bc0468fd7242a13a7524fb",
+          "size_bytes": 417837056
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/addeam-1.0.0-linux-amd64-ab62b1957bb6.sif",
+      "selected_image_sha256": "ab62b1957bb66c23aaf8cea8b2f8ba6982a67dfda4bc0468fd7242a13a7524fb",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "addeam",
+      "version": "1.0.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "3821a41f51e79088f33c34bd7158ff716c084192b9ebc08ae89c7521388bda58",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/alientrimmer-3.2-02ee033035a2.build.json",
+              "repository_commit": "00f23822e64a47d42396f6c9dc0c567746aa5ba8",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "alientrimmer-3.2-linux-amd64-02ee033035a2.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/alientrimmer-3.2-linux-amd64-02ee033035a2.sif",
+          "real_run_references": 1,
+          "sha256": "02ee033035a2b16ddd68da3234dd3701a92e7939edf2d46ac3f66e127da16536",
+          "size_bytes": 177606656
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "31bdf55d061fef9f44c276ecf4b2b6333e95a431d42de8296cc2c77aa35bd854",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/alientrimmer-3.2-5b4cb0770404.build.json",
+              "repository_commit": "d5f7a6cb43a31d13ba77c6582c70512caa051bed",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "alientrimmer-3.2-linux-amd64-5b4cb0770404.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/alientrimmer-3.2-linux-amd64-5b4cb0770404.sif",
+          "real_run_references": 1,
+          "sha256": "5b4cb0770404aad2b8a5288e90be805d2c2a10e17033d369f12e6e5aee12b8da",
+          "size_bytes": 177602560
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/alientrimmer-3.2-linux-amd64-02ee033035a2.sif",
+      "selected_image_sha256": "02ee033035a2b16ddd68da3234dd3701a92e7939edf2d46ac3f66e127da16536",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "alientrimmer",
+      "version": "3.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "4e71ce58eeea1f6f5de731e613ebacdbb51b309e7254b02d6036b54c21eb46fe",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/angsd-0.941-57a9d028f40a.build.json",
+              "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "angsd-0.941-linux-amd64-57a9d028f40a.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/angsd-0.941-linux-amd64-57a9d028f40a.sif",
+          "real_run_references": 1,
+          "sha256": "57a9d028f40a93703044c1dc2f17a97ad440e8acaf370e8b56df16d943d6c776",
+          "size_bytes": 210747392
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/angsd-0.941-linux-amd64-57a9d028f40a.sif",
+      "selected_image_sha256": "57a9d028f40a93703044c1dc2f17a97ad440e8acaf370e8b56df16d943d6c776",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "angsd",
+      "version": "0.941"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "648048284796cb861cbff953ee61a9e96bcc1f763d124fbd7473d06144ffc196",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/atropos-1.1.31-7abde4206eef.build.json",
+              "repository_commit": "e3cd013e0ac489cab7f78dd7d15cb83bb4469086",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "atropos-1.1.31-linux-amd64-7abde4206eef.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/atropos-1.1.31-linux-amd64-7abde4206eef.sif",
+          "real_run_references": 2,
+          "sha256": "7abde4206eefb82e42c633406936975c97363d74f1c5339f399375628550d385",
+          "size_bytes": 53088256
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/atropos-1.1.31-linux-amd64-7abde4206eef.sif",
+      "selected_image_sha256": "7abde4206eefb82e42c633406936975c97363d74f1c5339f399375628550d385",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "atropos",
+      "version": "1.1.31"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "88541ca627af119e10a3126e03fc5210d1e6ad1d136fe526b9f886f74b84c6f5",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/authenticct-1.0.0-0a349f5cd7be.build.json",
+              "repository_commit": "4b9d91ac251cd2e854ec18f48fbad891b10eddca",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "authenticct-1.0.0-linux-amd64-0a349f5cd7be.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/authenticct-1.0.0-linux-amd64-0a349f5cd7be.sif",
+          "real_run_references": 1,
+          "sha256": "0a349f5cd7bebfa719ccaa681b94f7c0b3d1bd292e017a541fb25fd11c14923b",
+          "size_bytes": 267579392
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/authenticct-1.0.0-linux-amd64-0a349f5cd7be.sif",
+      "selected_image_sha256": "0a349f5cd7bebfa719ccaa681b94f7c0b3d1bd292e017a541fb25fd11c14923b",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "authenticct",
+      "version": "1.0.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "7be54e46c3e464f942036d7d6f22045d24ca986095be12efd846ea25f50d2a4b",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bamtools-2.5.2-003a62856bc4.build.json",
+              "repository_commit": "5ad3f4d9d22e53f03246b2d39b98ded1d8a79c76",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bamtools-2.5.2-linux-amd64-003a62856bc4.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bamtools-2.5.2-linux-amd64-003a62856bc4.sif",
+          "real_run_references": 1,
+          "sha256": "003a62856bc4953cd87d1ffea6ddfe54ea45bd84ee5f906834f95c800f1f643c",
+          "size_bytes": 31379456
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bamtools-2.5.2-linux-amd64-003a62856bc4.sif",
+      "selected_image_sha256": "003a62856bc4953cd87d1ffea6ddfe54ea45bd84ee5f906834f95c800f1f643c",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bamtools",
+      "version": "2.5.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "a503dd99a544f870f66e3d21dfc26b3f549be5fad9989d58ec879f863f745bc5",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bamutil-1.0.15-b9e8aebb7038.build.json",
+              "repository_commit": "1c38962f2871667b738f648ec66c526a31081670",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bamutil-1.0.15-linux-amd64-b9e8aebb7038.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bamutil-1.0.15-linux-amd64-b9e8aebb7038.sif",
+          "real_run_references": 1,
+          "sha256": "b9e8aebb70381153230b3e2883af7f71b47ad8efed9f3c8beb1392dec7cda5c3",
+          "size_bytes": 31178752
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bamutil-1.0.15-linux-amd64-b9e8aebb7038.sif",
+      "selected_image_sha256": "b9e8aebb70381153230b3e2883af7f71b47ad8efed9f3c8beb1392dec7cda5c3",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bamutil",
+      "version": "1.0.15"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "067101286c3c86988636c6eb89f6350ed955ad469889209a581831d97be6b44d",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bayeshammer-4.2.0-29f135aa518c.build.json",
+              "repository_commit": "2bc6530df146c688168ce9894483b3774ab6c0eb",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bayeshammer-4.2.0-linux-amd64-29f135aa518c.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bayeshammer-4.2.0-linux-amd64-29f135aa518c.sif",
+          "real_run_references": 1,
+          "sha256": "29f135aa518c0b47a643167eb501f4430d1ab9a1d8b15cbec6336616c2212e99",
+          "size_bytes": 229076992
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bayeshammer-4.2.0-linux-amd64-29f135aa518c.sif",
+      "selected_image_sha256": "29f135aa518c0b47a643167eb501f4430d1ab9a1d8b15cbec6336616c2212e99",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bayeshammer",
+      "version": "4.2.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "bf165346b3869eaafe6c14d994b958d14d5f081e2d2f0fc116b289552dc45ea3",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bbduk-39.06-ad3f94f44b4e.build.json",
+              "repository_commit": "4b44b5d01cd8093a8c44cb555ea74b5b3e27fc2b",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bbduk-39.06-linux-amd64-ad3f94f44b4e.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbduk-39.06-linux-amd64-ad3f94f44b4e.sif",
+          "real_run_references": 1,
+          "sha256": "ad3f94f44b4e8871c326298d260d2594215851be7289a328da04e1ef5be409af",
+          "size_bytes": 117092352
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbduk-39.06-linux-amd64-ad3f94f44b4e.sif",
+      "selected_image_sha256": "ad3f94f44b4e8871c326298d260d2594215851be7289a328da04e1ef5be409af",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bbduk",
+      "version": "39.06"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "210102ccad95621420056a8599ccae46ab8c2407c9f6df21a2d614cabc73c1f7",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bbmerge-39.06-c2eb1201530e.build.json",
+              "repository_commit": "4b44b5d01cd8093a8c44cb555ea74b5b3e27fc2b",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bbmerge-39.06-linux-amd64-c2eb1201530e.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbmerge-39.06-linux-amd64-c2eb1201530e.sif",
+          "real_run_references": 1,
+          "sha256": "c2eb1201530e2f7113b5e2ca2f1c91aef34b3fc5a6de67cea958c54bc0c32643",
+          "size_bytes": 117092352
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbmerge-39.06-linux-amd64-c2eb1201530e.sif",
+      "selected_image_sha256": "c2eb1201530e2f7113b5e2ca2f1c91aef34b3fc5a6de67cea958c54bc0c32643",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bbmerge",
+      "version": "39.06"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "116575f960444df74f697fe2b79a5e1a657a942bd6351882f20e4b111777ef31",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bcftools-1.20-6f7cdc3f6e83.build.json",
+              "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bcftools-1.20-linux-amd64-6f7cdc3f6e83.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-6f7cdc3f6e83.sif",
+          "real_run_references": 3,
+          "sha256": "6f7cdc3f6e830f69c44fdc164c140ce8e82b52eecb14dc1e237fdd04a22f0f99",
+          "size_bytes": 63156224
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-6f7cdc3f6e83.sif",
+      "selected_image_sha256": "6f7cdc3f6e830f69c44fdc164c140ce8e82b52eecb14dc1e237fdd04a22f0f99",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bcftools",
+      "version": "1.20"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "d029d3a45ce36c38d799ad8d2c69cdd60fc6b2e7f51b0866249f8e6eb2cbbef1",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/beagle-5.4-98b380fa3e87.build.json",
+              "repository_commit": "5b6f49a03cbd13c1b3a5c06fa39d2e18a7749a30",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "beagle-5.4-linux-amd64-98b380fa3e87.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/beagle-5.4-linux-amd64-98b380fa3e87.sif",
+          "real_run_references": 1,
+          "sha256": "98b380fa3e87bd7811baac9a95bd97521028062672c72b48197187c37c2562db",
+          "size_bytes": 101904384
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/beagle-5.4-linux-amd64-98b380fa3e87.sif",
+      "selected_image_sha256": "98b380fa3e87bd7811baac9a95bd97521028062672c72b48197187c37c2562db",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "beagle",
+      "version": "5.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "c972bc937af4cf29bb04daace24cc454d55b215714c64ce8ed01bc2f6807c76c",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bedtools-2.31.1-e74534c14624.build.json",
+              "repository_commit": "f909c78337c345d853aa11a003e9e9e005bc4ff3",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bedtools-2.31.1-linux-amd64-e74534c14624.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bedtools-2.31.1-linux-amd64-e74534c14624.sif",
+          "real_run_references": 1,
+          "sha256": "e74534c14624fff630e0fc50a8c1f167c847424b9884c6b23a99823734ce664b",
+          "size_bytes": 45842432
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bedtools-2.31.1-linux-amd64-e74534c14624.sif",
+      "selected_image_sha256": "e74534c14624fff630e0fc50a8c1f167c847424b9884c6b23a99823734ce664b",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bedtools",
+      "version": "2.31.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "bijux_dna",
+      "version": "0.1.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "6a9582885c2207a7fcb84a0e8fde1ecf58161ba49a347e0baaeb7cfa908db3ba",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bowtie2-2.5.4-71a296b7b15f.build.json",
+              "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bowtie2-2.5.4-linux-amd64-71a296b7b15f.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bowtie2-2.5.4-linux-amd64-71a296b7b15f.sif",
+          "real_run_references": 1,
+          "sha256": "71a296b7b15f5b59c9213910cfad03a7393624b099b2f973041a18c0fb98b558",
+          "size_bytes": 93663232
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bowtie2-2.5.4-linux-amd64-71a296b7b15f.sif",
+      "selected_image_sha256": "71a296b7b15f5b59c9213910cfad03a7393624b099b2f973041a18c0fb98b558",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bowtie2",
+      "version": "2.5.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "b41818d13093a3765227c90951fa615eb71bff07bdc5fb3965ba5347316d3b60",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bowtie2_build-2.5.4-a134b7012023.build.json",
+              "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bowtie2_build-2.5.4-linux-amd64-a134b7012023.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bowtie2_build-2.5.4-linux-amd64-a134b7012023.sif",
+          "real_run_references": 1,
+          "sha256": "a134b7012023af66a0a313572bc355a54f67cdd0f3e45cb5559638d03294fef2",
+          "size_bytes": 93663232
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bowtie2_build-2.5.4-linux-amd64-a134b7012023.sif",
+      "selected_image_sha256": "a134b7012023af66a0a313572bc355a54f67cdd0f3e45cb5559638d03294fef2",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bowtie2_build",
+      "version": "2.5.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "c2825f874a2a7d8b6709575564f31e6441fe8d10dfbfbdc874e993de0e8c99f8",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bracken-2.9-9627dd712111.build.json",
+              "repository_commit": "457df23743a98b41b4d213a41a85278391db4dfe",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bracken-2.9-linux-amd64-9627dd712111.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bracken-2.9-linux-amd64-9627dd712111.sif",
+          "real_run_references": 1,
+          "sha256": "9627dd7121113897677f0b8a670f1f1cdba63b9f5ca8f4fadb94d34fee783f55",
+          "size_bytes": 44498944
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "f1d9b000fbfbc38e448119d8c78fee423f3195dcda4087dbb84e0c26e9537e9f",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bracken-2.9-aa477f012d9f.build.json",
+              "repository_commit": "85cac66cc13746a64b5cdea7d54e411851112cb7",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "bracken-2.9-linux-amd64-aa477f012d9f.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bracken-2.9-linux-amd64-aa477f012d9f.sif",
+          "real_run_references": 1,
+          "sha256": "aa477f012d9f7b54ecf92ae39c4b2071d7174f9df4d6c163e1e97ea9af0e73c7",
+          "size_bytes": 44494848
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bracken-2.9-linux-amd64-9627dd712111.sif",
+      "selected_image_sha256": "9627dd7121113897677f0b8a670f1f1cdba63b9f5ca8f4fadb94d34fee783f55",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bracken",
+      "version": "2.9"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "07253bb698c0f4187034955e2339245844ebfe406eadaee561eda2e9d4acc094",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/bwa-0.7.17-64c8e0c32f1a.build.json",
+              "repository_commit": "fd989ab019a266afb10950271012bfef48833570",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "bwa-0.7.17-linux-amd64-64c8e0c32f1a.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bwa-0.7.17-linux-amd64-64c8e0c32f1a.sif",
+          "real_run_references": 2,
+          "sha256": "64c8e0c32f1adbee7f46ac4c4a52bad390577593881688023d02da4585f479c8",
+          "size_bytes": 103317504
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bwa-0.7.17-linux-amd64-64c8e0c32f1a.sif",
+      "selected_image_sha256": "64c8e0c32f1adbee7f46ac4c4a52bad390577593881688023d02da4585f479c8",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "bwa",
+      "version": "0.7.17"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "de8b1d8bbe85e6f3395c10bebf1aa5c257fac240673c39d94ba6589453f5335d",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/centrifuge-1.0.4-ef902ccdea50.build.json",
+              "repository_commit": "71bc19ce7b89a7abe7aff3a2ac2058c3067c8468",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "centrifuge-1.0.4-linux-amd64-ef902ccdea50.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/centrifuge-1.0.4-linux-amd64-ef902ccdea50.sif",
+          "real_run_references": 2,
+          "sha256": "ef902ccdea50babb3c1627156469589f645f6473294650ca0304023aa211d0ec",
+          "size_bytes": 60235776
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/centrifuge-1.0.4-linux-amd64-ef902ccdea50.sif",
+      "selected_image_sha256": "ef902ccdea50babb3c1627156469589f645f6473294650ca0304023aa211d0ec",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "centrifuge",
+      "version": "1.0.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "117b790f5d695e2a0b881654e8dae9c0fb4b8c6d287c867413914bd439bebe74",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/clumpify-39.06-10ebdaa418a2.build.json",
+              "repository_commit": "4b44b5d01cd8093a8c44cb555ea74b5b3e27fc2b",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "clumpify-39.06-linux-amd64-10ebdaa418a2.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/clumpify-39.06-linux-amd64-10ebdaa418a2.sif",
+          "real_run_references": 1,
+          "sha256": "10ebdaa418a20267cd054d19debff04571628d74d7cabf5f9b829dc6689b939c",
+          "size_bytes": 117092352
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/clumpify-39.06-linux-amd64-10ebdaa418a2.sif",
+      "selected_image_sha256": "10ebdaa418a20267cd054d19debff04571628d74d7cabf5f9b829dc6689b939c",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "clumpify",
+      "version": "39.06"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "6908dff7c307b1f407951423bc36302ab7170779059053f9ccaa88e8837e3cef",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/contammix-1.0.11-10a74dccedc1.build.json",
+              "repository_commit": "84651657741bfebe8ab25874e95139dcafd3c962",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "contammix-1.0.11-linux-amd64-10a74dccedc1.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/contammix-1.0.11-linux-amd64-10a74dccedc1.sif",
+          "real_run_references": 1,
+          "sha256": "10a74dccedc1580d500c18d9fc1724fea0229ccc6646825cecab69364e3a4243",
+          "size_bytes": 107102208
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "5bbd245e1249cc0bef2bd2654631886bc642d2f829ca3093494b62bc362bb647",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/contammix-1.0.11-c77ea2854b5e.build.json",
+              "repository_commit": "e1833aa8ad9f9e3b208752cbff8f6633c52c40a4",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "unreferenced_obsolete",
+          "immutable_name": true,
+          "name": "contammix-1.0.11-linux-amd64-c77ea2854b5e.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/contammix-1.0.11-linux-amd64-c77ea2854b5e.sif",
+          "real_run_references": 0,
+          "sha256": "c77ea2854b5e0650e5948774fcf9d01aed175e24610f51c90c85ba48210806ce",
+          "size_bytes": 259502080
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/contammix-1.0.11-linux-amd64-10a74dccedc1.sif",
+      "selected_image_sha256": "10a74dccedc1580d500c18d9fc1724fea0229ccc6646825cecab69364e3a4243",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "contammix",
+      "version": "1.0.11"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "f404a47dd38515278cc397fd7e05806d5df840e7b24bdba4e033a6cfa9ac13fd",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/cutadapt-4.9-17a50c534197.build.json",
+              "repository_commit": "446f6241c18db432f89a399acf477142dcea2554",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "cutadapt-4.9-linux-amd64-17a50c534197.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/cutadapt-4.9-linux-amd64-17a50c534197.sif",
+          "real_run_references": 1,
+          "sha256": "17a50c534197eb2bcb6b5512b96c273bef336d95ec50ebe1b2e740459f778b40",
+          "size_bytes": 70537216
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/cutadapt-4.9-linux-amd64-17a50c534197.sif",
+      "selected_image_sha256": "17a50c534197eb2bcb6b5512b96c273bef336d95ec50ebe1b2e740459f778b40",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "cutadapt",
+      "version": "4.9"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "2c2d25637cb2b9a013925106ac902381207a999270e69f7a6a1565ab5f726e7a",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/dada2-1.30.0-46ff3cf7673a.build.json",
+              "repository_commit": "0ceb5ad9a96d0852d9fb30933e811b06248d1910",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "dada2-1.30.0-linux-amd64-46ff3cf7673a.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-46ff3cf7673a.sif",
+          "real_run_references": 2,
+          "sha256": "46ff3cf7673a5b100396db766159af6722deb6729f0381dcd21193e958bb9f4e",
+          "size_bytes": 243642368
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "3c4f0fa3119d36cf5e322c27c3fb9408588737fb5c9528ad8e8337cde476b16b",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/dada2-1.30.0-912e10759d87.build.json",
+              "repository_commit": "0402016c18e5c932e6af6338094bf250cd3ba97b",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "dada2-1.30.0-linux-amd64-912e10759d87.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-912e10759d87.sif",
+          "real_run_references": 3,
+          "sha256": "912e10759d87d3f64492b39db9c06f14af8504235f69ac3a92dafe76a2fd5114",
+          "size_bytes": 261373952
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "a86736b33e0c4dda9bfde470e76ecf9b83f06d9f59ad1f4030d18d1db4fbef9b",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/dada2-1.30.0-faf6ec2ef753.build.json",
+              "repository_commit": "d5592224389e4a41282c88b39afdb12ce1703988",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "unreferenced_obsolete",
+          "immutable_name": true,
+          "name": "dada2-1.30.0-linux-amd64-faf6ec2ef753.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-faf6ec2ef753.sif",
+          "real_run_references": 0,
+          "sha256": "faf6ec2ef753d2b4c639afcd38aa1a8045a87de8f3b809f08b0c470afc46ca93",
+          "size_bytes": 372920320
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-912e10759d87.sif",
+      "selected_image_sha256": "912e10759d87d3f64492b39db9c06f14af8504235f69ac3a92dafe76a2fd5114",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "dada2",
+      "version": "1.30.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "4ab557c0001ebd6db428afa892f346e630d3261d59242cf8f2ae2779aca13356",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/damageprofiler-1.1-4c135c9ca508.build.json",
+              "repository_commit": "cb582d90ed023a6cd54d1ee309e0ac404e8927f2",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "damageprofiler-1.1-linux-amd64-4c135c9ca508.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-4c135c9ca508.sif",
+          "real_run_references": 1,
+          "sha256": "4c135c9ca508fa0edb68ae59472cb4dafd2fde99cfcfcb9e73f79e6607f60420",
+          "size_bytes": 167612416
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "2ab9ba032ffe8507020fe4398775b511e755109584abcd66ec07fb68202ab385",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/damageprofiler-1.1-860802600f73.build.json",
+              "repository_commit": "692c078e4a08607d98bce357900477fcbd3a260d",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "damageprofiler-1.1-linux-amd64-860802600f73.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-860802600f73.sif",
+          "real_run_references": 1,
+          "sha256": "860802600f732b9f038487a19117fea7a013734975879204235b2edc3caa5de8",
+          "size_bytes": 164499456
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "2ab9ba032ffe8507020fe4398775b511e755109584abcd66ec07fb68202ab385",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/damageprofiler-1.1-eb310de6eefe.build.json",
+              "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "damageprofiler-1.1-linux-amd64-eb310de6eefe.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-eb310de6eefe.sif",
+          "real_run_references": 1,
+          "sha256": "eb310de6eefec837f53969e20b164b9e813ed69d11e599bb231268b7962fdb52",
+          "size_bytes": 164499456
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "c5fd2975a819348bb23541a259951b9e15fedfb8590e305e9310ef3ddf846233",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/damageprofiler-1.1-f4378bded358.build.json",
+              "repository_commit": "2b7081b7f8deb3c75bb71c59d6a5d538aa153c26",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "damageprofiler-1.1-linux-amd64-f4378bded358.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-f4378bded358.sif",
+          "real_run_references": 1,
+          "sha256": "f4378bded3587306c997c6c7bb3eb8f83be3beb29d4bb17bab432962d8c97f13",
+          "size_bytes": 169828352
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-f4378bded358.sif",
+      "selected_image_sha256": "f4378bded3587306c997c6c7bb3eb8f83be3beb29d4bb17bab432962d8c97f13",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "damageprofiler",
+      "version": "1.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "c90b259e20f7e2941c31ac4f7034afd0fb9b2b468f2610129bc76d78756efee3",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/diamond-2.1.10-d86c946a7abb.build.json",
+              "repository_commit": "18b311fb90881e765510bcb81dcc7319546997b6",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "diamond-2.1.10-linux-amd64-d86c946a7abb.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/diamond-2.1.10-linux-amd64-d86c946a7abb.sif",
+          "real_run_references": 2,
+          "sha256": "d86c946a7abb2f28f3da389735b425eff159fd2415e95cab5cf4a5b8611b579d",
+          "size_bytes": 34537472
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/diamond-2.1.10-linux-amd64-d86c946a7abb.sif",
+      "selected_image_sha256": "d86c946a7abb2f28f3da389735b425eff159fd2415e95cab5cf4a5b8611b579d",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "diamond",
+      "version": "2.1.10"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "d6f3897bb69302df71987f09c35b09d70484258dd81e09a4411d27dee90dbd7c",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/dustmasker-2.15.0-416c38e6a7e1.build.json",
+              "repository_commit": "cce2ba374c2693ed2f7a52d063bf66215cf9945d",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "dustmasker-2.15.0-linux-amd64-416c38e6a7e1.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dustmasker-2.15.0-linux-amd64-416c38e6a7e1.sif",
+          "real_run_references": 1,
+          "sha256": "416c38e6a7e13ea4042d15aa7f7f177c287aa535ee8e3aef6dc4bc543518682d",
+          "size_bytes": 40480768
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dustmasker-2.15.0-linux-amd64-416c38e6a7e1.sif",
+      "selected_image_sha256": "416c38e6a7e13ea4042d15aa7f7f177c287aa535ee8e3aef6dc4bc543518682d",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "dustmasker",
+      "version": "2.15.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "fc92e7833b94838f8e4acced633029d0305a29a7f9e658afc5f4a74a470c5d7d",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/eagle-2.4.1-881f32028845.build.json",
+              "repository_commit": "65360aef68ebb9e6da45577b862597c497f3103b",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "eagle-2.4.1-linux-amd64-881f32028845.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eagle-2.4.1-linux-amd64-881f32028845.sif",
+          "real_run_references": 2,
+          "sha256": "881f320288453eb577801a1caf738b4788fe2bcaa9816624a4f33125fb8aa7dd",
+          "size_bytes": 219475968
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eagle-2.4.1-linux-amd64-881f32028845.sif",
+      "selected_image_sha256": "881f320288453eb577801a1caf738b4788fe2bcaa9816624a4f33125fb8aa7dd",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "eagle",
+      "version": "2.4.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "61804f1fa04d163852ee3dc97580bea0a0e9d002b6d64fc92ac21b8b1d8c0a2d",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/eigensoft-8.0.0-b514b5c1541d.build.json",
+              "repository_commit": "e91d3dac0ccf34fba5f266ab175449ddeb5a7079",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "eigensoft-8.0.0-linux-amd64-b514b5c1541d.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eigensoft-8.0.0-linux-amd64-b514b5c1541d.sif",
+          "real_run_references": 1,
+          "sha256": "b514b5c1541d77b77b200ea90c8aa620592da77e4b45aab995d6735e84d23e18",
+          "size_bytes": 53198848
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eigensoft-8.0.0-linux-amd64-b514b5c1541d.sif",
+      "selected_image_sha256": "b514b5c1541d77b77b200ea90c8aa620592da77e4b45aab995d6735e84d23e18",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "eigensoft",
+      "version": "8.0.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "6f6932fe5c503295b3605e85c7a6746915168359b57313579910b64186f9311e",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fastp-0.23.4-510fd454fd9c.build.json",
+              "repository_commit": "569a3098bea532d892a144ca7b73b6e56f2125e1",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "fastp-0.23.4-linux-amd64-510fd454fd9c.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastp-0.23.4-linux-amd64-510fd454fd9c.sif",
+          "real_run_references": 1,
+          "sha256": "510fd454fd9cdd2c1efe5f3e75ec280e98be5cfd1f0e496f0ade02554206e639",
+          "size_bytes": 34312192
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastp-0.23.4-linux-amd64-510fd454fd9c.sif",
+      "selected_image_sha256": "510fd454fd9cdd2c1efe5f3e75ec280e98be5cfd1f0e496f0ade02554206e639",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "fastp",
+      "version": "0.23.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "b913fd7dd3eb64cf203b9fe1a4e485b1d76b5dfbfe06c923084f6d0e25d4b880",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fastq_scan-1.0.1-664692beeec0.build.json",
+              "repository_commit": "00baff6641339d0de2d4129f2f2e2b91b91aae07",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "fastq_scan-1.0.1-linux-amd64-664692beeec0.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastq_scan-1.0.1-linux-amd64-664692beeec0.sif",
+          "real_run_references": 1,
+          "sha256": "664692beeec07f8f23fc1ea433327c6e391ab19eda40d8bd468c350989840066",
+          "size_bytes": 30752768
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "0ef1f54005333f6a117b3d5b0bc183956f2e3ab5b6b50a77be04a62762ae7375",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fastq_scan-1.0.1-ef2aa335402f.build.json",
+              "repository_commit": "3eca52c456f0e43fc6b75a7de6d6f4d9992a2016",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "fastq_scan-1.0.1-linux-amd64-ef2aa335402f.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastq_scan-1.0.1-linux-amd64-ef2aa335402f.sif",
+          "real_run_references": 1,
+          "sha256": "ef2aa335402f3012886855d29ad62220ead94178974a7af3f5d97d26b69213cf",
+          "size_bytes": 120717312
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastq_scan-1.0.1-linux-amd64-664692beeec0.sif",
+      "selected_image_sha256": "664692beeec07f8f23fc1ea433327c6e391ab19eda40d8bd468c350989840066",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "fastq_scan",
+      "version": "1.0.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "fastq_screen",
+      "version": "0.15.3"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "8477aa5210655ca9ec7f263aed7e42065494a1d707558e81bd64b58192e43240",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fastqc-0.12.1-67d35b581fd8.build.json",
+              "repository_commit": "46d84160c0510c0440ec9645e9cf7de2c767f703",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "fastqc-0.12.1-linux-amd64-67d35b581fd8.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqc-0.12.1-linux-amd64-67d35b581fd8.sif",
+          "real_run_references": 1,
+          "sha256": "67d35b581fd832f7ffb40618001a1d92cb12a45490784457e5edfeb352a2bcad",
+          "size_bytes": 129630208
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqc-0.12.1-linux-amd64-67d35b581fd8.sif",
+      "selected_image_sha256": "67d35b581fd832f7ffb40618001a1d92cb12a45490784457e5edfeb352a2bcad",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "fastqc",
+      "version": "0.12.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "aafbfa64278f144013ab725c329e5c43b87f21e58999607a44a448d15735d711",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fastqvalidator-0.1.1-5f311ba0cdfd.build.json",
+              "repository_commit": "6fe3d23155fabf8514a844c43e5ebc9e4db63684",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "fastqvalidator-0.1.1-linux-amd64-5f311ba0cdfd.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqvalidator-0.1.1-linux-amd64-5f311ba0cdfd.sif",
+          "real_run_references": 1,
+          "sha256": "5f311ba0cdfd1da0487335c8aa668bb8b2550703dfdbc877fd926c7170cc43d0",
+          "size_bytes": 30797824
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqvalidator-0.1.1-linux-amd64-5f311ba0cdfd.sif",
+      "selected_image_sha256": "5f311ba0cdfd1da0487335c8aa668bb8b2550703dfdbc877fd926c7170cc43d0",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "fastqvalidator",
+      "version": "0.1.1"
+    },
+    {
+      "apptainer_supported": false,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "unsupported",
+      "support_disposition": "unsupported",
+      "tool": "fastuniq",
+      "version": "1.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "da8428e9c4b276cf94f5623de14aef58182249b2f5fe3b46b91a6ebda876360d",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fastx_clipper-0.0.14-4fe414e042bf.build.json",
+              "repository_commit": "6678ba0be6451eca04e6cce7f777f6e34ca526e1",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "fastx_clipper-0.0.14-linux-amd64-4fe414e042bf.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-4fe414e042bf.sif",
+          "real_run_references": 1,
+          "sha256": "4fe414e042bf61979c1c5fe82143bd1701dc977184750a54cb0d52abb4a2d440",
+          "size_bytes": 31559680
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "da8428e9c4b276cf94f5623de14aef58182249b2f5fe3b46b91a6ebda876360d",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fastx_clipper-0.0.14-bc54cc233692.build.json",
+              "repository_commit": "2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "fastx_clipper-0.0.14-linux-amd64-bc54cc233692.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-bc54cc233692.sif",
+          "real_run_references": 2,
+          "sha256": "bc54cc2336929e04879aed99e2a4eb4fdd25c824e760b9d49d7ad7a3e3c16aeb",
+          "size_bytes": 31559680
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-bc54cc233692.sif",
+      "selected_image_sha256": "bc54cc2336929e04879aed99e2a4eb4fdd25c824e760b9d49d7ad7a3e3c16aeb",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "fastx_clipper",
+      "version": "0.0.14"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "f22f019c61f4f11a32cc97c651c3ef717ae52acd19d239913e84275f4c22d78c",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/flash2-2.2.00-3fdfb65afaf1.build.json",
+              "repository_commit": "db43a6f9c6b724685a5dbaaf4e58c04abef62b9e",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "flash2-2.2.00-linux-amd64-3fdfb65afaf1.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/flash2-2.2.00-linux-amd64-3fdfb65afaf1.sif",
+          "real_run_references": 2,
+          "sha256": "3fdfb65afaf1c9967f7ffae5a0015f18b627099fd7ed95efc07626d7932aeac7",
+          "size_bytes": 30740480
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/flash2-2.2.00-linux-amd64-3fdfb65afaf1.sif",
+      "selected_image_sha256": "3fdfb65afaf1c9967f7ffae5a0015f18b627099fd7ed95efc07626d7932aeac7",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "flash2",
+      "version": "2.2.00"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "d1fee7b592411e3f23ce35e8203e86889ecf1d23ff008b1c9cbf60a0c4e6b187",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/fqtools-2.3-a0f39cc7e90e.build.json",
+              "repository_commit": "4b44b5d01cd8093a8c44cb555ea74b5b3e27fc2b",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "fqtools-2.3-linux-amd64-a0f39cc7e90e.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fqtools-2.3-linux-amd64-a0f39cc7e90e.sif",
+          "real_run_references": 6,
+          "sha256": "a0f39cc7e90e778b603d41d23780a0add9bb0ded2849d73d0787f4e1d7c96488",
+          "size_bytes": 111198208
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fqtools-2.3-linux-amd64-a0f39cc7e90e.sif",
+      "selected_image_sha256": "a0f39cc7e90e778b603d41d23780a0add9bb0ded2849d73d0787f4e1d7c96488",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "fqtools",
+      "version": "2.3"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "gatk",
+      "version": "4.6.2.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "61ed1507773afee7405dcabb9d14c53af6b0ec9a61abed08625852cd829f80cd",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/germline-1.5.3-3ff976e69406.build.json",
+              "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "germline-1.5.3-linux-amd64-3ff976e69406.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-3ff976e69406.sif",
+          "real_run_references": 2,
+          "sha256": "3ff976e694067ce2252b79d3923a5e640a6b2aadc8c99e244db125f41d63a2a8",
+          "size_bytes": 30781440
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "61ed1507773afee7405dcabb9d14c53af6b0ec9a61abed08625852cd829f80cd",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/germline-1.5.3-7c9bc32127d9.build.json",
+              "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "germline-1.5.3-linux-amd64-7c9bc32127d9.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-7c9bc32127d9.sif",
+          "real_run_references": 1,
+          "sha256": "7c9bc32127d93a73f5c881f5e095e36e38cc902ab72e3d77b42901e68a597403",
+          "size_bytes": 30781440
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-7c9bc32127d9.sif",
+      "selected_image_sha256": "7c9bc32127d93a73f5c881f5e095e36e38cc902ab72e3d77b42901e68a597403",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "germline",
+      "version": "1.5.3"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "6d973820c83a73d78f6f3607b5122fee81990333acd4d22f0c2842a8809bad6a",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/glimpse-1.1.1-0fac06ffca29.build.json",
+              "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "glimpse-1.1.1-linux-amd64-0fac06ffca29.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/glimpse-1.1.1-linux-amd64-0fac06ffca29.sif",
+          "real_run_references": 0,
+          "sha256": "0fac06ffca298d98a774f0532c42c3582a331766a0521fd20fd673493e3471fe",
+          "size_bytes": 194019328
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/glimpse-1.1.1-linux-amd64-0fac06ffca29.sif",
+      "selected_image_sha256": "0fac06ffca298d98a774f0532c42c3582a331766a0521fd20fd673493e3471fe",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "glimpse",
+      "version": "1.1.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "1899d89dd2b4af69e29cb73d65e15e1127b4c9d26e6c70868c6093aac430769c",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/ibdhap-3.4-5c34505e4602.build.json",
+              "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "ibdhap-3.4-linux-amd64-5c34505e4602.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdhap-3.4-linux-amd64-5c34505e4602.sif",
+          "real_run_references": 1,
+          "sha256": "5c34505e46021dbcddcbd0b0614f0fb9f818ef578613bb436c40ad61d934ca8a",
+          "size_bytes": 43503616
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "1899d89dd2b4af69e29cb73d65e15e1127b4c9d26e6c70868c6093aac430769c",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/ibdhap-3.4-b0ac1b0a58e4.build.json",
+              "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "ibdhap-3.4-linux-amd64-b0ac1b0a58e4.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdhap-3.4-linux-amd64-b0ac1b0a58e4.sif",
+          "real_run_references": 1,
+          "sha256": "b0ac1b0a58e417152c02a87b95b647985c78aaa1067ef1da66f1c74d6509e032",
+          "size_bytes": 43503616
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdhap-3.4-linux-amd64-b0ac1b0a58e4.sif",
+      "selected_image_sha256": "b0ac1b0a58e417152c02a87b95b647985c78aaa1067ef1da66f1c74d6509e032",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "ibdhap",
+      "version": "3.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "123547968f55d6639c4bebd4b526218c83b0d5442a9f6b93c7a27eb767299df6",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/ibdne-23Apr20.ae9-ba400ac39ae8.build.json",
+              "repository_commit": "5e8ccec53402314f3e0e1b865dd8cf199a4dcb56",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "ibdne-23Apr20.ae9-linux-amd64-ba400ac39ae8.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdne-23Apr20.ae9-linux-amd64-ba400ac39ae8.sif",
+          "real_run_references": 4,
+          "sha256": "ba400ac39ae8e69794d839b409135ecb66e92159c3456825cf396bcad22b296d",
+          "size_bytes": 104599552
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdne-23Apr20.ae9-linux-amd64-ba400ac39ae8.sif",
+      "selected_image_sha256": "ba400ac39ae8e69794d839b409135ecb66e92159c3456825cf396bcad22b296d",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "ibdne",
+      "version": "23Apr20.ae9"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "2354af98f0d0caecebab8890eb326977439c7ea9916a2414e5b5a46005b47a6d",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/ibdseq-r1206-d8a2ed8f3822.build.json",
+              "repository_commit": "5e8ccec53402314f3e0e1b865dd8cf199a4dcb56",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "ibdseq-r1206-linux-amd64-d8a2ed8f3822.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdseq-r1206-linux-amd64-d8a2ed8f3822.sif",
+          "real_run_references": 2,
+          "sha256": "d8a2ed8f3822582ae74dea3831f65e01b0960d28d5d495019021526e12cda25e",
+          "size_bytes": 104636416
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdseq-r1206-linux-amd64-d8a2ed8f3822.sif",
+      "selected_image_sha256": "d8a2ed8f3822582ae74dea3831f65e01b0960d28d5d495019021526e12cda25e",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "ibdseq",
+      "version": "r1206"
+    },
+    {
+      "apptainer_supported": false,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "unsupported",
+      "support_disposition": "unsupported",
+      "tool": "impute5",
+      "version": "1.2.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "kaiju",
+      "version": "1.10.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "king",
+      "version": "2.3.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "5b1e6bdd4ae5c941d9396cc5858c8aa9c2225edfb54a96983ad1e3ac38772ab5",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/kraken2-2.1.3-4a2f52a05b4e.build.json",
+              "repository_commit": "4e050cb0432c0e70d0e7c6256a15bc3df1e3c4c2",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "kraken2-2.1.3-linux-amd64-4a2f52a05b4e.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/kraken2-2.1.3-linux-amd64-4a2f52a05b4e.sif",
+          "real_run_references": 1,
+          "sha256": "4a2f52a05b4ead9a99848c5c0ffb0f1cd5aaf18d011992389027ade1e5ebbf2b",
+          "size_bytes": 42635264
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/kraken2-2.1.3-linux-amd64-4a2f52a05b4e.sif",
+      "selected_image_sha256": "4a2f52a05b4ead9a99848c5c0ffb0f1cd5aaf18d011992389027ade1e5ebbf2b",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "kraken2",
+      "version": "2.1.3"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "krakenuniq",
+      "version": "1.0.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "dcbcfc902d27c9a463e48237cc6dd6bdef03a05716366e279da38bfbda7df707",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/leehom-1.2.18-b3ea2f42cfc8.build.json",
+              "repository_commit": "0d6e932954ec23f155a01ad6cb56c7f3e061e5e2",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "leehom-1.2.18-linux-amd64-b3ea2f42cfc8.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/leehom-1.2.18-linux-amd64-b3ea2f42cfc8.sif",
+          "real_run_references": 1,
+          "sha256": "b3ea2f42cfc89539bda6b3c2b216a5a36ebcccc3ea820b2c05fbbe958c623373",
+          "size_bytes": 166760448
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/leehom-1.2.18-linux-amd64-b3ea2f42cfc8.sif",
+      "selected_image_sha256": "b3ea2f42cfc89539bda6b3c2b216a5a36ebcccc3ea820b2c05fbbe958c623373",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "leehom",
+      "version": "1.2.18"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "lighter",
+      "version": "1.1.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "da2ea0052bafef72dbdb3264956e88dd9bee99a5b02b911e8bbb335223d0f730",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/mapdamage2-2.2.2-3f6570d3130c.build.json",
+              "repository_commit": "814ed68d6408bb720a91ff30ee19c59a2105b530",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "mapdamage2-2.2.2-linux-amd64-3f6570d3130c.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-3f6570d3130c.sif",
+          "real_run_references": 1,
+          "sha256": "3f6570d3130c0921ba15d83bda7ebad02469e37e970e9b84cd20078859eb60f0",
+          "size_bytes": 56786944
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "a9e9443f28493a6ccdd1f00a23e8b24c03c89ec15ebeaf5ec920842169a85b60",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/mapdamage2-2.2.2-eebdbec567fb.build.json",
+              "repository_commit": "b738b7ea18c6b58e7ff05f03453e20fa89163162",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "mapdamage2-2.2.2-linux-amd64-eebdbec567fb.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-eebdbec567fb.sif",
+          "real_run_references": 1,
+          "sha256": "eebdbec567fbeb14cb3d434d838a28a781b29a4a5238152ec7b76073b09dd17d",
+          "size_bytes": 175280128
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "a9e9443f28493a6ccdd1f00a23e8b24c03c89ec15ebeaf5ec920842169a85b60",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/mapdamage2-2.2.2-f762917cc1ad.build.json",
+              "repository_commit": "f8db1d4c07f050720797a662b64f202cb52dd933",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "mapdamage2-2.2.2-linux-amd64-f762917cc1ad.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-f762917cc1ad.sif",
+          "real_run_references": 1,
+          "sha256": "f762917cc1adb21f95d56298831c06ec37e3fc44e240272768aca193cebc8fdf",
+          "size_bytes": 175280128
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "e06482ce902978426bcaae73383a16d6f44781bb4d2dbf108cd0825e563ad448",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/mapdamage2-2.2.2-fb078a59027f.build.json",
+              "repository_commit": "69e12482e1ecb19eac90f51deef5b841c3129076",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "unreferenced_obsolete",
+          "immutable_name": true,
+          "name": "mapdamage2-2.2.2-linux-amd64-fb078a59027f.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-fb078a59027f.sif",
+          "real_run_references": 0,
+          "sha256": "fb078a59027f1f4c771b92b92321e1adb13f5aca9f62485102ab44e099123725",
+          "size_bytes": 175255552
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "e3419618052870832ad8f0b4f8e69868b9d714c2ef0b75d64b8696f12282bdb9",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/mapdamage2-2.2.2-fe844de7efe8.build.json",
+              "repository_commit": "952aa80a41ce55297b54f290299c378fd9ef7e56",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "mapdamage2-2.2.2-linux-amd64-fe844de7efe8.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-fe844de7efe8.sif",
+          "real_run_references": 1,
+          "sha256": "fe844de7efe86c58b1bd5a7682836257215d8af661c322daf23f5c0ce61aa74d",
+          "size_bytes": 175280128
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-3f6570d3130c.sif",
+      "selected_image_sha256": "3f6570d3130c0921ba15d83bda7ebad02469e37e970e9b84cd20078859eb60f0",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "mapdamage2",
+      "version": "2.2.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "metaphlan",
+      "version": "4.1.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "cd9a7b1a4c1682603e0443a43578cb68300319150f44ec658e4da3302b960211",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/minimac4-4.1.6-9ced0aebf2a6.build.json",
+              "repository_commit": "cf74b5cf0843d9f4ffce2d0f7f6d646221756e03",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "minimac4-4.1.6-linux-amd64-9ced0aebf2a6.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/minimac4-4.1.6-linux-amd64-9ced0aebf2a6.sif",
+          "real_run_references": 0,
+          "sha256": "9ced0aebf2a63337f006c4433b4da05519530d477f5be1d4f529633fbe40239f",
+          "size_bytes": 168591360
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/minimac4-4.1.6-linux-amd64-9ced0aebf2a6.sif",
+      "selected_image_sha256": "9ced0aebf2a63337f006c4433b4da05519530d477f5be1d4f529633fbe40239f",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "minimac4",
+      "version": "4.1.6"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "07a6f43c1d5e31b7f2877a4082c42571fd98cbeeff1e3d0225ee2cdac47f59e0",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/mosdepth-0.3.11-21697c7ae591.build.json",
+              "repository_commit": "6fa5d55f3b092de162f7f136461037431aaea494",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "mosdepth-0.3.11-linux-amd64-21697c7ae591.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mosdepth-0.3.11-linux-amd64-21697c7ae591.sif",
+          "real_run_references": 1,
+          "sha256": "21697c7ae5919429ded46ea4aead6f2b93edf234271e4389655d79f4012db8f5",
+          "size_bytes": 38400000
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mosdepth-0.3.11-linux-amd64-21697c7ae591.sif",
+      "selected_image_sha256": "21697c7ae5919429ded46ea4aead6f2b93edf234271e4389655d79f4012db8f5",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "mosdepth",
+      "version": "0.3.11"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "multiqc",
+      "version": "1.21"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "4dd71348441b13d0c7a4c6a4d74c0d21ad0906279353d8728279e4ff3b04b55a",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/musket-1.1-66cc57153cc4.build.json",
+              "repository_commit": "9c6f385100927e7e362cb88e8eab38717c501681",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "musket-1.1-linux-amd64-66cc57153cc4.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/musket-1.1-linux-amd64-66cc57153cc4.sif",
+          "real_run_references": 1,
+          "sha256": "66cc57153cc40ea65f19dd660baa30cda11eedd5084f94acac2e35a3700c2c56",
+          "size_bytes": 132648960
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "234460221ad880e52f7cdd785381e6fb86beafc38a701d3588ff4ce450931924",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/musket-1.1-83485c4b8cf7.build.json",
+              "repository_commit": "d759c5e41d7189ec5cef54efd6f5c1edebabacb5",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "unreferenced_obsolete",
+          "immutable_name": true,
+          "name": "musket-1.1-linux-amd64-83485c4b8cf7.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/musket-1.1-linux-amd64-83485c4b8cf7.sif",
+          "real_run_references": 0,
+          "sha256": "83485c4b8cf7a175d270c90bf99a6359b07653f2c1adfc498b9a39b68729312d",
+          "size_bytes": 132648960
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/musket-1.1-linux-amd64-66cc57153cc4.sif",
+      "selected_image_sha256": "66cc57153cc40ea65f19dd660baa30cda11eedd5084f94acac2e35a3700c2c56",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "musket",
+      "version": "1.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "a4e6de5e4c0a9420d2055d50f993bd042dabc2f2afa0b3a69eb1d757daf77897",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/ngsbriggs-0.01-35bc4bd47f97.build.json",
+              "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "ngsbriggs-0.01-linux-amd64-35bc4bd47f97.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ngsbriggs-0.01-linux-amd64-35bc4bd47f97.sif",
+          "real_run_references": 1,
+          "sha256": "35bc4bd47f97f2fba38448cedfc773ddf456b66079aca5d052ec55c9413229c2",
+          "size_bytes": 145997824
+        },
+        {
+          "admitted": false,
+          "build_evidence": [],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "ngsbriggs-0.01-linux-amd64-ecbca47636d5.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ngsbriggs-0.01-linux-amd64-ecbca47636d5.sif",
+          "real_run_references": 1,
+          "sha256": "ecbca47636d53e8e85482bbdb72551a7cfef1aa642689cb315a0ea7d1122da95",
+          "size_bytes": 146001920
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ngsbriggs-0.01-linux-amd64-35bc4bd47f97.sif",
+      "selected_image_sha256": "35bc4bd47f97f2fba38448cedfc773ddf456b66079aca5d052ec55c9413229c2",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "ngsbriggs",
+      "version": "0.01"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "f5121d3147f863bbade6fcb611cda48531b05041d2df57ad3080cd741f20bbeb",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/pear-0.9.6-1fa2df569ac9.build.json",
+              "repository_commit": "b63af520a6d416c6cb02c6439e250b82a716a4cb",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "pear-0.9.6-linux-amd64-1fa2df569ac9.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pear-0.9.6-linux-amd64-1fa2df569ac9.sif",
+          "real_run_references": 1,
+          "sha256": "1fa2df569ac9197cffe5f0fc8375a53029a463c9557a3bf28d9f775823118ee1",
+          "size_bytes": 134995968
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "8359e530354571e06a81247bdfc5c13aa39873920c32b3259ec1a4ef973942a7",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/pear-0.9.6-5ee0d036b5c0.build.json",
+              "repository_commit": "96808e384bae61793a020c714eff85e1bd00ec34",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "pear-0.9.6-linux-amd64-5ee0d036b5c0.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pear-0.9.6-linux-amd64-5ee0d036b5c0.sif",
+          "real_run_references": 1,
+          "sha256": "5ee0d036b5c05228c189d4b3aa39baf5cd47abeba679e6ae2987c9ddfe1a7e10",
+          "size_bytes": 134995968
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pear-0.9.6-linux-amd64-5ee0d036b5c0.sif",
+      "selected_image_sha256": "5ee0d036b5c05228c189d4b3aa39baf5cd47abeba679e6ae2987c9ddfe1a7e10",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "pear",
+      "version": "0.9.6"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "picard",
+      "version": "3.3.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "1742e7f518a2833d5c7916ee440d389ed27e808e0b1fcae492240066fbc0ca2a",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/plink-1.90b7.2-ce4688add11d.build.json",
+              "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "plink-1.90b7.2-linux-amd64-ce4688add11d.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/plink-1.90b7.2-linux-amd64-ce4688add11d.sif",
+          "real_run_references": 1,
+          "sha256": "ce4688add11dc0e87d6da70236a508c18373b54b8582a4519cc645f7a8ad9f99",
+          "size_bytes": 40054784
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/plink-1.90b7.2-linux-amd64-ce4688add11d.sif",
+      "selected_image_sha256": "ce4688add11dc0e87d6da70236a508c18373b54b8582a4519cc645f7a8ad9f99",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "plink",
+      "version": "1.90b7.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "f70d2381eadd102d6d3590eb62b553cd411aa50e3d8a4f7deb2a6e46981becbf",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/plink2-2.00a6-ec2c69253b84.build.json",
+              "repository_commit": "7950bde13673acbf12afd252b278ed185234274c",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "plink2-2.00a6-linux-amd64-ec2c69253b84.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/plink2-2.00a6-linux-amd64-ec2c69253b84.sif",
+          "real_run_references": 2,
+          "sha256": "ec2c69253b8417d63472eca31c46e7dab082767752725a47296cad598337d645",
+          "size_bytes": 43601920
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/plink2-2.00a6-linux-amd64-ec2c69253b84.sif",
+      "selected_image_sha256": "ec2c69253b8417d63472eca31c46e7dab082767752725a47296cad598337d645",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "plink2",
+      "version": "2.00a6"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "pmdtools",
+      "version": "0.60"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "preseq",
+      "version": "3.2.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "64a35faa072d1144b3f5ed81bd18215c26d73902a8e430764213cfb0fa4c3cf4",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/prinseq-1.2.4-9dfb7b78c971.build.json",
+              "repository_commit": "5cba45f94a06d94156efaacbe3b799491ccfb534",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "prinseq-1.2.4-linux-amd64-9dfb7b78c971.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/prinseq-1.2.4-linux-amd64-9dfb7b78c971.sif",
+          "real_run_references": 1,
+          "sha256": "9dfb7b78c971623caf9d791258525c7478aabcdf403cb364d9a871798817107d",
+          "size_bytes": 321945600
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/prinseq-1.2.4-linux-amd64-9dfb7b78c971.sif",
+      "selected_image_sha256": "9dfb7b78c971623caf9d791258525c7478aabcdf403cb364d9a871798817107d",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "prinseq",
+      "version": "1.2.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "pydamage",
+      "version": "0.80"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "4c4de60c071a5daf5ae848715ab080d4caeed8f754d4444d9bba8e946d8edcd8",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/qualimap-2.3-5c45a0c0f945.build.json",
+              "repository_commit": "e6abc2954c428bf15986ba6d06357c893d5e82b0",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "qualimap-2.3-linux-amd64-5c45a0c0f945.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-5c45a0c0f945.sif",
+          "real_run_references": 1,
+          "sha256": "5c45a0c0f94538be96b28351a2ed0ad087b770395cf10fe32663175a1e200d5e",
+          "size_bytes": 130244608
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "c51779a12e36f0ec3370dafde70ad9b806c592773635fbe0acb86410e6b2f8aa",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/qualimap-2.3-afd592cf021b.build.json",
+              "repository_commit": "703dd600386cd668f4f75726a523a4e113034da7",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "qualimap-2.3-linux-amd64-afd592cf021b.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-afd592cf021b.sif",
+          "real_run_references": 1,
+          "sha256": "afd592cf021b3c42f71e6f1c305638218a7107e791c2779cb7e4bb232545dc3f",
+          "size_bytes": 135204864
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "4374f4d9119e6f5db30a62b59191993543a4d3224f8eb46cb8cd38e2984b3634",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/qualimap-2.3-ccf357b5a38d.build.json",
+              "repository_commit": "2c76182710319c3e5dadf96c9cd0148dc2af2ad4",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "historical_run_dependency",
+          "immutable_name": true,
+          "name": "qualimap-2.3-linux-amd64-ccf357b5a38d.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-ccf357b5a38d.sif",
+          "real_run_references": 1,
+          "sha256": "ccf357b5a38da71b3ab17ab98e59dd1108c18843fdf3a9b28f796bcfb1257054",
+          "size_bytes": 134848512
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-afd592cf021b.sif",
+      "selected_image_sha256": "afd592cf021b3c42f71e6f1c305638218a7107e791c2779cb7e4bb232545dc3f",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "qualimap",
+      "version": "2.3"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "rcorrector",
+      "version": "1.0.7"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "c2f4518132ca85a0abfbb48dc7bd732920cf7bcea8c6d88ef77ef961bca8aca1",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/rxy-1.0.0-04457acb6e0b.build.json",
+              "repository_commit": "8f34c94a3a9306720d80e02939e2d081f9de6197",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "rxy-1.0.0-linux-amd64-04457acb6e0b.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/rxy-1.0.0-linux-amd64-04457acb6e0b.sif",
+          "real_run_references": 0,
+          "sha256": "04457acb6e0be24e20975ee730b325c8629cc11f1b0a56bb05e82d25a9b26370",
+          "size_bytes": 46592000
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/rxy-1.0.0-linux-amd64-04457acb6e0b.sif",
+      "selected_image_sha256": "04457acb6e0be24e20975ee730b325c8629cc11f1b0a56bb05e82d25a9b26370",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "rxy",
+      "version": "1.0.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "c470c7efae137a3c724e3340e528ef6d5a51c1b8412e54c9cb2be71d8c5239a9",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/samtools-1.20-5217bae01b27.build.json",
+              "repository_commit": "54f0f3e3bdc8cc83105e4f49edce8a5ad882f447",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "samtools-1.20-linux-amd64-5217bae01b27.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif",
+          "real_run_references": 14,
+          "sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+          "size_bytes": 122355712
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif",
+      "selected_image_sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "samtools",
+      "version": "1.20"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "schmutzi",
+      "version": "1.5.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "85919838fc36bbbafc42b9ca2e8c05efd125cedc15f9d7bd3a57264c8f56a61f",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/seqfu-1.26.0-5ff9145d6996.build.json",
+              "repository_commit": "ca54ce7ccd10601fe5feceabdb2834493ecb44cd",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "seqfu-1.26.0-linux-amd64-5ff9145d6996.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqfu-1.26.0-linux-amd64-5ff9145d6996.sif",
+          "real_run_references": 1,
+          "sha256": "5ff9145d6996eb9f2b38c8d896f77f676d51640cc736f76293984fec8a7a7f76",
+          "size_bytes": 37580800
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqfu-1.26.0-linux-amd64-5ff9145d6996.sif",
+      "selected_image_sha256": "5ff9145d6996eb9f2b38c8d896f77f676d51640cc736f76293984fec8a7a7f76",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "seqfu",
+      "version": "1.26.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "737da5886167547e81f397f7cb5f018a70a0f57fad612f6567a1e7414efc50cc",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/seqkit-2.8.2-dbde247736f5.build.json",
+              "repository_commit": "e2cec523eddef2db149374e7fbbbca29607e3912",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "seqkit-2.8.2-linux-amd64-dbde247736f5.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqkit-2.8.2-linux-amd64-dbde247736f5.sif",
+          "real_run_references": 1,
+          "sha256": "dbde247736f5f4fc018a27b96afc0669c5e47226d6c00c3747edb00b9e809805",
+          "size_bytes": 38944768
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqkit-2.8.2-linux-amd64-dbde247736f5.sif",
+      "selected_image_sha256": "dbde247736f5f4fc018a27b96afc0669c5e47226d6c00c3747edb00b9e809805",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "seqkit",
+      "version": "2.8.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "59ad68328b6beb326360ad2ca25e69a4e100c9389e9733c11567a27fbfabcad1",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/seqkit_stats-2.8.2-bb490f4acbc8.build.json",
+              "repository_commit": "e2cec523eddef2db149374e7fbbbca29607e3912",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "seqkit_stats-2.8.2-linux-amd64-bb490f4acbc8.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqkit_stats-2.8.2-linux-amd64-bb490f4acbc8.sif",
+          "real_run_references": 1,
+          "sha256": "bb490f4acbc8dc32f5a2e2a7ebaf5d1a9bed93ed468ef714dabc4e70faaab279",
+          "size_bytes": 38944768
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqkit_stats-2.8.2-linux-amd64-bb490f4acbc8.sif",
+      "selected_image_sha256": "bb490f4acbc8dc32f5a2e2a7ebaf5d1a9bed93ed468ef714dabc4e70faaab279",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "seqkit_stats",
+      "version": "2.8.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "a5781a3269cd8e9d65d42f98040e0e023c03c6e3277704134d69f1ec78143a86",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/seqprep-1.3.2-685325d733fd.build.json",
+              "repository_commit": "2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "seqprep-1.3.2-linux-amd64-685325d733fd.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqprep-1.3.2-linux-amd64-685325d733fd.sif",
+          "real_run_references": 1,
+          "sha256": "685325d733fde648552d38ad0666eb5645950b2fdac4e835fcbe9d3ad238debf",
+          "size_bytes": 30748672
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqprep-1.3.2-linux-amd64-685325d733fd.sif",
+      "selected_image_sha256": "685325d733fde648552d38ad0666eb5645950b2fdac4e835fcbe9d3ad238debf",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "seqprep",
+      "version": "1.3.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "5d19697ee3bd64c63360ed045e70fef9e8d9d585f037438c8473dcb881e1a0c1",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/seqpurge-2026_06-890faffc5519.build.json",
+              "repository_commit": "4abd4bc46b4283bccc1e460ad06694026bec894b",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "seqpurge-2026_06-linux-amd64-890faffc5519.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqpurge-2026_06-linux-amd64-890faffc5519.sif",
+          "real_run_references": 1,
+          "sha256": "890faffc55199eb4bbf40a2394d1ca6781f400e9c3e18e28a0de1f92de3ed705",
+          "size_bytes": 291708928
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": false,
+              "definition_sha256": "7220c5c8b5c52f4edbd7fe5aeef3cff57a1b26de2675d7638c3a4faed60d9057",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/seqpurge-2026_06-8d41ff5310e9.build.json",
+              "repository_commit": "b6c35c801449400bf71919f1e6ca6b57028b5a93",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": false,
+          "disposition": "unreferenced_obsolete",
+          "immutable_name": true,
+          "name": "seqpurge-2026_06-linux-amd64-8d41ff5310e9.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqpurge-2026_06-linux-amd64-8d41ff5310e9.sif",
+          "real_run_references": 0,
+          "sha256": "8d41ff5310e9d60c9f2ddf2a22eef66ce58510fd15c8d45eb5bb58e2fadf9544",
+          "size_bytes": 291708928
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqpurge-2026_06-linux-amd64-890faffc5519.sif",
+      "selected_image_sha256": "890faffc55199eb4bbf40a2394d1ca6781f400e9c3e18e28a0de1f92de3ed705",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "seqpurge",
+      "version": "2026_06"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "3b02f8f4f5cfec924abe75e51a328c2eb5050ddbc0bf7904553b75b77034a0da",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/seqtk-1.4-a45079003aba.build.json",
+              "repository_commit": "e2cec523eddef2db149374e7fbbbca29607e3912",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "seqtk-1.4-linux-amd64-a45079003aba.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqtk-1.4-linux-amd64-a45079003aba.sif",
+          "real_run_references": 1,
+          "sha256": "a45079003abaabe29b1f4395b372d3fe00e6f1b7a5e2c0d78a1be9546c38b215",
+          "size_bytes": 30822400
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqtk-1.4-linux-amd64-a45079003aba.sif",
+      "selected_image_sha256": "a45079003abaabe29b1f4395b372d3fe00e6f1b7a5e2c0d78a1be9546c38b215",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "seqtk",
+      "version": "1.4"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "88a58348d7ba7219f183d8052c01a50955e40d113d4851c4f71c910f6ccdb182",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/shapeit-4.2.2-9aec28c1a0b7.build.json",
+              "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "shapeit-4.2.2-linux-amd64-9aec28c1a0b7.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/shapeit-4.2.2-linux-amd64-9aec28c1a0b7.sif",
+          "real_run_references": 1,
+          "sha256": "9aec28c1a0b74dd5fa893e723aea4456794a4bab608b00867925e65ac8671225",
+          "size_bytes": 193593344
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/shapeit-4.2.2-linux-amd64-9aec28c1a0b7.sif",
+      "selected_image_sha256": "9aec28c1a0b74dd5fa893e723aea4456794a4bab608b00867925e65ac8671225",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "shapeit",
+      "version": "4.2.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "397d8cef002c044b24e3f3369db2c8adf218b979892582063eeccec327229ec1",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/shapeit5-5.1.1-5b8f9bb0d081.build.json",
+              "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "shapeit5-5.1.1-linux-amd64-5b8f9bb0d081.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/shapeit5-5.1.1-linux-amd64-5b8f9bb0d081.sif",
+          "real_run_references": 1,
+          "sha256": "5b8f9bb0d081803de93a48f08321c1d7bac7e2c9a08ce89d440bd3a5f6281fd2",
+          "size_bytes": 195264512
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/shapeit5-5.1.1-linux-amd64-5b8f9bb0d081.sif",
+      "selected_image_sha256": "5b8f9bb0d081803de93a48f08321c1d7bac7e2c9a08ce89d440bd3a5f6281fd2",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "shapeit5",
+      "version": "5.1.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "3aae31c85efd9e2e74892bc0d93021409ad3278d8307b54f857c0cd3a6d113f8",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/skewer-0.2.2-d3a3db911786.build.json",
+              "repository_commit": "bda7a8a945f2cc88733fd72aa2bc663f6fdb1cfe",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "skewer-0.2.2-linux-amd64-d3a3db911786.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/skewer-0.2.2-linux-amd64-d3a3db911786.sif",
+          "real_run_references": 1,
+          "sha256": "d3a3db911786f3aa6c75876130b5b048ed67b2a081a9374f49388a524523f32e",
+          "size_bytes": 30801920
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/skewer-0.2.2-linux-amd64-d3a3db911786.sif",
+      "selected_image_sha256": "d3a3db911786f3aa6c75876130b5b048ed67b2a081a9374f49388a524523f32e",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "skewer",
+      "version": "0.2.2"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "sortmerna",
+      "version": "4.3.7"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "spades",
+      "version": "4.0.0"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "star",
+      "version": "2.7.11b"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "trim_galore",
+      "version": "0.6.10"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "trimmomatic",
+      "version": "0.39"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "umi_tools",
+      "version": "1.1.6"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [],
+      "selected_image": null,
+      "selected_image_sha256": null,
+      "state": "missing",
+      "support_disposition": "retained",
+      "tool": "verifybamid2",
+      "version": "2.0.1"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "ca4c87b3363f5ff1a8d398babead62b5a4811af22b0aa5231e8a2bece97e836e",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/vsearch-2.29.3-4d7794c15639.build.json",
+              "repository_commit": "7c508db009352c0ce935b863bbde56806a48ad72",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "vsearch-2.29.3-linux-amd64-4d7794c15639.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/vsearch-2.29.3-linux-amd64-4d7794c15639.sif",
+          "real_run_references": 1,
+          "sha256": "4d7794c1563989143c42b3a17772a6daf82837bc6c9ce3aca28dca7449f82180",
+          "size_bytes": 30986240
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/vsearch-2.29.3-linux-amd64-4d7794c15639.sif",
+      "selected_image_sha256": "4d7794c1563989143c42b3a17772a6daf82837bc6c9ce3aca28dca7449f82180",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "vsearch",
+      "version": "2.29.3"
+    },
+    {
+      "apptainer_supported": true,
+      "candidates": [
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "7070c1b3f995602cb2b87bcd448796300004f5704abc9294b5012e7280699261",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/yleaf-4.1.4-783bf6ff2260.build.json",
+              "repository_commit": "ef045fc3b2931ba8f49fa151b218600ea5cf4249",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "yleaf-4.1.4-linux-amd64-783bf6ff2260.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/yleaf-4.1.4-linux-amd64-783bf6ff2260.sif",
+          "real_run_references": 0,
+          "sha256": "783bf6ff22608d45b3f4633a3395256301565e433366259f89b548c22d02aad1",
+          "size_bytes": 268771328
+        }
+      ],
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/yleaf-4.1.4-linux-amd64-783bf6ff2260.sif",
+      "selected_image_sha256": "783bf6ff22608d45b3f4633a3395256301565e433366259f89b548c22d02aad1",
+      "state": "current",
+      "support_disposition": "retained",
+      "tool": "yleaf",
+      "version": "4.1.4"
+    }
+  ],
+  "unknown_images": [
+    {
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastuniq-1.1-linux-amd64-acd5448128a3.sif",
+      "real_run_references": 2,
+      "sha256": "acd5448128a3cb760ca97ce9ba38e87275e994c6434d33e7c3b04e2b35a3632e",
+      "size_bytes": 132460544
+    }
+  ]
+}
