@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T02:01:40.065068+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "c6f40ad0a875a67b3cee4587f04faefc7939335d6e0ebbbadfc104e15cf92bc8",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "36",
+      "Elapsed": "00:00:09",
+      "ElapsedRaw": "9",
+      "ExitCode": "0:0",
+      "JobID": "3458167",
+      "JobName": "fastq-runtime-diamond-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn093",
+      "ReqMem": "16G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1117",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458167",
+  "submit_script_sha256": "d52d87791b3803dcfe3b921bc5f1c2448f0ac5f3b77b1678c773e8d9ed3c1e72"
+}

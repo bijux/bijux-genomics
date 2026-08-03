@@ -1,0 +1,83 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "fqtools",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "389c5e686600be4690c4c5665686cca1c581b5b5bfad3f8b1263e40de51c1d81"
+    },
+    "negative": {
+      "argv": [
+        "fqtools",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "99e44ac9325be6235b1ad769370990ba12b8163825d4fb46c659f9c772815898",
+      "stdout_sha256": "e19484a6526699fd4a576561b7acf41f85c2739310b45dac9081b4a126f09e84"
+    },
+    "real": {
+      "argv": [
+        "fqtools",
+        "validate",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87"
+    },
+    "version": {
+      "argv": [
+        "fqtools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "022804d19c8fe566dc00dca4721c1eadf6ed71164d647a2e77493ac87c4fe3a6"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fqtools-2.3-linux-amd64-a0f39cc7e90e.sif",
+    "sha256": "a0f39cc7e90e778b603d41d23780a0add9bb0ded2849d73d0787f4e1d7c96488",
+    "size_bytes": 111198208
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "real.stdout.log",
+      "sha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87",
+      "size_bytes": 3
+    }
+  ],
+  "pipeline_sha256": "3079428483fb81f8563bf8ea96eb9ca5c70c106c0fb622f9eb80de2c53c7618c",
+  "repository_clean": true,
+  "repository_commit": "4fa8609958a669146869efeca21cb373736192bc",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/4fa8609958a669146869efeca21cb373736192bc",
+  "run_id": "run-1121",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn091",
+    "slurm_job_id": "3458194",
+    "started_at_utc": "2026-08-03T02:51:38.439849+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}
