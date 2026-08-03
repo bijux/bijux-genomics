@@ -159,6 +159,15 @@ class BenchmarkEvidenceTests(unittest.TestCase):
         self.assertAlmostEqual(metric["absolute_range"], 0.2)
         self.assertAlmostEqual(metric["allowed_range"], 0.06)
         self.assertFalse(metric["within_tolerance"])
+        self.assertEqual(benchmark_evidence.comparison_verdict(comparison), "failed")
+
+    def test_within_tolerance_comparison_is_admissible(self) -> None:
+        self.assertEqual(
+            benchmark_evidence.comparison_verdict(
+                {"status": "within_tolerance", "metrics": []}
+            ),
+            "passed",
+        )
 
 
 if __name__ == "__main__":

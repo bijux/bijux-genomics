@@ -50,8 +50,9 @@ Samtools use their single-threaded coverage implementations, while Mosdepth
 uses four threads. The report therefore does not imply concurrency a tool did
 not consume. Breadth and mean-depth agreement are integration checks;
 predeclared absolute and relative tolerances make disagreement visible instead
-of averaging it away. Without an independent truth surface they are not
-accuracy claims.
+of averaging it away. A comparison outside those tolerances fails benchmark
+admission while preserving the observations in the report. Without an
+independent truth surface the comparison is not an accuracy claim.
 
 After accounting collection, validate every archived contract, output digest,
 input lock, resource row, repetition, and Slurm identity before publishing the

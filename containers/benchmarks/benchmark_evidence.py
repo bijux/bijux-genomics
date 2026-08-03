@@ -335,6 +335,16 @@ def compare_tools(
     }
 
 
+def comparison_verdict(comparison: dict[str, Any]) -> str:
+    """Admit only complete comparisons that satisfy their declared tolerances."""
+    status = comparison.get("status")
+    if status in {"not_applicable", "within_tolerance"}:
+        return "passed"
+    if status == "outside_tolerance":
+        return "failed"
+    raise BenchmarkEvidenceError(f"benchmark comparison status is invalid: {status}")
+
+
 def create_report(
     registry_path: Path,
     catalog_path: Path,
@@ -360,7 +370,7 @@ def create_report(
     comparison = compare_tools(campaign, tools)
     return {
         "schema_version": REPORT_SCHEMA,
-        "verdict": "passed",
+        "verdict": comparison_verdict(comparison),
         "run_id": run_id,
         "stage_id": campaign["stage_id"],
         "scientific_question": campaign["scientific_question"],
