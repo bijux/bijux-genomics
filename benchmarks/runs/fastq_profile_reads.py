@@ -316,6 +316,8 @@ def parameter_evidence(
 def tool_command(tool: str, mounted_fastq: list[str]) -> list[str]:
     if tool == "seqfu":
         return ["seqfu", "stats", "--threads", "4", "--gc", *mounted_fastq]
+    if tool == "seqkit_stats":
+        return ["seqkit_stats", "-a", "-T", "-j", "4", *mounted_fastq]
     return [tool, "stats", "-a", "-T", "-j", "4", *mounted_fastq]
 
 

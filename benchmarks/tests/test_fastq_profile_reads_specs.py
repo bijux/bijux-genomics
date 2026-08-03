@@ -43,11 +43,14 @@ class FastqProfileReadsSpecificationTests(unittest.TestCase):
             specifications.tool_command("seqfu", paths)[:6],
             ["seqfu", "stats", "--threads", "4", "--gc", paths[0]],
         )
-        for tool in ("seqkit", "seqkit_stats"):
-            self.assertEqual(
-                specifications.tool_command(tool, paths)[:7],
-                [tool, "stats", "-a", "-T", "-j", "4", paths[0]],
-            )
+        self.assertEqual(
+            specifications.tool_command("seqkit", paths)[:7],
+            ["seqkit", "stats", "-a", "-T", "-j", "4", paths[0]],
+        )
+        self.assertEqual(
+            specifications.tool_command("seqkit_stats", paths)[:6],
+            ["seqkit_stats", "-a", "-T", "-j", "4", paths[0]],
+        )
 
     def test_measured_command_uses_frozen_normalizer_and_common_probe(self) -> None:
         command = specifications.shell_command(
