@@ -16,6 +16,7 @@ LABEL org.opencontainers.image.tool="umi_tools"
 LABEL org.opencontainers.image.title="umi_tools"
 LABEL org.opencontainers.image.base.name="python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
 LABEL org.opencontainers.image.base.digest="sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
+LABEL io.bijux.tool.version="1.1.6"
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION_UMI_TOOLS=1.1.6

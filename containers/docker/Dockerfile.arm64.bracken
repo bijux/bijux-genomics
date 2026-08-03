@@ -25,6 +25,7 @@ LABEL org.opencontainers.image.tool="bracken"
 LABEL org.opencontainers.image.title="Bracken"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL io.bijux.tool.version="2.9"
 ENV LANG=C LC_ALL=C TZ=UTC PYTHONNOUSERSITE=1 \
     PATH=/usr/local/bin:/opt/bracken:/opt/bracken/src:/usr/bin:/bin
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
