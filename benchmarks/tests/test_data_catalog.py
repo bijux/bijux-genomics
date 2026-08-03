@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "data_catalog.py"
-SPEC = importlib.util.spec_from_file_location("container_data_catalog", SCRIPT)
+SPEC = importlib.util.spec_from_file_location("benchmark_data_catalog", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 catalog = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(catalog)

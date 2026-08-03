@@ -78,6 +78,24 @@ count, size, or digest ambiguity. The resulting plan is acquisition authority,
 not admission: downloaded files still require digest verification and a
 governed data-catalog record before a comparative campaign can consume them.
 
+After materialization and format validation, build the path-stable scientific
+data index from the study catalog:
+
+```console
+commit=$(git rev-parse HEAD)
+evidence="$STUDY/data/evidence/indexes/$commit"
+python3 -B benchmarks/data_catalog.py \
+  --catalog-root "$STUDY/data/catalog" \
+  --data-root "$STUDY/data" \
+  --output "$evidence/data-index.json" \
+  --report "$evidence/data-index.md"
+```
+
+The index re-hashes every admitted file and publishes only `study://data/...`
+identities. A record remains ineligible when file integrity, source identity,
+retrieval or admission time, access classification, redistribution policy, or
+known limitations are missing.
+
 [`campaigns.toml`](campaigns.toml) assigns stable `run-2001+` campaign
 identities and labels each execution as `qualification` or `comparative`.
 The numeric identity never upgrades the evidence tier. Every campaign names

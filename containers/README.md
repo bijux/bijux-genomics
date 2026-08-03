@@ -265,21 +265,21 @@ The validator re-hashes every declared input, image, and frozen repository
 before submission. A missing file or checksum mismatch is a hard failure; the
 executor never substitutes a fixture.
 
-Legacy catalog records use several historical path and checksum field names.
-Runs must resolve those records through one verified index instead of encoding
-knowledge of each legacy shape:
+Scientific data selection and admission belong to the root benchmark authority,
+not to container runtime contracts. Container runs consume its verified index
+instead of encoding knowledge of individual catalog shapes:
 
 ```console
 study=/home/bijan/lu2024-12-24/Dardel/STUDY
 evidence="$study/data/evidence/indexes/$(git rev-parse HEAD)"
-python3 -B containers/contracts/data_catalog.py \
+python3 -B benchmarks/data_catalog.py \
   --catalog-root "$study/data/catalog" \
   --data-root "$study/data" \
   --output "$evidence/data-index.json" \
   --report "$evidence/data-index.md"
 ```
 
-The index recalculates every governed file SHA-256, replaces execution-site
+The benchmark-owned index recalculates every governed file SHA-256, replaces execution-site
 absolute paths with `study://data/...` identities, and reports missing source
 or temporal provenance without inventing values. A record is benchmark-eligible
 only when its governed files, source identity, retrieval or admission time,
