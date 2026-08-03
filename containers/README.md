@@ -76,6 +76,16 @@ python3 -B containers/contracts/image_campaign.py execute \
   --governance containers/contracts/sites/lunarc.yml \
   --jobs 2
 
+# A transient build failure is retained as an attempt before only that tool is
+# queued and executed again. Omit --tool to queue every failed tool.
+python3 -B containers/contracts/image_campaign.py retry-failed \
+  --execution "${campaign_root}/execution.json" \
+  --tool addeam
+python3 -B containers/contracts/image_campaign.py execute \
+  --execution "${campaign_root}/execution.json" \
+  --governance containers/contracts/sites/lunarc.yml \
+  --jobs 1
+
 python3 -B containers/contracts/image_inventory.py audit \
   --catalog containers/contracts/catalog.toml \
   --image-root "${rebuild_root}/apptainer" \
@@ -88,7 +98,10 @@ python3 -B containers/contracts/image_inventory.py audit \
 The before-build inventory must report every catalog-supported image as missing
 and preserve each unsupported disposition. The execution and after-build
 inventory must report every selected image as passed/current with no staged or
-unknown images. Image construction runs on the approved frontend. Real
+unknown images. A retry preserves each failed attempt, its immutable build log,
+and the successful final attempt in the same execution record; a campaign with
+any failed tool remains failed even when there is nothing pending. Image
+construction runs on the approved frontend. Real
 scientific tool runs remain Slurm jobs with separate pipeline and
 credential-reference contracts.
 

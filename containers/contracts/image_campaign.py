@@ -33,6 +33,20 @@ from image_inventory import INVENTORY_SCHEMA, load_json, sha256_file
 
 CAMPAIGN_SCHEMA = "bijux.container.image_campaign.v1"
 CAMPAIGN_EVIDENCE_SCHEMA = "bijux.container.image_campaign_evidence.v1"
+ATTEMPT_OUTCOME_KEYS = {
+    "attempt",
+    "status",
+    "started_at_utc",
+    "finished_at_utc",
+    "exit_code",
+    "build_log",
+    "build_log_sha256",
+    "staged_image",
+    "image",
+    "image_sha256",
+    "image_size_bytes",
+    "error",
+}
 
 
 def load_campaign(path: Path) -> dict[str, Any]:
@@ -67,12 +81,12 @@ def selected_tools(inventory: dict[str, Any], selection: str) -> list[str]:
     if inventory.get("schema_version") != INVENTORY_SCHEMA:
         raise ContractError("image inventory schema is not supported")
     tools = [
-        tool
-        for tool in inventory.get("tools", [])
-        if tool.get("apptainer_supported")
+        tool for tool in inventory.get("tools", []) if tool.get("apptainer_supported")
     ]
     if selection == "catalog_apptainer_supported_noncurrent":
-        tools = [tool for tool in tools if tool.get("state") in {"missing", "stale_recipe"}]
+        tools = [
+            tool for tool in tools if tool.get("state") in {"missing", "stale_recipe"}
+        ]
     return sorted(str(tool["tool"]) for tool in tools)
 
 
@@ -111,7 +125,10 @@ def create_execution(
     containers_root: Path = governance["containers_root"]
     admission_root, evidence_root = admission_roots(containers_root, image_root)
     recorded_image_root = inventory.get("image_root")
-    if recorded_image_root is not None and Path(str(recorded_image_root)).resolve() != admission_root:
+    if (
+        recorded_image_root is not None
+        and Path(str(recorded_image_root)).resolve() != admission_root
+    ):
         raise ContractError("image inventory and campaign admission roots disagree")
     repository: Path = governance["active_repository"]
     if git_output(repository, "status", "--porcelain"):
@@ -163,6 +180,7 @@ def create_execution(
                 "version": versions[tool],
                 "status": "pending",
                 "definition": f"containers/apptainer/{tool}.def",
+                "attempts": [],
             }
             for tool in tools
         },
@@ -179,14 +197,19 @@ def build_one(
     repository: Path,
     image_root: Path,
     evidence_root: Path,
+    attempt: int,
 ) -> dict[str, Any]:
     definition = repository / "containers" / "apptainer" / f"{tool}.def"
     definition_digest = sha256_file(definition)
-    staged = image_root / ".building" / f"{tool}-{definition_digest[:12]}.sif"
+    staged = (
+        image_root
+        / ".building"
+        / f"{tool}-{definition_digest[:12]}-attempt-{attempt}.sif"
+    )
     log = (
         evidence_root
         / "build-logs"
-        / f"{tool}-{definition_digest[:12]}-{commit[:12]}.log"
+        / f"{tool}-{definition_digest[:12]}-{commit[:12]}-attempt-{attempt}.log"
     )
     staged.parent.mkdir(parents=True, exist_ok=True)
     log.parent.mkdir(parents=True, exist_ok=True)
@@ -237,6 +260,23 @@ def build_one(
     }
 
 
+def summarize_tool_states(
+    selected_tools: list[str],
+    tools: dict[str, dict[str, Any]],
+) -> tuple[dict[str, int], str]:
+    states = Counter(tools[tool]["status"] for tool in selected_tools)
+    summary = dict(sorted(states.items()))
+    status = "passed" if states == {"passed": len(selected_tools)} else "failed"
+    return summary, status
+
+
+def next_attempt_number(tool: dict[str, Any]) -> int:
+    history = tool.setdefault("attempts", [])
+    recorded = tool.get("attempt", 0)
+    prior_attempt = recorded if isinstance(recorded, int) and recorded > 0 else 0
+    return max(len(history), prior_attempt) + 1
+
+
 def execute_campaign(
     execution_path: Path,
     governance_path: Path,
@@ -255,7 +295,9 @@ def execute_campaign(
     image_root = Path(str(execution.get("image_root", ""))).resolve()
     evidence_root = Path(str(execution.get("evidence_root", ""))).resolve()
     require_under(image_root, governance["containers_root"], "campaign image root")
-    require_under(evidence_root, governance["containers_root"], "campaign evidence root")
+    require_under(
+        evidence_root, governance["containers_root"], "campaign evidence root"
+    )
     repository = Path(str(execution.get("frozen_repository", ""))).resolve()
     require_under(
         repository,
@@ -279,6 +321,13 @@ def execute_campaign(
         for tool in execution["selected_tools"]
         if execution["tools"][tool]["status"] == "pending"
     ]
+    attempts = {}
+    for tool in pending:
+        row = execution["tools"][tool]
+        attempt = next_attempt_number(row)
+        attempts[tool] = attempt
+        row["attempt"] = attempt
+        write_json(execution_path, execution)
     with ThreadPoolExecutor(max_workers=jobs) as workers:
         futures = {
             workers.submit(
@@ -290,6 +339,7 @@ def execute_campaign(
                 repository,
                 image_root,
                 evidence_root,
+                attempts[tool],
             ): tool
             for tool in pending
         }
@@ -303,15 +353,58 @@ def execute_campaign(
                     "finished_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
                     "error": f"{type(exc).__name__}: {exc}",
                 }
+            outcome["attempt"] = attempts[tool]
             with lock:
-                execution["tools"][tool].update(outcome)
+                row = execution["tools"][tool]
+                row.setdefault("attempts", []).append(outcome.copy())
+                row.update(outcome)
                 write_json(execution_path, execution)
-    states = Counter(tool["status"] for tool in execution["tools"].values())
-    execution["summary"] = dict(sorted(states.items()))
-    execution["status"] = "passed" if states == {"passed": len(pending)} else "failed"
-    if not pending:
-        execution["status"] = "passed"
+    execution["summary"], execution["status"] = summarize_tool_states(
+        execution["selected_tools"],
+        execution["tools"],
+    )
     execution["finished_at_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
+    write_json(execution_path, execution)
+    return execution
+
+
+def queue_failed_tools(
+    execution_path: Path,
+    requested_tools: list[str],
+) -> dict[str, Any]:
+    execution = load_json(execution_path)
+    if execution.get("schema_version") != CAMPAIGN_EVIDENCE_SCHEMA:
+        raise ContractError("campaign execution schema is not supported")
+    tools = execution.get("tools")
+    if not isinstance(tools, dict):
+        raise ContractError("campaign execution tools must be an object")
+    failed = sorted(
+        tool for tool, row in tools.items() if row.get("status") == "failed"
+    )
+    selected = sorted(set(requested_tools)) if requested_tools else failed
+    unknown = sorted(set(selected) - set(tools))
+    if unknown:
+        raise ContractError(f"retry requested unknown tools: {unknown}")
+    not_failed = sorted(tool for tool in selected if tool not in failed)
+    if not_failed:
+        raise ContractError(f"retry requested tools that did not fail: {not_failed}")
+    if not selected:
+        raise ContractError("campaign has no failed tools to retry")
+    for tool in selected:
+        row = tools[tool]
+        history = row.setdefault("attempts", [])
+        current = {key: row[key] for key in ATTEMPT_OUTCOME_KEYS if key in row}
+        if current and not history:
+            current.setdefault("attempt", 1)
+            history.append(current)
+        for key in ATTEMPT_OUTCOME_KEYS:
+            row.pop(key, None)
+        row["status"] = "pending"
+    execution["status"] = "prepared"
+    execution.pop("summary", None)
+    execution.pop("finished_at_utc", None)
+    execution["retry_queued_at_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
+    execution["retry_tools"] = selected
     write_json(execution_path, execution)
     return execution
 
@@ -330,6 +423,9 @@ def parser() -> argparse.ArgumentParser:
     execute.add_argument("--execution", type=Path, required=True)
     execute.add_argument("--governance", type=Path, required=True)
     execute.add_argument("--jobs", type=int, default=2)
+    retry = commands.add_parser("retry-failed")
+    retry.add_argument("--execution", type=Path, required=True)
+    retry.add_argument("--tool", action="append", default=[])
     return root
 
 
@@ -350,9 +446,12 @@ def main(argv: list[str] | None = None) -> int:
                 f"{len(execution['selected_tools'])} images at "
                 f"{execution['repository_commit']}"
             )
-        else:
+        elif args.command == "execute":
             execution = execute_campaign(args.execution, args.governance, args.jobs)
             print(f"image campaign {execution['status']}: {execution['summary']}")
+        else:
+            execution = queue_failed_tools(args.execution, args.tool)
+            print(f"queued failed image builds: {', '.join(execution['retry_tools'])}")
         return 0
     except (ContractError, OSError, json.JSONDecodeError) as exc:
         print(f"container image campaign failed: {exc}", file=sys.stderr)

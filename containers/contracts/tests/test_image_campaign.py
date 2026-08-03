@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import sys
 import tempfile
 import unittest
-
+from pathlib import Path
 
 CONTRACTS = Path(__file__).parents[1]
 sys.path.insert(0, str(CONTRACTS))
@@ -75,14 +74,18 @@ class ImageCampaignTests(unittest.TestCase):
     def test_isolated_admission_keeps_images_and_evidence_together(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             containers_root = Path(directory) / "containers"
-            image_root = containers_root / "rebuild-verification" / "commit" / "apptainer"
+            image_root = (
+                containers_root / "rebuild-verification" / "commit" / "apptainer"
+            )
 
             admitted, evidence = campaign.admission_roots(containers_root, image_root)
 
         self.assertEqual(admitted, image_root.resolve())
         self.assertEqual(
             evidence,
-            (containers_root / "rebuild-verification" / "commit" / "evidence").resolve(),
+            (
+                containers_root / "rebuild-verification" / "commit" / "evidence"
+            ).resolve(),
         )
 
     def test_admission_outside_governed_containers_is_rejected(self) -> None:
@@ -129,6 +132,90 @@ class ImageCampaignTests(unittest.TestCase):
 
             with self.assertRaisesRegex(campaign.ContractError, "run-1000"):
                 campaign.load_campaign(path)
+
+    def test_failed_tool_retry_preserves_prior_attempt(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            execution_path = Path(directory) / "execution.json"
+            execution_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": campaign.CAMPAIGN_EVIDENCE_SCHEMA,
+                        "status": "failed",
+                        "selected_tools": ["addeam", "fastp"],
+                        "tools": {
+                            "addeam": {
+                                "version": "1.0.0",
+                                "definition": "containers/apptainer/addeam.def",
+                                "status": "failed",
+                                "exit_code": 255,
+                                "build_log": "/evidence/addeam.log",
+                                "build_log_sha256": "a" * 64,
+                            },
+                            "fastp": {
+                                "version": "0.23.4",
+                                "definition": "containers/apptainer/fastp.def",
+                                "status": "passed",
+                                "attempts": [{"attempt": 1, "status": "passed"}],
+                            },
+                        },
+                        "summary": {"failed": 1, "passed": 1},
+                        "finished_at_utc": "2026-08-03T00:00:00+00:00",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            queued = campaign.queue_failed_tools(execution_path, ["addeam"])
+
+        self.assertEqual(queued["status"], "prepared")
+        self.assertEqual(queued["retry_tools"], ["addeam"])
+        self.assertEqual(queued["tools"]["addeam"]["status"], "pending")
+        self.assertEqual(
+            queued["tools"]["addeam"]["attempts"],
+            [
+                {
+                    "attempt": 1,
+                    "status": "failed",
+                    "exit_code": 255,
+                    "build_log": "/evidence/addeam.log",
+                    "build_log_sha256": "a" * 64,
+                }
+            ],
+        )
+        self.assertNotIn("summary", queued)
+        self.assertNotIn("finished_at_utc", queued)
+
+    def test_retry_rejects_tools_without_failed_state(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            execution_path = Path(directory) / "execution.json"
+            execution_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": campaign.CAMPAIGN_EVIDENCE_SCHEMA,
+                        "status": "passed",
+                        "selected_tools": ["fastp"],
+                        "tools": {"fastp": {"status": "passed", "attempts": []}},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(campaign.ContractError, "did not fail"):
+                campaign.queue_failed_tools(execution_path, ["fastp"])
+
+    def test_campaign_without_pending_work_still_fails_if_a_tool_failed(self) -> None:
+        summary, status = campaign.summarize_tool_states(
+            ["addeam", "fastp"],
+            {"addeam": {"status": "failed"}, "fastp": {"status": "passed"}},
+        )
+
+        self.assertEqual(summary, {"failed": 1, "passed": 1})
+        self.assertEqual(status, "failed")
+
+    def test_interrupted_attempt_uses_a_new_output_identity(self) -> None:
+        tool = {"status": "pending", "attempt": 1, "attempts": []}
+
+        self.assertEqual(campaign.next_attempt_number(tool), 2)
 
 
 if __name__ == "__main__":
