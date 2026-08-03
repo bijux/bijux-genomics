@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "156077b8ceb840a5f9b689e5461f5f40be8088affe5e317a29c9dd75f8b48b0c",
+  "source_sha256": "9945687068a988d220dddbb544fb87a92642659ea56393072ef058d42942161c",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -264,11 +264,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/BenLangmead/bowtie2",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "380687233050c1321ead9cea2155cb9555370434755db5e4baa0131cb3177850",
       "pinned_commit": "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba",
       "apptainer_definition": "containers/apptainer/bowtie2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bowtie2",
-      "contract_sha256": "7ae1f9778d977281563ebc578b6832ddec3111dec05e6be83045b4eb220d933e"
+      "contract_sha256": "f4703d9384778180c689c35ac4fb17d75e6a7319688d67e92afc462ec27be76f"
     },
     {
       "id": "bowtie2_build",
@@ -279,11 +279,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/BenLangmead/bowtie2",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "380687233050c1321ead9cea2155cb9555370434755db5e4baa0131cb3177850",
       "pinned_commit": "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba",
       "apptainer_definition": "containers/apptainer/bowtie2_build.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bowtie2_build",
-      "contract_sha256": "40fa393dab5db7d6deb4d66659ede70a0d557e0d5722372c169e9db4853a1f41"
+      "contract_sha256": "181459fd0b1afcd75276f3db31f71ca8d5cf0c8beddabcdb47ebff30c25a77dd"
     },
     {
       "id": "bracken",

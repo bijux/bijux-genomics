@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 9ddf711e3126c8789921ab40b38eaa1eba517b13
+# source_commit: b60459b51d651f510b474511a9042d0f82d61d3f
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -466,8 +466,8 @@ upstream = "https://github.com/BenLangmead/bowtie2"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "paper:https://www.nature.com/articles/nmeth.1923"
-pinned_commit = "git:4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:380687233050c1321ead9cea2155cb9555370434755db5e4baa0131cb3177850"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/bowtie2:2.5.4"
 runtimes = ["docker", "apptainer"]
 container = true
@@ -475,7 +475,7 @@ version_cmd = "bowtie2 --version"
 help_cmd = "bowtie2 --help"
 smoke_version_cmd = "bowtie2 --version"
 smoke_help_cmd = "bowtie2 --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "^Bowtie 2 2[.]5[.]4$"
 healthcheck_cmd = "bowtie2 --help"
 expected_bin = "bowtie2"
 expected_artifacts = ["align_bai", "align_bam", "align_metrics", "contaminant_screen_report_json", "contaminant_screened_reads_r1", "contaminant_screened_reads_r2", "flagstat", "host_depleted_reads_r1", "host_depleted_reads_r2", "host_depletion_report_json", "idxstats", "removed_contaminant_reads_r1", "removed_contaminant_reads_r2", "removed_host_reads_r1", "removed_host_reads_r2", "stage_metrics", "stats"]
@@ -500,8 +500,8 @@ upstream = "https://github.com/BenLangmead/bowtie2"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "paper:https://www.nature.com/articles/nmeth.1923"
-pinned_commit = "git:4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:380687233050c1321ead9cea2155cb9555370434755db5e4baa0131cb3177850"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/bowtie2_build:2.5.4"
 runtimes = ["docker", "apptainer"]
 container = true
@@ -509,7 +509,7 @@ version_cmd = "bowtie2-build --version"
 help_cmd = "bowtie2-build --help"
 smoke_version_cmd = "bowtie2-build --version"
 smoke_help_cmd = "bowtie2-build --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "^Bowtie 2 Build 2[.]5[.]4$"
 healthcheck_cmd = "bowtie2-build --help"
 expected_bin = "bowtie2-build"
 expected_artifacts = ["reference_index", "report_json"]
