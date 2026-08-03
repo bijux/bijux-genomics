@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "cb1de64d3c3cac316db6cdeefb7ad37e9656f69b278ccd84268305d27f8b2e7d",
+  "source_sha256": "6e9a329a14de39321efe403233c1703b5f0d368ede2030ee08ac8b3c5829520b",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -354,11 +354,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/plfjohnson/contamMix",
       "license": "GPL-3.0-only",
-      "source_sha256": "1bfd53eca5554c957771daa51a2520306e90da17423dded39454ac8f23424a22",
+      "source_sha256": "8fb3b2c84827e9697abb75e2fc71ffec82031db59514879d35b62257365a10f5",
       "pinned_commit": "46c2b9c9fa82c2507f2b084f0b37d862a0825f4b",
       "apptainer_definition": "containers/apptainer/contammix.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.contammix",
-      "contract_sha256": "a5a803d02683a630c94e3db7875a74f0ef8bf61c8f724a512d100d215c79af61"
+      "contract_sha256": "50aef7771ba04e32ce31ad0947a92585d78fca4f9fc48122a72bb50c839e3975"
     },
     {
       "id": "cutadapt",
