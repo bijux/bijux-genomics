@@ -2250,18 +2250,6 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "bam.genotyping"
-required_tool_roles = ["transform"]
-primary_tools = ["samtools"]
-optional_alternatives = []
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = ["gatk"]
-default_rationale = "Genotyping baseline preserves the governed low-depth ANGSD execution surface."
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
 id = "bam.haplogroups"
 required_tool_roles = ["transform"]
 primary_tools = ["yleaf"]

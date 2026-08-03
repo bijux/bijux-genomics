@@ -200,25 +200,6 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
-id = "bam.genotyping"
-status = "supported"
-output_kinds = ["json", "tsv"]
-ordering_after = ["bam.recalibration"]
-prerequisites = ["bam.recalibration"]
-resource_memory_gb = 20
-resource_time_minutes = 180
-resource_threads = 12
-sanity_metrics = ["genotype_call_rate"]
-output_size_estimates_mb = ["genotype_report:40"]
-qc_thresholds = ["genotype_call_rate|warn=<0.7|fail=<0.4"]
-contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
-duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
-coverage_sufficiency = ["callable_sites>=1000"]
-sex_kinship_sufficiency = ["genotype_loci_covered>=1000"]
-tools = []
-
-[[stages]]
 id = "bam.haplogroups"
 status = "supported"
 output_kinds = ["json"]
