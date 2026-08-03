@@ -19,6 +19,7 @@ printf '%s  %s\n' \
   "$source_archive" | sha256sum --check --strict
 mkdir -p /opt/atropos-source
 tar --extract --gzip --file "$source_archive" --directory /opt/atropos-source --strip-components=1
+patch --directory /opt/atropos-source --strip 1 --input /opt/atropos-build/python-collections-compatibility.patch
 
 /opt/atropos-venv/bin/python -m pip install \
   --no-cache-dir \
