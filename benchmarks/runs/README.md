@@ -13,5 +13,15 @@ evidence validator. Reviewed small reports then belong in
 `benchmarks/reports/`.
 
 `bam_mapping_summary.py` defines the real Picard and Samtools qualification
-campaign for `bam.mapping_summary`. Future modules must be named by stable
-domain and stage responsibility, not by delivery order.
+campaign for `bam.mapping_summary`.
+
+`fastq_profile_reads.py` defines the complete SeqFu, SeqKit, and SeqKit Stats
+comparison for `fastq.profile_reads`. It admits all 20 runs and 30 files from
+the real human short-read diversity corpus, resolves the shared stage
+parameters, emits one specification per interchangeable tool, and checks each
+normalized result against independently catalogued read and base counts. The
+versioned normalizer under `benchmarks/execution/` is mounted from the frozen
+repository commit during every Slurm execution.
+
+Future modules must be named by stable domain and stage responsibility, not by
+delivery order.
