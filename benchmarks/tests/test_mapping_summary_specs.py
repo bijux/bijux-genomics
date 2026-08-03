@@ -215,6 +215,25 @@ expected_version_regex = "^samtools 1[.]20"
             )
             self.assertEqual(syntax.returncode, 0, syntax.stderr)
 
+    def test_default_specification_root_is_benchmark_owned(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, study = self.fixtures(root)
+            with patch.object(specifications, "current_commit", return_value="f" * 40):
+                destination = specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    None,
+                    "2026-08-03T00:00:00+00:00",
+                )
+
+            self.assertEqual(
+                destination,
+                study / "results" / "benchmark-specifications",
+            )
+
     def test_ineligible_corpus_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

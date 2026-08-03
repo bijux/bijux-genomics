@@ -226,8 +226,9 @@ python3 -B benchmarks/mapping_summary_specs.py \
 The generator refuses a dirty repository, an ineligible corpus, a non-current
 image, an incomplete tool closure, or an existing destination. It writes
 `config-pipeline.yml` and `config-credential.yml` under the governed
-`$STUDY/containers/runs/run-2004-picard/` and `run-2004-samtools/` manifest
-directories. Validate each pair with `container_validation.py validate`, then submit with
+`$STUDY/results/benchmark-specifications/run-2004-picard/` and
+`run-2004-samtools/` manifest directories. Validate each pair with
+`container_validation.py validate`, then submit with
 `container_validation.py submit`. Submission is asynchronous; accounting and
 benchmark admission happen only after both jobs reach a terminal state.
 

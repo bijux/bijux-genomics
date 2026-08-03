@@ -414,7 +414,9 @@ def prepare(
     images = selected_images(load_json(image_inventory_path), study_root)
     inputs = corpus_inputs(load_json(data_index_path), study_root)
     contracts = runtime_contracts(load_toml(catalog_path))
-    destination = output_root or (Path(str(roots["containers_root"])) / "runs")
+    destination = output_root or (
+        Path(str(roots["results_root"])) / "benchmark-specifications"
+    )
     tool_roots = {tool: destination / f"{RUN_ID}-{tool}" for tool in TOOLS}
     existing = [path for path in tool_roots.values() if path.exists()]
     if existing:
