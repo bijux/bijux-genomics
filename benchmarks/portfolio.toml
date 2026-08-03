@@ -1,0 +1,345 @@
+schema_version = "bijux.container.benchmark_portfolio.v1"
+
+[measurement]
+warmup_repetitions = 1
+measured_repetitions = 3
+required_resource_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_read_bytes",
+  "filesystem_write_bytes",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+required_quality_dimensions = [
+  "scientific_correctness",
+  "repeatability",
+  "robustness",
+  "output_contract",
+]
+
+[[corpora]]
+id = "human-short-read-diversity"
+status = "source_defined"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 20
+data_types = ["fastq"]
+roles = ["short_read_diversity", "ancient_and_modern_reads", "single_and_paired_reads"]
+source_specs = ["configs/runtime/corpora/corpus-01.toml"]
+truth_strategy = "observational_only"
+scientific_rationale = "Twenty public human accessions balance ancient and modern libraries, single- and paired-end layouts, and multiple input-size bands for real workload and robustness measurements."
+limitations = [
+  "The source specification is not yet materialized and checksum-admitted under the governed study data root.",
+  "Observed biological reads do not by themselves provide base-level transformation truth.",
+]
+
+[[corpora]]
+id = "ancient-horse-alignment-qualification"
+status = "admitted"
+evidence_scope = "qualification"
+real_data = true
+sample_count = 1
+data_types = ["bam"]
+roles = ["ancient_bam_qualification"]
+catalog_ids = ["ena-prjeb22390-err2112767-bam", "equcab3-gcf-002863925.1"]
+truth_strategy = "observational_only"
+scientific_rationale = "A checksum-admitted ancient horse BAM supports container and metric-contract qualification without being misrepresented as a comparative cohort."
+limitations = [
+  "One sample cannot support biological generalization or tool ranking.",
+  "Mapping-derived observations are not independent alignment truth.",
+]
+
+[[corpora]]
+id = "read-processing-challenge"
+status = "missing"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["fastq"]
+roles = ["read_processing_truth", "adapter_damage_complexity_challenge"]
+truth_strategy = "real_reads_with_calibrated_spike_ins"
+scientific_rationale = "Real libraries with independently quantified adapter, damage, duplicate, UMI, complexity, and low-quality signals are required to measure true retention and removal rather than only runtime."
+limitations = ["The challenge panel, spike-in recipe, and independent truth observations are not yet admitted."]
+
+[[corpora]]
+id = "environmental-taxonomy-challenge"
+status = "missing"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["fastq", "taxonomy_database"]
+roles = ["environmental_taxonomy_truth", "host_and_rrna_challenge"]
+truth_strategy = "real_edna_with_mock_community_and_orthogonal_assays"
+scientific_rationale = "Environmental and mock-community libraries with independently supported composition are needed for Kraken, Centrifuge, Kaiju, rRNA, and host-depletion sensitivity and specificity."
+limitations = ["No governed eDNA panel, database snapshot, expected-taxon set, or negative controls are admitted."]
+
+[[corpora]]
+id = "amplicon-community-challenge"
+status = "missing"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["fastq", "amplicon_reference"]
+roles = ["amplicon_truth"]
+truth_strategy = "real_mock_communities_with_known_composition"
+scientific_rationale = "Replicated real mock communities with known membership and abundance are needed to compare ASV, OTU, chimera, and normalization behavior."
+limitations = ["No governed mock-community panel or independently declared expected composition is admitted."]
+
+[[corpora]]
+id = "alignment-truth-panel"
+status = "missing"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["fastq", "bam", "fasta"]
+roles = ["alignment_truth"]
+truth_strategy = "real_reference_material_with_orthogonal_truth_and_supplementary_simulation"
+scientific_rationale = "Diverse real libraries tied to independently characterized reference material are needed for mapping correctness; simulation may test controlled edge cases but cannot replace the real panel."
+limitations = ["No governed multi-sample alignment truth panel or common alignment scoring surface is admitted."]
+
+[[corpora]]
+id = "ancient-dna-bam-diversity"
+status = "missing"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["bam", "fasta"]
+roles = ["bam_diversity", "ancient_damage_truth"]
+truth_strategy = "real_ancient_libraries_with_orthogonal_authentication"
+scientific_rationale = "Multiple libraries spanning damage, depth, duplication, contamination, fragment length, and library preparation are required for defensible BAM-stage comparisons."
+limitations = ["Only one ancient horse BAM is currently checksum-admitted for qualification."]
+
+[[corpora]]
+id = "variant-truth-panel"
+status = "missing"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["bam", "vcf", "reference_panel", "genetic_map"]
+roles = ["variant_truth", "masked_genotype_truth"]
+truth_strategy = "independently_curated_genotypes_with_masked_truth"
+scientific_rationale = "A diverse truth cohort with held-out genotypes, immutable panels, and genetic maps is required for calling, filtering, phasing, and imputation accuracy."
+limitations = ["No governed multi-sample truth VCF, mask split, reference panel, or genetic map is admitted."]
+
+[[corpora]]
+id = "ancient-population-panel"
+status = "missing"
+evidence_scope = "comparative"
+real_data = true
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["vcf", "genotype_likelihoods", "sample_metadata"]
+roles = ["population_inference_truth", "ancient_population_diversity"]
+truth_strategy = "real_cohort_with_independent_metadata_and_sensitivity_analysis"
+scientific_rationale = "Population analyses require a cohort large and diverse enough to test missingness, relatedness, ancestry, sex, age, and low-coverage sensitivity without treating software agreement as truth."
+limitations = ["No governed population cohort, metadata authority, or expected-result sensitivity surface is admitted."]
+
+[[profiles]]
+id = "fastq-observational-qc"
+required_corpus_roles = ["short_read_diversity"]
+minimum_real_samples = 10
+accuracy_strategy = "cross_tool_consistency_with_independent_read_statistics"
+interchangeability = "canonical_report_contract"
+downstream_probe = "consume every tool report through the governed QC aggregation stage"
+
+[[profiles]]
+id = "fastq-read-transformation"
+required_corpus_roles = ["short_read_diversity", "read_processing_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "signal_specific_sensitivity_specificity_and_read_retention"
+interchangeability = "canonical_fastq_and_report_contract"
+downstream_probe = "feed every tool output into validation, QC, and alignment consumers"
+
+[[profiles]]
+id = "fastq-depletion"
+required_corpus_roles = ["short_read_diversity", "environmental_taxonomy_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "target_removal_and_non_target_retention_against_orthogonal_truth"
+interchangeability = "canonical_fastq_and_depletion_report_contract"
+downstream_probe = "feed every depleted output into taxonomy, QC, and alignment consumers"
+
+[[profiles]]
+id = "fastq-taxonomy"
+required_corpus_roles = ["environmental_taxonomy_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "taxon_precision_recall_abundance_error_and_negative_control_specificity"
+interchangeability = "canonical_taxonomy_report_contract"
+downstream_probe = "consume every classifier result through the same lineage and reporting stages"
+
+[[profiles]]
+id = "fastq-amplicon"
+required_corpus_roles = ["amplicon_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "community_membership_precision_recall_and_abundance_error"
+interchangeability = "canonical_feature_table_and_sequence_contract"
+downstream_probe = "feed every stage output into the next amplicon stage and common report generator"
+
+[[profiles]]
+id = "reference-index-build"
+required_corpus_roles = ["alignment_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "index_reproducibility_and_downstream_alignment_equivalence"
+interchangeability = "tool_specific_index_with_canonical_reference_identity"
+downstream_probe = "align the same real sample panel with every built index and validate canonical BAM outputs"
+
+[[profiles]]
+id = "bam-alignment"
+required_corpus_roles = ["alignment_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "mapping_correctness_variant_recovery_and_damage_stratified_error"
+interchangeability = "canonical_coordinate_sorted_bam_contract"
+downstream_probe = "run validation, mapping summary, coverage, filtering, and variant calling on every aligner output"
+
+[[profiles]]
+id = "bam-transformation"
+required_corpus_roles = ["bam_diversity", "alignment_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "expected_record_retention_and_truth_preservation"
+interchangeability = "canonical_coordinate_sorted_bam_contract"
+downstream_probe = "run validation, QC, and variant calling on every transformed BAM"
+
+[[profiles]]
+id = "bam-observational-qc"
+required_corpus_roles = ["bam_diversity"]
+minimum_real_samples = 10
+accuracy_strategy = "cross_tool_consistency_with_independent_bam_statistics"
+interchangeability = "canonical_bam_metrics_contract"
+downstream_probe = "consume every report through the common QC and publication surface"
+
+[[profiles]]
+id = "bam-ancient-authentication"
+required_corpus_roles = ["bam_diversity", "ancient_damage_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "damage_and_authenticity_recovery_against_orthogonal_assays"
+interchangeability = "canonical_damage_and_authenticity_report_contract"
+downstream_probe = "consume every report through the same authentication decision surface"
+
+[[profiles]]
+id = "bam-biological-inference"
+required_corpus_roles = ["bam_diversity", "variant_truth", "population_inference_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "inference_specific_truth_and_sensitivity_analysis"
+interchangeability = "canonical_inference_report_contract"
+downstream_probe = "consume every result through the governed cohort aggregation and publication stages"
+
+[[profiles]]
+id = "vcf-calling"
+required_corpus_roles = ["variant_truth", "ancient_damage_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "precision_recall_genotype_concordance_and_damage_stratification"
+interchangeability = "canonical_normalized_vcf_contract"
+downstream_probe = "run QC, filtering, phasing, imputation, and population summaries on every callset"
+
+[[profiles]]
+id = "vcf-transformation"
+required_corpus_roles = ["variant_truth", "masked_genotype_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "truth_preservation_error_removal_and_record_normalization"
+interchangeability = "canonical_normalized_vcf_contract"
+downstream_probe = "run stats, phasing, imputation, and population consumers on every transformed VCF"
+
+[[profiles]]
+id = "vcf-phasing-imputation"
+required_corpus_roles = ["variant_truth", "masked_genotype_truth"]
+minimum_real_samples = 10
+accuracy_strategy = "masked_concordance_switch_error_calibration_and_rare_variant_recovery"
+interchangeability = "canonical_phased_or_imputed_vcf_contract"
+downstream_probe = "run QC, association-neutral population summaries, and re-masking checks on every output"
+
+[[profiles]]
+id = "vcf-population-inference"
+required_corpus_roles = ["population_inference_truth", "ancient_population_diversity"]
+minimum_real_samples = 10
+accuracy_strategy = "known_relationship_recovery_metadata_concordance_and_parameter_sensitivity"
+interchangeability = "canonical_population_result_contract"
+downstream_probe = "render every tool result through the same cohort interpretation and publication surface"
+
+[[assignments]]
+profile_id = "fastq-observational-qc"
+stage_ids = [
+  "fastq.detect_adapters",
+  "fastq.detect_duplicates_premerge",
+  "fastq.estimate_library_complexity_prealign",
+  "fastq.profile_overrepresented_sequences",
+  "fastq.profile_read_lengths",
+  "fastq.profile_reads",
+  "fastq.report_qc",
+  "fastq.validate_reads",
+]
+
+[[assignments]]
+profile_id = "fastq-read-transformation"
+stage_ids = [
+  "fastq.correct_errors",
+  "fastq.extract_umis",
+  "fastq.filter_low_complexity",
+  "fastq.filter_reads",
+  "fastq.merge_pairs",
+  "fastq.normalize_primers",
+  "fastq.remove_duplicates",
+  "fastq.trim_polyg_tails",
+  "fastq.trim_reads",
+  "fastq.trim_terminal_damage",
+]
+
+[[assignments]]
+profile_id = "fastq-depletion"
+stage_ids = ["fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna"]
+
+[[assignments]]
+profile_id = "fastq-taxonomy"
+stage_ids = ["fastq.screen_taxonomy"]
+
+[[assignments]]
+profile_id = "fastq-amplicon"
+stage_ids = ["fastq.cluster_otus", "fastq.infer_asvs", "fastq.normalize_abundance", "fastq.remove_chimeras"]
+
+[[assignments]]
+profile_id = "reference-index-build"
+stage_ids = ["fastq.index_reference"]
+
+[[assignments]]
+profile_id = "bam-alignment"
+stage_ids = ["bam.align"]
+
+[[assignments]]
+profile_id = "bam-transformation"
+stage_ids = ["bam.bias_mitigation", "bam.filter", "bam.length_filter", "bam.mapq_filter", "bam.markdup", "bam.overlap_correction", "bam.recalibration"]
+
+[[assignments]]
+profile_id = "bam-observational-qc"
+stage_ids = ["bam.complexity", "bam.coverage", "bam.duplication_metrics", "bam.endogenous_content", "bam.gc_bias", "bam.insert_size", "bam.mapping_summary", "bam.qc_pre", "bam.validate"]
+
+[[assignments]]
+profile_id = "bam-ancient-authentication"
+stage_ids = ["bam.authenticity", "bam.damage"]
+
+[[assignments]]
+profile_id = "bam-biological-inference"
+stage_ids = ["bam.contamination", "bam.genotyping", "bam.haplogroups", "bam.kinship", "bam.sex"]
+
+[[assignments]]
+profile_id = "vcf-calling"
+stage_ids = ["vcf.call", "vcf.call_diploid", "vcf.call_gl", "vcf.call_pseudohaploid"]
+
+[[assignments]]
+profile_id = "vcf-transformation"
+stage_ids = ["vcf.damage_filter", "vcf.filter", "vcf.gl_propagation", "vcf.postprocess", "vcf.prepare_reference_panel", "vcf.qc", "vcf.stats"]
+
+[[assignments]]
+profile_id = "vcf-phasing-imputation"
+stage_ids = ["vcf.imputation_metrics", "vcf.impute", "vcf.phasing"]
+
+[[assignments]]
+profile_id = "vcf-population-inference"
+stage_ids = ["vcf.admixture", "vcf.demography", "vcf.ibd", "vcf.pca", "vcf.population_structure", "vcf.roh"]
