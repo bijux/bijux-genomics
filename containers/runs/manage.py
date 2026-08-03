@@ -99,6 +99,13 @@ def yaml_scalars(path: Path) -> dict[tuple[str, ...], str]:
         value = (raw_value or "").strip().strip("'\"")
         if value:
             scalars[current] = value
+            if value.startswith("{") and value.endswith("}"):
+                for child in re.finditer(
+                    r"(?:^|,)\s*([A-Za-z0-9_]+):\s*([^,}]+)",
+                    value[1:-1],
+                ):
+                    child_key, child_value = child.groups()
+                    scalars[current + (child_key,)] = child_value.strip().strip("'\"")
         else:
             parents.append((indentation, key))
     return scalars

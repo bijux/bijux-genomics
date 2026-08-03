@@ -93,6 +93,21 @@ class RunEvidenceTests(unittest.TestCase):
 
             manage.validate_credential_reference(path)
 
+    def test_inline_historical_run_identity_is_read(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config-pipeline.yml"
+            path.write_text(
+                "run: {id: run-1035, campaign: phasing, tool: bcftools}\n"
+                f"repository: {{commit: {'a' * 40}, clean: true}}\n",
+                encoding="utf-8",
+            )
+
+            values = manage.yaml_scalars(path)
+
+        self.assertEqual(values[("run", "id")], "run-1035")
+        self.assertEqual(values[("run", "tool")], "bcftools")
+        self.assertEqual(values[("repository", "commit")], "a" * 40)
+
     def test_modified_tracked_evidence_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
