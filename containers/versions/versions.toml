@@ -488,6 +488,7 @@ version = "0.6.10"
 source = "https://github.com/FelixKrueger/TrimGalore"
 date_pinned = "2026-02-12"
 pinned_commit = "4edff97d22f3837d42a29e4afbfaeb6e07ffb11b"
+source_sha256 = "dc5d24ab37c3cfed8038b8c2546948e52e3e769b912ccfd5c9d28c34546f5e2c"
 
 [trimmomatic]
 version = "0.39"

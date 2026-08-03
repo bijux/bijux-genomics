@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "4f702fe3b3556c45ac39b0d701d41f05e9e55c11f03488fed68a9070a752c361",
+  "source_sha256": "60ed66b78c95546306e10447f2f9cf3be3d4236f8e3604d221e3dedb2efc2ed0",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1200,11 +1200,11 @@
       "support_reason": "",
       "upstream": "https://github.com/FelixKrueger/TrimGalore",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "dc5d24ab37c3cfed8038b8c2546948e52e3e769b912ccfd5c9d28c34546f5e2c",
       "pinned_commit": "4edff97d22f3837d42a29e4afbfaeb6e07ffb11b",
       "apptainer_definition": "containers/apptainer/trim_galore.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.trim_galore",
-      "contract_sha256": "8ba276bced7ee987fb30e06ab61aa00d62db92cdc4a5d19d856f99af89df72f3"
+      "contract_sha256": "0489f29ede74334aa8d226e0883cb7aa2c962fcaadf1f9493b227ed6392c2840"
     },
     {
       "id": "trimmomatic",
