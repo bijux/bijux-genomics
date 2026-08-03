@@ -301,7 +301,7 @@ local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
 local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
 [corpora.corpus-01]
-spec_path = "configs/runtime/corpora/corpus-01.toml"
+spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
 "#,
         );
 
@@ -379,7 +379,7 @@ corpus_root = "/bench/remote/cache/benchmark_corpus"
 results_root = "/bench/remote/cache/results"
 
 [corpora.corpus-01]
-spec_path = "configs/runtime/corpora/corpus-01.toml"
+spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -436,7 +436,7 @@ local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
 local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
 [corpora.corpus-01]
-spec_path = "configs/runtime/corpora/corpus-01.toml"
+spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
 
 [[publication.study_42.contracts]]
 stage_id = "fastq.validate_reads"
@@ -465,7 +465,7 @@ tools = ["fastqvalidator"]
         std::fs::create_dir_all(temp.path().join("configs/runtime/corpora")).expect("corpus dir");
         write_required_stage_input_fixtures(temp.path());
         write_text(
-            temp.path().join("configs/runtime/corpora/corpus-01.toml"),
+            temp.path().join("benchmarks/corpora/human-short-read-diversity.toml"),
             "corpus_id = \"corpus-01\"\n",
         );
         write_text(
@@ -501,7 +501,7 @@ reference_index = "inputs/reference/contaminants/index"
 database_root = "inputs/taxonomy/database"
 
 [corpora.corpus-01]
-spec_path = "configs/runtime/corpora/corpus-01.toml"
+spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"

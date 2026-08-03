@@ -67,7 +67,7 @@ Resolve the public ENA identities in `corpus-01` before downloading any bytes:
 
 ```console
 python3 -B benchmarks/corpus_acquisition.py \
-  --spec configs/runtime/corpora/corpus-01.toml \
+  --spec benchmarks/corpora/human-short-read-diversity.toml \
   --output "$STUDY/data/evidence/acquisition-plans/corpus-01.json"
 ```
 

@@ -168,7 +168,7 @@ stage_id = "fastq.index_reference"
 reason = "reference indexing does not benchmark corpus execution"
 
 [corpora.corpus-01]
-spec_path = "configs/runtime/corpora/corpus-01.toml"
+spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
 "#,
         );
     }
@@ -398,7 +398,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         write_unified_config(temp.path());
         let path = benchmark_corpus_spec_path(temp.path(), None, "corpus-01")
             .expect("configured corpus spec path");
-        assert_eq!(path, temp.path().join("configs/runtime/corpora/corpus-01.toml"));
+        assert_eq!(path, temp.path().join("benchmarks/corpora/human-short-read-diversity.toml"));
     }
 
     #[test]
@@ -429,7 +429,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             corpora: [(
                 "corpus-42".to_string(),
                 super::BenchmarkCorpusConfig {
-                    spec_path: Some("configs/runtime/corpora/corpus-01.toml".to_string()),
+                    spec_path: Some("benchmarks/corpora/human-short-read-diversity.toml".to_string()),
                 },
             )]
             .into_iter()
