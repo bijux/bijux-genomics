@@ -4,6 +4,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bowtie2",
         "bwa"
@@ -13,6 +14,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "authenticct",
         "damageprofiler",
@@ -23,6 +25,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "mapdamage2"
       ],
@@ -31,6 +34,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "preseq"
       ],
@@ -39,6 +43,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "contammix",
         "schmutzi",
@@ -49,6 +54,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bedtools",
         "mosdepth",
@@ -59,6 +65,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "addeam",
         "damageprofiler",
@@ -71,6 +78,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "picard",
         "samtools"
@@ -80,6 +88,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "samtools"
       ],
@@ -88,6 +97,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bamtools",
         "bedtools",
@@ -98,6 +108,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "picard"
       ],
@@ -106,6 +117,7 @@
     {
       "campaign_run_id": "run-2001",
       "definition_status": "defined",
+      "execution_status": "admitted",
       "retained_tools": [
         "bcftools"
       ],
@@ -114,6 +126,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "yleaf"
       ],
@@ -122,6 +135,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "picard"
       ],
@@ -130,6 +144,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "king"
       ],
@@ -138,6 +153,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "picard",
         "samtools"
@@ -147,6 +163,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "picard",
         "samtools"
@@ -156,6 +173,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bamtools",
         "samtools"
@@ -165,6 +183,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "picard",
         "samtools"
@@ -174,6 +193,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bamutil"
       ],
@@ -182,6 +202,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "multiqc",
         "samtools"
@@ -191,6 +212,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "gatk"
       ],
@@ -199,6 +221,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "rxy",
         "yleaf"
@@ -208,6 +231,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bamtools",
         "bedtools",
@@ -218,6 +242,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "vsearch"
       ],
@@ -226,6 +251,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bayeshammer",
         "lighter",
@@ -237,6 +263,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bowtie2"
       ],
@@ -245,6 +272,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bowtie2"
       ],
@@ -253,6 +281,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "sortmerna"
       ],
@@ -261,6 +290,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "fastqc"
       ],
@@ -269,6 +299,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bijux_dna"
       ],
@@ -277,6 +308,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bijux_dna"
       ],
@@ -285,6 +317,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "umi_tools"
       ],
@@ -293,6 +326,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bbduk",
         "fastp",
@@ -303,6 +337,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bbduk",
         "fastp",
@@ -314,6 +349,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bowtie2_build",
         "star"
@@ -323,6 +359,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "dada2"
       ],
@@ -331,6 +368,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "adapterremoval",
         "bbmerge",
@@ -345,6 +383,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "seqkit"
       ],
@@ -353,6 +392,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "cutadapt"
       ],
@@ -361,6 +401,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "fastq_scan",
         "fastqc",
@@ -371,6 +412,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "fastp",
         "prinseq",
@@ -382,6 +424,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "seqfu",
         "seqkit",
@@ -392,6 +435,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "vsearch"
       ],
@@ -400,6 +444,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "clumpify"
       ],
@@ -408,6 +453,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "multiqc"
       ],
@@ -416,6 +462,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "centrifuge",
         "kaiju",
@@ -427,6 +474,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bbduk",
         "fastp"
@@ -436,6 +484,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "adapterremoval",
         "alientrimmer",
@@ -457,6 +506,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "adapterremoval",
         "cutadapt",
@@ -467,6 +517,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "fastq_scan",
         "fastqc",
@@ -479,6 +530,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "plink",
         "plink2"
@@ -488,6 +540,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -496,6 +549,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -504,6 +558,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -512,6 +567,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -520,6 +576,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -528,6 +585,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "ibdne"
       ],
@@ -536,6 +594,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -544,6 +603,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -552,6 +612,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "germline",
         "ibdhap",
@@ -562,6 +623,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "beagle",
         "glimpse",
@@ -572,6 +634,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "beagle",
         "glimpse",
@@ -582,6 +645,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "eigensoft",
         "plink2"
@@ -591,6 +655,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "beagle",
         "eagle",
@@ -602,6 +667,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "eigensoft",
         "plink",
@@ -612,6 +678,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -620,6 +687,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -628,6 +696,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools",
         "plink",
@@ -638,6 +707,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "plink2"
       ],
@@ -646,6 +716,7 @@
     {
       "campaign_run_id": null,
       "definition_status": "missing",
+      "execution_status": "not_defined",
       "retained_tools": [
         "bcftools"
       ],
@@ -653,6 +724,7 @@
     }
   ],
   "summary": {
+    "admitted_stage_count": 1,
     "defined_stage_count": 1,
     "missing_stage_count": 70,
     "retained_stage_count": 71
