@@ -13,7 +13,6 @@ COPY Cargo.toml Cargo.lock rust-toolchain.toml rustfmt.toml ./
 COPY crates crates
 COPY configs configs
 COPY domain domain
-COPY benchmarks benchmarks
 
 RUN cargo build --release -p bijux-dna
 
@@ -44,7 +43,6 @@ RUN mkdir -p /opt/bijux
 COPY --from=build /workspace/target/release/bijux-dna /usr/local/bin/bijux-dna
 COPY --from=build /workspace/configs /opt/bijux/configs
 COPY --from=build /workspace/domain /opt/bijux/domain
-COPY --from=build /workspace/benchmarks /opt/bijux/benchmarks
 
 USER 65532:65532
 WORKDIR /work
