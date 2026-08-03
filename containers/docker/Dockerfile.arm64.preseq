@@ -51,4 +51,4 @@ RUN cd "/tmp/preseq-${VERSION_PRESEQ}" && \
 
 WORKDIR /data
 ENTRYPOINT ["preseq"]
-CMD ["-h"]
+CMD []

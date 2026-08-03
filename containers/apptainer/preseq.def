@@ -64,7 +64,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
-        exec preseq --help
+        exec preseq
     else
         exec preseq "$@"
     fi
@@ -73,7 +73,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %test
     preseq 2>&1 | grep -F 'Version: 3.2.0'
-    preseq --help 2>&1 | grep -F 'Usage:   preseq <command>'
+    preseq 2>&1 | grep -F 'Usage:   preseq <command>'
     preseq c_curve -H -o /tmp/preseq-curve.txt /opt/preseq/test-data/counts.hist
     test -s /tmp/preseq-curve.txt
     if preseq c_curve -H /input/does-not-exist.hist >/dev/null 2>&1; then exit 1; fi

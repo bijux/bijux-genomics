@@ -48,8 +48,8 @@ stage_contracts:
 expected_artifacts: ["complexity_curve"]
 metrics_schema_id: "bijux.bam.complexity.v1"
 metrics_schema: "bijux.bam.complexity.v1"
-version_cmd: "preseq --version"
-help_cmd: "preseq --help"
+version_cmd: "preseq"
+help_cmd: "preseq"
 comparability:
   comparable_with: ["picard"]
   non_comparable_with: []
