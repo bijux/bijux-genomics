@@ -44,6 +44,25 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         .filter_map(toml::Value::as_table)
         .map(|tool| (table_string(tool, "id"), table_string(tool, "upstream")))
         .collect::<BTreeMap<_, _>>();
+    let expected_revisions = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .map(|tool| {
+            (
+                table_string(tool, "id"),
+                (
+                    table_string(tool, "upstream"),
+                    table_string(tool, "pinned_commit"),
+                    table_string(tool, "source_sha256"),
+                ),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+    let project_repository =
+        catalog.get("repository").and_then(toml::Value::as_str).unwrap_or_default();
     let mut errors = Vec::new();
     let version_re = Regex::new(r"io\.bijux\.tool\.version\s+([^\s]+)")?;
     let source_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.source\s+([^\s]+)\s*$")?;
@@ -83,6 +102,31 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         if sources.as_slice() != [expected_source] {
             errors.push(format!(
                 "{rel}: image.source must occur once and equal catalog upstream {expected_source:?}; found {sources:?}"
+            ));
+        }
+        let revisions = revision_re
+            .captures_iter(&text)
+            .filter_map(|captures| captures.get(1))
+            .map(|value| value.as_str().to_string())
+            .collect::<Vec<_>>();
+        let (upstream, pinned_commit, source_sha256) = expected_revisions
+            .get(tool_id)
+            .map(|(upstream, commit, sha256)| (upstream.as_str(), commit.as_str(), sha256.as_str()))
+            .unwrap_or_default();
+        let mut allowed_revisions = [pinned_commit, source_sha256]
+            .into_iter()
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>();
+        if !source_sha256.is_empty() {
+            allowed_revisions.push(format!("sha256:{source_sha256}"));
+        }
+        if upstream == project_repository {
+            allowed_revisions.push("governed-by-build-evidence".to_string());
+        }
+        if revisions.len() != 1 || !allowed_revisions.contains(&revisions[0]) {
+            errors.push(format!(
+                "{rel}: image.revision must equal a catalog source identity; found {revisions:?}, allowed {allowed_revisions:?}"
             ));
         }
         for (alias, keys) in [
