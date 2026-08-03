@@ -41,6 +41,10 @@ Render the compact website/report index after validation:
 python3 containers/runs/manage.py render-index \
   --runs-root containers/runs \
   --output containers/reports/run-evidence.json
+
+python3 containers/runs/manage.py render-report \
+  --runs-root containers/runs \
+  --output containers/reports/run-evidence.md
 ```
 
 ## Admit execution-site history

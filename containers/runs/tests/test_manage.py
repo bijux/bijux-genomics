@@ -124,6 +124,54 @@ class RunEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(manage.RunEvidenceError, "size changed"):
                 manage.validate_runs(output)
 
+    def test_flat_result_path_is_recorded_once(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            nested = self.make_result(root / "staging")
+            result_root = root / "results"
+            flat = result_root / "run-1001-adapterremoval"
+            flat.parent.mkdir()
+            nested.rename(flat)
+            output = root / "runs"
+
+            manage.import_evidence(result_root, output, None, None)
+            records = manage.validate_runs(output)
+
+        self.assertEqual(
+            records[0]["source_result"],
+            "results/container-validation/run-1001-adapterremoval",
+        )
+
+    def test_report_keeps_execution_and_science_claims_separate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_result(root / "results")
+            runs = root / "runs"
+            report = root / "run-evidence.md"
+            manage.import_evidence(root / "results", runs, None, None)
+
+            count = manage.render_report(runs, report)
+            rendered = report.read_text(encoding="utf-8")
+
+        self.assertEqual(count, 1)
+        self.assertIn("| `adapterremoval` | 1 | 1 | 0 |", rendered)
+        self.assertIn("not_assessed", rendered)
+        self.assertIn("successful process is not", rendered)
+
+    def test_invalid_source_inventory_digest_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_result(root / "results")
+            runs = root / "runs"
+            manage.import_evidence(root / "results", runs, None, None)
+            lock = runs / "run-1001-adapterremoval" / "evidence.lock.json"
+            record = json.loads(lock.read_text(encoding="utf-8"))
+            record["source_files"][0]["sha256"] = "invalid"
+            lock.write_text(json.dumps(record), encoding="utf-8")
+
+            with self.assertRaisesRegex(manage.RunEvidenceError, "digest is invalid"):
+                manage.validate_runs(runs)
+
 
 if __name__ == "__main__":
     unittest.main()

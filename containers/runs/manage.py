@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter, defaultdict
 import hashlib
 import json
 from pathlib import Path
@@ -130,22 +131,21 @@ def validate_credential_reference(path: Path) -> None:
         raise RunEvidenceError(
             f"credentials_required must be explicit boolean text in {path}"
         )
-    references_are_empty = bool(
-        re.search(r"(?m)^references:\s*\[\s*\]\s*$", text)
-    )
+    references_are_empty = bool(re.search(r"(?m)^references:\s*\[\s*\]\s*$", text))
     references_are_present = bool(re.search(r"(?m)^references:\s*$", text))
     if (credentials_required == "true") != references_are_present:
-        raise RunEvidenceError(f"credentials_required disagrees with references in {path}")
+        raise RunEvidenceError(
+            f"credentials_required disagrees with references in {path}"
+        )
     if credentials_required == "false" and not references_are_empty:
         raise RunEvidenceError(f"empty credential references must use [] in {path}")
     inline_redaction = bool(
         re.search(r"(?m)^redaction:\s*\{\s*publish_values:\s*false\s*\}\s*$", text)
     )
-    if (
-        scalars.get(("redaction", "publish_values")) != "false"
-        and not inline_redaction
-    ):
-        raise RunEvidenceError(f"credential reference lacks a no-publication rule: {path}")
+    if scalars.get(("redaction", "publish_values")) != "false" and not inline_redaction:
+        raise RunEvidenceError(
+            f"credential reference lacks a no-publication rule: {path}"
+        )
 
 
 def result_directories(result_root: Path) -> Iterable[tuple[str, str, Path]]:
@@ -184,7 +184,12 @@ def file_inventory(result: Path) -> list[dict[str, Any]]:
     return records
 
 
-def evidence_record(run_id: str, tool: str, result: Path) -> dict[str, Any]:
+def evidence_record(
+    run_id: str,
+    tool: str,
+    result: Path,
+    result_root: Path,
+) -> dict[str, Any]:
     evidence_path = result / "evidence.json"
     evidence = load_json(evidence_path) if evidence_path.is_file() else {}
     if evidence and evidence.get("run_id") != run_id:
@@ -210,10 +215,7 @@ def evidence_record(run_id: str, tool: str, result: Path) -> dict[str, Any]:
         "execution_status": evidence.get("status", "incomplete"),
         "scientific_status": "not_assessed",
         "source_result": (
-            Path("results")
-            / "container-validation"
-            / result.parent.name
-            / result.name
+            Path("results") / "container-validation" / result.relative_to(result_root)
         ).as_posix(),
         "repository_commit": evidence.get(
             "repository_commit", pipeline.get(("repository", "commit"), "")
@@ -241,10 +243,12 @@ def import_evidence(
             continue
         if maximum_run is not None and number > maximum_run:
             continue
-        record = evidence_record(run_id, tool, result)
+        record = evidence_record(run_id, tool, result, result_root.absolute())
         target = output_root / f"{run_id}-{tool}"
         if target.exists():
-            raise RunEvidenceError(f"refusing to replace tracked run evidence: {target}")
+            raise RunEvidenceError(
+                f"refusing to replace tracked run evidence: {target}"
+            )
         target.mkdir(parents=True)
         try:
             tracked_files: dict[str, dict[str, Any]] = {}
@@ -276,6 +280,44 @@ def validate_run(path: Path) -> dict[str, Any]:
         raise RunEvidenceError(f"unsupported evidence lock schema: {path}")
     if record.get("run_id") != match.group(1) or record.get("tool") != match.group(2):
         raise RunEvidenceError(f"tracked directory and evidence lock disagree: {path}")
+    repository_commit = record.get("repository_commit")
+    if (
+        not isinstance(repository_commit, str)
+        or re.fullmatch(r"[0-9a-f]{40}", repository_commit) is None
+    ):
+        raise RunEvidenceError(f"repository commit is not immutable: {path}")
+    source_result = record.get("source_result")
+    expected_prefix = "results/container-validation/"
+    if not isinstance(source_result, str) or not source_result.startswith(
+        expected_prefix
+    ):
+        raise RunEvidenceError(f"source result is outside governed results: {path}")
+    source_files = record.get("source_files")
+    if not isinstance(source_files, list) or not source_files:
+        raise RunEvidenceError(f"source file inventory is absent: {path}")
+    source_paths: set[str] = set()
+    for source_file in source_files:
+        if not isinstance(source_file, dict):
+            raise RunEvidenceError(f"source file inventory row is invalid: {path}")
+        source_path = source_file.get("path")
+        source_size = source_file.get("size_bytes")
+        source_digest = source_file.get("sha256")
+        if (
+            not isinstance(source_path, str)
+            or not source_path
+            or Path(source_path).is_absolute()
+            or ".." in Path(source_path).parts
+            or source_path in source_paths
+        ):
+            raise RunEvidenceError(f"source file inventory path is invalid: {path}")
+        if not isinstance(source_size, int) or source_size < 0:
+            raise RunEvidenceError(f"source file inventory size is invalid: {path}")
+        if (
+            not isinstance(source_digest, str)
+            or re.fullmatch(r"[0-9a-f]{64}", source_digest) is None
+        ):
+            raise RunEvidenceError(f"source file inventory digest is invalid: {path}")
+        source_paths.add(source_path)
     tracked_files = record.get("tracked_files")
     if not isinstance(tracked_files, dict):
         raise RunEvidenceError(f"tracked_files must be an object: {path}")
@@ -308,9 +350,8 @@ def validate_runs(root: Path) -> list[dict[str, Any]]:
     return sorted(records, key=lambda record: int(str(record["run_id"])[4:]))
 
 
-def render_index(root: Path, output: Path) -> int:
-    records = validate_runs(root)
-    rows = [
+def index_rows(root: Path, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
         {
             "run_id": record["run_id"],
             "tool": record["tool"],
@@ -318,14 +359,123 @@ def render_index(root: Path, output: Path) -> int:
             "scientific_status": record["scientific_status"],
             "repository_commit": record["repository_commit"],
             "slurm_job_id": record["slurm_job_id"],
+            "source_result": record["source_result"],
+            "source_file_count": len(record["source_files"]),
             "evidence_lock_sha256": sha256_file(
                 root / f"{record['run_id']}-{record['tool']}" / "evidence.lock.json"
             ),
         }
         for record in records
     ]
-    write_json(output, {"schema_version": INDEX_SCHEMA, "runs": rows})
+
+
+def missing_run_ids(records: list[dict[str, Any]]) -> list[str]:
+    numbers = sorted(int(str(record["run_id"])[4:]) for record in records)
+    if not numbers:
+        return []
+    present = set(numbers)
+    return [
+        f"run-{number}"
+        for number in range(numbers[0], numbers[-1] + 1)
+        if number not in present
+    ]
+
+
+def render_index(root: Path, output: Path) -> int:
+    records = validate_runs(root)
+    rows = index_rows(root, records)
+    write_json(
+        output,
+        {
+            "schema_version": INDEX_SCHEMA,
+            "summary": {
+                "run_count": len(rows),
+                "tool_count": len({row["tool"] for row in rows}),
+                "execution_status": dict(
+                    sorted(Counter(row["execution_status"] for row in rows).items())
+                ),
+                "scientific_status": dict(
+                    sorted(Counter(row["scientific_status"] for row in rows).items())
+                ),
+                "missing_run_ids": missing_run_ids(records),
+            },
+            "runs": rows,
+        },
+    )
     return len(rows)
+
+
+def render_report(root: Path, output: Path) -> int:
+    records = validate_runs(root)
+    by_tool: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in records:
+        by_tool[str(record["tool"])].append(record)
+    execution_counts = Counter(str(record["execution_status"]) for record in records)
+    science_counts = Counter(str(record["scientific_status"]) for record in records)
+    gaps = missing_run_ids(records)
+    lines = [
+        "<!-- GENERATED FILE - DO NOT EDIT -->",
+        "<!-- source: python3 containers/runs/manage.py render-report -->",
+        "# LUNARC container run evidence",
+        "",
+        "This report indexes immutable execution evidence. A successful process is not",
+        "scientific validation: every imported historical run retains its independently",
+        "recorded scientific status, and no tool is promoted by this report.",
+        "",
+        "## Archive boundary",
+        "",
+        f"- Governed runs: **{len(records)}**",
+        f"- Tools represented: **{len(by_tool)}**",
+        "- Execution status: "
+        + ", ".join(
+            f"**{status} {count}**"
+            for status, count in sorted(execution_counts.items())
+        ),
+        "- Scientific status: "
+        + ", ".join(
+            f"**{status} {count}**" for status, count in sorted(science_counts.items())
+        ),
+        "- Unassigned historical identifiers: "
+        + (", ".join(f"`{gap}`" for gap in gaps) if gaps else "none"),
+        "",
+        "The gaps are not silently filled. Failed and incomplete attempts remain part of",
+        "the audit history. Large results stay on the governed execution site; each run",
+        "directory records their paths, sizes, and SHA-256 digests.",
+        "",
+        "## Evidence by tool",
+        "",
+        "| Tool | Attempts | Passed | Failed/incomplete | Latest run | Scientific claim |",
+        "|---|---:|---:|---:|---|---|",
+    ]
+    for tool, tool_records in sorted(by_tool.items()):
+        latest = max(tool_records, key=lambda row: int(str(row["run_id"])[4:]))
+        passed = sum(row["execution_status"] == "passed" for row in tool_records)
+        not_passed = len(tool_records) - passed
+        science = sorted({str(row["scientific_status"]) for row in tool_records})
+        run_link = f"../runs/{latest['run_id']}-{tool}/"
+        lines.append(
+            f"| `{tool}` | {len(tool_records)} | {passed} | {not_passed} | "
+            f"[{latest['run_id']}]({run_link}) | {', '.join(science)} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Interpretation",
+            "",
+            "`passed` means the archived Slurm execution completed its declared runtime",
+            "contract. `not_assessed` means no predeclared scientific acceptance threshold",
+            "was admitted for that run. Release readiness additionally requires reproducible",
+            "build, security, benchmark, and freshness evidence; none of those claims can be",
+            "inferred from process exit status.",
+            "",
+            "The machine-readable companion is [run-evidence.json](run-evidence.json).",
+        ]
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output.with_suffix(output.suffix + ".partial")
+    temporary.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    temporary.replace(output)
+    return len(records)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -341,6 +491,9 @@ def parser() -> argparse.ArgumentParser:
     index = commands.add_parser("render-index")
     index.add_argument("--runs-root", type=Path, required=True)
     index.add_argument("--output", type=Path, required=True)
+    report = commands.add_parser("render-report")
+    report.add_argument("--runs-root", type=Path, required=True)
+    report.add_argument("--output", type=Path, required=True)
     return root
 
 
@@ -360,8 +513,12 @@ def main(argv: list[str] | None = None) -> int:
             records = validate_runs(args.runs_root)
             print(f"validated {len(records)} governed run records")
             return 0
-        count = render_index(args.runs_root, args.output)
-        print(f"indexed {count} governed run records")
+        if args.command == "render-index":
+            count = render_index(args.runs_root, args.output)
+            print(f"indexed {count} governed run records")
+            return 0
+        count = render_report(args.runs_root, args.output)
+        print(f"reported {count} governed run records")
         return 0
     except RunEvidenceError as exc:
         print(f"container run evidence failed: {exc}", file=sys.stderr)
