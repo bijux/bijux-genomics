@@ -180,6 +180,7 @@ python3 -B containers/contracts/runtime_verification.py prepare \
   --inventory "${canonical_inventory}" \
   --catalog containers/contracts/catalog.toml \
   --governance containers/contracts/sites/lunarc.yml \
+  --repository "${frozen_repository}" \
   --output "${runtime_root}/execution.json"
 
 python3 -B containers/contracts/runtime_verification.py execute \
@@ -189,11 +190,14 @@ python3 -B containers/contracts/runtime_verification.py execute \
   --timeout-seconds 30
 ```
 
-The execution record retains the exact repository, catalog, inventory, image,
-command, output, and log digests. A passing runtime campaign qualifies only the
-version and help dimensions. Real one-sample execution remains a governed
-Slurm run, and scientific, benchmark, security, and release claims remain
-independent.
+The execution record retains the exact frozen repository, catalog, inventory,
+image, command, output, and log digests. A passing runtime campaign qualifies
+only the version and help dimensions. Real one-sample execution remains a
+governed Slurm run, and scientific, benchmark, security, and release claims
+remain independent. `--repository` must identify a clean checkout beneath the
+governed commit-addressed worktree root whose HEAD matches the inventory
+commit; later movement of the active checkout cannot invalidate or silently
+change this campaign.
 
 Raw execution JSON keeps the absolute paths needed to audit files at LUNARC;
 it is not suitable for a public repository. Publish portable companions before

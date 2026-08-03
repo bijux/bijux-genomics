@@ -74,23 +74,39 @@ def prepare_execution(
     catalog_path: Path,
     governance_path: Path,
     output: Path,
+    repository_path: Path | None = None,
 ) -> dict[str, Any]:
     if output.exists() or output.is_symlink():
         raise ContractError(f"refusing to replace runtime execution: {output}")
     governance = load_governance(governance_path)
-    repository: Path = governance["active_repository"]
-    if git_output(repository, "status", "--porcelain"):
-        raise ContractError(
-            "active repository must be clean before runtime verification"
-        )
-    commit = git_output(repository, "rev-parse", "HEAD")
+    inventory_path = inventory_path.resolve()
+    catalog_path = catalog_path.resolve()
     inventory = load_json(inventory_path)
     if inventory.get("schema_version") != INVENTORY_SCHEMA:
         raise ContractError("image inventory schema is not supported")
-    if inventory.get("repository_commit") != commit:
-        raise ContractError(
-            "image inventory must be regenerated from the active repository commit"
+    inventory_commit = str(inventory.get("repository_commit", ""))
+    repository = (
+        repository_path.resolve()
+        if repository_path is not None
+        else governance["active_repository"]
+    )
+    if repository != governance["active_repository"]:
+        require_under(
+            repository,
+            governance["frozen_repositories"],
+            "runtime verification repository",
         )
+    if git_output(repository, "status", "--porcelain"):
+        raise ContractError(
+            "runtime verification repository must be clean"
+        )
+    commit = git_output(repository, "rev-parse", "HEAD")
+    if inventory_commit != commit:
+        raise ContractError(
+            "image inventory and runtime verification repository commits disagree"
+        )
+    if sha256_file(catalog_path) != inventory.get("catalog_sha256"):
+        raise ContractError("image inventory and runtime catalog digests disagree")
     contracts = catalog_contracts(catalog_path)
     inventory_tools = {
         str(row["tool"]): row
@@ -127,6 +143,7 @@ def prepare_execution(
         "prepared_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "repository_commit": commit,
         "repository_clean": True,
+        "repository": {"path": str(repository), "commit": commit},
         "site": {"id": governance["site_id"], "host": socket.gethostname()},
         "catalog": {"path": str(catalog_path), "sha256": sha256_file(catalog_path)},
         "inventory": {
@@ -403,6 +420,7 @@ def parser() -> argparse.ArgumentParser:
     prepare.add_argument("--inventory", type=Path, required=True)
     prepare.add_argument("--catalog", type=Path, required=True)
     prepare.add_argument("--governance", type=Path, required=True)
+    prepare.add_argument("--repository", type=Path)
     prepare.add_argument("--output", type=Path, required=True)
     execute = commands.add_parser("execute")
     execute.add_argument("--execution", type=Path, required=True)
@@ -425,7 +443,11 @@ def main() -> int:
     try:
         if args.command == "prepare":
             execution = prepare_execution(
-                args.inventory, args.catalog, args.governance, args.output
+                args.inventory,
+                args.catalog,
+                args.governance,
+                args.output,
+                args.repository,
             )
             print(f"prepared runtime verification for {len(execution['tools'])} images")
             return 0
