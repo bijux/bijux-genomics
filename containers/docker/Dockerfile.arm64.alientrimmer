@@ -17,6 +17,7 @@ LABEL org.opencontainers.image.tool="alientrimmer"
 LABEL org.opencontainers.image.title="alientrimmer"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL io.bijux.tool.version="3.2"
 ARG ALIENTRIMMER_VERSION=3.2
 ARG ALIENTRIMMER_SHA256=5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730
 ENV DEBIAN_FRONTEND=noninteractive

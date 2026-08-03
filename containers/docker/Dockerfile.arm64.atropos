@@ -31,6 +31,7 @@ LABEL org.opencontainers.image.tool="atropos"
 LABEL org.opencontainers.image.title="Atropos"
 LABEL org.opencontainers.image.base.name="python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f"
 LABEL org.opencontainers.image.base.digest="sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f"
+LABEL io.bijux.tool.version="1.1.31"
 ENV LANG=C LC_ALL=C TZ=UTC PYTHONNOUSERSITE=1
 RUN useradd --system --uid 65532 --home-dir /work --create-home bijux
 COPY --from=builder /opt/atropos-venv /opt/atropos-venv
