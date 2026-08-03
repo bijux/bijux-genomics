@@ -367,11 +367,13 @@ def prepare(
     commit = current_commit(repository)
     images = selected_images(load_json(image_inventory_path), study_root)
     inputs = corpus_inputs(load_json(data_index_path), study_root)
-    destination = output_root or (
-        Path(str(roots["containers_root"])) / "runs" / f"{RUN_ID}-{STAGE_SLUG}"
-    )
-    if destination.exists():
-        raise SpecificationError(f"refusing to replace benchmark specifications: {destination}")
+    destination = output_root or (Path(str(roots["containers_root"])) / "runs")
+    tool_roots = {tool: destination / f"{RUN_ID}-{tool}" for tool in TOOLS}
+    existing = [path for path in tool_roots.values() if path.exists()]
+    if existing:
+        raise SpecificationError(
+            f"refusing to replace benchmark specifications: {existing[0]}"
+        )
     timestamp = submitted_at or dt.datetime.now(dt.timezone.utc).isoformat()
     credentials = {
         "schema_version": "bijux.container.credential_reference.v1",
@@ -380,7 +382,7 @@ def prepare(
         "redaction": {"publish_values": False},
     }
     for tool in TOOLS:
-        tool_root = destination / tool
+        tool_root = tool_roots[tool]
         tool_root.mkdir(parents=True)
         (tool_root / "config-pipeline.yml").write_text(
             yaml.safe_dump(

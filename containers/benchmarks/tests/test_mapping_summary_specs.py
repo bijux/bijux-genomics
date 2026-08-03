@@ -109,7 +109,9 @@ class MappingSummarySpecificationTests(unittest.TestCase):
                 )
             pipelines = {
                 tool: yaml.safe_load(
-                    (destination / tool / "config-pipeline.yml").read_text()
+                    (
+                        destination / f"run-2004-{tool}" / "config-pipeline.yml"
+                    ).read_text()
                 )
                 for tool in specifications.TOOLS
             }
