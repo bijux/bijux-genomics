@@ -92,7 +92,7 @@ class BenchmarkPortfolioTests(unittest.TestCase):
     def test_measurement_contract_requires_io_cpu_and_throughput(self) -> None:
         portfolio = copy.deepcopy(self.portfolio)
         portfolio["measurement"]["required_resource_metrics"].remove(
-            "filesystem_read_bytes"
+            "filesystem_input_operations"
         )
 
         with self.assertRaisesRegex(
