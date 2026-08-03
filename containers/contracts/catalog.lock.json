@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "f242898f7d0abc4d199cacc929782accd0c85ce5bcc12f8afb22a2939857f5e1",
+  "source_sha256": "465695ce5a2f6fe5c31f048d5c2894eabb317d9231476f8d43604163b344b2ef",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -569,12 +569,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/broadinstitute/gatk",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "Apache-2.0",
+      "source_sha256": "32d2f90bf13fcb3a8ac765bb2cb8ec1fc9a6cc447055d0156bd1db2092d4e3e8",
       "pinned_commit": "76edc75c26504da94bbaee66584e107e76ee15de",
       "apptainer_definition": "containers/apptainer/gatk.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.gatk",
-      "contract_sha256": "1e94ae05374d9ae98ca5b5ecf7aeb58c3d19843e1d4c470a710252b72da426f0"
+      "contract_sha256": "9eb2f2e865c3967be47bca3a8b42a725b7f152e6fb930afbd70def1372688754"
     },
     {
       "id": "germline",

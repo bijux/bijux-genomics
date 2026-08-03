@@ -575,9 +575,10 @@ source_sha256 = "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0ea
 
 [gatk]
 version = "4.6.2.0"
-source = "https://github.com/broadinstitute/gatk"
-date_pinned = "2026-02-16"
+source = "https://github.com/broadinstitute/gatk/releases/download/4.6.2.0/gatk-4.6.2.0.zip"
+date_pinned = "2026-08-03"
 pinned_commit = "76edc75c26504da94bbaee66584e107e76ee15de"
+source_sha256 = "32d2f90bf13fcb3a8ac765bb2cb8ec1fc9a6cc447055d0156bd1db2092d4e3e8"
 
 [ngsbriggs]
 version = "0.01"

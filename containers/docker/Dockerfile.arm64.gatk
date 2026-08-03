@@ -5,13 +5,14 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=4.6.2.0
 LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="gatk"
 LABEL org.opencontainers.image.title="gatk"
@@ -22,18 +23,23 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION_GATK=4.6.2.0
 ENV VERSION_GATK=${VERSION_GATK}
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates=20240203 wget=1.21.4-1ubuntu4.1 unzip=6.0-28ubuntu4.1 openjdk-21-jre-headless=21.0.11+10-1~24.04.2 && \
-    wget -q -O /tmp/gatk.zip "https://github.com/broadinstitute/gatk/releases/download/${VERSION_GATK}/gatk-${VERSION_GATK}.zip" && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates curl openjdk-21-jre-headless python3 unzip && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        --output /tmp/gatk.zip \
+        "https://github.com/broadinstitute/gatk/releases/download/${VERSION_GATK}/gatk-${VERSION_GATK}.zip" && \
+    echo '32d2f90bf13fcb3a8ac765bb2cb8ec1fc9a6cc447055d0156bd1db2092d4e3e8  /tmp/gatk.zip' \
+        | sha256sum --check --strict && \
     unzip -q /tmp/gatk.zip -d /opt && \
-    mv "/opt/gatk-${VERSION_GATK}/gatk" /usr/local/bin/gatk-bin && \
-    printf '#!/bin/sh\n' > /usr/local/bin/gatk && \
-    printf 'if [ "$1" = "--version" ]; then /usr/local/bin/gatk-bin --version 2>/dev/null || echo "$VERSION_GATK"; exit 0; fi\n' >> /usr/local/bin/gatk && \
-    printf 'if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$#" -eq 0 ]; then echo "gatk ${VERSION_GATK}"; echo "usage: gatk <ToolName> [arguments]"; exit 0; fi\n' >> /usr/local/bin/gatk && \
-    printf 'exec /usr/local/bin/gatk-bin "$@"\n' >> /usr/local/bin/gatk && \
-    chmod +x /usr/local/bin/gatk && \
+    mv "/opt/gatk-${VERSION_GATK}" /opt/gatk && \
+    sed -i '1s|python$|python3|' /opt/gatk/gatk && \
+    chmod 0555 /opt/gatk/gatk && \
+    ln -s /opt/gatk/gatk /usr/local/bin/gatk && \
+    gatk --version 2>&1 | grep -F "The Genome Analysis Toolkit (GATK) v${VERSION_GATK}" && \
+    gatk --help | grep -F 'Usage template for all tools' && \
     rm -f /tmp/gatk.zip && \
-    apt-get purge -y wget unzip && \
+    apt-get purge -y --auto-remove curl unzip && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 

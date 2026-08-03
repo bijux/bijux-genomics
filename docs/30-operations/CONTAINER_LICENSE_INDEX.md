@@ -56,7 +56,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `fastx_clipper` | `retained` | `bijux` | `AGPL-3.0-or-later` | `https://github.com/agordon/fastx_toolkit` | `0.0.14` | `sha256:9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806` |
 | `flash2` | `retained` | `bijux` | `GPL-3.0-or-later` | `https://github.com/dstreett/FLASH2` | `2.2.00` | `sha256:da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8` |
 | `fqtools` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/alastair-droop/fqtools` | `2.3` | `sha256:209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6` |
-| `gatk` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/broadinstitute/gatk` | `4.6.2.0` | `sha256:343d7b6ed18123e559b7d4277c31cbcbd1c6ce68a2285175bf9a400b1e613bc9` |
+| `gatk` | `retained` | `bijux` | `Apache-2.0` | `https://github.com/broadinstitute/gatk/releases/download/4.6.2.0/gatk-4.6.2.0.zip` | `4.6.2.0` | `sha256:32d2f90bf13fcb3a8ac765bb2cb8ec1fc9a6cc447055d0156bd1db2092d4e3e8` |
 | `germline` | `retained` | `bijux` | `Apache-2.0` | `https://github.com/gusevlab/germline` | `1.5.3` | `sha256:42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991` |
 | `glimpse` | `retained` | `bijux` | `MIT` | `https://github.com/odelaneau/GLIMPSE` | `1.1.1` | `sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c` |
 | `ibdhap` | `retained` | `bijux` | `LicenseRef-MORGAN-2006` | `https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml` | `3.4` | `sha256:195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a` |
