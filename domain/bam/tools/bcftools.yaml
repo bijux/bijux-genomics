@@ -51,7 +51,7 @@ execution_contract:
 stage_ids: ["bam.genotyping"]
 planned_stage_ids: []
 status: "supported"
-scope: "bam_to_variants"
+scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.genotyping:
     required_inputs:

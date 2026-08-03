@@ -20,6 +20,10 @@ artifact_ids:
   - filter_report_json
   - genotyping_report_json
   - genotyping_report
+  - genotyping_bcf
+  - genotyping_vcf
+  - genotyping_vcf_tbi
+  - genotyping_gl
   - governed_qc_inputs_manifest
   - haplogroups
   - haplogroups_report_json
