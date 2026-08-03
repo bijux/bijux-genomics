@@ -367,7 +367,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Repetitions: {design['warmup_repetitions']} warmup and {design['measured_repetitions']} measured",
         f"- Corpus: {', '.join(f'`{item}`' for item in design['corpus_catalog_ids'])}",
         f"- Reference: {', '.join(f'`{item}`' for item in design['reference_catalog_ids'])}",
-        f"- Databases: {', '.join(f'`{item}`' for item in design['database_catalog_ids'])}",
+        "- Databases: "
+        + (
+            ", ".join(f"`{item}`" for item in design["database_catalog_ids"])
+            if design["database_catalog_ids"]
+            else "none"
+        ),
         f"- Repeated result artifact: `{design['result_artifact']}`",
         "",
         "## Performance",

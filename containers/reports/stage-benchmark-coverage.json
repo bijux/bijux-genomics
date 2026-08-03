@@ -52,9 +52,9 @@
       "stage_id": "bam.contamination"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "campaign_run_id": "run-2002",
+      "definition_status": "defined",
+      "execution_status": "not_admitted",
       "retained_tools": [
         "bedtools",
         "mosdepth",
@@ -725,8 +725,8 @@
   ],
   "summary": {
     "admitted_stage_count": 1,
-    "defined_stage_count": 1,
-    "missing_stage_count": 70,
+    "defined_stage_count": 2,
+    "missing_stage_count": 69,
     "retained_stage_count": 71
   }
 }

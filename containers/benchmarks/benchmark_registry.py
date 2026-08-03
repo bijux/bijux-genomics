@@ -57,11 +57,13 @@ def require_text(campaign: dict[str, Any], key: str) -> str:
     return value
 
 
-def require_text_list(campaign: dict[str, Any], key: str) -> list[str]:
+def require_text_list(
+    campaign: dict[str, Any], key: str, *, allow_empty: bool = False
+) -> list[str]:
     value = campaign.get(key)
     if (
         not isinstance(value, list)
-        or not value
+        or (not value and not allow_empty)
         or any(not isinstance(item, str) or not item for item in value)
     ):
         raise RegistryError(f"benchmark campaign {key} must be a non-empty text list")
@@ -113,12 +115,12 @@ def validate_registry(
         for key in (
             "corpus_catalog_ids",
             "reference_catalog_ids",
-            "database_catalog_ids",
             "input_size_keys",
             "scientific_metrics",
             "limitations",
         ):
             require_text_list(campaign, key)
+        require_text_list(campaign, "database_catalog_ids", allow_empty=True)
         if any(
             re.fullmatch(r"[a-z][a-z0-9_]*_input_bytes", key) is None
             for key in campaign["input_size_keys"]

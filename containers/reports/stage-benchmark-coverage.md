@@ -7,9 +7,9 @@ measurement contract. It is not marked executed until Slurm evidence is
 admitted separately.
 
 - Retained stages: **71**
-- Defined campaigns: **1**
+- Defined campaigns: **2**
 - Admitted campaigns: **1**
-- Missing campaigns: **70**
+- Missing campaigns: **69**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -18,7 +18,7 @@ admitted separately.
 | `bam.bias_mitigation` | `mapdamage2` | — | missing | not_defined |
 | `bam.complexity` | `preseq` | — | missing | not_defined |
 | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | — | missing | not_defined |
-| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | — | missing | not_defined |
+| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | defined | not_admitted |
 | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `pmdtools`, `pydamage` | — | missing | not_defined |
 | `bam.duplication_metrics` | `picard`, `samtools` | — | missing | not_defined |
 | `bam.endogenous_content` | `samtools` | — | missing | not_defined |

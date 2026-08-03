@@ -33,6 +33,8 @@ class BenchmarkRegistryTests(unittest.TestCase):
 
         self.assertEqual(campaigns[0]["stage_id"], "bam.genotyping")
         self.assertEqual(campaigns[0]["tool_ids"], ["bcftools"])
+        self.assertEqual(campaigns[1]["stage_id"], "bam.coverage")
+        self.assertEqual(campaigns[1]["tool_ids"], ["bedtools", "mosdepth", "samtools"])
 
     def test_omitting_a_retained_tool_is_rejected(self) -> None:
         self.registry["campaigns"][0]["tool_ids"] = []
@@ -56,7 +58,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
 
-        self.assertEqual(report["summary"]["defined_stage_count"], 1)
+        self.assertEqual(report["summary"]["defined_stage_count"], 2)
         self.assertEqual(report["summary"]["admitted_stage_count"], 0)
         self.assertGreater(report["summary"]["missing_stage_count"], 1)
 
