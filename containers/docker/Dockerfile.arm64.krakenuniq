@@ -15,6 +15,7 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     sed -i '1i #include <cstdint>' /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/src/uid_mapping.hpp && \
     sed -i '1i #include <cstdint>' /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/src/report-cols.hpp && \
     sed -i 's/enum class REPORTCOLS : uint8_t/enum class REPORTCOLS : std::uint8_t/g; s/std:map/std::map/g; s/std:string/std::string/g' /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/src/report-cols.hpp && \
+    install -d -m 0755 /opt/krakenuniq/bin && \
     /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/install_krakenuniq.sh /opt/krakenuniq/bin && \
     /opt/krakenuniq/bin/krakenuniq --version | grep -Fx 'KrakenUniq version 1.0.4' && \
     /opt/krakenuniq/bin/krakenuniq --help >/dev/null
