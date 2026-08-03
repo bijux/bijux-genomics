@@ -20,6 +20,7 @@ root.
 | FASTQ structural validation | fastQValidator 0.1.1 | `run-1077` | `3458062` | 1s | validator success report |
 | read-quality and adapter profiling | FastQC 0.12.1 | `run-1076` | `3458057` | 4s | HTML report plus machine-readable archive |
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
+| paired-read adapter trimming | Atropos 1.1.31 | `run-1098` | `3458119` | 7s | two digest-pinned trimmed FASTQ streams |
 | paired-read merging | FLASH2 2.2.00 | `run-1078` | `3458063` | 1s | 774,658-byte merged-read FASTQ |
 | adapter trimming | Skewer 0.2.2 | `run-1079` | `3458064` | 1s | 25,992,094-byte trimmed FASTQ stream |
 | adapter trimming | AlienTrimmer 3.2 | `run-1091` | `3458077` | 13s | paired trimmed FASTQ streams |
@@ -77,6 +78,16 @@ implementation. VSEARCH clustered the public WGS read subset and emitted
 centroids; this proves the `fastq.cluster_otus` runtime contract only. The WGS
 corpus is not an amplicon community and therefore cannot support OTU accuracy,
 ecological interpretation, or clustering-threshold claims.
+
+Atropos processed all 100,000 governed read pairs with explicitly declared
+Illumina adapters, reported adapters in 2,677 first reads and 2,705 second
+reads, and retained every pair. The two compressed outputs passed gzip
+integrity checks and contain 19,217,721 bases in total. Preserved `run-1097`
+shows that Atropos rejects a one-thread parallel request; `run-1098` therefore
+uses the native single-process default instead of disguising an invalid
+resource setting. This establishes the real paired-read trimming interface and
+records observed adapter counts. It does not establish trimming sensitivity,
+read-retention policy, or superiority over another trimmer.
 
 BamTools applied its declared mapping-quality expression to the governed
 coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed

@@ -93,6 +93,26 @@
       "output_bytes": 246
     },
     {
+      "tool": "atropos",
+      "run_id": "run-1098",
+      "repository_commit": "e3cd013e0ac489cab7f78dd7d15cb83bb4469086",
+      "slurm_job_id": "3458119",
+      "status": "passed",
+      "elapsed_seconds": 7,
+      "image_sha256": "7abde4206eefb82e42c633406936975c97363d74f1c5339f399375628550d385",
+      "build_evidence_sha256": "97b7014f1b4564c9eead63cf63413a723df0b6fb87c73b15566a069f4674d308",
+      "evidence_sha256": "d891aaf36e2fdf63894fdc4333bc1f333168694e2df5a9b2d734e8623f9d9c81",
+      "accounting_sha256": "b20d981596123a90b8585ced384d5e5b580f47282ea4ca90a537e3ca54d72828",
+      "r1_output_sha256": "515c38bed6806722d671228df9977600fe0a8cc0767679629ef11a377b3003b6",
+      "r1_output_bytes": 7553594,
+      "r2_output_sha256": "23a8555a5c74c3cee8d0b3f860296c0bfc9e15e378b8336f8568bc36905ea1d6",
+      "r2_output_bytes": 7787305,
+      "input_pairs": 100000,
+      "retained_pairs": 100000,
+      "r1_adapter_reads": 2677,
+      "r2_adapter_reads": 2705
+    },
+    {
       "tool": "flash2",
       "run_id": "run-1078",
       "repository_commit": "db43a6f9c6b724685a5dbaaf4e58c04abef62b9e",
@@ -304,6 +324,13 @@
     }
   ],
   "preserved_failures": [
+    {
+      "tool": "atropos",
+      "run_id": "run-1097",
+      "classification": "invalid_single_thread_parallel_request",
+      "evidence_sha256": "34ef38805a772194fb9dc17eb1f16668c27733bace15bfe021a55d853c4ad395",
+      "accounting_sha256": "53b0083deb23211844e5f5060a3e1bf6226cf3e97471b50617ec82c1127434da"
+    },
     {
       "tool": "alientrimmer",
       "run_id": "run-1089",
