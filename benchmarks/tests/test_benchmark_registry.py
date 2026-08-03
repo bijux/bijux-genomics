@@ -107,7 +107,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
             (root / "run-2001-bam-genotyping.json").write_text(
                 json.dumps(
                     {
-                        "schema_version": "bijux.container.stage_benchmark_report.v1",
+                        "schema_version": "bijux.benchmark.stage_report.v1",
                         "verdict": "passed",
                         "run_id": "run-2001",
                         "stage_id": "bam.genotyping",

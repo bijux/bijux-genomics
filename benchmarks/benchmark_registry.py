@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-SCHEMA_VERSION = "bijux.container.stage_benchmarks.v1"
+SCHEMA_VERSION = "bijux.benchmark.stage_campaigns.v1"
 RUN_PATTERN = re.compile(r"^run-(2[0-9]{3}|[3-9][0-9]{3,})$")
 REQUIRED_PERFORMANCE_METRICS = {
     "wall_seconds",
@@ -269,7 +269,7 @@ def coverage_report(
                     if (
                         not isinstance(evidence, dict)
                         or evidence.get("schema_version")
-                        != "bijux.container.stage_benchmark_report.v1"
+                        != "bijux.benchmark.stage_report.v1"
                         or evidence.get("verdict") != "passed"
                         or evidence.get("run_id") != campaign["run_id"]
                         or evidence.get("stage_id") != stage_id
@@ -299,7 +299,7 @@ def coverage_report(
     )
     comparative = sum(row["definition_status"] == "comparative" for row in rows)
     return {
-        "schema_version": "bijux.container.stage_benchmark_coverage.v1",
+        "schema_version": "bijux.benchmark.stage_coverage.v1",
         "summary": {
             "retained_stage_count": len(rows),
             "defined_stage_count": len(defined),

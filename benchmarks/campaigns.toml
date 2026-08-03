@@ -1,4 +1,4 @@
-schema_version = "bijux.container.stage_benchmarks.v1"
+schema_version = "bijux.benchmark.stage_campaigns.v1"
 
 [[campaigns]]
 run_id = "run-2001"

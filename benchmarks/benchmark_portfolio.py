@@ -15,8 +15,8 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-PORTFOLIO_SCHEMA = "bijux.container.benchmark_portfolio.v1"
-REGISTRY_SCHEMA = "bijux.container.stage_benchmarks.v1"
+PORTFOLIO_SCHEMA = "bijux.benchmark.portfolio.v1"
+REGISTRY_SCHEMA = "bijux.benchmark.stage_campaigns.v1"
 REPORT_SCHEMA = "bijux.container.benchmark_readiness.v1"
 CORPUS_STATUSES = {"missing", "source_defined", "admitted"}
 EVIDENCE_SCOPES = {"qualification", "comparative"}

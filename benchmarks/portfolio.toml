@@ -1,4 +1,4 @@
-schema_version = "bijux.container.benchmark_portfolio.v1"
+schema_version = "bijux.benchmark.portfolio.v1"
 
 [measurement]
 warmup_repetitions = 1

@@ -14,7 +14,7 @@ from typing import Any
 
 from benchmark_registry import load_toml, threads_by_tool, validate_registry
 
-REPORT_SCHEMA = "bijux.container.stage_benchmark_report.v1"
+REPORT_SCHEMA = "bijux.benchmark.stage_report.v1"
 EVIDENCE_SCHEMA = "bijux.container.evidence.v2"
 ACCOUNTING_SCHEMA = "bijux.slurm.accounting.v1"
 SHA256 = re.compile(r"[0-9a-f]{64}")
