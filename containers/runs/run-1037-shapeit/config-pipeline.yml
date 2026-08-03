@@ -1,0 +1,18 @@
+schema_version: bijux.container.pipeline.v1
+run: {id: run-1037, campaign: public-human-phasing-container-qualification, corpus: 1000-genomes-phase3-chr22-biallelic, sample: 2504-sample-cohort, domain: vcf, stage: vcf.phasing, tool: shapeit, operator: bijan}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/c07932e6374fc0ef1511a6341223fd8e0baf226c, commit: c07932e6374fc0ef1511a6341223fd8e0baf226c, clean: true}
+image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/shapeit-4.2.2-linux-amd64-9aec28c1a0b7.sif, sha256: 9aec28c1a0b74dd5fa893e723aea4456794a4bab608b00867925e65ac8671225}
+data:
+  inputs:
+    - {id: 1000-genomes-phase3-chr22-v5b-biallelic-20-22mb, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-20-22mb/normalized.vcf.gz, sha256: f7e7ff32ac8d9c802dff6bc097e28e18111ae3342101294334d01dbc5f0aad15}
+    - {id: 1000-genomes-phase3-chr22-v5b-biallelic-20-22mb-index, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-20-22mb/normalized.vcf.gz.csi, sha256: ed88479f949fe41bae1029c5851e1ee9025ed717ba777081c0cc2883c37edc15}
+    - {id: shapeit-c34d4db3-chr22-b37-map, kind: reference, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/chr22.b37.shapeit5.gmap.gz, sha256: 75b0026033139f7c2515eda80c330d93d1eb728374a31e0a713589c0d413b24f}
+commands:
+  version: [shapeit, --version]
+  help: [shapeit, --help]
+  real: [shapeit, --input, /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-20-22mb/normalized.vcf.gz, --map, /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/chr22.b37.shapeit5.gmap.gz, --region, '22:20000000-22000000', --thread, '8', --seed, '15052011', --output, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/shapeit/run-1037/phased.bcf, --log, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/shapeit/run-1037/shapeit.log]
+  negative: [shapeit, --input, /governed-missing.vcf.gz, --map, /governed-missing-map.gmap.gz, --region, '22:20000000-22000000', --output, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/shapeit/run-1037/missing.bcf]
+outputs: {result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/shapeit/run-1037, required_files: [phased.bcf, shapeit.log]}
+resources: {account: lu2026-2-20, partition: lu48, cpus: 8, memory_mb: 16384, walltime: '01:00:00', scratch_mb: 2048}
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance: {version_regex: '^shapeit 4[.]2[.]2$', negative_exit_nonzero: true}
