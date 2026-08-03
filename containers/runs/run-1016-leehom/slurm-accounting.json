@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T15:01:55.622935+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "c6ed16065736f7d4f19ae41ee963d7551c2498d4e21f7757e44a4b56f2e2a4aa",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "32",
+      "Elapsed": "00:00:08",
+      "ElapsedRaw": "8",
+      "ExitCode": "0:0",
+      "JobID": "3457637",
+      "JobName": "fastq-adapter-trimming-and-merging-leehom-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn053",
+      "ReqMem": "8G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1016",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457637",
+  "submit_script_sha256": "f5b62f409c5eaf1ed9a523cda44146905e298394160552152ba34282019972a7"
+}
