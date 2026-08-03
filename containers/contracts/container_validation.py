@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import socket
 import subprocess
 import sys
@@ -219,8 +220,15 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         raise ContractError(f"unsupported Apptainer architecture: {architecture}")
 
     slurm = require_mapping(config, "slurm")
-    require_keys(slurm, {"account", "partitions"}, "governance Slurm policy")
+    require_keys(
+        slurm,
+        {"account", "partitions", "scratch_root"},
+        "governance Slurm policy",
+    )
     account = require_text(slurm, "account")
+    scratch_root = Path(require_text(slurm, "scratch_root"))
+    if not scratch_root.is_absolute() or not scratch_root.is_dir():
+        raise ContractError("slurm.scratch_root must be an existing absolute directory")
     partitions = slurm.get("partitions")
     if (
         not isinstance(partitions, list)
@@ -241,6 +249,7 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         "apptainer_architecture": architecture,
         "slurm_account": account,
         "slurm_partitions": partitions,
+        "slurm_scratch_root": scratch_root.resolve(),
     }
 
 
@@ -836,6 +845,7 @@ def run_apptainer(
     image_path: Path,
     argv: list[str],
     binds: list[tuple[Path, Path, str]],
+    scratch_path: Path,
     stdout_path: Path,
     stderr_path: Path,
 ) -> int:
@@ -857,7 +867,14 @@ def run_apptainer(
             check=False,
             stdout=stdout,
             stderr=stderr,
-            env={"LANG": "C", "LC_ALL": "C", "TZ": "UTC", "PATH": os.environ["PATH"]},
+            env={
+                "APPTAINERENV_TMPDIR": "/scratch",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "PATH": os.environ["PATH"],
+                "TMPDIR": str(scratch_path),
+                "TZ": "UTC",
+            },
         )
     return completed.returncode
 
@@ -959,9 +976,21 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
     (result_root / "config-credential.yml").write_bytes(credential_path.read_bytes())
 
     input_binds = [(source, target, "ro") for source, target in contract["input_binds"]]
+    scratch_value = os.environ.get("TMPDIR")
+    if not scratch_value:
+        raise ContractError("TMPDIR is absent from the Slurm execution environment")
+    scratch_path = Path(scratch_value).resolve()
+    require_under(
+        scratch_path,
+        contract["governance"]["slurm_scratch_root"],
+        "Slurm scratch",
+    )
+    if not scratch_path.is_dir():
+        raise ContractError(f"Slurm scratch directory does not exist: {scratch_path}")
     binds = [
         *input_binds,
         (result_root, contract["result_mount_path"], "rw"),
+        (scratch_path, Path("/scratch"), "rw"),
     ]
     checks: dict[str, dict[str, Any]] = {}
     for name in ("version", "help", "real", "negative"):
@@ -971,6 +1000,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
             contract["image_path"],
             contract["commands"][name],
             binds,
+            scratch_path,
             stdout_path,
             stderr_path,
         )
@@ -1056,6 +1086,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
             "apptainer_version": subprocess.run(
                 ["apptainer", "--version"], check=False, capture_output=True, text=True
             ).stdout.strip(),
+            "scratch_path": str(scratch_path),
         },
     }
     write_json(result_root / "evidence.json", evidence)
@@ -1087,7 +1118,22 @@ def render_slurm(
     scratch_preflight = ""
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2:
         required_scratch_kib = resources["scratch_mb"] * 1024
-        scratch_preflight = f"""export TMPDIR="${{SLURM_TMPDIR:?Slurm scratch is unavailable}}"
+        scratch_root = contract["governance"]["slurm_scratch_root"]
+        scratch_root_shell = shlex.quote(str(scratch_root))
+        scratch_preflight = f"""if [[ ! "${{SLURM_JOB_ID:-}}" =~ ^[0-9]+$ ]]; then
+  echo "Slurm job identity is unavailable" >&2
+  exit 72
+fi
+readonly JOB_SCRATCH=$(mktemp -d {scratch_root_shell}/bijux-genomics-${{SLURM_JOB_ID}}-XXXXXX)
+cleanup_scratch() {{
+  if [[ "$JOB_SCRATCH" != {scratch_root_shell}/bijux-genomics-${{SLURM_JOB_ID}}-* ]]; then
+    echo "refusing to remove unexpected scratch path: $JOB_SCRATCH" >&2
+    return 73
+  fi
+  rm -rf -- "$JOB_SCRATCH"
+}}
+trap cleanup_scratch EXIT
+export TMPDIR="$JOB_SCRATCH"
 available_scratch_kib=$(df -Pk "$TMPDIR" | awk 'NR == 2 {{print $4}}')
 if (( available_scratch_kib < {required_scratch_kib} )); then
   echo "insufficient Slurm scratch: ${{available_scratch_kib}} KiB" >&2
@@ -1110,7 +1156,7 @@ umask 027
 export LANG=C
 export LC_ALL=C
 export TZ=UTC
-{scratch_preflight}exec python3 {contract["repository_path"] / "containers/contracts/container_validation.py"} execute \\
+{scratch_preflight}python3 {contract["repository_path"] / "containers/contracts/container_validation.py"} execute \\
   --governance {governance_path.resolve()} \\
   --pipeline {pipeline_path.resolve()} \\
   --credentials {credential_path.resolve()}

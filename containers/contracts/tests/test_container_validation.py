@@ -38,7 +38,11 @@ class GovernanceContractTests(unittest.TestCase):
                 "frozen_repositories": str(root / "frozen-repositories"),
             },
             "runtime": {"apptainer_architecture": "linux/amd64"},
-            "slurm": {"account": "science", "partitions": ["compute"]},
+            "slurm": {
+                "account": "science",
+                "partitions": ["compute"],
+                "scratch_root": str(root),
+            },
         }
 
     def test_site_paths_are_supplied_by_governance(self) -> None:
@@ -217,7 +221,11 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 "frozen_repositories": str(root / "frozen"),
             },
             "runtime": {"apptainer_architecture": "linux/amd64"},
-            "slurm": {"account": "science", "partitions": ["compute"]},
+            "slurm": {
+                "account": "science",
+                "partitions": ["compute"],
+                "scratch_root": str(root),
+            },
         }
         governance_path.write_text(
             container_validation.yaml.safe_dump(governance, sort_keys=False),
@@ -490,9 +498,18 @@ class CurrentPipelineContractTests(unittest.TestCase):
             ):
                 container_validation.render_slurm(*paths, script)
             rendered = script.read_text(encoding="utf-8")
+            subprocess.run(
+                ["bash", "-n", str(script)],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
 
         self.assertIn("#SBATCH --no-requeue", rendered)
-        self.assertIn("SLURM_TMPDIR:?Slurm scratch is unavailable", rendered)
+        self.assertIn("mktemp -d", rendered)
+        self.assertIn("bijux-genomics-${SLURM_JOB_ID}-XXXXXX", rendered)
+        self.assertIn("trap cleanup_scratch EXIT", rendered)
+        self.assertIn("refusing to remove unexpected scratch path", rendered)
         self.assertIn("available_scratch_kib < 1048576", rendered)
         self.assertIn("umask 027", rendered)
 
