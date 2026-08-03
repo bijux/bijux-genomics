@@ -48,7 +48,7 @@ esac
 exec java -jar /opt/picard.jar "$@"
 EOS
     chmod 0755 /usr/local/bin/picard
-    java -jar /opt/picard.jar MarkDuplicates --version | grep -F 'Version:3.3.0'
+    test "$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1 || true)" = 'Version:3.3.0'
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
@@ -59,6 +59,6 @@ EOS
 %test
     picard --version | grep -Fx 'picard 3.3.0'
     picard --help >/dev/null
-    java -jar /opt/picard.jar MarkDuplicates --version | grep -F 'Version:3.3.0'
+    test "$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1 || true)" = 'Version:3.3.0'
 %help
     Picard 3.3.0 from the checksummed upstream release JAR.
