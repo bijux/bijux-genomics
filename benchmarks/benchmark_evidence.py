@@ -19,7 +19,24 @@ EVIDENCE_SCHEMA = "bijux.container.evidence.v2"
 ACCOUNTING_SCHEMA = "bijux.slurm.accounting.v1"
 SHA256 = re.compile(r"[0-9a-f]{64}")
 COMMIT = re.compile(r"[0-9a-f]{40}")
-RESOURCE_KEYS = ("wall_seconds", "user_seconds", "system_seconds", "peak_rss_kib")
+LEGACY_RESOURCE_KEYS = (
+    "wall_seconds",
+    "user_seconds",
+    "system_seconds",
+    "peak_rss_kib",
+)
+RESOURCE_KEYS = LEGACY_RESOURCE_KEYS + (
+    "filesystem_input_operations",
+    "filesystem_output_operations",
+)
+RESOURCE_UNITS = {
+    "wall_seconds": "seconds",
+    "user_seconds": "seconds",
+    "system_seconds": "seconds",
+    "peak_rss_kib": "kibibytes",
+    "filesystem_input_operations": "operations",
+    "filesystem_output_operations": "operations",
+}
 
 
 class BenchmarkEvidenceError(RuntimeError):
@@ -84,20 +101,65 @@ def verify_recorded_outputs(result_root: Path, evidence: dict[str, Any]) -> None
 
 
 def read_resources(path: Path) -> dict[str, float]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines:
+        raise BenchmarkEvidenceError(f"resource TSV is empty: {path}")
+    governed = lines[0] == "metric\tvalue\tunit"
+    rows = lines[1:] if governed else lines
     values: dict[str, float] = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in rows:
         fields = line.split("\t")
-        if len(fields) != 2 or fields[0] in values:
+        expected_fields = 3 if governed else 2
+        if len(fields) != expected_fields or fields[0] in values:
             raise BenchmarkEvidenceError(f"invalid resource TSV row: {path}")
+        if governed and RESOURCE_UNITS.get(fields[0]) != fields[2]:
+            raise BenchmarkEvidenceError(f"invalid resource TSV unit: {path}")
         try:
             values[fields[0]] = float(fields[1])
         except ValueError as exc:
             raise BenchmarkEvidenceError(f"non-numeric resource value: {path}") from exc
-    if tuple(values) != RESOURCE_KEYS or any(value < 0 for value in values.values()):
+    expected_keys = RESOURCE_KEYS if governed else LEGACY_RESOURCE_KEYS
+    if tuple(values) != expected_keys or any(value < 0 for value in values.values()):
         raise BenchmarkEvidenceError(
             f"resource TSV has an invalid metric surface: {path}"
         )
     return values
+
+
+def benchmark_context(
+    result_root: Path,
+    evidence: dict[str, Any],
+    campaign: dict[str, Any],
+) -> dict[str, Any]:
+    """Resolve benchmark context without duplicating the archived run contract."""
+    context_path = result_root / "outputs/benchmark-context.json"
+    if context_path.is_file():
+        return load_json(context_path)
+    measurement = evidence.get("measurement")
+    execution = evidence.get("execution")
+    if not isinstance(measurement, dict) or not isinstance(execution, dict):
+        raise BenchmarkEvidenceError("benchmark evidence omits execution context")
+    context = {
+        "warmup_repetitions": measurement.get("warmup_repetitions"),
+        "measured_repetitions": measurement.get("measured_repetitions"),
+        "cache_policy": execution.get("cache_policy"),
+        "threads": execution.get("threads"),
+    }
+    input_keys = campaign["input_size_keys"]
+    if len(input_keys) != 1:
+        raise BenchmarkEvidenceError(
+            "multi-input benchmark requires an explicit benchmark context artifact"
+        )
+    metrics = load_json(result_root / "outputs/repetitions/repetition-1.metrics.json")
+    input_bytes = metrics.get("input_bytes")
+    if (
+        not isinstance(input_bytes, int)
+        or isinstance(input_bytes, bool)
+        or input_bytes < 1
+    ):
+        raise BenchmarkEvidenceError("benchmark metrics omit governed input bytes")
+    context[input_keys[0]] = input_bytes
+    return context
 
 
 def distribution(values: list[float]) -> dict[str, float]:
@@ -175,7 +237,7 @@ def tool_report(
     accounting = validate_execution_identity(
         result_root, evidence, str(campaign["run_id"]), tool
     )
-    context = load_json(result_root / "outputs/benchmark-context.json")
+    context = benchmark_context(result_root, evidence, campaign)
     measured = int(campaign["measured_repetitions"])
     expected_context = {
         "warmup_repetitions": int(campaign["warmup_repetitions"]),
@@ -226,6 +288,8 @@ def tool_report(
     wall = [row["wall_seconds"] for row in resources]
     cpu = [row["user_seconds"] + row["system_seconds"] for row in resources]
     rss = [row["peak_rss_kib"] for row in resources]
+    input_operations = [row.get("filesystem_input_operations") for row in resources]
+    output_operations = [row.get("filesystem_output_operations") for row in resources]
     output_bytes = [float(row["output_bytes"]) for row in science]
     scientific_observations = {
         metric: [row[metric] for row in science]
@@ -252,6 +316,26 @@ def tool_report(
                 "sha256": digest,
             }
         )
+    total_input_bytes = sum(context[key] for key in input_keys)
+    performance = {
+        "wall_seconds": distribution(wall),
+        "cpu_seconds": distribution(cpu),
+        "cpu_utilization_percent": distribution(
+            [cpu_value / wall_value * 100.0 for cpu_value, wall_value in zip(cpu, wall)]
+        ),
+        "peak_rss_kib": distribution(rss),
+        "output_bytes": distribution(output_bytes),
+        "throughput_input_bytes_per_second": distribution(
+            [total_input_bytes / wall_value for wall_value in wall]
+        ),
+    }
+    if all(value is not None for value in input_operations + output_operations):
+        performance["filesystem_input_operations"] = distribution(
+            [float(value) for value in input_operations if value is not None]
+        )
+        performance["filesystem_output_operations"] = distribution(
+            [float(value) for value in output_operations if value is not None]
+        )
     return {
         "tool": tool,
         "verdict": "passed",
@@ -273,14 +357,11 @@ def tool_report(
             key.removesuffix("_input_bytes"): context[key] for key in input_keys
         }
         | {
-            "total": sum(context[key] for key in input_keys),
+            "total": total_input_bytes,
         },
-        "performance": {
-            "wall_seconds": distribution(wall),
-            "cpu_seconds": distribution(cpu),
-            "peak_rss_kib": distribution(rss),
-            "output_bytes": distribution(output_bytes),
-        },
+        "performance": performance,
+        "parameters": evidence.get("parameters"),
+        "interface": evidence.get("interface"),
         "scientific_observations": scientific_observations,
         "determinism": {
             "artifact": campaign["result_artifact"],
@@ -288,6 +369,72 @@ def tool_report(
             "identical_across_repetitions": True,
         },
     }
+
+
+def validate_comparability(tools: list[dict[str, Any]]) -> dict[str, Any]:
+    """Require all tools to share one immutable scientific comparison context."""
+    commits = {tool["repository_commit"] for tool in tools}
+    input_locks = {
+        json.dumps(tool["input_locks"], sort_keys=True, separators=(",", ":"))
+        for tool in tools
+    }
+    parameter_locks = {
+        json.dumps(tool["parameters"], sort_keys=True, separators=(",", ":"))
+        for tool in tools
+    }
+    declared_interfaces = [tool.get("interface") for tool in tools]
+    interface_contracts = {
+        json.dumps(
+            {
+                key: tool["interface"].get(key)
+                for key in (
+                    "accepted_input_contracts",
+                    "output_contract",
+                    "normalized_result_contract",
+                    "downstream_probe",
+                )
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        for tool in tools
+        if isinstance(tool.get("interface"), dict)
+    }
+    if len(commits) != 1:
+        raise BenchmarkEvidenceError(
+            "benchmark tools do not share one repository commit"
+        )
+    if len(input_locks) != 1:
+        raise BenchmarkEvidenceError(
+            "benchmark tools do not share one immutable input closure"
+        )
+    if len(parameter_locks) != 1:
+        raise BenchmarkEvidenceError(
+            "benchmark tools do not share one parameter closure"
+        )
+    if any(interface is not None for interface in declared_interfaces) and (
+        len(interface_contracts) != 1
+        or any(not isinstance(interface, dict) for interface in declared_interfaces)
+    ):
+        raise BenchmarkEvidenceError("benchmark tools do not share one stage interface")
+    closure = {
+        "repository_commit": tools[0]["repository_commit"],
+        "input_lock_sha256": hashlib.sha256(
+            next(iter(input_locks)).encode()
+        ).hexdigest(),
+        "parameter_lock_sha256": hashlib.sha256(
+            next(iter(parameter_locks)).encode()
+        ).hexdigest(),
+    }
+    if interface_contracts:
+        interface = tools[0]["interface"]
+        closure["stage_interface"] = {
+            "accepted_input_contracts": interface["accepted_input_contracts"],
+            "output_contract": interface["output_contract"],
+            "normalized_result_contract": interface["normalized_result_contract"],
+            "downstream_probe": interface["downstream_probe"],
+        }
+    return closure
 
 
 def compare_tools(
@@ -367,6 +514,7 @@ def create_report(
         tool_report(campaign, tool, stage_result_root / tool)
         for tool in campaign["tool_ids"]
     ]
+    comparability = validate_comparability(tools)
     comparison = compare_tools(campaign, tools)
     return {
         "schema_version": REPORT_SCHEMA,
@@ -395,6 +543,7 @@ def create_report(
             "result_artifact": campaign["result_artifact"],
         },
         "tools": tools,
+        "comparability": comparability,
         "cross_tool_comparison": comparison,
         "limitations": campaign["limitations"],
         "interpretation": campaign["interpretation"],
@@ -435,8 +584,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Execution: {design['runtime']} under {design['scheduler']}, container-only",
         "- Threads by tool: "
         + ", ".join(
-            f"`{tool}`={threads}"
-            for tool, threads in design["threads_by_tool"].items()
+            f"`{tool}`={threads}" for tool, threads in design["threads_by_tool"].items()
         ),
         f"- Cache policy: {design['cache_policy']}",
         f"- Repetitions: {design['warmup_repetitions']} warmup and {design['measured_repetitions']} measured",
@@ -456,22 +604,68 @@ def render_markdown(report: dict[str, Any]) -> str:
         ),
         f"- Repeated result artifact: `{design['result_artifact']}`",
         "",
-        "## Performance",
-        "",
-        "| Tool | Wall mean (range), s | CPU mean, s | Peak RSS mean (range), MiB | Output mean, bytes |",
-        "|---|---:|---:|---:|---:|",
     ]
+    comparability = report.get("comparability")
+    if isinstance(comparability, dict):
+        lines.extend(
+            [
+                "## Replay and interchangeability",
+                "",
+                f"- Repository commit: `{comparability['repository_commit']}`",
+                f"- Immutable input closure: `{comparability['input_lock_sha256']}`",
+                f"- Effective parameter closure: `{comparability['parameter_lock_sha256']}`",
+            ]
+        )
+        stage_interface = comparability.get("stage_interface")
+        if isinstance(stage_interface, dict):
+            probe = stage_interface["downstream_probe"]
+            lines.extend(
+                [
+                    "- Accepted inputs: "
+                    + ", ".join(
+                        f"`{contract}`"
+                        for contract in stage_interface["accepted_input_contracts"]
+                    ),
+                    f"- Normalized output: `{stage_interface['output_contract']}`",
+                    f"- Output schema: `{stage_interface['normalized_result_contract']}`",
+                    f"- Tool-independent consumer: `{probe['stage_id']}`",
+                ]
+            )
+        lines.append("")
+    lines.extend(
+        [
+            "## Performance",
+            "",
+            "| Tool | Wall mean (range), s | CPU mean, s | CPU use, % | Peak RSS mean (range), MiB | Throughput, MiB/s | Filesystem input/output operations | Output mean, bytes |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
     for tool in report["tools"]:
         performance = tool["performance"]
         wall = performance["wall_seconds"]
         cpu = performance["cpu_seconds"]
         rss = performance["peak_rss_kib"]
         output = performance["output_bytes"]
+        utilization = performance.get("cpu_utilization_percent")
+        throughput = performance.get("throughput_input_bytes_per_second")
+        input_operations = performance.get("filesystem_input_operations")
+        output_operations = performance.get("filesystem_output_operations")
+        utilization_value = (
+            f"{utilization['mean']:.1f}" if utilization else "not recorded"
+        )
+        throughput_value = (
+            f"{throughput['mean'] / 1048576:.2f}" if throughput else "not recorded"
+        )
+        operations_value = (
+            f"{input_operations['mean']:.1f}/{output_operations['mean']:.1f}"
+            if input_operations and output_operations
+            else "not recorded"
+        )
         lines.append(
             f"| `{tool['tool']}` | {wall['mean']:.3f} ({wall['minimum']:.3f}–{wall['maximum']:.3f}) "
-            f"| {cpu['mean']:.3f} | {rss['mean'] / 1024:.1f} "
+            f"| {cpu['mean']:.3f} | {utilization_value} | {rss['mean'] / 1024:.1f} "
             f"({rss['minimum'] / 1024:.1f}–{rss['maximum'] / 1024:.1f}) "
-            f"| {output['mean']:.1f} |"
+            f"| {throughput_value} | {operations_value} | {output['mean']:.1f} |"
         )
     lines.extend(["", "## Scientific observations", ""])
     for tool in report["tools"]:

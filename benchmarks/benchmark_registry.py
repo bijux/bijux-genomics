@@ -25,8 +25,8 @@ REQUIRED_PERFORMANCE_METRICS = {
 }
 COMPARATIVE_PERFORMANCE_METRICS = REQUIRED_PERFORMANCE_METRICS | {
     "cpu_utilization_percent",
-    "filesystem_read_bytes",
-    "filesystem_write_bytes",
+    "filesystem_input_operations",
+    "filesystem_output_operations",
     "throughput_input_bytes_per_second",
 }
 
@@ -208,8 +208,9 @@ def validate_registry(
             raise RegistryError(
                 f"benchmark performance metrics are incomplete for {stage_id}"
             )
-        if evidence_tier == "comparative" and not COMPARATIVE_PERFORMANCE_METRICS.issubset(
-            performance_metrics
+        if (
+            evidence_tier == "comparative"
+            and not COMPARATIVE_PERFORMANCE_METRICS.issubset(performance_metrics)
         ):
             raise RegistryError(
                 f"comparative performance metrics are incomplete for {stage_id}"
@@ -294,9 +295,7 @@ def coverage_report(
             }
         )
     admitted = sum(row["execution_status"] == "admitted" for row in rows)
-    qualification = sum(
-        row["definition_status"] == "qualification" for row in rows
-    )
+    qualification = sum(row["definition_status"] == "qualification" for row in rows)
     comparative = sum(row["definition_status"] == "comparative" for row in rows)
     return {
         "schema_version": "bijux.benchmark.stage_coverage.v1",

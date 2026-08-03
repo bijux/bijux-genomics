@@ -48,6 +48,61 @@ class BenchmarkEvidenceTests(unittest.TestCase):
             ):
                 benchmark_evidence.read_resources(path)
 
+    def test_governed_resource_tsv_preserves_wait4_metrics(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "resource.tsv"
+            path.write_text(
+                "metric\tvalue\tunit\n"
+                "wall_seconds\t1.2\tseconds\n"
+                "user_seconds\t1.0\tseconds\n"
+                "system_seconds\t0.1\tseconds\n"
+                "peak_rss_kib\t2048\tkibibytes\n"
+                "filesystem_input_operations\t12\toperations\n"
+                "filesystem_output_operations\t3\toperations\n",
+                encoding="utf-8",
+            )
+
+            values = benchmark_evidence.read_resources(path)
+
+        self.assertEqual(values["filesystem_input_operations"], 12.0)
+        self.assertEqual(values["filesystem_output_operations"], 3.0)
+
+    def test_governed_resource_tsv_rejects_invented_byte_units(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "resource.tsv"
+            path.write_text(
+                "metric\tvalue\tunit\nwall_seconds\t1.2\tbytes\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                benchmark_evidence.BenchmarkEvidenceError,
+                "invalid resource TSV unit",
+            ):
+                benchmark_evidence.read_resources(path)
+
+    def test_comparability_rejects_mixed_repository_commits(self) -> None:
+        shared = {
+            "input_locks": [{"id": "reads", "sha256": "b" * 64}],
+            "parameters": {"effective_sha256": "c" * 64},
+            "interface": {
+                "accepted_input_contracts": ["fastq.single.v1"],
+                "output_contract": "profile.v1",
+                "normalized_result_contract": "schema.json",
+                "downstream_probe": {"stage_id": "consumer"},
+            },
+        }
+        tools = [
+            {"tool": "first", "repository_commit": "a" * 40, **shared},
+            {"tool": "second", "repository_commit": "d" * 40, **shared},
+        ]
+
+        with self.assertRaisesRegex(
+            benchmark_evidence.BenchmarkEvidenceError,
+            "one repository commit",
+        ):
+            benchmark_evidence.validate_comparability(tools)
+
     def test_output_inventory_rejects_unrecorded_files(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -137,7 +192,9 @@ class BenchmarkEvidenceTests(unittest.TestCase):
         report["design"]["reference_catalog_ids"] = []
         without_reference = benchmark_evidence.render_markdown(report)
         self.assertIn("- Reference: none\n", without_reference)
-        self.assertFalse(any(line.endswith(" ") for line in without_reference.splitlines()))
+        self.assertFalse(
+            any(line.endswith(" ") for line in without_reference.splitlines())
+        )
 
     def test_cross_tool_comparison_preserves_disagreement(self) -> None:
         campaign = {
