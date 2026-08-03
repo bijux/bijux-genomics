@@ -940,57 +940,75 @@ pub(in super::super) fn check_docker_unpinned_apt(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
-    let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?")?;
     for dockerfile in dockerfile_paths(workspace)? {
         let rel = workspace.rel(&dockerfile).display().to_string();
-        for line in read_utf8(&dockerfile)?.lines() {
-            if !line.contains("apt-get install") && !line.contains("apt install") {
-                continue;
-            }
-            let mut segment = if let Some((_, tail)) = line.split_once("apt-get install") {
-                tail.to_string()
-            } else if let Some((_, tail)) = line.split_once("apt install") {
-                tail.to_string()
-            } else {
-                continue;
-            };
-            segment = option_re.replace_all(&segment, " ").into_owned();
-            segment = segment.replace("&&", " ").replace('\\', " ");
-            for token in segment.split_whitespace().filter(|token| !token.is_empty()) {
-                if matches!(
-                    token,
-                    "install"
-                        | "apt-get"
-                        | "apt"
-                        | "update"
-                        | "rm"
-                        | "-rf"
-                        | "/var/lib/apt/lists/*"
-                        | ";"
-                        | "|"
-                ) {
-                    continue;
-                }
-                if token.starts_with('-')
-                    || token.starts_with('$')
-                    || token.starts_with('"')
-                    || token.starts_with('/')
-                {
-                    continue;
-                }
-                if !token.contains('=') {
-                    errors.push(format!("{rel}: unpinned apt package '{token}'"));
-                }
-            }
-        }
+        errors.extend(docker_apt_policy_violations(&rel, &read_utf8(&dockerfile)?)?);
     }
     if errors.is_empty() {
         return success_line("docker apt pin check: OK");
     }
-    Ok(ContainerCommandOutcome::success(format!(
-        "docker apt pin check: WARN\n{}\n",
-        errors.into_iter().map(|error| format!("- {error}")).collect::<Vec<_>>().join("\n")
-    )))
+    failure_lines("docker apt pin check: FAILED", &errors)
+}
+
+fn docker_apt_policy_violations(rel: &str, dockerfile: &str) -> Result<Vec<String>> {
+    let immutable_snapshot_re = Regex::new(
+        r"https://snapshot\.(?:ubuntu\.com/ubuntu|debian\.org/archive/(?:debian|debian-security))/[0-9]{8}T[0-9]{6}Z/?",
+    )?;
+    let apt_install_re = Regex::new(r"\bapt(?:-get)?\b[^;&|]*?\binstall\b")?;
+    let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?")?;
+    let logical_lines =
+        dockerfile.lines().map(str::trim).fold(Vec::<String>::new(), |mut lines, line| {
+            if let Some(previous) = lines.last_mut().filter(|previous| previous.ends_with('\\')) {
+                previous.pop();
+                previous.push(' ');
+                previous.push_str(line);
+            } else {
+                lines.push(line.to_string());
+            }
+            lines
+        });
+    let mut snapshot_active = false;
+    let mut errors = Vec::new();
+    for instruction in logical_lines {
+        if instruction.starts_with("FROM ") {
+            snapshot_active = false;
+            continue;
+        }
+        let snapshot_offsets = immutable_snapshot_re
+            .find_iter(&instruction)
+            .map(|matched| matched.start())
+            .collect::<Vec<_>>();
+        for command in apt_install_re.find_iter(&instruction) {
+            let snapshot_precedes_command =
+                snapshot_active || snapshot_offsets.iter().any(|offset| *offset < command.start());
+            let tail = &instruction[command.end()..];
+            let end = tail.find("&&").or_else(|| tail.find("||")).or_else(|| tail.find(';'));
+            let package_segment = end.map_or(tail, |index| &tail[..index]);
+            let package_segment = option_re.replace_all(package_segment, " ");
+            let unpinned = package_segment
+                .split_whitespace()
+                .filter(|token| {
+                    !token.is_empty()
+                        && !token.starts_with('-')
+                        && !token.starts_with('$')
+                        && !token.starts_with('"')
+                        && !token.starts_with('/')
+                        && !token.contains('=')
+                })
+                .collect::<Vec<_>>();
+            if !snapshot_precedes_command {
+                errors.extend(unpinned.into_iter().map(|package| {
+                    format!(
+                        "{rel}: apt package '{package}' requires an exact version or an immutable snapshot configured earlier in its build stage"
+                    )
+                }));
+            }
+        }
+        if !snapshot_offsets.is_empty() {
+            snapshot_active = true;
+        }
+    }
+    Ok(errors)
 }
 
 pub(in super::super) fn check_docker_version_sync(
@@ -1615,4 +1633,70 @@ pub(in super::super) fn check_smoke_inputs_policy(
         return success_line(format!("smoke-inputs policy: OK ({})", entries.len()));
     }
     failure_lines("smoke-inputs policy: FAILED", &errors)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::docker_apt_policy_violations;
+
+    #[test]
+    fn apt_policy_accepts_exact_bootstrap_before_snapshot_activation() {
+        let dockerfile = r#"
+FROM ubuntu:24.04
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 && \
+    sed -i 's#archive.ubuntu.com#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y curl zlib1g
+"#;
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert!(violations.is_empty(), "{violations:?}");
+    }
+
+    #[test]
+    fn apt_policy_accepts_debian_snapshot_packages() {
+        let dockerfile = r#"
+FROM debian:bookworm
+RUN sed -i 's#deb.debian.org/debian#https://snapshot.debian.org/archive/debian/20260802T000000Z#' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y curl zlib1g
+"#;
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert!(violations.is_empty(), "{violations:?}");
+    }
+
+    #[test]
+    fn apt_policy_rejects_mutable_unversioned_packages() {
+        let dockerfile = r#"
+FROM ubuntu:24.04
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl zlib1g
+"#;
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 2);
+        assert!(violations.iter().any(|row| row.contains("'curl'")));
+        assert!(violations.iter().any(|row| row.contains("'zlib1g'")));
+    }
+
+    #[test]
+    fn apt_policy_resets_snapshot_authority_between_build_stages() {
+        let dockerfile = r#"
+FROM ubuntu:24.04 AS builder
+RUN sed -i 's#archive.ubuntu.com#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y build-essential
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y zlib1g
+"#;
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 1);
+        assert!(violations[0].contains("'zlib1g'"));
+    }
 }
