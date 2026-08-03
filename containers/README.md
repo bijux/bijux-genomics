@@ -194,8 +194,8 @@ python3 -B containers/contracts/container_validation.py collect-accounting \
   --governance containers/contracts/sites/lunarc.yml
 ```
 
-Import one run by bounding the identifier, or import all not-yet-tracked result
-directories into a clean checkout:
+Import one completed run by bounding the identifier. For a full replay, use an
+empty artifact directory so existing tracked evidence is never overwritten:
 
 ```console
 result_root="/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation"
@@ -207,10 +207,25 @@ python3 -B containers/runs/manage.py import-evidence \
   --minimum-run 1125 \
   --maximum-run 1125
 
-# All available runs (fails instead of overwriting an existing tracked record)
+# Full replay into disposable review output
+replay_root="artifacts/containers/run-evidence-replay"
 python3 -B containers/runs/manage.py import-evidence \
   --result-root "${result_root}" \
-  --output-root containers/runs
+  --output-root "${replay_root}"
+
+python3 -B containers/runs/manage.py publish-final-evidence \
+  --runs-root "${replay_root}" \
+  --ledger "${replay_root}/attempt-ledger.json" \
+  --apply
+
+# Publish the newly imported tracked run only after previewing the selection
+python3 -B containers/runs/manage.py publish-final-evidence \
+  --runs-root containers/runs \
+  --ledger containers/runs/attempt-ledger.json
+python3 -B containers/runs/manage.py publish-final-evidence \
+  --runs-root containers/runs \
+  --ledger containers/runs/attempt-ledger.json \
+  --apply
 
 python3 -B containers/runs/manage.py validate --runs-root containers/runs
 python3 -B containers/runs/manage.py render-index \
@@ -221,6 +236,6 @@ python3 -B containers/runs/manage.py render-report \
   --output containers/reports/run-evidence.md
 ```
 
-The all-runs importer is intentionally non-overwriting. Use a fresh checkout or
-an empty output root for a complete replay; use run bounds when adding evidence
-to the repository incrementally.
+The all-runs importer is intentionally non-overwriting. Use an empty artifact
+root for complete replay and comparison; use run bounds when adding final
+evidence to the repository incrementally.
