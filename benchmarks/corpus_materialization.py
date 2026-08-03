@@ -254,6 +254,7 @@ def materialize(
             target = futures[future]
             validations[target] = future.result()
     catalog_files = []
+    catalog_samples = []
     for sample, record, target in work:
         status, sha256 = downloaded[target]
         reads, bases = validations[target]
@@ -265,6 +266,10 @@ def materialize(
                 "size_bytes": record["size_bytes"],
                 "kind": "raw-fastq",
                 "accession": sample["accession"],
+                "study_accession": sample["study_accession"],
+                "sample_accession": sample["sample_accession"],
+                "experiment_accession": sample["experiment_accession"],
+                "era": sample["era"],
                 "layout": sample["layout"],
                 "mate": record["mate"],
                 "read_count": reads,
@@ -272,6 +277,32 @@ def materialize(
                 "source_url": record["source_url"],
                 "source_md5": record["source_md5"],
                 "materialization_status": status,
+            }
+        )
+    for sample in plan["samples"]:
+        catalog_samples.append(
+            {
+                key: sample[key]
+                for key in (
+                    "accession",
+                    "study_accession",
+                    "sample_accession",
+                    "experiment_accession",
+                    "era",
+                    "layout",
+                    "size_band",
+                    "selection_reason",
+                    "scientific_name",
+                    "library_source",
+                    "library_strategy",
+                    "library_selection",
+                    "instrument_platform",
+                    "instrument_model",
+                    "archive_base_count",
+                    "archive_read_count",
+                    "first_public",
+                    "last_updated",
+                )
             }
         )
     catalog = {
@@ -289,6 +320,7 @@ def materialize(
             "ENA public data access terms apply; publication identifies source accessions."
         ),
         "scientific_name": plan["species"],
+        "samples": catalog_samples,
         "files": catalog_files,
         "known_limitations": [
             "The cohort is curated for workload diversity and is not population-representative.",

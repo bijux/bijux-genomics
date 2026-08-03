@@ -51,7 +51,23 @@ class CorpusMaterializationTests(unittest.TestCase):
                     "samples": [
                         {
                             "accession": "ERR000001",
+                            "study_accession": "PRJEB1",
+                            "sample_accession": "SAMEA1",
+                            "experiment_accession": "ERX1",
+                            "era": "ancient",
                             "layout": "se",
+                            "size_band": "under_100mb",
+                            "selection_reason": "real ancient single-end coverage",
+                            "scientific_name": "Homo sapiens",
+                            "library_source": "GENOMIC",
+                            "library_strategy": "WGS",
+                            "library_selection": "RANDOM",
+                            "instrument_platform": "ILLUMINA",
+                            "instrument_model": "Illumina HiSeq",
+                            "archive_base_count": 10,
+                            "archive_read_count": 2,
+                            "first_public": "2020-01-01",
+                            "last_updated": "2020-01-02",
                             "files": [
                                 {
                                     "mate": None,

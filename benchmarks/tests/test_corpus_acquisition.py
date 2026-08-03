@@ -32,12 +32,14 @@ class CorpusAcquisitionTests(unittest.TestCase):
             'era = "ancient"\n'
             'layout = "se"\n'
             'size_band = "small"\n'
+            'reason = "ancient single-end coverage"\n'
             "[[samples]]\n"
             'accession = "ERR000002"\n'
             'study_accession = "PRJEB1"\n'
             'era = "modern"\n'
             'layout = "pe"\n'
-            'size_band = "medium"\n',
+            'size_band = "medium"\n'
+            'reason = "modern paired-end coverage"\n',
             encoding="utf-8",
         )
         return path
@@ -47,9 +49,17 @@ class CorpusAcquisitionTests(unittest.TestCase):
             "ERR000001": {
                 "run_accession": "ERR000001",
                 "study_accession": "PRJEB1",
+                "sample_accession": "SAMEA1",
+                "experiment_accession": "ERX1",
                 "scientific_name": "Homo sapiens",
                 "library_layout": "SINGLE",
+                "library_source": "GENOMIC",
+                "library_strategy": "WGS",
+                "library_selection": "RANDOM",
                 "instrument_platform": "ILLUMINA",
+                "instrument_model": "Illumina HiSeq",
+                "base_count": "1000",
+                "read_count": "10",
                 "fastq_ftp": "ftp.sra.ebi.ac.uk/one.fastq.gz",
                 "fastq_md5": "a" * 32,
                 "fastq_bytes": "101",
@@ -59,9 +69,17 @@ class CorpusAcquisitionTests(unittest.TestCase):
             "ERR000002": {
                 "run_accession": "ERR000002",
                 "study_accession": "PRJEB1",
+                "sample_accession": "SAMEA2",
+                "experiment_accession": "ERX2",
                 "scientific_name": "Homo sapiens",
                 "library_layout": "PAIRED",
+                "library_source": "GENOMIC",
+                "library_strategy": "WGS",
+                "library_selection": "RANDOM",
                 "instrument_platform": "ILLUMINA",
+                "instrument_model": "Illumina HiSeq",
+                "base_count": "2000",
+                "read_count": "20",
                 "fastq_ftp": "ftp.sra.ebi.ac.uk/two_1.fastq.gz;ftp.sra.ebi.ac.uk/two_2.fastq.gz",
                 "fastq_md5": f"{'b' * 32};{'c' * 32}",
                 "fastq_bytes": "202;303",
