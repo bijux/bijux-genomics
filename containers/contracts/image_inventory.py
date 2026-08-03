@@ -12,8 +12,12 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-import tomllib
 from typing import Any
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
+    import tomli as tomllib
 
 
 INVENTORY_SCHEMA = "bijux.container.image_inventory.v1"

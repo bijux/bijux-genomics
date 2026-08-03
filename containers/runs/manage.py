@@ -341,6 +341,10 @@ def validate_runs(root: Path) -> list[dict[str, Any]]:
     for path in sorted(root.glob("run-*-*")):
         if not path.is_dir():
             continue
+        if (path / "config-campaign.json").is_file():
+            continue
+        if not (path / "evidence.lock.json").is_file():
+            raise RunEvidenceError(f"run directory lacks governed evidence: {path}")
         record = validate_run(path)
         run_id = str(record["run_id"])
         if run_id in identities:

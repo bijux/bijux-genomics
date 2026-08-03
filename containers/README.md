@@ -26,3 +26,37 @@ The reviewed LUNARC authority is
 [`containers/contracts/sites/lunarc.yml`](contracts/sites/lunarc.yml); every
 submitted run archives its resolved copy alongside the pipeline and redacted
 credential-reference contracts.
+
+## Reproduce the LUNARC image roster
+
+`run-1000` is the governed frontend campaign that prepares immutable SIFs. It
+selects only supported catalog tools whose admitted image is missing or no
+longer matches the active recipe. The operational execution record resolves
+the exact clean repository commit, catalog hash, inventory hash, recipe hashes,
+logs, and admitted image hashes; the source campaign cannot contain its own Git
+commit because a Git object cannot self-identify.
+
+```console
+python3 containers/contracts/image_inventory.py audit \
+  --catalog containers/contracts/catalog.toml \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --evidence-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence \
+  --runs-root containers/runs \
+  --repository . \
+  --output /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/inventory/image-inventory.json
+
+python3 containers/contracts/image_campaign.py prepare \
+  --campaign containers/runs/run-1000-images/config-campaign.json \
+  --inventory /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/inventory/image-inventory.json \
+  --catalog containers/contracts/catalog.toml \
+  --governance containers/contracts/sites/lunarc.yml \
+  --output /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/campaigns/run-1000-images/execution.json
+
+python3 containers/contracts/image_campaign.py execute \
+  --execution /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/campaigns/run-1000-images/execution.json \
+  --governance containers/contracts/sites/lunarc.yml \
+  --jobs 2
+```
+
+Image construction runs on the approved frontend. Real scientific tool runs
+remain Slurm jobs with separate pipeline and credential-reference contracts.
