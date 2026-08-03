@@ -29,6 +29,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %files
     containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+    containers/tools/schmutzi/bamtools-gcc13.patch /opt/bamtools-gcc13.patch
     containers/tools/schmutzi/schmutzi /usr/local/bin/schmutzi
 
 %post
@@ -37,7 +38,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export DEBIAN_FRONTEND=noninteractive
     /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
     apt-get install -y --no-install-recommends \
-        ca-certificates cmake curl g++ make zlib1g-dev
+        ca-certificates cmake curl g++ make patch zlib1g-dev
     curl --fail --location --proto '=https' --tlsv1.2 \
         --output /opt/schmutzi.tar.gz \
         https://codeload.github.com/grenaud/schmutzi/tar.gz/a42e6a90b2cb6ee395f17c87ceeb76bde5127017
@@ -59,12 +60,14 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
         --directory /opt/schmutzi/libgab --strip-components 1
     tar --extract --gzip --file /opt/bamtools.tar.gz \
         --directory /opt/schmutzi/bamtools --strip-components 1
+    patch --directory /opt/schmutzi/bamtools --strip=1 \
+        < /opt/bamtools-gcc13.patch
     make --directory /opt/schmutzi -j2
     test -x /opt/schmutzi/schmutzi.pl
     test -x /opt/schmutzi/contDeam.pl
     test -x /opt/schmutzi/endoCaller
     test -x /opt/schmutzi/mtCont
-    apt-get purge -y --auto-remove cmake curl g++ make zlib1g-dev
+    apt-get purge -y --auto-remove cmake curl g++ make patch zlib1g-dev
     apt-get install -y --no-install-recommends \
         ca-certificates gzip libstdc++6 perl python3 r-base-core \
         r-cran-fitdistrplus r-cran-mass samtools zlib1g

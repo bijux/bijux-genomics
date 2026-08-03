@@ -1,0 +1,7 @@
+diff --git a/src/api/internal/bam/BamMultiMerger_p.h b/src/api/internal/bam/BamMultiMerger_p.h
+index f91c024..2108559 100644
+--- a/src/api/internal/bam/BamMultiMerger_p.h
++++ b/src/api/internal/bam/BamMultiMerger_p.h
+@@ -58,1 +58,1 @@ public:
+-    bool operator()(const MergeItem& lhs, const MergeItem& rhs)
++    bool operator()(const MergeItem& lhs, const MergeItem& rhs) const
