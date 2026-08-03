@@ -47,7 +47,8 @@ python3 -B containers/contracts/container_validation.py freeze-repository \
 python3 -B containers/benchmarks/mapping_summary_specs.py \
   --governance containers/contracts/sites/lunarc.yml \
   --data-index "$index" \
-  --image-inventory containers/reports/image-inventory.json
+  --image-inventory containers/reports/image-inventory.json \
+  --catalog containers/contracts/catalog.toml
 ```
 
 The generator refuses a dirty repository, an ineligible corpus, a non-current

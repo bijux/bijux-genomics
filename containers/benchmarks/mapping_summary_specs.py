@@ -5,12 +5,18 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import shlex
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 RUN_ID = "run-2004"
 STAGE_ID = "bam.mapping_summary"
@@ -20,6 +26,7 @@ TOOLS = ("picard", "samtools")
 IMAGE_SCHEMA = "bijux.container.image_inventory_publication.v1"
 DATA_SCHEMA = "bijux.data_index.v1"
 GOVERNANCE_SCHEMA = "bijux.container.governance.v1"
+CATALOG_SCHEMA = "bijux.container.catalog.v1"
 
 
 class SpecificationError(RuntimeError):
@@ -44,6 +51,39 @@ def load_yaml(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise SpecificationError(f"YAML root must be a mapping: {path}")
     return value
+
+
+def load_toml(path: Path) -> dict[str, Any]:
+    try:
+        value = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        raise SpecificationError(f"cannot read TOML {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise SpecificationError(f"TOML root must be a mapping: {path}")
+    return value
+
+
+def runtime_contracts(catalog: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    if catalog.get("schema_version") != CATALOG_SCHEMA:
+        raise SpecificationError("container catalog schema is unsupported")
+    contracts: dict[str, dict[str, Any]] = {}
+    for record in catalog.get("tools", []):
+        if not isinstance(record, dict) or record.get("id") not in TOOLS:
+            continue
+        if record.get("support_disposition") != "retained":
+            raise SpecificationError(f"{record.get('id')} is not retained")
+        tool = str(record["id"])
+        fields = ("version_command", "help_command", "expected_version_regex")
+        if any(not isinstance(record.get(field), str) or not record[field] for field in fields):
+            raise SpecificationError(f"{tool} runtime contract is incomplete")
+        contracts[tool] = {
+            "version": shlex.split(str(record["version_command"])),
+            "help": shlex.split(str(record["help_command"])),
+            "version_regex": str(record["expected_version_regex"]),
+        }
+    if set(contracts) != set(TOOLS):
+        raise SpecificationError("container catalog lacks the complete tool closure")
+    return contracts
 
 
 def study_path(uri: str, study_root: Path) -> Path:
@@ -269,10 +309,9 @@ def pipeline(
     image: dict[str, str],
     inputs: list[dict[str, str]],
     submitted_at: str,
+    runtime_contract: dict[str, Any],
 ) -> dict[str, Any]:
     command = picard_command() if tool == "picard" else samtools_command()
-    version = ["picard", "--version"] if tool == "picard" else ["samtools", "--version"]
-    help_command = ["picard", "CollectAlignmentSummaryMetrics", "--help"] if tool == "picard" else ["samtools", "flagstat", "--help"]
     negative = ["picard", "CollectAlignmentSummaryMetrics", "I=/input/missing.bam", "O=/scratch/missing.tsv"] if tool == "picard" else ["samtools", "flagstat", "/input/missing.bam"]
     result_root = Path(str(roots["results_root"])) / "benchmarks" / f"{RUN_ID}-{STAGE_SLUG}" / tool
     metrics = [
@@ -313,8 +352,8 @@ def pipeline(
         "image": image,
         "data": {"inputs": inputs},
         "commands": {
-            "version": version,
-            "help": help_command,
+            "version": runtime_contract["version"],
+            "help": runtime_contract["help"],
             "real": ["sh", "-c", complete_command(command)],
             "negative": negative,
         },
@@ -348,7 +387,7 @@ def pipeline(
         },
         "dependencies": [],
         "acceptance": {
-            "version_regex": "^picard 3[.]3[.]0$" if tool == "picard" else "^samtools 1[.]20",
+            "version_regex": runtime_contract["version_regex"],
             "negative_exit_nonzero": True,
             "metrics": metrics,
         },
@@ -359,6 +398,7 @@ def prepare(
     governance_path: Path,
     data_index_path: Path,
     image_inventory_path: Path,
+    catalog_path: Path,
     output_root: Path | None,
     submitted_at: str | None = None,
 ) -> Path:
@@ -373,6 +413,7 @@ def prepare(
         )
     images = selected_images(load_json(image_inventory_path), study_root)
     inputs = corpus_inputs(load_json(data_index_path), study_root)
+    contracts = runtime_contracts(load_toml(catalog_path))
     destination = output_root or (Path(str(roots["containers_root"])) / "runs")
     tool_roots = {tool: destination / f"{RUN_ID}-{tool}" for tool in TOOLS}
     existing = [path for path in tool_roots.values() if path.exists()]
@@ -392,7 +433,15 @@ def prepare(
         tool_root.mkdir(parents=True)
         (tool_root / "config-pipeline.yml").write_text(
             yaml.safe_dump(
-                pipeline(tool, roots, commit, images[tool], inputs, timestamp),
+                pipeline(
+                    tool,
+                    roots,
+                    commit,
+                    images[tool],
+                    inputs,
+                    timestamp,
+                    contracts[tool],
+                ),
                 sort_keys=False,
             ),
             encoding="utf-8",
@@ -408,6 +457,7 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--governance", type=Path, required=True)
     root.add_argument("--data-index", type=Path, required=True)
     root.add_argument("--image-inventory", type=Path, required=True)
+    root.add_argument("--catalog", type=Path, required=True)
     root.add_argument("--output-root", type=Path)
     return root
 
@@ -420,6 +470,7 @@ def main() -> int:
                 args.governance,
                 args.data_index,
                 args.image_inventory,
+                args.catalog,
                 args.output_root,
             )
         )

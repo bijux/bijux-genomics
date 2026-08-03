@@ -22,7 +22,7 @@ SPEC.loader.exec_module(specifications)
 
 
 class MappingSummarySpecificationTests(unittest.TestCase):
-    def fixtures(self, root: Path) -> tuple[Path, Path, Path, Path]:
+    def fixtures(self, root: Path) -> tuple[Path, Path, Path, Path, Path]:
         study = root / "study"
         repository = root / "repository"
         frozen = root / "frozen"
@@ -93,18 +93,39 @@ class MappingSummarySpecificationTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        return governance, index, inventory, study
+        catalog = root / "catalog.toml"
+        catalog.write_text(
+            """schema_version = "bijux.container.catalog.v1"
+
+[[tools]]
+id = "picard"
+support_disposition = "retained"
+version_command = "picard --version"
+help_command = "picard --help"
+expected_version_regex = "^picard 3[.]3[.]0$"
+
+[[tools]]
+id = "samtools"
+support_disposition = "retained"
+version_command = "samtools --version"
+help_command = "samtools --help"
+expected_version_regex = "^samtools 1[.]20"
+""",
+            encoding="utf-8",
+        )
+        return governance, index, inventory, catalog, study
 
     def test_preparation_emits_complete_tool_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            governance, index, inventory, study = self.fixtures(root)
+            governance, index, inventory, catalog, study = self.fixtures(root)
             output = root / "specifications"
             with patch.object(specifications, "current_commit", return_value="f" * 40):
                 destination = specifications.prepare(
                     governance,
                     index,
                     inventory,
+                    catalog,
                     output,
                     "2026-08-03T00:00:00+00:00",
                 )
@@ -156,6 +177,11 @@ class MappingSummarySpecificationTests(unittest.TestCase):
             {"path": "/study/containers/picard.sif", "sha256": "b" * 64},
             inputs,
             "2026-08-03T00:00:00+00:00",
+            {
+                "version": ["picard", "--version"],
+                "help": ["picard", "--help"],
+                "version_regex": "^picard 3[.]3[.]0$",
+            },
         )["commands"]["real"][2]
         samtools = specifications.pipeline(
             "samtools",
@@ -164,6 +190,11 @@ class MappingSummarySpecificationTests(unittest.TestCase):
             {"path": "/study/containers/samtools.sif", "sha256": "c" * 64},
             inputs,
             "2026-08-03T00:00:00+00:00",
+            {
+                "version": ["samtools", "--version"],
+                "help": ["samtools", "--help"],
+                "version_regex": "^samtools 1[.]20",
+            },
         )["commands"]["real"][2]
 
         self.assertIn("for repetition in 1 2 3", picard)
@@ -187,7 +218,7 @@ class MappingSummarySpecificationTests(unittest.TestCase):
     def test_ineligible_corpus_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            governance, index, inventory, _ = self.fixtures(root)
+            governance, index, inventory, catalog, _ = self.fixtures(root)
             data = json.loads(index.read_text())
             data["records"][0]["benchmark_eligibility"] = "incomplete"
             index.write_text(json.dumps(data), encoding="utf-8")
@@ -199,12 +230,18 @@ class MappingSummarySpecificationTests(unittest.TestCase):
                     "not uniquely benchmark-eligible",
                 ),
             ):
-                specifications.prepare(governance, index, inventory, root / "output")
+                specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    root / "output",
+                )
 
     def test_data_index_must_match_the_frozen_commit(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            governance, index, inventory, _ = self.fixtures(root)
+            governance, index, inventory, catalog, _ = self.fixtures(root)
             mismatched = root / "data-index.json"
             mismatched.write_bytes(index.read_bytes())
 
@@ -216,7 +253,11 @@ class MappingSummarySpecificationTests(unittest.TestCase):
                 ),
             ):
                 specifications.prepare(
-                    governance, mismatched, inventory, root / "output"
+                    governance,
+                    mismatched,
+                    inventory,
+                    catalog,
+                    root / "output",
                 )
 
 
