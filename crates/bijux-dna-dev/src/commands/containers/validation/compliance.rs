@@ -1028,10 +1028,7 @@ pub(in super::super) fn check_docker_version_sync(
             continue;
         };
         let registry_version = table_string(registry_row, "version");
-        let placeholder =
-            matches!(docker_version.as_str(), "unknown" | "planned" | "latest-pinned")
-                || docker_version.ends_with("-planned");
-        if !placeholder && docker_version != registry_version {
+        if docker_version != registry_version {
             errors.push(format!(
                 "{}: TOOL_VERSION '{docker_version}' != versions.toml '{registry_version}'",
                 workspace.rel(&dockerfile).display()
