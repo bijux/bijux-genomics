@@ -592,7 +592,7 @@ fn ensure_bam_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
         )?;
     }
 
-    for tool_id in ["angsd", "rxy", "yleaf"] {
+    for tool_id in ["rxy", "yleaf"] {
         ensure_stage_tool_asset_row(
             rows,
             "bam.sex",
@@ -626,7 +626,7 @@ fn ensure_bam_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
     ensure_stage_tool_asset_row(
         rows,
         "bam.genotyping",
-        "angsd",
+        "bcftools",
         "reference_fasta",
         "corpus_01_bam_reference",
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
@@ -635,7 +635,7 @@ fn ensure_bam_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
     ensure_stage_tool_asset_row(
         rows,
         "bam.genotyping",
-        "angsd",
+        "bcftools",
         "sites_vcf",
         "human_like_genotyping_candidate_sites",
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
@@ -644,7 +644,7 @@ fn ensure_bam_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
     ensure_stage_tool_asset_row(
         rows,
         "bam.genotyping",
-        "angsd",
+        "bcftools",
         "regions",
         "human_like_genotyping_target_regions",
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
@@ -668,7 +668,7 @@ fn ensure_bam_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf",
         "BAM recalibration",
     )?;
-    for tool_id in ["angsd", "king"] {
+    for tool_id in ["king"] {
         ensure_stage_tool_asset_row(
             rows,
             "bam.kinship",
@@ -1258,7 +1258,7 @@ mod tests {
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"
-                && row.tool_id == "angsd"
+                && row.tool_id == "bcftools"
                 && row.asset_role == "sites_vcf"
                 && row.asset_id == "human_like_genotyping_candidate_sites"
         }));
@@ -1268,7 +1268,7 @@ mod tests {
                 && row.asset_role == "known_sites"
                 && row.asset_id == "human_like_recalibration_known_sites"
         }));
-        for tool_id in ["angsd", "king"] {
+        for tool_id in ["king"] {
             assert!(report.rows.iter().any(|row| {
                 row.stage_id == "bam.kinship"
                     && row.tool_id == tool_id
