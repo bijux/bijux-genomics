@@ -45,7 +45,7 @@
 | `fastq_screen` | `fastq_screen` | `retained` | `unverified` |
 | `fastqc` | `fastqc` | `retained` | `unverified` |
 | `fastqvalidator` | `fastqvalidator` | `retained` | `unverified` |
-| `fastuniq` | `fastuniq` | `unsupported` | `not_applicable` |
+| `fastuniq` | `fastuniq` | `unsupported` | `unsupported` |
 | `fastx_clipper` | `fastx_clipper` | `retained` | `unverified` |
 | `flash2` | `flash2` | `retained` | `unverified` |
 | `fqtools` | `fqtools` | `retained` | `unverified` |
@@ -55,7 +55,7 @@
 | `ibdhap` | `ibdhap` | `retained` | `unverified` |
 | `ibdne` | `ibdne` | `retained` | `unverified` |
 | `ibdseq` | `ibdseq` | `retained` | `unverified` |
-| `impute5` | `impute5` | `unsupported` | `not_applicable` |
+| `impute5` | `impute5` | `unsupported` | `unsupported` |
 | `kaiju` | `kaiju` | `retained` | `unverified` |
 | `king` | `king` | `retained` | `unverified` |
 | `kraken2` | `kraken2` | `retained` | `unverified` |

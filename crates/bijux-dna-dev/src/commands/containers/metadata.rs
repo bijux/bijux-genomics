@@ -8,7 +8,7 @@ use super::*;
 type SummaryDigests = (BTreeMap<String, String>, BTreeMap<String, String>);
 
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
-    let support = catalog_container_support(workspace)?;
+    let support = container_support_summary(workspace)?;
     let mut out = String::from(
         "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><support_disposition>\n",
     );
@@ -68,7 +68,7 @@ pub(super) fn check_tool_id_manifest(workspace: &Workspace) -> Result<ContainerC
 
 fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
     let rows = registry_tool_map(workspace)?;
-    let support = catalog_container_support(workspace)?;
+    let support = container_support_summary(workspace)?;
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-name-map -->".to_string(),
@@ -626,7 +626,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut entries = Vec::new();
-    for (tool, (support_disposition, _)) in catalog_container_support(workspace)? {
+    for (tool, (support_disposition, _)) in container_support_summary(workspace)? {
         let row = registry.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
         let kind = if is_non_bijux_apptainer_source(workspace, &tool)
@@ -798,7 +798,7 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
-    let catalog_support = catalog_container_support(workspace)?;
+    let catalog_support = container_support_summary(workspace)?;
     let expected_files =
         catalog_support.keys().map(|tool| format!("{tool}.license.toml")).collect::<BTreeSet<_>>();
     for path in fs::read_dir(&license_dir)
@@ -1406,7 +1406,7 @@ fn load_summary_digests(workspace: &Workspace) -> SummaryDigests {
 
 fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
     let registry = registry_tool_map(workspace)?;
-    let support = catalog_container_support(workspace)?;
+    let support = container_support_summary(workspace)?;
     let (docker_digest_from_summary, apptainer_digest_from_summary) =
         load_summary_digests(workspace);
     let mut rows = Vec::new();

@@ -40,7 +40,6 @@ struct ContainerContract {
     support_disposition: String,
     #[serde(default)]
     support_reason: String,
-    qualification: String,
     upstream: String,
     documentation: String,
     license: String,
@@ -88,7 +87,6 @@ struct ContractLockTool<'a> {
     version: &'a str,
     support_disposition: &'a str,
     support_reason: &'a str,
-    qualification: &'a str,
     upstream: &'a str,
     license: &'a str,
     source_sha256: &'a str,
@@ -238,12 +236,6 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
             errors.push(format!(
                 "{}: non-retained tool must explain its support disposition",
                 tool.id
-            ));
-        }
-        if !matches!(tool.qualification.as_str(), "unverified" | "qualified" | "not_applicable") {
-            errors.push(format!(
-                "{}: unsupported evidence qualification {}",
-                tool.id, tool.qualification
             ));
         }
         if !tool.upstream.starts_with("https://") {
@@ -398,7 +390,6 @@ fn contract_lock_content(workspace: &Workspace) -> Result<String> {
                 version: &tool.version,
                 support_disposition: &tool.support_disposition,
                 support_reason: &tool.support_reason,
-                qualification: &tool.qualification,
                 upstream: &tool.upstream,
                 license: &tool.license,
                 source_sha256: &tool.source_sha256,

@@ -1,6 +1,6 @@
 use super::{
-    anyhow, fs, load_toml, read_utf8, run_program_with_env, table_string, tool_versions, BTreeMap,
-    BTreeSet, Context, PathBuf, Result, WalkDir, Workspace,
+    anyhow, fs, load_toml, read_json, read_utf8, run_program_with_env, table_string, tool_versions,
+    BTreeMap, BTreeSet, Context, PathBuf, Result, WalkDir, Workspace,
 };
 
 pub(super) fn canonical_container_label_keys() -> [&'static str; 7] {
@@ -157,7 +157,7 @@ pub(super) fn governed_container_statuses(
     Ok(statuses)
 }
 
-pub(super) fn catalog_container_support(
+pub(super) fn container_support_summary(
     workspace: &Workspace,
 ) -> Result<BTreeMap<String, (String, String)>> {
     let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
@@ -171,10 +171,32 @@ pub(super) fn catalog_container_support(
     {
         let tool_id = table_string(row, "id");
         let disposition = table_string(row, "support_disposition");
-        let qualification = table_string(row, "qualification");
         if !tool_id.is_empty() {
-            support.insert(tool_id, (disposition, qualification));
+            support.insert(tool_id, (disposition, String::new()));
         }
+    }
+
+    let report = read_json(&workspace.path("containers/reports/qualification.json"))?;
+    for row in report.get("tools").and_then(serde_json::Value::as_array).into_iter().flatten() {
+        let tool_id = row.get("id").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let qualification =
+            row.get("qualification").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let Some((_, recorded_qualification)) = support.get_mut(tool_id) else {
+            return Err(anyhow!("qualification report contains unknown tool: {tool_id}"));
+        };
+        if qualification.is_empty() {
+            return Err(anyhow!("qualification report omits qualification for: {tool_id}"));
+        }
+        *recorded_qualification = qualification.to_string();
+    }
+    let missing = support
+        .iter()
+        .filter_map(|(tool_id, (_, qualification))| {
+            qualification.is_empty().then_some(tool_id.as_str())
+        })
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        return Err(anyhow!("qualification report omits catalog tools: {}", missing.join(", ")));
     }
     Ok(support)
 }

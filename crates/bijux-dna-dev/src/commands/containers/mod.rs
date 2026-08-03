@@ -35,7 +35,7 @@ use self::content_support::{
 };
 use self::registry_catalog::{
     apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
-    canonical_metadata_labels, catalog_container_support, docker_image_labels, docker_tool_ids,
+    canonical_metadata_labels, container_support_summary, docker_image_labels, docker_tool_ids,
     dockerfile_paths, governed_container_file_ids, governed_container_statuses, images_metadata,
     is_non_bijux_apptainer_source, missing_container_label_markers, registry_tool_map,
     registry_tool_rows, tool_status_manifest, toolkit_bundles,
