@@ -27,7 +27,7 @@ root.
 | low-complexity filtering | BBDuk 39.06 | `run-1006` | `3457600` | 3s | paired filtered FASTQ streams plus statistics |
 | paired-read merging | BBMerge 39.06 | `run-1007` | `3457601` | 5s | merged reads plus two unmerged-read streams |
 | duplicate removal | Clumpify 39.06 | `run-1008` | `3457602` | 4s | paired deduplicated FASTQ streams |
-| paired-read merging | FLASH2 2.2.00 | `run-1078` | `3458063` | 1s | 774,658-byte merged-read FASTQ |
+| paired-read merging | FLASH2 2.2.00 | `run-1120` | `3458193` | 1s | 1,842 merged pairs plus both 98,158-pair unmerged mate streams; output record order is nondeterministic with two combiner threads |
 | adapter trimming | Skewer 0.2.2 | `run-1079` | `3458064` | 1s | 25,992,094-byte trimmed FASTQ stream |
 | adapter trimming | AlienTrimmer 3.2 | `run-1091` | `3458077` | 13s | paired trimmed FASTQ streams |
 | adapter clipping | FASTX Clipper 0.0.14 | `run-1083` | `3458067` | 3s | 23,421,049-byte trimmed FASTQ stream |
