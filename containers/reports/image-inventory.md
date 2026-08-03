@@ -113,4 +113,4 @@ qualification remain independent requirements.
 means an admitted historical image exists but does not represent the active
 recipe. `unsupported` is an explicit catalog decision, not a failed build.
 
-The machine-readable companion is [image-inventory.json](image-inventory.json).
+The machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).

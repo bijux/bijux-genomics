@@ -51,11 +51,24 @@ failed runs and collects terminal accounting separately.
 
 ## Real evidence
 
+The [qualification matrix](container-evidence/QUALIFICATION.md) is the current
+cross-tool truth surface. It derives readiness dimension by dimension and keeps
+missing scientific, benchmark, security, or release evidence visible. The
+[image inventory](container-evidence/IMAGE_INVENTORY.md) and
+[runtime verification report](container-evidence/RUNTIME_VERIFICATION.md)
+record the admitted SIFs and their version/help checks without overstating
+those checks as real-data or scientific validation.
+
 The [LUNARC FASTQ-to-BAM report](container-evidence/FASTQ_BAM.md)
 records a real horse WGS trimming, alignment, sorting, indexing, and QC chain.
+The [paired-read trimming report](container-evidence/PAIRED_READ_TRIMMING.md)
+compares two governed trimming executions while stating why the single runs do
+not yet form a fair benchmark.
 The [LUNARC ancient-DNA damage report](container-evidence/ANCIENT_DAMAGE.md)
 records ngsBriggs input-contract correction and real Slurm execution on a
 public ancient-horse alignment.
+The [ancient-DNA genotype-likelihood report](container-evidence/ANCIENT_GENOTYPE_LIKELIHOODS.md)
+records the governed ANGSD execution and its interpretation boundary.
 The [LUNARC reference-complexity report](container-evidence/REFERENCE_COMPLEXITY.md)
 records real EquCab3.0 interval extraction and DustMasker execution.
 The [LUNARC amplicon ASV report](container-evidence/AMPLICON_ASV.md) records

@@ -251,8 +251,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         [
             "",
             "The machine-readable companion is",
-            "[qualification.json](qualification.json). Real-run details and failures are in",
-            "the [run evidence report](run-evidence.md).",
+            "[qualification.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/qualification.json). Real-run details and failures are in",
+            "the [run evidence report](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/run-evidence.md).",
         ]
     )
     return "\n".join(lines) + "\n"

@@ -12,6 +12,19 @@ dev_addr: 127.0.0.1:8000
 docs_dir: docs
 site_dir: artifacts/docs/site
 
+# The curated public navigation intentionally excludes internal reference
+# pages, and MkDocs cannot resolve links from docs/ to governed repository-root
+# contracts. The repository-aware `docs run check-doc-links` gate validates
+# those targets; MkDocs remains strict for rendering, configuration, plugins,
+# snippets, and links within its own documentation file set.
+validation:
+  nav:
+    omitted_files: info
+  links:
+    not_found: info
+    absolute_links: info
+    unrecognized_links: info
+
 theme:
   name: material
   custom_dir: docs/overrides
@@ -176,11 +189,16 @@ nav:
       - Containers: 30-operations/CONTAINERS.md
       - Container Evidence:
           - Evidence Index: 30-operations/container-evidence/index.md
+          - Qualification Matrix: 30-operations/container-evidence/QUALIFICATION.md
+          - Image Inventory: 30-operations/container-evidence/IMAGE_INVENTORY.md
+          - Runtime Verification: 30-operations/container-evidence/RUNTIME_VERIFICATION.md
           - Ancient DNA Damage: 30-operations/container-evidence/ANCIENT_DAMAGE.md
+          - Ancient DNA Genotype Likelihoods: 30-operations/container-evidence/ANCIENT_GENOTYPE_LIKELIHOODS.md
           - Amplicon ASV: 30-operations/container-evidence/AMPLICON_ASV.md
           - BAM Coverage: 30-operations/container-evidence/BAM_COVERAGE.md
           - Reference Complexity: 30-operations/container-evidence/REFERENCE_COMPLEXITY.md
           - FASTQ to BAM: 30-operations/container-evidence/FASTQ_BAM.md
+          - Paired-read Trimming: 30-operations/container-evidence/PAIRED_READ_TRIMMING.md
           - VCF Phasing: 30-operations/container-evidence/VCF_PHASING.md
           - VCF Quality Control: 30-operations/container-evidence/VCF_QC.md
           - VCF Relatedness: 30-operations/container-evidence/VCF_RELATEDNESS.md

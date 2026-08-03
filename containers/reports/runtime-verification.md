@@ -19,7 +19,7 @@ benchmark, security, or release qualification.
 
 Stdout and stderr remain in the execution-site evidence tree. Their exact
 paths and SHA-256 digests are retained in the machine-readable companion
-[runtime-verification.json](runtime-verification.json).
+[runtime-verification.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/runtime-verification.json).
 
 ## Tool results
 
