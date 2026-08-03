@@ -13,7 +13,7 @@ import yaml
 
 BENCHMARKS = Path(__file__).parents[1]
 SPEC = importlib.util.spec_from_file_location(
-    "mapping_summary_specs", BENCHMARKS / "mapping_summary_specs.py"
+    "bam_mapping_summary", BENCHMARKS / "runs/bam_mapping_summary.py"
 )
 assert SPEC is not None and SPEC.loader is not None
 specifications = importlib.util.module_from_spec(SPEC)

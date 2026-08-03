@@ -229,7 +229,7 @@ python3 -B containers/contracts/container_validation.py freeze-repository \
   --governance containers/contracts/sites/lunarc.yml \
   --commit "$commit"
 
-python3 -B benchmarks/mapping_summary_specs.py \
+python3 -B benchmarks/runs/bam_mapping_summary.py \
   --governance containers/contracts/sites/lunarc.yml \
   --data-index "$index" \
   --image-inventory containers/reports/image-inventory.json \
