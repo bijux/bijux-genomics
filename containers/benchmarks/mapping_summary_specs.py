@@ -191,6 +191,7 @@ def picard_command() -> str:
         (
             "set -eu;",
             "mkdir -p /result/repetitions;",
+            "mkdir -p /scratch/picard-warmup;",
             "picard CollectAlignmentSummaryMetrics I=/input/ERR2112767.sorted.bam O=/scratch/warmup.tsv VALIDATION_STRINGENCY=SILENT TMP_DIR=/scratch/picard-warmup;",
             "for repetition in 1 2 3; do",
             'raw="/result/repetitions/repetition-${repetition}.picard.tsv";',
@@ -198,6 +199,7 @@ def picard_command() -> str:
             'metrics="/result/repetitions/repetition-${repetition}.metrics.json";',
             'resource="/result/repetitions/repetition-${repetition}.resource.tsv";',
             'resource_raw="/scratch/repetition-${repetition}.resource.txt";',
+            'mkdir -p "/scratch/picard-${repetition}";',
             "/usr/bin/time -f 'wall_seconds=%e user_seconds=%U system_seconds=%S peak_rss_kib=%M' -o \"$resource_raw\" picard CollectAlignmentSummaryMetrics I=/input/ERR2112767.sorted.bam O=\"$raw\" VALIDATION_STRINGENCY=SILENT TMP_DIR=\"/scratch/picard-${repetition}\";",
             resource_conversion(),
             "awk -F '\\t' '$1==\"CATEGORY\" {for (field=1; field<=NF; field++) column[$field]=field} $1==\"PAIR\" || $1==\"UNPAIRED\" {total += $(column[\"TOTAL_READS\"]); mapped += $(column[\"PF_READS_ALIGNED\"]); if ($1==\"PAIR\") paired += $(column[\"TOTAL_READS\"])} END {if (total <= 0) exit 2; printf \"metric\\tvalue\\nprimary_reads\\t%.0f\\nmapped_primary_reads\\t%.0f\\nmapped_primary_fraction\\t%.12f\\npaired_primary_reads\\t%.0f\\n\", total, mapped, mapped/total, paired}' \"$raw\" > \"$summary\";",
@@ -346,7 +348,7 @@ def pipeline(
         },
         "dependencies": [],
         "acceptance": {
-            "version_regex": "^3[.]3[.]0" if tool == "picard" else "^samtools 1[.]20",
+            "version_regex": "^picard 3[.]3[.]0$" if tool == "picard" else "^samtools 1[.]20",
             "negative_exit_nonzero": True,
             "metrics": metrics,
         },

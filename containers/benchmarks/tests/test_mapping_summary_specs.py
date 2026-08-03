@@ -167,6 +167,8 @@ class MappingSummarySpecificationTests(unittest.TestCase):
         )["commands"]["real"][2]
 
         self.assertIn("for repetition in 1 2 3", picard)
+        self.assertIn("mkdir -p /scratch/picard-warmup", picard)
+        self.assertIn('mkdir -p "/scratch/picard-${repetition}"', picard)
         self.assertIn('$1=="PAIR" || $1=="UNPAIRED"', picard)
         self.assertNotIn('$1=="FIRST_OF_PAIR"', picard)
         self.assertIn("samtools flagstat", samtools)
