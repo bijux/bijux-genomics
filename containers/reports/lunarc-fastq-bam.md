@@ -21,6 +21,7 @@ root.
 | read-quality and adapter profiling | FastQC 0.12.1 | `run-1076` | `3458057` | 4s | HTML report plus machine-readable archive |
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read adapter trimming | Atropos 1.1.31 | `run-1098` | `3458119` | 7s | two digest-pinned trimmed FASTQ streams |
+| paired-read adapter trimming | Cutadapt 4.9 | `run-1109` | `3458151` | 3s | paired outputs identical to Atropos after decompression |
 | k-mer error correction | BayesHammer 4.2.0 | `run-1099` | `3458120` | 38s | corrected paired and unpaired FASTQ streams |
 | low-complexity filtering | BBDuk 39.06 | `run-1006` | `3457600` | 3s | paired filtered FASTQ streams plus statistics |
 | paired-read merging | BBMerge 39.06 | `run-1007` | `3457601` | 5s | merged reads plus two unmerged-read streams |
@@ -97,6 +98,14 @@ uses the native single-process default instead of disguising an invalid
 resource setting. This establishes the real paired-read trimming interface and
 records observed adapter counts. It does not establish trimming sensitivity,
 read-retention policy, or superiority over another trimmer.
+
+Cutadapt independently processed the same 100,000 pairs with the same two
+adapter sequences, found adapters in 2,677 first reads and 2,705 second reads,
+retained every pair, and emitted 19,217,721 bases. After decompression, its R1
+and R2 outputs were byte-for-byte identical to Atropos, with SHA-256 identities
+`d4754f6e…169d5c` and `16795392…14ed`. This is cross-tool agreement for one
+corpus and one declared adapter contract. It does not establish general
+trimming sensitivity, specificity, or a universal retention policy.
 
 BayesHammer processed 200,000 reads from the governed pair and reported
 45,485 changed bases in 34,235 reads, while 25,427 bases could not be
