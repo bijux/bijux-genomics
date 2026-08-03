@@ -26,6 +26,7 @@ class QualificationReportTests(unittest.TestCase):
                 'id = "tool"\n'
                 'version = "1.0"\n'
                 'support_disposition = "retained"\n'
+                'real_test_stage = "fastq.trim_reads"\n'
                 f'source_sha256 = "{"a" * 64}"\n',
                 encoding="utf-8",
             )
@@ -55,9 +56,14 @@ class QualificationReportTests(unittest.TestCase):
                     {
                         "runs": [
                             {
+                                "run_id": "run-1001",
                                 "tool": "tool",
                                 "execution_status": "passed",
                                 "scientific_status": "not_assessed",
+                                "corpus": "public-corpus",
+                                "sample": "sample-a",
+                                "domain": "fastq",
+                                "stage": "fastq.trim_reads",
                             }
                         ]
                     }
@@ -73,6 +79,70 @@ class QualificationReportTests(unittest.TestCase):
         self.assertEqual(tool["dimensions"]["science"], "missing")
         self.assertEqual(tool["qualification"], "unverified")
         self.assertEqual(report["summary"]["qualification"], {"unverified": 1})
+
+    def test_passing_execution_for_another_stage_is_not_stage_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            catalog = root / "catalog.toml"
+            catalog.write_text(
+                'evidence_dimensions = ["catalog", "source", "build", "runtime", '
+                '"stage", "real_data", "science", "benchmark", "security", '
+                '"release", "freshness"]\n'
+                "[[tools]]\n"
+                'id = "tool"\n'
+                'version = "1.0"\n'
+                'support_disposition = "retained"\n'
+                'real_test_stage = "fastq.merge_pairs"\n'
+                f'source_sha256 = "{"a" * 64}"\n',
+                encoding="utf-8",
+            )
+            inventory = root / "inventory.json"
+            inventory.write_text(
+                json.dumps(
+                    {
+                        "repository_commit": "commit",
+                        "tools": [{"tool": "tool", "state": "current"}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            runtime = root / "runtime.json"
+            runtime.write_text(
+                json.dumps(
+                    {
+                        "repository_commit": "commit",
+                        "tools": {"tool": {"status": "passed"}},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            runs = root / "runs.json"
+            runs.write_text(
+                json.dumps(
+                    {
+                        "runs": [
+                            {
+                                "run_id": "run-1001",
+                                "tool": "tool",
+                                "execution_status": "passed",
+                                "scientific_status": "not_assessed",
+                                "corpus": "public-corpus",
+                                "sample": "sample-a",
+                                "domain": "fastq",
+                                "stage": "fastq.trim_reads",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            report = qualification.derive_report(catalog, inventory, runtime, runs)
+
+        tool = report["tools"][0]
+        self.assertEqual(tool["dimensions"]["stage"], "missing")
+        self.assertEqual(tool["dimensions"]["real_data"], "missing")
+        self.assertEqual(tool["mismatched_passing_stages"], ["fastq.trim_reads"])
 
     def test_generated_report_check_rejects_drift(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

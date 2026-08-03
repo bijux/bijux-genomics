@@ -17,7 +17,7 @@ from typing import Any
 RUN_ID = re.compile(r"run-[1-9][0-9]{3,}")
 TRACKED_RUN = re.compile(r"(run-[1-9][0-9]{3,})-([a-z0-9_]+)")
 LOCK_SCHEMA = "bijux.container.run_evidence_lock.v1"
-INDEX_SCHEMA = "bijux.container.run_evidence_index.v1"
+INDEX_SCHEMA = "bijux.container.run_evidence_index.v2"
 ATTEMPT_LEDGER_SCHEMA = "bijux.container.run_attempt_ledger.v1"
 COPIED_EVIDENCE = (
     "config-governance.yml",
@@ -356,6 +356,26 @@ def validate_runs(root: Path) -> list[dict[str, Any]]:
     return sorted(records, key=lambda record: int(str(record["run_id"])[4:]))
 
 
+def run_identity(root: Path, record: dict[str, Any]) -> dict[str, str]:
+    run_path = root / f"{record['run_id']}-{record['tool']}"
+    pipeline_path = run_path / "config-pipeline.yml"
+    pipeline = yaml_scalars(pipeline_path)
+    identity = {
+        "pipeline_schema_version": pipeline.get(("schema_version",), ""),
+        "campaign": pipeline.get(("run", "campaign"), ""),
+        "corpus": pipeline.get(("run", "corpus"), ""),
+        "sample": pipeline.get(("run", "sample"), ""),
+        "domain": pipeline.get(("run", "domain"), ""),
+        "stage": pipeline.get(("run", "stage"), ""),
+    }
+    missing = [name for name, value in identity.items() if not value]
+    if missing:
+        raise RunEvidenceError(
+            f"run pipeline lacks qualification identity {missing}: {pipeline_path}"
+        )
+    return identity
+
+
 def final_evidence(
     records: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -511,8 +531,9 @@ def publish_final_evidence(
 
 
 def index_rows(root: Path, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [
-        {
+    rows = []
+    for record in records:
+        row = {
             "run_id": record["run_id"],
             "tool": record["tool"],
             "execution_status": record["execution_status"],
@@ -525,8 +546,9 @@ def index_rows(root: Path, records: list[dict[str, Any]]) -> list[dict[str, Any]
                 root / f"{record['run_id']}-{record['tool']}" / "evidence.lock.json"
             ),
         }
-        for record in records
-    ]
+        row.update(run_identity(root, record))
+        rows.append(row)
+    return rows
 
 
 def render_index(root: Path, output: Path) -> int:
@@ -596,15 +618,17 @@ def render_report(root: Path, output: Path) -> int:
         "",
         "## Evidence by tool",
         "",
-        "| Tool | Final run | Execution | Scientific claim |",
-        "|---|---|---|---|",
+        "| Tool | Final run | Corpus | Declared stage | Execution | Scientific claim |",
+        "|---|---|---|---|---|---|",
     ]
     for tool, tool_records in sorted(by_tool.items()):
         latest = max(tool_records, key=lambda row: int(str(row["run_id"])[4:]))
         science = sorted({str(row["scientific_status"]) for row in tool_records})
         run_link = f"../runs/{latest['run_id']}-{tool}/"
+        identity = run_identity(root, latest)
         lines.append(
             f"| `{tool}` | [{latest['run_id']}]({run_link}) | "
+            f"`{identity['corpus']}` | `{identity['stage']}` | "
             f"{latest['execution_status']} | {', '.join(science)} |"
         )
     lines.extend(

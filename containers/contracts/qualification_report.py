@@ -4,11 +4,11 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter, defaultdict
 import hashlib
 import json
-from pathlib import Path
 import sys
+from collections import Counter, defaultdict
+from pathlib import Path
 from typing import Any
 
 try:
@@ -112,8 +112,24 @@ def derive_report(
             image = inventory_tools.get(tool_id, {})
             runtime_record = runtime_tools.get(tool_id, {})
             attempts = run_records.get(tool_id, [])
-            real_passed = any(
-                record.get("execution_status") == "passed" for record in attempts
+            declared_stage = str(tool.get("real_test_stage", ""))
+            stage_attempts = [
+                record
+                for record in attempts
+                if record.get("execution_status") == "passed"
+                and record.get("stage") == declared_stage
+                and bool(record.get("corpus"))
+                and bool(record.get("sample"))
+                and bool(record.get("domain"))
+            ]
+            real_passed = bool(stage_attempts)
+            mismatched_stages = sorted(
+                {
+                    str(record.get("stage"))
+                    for record in attempts
+                    if record.get("execution_status") == "passed"
+                    and record.get("stage") != declared_stage
+                }
             )
             science_passed = any(
                 record.get("scientific_status") == "passed" for record in attempts
@@ -165,6 +181,11 @@ def derive_report(
                     record.get("execution_status") == "passed"
                     for record in run_records.get(tool_id, [])
                 ),
+                "declared_real_test_stage": declared_stage,
+                "passing_real_test_runs": [
+                    str(record["run_id"]) for record in stage_attempts
+                ],
+                "mismatched_passing_stages": mismatched_stages,
             }
         )
     return {
@@ -224,7 +245,9 @@ def render_markdown(report: dict[str, Any]) -> str:
             "## Tool matrix",
             "",
             "`pass` means evidence exists for that dimension; `missing` means no claim is",
-            "permitted. Unsupported tools use `n/a`.",
+            "permitted. Stage and real-data evidence require a successful run whose stage",
+            "exactly matches the catalog's declared real-test stage. Unsupported tools use",
+            "`n/a`.",
             "",
             "| Tool | Version | Disposition | Build | Runtime | Real data | Science | Benchmark | Security | Release | Qualification |",
             "|---|---|---|---|---|---|---|---|---|---|---|",

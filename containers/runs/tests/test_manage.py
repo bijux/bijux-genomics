@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import tempfile
 import unittest
-
+from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "manage.py"
 SPEC = importlib.util.spec_from_file_location("container_run_manage", SCRIPT)
@@ -22,6 +21,11 @@ class RunEvidenceTests(unittest.TestCase):
             "schema_version: bijux.container.pipeline.v1\n"
             "run:\n"
             "  id: run-1001\n"
+            "  campaign: public-read-trimming\n"
+            "  corpus: ena-public-reads\n"
+            "  sample: ERR000001\n"
+            "  domain: fastq\n"
+            "  stage: fastq.trim_reads\n"
             "  tool: adapterremoval\n"
             "repository:\n"
             f"  commit: {'a' * 40}\n",
@@ -160,6 +164,24 @@ class RunEvidenceTests(unittest.TestCase):
         self.assertIn("| `adapterremoval` | [run-1001]", rendered)
         self.assertIn("not_assessed", rendered)
         self.assertIn("successful process is not", rendered)
+        self.assertIn("`ena-public-reads`", rendered)
+        self.assertIn("`fastq.trim_reads`", rendered)
+
+    def test_index_exposes_scientific_execution_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_result(root / "results")
+            runs = root / "runs"
+            index = root / "run-evidence.json"
+            manage.import_evidence(root / "results", runs, None, None)
+            manage.publish_final_evidence(runs, runs / "attempt-ledger.json", True)
+
+            manage.render_index(runs, index)
+            record = json.loads(index.read_text(encoding="utf-8"))["runs"][0]
+
+        self.assertEqual(record["corpus"], "ena-public-reads")
+        self.assertEqual(record["stage"], "fastq.trim_reads")
+        self.assertEqual(record["domain"], "fastq")
 
     def test_final_publication_keeps_latest_success_and_ledgers_attempts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
