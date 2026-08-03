@@ -413,7 +413,7 @@ pinned_commit = "f8915b79363e896409bd9ca56819f56c3f77a47e"
 version = "1.0.0"
 source = "https://github.com/bijux/bijux-genomics"
 date_pinned = "2026-08-02"
-source_sha256 = "c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b"
+source_sha256 = "1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38"
 pinned_commit = ""
 
 [samtools]

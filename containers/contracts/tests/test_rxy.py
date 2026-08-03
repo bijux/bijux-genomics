@@ -54,6 +54,22 @@ class RxyTests(unittest.TestCase):
         )
         self.assertEqual(report["sex_chromosome_reads"], 1000)
         self.assertEqual(report["classification"], "ambiguous")
+        self.assertEqual(report["observed_x_contigs"], ["NC_009175.3"])
+        self.assertEqual(report["observed_y_contigs"], ["NC_009176.3"])
+
+    def test_rejects_reference_without_declared_y_chromosome(self) -> None:
+        module = load_rxy()
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / "idxstats.tsv"
+            path.write_text(
+                "chr1\t1000\t5000\t0\nchrX\t1000\t1000\t0\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                SystemExit,
+                "declared Y chromosome contigs are absent from the alignment reference",
+            ):
+                module.main(["--idxstats", str(path)], stdout=io.StringIO())
 
     def test_rejects_malformed_idxstats(self) -> None:
         module = load_rxy()

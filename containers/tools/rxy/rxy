@@ -63,10 +63,16 @@ def _idxstats_from_bam(path: Path) -> str:
     return completed.stdout
 
 
-def _mapped_counts(lines: Iterable[str], x_contigs: set[str], y_contigs: set[str]) -> tuple[int, int, int]:
+def _mapped_counts(
+    lines: Iterable[str],
+    x_contigs: set[str],
+    y_contigs: set[str],
+) -> tuple[int, int, int, set[str], set[str]]:
     total = 0
     x_reads = 0
     y_reads = 0
+    observed_x_contigs: set[str] = set()
+    observed_y_contigs: set[str] = set()
     for line_number, raw in enumerate(lines, start=1):
         line = raw.strip()
         if not line:
@@ -84,15 +90,19 @@ def _mapped_counts(lines: Iterable[str], x_contigs: set[str], y_contigs: set[str
         total += mapped
         if contig in x_contigs:
             x_reads += mapped
+            observed_x_contigs.add(contig)
         if contig in y_contigs:
             y_reads += mapped
-    return total, x_reads, y_reads
+            observed_y_contigs.add(contig)
+    return total, x_reads, y_reads, observed_x_contigs, observed_y_contigs
 
 
 def _report(
     total: int,
     x_reads: int,
     y_reads: int,
+    observed_x_contigs: set[str],
+    observed_y_contigs: set[str],
     female_limit: float,
     male_limit: float,
     minimum_sex_reads: int,
@@ -124,6 +134,8 @@ def _report(
         "total_mapped_reads": total,
         "x_mapped_reads": x_reads,
         "y_mapped_reads": y_reads,
+        "observed_x_contigs": sorted(observed_x_contigs),
+        "observed_y_contigs": sorted(observed_y_contigs),
         "sex_chromosome_reads": sex_reads,
         "y_fraction": y_fraction,
         "standard_error": standard_error,
@@ -156,11 +168,32 @@ def main(argv: list[str] | None = None, stdout: TextIO = sys.stdout) -> int:
             idxstats = _idxstats_from_bam(args.input)
         else:
             idxstats = args.idxstats.read_text(encoding="utf-8")
-        counts = _mapped_counts(idxstats.splitlines(), x_contigs, y_contigs)
+        total, x_reads, y_reads, observed_x_contigs, observed_y_contigs = _mapped_counts(
+            idxstats.splitlines(), x_contigs, y_contigs
+        )
+        missing_chromosomes = []
+        if not observed_x_contigs:
+            missing_chromosomes.append("X")
+        if not observed_y_contigs:
+            missing_chromosomes.append("Y")
+        if missing_chromosomes:
+            missing = " and ".join(missing_chromosomes)
+            raise ValueError(
+                f"declared {missing} chromosome contigs are absent from the alignment reference"
+            )
     except (OSError, subprocess.CalledProcessError, ValueError) as error:
         raise SystemExit(f"rxy: {error}") from error
 
-    report = _report(*counts, args.female_limit, args.male_limit, args.minimum_sex_reads)
+    report = _report(
+        total,
+        x_reads,
+        y_reads,
+        observed_x_contigs,
+        observed_y_contigs,
+        args.female_limit,
+        args.male_limit,
+        args.minimum_sex_reads,
+    )
     report["input"] = str(args.input if args.input is not None else args.idxstats)
     report["x_contigs"] = sorted(x_contigs)
     report["y_contigs"] = sorted(y_contigs)

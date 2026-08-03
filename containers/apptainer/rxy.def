@@ -42,7 +42,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends python3 samtools=1.19.2-1build2
     chmod 0755 /usr/local/bin/rxy
-    test "$(sha256sum /usr/local/bin/rxy | cut -d ' ' -f 1)" = c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b
+    test "$(sha256sum /usr/local/bin/rxy | cut -d ' ' -f 1)" = 1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38
     rxy --version | grep -F 'rxy 1.0.0'
     rm -rf /var/lib/apt/lists/*
 
