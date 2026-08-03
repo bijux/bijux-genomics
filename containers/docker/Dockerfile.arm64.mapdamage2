@@ -5,6 +5,7 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=2.2.2
 LABEL org.opencontainers.image.source="https://github.com/ginolhac/mapDamage" \
@@ -19,9 +20,8 @@ LABEL org.opencontainers.image.source="https://github.com/ginolhac/mapDamage" \
 ENV PATH=/opt/mapdamage2-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
 COPY containers/tools/mapdamage2/patches/skip-r-library-check-without-r.patch /opt/skip-r-library-check-without-r.patch
-RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends ca-certificates && \
     apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y --no-install-recommends curl gcc make patch python3 python3-pip python3-pysam python3-setuptools python3-venv zlib1g-dev && \
     curl --fail --location --silent --show-error --output /opt/mapdamage2.tar.gz https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz && \
