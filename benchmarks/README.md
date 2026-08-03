@@ -78,6 +78,22 @@ count, size, or digest ambiguity. The resulting plan is acquisition authority,
 not admission: downloaded files still require digest verification and a
 governed data-catalog record before a comparative campaign can consume them.
 
+Materialize the resolved plan under the governed data root:
+
+```console
+python3 -B benchmarks/corpus_materialization.py \
+  --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
+  --data-root "$STUDY/data" \
+  --jobs 4
+```
+
+The materializer streams each file into a private partial path, verifies the
+declared compressed byte count and ENA MD5, and atomically publishes it. It
+then validates every gzip stream and FASTQ record, records read and base
+counts, computes SHA-256, makes the admitted raw files read-only, and writes
+the scientific catalog only after the complete cohort passes. Existing bytes
+are never trusted by path alone, and an existing catalog is never replaced.
+
 After materialization and format validation, build the path-stable scientific
 data index from the study catalog:
 

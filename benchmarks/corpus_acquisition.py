@@ -68,6 +68,9 @@ def load_spec(path: Path) -> dict[str, Any]:
         raise AcquisitionError("corpus specification repeats a sample accession")
     if value.get("target_total") != len(samples):
         raise AcquisitionError("corpus specification target_total disagrees with samples")
+    portfolio_id = value.get("portfolio_id")
+    if not isinstance(portfolio_id, str) or not portfolio_id:
+        raise AcquisitionError("corpus specification lacks its scientific portfolio identity")
     return value
 
 
@@ -183,6 +186,7 @@ def resolve_specification(
     return {
         "schema_version": PLAN_SCHEMA,
         "corpus_id": spec["corpus_id"],
+        "portfolio_id": spec["portfolio_id"],
         "species": spec["species"],
         "retrieved_at_utc": timestamp.isoformat(),
         "source_authority": "European Nucleotide Archive",

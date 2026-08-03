@@ -23,6 +23,7 @@ class CorpusAcquisitionTests(unittest.TestCase):
         path.write_text(
             'schema_version = "bijux.corpus_spec.v1"\n'
             'corpus_id = "real-panel"\n'
+            'portfolio_id = "real-panel-diversity"\n'
             'species = "Homo sapiens"\n'
             "target_total = 2\n"
             "[[samples]]\n"
@@ -77,6 +78,7 @@ class CorpusAcquisitionTests(unittest.TestCase):
             )
 
         self.assertEqual(plan["sample_count"], 2)
+        self.assertEqual(plan["portfolio_id"], "real-panel-diversity")
         self.assertEqual(plan["file_count"], 3)
         self.assertEqual(plan["total_size_bytes"], 606)
         self.assertEqual(
