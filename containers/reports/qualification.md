@@ -9,8 +9,8 @@ or successful command does not become a scientific or release claim.
 
 - Catalog tools: **89**
 - Qualified: **0**
-- Retained but unverified: **87**
-- Unsupported: **2**
+- Retained but unverified: **85**
+- Unsupported: **4**
 - Scientific, benchmark, security, and release evidence remain mandatory
   even after build, runtime, and real-data execution pass.
 
@@ -19,16 +19,16 @@ or successful command does not become a scientific or release claim.
 | Dimension | Retained tools with passing evidence |
 |---|---:|
 | `catalog` | 85 |
-| `source` | 87 |
-| `build` | 87 |
-| `runtime` | 87 |
-| `stage` | 48 |
-| `real_data` | 48 |
+| `source` | 85 |
+| `build` | 85 |
+| `runtime` | 85 |
+| `stage` | 46 |
+| `real_data` | 46 |
 | `science` | 0 |
 | `benchmark` | 0 |
 | `security` | 0 |
 | `release` | 0 |
-| `freshness` | 87 |
+| `freshness` | 85 |
 
 ## Tool matrix
 
@@ -42,7 +42,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `adapterremoval` | `2.3.4` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `addeam` | `1.0.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `alientrimmer` | `3.2` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `angsd` | `0.941` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
+| `angsd` | `0.941` | unsupported | n/a | n/a | n/a | n/a | n/a | n/a | n/a | **unsupported** |
 | `atropos` | `1.1.31` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `authenticct` | `1.0.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bamtools` | `2.5.2` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
@@ -96,7 +96,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `mosdepth` | `0.3.11` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `multiqc` | `1.24` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `musket` | `1.1` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `ngsbriggs` | `0.01` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
+| `ngsbriggs` | `0.01` | unsupported | n/a | n/a | n/a | n/a | n/a | n/a | n/a | **unsupported** |
 | `pear` | `0.9.6` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `picard` | `3.3.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `plink` | `1.90b7.2` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |

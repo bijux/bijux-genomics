@@ -113,6 +113,10 @@ fn is_hex(value: &str, length: usize) -> bool {
     value.len() == length && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
+fn has_explicit_upstream_license(license: &str) -> bool {
+    !license.trim().is_empty() && license != "NOASSERTION"
+}
+
 fn validate_sorted_unique(values: &[String], label: &str, tool: &str, errors: &mut Vec<String>) {
     let mut expected = values.to_vec();
     expected.sort();
@@ -246,6 +250,12 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
         }
         if tool.license.trim().is_empty() {
             errors.push(format!("{}: license must not be empty", tool.id));
+        }
+        if tool.support_disposition == "retained" && !has_explicit_upstream_license(&tool.license) {
+            errors.push(format!(
+                "{}: retained container distribution requires an explicit upstream license grant",
+                tool.id
+            ));
         }
         if !tool.source_sha256.is_empty() && !is_hex(&tool.source_sha256, 64) {
             errors.push(format!("{}: source_sha256 must be 64 hexadecimal characters", tool.id));
@@ -479,7 +489,7 @@ pub(super) fn check_evidence_qualification(
 
 #[cfg(test)]
 mod tests {
-    use super::{is_hex, is_placeholder_digest, is_zero_digest};
+    use super::{has_explicit_upstream_license, is_hex, is_placeholder_digest, is_zero_digest};
 
     #[test]
     fn digest_helpers_distinguish_resolved_and_placeholder_identities() {
@@ -491,5 +501,13 @@ mod tests {
         ));
         assert!(is_hex(&"a".repeat(64), 64));
         assert!(!is_hex("not-a-digest", 64));
+    }
+
+    #[test]
+    fn redistribution_requires_an_explicit_upstream_license() {
+        assert!(has_explicit_upstream_license("MIT"));
+        assert!(has_explicit_upstream_license("GPL-3.0-only"));
+        assert!(!has_explicit_upstream_license("NOASSERTION"));
+        assert!(!has_explicit_upstream_license(""));
     }
 }

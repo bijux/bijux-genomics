@@ -7,7 +7,7 @@
 Generated matrix for Apptainer-enabled tools, runtime checks, and evidence qualification.
 
 ## Scope
-Runtime commands come from the tool registries, support disposition comes from the canonical catalog, and qualification comes from the generated evidence report.
+The canonical catalog selects retained Apptainer distributions, runtime commands come from the tool registries, and qualification comes from the generated evidence report.
 
 ## Non-goals
 - Replacing full per-tool smoke manifests.
@@ -21,7 +21,7 @@ Runtime commands come from the tool registries, support disposition comes from t
 - [containers/reports/qualification.md](../../containers/reports/qualification.md)
 
 ## Contracts
-- Tool row exists iff registry runtimes include `apptainer`.
+- Tool row exists iff the canonical catalog retains and enables its Apptainer distribution.
 - `apptainer_def` and smoke command fields are surfaced for QA checks.
 - Support disposition describes whether Bijux retains the tool; qualification is derived independently from immutable evidence.
 
@@ -30,7 +30,6 @@ Runtime commands come from the tool registries, support disposition comes from t
 | `adapterremoval` | `containers/apptainer/adapterremoval.def` | `adapterremoval --version` | `adapterremoval --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `addeam` | `containers/apptainer/addeam.def` | `addeam --version` | `addeam --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `alientrimmer` | `containers/apptainer/alientrimmer.def` | `alientrimmer --version` | `alientrimmer --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
-| `angsd` | `containers/apptainer/angsd.def` | `angsd 2>&1 | head -n 1` | `angsd -h` | `angsd -h` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version only until low-coverage GL fixtures and governed minimal runs are committed.` | `build+smoke required` | `retained` | `unverified` |
 | `atropos` | `containers/apptainer/atropos.def` | `atropos --version` | `atropos trim --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `authenticct` | `containers/apptainer/authenticct.def` | `authenticct --version` | `authenticct --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `bamtools` | `containers/apptainer/bamtools.def` | `bamtools --version` | `bamtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
@@ -82,7 +81,6 @@ Runtime commands come from the tool registries, support disposition comes from t
 | `mosdepth` | `containers/apptainer/mosdepth.def` | `mosdepth --version` | `mosdepth --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `multiqc` | `containers/apptainer/multiqc.def` | `multiqc --version` | `multiqc --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `musket` | `containers/apptainer/musket.def` | `musket --version` | `musket --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
-| `ngsbriggs` | `containers/apptainer/ngsbriggs.def` | `ngsbriggs --version` | `ngsbriggs --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `pear` | `containers/apptainer/pear.def` | `pear --version` | `pear --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `picard` | `containers/apptainer/picard.def` | `picard --version` | `picard --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |
 | `plink` | `containers/apptainer/plink.def` | `plink --version` | `plink --help` | `tmp=$(mktemp -d); printf 'FAM1 S1 0 0 1 1\\n' > \"$tmp/tiny.ped\"; printf '1 rs1 0 1000 A G\\n' > \"$tmp/tiny.map\"; plink --file \"$tmp/tiny\" --freq --allow-no-sex --out \"$tmp/out\" >/dev/null 2>&1; test -s \"$tmp/out.frq\"` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `retained` | `unverified` |

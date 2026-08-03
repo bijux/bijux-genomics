@@ -1418,12 +1418,18 @@ fn load_summary_digests(workspace: &Workspace) -> SummaryDigests {
 
 fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
     let registry = registry_tool_map(workspace)?;
+    let catalog = catalog_tool_rows(workspace)?;
     let support = container_support_summary(workspace)?;
     let (docker_digest_from_summary, apptainer_digest_from_summary) =
         load_summary_digests(workspace);
     let mut rows = Vec::new();
     for (tool, row) in registry {
-        if !table_array_strings(&row, "runtimes").iter().any(|runtime| runtime == "apptainer") {
+        let contract = catalog
+            .get(&tool)
+            .ok_or_else(|| anyhow!("container catalog missing registry tool: {tool}"))?;
+        if table_string(contract, "support_disposition") != "retained"
+            || !table_bool(contract, "apptainer_supported")
+        {
             continue;
         }
         let (support_disposition, qualification) = support
@@ -1469,7 +1475,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         "Generated matrix for Apptainer-enabled tools, runtime checks, and evidence qualification.".to_string(),
         String::new(),
         "## Scope".to_string(),
-        "Runtime commands come from the tool registries, support disposition comes from the canonical catalog, and qualification comes from the generated evidence report.".to_string(),
+        "The canonical catalog selects retained Apptainer distributions, runtime commands come from the tool registries, and qualification comes from the generated evidence report.".to_string(),
         String::new(),
         "## Non-goals".to_string(),
         "- Replacing full per-tool smoke manifests.".to_string(),
@@ -1487,7 +1493,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         String::new(),
         "## Contracts".to_string(),
-        "- Tool row exists iff registry runtimes include `apptainer`.".to_string(),
+        "- Tool row exists iff the canonical catalog retains and enables its Apptainer distribution.".to_string(),
         "- `apptainer_def` and smoke command fields are surfaced for QA checks.".to_string(),
         "- Support disposition describes whether Bijux retains the tool; qualification is derived independently from immutable evidence.".to_string(),
         String::new(),

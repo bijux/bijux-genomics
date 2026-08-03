@@ -14,7 +14,7 @@ output.
 - Canonical image storage: **passed**, **14 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
 - Complete isolated rebuild: **passed**, **87 retained images** ([details](../reports/lunarc-image-rebuild.md)).
 - Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
-- Final run records: **70 tools**, **70 execution passes**; **48** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
+- Final run records: **70 tools**, **70 execution passes**; **46** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 
 ## Strict TOC
@@ -61,7 +61,7 @@ authorship. Upstream source and license remain catalog-owned facts.
 | `adapterremoval` | `retained` | `bijux-genomics` | `arm64` |
 | `addeam` | `retained` | `bijux-genomics` | `arm64` |
 | `alientrimmer` | `retained` | `bijux-genomics` | `arm64` |
-| `angsd` | `retained` | `bijux-genomics` | `arm64` |
+| `angsd` | `unsupported` | `none` | `none` |
 | `atropos` | `retained` | `bijux-genomics` | `arm64` |
 | `authenticct` | `retained` | `bijux-genomics` | `arm64` |
 | `bamtools` | `retained` | `bijux-genomics` | `arm64` |
@@ -115,7 +115,7 @@ authorship. Upstream source and license remain catalog-owned facts.
 | `mosdepth` | `retained` | `bijux-genomics` | `none` |
 | `multiqc` | `retained` | `bijux-genomics` | `arm64` |
 | `musket` | `retained` | `bijux-genomics` | `arm64` |
-| `ngsbriggs` | `retained` | `bijux-genomics` | `arm64` |
+| `ngsbriggs` | `unsupported` | `none` | `none` |
 | `pear` | `retained` | `bijux-genomics` | `arm64` |
 | `picard` | `retained` | `bijux-genomics` | `arm64` |
 | `plink` | `retained` | `bijux-genomics` | `arm64` |

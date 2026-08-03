@@ -21,7 +21,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `adapterremoval` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/MikkelSchubert/adapterremoval` | `2.3.4` | `sha256:47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20` |
 | `addeam` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/LouisPwr/AdDeam` | `1.0.0` | `sha256:baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40` |
 | `alientrimmer` | `retained` | `bijux` | `GPL-3.0` | `https://gitlab.pasteur.fr/GIPhy/AlienTrimmer` | `3.2` | `sha256:5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730` |
-| `angsd` | `retained` | `bijux` | `NOASSERTION` | `https://github.com/ANGSD/angsd` | `0.941` | `sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7` |
+| `angsd` | `unsupported` | `bijux` | `NOASSERTION` | `https://github.com/ANGSD/angsd` | `0.941` | `sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7` |
 | `atropos` | `retained` | `bijux` | `MIT AND CC0-1.0` | `https://github.com/jdidion/atropos` | `1.1.31` | `sha256:7f23fc141336f508d4198cd491cf223082811d83a0607999c22dc80ca4ed4874` |
 | `authenticct` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/StephanePeyregne/AuthentiCT` | `1.0.0` | `sha256:179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834` |
 | `bamtools` | `retained` | `bijux` | `MIT` | `https://github.com/pezmaster31/bamtools` | `2.5.2` | `sha256:4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8` |
@@ -75,7 +75,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `mosdepth` | `retained` | `bijux` | `MIT` | `https://github.com/brentp/mosdepth` | `0.3.11` | `sha256:4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2` |
 | `multiqc` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/multiqc/multiqc` | `1.24` | `sha256:991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb` |
 | `musket` | `retained` | `bijux` | `GPL-3.0` | `https://sourceforge.net/projects/musket/` | `1.1` | `sha256:306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba` |
-| `ngsbriggs` | `retained` | `bijux` | `NOASSERTION` | `https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz` | `0.01` | `sha256:afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7` |
+| `ngsbriggs` | `unsupported` | `bijux` | `NOASSERTION` | `https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz` | `0.01` | `sha256:afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7` |
 | `pear` | `retained` | `bijux` | `GPL-3.0` | `https://cme.h-its.org/exelixis/web/software/pear/` | `0.9.6` | `sha256:f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b` |
 | `picard` | `retained` | `bijux` | `MIT` | `https://github.com/broadinstitute/picard` | `3.3.0` | `sha256:58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc` |
 | `plink` | `retained` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/` | `1.90b7.2` | `sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3` |

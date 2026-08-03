@@ -14,7 +14,7 @@
 | `adapterremoval` | `adapterremoval` | `retained` | `unverified` |
 | `addeam` | `addeam` | `retained` | `unverified` |
 | `alientrimmer` | `alientrimmer` | `retained` | `unverified` |
-| `angsd` | `angsd` | `retained` | `unverified` |
+| `angsd` | `angsd` | `unsupported` | `unsupported` |
 | `atropos` | `atropos` | `retained` | `unverified` |
 | `authenticct` | `authenticct` | `retained` | `unverified` |
 | `bamtools` | `bamtools` | `retained` | `unverified` |
@@ -68,7 +68,7 @@
 | `mosdepth` | `mosdepth` | `retained` | `unverified` |
 | `multiqc` | `multiqc` | `retained` | `unverified` |
 | `musket` | `musket` | `retained` | `unverified` |
-| `ngsbriggs` | `ngsbriggs` | `retained` | `unverified` |
+| `ngsbriggs` | `ngsbriggs` | `unsupported` | `unsupported` |
 | `pear` | `pear` | `retained` | `unverified` |
 | `picard` | `picard` | `retained` | `unverified` |
 | `plink` | `plink` | `retained` | `unverified` |

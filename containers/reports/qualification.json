@@ -3,7 +3,7 @@
   "sources": {
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "435e8998716cd1d29a87f0106061967f8abe3d6ba42d0c658283c151d9d7259a"
+      "sha256": "e75193fe08f488f78bb8a90b65d2d03d3e4f25abddd71b5cd19fc825d4f6d788"
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
@@ -21,20 +21,20 @@
   "summary": {
     "dimension_passes": {
       "benchmark": 0,
-      "build": 87,
+      "build": 85,
       "catalog": 85,
-      "freshness": 87,
-      "real_data": 48,
+      "freshness": 85,
+      "real_data": 46,
       "release": 0,
-      "runtime": 87,
+      "runtime": 85,
       "science": 0,
       "security": 0,
-      "source": 87,
-      "stage": 48
+      "source": 85,
+      "stage": 46
     },
     "qualification": {
-      "unsupported": 2,
-      "unverified": 87
+      "unsupported": 4,
+      "unverified": 85
     },
     "tool_count": 89
   },
@@ -142,34 +142,28 @@
     {
       "declared_real_test_stage": "bam.genotyping",
       "dimensions": {
-        "benchmark": "missing",
-        "build": "passed",
-        "catalog": "missing",
-        "freshness": "passed",
-        "real_data": "passed",
-        "release": "missing",
-        "runtime": "passed",
-        "science": "missing",
-        "security": "missing",
-        "source": "passed",
-        "stage": "passed"
+        "benchmark": "not_applicable",
+        "build": "not_applicable",
+        "catalog": "not_applicable",
+        "freshness": "not_applicable",
+        "real_data": "not_applicable",
+        "release": "not_applicable",
+        "runtime": "not_applicable",
+        "science": "not_applicable",
+        "security": "not_applicable",
+        "source": "not_applicable",
+        "stage": "not_applicable"
       },
       "id": "angsd",
       "mismatched_passing_stages": [],
-      "missing_dimensions": [
-        "catalog",
-        "science",
-        "benchmark",
-        "security",
-        "release"
-      ],
+      "missing_dimensions": [],
       "passing_real_test_runs": [
-        "run-1094"
+        "run-1091"
       ],
-      "qualification": "unverified",
+      "qualification": "unsupported",
       "real_run_attempts": 1,
       "real_run_passes": 1,
-      "support_disposition": "retained",
+      "support_disposition": "unsupported",
       "version": "0.941"
     },
     {
@@ -1883,34 +1877,28 @@
     {
       "declared_real_test_stage": "bam.damage",
       "dimensions": {
-        "benchmark": "missing",
-        "build": "passed",
-        "catalog": "missing",
-        "freshness": "passed",
-        "real_data": "passed",
-        "release": "missing",
-        "runtime": "passed",
-        "science": "missing",
-        "security": "missing",
-        "source": "passed",
-        "stage": "passed"
+        "benchmark": "not_applicable",
+        "build": "not_applicable",
+        "catalog": "not_applicable",
+        "freshness": "not_applicable",
+        "real_data": "not_applicable",
+        "release": "not_applicable",
+        "runtime": "not_applicable",
+        "science": "not_applicable",
+        "security": "not_applicable",
+        "source": "not_applicable",
+        "stage": "not_applicable"
       },
       "id": "ngsbriggs",
       "mismatched_passing_stages": [],
-      "missing_dimensions": [
-        "catalog",
-        "science",
-        "benchmark",
-        "security",
-        "release"
-      ],
+      "missing_dimensions": [],
       "passing_real_test_runs": [
-        "run-1046"
+        "run-1025"
       ],
-      "qualification": "unverified",
+      "qualification": "unsupported",
       "real_run_attempts": 1,
       "real_run_passes": 1,
-      "support_disposition": "retained",
+      "support_disposition": "unsupported",
       "version": "0.01"
     },
     {

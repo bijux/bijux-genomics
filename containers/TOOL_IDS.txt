@@ -4,7 +4,7 @@
 adapterremoval	retained
 addeam	retained
 alientrimmer	retained
-angsd	retained
+angsd	unsupported
 atropos	retained
 authenticct	retained
 bamtools	retained
@@ -58,7 +58,7 @@ minimac4	retained
 mosdepth	retained
 multiqc	retained
 musket	retained
-ngsbriggs	retained
+ngsbriggs	unsupported
 pear	retained
 picard	retained
 plink	retained

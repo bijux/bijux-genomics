@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "435e8998716cd1d29a87f0106061967f8abe3d6ba42d0c658283c151d9d7259a",
+  "source_sha256": "e75193fe08f488f78bb8a90b65d2d03d3e4f25abddd71b5cd19fc825d4f6d788",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -76,15 +76,15 @@
       "id": "angsd",
       "display_name": "ANGSD",
       "version": "0.941",
-      "support_disposition": "retained",
-      "support_reason": "",
+      "support_disposition": "unsupported",
+      "support_reason": "Upstream publishes no license grant, so Bijux Genomics cannot lawfully redistribute ANGSD in a container; scientific integration remains available for operator-provided installations.",
       "upstream": "https://github.com/ANGSD/angsd",
       "license": "NOASSERTION",
       "source_sha256": "e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7",
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
-      "apptainer_definition": "containers/apptainer/angsd.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.angsd",
-      "contract_sha256": "22a66d23d7ef898f5b4707fd9ab2b30b6c555b6f8e566d48cc2c8ce425b992b7"
+      "apptainer_definition": "",
+      "dockerfile": "",
+      "contract_sha256": "9dc3b5859b8d483497f4187315df045d85660a34c459490d987ec579985ca091"
     },
     {
       "id": "atropos",
@@ -832,15 +832,15 @@
       "id": "ngsbriggs",
       "display_name": "ngsBriggs",
       "version": "0.01",
-      "support_disposition": "retained",
-      "support_reason": "",
+      "support_disposition": "unsupported",
+      "support_reason": "Upstream publishes no license grant, so Bijux Genomics cannot lawfully redistribute ngsBriggs in a container; scientific integration remains available for operator-provided installations.",
       "upstream": "https://github.com/RAHenriksen/ngsBriggs",
       "license": "NOASSERTION",
       "source_sha256": "afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7",
       "pinned_commit": "ab3b5ae8a388b9b1874dd2854fdec32bd9195f22",
-      "apptainer_definition": "containers/apptainer/ngsbriggs.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.ngsbriggs",
-      "contract_sha256": "981b017e11acae357d171e8021cd5b3a5705f8539ba6392a8154babd6e22d6bb"
+      "apptainer_definition": "",
+      "dockerfile": "",
+      "contract_sha256": "bacfd284206e45a9390cc7302b9776fb34c45aa3afa38b9cfaaf99e27f3ce121"
     },
     {
       "id": "pear",
