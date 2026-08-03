@@ -8,12 +8,12 @@ benchmark, security, or release qualification.
 
 ## Evidence boundary
 
-- Repository commit: `55330776660ad96c8ae21349fb7beeb06a9015df`
+- Repository commit: `0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1`
 - Site: `lunarc` on `cosmos3.int.lunarc`
 - Overall status: **passed**
 - Tool results: **passed 87**, **failed 0**
-- Catalog SHA-256: `5c6b24ede72ef6c5d8f1dfe7d510f92ffa64ba06ce3b8c9662e3f8234b42850e`
-- Image inventory SHA-256: `620d74e3af2db9db182526299ff2308d6438f1eab9fdb321250dd28ba278cc23`
+- Catalog SHA-256: `20082b58f1b55e0bff85077823b4bdf449876704850f975a9a5d5a7f579849e1`
+- Image inventory SHA-256: `46ea7a886345c039adfd7fc43b037dd56e3deea9efbb17b2c73c29b04d6f33e9`
 - Per-command timeout: **30 seconds**
 - Runtime network: **disabled**
 
