@@ -47,7 +47,7 @@ class CorpusAcquisitionTests(unittest.TestCase):
                 "run_accession": "ERR000001",
                 "study_accession": "PRJEB1",
                 "scientific_name": "Homo sapiens",
-                "library_layout": "SE",
+                "library_layout": "SINGLE",
                 "instrument_platform": "ILLUMINA",
                 "fastq_ftp": "ftp.sra.ebi.ac.uk/one.fastq.gz",
                 "fastq_md5": "a" * 32,
@@ -59,7 +59,7 @@ class CorpusAcquisitionTests(unittest.TestCase):
                 "run_accession": "ERR000002",
                 "study_accession": "PRJEB1",
                 "scientific_name": "Homo sapiens",
-                "library_layout": "PE",
+                "library_layout": "PAIRED",
                 "instrument_platform": "ILLUMINA",
                 "fastq_ftp": "ftp.sra.ebi.ac.uk/two_1.fastq.gz;ftp.sra.ebi.ac.uk/two_2.fastq.gz",
                 "fastq_md5": f"{'b' * 32};{'c' * 32}",
@@ -96,7 +96,8 @@ class CorpusAcquisitionTests(unittest.TestCase):
                     lambda accession: {
                         "run_accession": accession,
                         "study_accession": "PRJEB1",
-                        "library_layout": "PE",
+                        "library_layout": "PAIRED",
+                        "scientific_name": "Homo sapiens",
                     },
                     dt.datetime(2026, 8, 3, tzinfo=dt.timezone.utc),
                 )

@@ -34,6 +34,7 @@ ENA_FIELDS = (
     "last_updated",
 )
 MD5 = re.compile(r"[0-9a-f]{32}")
+ENA_LAYOUT = {"se": "SINGLE", "pe": "PAIRED"}
 
 
 class AcquisitionError(RuntimeError):
@@ -158,8 +159,12 @@ def resolve_specification(
         if record.get("study_accession") != sample.get("study_accession"):
             raise AcquisitionError(f"ENA study identity disagrees for {accession}")
         layout = str(sample.get("layout", ""))
-        if record.get("library_layout") != layout.upper():
+        if layout not in ENA_LAYOUT:
+            raise AcquisitionError(f"corpus layout is unsupported for {accession}: {layout}")
+        if record.get("library_layout") != ENA_LAYOUT[layout]:
             raise AcquisitionError(f"ENA library layout disagrees for {accession}")
+        if record.get("scientific_name") != spec["species"]:
+            raise AcquisitionError(f"ENA species identity disagrees for {accession}")
         resolved.append(
             {
                 "accession": accession,
