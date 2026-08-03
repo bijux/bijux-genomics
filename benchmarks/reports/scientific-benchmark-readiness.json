@@ -150,6 +150,7 @@
       "domain": "bam",
       "profile_id": "bam-alignment",
       "readiness": "blocked",
+      "reserved_run_id": "run-2005",
       "retained_tools": [
         "bowtie2",
         "bwa"
@@ -169,6 +170,7 @@
       "domain": "bam",
       "profile_id": "bam-ancient-authentication",
       "readiness": "blocked",
+      "reserved_run_id": "run-2006",
       "retained_tools": [
         "authenticct",
         "damageprofiler",
@@ -189,6 +191,7 @@
       "domain": "bam",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2007",
       "retained_tools": [
         "mapdamage2"
       ],
@@ -206,6 +209,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2008",
       "retained_tools": [
         "preseq"
       ],
@@ -225,6 +229,7 @@
       "domain": "bam",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2009",
       "retained_tools": [
         "contammix",
         "schmutzi",
@@ -244,6 +249,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2002",
       "retained_tools": [
         "bedtools",
         "mosdepth",
@@ -264,6 +270,7 @@
       "domain": "bam",
       "profile_id": "bam-ancient-authentication",
       "readiness": "blocked",
+      "reserved_run_id": "run-2010",
       "retained_tools": [
         "addeam",
         "damageprofiler",
@@ -285,6 +292,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2011",
       "retained_tools": [
         "picard",
         "samtools"
@@ -303,6 +311,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2003",
       "retained_tools": [
         "samtools"
       ],
@@ -321,6 +330,7 @@
       "domain": "bam",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2012",
       "retained_tools": [
         "bamtools",
         "bedtools",
@@ -340,6 +350,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2013",
       "retained_tools": [
         "picard"
       ],
@@ -359,6 +370,7 @@
       "domain": "bam",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2001",
       "retained_tools": [
         "bcftools"
       ],
@@ -378,6 +390,7 @@
       "domain": "bam",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2014",
       "retained_tools": [
         "yleaf"
       ],
@@ -395,6 +408,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2015",
       "retained_tools": [
         "picard"
       ],
@@ -414,6 +428,7 @@
       "domain": "bam",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2016",
       "retained_tools": [
         "king"
       ],
@@ -432,6 +447,7 @@
       "domain": "bam",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2017",
       "retained_tools": [
         "picard",
         "samtools"
@@ -450,6 +466,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2004",
       "retained_tools": [
         "picard",
         "samtools"
@@ -469,6 +486,7 @@
       "domain": "bam",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2018",
       "retained_tools": [
         "bamtools",
         "samtools"
@@ -488,6 +506,7 @@
       "domain": "bam",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2019",
       "retained_tools": [
         "picard",
         "samtools"
@@ -507,6 +526,7 @@
       "domain": "bam",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2020",
       "retained_tools": [
         "bamutil"
       ],
@@ -524,6 +544,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2021",
       "retained_tools": [
         "multiqc",
         "samtools"
@@ -543,6 +564,7 @@
       "domain": "bam",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2022",
       "retained_tools": [
         "gatk"
       ],
@@ -562,6 +584,7 @@
       "domain": "bam",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2023",
       "retained_tools": [
         "rxy",
         "yleaf"
@@ -580,6 +603,7 @@
       "domain": "bam",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2024",
       "retained_tools": [
         "bamtools",
         "bedtools",
@@ -599,6 +623,7 @@
       "domain": "fastq",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
+      "reserved_run_id": "run-2025",
       "retained_tools": [
         "vsearch"
       ],
@@ -617,6 +642,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2026",
       "retained_tools": [
         "bayeshammer",
         "lighter",
@@ -638,6 +664,7 @@
       "domain": "fastq",
       "profile_id": "fastq-depletion",
       "readiness": "blocked",
+      "reserved_run_id": "run-2027",
       "retained_tools": [
         "bowtie2"
       ],
@@ -656,6 +683,7 @@
       "domain": "fastq",
       "profile_id": "fastq-depletion",
       "readiness": "blocked",
+      "reserved_run_id": "run-2028",
       "retained_tools": [
         "bowtie2"
       ],
@@ -674,6 +702,7 @@
       "domain": "fastq",
       "profile_id": "fastq-depletion",
       "readiness": "blocked",
+      "reserved_run_id": "run-2029",
       "retained_tools": [
         "sortmerna"
       ],
@@ -691,6 +720,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2030",
       "retained_tools": [
         "fastqc"
       ],
@@ -708,6 +738,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2031",
       "retained_tools": [
         "bijux_dna"
       ],
@@ -725,6 +756,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2032",
       "retained_tools": [
         "bijux_dna"
       ],
@@ -743,6 +775,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2033",
       "retained_tools": [
         "umi_tools"
       ],
@@ -761,6 +794,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2034",
       "retained_tools": [
         "bbduk",
         "fastp",
@@ -781,6 +815,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2035",
       "retained_tools": [
         "bbduk",
         "fastp",
@@ -801,6 +836,7 @@
       "domain": "fastq",
       "profile_id": "reference-index-build",
       "readiness": "blocked",
+      "reserved_run_id": "run-2036",
       "retained_tools": [
         "bowtie2_build",
         "star"
@@ -819,6 +855,7 @@
       "domain": "fastq",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
+      "reserved_run_id": "run-2037",
       "retained_tools": [
         "dada2"
       ],
@@ -837,6 +874,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2038",
       "retained_tools": [
         "adapterremoval",
         "bbmerge",
@@ -860,6 +898,7 @@
       "domain": "fastq",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
+      "reserved_run_id": "run-2039",
       "retained_tools": [
         "seqkit"
       ],
@@ -878,6 +917,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2040",
       "retained_tools": [
         "cutadapt"
       ],
@@ -895,6 +935,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2041",
       "retained_tools": [
         "fastq_scan",
         "fastqc",
@@ -914,6 +955,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2042",
       "retained_tools": [
         "fastp",
         "prinseq",
@@ -934,6 +976,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2043",
       "retained_tools": [
         "seqfu",
         "seqkit",
@@ -953,6 +996,7 @@
       "domain": "fastq",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
+      "reserved_run_id": "run-2044",
       "retained_tools": [
         "vsearch"
       ],
@@ -971,6 +1015,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2045",
       "retained_tools": [
         "clumpify"
       ],
@@ -988,6 +1033,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2046",
       "retained_tools": [
         "multiqc"
       ],
@@ -1005,6 +1051,7 @@
       "domain": "fastq",
       "profile_id": "fastq-taxonomy",
       "readiness": "blocked",
+      "reserved_run_id": "run-2047",
       "retained_tools": [
         "centrifuge",
         "kaiju",
@@ -1026,6 +1073,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2048",
       "retained_tools": [
         "bbduk",
         "fastp"
@@ -1045,6 +1093,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2049",
       "retained_tools": [
         "adapterremoval",
         "alientrimmer",
@@ -1076,6 +1125,7 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2050",
       "retained_tools": [
         "adapterremoval",
         "cutadapt",
@@ -1095,6 +1145,7 @@
       "domain": "fastq",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
+      "reserved_run_id": "run-2051",
       "retained_tools": [
         "fastq_scan",
         "fastqc",
@@ -1117,6 +1168,7 @@
       "domain": "vcf",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2052",
       "retained_tools": [
         "plink",
         "plink2"
@@ -1136,6 +1188,7 @@
       "domain": "vcf",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
+      "reserved_run_id": "run-2053",
       "retained_tools": [
         "bcftools"
       ],
@@ -1154,6 +1207,7 @@
       "domain": "vcf",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
+      "reserved_run_id": "run-2054",
       "retained_tools": [
         "bcftools"
       ],
@@ -1172,6 +1226,7 @@
       "domain": "vcf",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
+      "reserved_run_id": "run-2055",
       "retained_tools": [
         "bcftools"
       ],
@@ -1190,6 +1245,7 @@
       "domain": "vcf",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
+      "reserved_run_id": "run-2056",
       "retained_tools": [
         "bcftools"
       ],
@@ -1208,6 +1264,7 @@
       "domain": "vcf",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2057",
       "retained_tools": [
         "bcftools"
       ],
@@ -1226,6 +1283,7 @@
       "domain": "vcf",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2058",
       "retained_tools": [
         "ibdne"
       ],
@@ -1244,6 +1302,7 @@
       "domain": "vcf",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2059",
       "retained_tools": [
         "bcftools"
       ],
@@ -1262,6 +1321,7 @@
       "domain": "vcf",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2060",
       "retained_tools": [
         "bcftools"
       ],
@@ -1280,6 +1340,7 @@
       "domain": "vcf",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2061",
       "retained_tools": [
         "germline",
         "ibdhap",
@@ -1300,6 +1361,7 @@
       "domain": "vcf",
       "profile_id": "vcf-phasing-imputation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2062",
       "retained_tools": [
         "beagle",
         "glimpse",
@@ -1320,6 +1382,7 @@
       "domain": "vcf",
       "profile_id": "vcf-phasing-imputation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2063",
       "retained_tools": [
         "beagle",
         "glimpse",
@@ -1340,6 +1403,7 @@
       "domain": "vcf",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2064",
       "retained_tools": [
         "eigensoft",
         "plink2"
@@ -1359,6 +1423,7 @@
       "domain": "vcf",
       "profile_id": "vcf-phasing-imputation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2065",
       "retained_tools": [
         "beagle",
         "eagle",
@@ -1380,6 +1445,7 @@
       "domain": "vcf",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2066",
       "retained_tools": [
         "eigensoft",
         "plink",
@@ -1400,6 +1466,7 @@
       "domain": "vcf",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2067",
       "retained_tools": [
         "bcftools"
       ],
@@ -1418,6 +1485,7 @@
       "domain": "vcf",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2068",
       "retained_tools": [
         "bcftools"
       ],
@@ -1436,6 +1504,7 @@
       "domain": "vcf",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2069",
       "retained_tools": [
         "bcftools",
         "plink",
@@ -1456,6 +1525,7 @@
       "domain": "vcf",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
+      "reserved_run_id": "run-2070",
       "retained_tools": [
         "plink2"
       ],
@@ -1474,6 +1544,7 @@
       "domain": "vcf",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
+      "reserved_run_id": "run-2071",
       "retained_tools": [
         "bcftools"
       ],
@@ -1487,6 +1558,7 @@
     "corpus_count": 9,
     "qualification_campaign_count": 4,
     "ready_count": 0,
+    "reserved_run_count": 71,
     "stage_count": 71
   }
 }
