@@ -5,7 +5,7 @@ use std::fmt::Write as _;
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
-type SummaryStatus = (BTreeMap<String, String>, BTreeMap<String, String>, BTreeMap<String, String>);
+type SummaryDigests = (BTreeMap<String, String>, BTreeMap<String, String>);
 
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
     let support = catalog_container_support(workspace)?;
@@ -626,7 +626,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut entries = Vec::new();
-    for (tool, status) in governed_container_statuses(workspace)? {
+    for (tool, (support_disposition, _)) in catalog_container_support(workspace)? {
         let row = registry.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
         let kind = if is_non_bijux_apptainer_source(workspace, &tool)
@@ -656,7 +656,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             version_row.map(|value| table_string(value, "source_sha256")).unwrap_or_default();
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
-        } else if status == "unsupported" {
+        } else if support_disposition == "unsupported" {
             "not-distributed".to_string()
         } else {
             format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
@@ -669,7 +669,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
                 (!license.is_empty()).then_some(license)
             })
             .unwrap_or_else(|| "NOASSERTION".to_string());
-        let redistribution_note = if status == "unsupported" {
+        let redistribution_note = if support_disposition == "unsupported" {
             "Bijux Genomics does not redistribute this unsupported tool; consult the canonical container catalog for the support rationale."
         } else {
             "Redistribution follows upstream license obligations; verify notice/source requirements before release."
@@ -693,7 +693,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
         entries.push(LicenseMetadataEntry {
             tool,
             kind,
-            support_disposition: status,
+            support_disposition,
             spdx,
             upstream_url: source,
             upstream_version: version,
@@ -798,11 +798,9 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
-    let governed_statuses = governed_container_statuses(workspace)?;
-    let expected_files = governed_statuses
-        .keys()
-        .map(|tool| format!("{tool}.license.toml"))
-        .collect::<BTreeSet<_>>();
+    let catalog_support = catalog_container_support(workspace)?;
+    let expected_files =
+        catalog_support.keys().map(|tool| format!("{tool}.license.toml")).collect::<BTreeSet<_>>();
     for path in fs::read_dir(&license_dir)
         .with_context(|| format!("read {}", license_dir.display()))?
         .filter_map(std::result::Result::ok)
@@ -819,7 +817,7 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
             ));
         }
     }
-    for tool in governed_statuses.keys() {
+    for tool in catalog_support.keys() {
         let row = registry.get(tool).cloned().unwrap_or_default();
         let meta = license_dir.join(format!("{tool}.license.toml"));
         if !meta.exists() {
@@ -856,7 +854,9 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
         }
         let checksum = table_string(data, "upstream_checksum");
         let checksum_ok = checksum == "not-distributed"
-            && governed_statuses.get(tool).is_some_and(|status| status == "unsupported")
+            && catalog_support
+                .get(tool)
+                .is_some_and(|(disposition, _)| disposition == "unsupported")
             || checksum.starts_with("sha256:")
                 && checksum.len() == "sha256:".len() + 64
                 && checksum["sha256:".len()..]
@@ -1317,10 +1317,9 @@ pub(super) fn check_tool_docs_generated(workspace: &Workspace) -> Result<Contain
     success_line("tool docs generated: OK")
 }
 
-fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
+fn load_summary_digests(workspace: &Workspace) -> SummaryDigests {
     let summary_json = workspace.path("artifacts/containers/summary.json");
     let lock_json = workspace.path("containers/versions/lock.json");
-    let mut status_from_summary = BTreeMap::new();
     let mut docker_digest_from_summary = BTreeMap::new();
     let mut apptainer_digest_from_summary = BTreeMap::new();
     if summary_json.exists() {
@@ -1339,12 +1338,6 @@ fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
                         .unwrap_or_default()
                         .trim()
                         .to_string();
-                    let status = item
-                        .get("status")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or_default()
-                        .trim()
-                        .to_string();
                     let digest = item
                         .get("resolved_image_digest")
                         .and_then(serde_json::Value::as_str)
@@ -1355,9 +1348,6 @@ fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
                         continue;
                     }
                     if runtime == "apptainer" {
-                        if !status.is_empty() {
-                            status_from_summary.insert(tool.clone(), status);
-                        }
                         if !digest.is_empty() {
                             apptainer_digest_from_summary.insert(tool.clone(), digest);
                         }
@@ -1411,18 +1401,23 @@ fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
     for (tool, digest) in lock_apptainer_digest {
         apptainer_digest_from_summary.entry(tool).or_insert(digest);
     }
-    (status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary)
+    (docker_digest_from_summary, apptainer_digest_from_summary)
 }
 
 fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
     let registry = registry_tool_map(workspace)?;
-    let (status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary) =
-        load_summary_status(workspace);
+    let support = catalog_container_support(workspace)?;
+    let (docker_digest_from_summary, apptainer_digest_from_summary) =
+        load_summary_digests(workspace);
     let mut rows = Vec::new();
     for (tool, row) in registry {
         if !table_array_strings(&row, "runtimes").iter().any(|runtime| runtime == "apptainer") {
             continue;
         }
+        let (support_disposition, qualification) = support
+            .get(&tool)
+            .cloned()
+            .ok_or_else(|| anyhow!("container catalog missing registry tool: {tool}"))?;
         rows.push((
             tool.clone(),
             table_string(&row, "apptainer_def"),
@@ -1445,14 +1440,8 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
                     rationale
                 }
             },
-            status_from_summary.get(&tool).cloned().unwrap_or_else(|| {
-                let status = table_string(&row, "status");
-                if status.is_empty() {
-                    "unknown".to_string()
-                } else {
-                    status
-                }
-            }),
+            support_disposition,
+            qualification,
             docker_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
             apptainer_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
         ));
@@ -1465,10 +1454,10 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         "# APPTAINER_QA_MATRIX".to_string(),
         String::new(),
         "## Purpose".to_string(),
-        "Generated matrix for Apptainer-enabled tools and required QA gates.".to_string(),
+        "Generated matrix for Apptainer-enabled tools, runtime checks, and evidence qualification.".to_string(),
         String::new(),
         "## Scope".to_string(),
-        "Derived from tool registries and container metadata fields.".to_string(),
+        "Runtime commands come from the tool registries; support disposition and qualification come from the canonical container catalog.".to_string(),
         String::new(),
         "## Non-goals".to_string(),
         "- Replacing full per-tool smoke manifests.".to_string(),
@@ -1482,14 +1471,16 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         "- [containers/docs/NETWORK_USAGE.md](../../containers/docs/NETWORK_USAGE.md)"
             .to_string(),
-        "- [containers/docs/PLANNED.md](../../containers/docs/PLANNED.md)".to_string(),
+        "- [containers/reports/qualification.md](../../containers/reports/qualification.md)"
+            .to_string(),
         String::new(),
         "## Contracts".to_string(),
         "- Tool row exists iff registry runtimes include `apptainer`.".to_string(),
         "- `apptainer_def` and smoke command fields are surfaced for QA checks.".to_string(),
+        "- Support disposition describes whether Bijux retains the tool; qualification is derived independently from immutable evidence.".to_string(),
         String::new(),
-        "| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Status |".to_string(),
-        "|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
+        "| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Support | Qualification |".to_string(),
+        "|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for (
         tool,
@@ -1499,13 +1490,14 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         smoke_minimal_cmd,
         smoke_minimal_exit_code,
         smoke_minimal_rationale,
-        status,
+        support_disposition,
+        qualification,
         docker_digest,
         apptainer_digest,
     ) in rows
     {
         lines.push(format!(
-            "| `{tool}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `build+smoke required` | `{}` |",
+            "| `{tool}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `build+smoke required` | `{support_disposition}` | `{qualification}` |",
             if apptainer_def.is_empty() { "-" } else { &apptainer_def },
             if smoke_version_cmd.is_empty() { "-".to_string() } else { markdown_code_value(&smoke_version_cmd) }.as_str(),
             if smoke_help_cmd.is_empty() { "-".to_string() } else { markdown_code_value(&smoke_help_cmd) }.as_str(),
@@ -1514,7 +1506,6 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
             docker_digest,
             apptainer_digest,
             markdown_code_value(&smoke_minimal_rationale),
-            status,
         ));
     }
     Ok(format!("{}\n", lines.join("\n")))
