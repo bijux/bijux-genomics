@@ -143,10 +143,7 @@ def file_contract(
         source_fields = ("name", "sha256", "size_bytes")
     for path_key, digest_key, size_key in PATH_CONTRACTS:
         if path_key in value:
-            legacy_parent = label.startswith("catalog.parents.")
             if path_key not in value or digest_key not in value:
-                raise DataCatalogError(f"incomplete file identity at {label}")
-            if size_key not in value and not legacy_parent:
                 raise DataCatalogError(f"incomplete file identity at {label}")
             path = Path(str(value[path_key]))
             digest = value[digest_key]
@@ -159,7 +156,7 @@ def file_contract(
         return None
     if not path.is_absolute():
         raise DataCatalogError(f"governed file path must be absolute at {label}: {path}")
-    if size is None and label.startswith("catalog.parents."):
+    if size is None:
         size = path.stat().st_size if path.is_file() else None
     if not isinstance(size, int) or isinstance(size, bool) or size < 0:
         raise DataCatalogError(f"governed file size is invalid at {label}")
@@ -274,10 +271,14 @@ def build_index(catalog_root: Path, data_root: Path) -> dict[str, Any]:
             "catalog root must remain under the governed data root"
         ) from exc
     files_by_name = basename_index(data_root)
-    records = [
-        normalize_record(path, load_json(path), data_root, files_by_name)
-        for path in sorted(catalog_root.glob("*.json"))
-    ]
+    records = []
+    for path in sorted(catalog_root.glob("*.json")):
+        try:
+            records.append(
+                normalize_record(path, load_json(path), data_root, files_by_name)
+            )
+        except DataCatalogError as exc:
+            raise DataCatalogError(f"{path.name}: {exc}") from exc
     if not records:
         raise DataCatalogError(f"no data catalogs found under {catalog_root}")
     ids = [record["id"] for record in records]
