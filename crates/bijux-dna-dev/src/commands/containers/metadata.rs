@@ -249,7 +249,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         format!("- Published isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md))."),
         format!("- Published targeted image refresh: **{refresh_verdict}**, **{refresh_tools} changed {refresh_recipe_noun} rebuilt and readmitted** ([details](../reports/lunarc-image-refresh.md))."),
         format!("- Published version/help campaign: **{runtime_status}**, **{runtime_passed} images passed at that campaign commit** ([details](../reports/runtime-verification.md))."),
-        format!("- Final run records: **{governed_runs} tools**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
+        format!("- Final run records: **{governed_runs} records**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),
