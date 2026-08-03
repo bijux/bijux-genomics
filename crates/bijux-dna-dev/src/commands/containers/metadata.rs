@@ -175,6 +175,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         ));
     }
     let inventory = read_json(&workspace.path("containers/reports/image-inventory.json"))?;
+    let storage = read_json(&workspace.path("containers/reports/image-storage.json"))?;
     let rebuild = read_json(&workspace.path("containers/reports/lunarc-image-rebuild.json"))?;
     let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
     let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
@@ -191,6 +192,10 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         .unwrap_or_else(|| "unavailable".to_string());
     let runtime_status =
         runtime.get("status").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let storage_verdict =
+        storage.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let storage_moved =
+        storage.get("moved_file_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let rebuild_verdict =
         rebuild.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
     let rebuild_tools =
@@ -217,6 +222,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "## Current evidence".to_string(),
         String::new(),
         format!("- Image inventory: **{inventory_states}** ([details](../reports/image-inventory.md))."),
+        format!("- Canonical image storage: **{storage_verdict}**, **{storage_moved} obsolete images quarantined reversibly** ([details](../reports/image-storage.md))."),
         format!("- Complete isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images** ([details](../reports/lunarc-image-rebuild.md))."),
         format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
         format!("- Final governed real executions: **{governed_runs} tools**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
@@ -250,6 +256,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "## Authority".to_string(),
         "- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
         "- Immutable admitted images: [image inventory](../reports/image-inventory.md).".to_string(),
+        "- Canonical image-root reconciliation: [reversible storage evidence](../reports/image-storage.md).".to_string(),
         "- Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).".to_string(),
         "- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.".to_string(),
         "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),

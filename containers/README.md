@@ -136,12 +136,33 @@ python3 -B containers/contracts/image_storage.py apply \
 python3 -B containers/contracts/image_storage.py verify \
   --image-root "${containers_root}/apptainer" \
   --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json"
+
+after_storage="${containers_root}/evidence/inventory/${image_commit}/after-storage.json"
+
+python3 -B containers/contracts/image_inventory.py audit \
+  --catalog containers/contracts/catalog.toml \
+  --image-root "${containers_root}/apptainer" \
+  --evidence-root "${containers_root}/evidence" \
+  --runs-root containers/runs \
+  --repository . \
+  --output "${after_storage}"
+
+python3 -B containers/contracts/image_storage.py report \
+  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json" \
+  --after-inventory "${after_storage}" \
+  --json-output "${containers_root}/evidence/inventory/${image_commit}/image-storage-report.json" \
+  --markdown-output "${containers_root}/evidence/inventory/${image_commit}/image-storage-report.md"
 ```
 
 `rollback` restores every file only after rechecking its size and SHA-256.
 Unclassified images and images referenced by historical runs are excluded from
 the quarantine plan. Catalog-recognized obsolete images with no run references
 are eligible only through the checksummed, reversible plan above.
+The tracked [canonical storage report](reports/image-storage.md) records the
+reviewed move set, post-storage inventory, raw evidence digests, and recovery
+contract without publishing user-specific absolute paths. Import those reviewed
+report files into `containers/reports/` from a clean local checkout; do not
+generate tracked outputs in the LUNARC checkout.
 
 ## Verify version and help contracts
 

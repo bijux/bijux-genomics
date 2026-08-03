@@ -11,6 +11,7 @@ output.
 ## Current evidence
 
 - Image inventory: **current 87, unsupported 2** ([details](../reports/image-inventory.md)).
+- Canonical image storage: **passed**, **14 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
 - Complete isolated rebuild: **passed**, **87 retained images** ([details](../reports/lunarc-image-rebuild.md)).
 - Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
 - Final governed real executions: **70 tools**, **70 passed**; scientific status is tracked independently ([details](../reports/run-evidence.md)).
@@ -39,6 +40,7 @@ output.
 ## Authority
 - Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).
 - Immutable admitted images: [image inventory](../reports/image-inventory.md).
+- Canonical image-root reconciliation: [reversible storage evidence](../reports/image-storage.md).
 - Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).
 - Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.
 - Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).

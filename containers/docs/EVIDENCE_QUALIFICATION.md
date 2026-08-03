@@ -42,7 +42,8 @@ not eligible for qualification.
 | Release | Immutable artifact, evidence bundle, documentation, and release metadata agree. |
 | Freshness | Evidence records the recipe, source, repository commit, site, runtime, and execution time. |
 
-The [complete isolated rebuild](../reports/lunarc-image-rebuild.md),
+The [canonical image storage reconciliation](../reports/image-storage.md),
+[complete isolated rebuild](../reports/lunarc-image-rebuild.md),
 [image inventory](../reports/image-inventory.md),
 [runtime verification](../reports/runtime-verification.md), and
 [run evidence](../reports/run-evidence.md) deliberately prove different

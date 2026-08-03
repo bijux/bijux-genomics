@@ -9,6 +9,9 @@ steps alone establishes scientific validity or release readiness.
 
 ## What is verified now
 
+- [Canonical image storage](reports/image-storage.md): 14 unreferenced obsolete
+  SIFs were moved into a checksummed, reversible quarantine; the active root
+  has no unknown, staged, or unreferenced obsolete images.
 - [Complete-roster rebuild](reports/lunarc-image-rebuild.md): all 87 retained
   Apptainer images were rebuilt from one frozen commit, with zero staged,
   unknown, or unreferenced obsolete images in the isolated admission root.

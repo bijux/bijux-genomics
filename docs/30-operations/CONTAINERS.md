@@ -54,6 +54,7 @@ failed runs and collects terminal accounting separately.
 The [qualification matrix](container-evidence/QUALIFICATION.md) is the current
 cross-tool truth surface. It derives readiness dimension by dimension and keeps
 missing scientific, benchmark, security, or release evidence visible. The
+[canonical image storage reconciliation](container-evidence/IMAGE_STORAGE.md),
 [complete Apptainer rebuild](container-evidence/IMAGE_REBUILD.md),
 [image inventory](container-evidence/IMAGE_INVENTORY.md), and
 [runtime verification report](container-evidence/RUNTIME_VERIFICATION.md)

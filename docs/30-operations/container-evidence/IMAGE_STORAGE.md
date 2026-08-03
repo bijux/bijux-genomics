@@ -1,0 +1,1 @@
+--8<-- "containers/reports/image-storage.md"
