@@ -3,7 +3,7 @@
   "sources": {
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "91c7ab8334edf43a730d721f8020377347b88cfe1cc1f3b6ff2114065bb26440"
+      "sha256": "435e8998716cd1d29a87f0106061967f8abe3d6ba42d0c658283c151d9d7259a"
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
@@ -22,7 +22,7 @@
     "dimension_passes": {
       "benchmark": 0,
       "build": 87,
-      "catalog": 83,
+      "catalog": 85,
       "freshness": 87,
       "real_data": 48,
       "release": 0,
@@ -1055,7 +1055,7 @@
       "dimensions": {
         "benchmark": "missing",
         "build": "passed",
-        "catalog": "missing",
+        "catalog": "passed",
         "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
@@ -1068,7 +1068,6 @@
       "id": "fastq_screen",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "catalog",
         "stage",
         "real_data",
         "science",
@@ -1724,7 +1723,7 @@
       "dimensions": {
         "benchmark": "missing",
         "build": "passed",
-        "catalog": "missing",
+        "catalog": "passed",
         "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
@@ -1737,7 +1736,6 @@
       "id": "metaphlan",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "catalog",
         "stage",
         "real_data",
         "science",

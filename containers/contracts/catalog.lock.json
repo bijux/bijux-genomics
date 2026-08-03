@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "91c7ab8334edf43a730d721f8020377347b88cfe1cc1f3b6ff2114065bb26440",
+  "source_sha256": "435e8998716cd1d29a87f0106061967f8abe3d6ba42d0c658283c151d9d7259a",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -471,12 +471,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/StevenWingett/FastQ-Screen",
-      "license": "NOASSERTION",
+      "license": "GPL-3.0-only",
       "source_sha256": "",
       "pinned_commit": "6dfa1eef0d3103dd7829eb1f586b4d8a121f911b",
       "apptainer_definition": "containers/apptainer/fastq_screen.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastq_screen",
-      "contract_sha256": "648f2738ae70ec4ff81dc1d59f1d5399f83a001f1e1b49409ffe728081f5be98"
+      "contract_sha256": "66b109c85f9543e05dbec0e8770537fd7b60ba42b8f8e68a9384c85bdd399701"
     },
     {
       "id": "fastqc",
@@ -765,12 +765,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/biobakery/MetaPhlAn",
-      "license": "NOASSERTION",
+      "license": "MIT",
       "source_sha256": "",
       "pinned_commit": "66d5a7ebd21c64c5b6fd6db6a35ff44b820dfbd2",
       "apptainer_definition": "containers/apptainer/metaphlan.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.metaphlan",
-      "contract_sha256": "199674686b155ad63e135ae13c35c27229e109b66c9012b00aeb3f3aabdd5304"
+      "contract_sha256": "9f76a4097408e0f7c071f971fccc5580149737121d964a0e7084ecc6b9009105"
     },
     {
       "id": "minimac4",

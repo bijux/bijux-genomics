@@ -18,7 +18,7 @@ or successful command does not become a scientific or release claim.
 
 | Dimension | Retained tools with passing evidence |
 |---|---:|
-| `catalog` | 83 |
+| `catalog` | 85 |
 | `source` | 87 |
 | `build` | 87 |
 | `runtime` | 87 |

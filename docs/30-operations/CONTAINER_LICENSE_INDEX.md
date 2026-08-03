@@ -49,7 +49,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `eigensoft` | `retained` | `bijux` | `GPL-2.0` | `https://github.com/DReichLab/EIG` | `8.0.0` | `sha256:83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2` |
 | `fastp` | `retained` | `bijux` | `MIT` | `https://github.com/OpenGene/fastp` | `0.23.4` | `sha256:4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5` |
 | `fastq_scan` | `retained` | `bijux` | `MIT` | `https://github.com/rpetit3/fastq-scan` | `1.0.1` | `sha256:74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e` |
-| `fastq_screen` | `retained` | `bijux` | `NOASSERTION` | `https://github.com/StevenWingett/FastQ-Screen` | `0.15.3` | `sha256:76ec0ea9a0d1f5d1089f53728ec1db118963b287d025ce0c95887ff5ed481525` |
+| `fastq_screen` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/StevenWingett/FastQ-Screen` | `0.15.3` | `sha256:76ec0ea9a0d1f5d1089f53728ec1db118963b287d025ce0c95887ff5ed481525` |
 | `fastqc` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/s-andrews/FastQC` | `0.12.1` | `sha256:5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7` |
 | `fastqvalidator` | `retained` | `bijux` | `GPL-3.0-or-later` | `https://github.com/statgen/fastQValidator` | `0.1.1` | `sha256:0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c` |
 | `fastuniq` | `unsupported` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/fastuniq/` | `1.1` | `sha256:9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae` |
@@ -70,7 +70,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `leehom` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/grenaud/leeHom` | `1.2.18` | `sha256:87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca` |
 | `lighter` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/mourisl/Lighter` | `1.1.2` | `sha256:a956c7be74331d85f54b3b64c1dceafed67abde06ed7c9f5352d44c48636862e` |
 | `mapdamage2` | `retained` | `bijux` | `MIT` | `https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz` | `2.2.2` | `sha256:a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54` |
-| `metaphlan` | `retained` | `bijux` | `NOASSERTION` | `https://github.com/biobakery/MetaPhlAn` | `4.1.1` | `sha256:db3f6105a8466aa493be0acc3a11f0d205a8c8b6b1f6778e95b700ac262dff92` |
+| `metaphlan` | `retained` | `bijux` | `MIT` | `https://github.com/biobakery/MetaPhlAn` | `4.1.1` | `sha256:db3f6105a8466aa493be0acc3a11f0d205a8c8b6b1f6778e95b700ac262dff92` |
 | `minimac4` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/statgen/Minimac4` | `4.1.6` | `sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3` |
 | `mosdepth` | `retained` | `bijux` | `MIT` | `https://github.com/brentp/mosdepth` | `0.3.11` | `sha256:4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2` |
 | `multiqc` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/multiqc/multiqc` | `1.24` | `sha256:991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb` |
