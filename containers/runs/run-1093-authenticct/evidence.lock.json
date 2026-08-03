@@ -1,0 +1,116 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/authenticct-1.0.0-linux-amd64-0a349f5cd7be.sif",
+    "sha256": "0a349f5cd7bebfa719ccaa681b94f7c0b3d1bd292e017a541fb25fd11c14923b",
+    "size_bytes": 267579392
+  },
+  "repository_commit": "4b9d91ac251cd2e854ec18f48fbad891b10eddca",
+  "run_id": "run-1093",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458079",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "3d326df26462d62994c832bad155f701cd39166f4cfbe933d8186e3f56a3e538",
+      "size_bytes": 1786
+    },
+    {
+      "path": "deamination.tsv",
+      "sha256": "9b69ca380e01a07f8f6aae103e64ad042618bec826cbf94db3f96123b733eb0f",
+      "size_bytes": 7817
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "923cda52b1880a374d09a1493c557ad4bcc3b951a4134fb7d0d3588378ff019c",
+      "size_bytes": 3177
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "5471668caf2794e340fdce22264326a7426ae58db759537420d6a4cfa6cd19ea",
+      "size_bytes": 469
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "723ffbd2c7e83040bb6f97a1dfc9bccbca1c2205ba4f60b618446541dfeeb073",
+      "size_bytes": 131
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "3f5490bf1bf016a4f99b50449ba83b82d779e7d6bd0b69532d04392256b07613",
+      "size_bytes": 509119
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "6afac77f4c3fe8cbeeaddaeb0116ade42f40553a9cd9b764a1107d7b529de117",
+      "size_bytes": 929
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "09d3755d1352ededd528268f37399a749fc8dbc50cdbb7e0d13bf42b2dd1abd6",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "65969fbca30378588bafb73ae4ce7ae339350d02e85624ad0e9bc692bcecc7c1",
+      "size_bytes": 1074
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "ac5273afc683fc7b0b274e5781a6c1dac9f576db27bfff4bc5c7679d9eda5866",
+      "size_bytes": 17
+    }
+  ],
+  "source_result": "results/container-validation/authenticct/run-1093",
+  "tool": "authenticct",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "3d326df26462d62994c832bad155f701cd39166f4cfbe933d8186e3f56a3e538",
+      "size_bytes": 1786
+    },
+    "evidence.json": {
+      "sha256": "923cda52b1880a374d09a1493c557ad4bcc3b951a4134fb7d0d3588378ff019c",
+      "size_bytes": 3177
+    },
+    "slurm-accounting.json": {
+      "sha256": "6afac77f4c3fe8cbeeaddaeb0116ade42f40553a9cd9b764a1107d7b529de117",
+      "size_bytes": 929
+    }
+  }
+}

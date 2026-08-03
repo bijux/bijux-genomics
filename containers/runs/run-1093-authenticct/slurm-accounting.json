@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T23:24:14.073101+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "3d326df26462d62994c832bad155f701cd39166f4cfbe933d8186e3f56a3e538",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "40",
+      "Elapsed": "00:00:40",
+      "ElapsedRaw": "40",
+      "ExitCode": "0:0",
+      "JobID": "3458079",
+      "JobName": "bam-authenticity-authenticct-ERR2112767",
+      "MaxRSS": "",
+      "NodeList": "cn087",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1093",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458079",
+  "submit_script_sha256": "65969fbca30378588bafb73ae4ce7ae339350d02e85624ad0e9bc692bcecc7c1"
+}
