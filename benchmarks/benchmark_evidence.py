@@ -442,7 +442,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Repetitions: {design['warmup_repetitions']} warmup and {design['measured_repetitions']} measured",
         f"- Corpus: {', '.join(f'`{item}`' for item in design['corpus_catalog_ids'])}",
         f"- Corpus portfolio: {', '.join(f'`{item}`' for item in design['corpus_ids'])}",
-        f"- Reference: {', '.join(f'`{item}`' for item in design['reference_catalog_ids'])}",
+        "- Reference: "
+        + (
+            ", ".join(f"`{item}`" for item in design["reference_catalog_ids"])
+            if design["reference_catalog_ids"]
+            else "none"
+        ),
         "- Databases: "
         + (
             ", ".join(f"`{item}`" for item in design["database_catalog_ids"])

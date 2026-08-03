@@ -163,7 +163,7 @@
     {
       "campaign_run_id": "run-2004",
       "definition_status": "qualification",
-      "execution_status": "not_admitted",
+      "execution_status": "admitted",
       "retained_tools": [
         "picard",
         "samtools"
@@ -724,7 +724,7 @@
     }
   ],
   "summary": {
-    "admitted_stage_count": 3,
+    "admitted_stage_count": 4,
     "comparative_stage_count": 0,
     "defined_stage_count": 4,
     "missing_stage_count": 67,

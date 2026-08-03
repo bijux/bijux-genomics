@@ -134,6 +134,11 @@ class BenchmarkEvidenceTests(unittest.TestCase):
         self.assertIn("candidate_site_recovery_not_genotype_truth", markdown)
         self.assertIn("No sample-level truth genotype", markdown)
 
+        report["design"]["reference_catalog_ids"] = []
+        without_reference = benchmark_evidence.render_markdown(report)
+        self.assertIn("- Reference: none\n", without_reference)
+        self.assertFalse(any(line.endswith(" ") for line in without_reference.splitlines()))
+
     def test_cross_tool_comparison_preserves_disagreement(self) -> None:
         campaign = {
             "comparison_metrics": [
