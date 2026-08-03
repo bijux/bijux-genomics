@@ -464,7 +464,7 @@ mod tests {
         }));
         assert!(config.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"
-                && row.tool_id == "angsd"
+                && row.tool_id == "bcftools"
                 && row.threads == 3
                 && row.memory_gb == 2
                 && row.walltime_minutes == 7

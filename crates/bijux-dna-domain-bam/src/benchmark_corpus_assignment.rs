@@ -71,7 +71,7 @@ pub fn benchmark_corpus_assignment_for_stage_tool(
                     "Ancient-like BAM interpretation requires the governed non-UDG aDNA fixture family rather than the general BAM mini corpus.",
             })
         }
-        ("bam.genotyping", "angsd") => Some(BenchmarkCorpusAssignment::Assigned {
+        ("bam.genotyping", "bcftools") => Some(BenchmarkCorpusAssignment::Assigned {
             family: BenchmarkCorpusFamily::Genotyping,
             rationale:
                 "Genotyping depends on the governed candidate-sites sample, target-regions contract, and shared reference owned by the genotyping BAM corpus.",
@@ -121,7 +121,7 @@ pub fn governed_benchmark_stage_tool_bindings() -> &'static [(&'static str, &'st
         ("bam.filter", "bedtools"),
         ("bam.filter", "samtools"),
         ("bam.gc_bias", "picard"),
-        ("bam.genotyping", "angsd"),
+        ("bam.genotyping", "bcftools"),
         ("bam.haplogroups", "yleaf"),
         ("bam.insert_size", "picard"),
         ("bam.kinship", "angsd"),

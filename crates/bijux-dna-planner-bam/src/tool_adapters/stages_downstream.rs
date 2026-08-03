@@ -160,6 +160,7 @@ pub mod genotyping {
         ));
         let report = out_dir.join("genotyping.json");
         let summary = out_dir.join("genotyping.summary.json");
+        let stage_metrics = out_dir.join("stage_metrics.json");
         let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
             ArtifactId::from_static("bam"),
             bam.to_path_buf(),
@@ -213,6 +214,7 @@ pub mod genotyping {
                     crate::tool_adapters::tools::genotyping::GenotypingOutputs {
                         report: &report,
                         summary: &summary,
+                        stage_metrics: &stage_metrics,
                         bcf: Some(bcf.as_path()),
                         vcf_gz: &vcf_gz,
                         tbi: &tbi,

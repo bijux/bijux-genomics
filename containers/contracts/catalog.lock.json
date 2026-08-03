@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "60ed66b78c95546306e10447f2f9cf3be3d4236f8e3604d221e3dedb2efc2ed0",
+  "source_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -84,7 +84,7 @@
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
       "apptainer_definition": "",
       "dockerfile": "",
-      "contract_sha256": "9dc3b5859b8d483497f4187315df045d85660a34c459490d987ec579985ca091"
+      "contract_sha256": "aeb6b4f306007ea4a9073fcf36f6a8712636d5a56c463788231219fc0160b6da"
     },
     {
       "id": "atropos",
@@ -196,7 +196,7 @@
       "pinned_commit": "02ee548d77916357dcd3699eab88273acd8f9f7c",
       "apptainer_definition": "containers/apptainer/bcftools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bcftools",
-      "contract_sha256": "b333cc8b43d02c16fcc53833251ee22251f076b434009e8e016ab062edef3d47"
+      "contract_sha256": "267a7dec8dd1cefdaea418b8ecec5c4999159250670cfed5722a2aa539eff5c7"
     },
     {
       "id": "beagle",

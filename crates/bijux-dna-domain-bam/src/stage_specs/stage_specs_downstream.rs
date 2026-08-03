@@ -149,7 +149,7 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_audit: super::required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Genotyping(GenotypingEffectiveParams {
-                caller: "angsd".to_string(),
+                caller: "bcftools".to_string(),
                 min_posterior: Some(0.8),
                 min_call_rate: Some(0.7),
             }),

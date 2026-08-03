@@ -17,7 +17,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
     let repo_root = repo_root();
     let tool_dir = temp.path().join("domain/bam/tools");
     fs::create_dir_all(&tool_dir)?;
-    fs::copy(repo_root.join("domain/bam/tools/angsd.yaml"), tool_dir.join("angsd.yaml"))?;
+    fs::copy(repo_root.join("domain/bam/tools/bcftools.yaml"), tool_dir.join("bcftools.yaml"))?;
     let runtime_dir = temp.path().join("configs/runtime/profiles");
     fs::create_dir_all(&runtime_dir)?;
     fs::copy(
@@ -40,7 +40,7 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     let plan = bijux_dna_planner_bam::stage_api::local_genotyping_plan(&repo_root)?;
 
     assert_eq!(plan.stage_id.as_str(), "bam.genotyping");
-    assert_eq!(plan.tool_id.as_str(), "angsd");
+    assert_eq!(plan.tool_id.as_str(), "bcftools");
     assert_eq!(plan.resources.threads, 2);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping"));
@@ -181,8 +181,8 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         plan.params["sample_id"],
         serde_json::json!("human_like_genotyping_candidate_panel")
     );
-    assert_eq!(plan.params["tool"], serde_json::json!("angsd"));
-    assert_eq!(plan.effective_params["caller"], serde_json::json!("angsd"));
+    assert_eq!(plan.params["tool"], serde_json::json!("bcftools"));
+    assert_eq!(plan.effective_params["caller"], serde_json::json!("bcftools"));
     assert_eq!(plan.effective_params["min_posterior"], serde_json::json!(0.9));
     assert_eq!(plan.effective_params["min_call_rate"], serde_json::json!(0.5));
 
@@ -206,7 +206,11 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
                 "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
             )
             && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
-            && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"),
+            && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
+            && command.contains("bcftools mpileup")
+            && command.contains("bcftools +tag2tag")
+            && command.contains("--PL-to-GP")
+            && command.contains("confident_call_rate"),
         "local-ready genotyping command must carry the governed BAI, reference, sites, regions, BCF, and VCF outputs"
     );
 
@@ -233,7 +237,7 @@ bai = "{bai}"
 reference_fasta = "{reference}"
 sites_vcf = "{sites}"
 regions = "{regions}"
-tool_id = "angsd"
+tool_id = "bcftools"
 sample_id = " "
 min_posterior = 0.9
 min_call_rate = 0.5
@@ -271,7 +275,7 @@ bai = "{bai}"
 reference_fasta = "{reference}"
 sites_vcf = "{sites}"
 regions = "{regions}"
-tool_id = "angsd"
+tool_id = "bcftools"
 sample_id = "bad-posterior-threshold"
 min_posterior = 1.1
 min_call_rate = 0.5
@@ -312,7 +316,7 @@ bai = "{bai}"
 reference_fasta = "{reference}"
 sites_vcf = "{sites}"
 regions = "{regions}"
-tool_id = "angsd"
+tool_id = "bcftools"
 sample_id = "bad-call-rate-threshold"
 min_posterior = 0.9
 min_call_rate = -0.1

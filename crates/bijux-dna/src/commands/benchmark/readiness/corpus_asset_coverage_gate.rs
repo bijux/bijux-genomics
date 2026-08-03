@@ -515,7 +515,7 @@ fn required_asset_roles(domain: &str, stage_id: &str, tool_id: &str) -> Vec<Stri
         | ("bam", "bam.haplogroups", "yleaf")
         | ("bam", "bam.kinship", "angsd" | "king") => &["reference_fasta", "reference_panel"],
         ("bam", "bam.sex", "angsd" | "rxy" | "yleaf") => &["reference_fasta"],
-        ("bam", "bam.genotyping", "angsd") => &["reference_fasta", "sites_vcf", "regions"],
+        ("bam", "bam.genotyping", "bcftools") => &["reference_fasta", "sites_vcf", "regions"],
         ("bam", "bam.recalibration", "gatk") => &["reference_fasta", "known_sites"],
         _ => &[],
     };

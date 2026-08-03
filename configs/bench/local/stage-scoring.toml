@@ -953,8 +953,8 @@ readiness_kind = "dry_or_smoke"
 decision_mode = "single_tool_acceptance"
 active_tool_count = 1
 benchmark_ready_tool_count = 1
-default_tool_id = "angsd"
-benchmark_ready_tool_ids = ["angsd"]
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
 report_section_ids = ["downstream_readiness"]
 recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
 

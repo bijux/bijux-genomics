@@ -48,5 +48,5 @@ Clarifies tool coverage and rationale.
 | bam.bias_mitigation | supported | mapdamage2 | Bias-mitigation is admitted through the governed mapDamage evidence, bias report, and summary contract. |
 | bam.recalibration | supported | gatk | BQSR is admitted through the governed low-coverage skip contract with owned known-sites evidence. |
 | bam.haplogroups | supported | yleaf | Haplogroup inference is admitted through the governed Y-panel fixture and owned readiness contract. |
-| bam.genotyping | supported | angsd | BAM-driven genotype summaries are admitted through the governed low-depth ANGSD contract with owned candidate-sites and target-regions inputs. |
+| bam.genotyping | supported | bcftools | Likelihood-aware genotyping uses the retained bcftools image with an owned reference, candidate-sites list, target regions, indexed BCF and VCF, and an enforced confident-call-rate threshold. |
 | bam.kinship | supported | king, angsd | Kinship inference admits pairwise and GL-aware method families. |
