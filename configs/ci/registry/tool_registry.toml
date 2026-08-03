@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: b575ed8da96300378d17fdbd46f96e10283dce6a
+# source_commit: bcb76a453c737315d937ca7a75f116a217f3b1d0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -109,40 +109,6 @@ metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/Dockerfile.arm64.alientrimmer"
 apptainer_def = "containers/apptainer/alientrimmer.def"
-require_labels = true
-
-[[tools]]
-id = "angsd"
-tool_id = "angsd"
-domain = "bam"
-domains = ["bam"]
-status = "production"
-stage_ids = ["bam.genotyping", "bam.kinship", "bam.sex"]
-bindings = ["bam.genotyping", "bam.kinship", "bam.sex"]
-tool_role = "transform"
-version = "0.941"
-default_version = "0.941"
-upstream = "https://github.com/ANGSD/angsd"
-version_rule = "pinned"
-license = "NOASSERTION"
-citation = "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
-pinned_commit = "sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7"
-pin_strategy = "source_sha256"
-container_ref = "external@licensed-installation"
-runtimes = []
-container = false
-version_cmd = "angsd --version"
-help_cmd = "angsd --help"
-smoke_version_cmd = "angsd --version"
-smoke_help_cmd = "angsd --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "angsd --help"
-expected_bin = "angsd"
-expected_artifacts = ["population_metrics"]
-metrics_schema = "bijux.bam.population.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = ""
-apptainer_def = ""
 require_labels = true
 
 [[tools]]
@@ -1370,40 +1336,6 @@ apptainer_def = "containers/apptainer/musket.def"
 require_labels = true
 
 [[tools]]
-id = "ngsbriggs"
-tool_id = "ngsbriggs"
-domain = "bam"
-domains = ["bam"]
-status = "production"
-stage_ids = ["bam.damage"]
-bindings = ["bam.damage"]
-tool_role = "transform"
-version = "0.01"
-default_version = "0.01"
-upstream = "https://github.com/RAHenriksen/ngsBriggs"
-version_rule = "pinned"
-license = "NOASSERTION"
-citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/"
-pinned_commit = "sha256:afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7"
-pin_strategy = "source_sha256"
-container_ref = "external@licensed-installation"
-runtimes = []
-container = false
-version_cmd = "ngsbriggs --version"
-help_cmd = "ngsbriggs --help"
-smoke_version_cmd = "ngsbriggs --version"
-smoke_help_cmd = "ngsbriggs --help"
-expected_version_regex = "ngsbriggs 0[.]01 [(]commit ab3b5ae8a388b9b1874dd2854fdec32bd9195f22[)]"
-healthcheck_cmd = "ngsbriggs --help"
-expected_bin = "ngsbriggs"
-expected_artifacts = ["damage_profile", "damage_parameters"]
-metrics_schema = "bijux.bam.damage.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = ""
-apptainer_def = ""
-require_labels = true
-
-[[tools]]
 id = "pear"
 tool_id = "pear"
 domain = "fastq"
@@ -2261,7 +2193,7 @@ requires_reporting = false
 id = "bam.damage"
 required_tool_roles = ["transform"]
 primary_tools = ["mapdamage2"]
-optional_alternatives = ["addeam", "damageprofiler", "ngsbriggs", "pmdtools", "pydamage"]
+optional_alternatives = ["addeam", "damageprofiler", "pmdtools", "pydamage"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2320,7 +2252,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.genotyping"
 required_tool_roles = ["transform"]
-primary_tools = ["angsd"]
+primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
@@ -2357,7 +2289,7 @@ requires_reporting = false
 id = "bam.kinship"
 required_tool_roles = ["transform"]
 primary_tools = ["king"]
-optional_alternatives = ["angsd"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2453,7 +2385,7 @@ requires_reporting = false
 id = "bam.sex"
 required_tool_roles = ["transform"]
 primary_tools = ["rxy"]
-optional_alternatives = ["angsd", "yleaf"]
+optional_alternatives = ["yleaf"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []

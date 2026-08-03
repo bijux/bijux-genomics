@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "b575ed8da96300378d17fdbd46f96e10283dce6a",
-  "bundle_checksum_sha256": "eb51f0ceb22ed92981c17b478177ccf3a78dc4dda4d8e176d911f328ca68efff",
+  "source_commit": "bcb76a453c737315d937ca7a75f116a217f3b1d0",
+  "bundle_checksum_sha256": "3014366ff5c251a903dec0bafc154a03b9e7f91f7c79cca21eed32a7df8b0c63",
   "domains": [
     {
       "domain_id": "bam",
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "c5deb2a2587aae4a14edf199c8b228bc64cc952bebf15b15d1bf58c0297093ea"
+      "checksum_sha256": "95569bc8e73aabc0ff91a6bfda75e0eca1331fcb1673a65bcaf0335af6df9529"
     },
     {
       "domain_id": "fastq",
@@ -10767,7 +10767,7 @@
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
             "image": "bijuxdna/lighter",
-            "digest": "sha256:e65d145062ddedd1e584f7aec7db45c13ddf33f849888e61d6c3b91e89730085"
+            "digest": "sha256:4daa759e5a917db8c6111002b923549c5858892a2f53d63bdb38788f1d714125"
           }
         },
         {
@@ -13502,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "eb1f76ba5508ef4d4a2a435261674d8f494bf222ce1fc4ce298b45ed7fbd9d4d"
+      "checksum_sha256": "6318551c96e090cb98fcc3af38a568a508bd33017fde28396ebe36e41759a9a1"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "401364b23704400247a2521bd8d7a777109a6836fa268940eba5511c3c333ccb"
+      "checksum_sha256": "f64e2459820b7d4363e2697fe957e9430670057b046e9f776c8043d66ce8f938"
     }
   ]
 }

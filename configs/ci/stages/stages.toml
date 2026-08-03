@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: b575ed8da96300378d17fdbd46f96e10283dce6a
+# source_commit: bcb76a453c737315d937ca7a75f116a217f3b1d0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -140,7 +140,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["coverage_at_damage_sites>=0.2"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+tools = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.duplication_metrics"
@@ -216,7 +216,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["callable_sites>=1000"]
 sex_kinship_sufficiency = ["genotype_loci_covered>=1000"]
-tools = ["angsd"]
+tools = []
 
 [[stages]]
 id = "bam.haplogroups"
@@ -254,7 +254,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["shared_markers>=5000"]
 sex_kinship_sufficiency = ["kinship_informative_markers>=5000", "panel_match=true"]
-tools = ["angsd", "king"]
+tools = ["king"]
 
 [[stages]]
 id = "bam.length_filter"
@@ -387,7 +387,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["chrX_chrY_covered_sites>=1000"]
 sex_kinship_sufficiency = ["chrY_observed_sites>=100", "chrX_coverage_stable=true"]
-tools = ["angsd", "rxy", "yleaf"]
+tools = ["rxy", "yleaf"]
 
 [[stages]]
 id = "bam.validate"

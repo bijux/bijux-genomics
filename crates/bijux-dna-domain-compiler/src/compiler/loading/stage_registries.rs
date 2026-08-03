@@ -84,9 +84,6 @@ pub(super) fn build_stages_toml(
         if status != "supported" {
             continue;
         }
-        let _ = writeln!(stages_toml, "[[stages]]");
-        let _ = writeln!(stages_toml, "id = \"{stage_id}\"");
-        let _ = writeln!(stages_toml, "status = \"{status}\"");
         let stage_domain = stage_id.split('.').next().unwrap_or_default();
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
         v.retain(|tool_id| {
@@ -94,6 +91,12 @@ pub(super) fn build_stages_toml(
                 && tool_supports_stage_domain(tools, tool_id, stage_domain)
         });
         v.sort();
+        if v.is_empty() {
+            continue;
+        }
+        let _ = writeln!(stages_toml, "[[stages]]");
+        let _ = writeln!(stages_toml, "id = \"{stage_id}\"");
+        let _ = writeln!(stages_toml, "status = \"{status}\"");
         let output_kinds = stage_output_kinds.get(stage_id).cloned().unwrap_or_default();
         let _ = writeln!(stages_toml, "output_kinds = {}", toml_array(&output_kinds));
         let _ = writeln!(

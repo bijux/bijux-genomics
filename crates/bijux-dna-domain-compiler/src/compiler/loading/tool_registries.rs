@@ -146,6 +146,9 @@ pub(super) fn build_tool_registries_toml(
                 && tool_supports_stage_domain(tools, tool_id, stage_domain)
         });
         all.sort();
+        if all.is_empty() {
+            continue;
+        }
         let mut primary = stage_defaults
             .get(stage_id)
             .cloned()
@@ -157,13 +160,6 @@ pub(super) fn build_tool_registries_toml(
             .collect::<Vec<_>>();
         if primary.is_empty() {
             primary = all.first().cloned().into_iter().collect::<Vec<_>>();
-        }
-        if primary.is_empty() {
-            primary.push(if stage_domain == "bam" {
-                "samtools".to_string()
-            } else {
-                "fastp".to_string()
-            });
         }
         let optional = all
             .iter()
