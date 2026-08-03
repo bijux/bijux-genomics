@@ -43,7 +43,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `cutadapt` | `bijux` | `NOASSERTION` | `https://github.com/marcelm/cutadapt` | `4.9` | `sha256:f7615e4ce1db0a750641e503d44eac54bd49a5882d23b69740b51790ecf9e01b` |
 | `dada2` | `bijux` | `LGPL-2.0-only` | `https://bioconductor.org/packages/3.18/bioc/html/dada2.html` | `1.30.0` | `sha256:c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667` |
 | `damageprofiler` | `bijux` | `NOASSERTION` | `https://github.com/Integrative-Transcriptomics/DamageProfiler` | `1.1` | `sha256:c8eb0b80e93d2b994ba2b5c4662713cc8e19214345a9488390796e2cebcef1fa` |
-| `diamond` | `bijux` | `NOASSERTION` | `https://github.com/bbuchfink/diamond` | `2.1.10` | `sha256:a89e4dbd4099a8facf8c244ccc591dc0b20fcb7d026dd469b346a2c7a04839c7` |
+| `diamond` | `bijux` | `GPL-3.0-or-later` | `https://github.com/bbuchfink/diamond` | `2.1.10` | `sha256:f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53` |
 | `dustmasker` | `bijux` | `LicenseRef-NCBI-Public-Domain` | `https://www.ncbi.nlm.nih.gov/books/NBK279690/` | `2.15.0` | `sha256:6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0` |
 | `eagle` | `non-bijux` | `GPL-3.0-or-later` | `https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz` | `2.4.1` | `sha256:6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255` |
 | `eigensoft` | `non-bijux` | `GPL-2.0` | `https://github.com/DReichLab/EIG` | `8.0.0` | `sha256:83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2` |

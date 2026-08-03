@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T01:40:11+02:00",
+  "build_date_utc": "2026-08-03T04:02:44+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -406,7 +406,7 @@
       "version": "1.1"
     },
     {
-      "entry_sha256": "3256099415ce548391b0ce25065a18dc9ecade10cf7f4fbf9628688ec45b73d4",
+      "entry_sha256": "e035fd5903da30f372dfcd5474b7a4fe4b49fba46d75b5357ffee2315c74df3a",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -416,7 +416,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/bbuchfink/diamond",
-      "source_sha256": "",
+      "source_sha256": "f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53",
       "status": "production",
       "tool": "diamond",
       "version": "2.1.10"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "94ca4564645db75f73f09092c10167b834caaff550d813bd532fdc73e5008ce5",
+  "source_sha256": "e9c146058c3e6fea064145b74ba3d2af27d11dd5abc86eaf190a43052595a301",
   "version_map_source": "artifacts/containers/version_map.json"
 }
