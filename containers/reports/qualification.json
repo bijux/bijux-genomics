@@ -1,38 +1,44 @@
 {
   "evidence_compatibility": {
-    "inventory_catalog": false,
+    "inventory_catalog": true,
     "repository_commit": true,
-    "runtime_catalog": false,
+    "runtime_catalog": true,
     "runtime_inventory": true
   },
   "schema_version": "bijux.container.qualification_report.v1",
   "sources": {
+    "benchmarks": [
+      {
+        "path": "containers/reports/run-2001-bam-genotyping.json",
+        "sha256": "03abeb198143289f31e0ffbe383c188baf9a2896b261920857b0211dbe1a25c8"
+      }
+    ],
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "f6bc6e79b1c5e0403c1c0a63d0b9d536a7cd35bbf7b7d524be5d64355dd2ec24"
+      "sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8"
     },
     "inventory": {
       "path": "containers/reports/image-inventory.json",
-      "sha256": "becddf58a61bc4a93de5c96c188ef45f74b1090f6b27344f845bdfc55cd21cf4"
+      "sha256": "75feeb8ce9a9cbb0a07a7beba4e5cc3dccb132b3223f703b3f75b7ae459be53a"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
-      "sha256": "aa1b07fa0343baad2e89f6b15d18325d9253e44552724c72d0350860a9aea5b7"
+      "sha256": "7a5091a2c0a0709af80031626dc3eabe9942fc33cc256a79274a9a6704b7dc23"
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
-      "sha256": "119a314f7cc3b1dc2add31e31be45e96a05e28f8bfbc18c45c279077561c28be"
+      "sha256": "41871d07112690e18a5d673d3be642ad203bf34289443d21ef37fc8b6a266dbd"
     }
   },
   "summary": {
     "dimension_passes": {
-      "benchmark": 0,
-      "build": 0,
+      "benchmark": 1,
+      "build": 85,
       "catalog": 85,
-      "freshness": 0,
+      "freshness": 85,
       "real_data": 46,
       "release": 0,
-      "runtime": 0,
+      "runtime": 85,
       "science": 0,
       "security": 0,
       "source": 85,
@@ -46,117 +52,107 @@
   },
   "tools": [
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "adapterremoval",
       "mismatched_passing_stages": [
         "fastq.trim_reads"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.3.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.damage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "addeam",
       "mismatched_passing_stages": [
         "bam.damage_profile"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "alientrimmer",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1091"
       ],
@@ -164,9 +160,11 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "3.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.genotyping",
       "dimensions": {
         "benchmark": "not_applicable",
@@ -185,45 +183,41 @@
       "id": "angsd",
       "mismatched_passing_stages": [],
       "missing_dimensions": [],
-      "passing_real_test_runs": [
-        "run-1091"
-      ],
+      "passing_benchmark_runs": [],
+      "passing_real_test_runs": [],
       "qualification": "unsupported",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "unsupported",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.941"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "atropos",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1098"
       ],
@@ -231,38 +225,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.1.31"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.authenticity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "authenticct",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1093"
       ],
@@ -270,38 +261,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.filter",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bamtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1086"
       ],
@@ -309,38 +297,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.5.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.overlap_correction",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bamutil",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1087"
       ],
@@ -348,38 +333,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.15"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bayeshammer",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1099"
       ],
@@ -387,79 +369,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.2.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.filter_low_complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bbduk",
       "mismatched_passing_stages": [
         "fastq.trim"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "39.06"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bbmerge",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1007"
       ],
@@ -467,120 +443,114 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "39.06"
     },
     {
+      "benchmark_stages": [
+        "bam.genotyping"
+      ],
       "declared_real_test_stage": "vcf.call",
       "dimensions": {
-        "benchmark": "missing",
-        "build": "missing",
+        "benchmark": "passed",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bcftools",
       "mismatched_passing_stages": [
-        "vcf.prepare_reference_panel"
+        "bam.genotyping"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
-        "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
+      ],
+      "passing_benchmark_runs": [
+        "run-2001"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.20"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "beagle",
       "mismatched_passing_stages": [
         "vcf.phasing"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "5.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.coverage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bedtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1074"
       ],
@@ -588,77 +558,71 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.31.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.detect_duplicates_premerge",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bijux_dna",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.1.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.align",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bowtie2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1101"
       ],
@@ -666,38 +630,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.5.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.index_reference",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bowtie2_build",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1100"
       ],
@@ -705,38 +666,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.5.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bracken",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1104"
       ],
@@ -744,38 +702,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.9"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.align",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "bwa",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1004"
       ],
@@ -783,38 +738,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.7.17"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "centrifuge",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1106"
       ],
@@ -822,79 +774,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.remove_duplicates",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "clumpify",
       "mismatched_passing_stages": [
         "fastq.deduplicate"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "39.06"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.contamination",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "contammix",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1108"
       ],
@@ -902,38 +848,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.11"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.normalize_primers",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "cutadapt",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1109"
       ],
@@ -941,38 +884,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.9"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.infer_asvs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "dada2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1060"
       ],
@@ -980,79 +920,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.30.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.authenticity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "damageprofiler",
       "mismatched_passing_stages": [
         "bam.damage"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "diamond",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1117"
       ],
@@ -1060,79 +994,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.1.10"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "dustmasker",
       "mismatched_passing_stages": [
         "reference.mask_low_complexity"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.15.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.phasing",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "eagle",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1036"
       ],
@@ -1140,79 +1068,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.4.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.pca",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "eigensoft",
       "mismatched_passing_stages": [
         "vcf.principal_components"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "8.0.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.filter_low_complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "fastp",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1075"
       ],
@@ -1220,38 +1142,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.23.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.profile_overrepresented_sequences",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "fastq_scan",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1118"
       ],
@@ -1259,77 +1178,71 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "fastq_screen",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.15.3"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.detect_adapters",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "fastqc",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1076"
       ],
@@ -1337,38 +1250,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.12.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.validate_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "fastqvalidator",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1077"
       ],
@@ -1376,9 +1286,11 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.1.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.remove_duplicates",
       "dimensions": {
         "benchmark": "not_applicable",
@@ -1397,45 +1309,41 @@
       "id": "fastuniq",
       "mismatched_passing_stages": [],
       "missing_dimensions": [],
-      "passing_real_test_runs": [
-        "run-1077"
-      ],
+      "passing_benchmark_runs": [],
+      "passing_real_test_runs": [],
       "qualification": "unsupported",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "unsupported",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "fastx_clipper",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1119"
       ],
@@ -1443,38 +1351,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.0.14"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "flash2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1120"
       ],
@@ -1482,38 +1387,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.2.00"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.validate_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "fqtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1121"
       ],
@@ -1521,198 +1423,183 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.3"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.recalibration",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "gatk",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.6.2.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.ibd",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "germline",
       "mismatched_passing_stages": [
         "vcf.ibd_segments"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.5.3"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "glimpse",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.1.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.ibd",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "ibdhap",
       "mismatched_passing_stages": [
         "vcf.ibd_state_probabilities"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "3.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.demography",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "ibdne",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1053"
       ],
@@ -1720,38 +1607,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "23Apr20.ae9"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.ibd",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "ibdseq",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1052"
       ],
@@ -1759,9 +1643,11 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "r1206"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "not_applicable",
@@ -1780,123 +1666,113 @@
       "id": "impute5",
       "mismatched_passing_stages": [],
       "missing_dimensions": [],
-      "passing_real_test_runs": [
-        "run-1052"
-      ],
+      "passing_benchmark_runs": [],
+      "passing_real_test_runs": [],
       "qualification": "unsupported",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "unsupported",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.2.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "kaiju",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.10.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.kinship",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "king",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.3.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "kraken2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1102"
       ],
@@ -1904,159 +1780,145 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.1.3"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.screen_taxonomy",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "krakenuniq",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "leehom",
       "mismatched_passing_stages": [
         "adapter-trimming-and-merging"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.2.18"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog",
-        "inventory_tool_identity",
-        "runtime_tool_identity"
-      ],
+      "evidence_mismatches": [],
       "id": "lighter",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.1.3"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.damage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "mapdamage2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1050"
       ],
@@ -2064,116 +1926,107 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.2.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "metaphlan",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.1.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "minimac4",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.1.6"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.coverage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "mosdepth",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1088"
       ],
@@ -2181,79 +2034,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.3.11"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.qc_pre",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "multiqc",
       "mismatched_passing_stages": [
         "fastq.report_qc"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.24"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "musket",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1025"
       ],
@@ -2261,9 +2108,11 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.damage",
       "dimensions": {
         "benchmark": "not_applicable",
@@ -2282,45 +2131,41 @@
       "id": "ngsbriggs",
       "mismatched_passing_stages": [],
       "missing_dimensions": [],
-      "passing_real_test_runs": [
-        "run-1025"
-      ],
+      "passing_benchmark_runs": [],
+      "passing_real_test_runs": [],
       "qualification": "unsupported",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "unsupported",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.01"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "pear",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1024"
       ],
@@ -2328,161 +2173,149 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.9.6"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.duplication_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "picard",
       "mismatched_passing_stages": [
         "bam.mapping_summary"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "3.3.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.admixture",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "plink",
       "mismatched_passing_stages": [
         "vcf.allele_frequency"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.90b7.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.admixture",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "plink2",
       "mismatched_passing_stages": [
         "vcf.export_ped"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.00a6"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.authenticity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "pmdtools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1137"
       ],
@@ -2490,38 +2323,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.60"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "preseq",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1136"
       ],
@@ -2529,79 +2359,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "3.2.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.filter_low_complexity",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "prinseq",
       "mismatched_passing_stages": [
         "low-complexity-filter"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.2.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.damage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "pydamage",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1134"
       ],
@@ -2609,237 +2433,219 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "qualimap",
       "mismatched_passing_stages": [
         "bam.quality_control"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.3"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.correct_errors",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "rcorrector",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.0.7"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.sex",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "rxy",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.0.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.coverage",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "samtools",
       "mismatched_passing_stages": [
         "bam.validate"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.20"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.contamination",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "schmutzi",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.5.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.profile_read_lengths",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "seqfu",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1031"
       ],
@@ -2847,79 +2653,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.26.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.filter_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "seqkit",
       "mismatched_passing_stages": [
         "fastq.profile_reads"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.8.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.profile_read_lengths",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "seqkit_stats",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1072"
       ],
@@ -2927,38 +2727,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.8.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.merge_pairs",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "seqprep",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1082"
       ],
@@ -2966,79 +2763,73 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.3.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "seqpurge",
       "mismatched_passing_stages": [
         "adapter-trimming"
       ],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2026_06"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.validate_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "seqtk",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1073"
       ],
@@ -3046,38 +2837,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.4"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.phasing",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "shapeit",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1037"
       ],
@@ -3085,38 +2873,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.2.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "vcf.phasing",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "shapeit5",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1033"
       ],
@@ -3124,38 +2909,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "5.1.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "skewer",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1079"
       ],
@@ -3163,77 +2945,71 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.2.2"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.deplete_rrna",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "sortmerna",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.3.7"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "container.runtime",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "spades",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1135"
       ],
@@ -3241,77 +3017,71 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.2.0"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.index_reference",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "star",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.7.11b"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "trim_galore",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1124"
       ],
@@ -3319,38 +3089,35 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.6.10"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.trim_reads",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "trimmomatic",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1125"
       ],
@@ -3358,116 +3125,107 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "0.39"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.extract_umis",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "umi_tools",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "1.1.6"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.contamination",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "verifybamid2",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.0.1"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "fastq.cluster_otus",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "passed"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "vsearch",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [
         "run-1084"
       ],
@@ -3475,45 +3233,43 @@
       "real_run_attempts": 1,
       "real_run_passes": 1,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "2.29.3"
     },
     {
+      "benchmark_stages": [],
       "declared_real_test_stage": "bam.haplogroups",
       "dimensions": {
         "benchmark": "missing",
-        "build": "missing",
+        "build": "passed",
         "catalog": "passed",
-        "freshness": "missing",
+        "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
-        "runtime": "missing",
+        "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [
-        "inventory_catalog",
-        "runtime_catalog"
-      ],
+      "evidence_mismatches": [],
       "id": "yleaf",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
-        "build",
-        "runtime",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release",
-        "freshness"
+        "release"
       ],
+      "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
       "qualification": "unverified",
       "real_run_attempts": 0,
       "real_run_passes": 0,
       "support_disposition": "retained",
+      "unadmitted_image_benchmark_runs": [],
       "version": "4.1.4"
     }
   ]

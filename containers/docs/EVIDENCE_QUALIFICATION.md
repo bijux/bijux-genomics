@@ -52,12 +52,13 @@ container execution and scientific acceptance require independent review.
 
 ## Validation and release use
 
-Regenerate the reports only from their four governed inputs:
+Regenerate the reports only from these governed inputs:
 
 - the canonical catalog;
 - the portable published image inventory;
-- the portable published runtime execution; and
-- the final run-evidence index.
+- the portable published runtime execution;
+- the final run-evidence index; and
+- each reviewed stage-benchmark report admitted by the release gate.
 
 The inventory and runtime inputs must carry publication schemas with
 `study://` and `repository://` paths plus the raw evidence SHA-256. Raw LUNARC
@@ -68,8 +69,11 @@ Build and runtime evidence is current only when the inventory and runtime
 campaign both name the present catalog SHA-256, the runtime campaign names the
 published inventory's raw SHA-256, and both campaigns name the same repository
 commit. Each tool's catalog version, support disposition, Apptainer support,
-and selected image digest must also agree. Stale evidence remains visible for
-audit, but it contributes no build, runtime, or freshness pass.
+and selected image digest must also agree. A benchmark may name the canonical
+image or an admitted historical run dependency only when that exact SIF still
+matches the current recipe. Stale evidence remains visible for audit, but it
+contributes no build, runtime, benchmark, or freshness pass. Benchmark evidence
+does not imply scientific acceptance.
 
 ```console
 python3 -B containers/contracts/qualification_report.py \
@@ -77,6 +81,7 @@ python3 -B containers/contracts/qualification_report.py \
   --inventory containers/reports/image-inventory.json \
   --runtime containers/reports/runtime-verification.json \
   --runs containers/reports/run-evidence.json \
+  --benchmark-report containers/reports/run-2001-bam-genotyping.json \
   --json-output containers/reports/qualification.json \
   --markdown-output containers/reports/qualification.md
 ```

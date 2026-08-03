@@ -112,6 +112,7 @@ _containers-release-gate: ## Run mandatory container release gate checks.
 		--inventory containers/reports/image-inventory.json \
 		--runtime containers/reports/runtime-verification.json \
 		--runs containers/reports/run-evidence.json \
+		--benchmark-report containers/reports/run-2001-bam-genotyping.json \
 		--json-output containers/reports/qualification.json \
 		--markdown-output containers/reports/qualification.md \
 		--check

@@ -20,6 +20,7 @@ except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
 REPORT_SCHEMA = "bijux.container.qualification_report.v1"
 INVENTORY_PUBLICATION_SCHEMA = "bijux.container.image_inventory_publication.v1"
 RUNTIME_PUBLICATION_SCHEMA = "bijux.container.runtime_verification_publication.v1"
+BENCHMARK_REPORT_SCHEMA = "bijux.container.stage_benchmark_report.v1"
 DIMENSIONS = (
     "catalog",
     "source",
@@ -61,11 +62,15 @@ def load_catalog(path: Path) -> dict[str, Any]:
     try:
         value = tomllib.loads(path.read_text(encoding="utf-8"))
     except (OSError, tomllib.TOMLDecodeError) as exc:
-        raise QualificationError(f"cannot read container catalog {path}: {exc}") from exc
+        raise QualificationError(
+            f"cannot read container catalog {path}: {exc}"
+        ) from exc
     if not isinstance(value.get("tools"), list):
         raise QualificationError("container catalog lacks a tools array")
     if tuple(value.get("evidence_dimensions", [])) != DIMENSIONS:
-        raise QualificationError("catalog evidence dimensions differ from report policy")
+        raise QualificationError(
+            "catalog evidence dimensions differ from report policy"
+        )
     return value
 
 
@@ -92,11 +97,109 @@ def catalog_identity_is_resolved(tool: dict[str, Any]) -> bool:
     )
 
 
+def admitted_benchmark_records(
+    paths: tuple[Path, ...],
+    catalog: dict[str, Any],
+    inventory_tools: dict[str, dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    """Admit complete benchmark reports tied to current-recipe images."""
+    catalog_tools = {str(tool["id"]): tool for tool in catalog["tools"]}
+    stage_tools: dict[str, set[str]] = defaultdict(set)
+    for tool_id, tool in catalog_tools.items():
+        if tool.get("support_disposition") != "retained":
+            continue
+        for stage_id in tool.get("stage_ids", []):
+            stage_tools[str(stage_id)].add(tool_id)
+
+    records: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    seen_runs: set[str] = set()
+    seen_stages: set[str] = set()
+    for path in paths:
+        report = load_json(path)
+        run_id = str(report.get("run_id", ""))
+        stage_id = str(report.get("stage_id", ""))
+        if (
+            report.get("schema_version") != BENCHMARK_REPORT_SCHEMA
+            or report.get("verdict") != "passed"
+            or not run_id
+            or not stage_id
+        ):
+            raise QualificationError(f"benchmark report identity is invalid: {path}")
+        if run_id in seen_runs or stage_id in seen_stages:
+            raise QualificationError(
+                f"benchmark report duplicates a run or stage: {path}"
+            )
+        seen_runs.add(run_id)
+        seen_stages.add(stage_id)
+        design = report.get("design")
+        tool_rows = report.get("tools")
+        if not isinstance(design, dict) or not isinstance(tool_rows, list):
+            raise QualificationError(f"benchmark report structure is invalid: {path}")
+        closure = design.get("tool_closure")
+        observed = [
+            str(row.get("tool", "")) for row in tool_rows if isinstance(row, dict)
+        ]
+        expected = stage_tools.get(stage_id, set())
+        if (
+            not expected
+            or not isinstance(closure, list)
+            or len(observed) != len(tool_rows)
+            or len(observed) != len(set(observed))
+            or set(observed) != {str(tool) for tool in closure}
+            or set(observed) != expected
+            or design.get("runtime") != "apptainer"
+            or design.get("scheduler") != "slurm"
+            or design.get("container_only") is not True
+            or not isinstance(design.get("warmup_repetitions"), int)
+            or design["warmup_repetitions"] < 1
+            or not isinstance(design.get("measured_repetitions"), int)
+            or design["measured_repetitions"] < 3
+        ):
+            raise QualificationError(
+                f"benchmark report lacks complete retained-tool closure: {path}"
+            )
+        for row in tool_rows:
+            tool_id = str(row["tool"])
+            image = row.get("image")
+            inventory_image = inventory_tools.get(tool_id, {})
+            image_sha256 = image.get("sha256") if isinstance(image, dict) else None
+            candidates = inventory_image.get("candidates", [])
+            admitted_image = image_sha256 == inventory_image.get(
+                "selected_image_sha256"
+            ) or any(
+                isinstance(candidate, dict)
+                and candidate.get("sha256") == image_sha256
+                and candidate.get("admitted") is True
+                and candidate.get("current_recipe") is True
+                for candidate in candidates
+            )
+            if (
+                row.get("verdict") != "passed"
+                or not isinstance(row.get("performance"), dict)
+                or not isinstance(row.get("scientific_observations"), dict)
+                or not row["scientific_observations"]
+            ):
+                raise QualificationError(
+                    f"benchmark tool evidence is incomplete for {tool_id}: {path}"
+                )
+            records[tool_id].append(
+                {
+                    "run_id": run_id,
+                    "stage_id": stage_id,
+                    "path": str(path),
+                    "sha256": sha256_file(path),
+                    "admitted_image": admitted_image,
+                }
+            )
+    return records
+
+
 def derive_report(
     catalog_path: Path,
     inventory_path: Path,
     runtime_path: Path,
     runs_path: Path,
+    benchmark_paths: tuple[Path, ...] = (),
 ) -> dict[str, Any]:
     catalog = load_catalog(catalog_path)
     inventory = load_json(inventory_path)
@@ -116,6 +219,9 @@ def derive_report(
     runtime_tools = runtime.get("tools", {})
     if not isinstance(runtime_tools, dict):
         raise QualificationError("runtime evidence lacks a tool mapping")
+    benchmark_records = admitted_benchmark_records(
+        benchmark_paths, catalog, inventory_tools
+    )
     catalog_sha256 = sha256_file(catalog_path)
     inventory_publication = inventory.get("publication", {})
     runtime_catalog = runtime.get("catalog", {})
@@ -152,6 +258,8 @@ def derive_report(
         tool_id = str(tool["id"])
         disposition = str(tool["support_disposition"])
         declared_stage = str(tool.get("real_test_stage", ""))
+        stage_attempts: list[dict[str, Any]] = []
+        mismatched_stages: list[str] = []
         if disposition != "retained":
             dimensions = {name: "not_applicable" for name in DIMENSIONS}
             qualification = "unsupported"
@@ -202,8 +310,11 @@ def derive_report(
                 }
             )
             science_passed = any(
-                record.get("scientific_status") == "passed"
-                for record in stage_attempts
+                record.get("scientific_status") == "passed" for record in stage_attempts
+            )
+            benchmark_attempts = benchmark_records.get(tool_id, [])
+            benchmark_passed = any(
+                record["admitted_image"] for record in benchmark_attempts
             )
             dimensions = {
                 "catalog": (
@@ -213,13 +324,11 @@ def derive_report(
                     "passed" if source_identity_is_resolved(tool) else "missing"
                 ),
                 "build": "passed" if build_evidence_current else "missing",
-                "runtime": (
-                    "passed" if runtime_evidence_current else "missing"
-                ),
+                "runtime": ("passed" if runtime_evidence_current else "missing"),
                 "stage": "passed" if real_passed else "missing",
                 "real_data": "passed" if real_passed else "missing",
                 "science": "passed" if science_passed else "missing",
-                "benchmark": "missing",
+                "benchmark": "passed" if benchmark_passed else "missing",
                 "security": "missing",
                 "release": "missing",
                 "freshness": (
@@ -265,6 +374,23 @@ def derive_report(
                     str(record["run_id"]) for record in stage_attempts
                 ],
                 "mismatched_passing_stages": mismatched_stages,
+                "passing_benchmark_runs": [
+                    record["run_id"]
+                    for record in benchmark_records.get(tool_id, [])
+                    if record["admitted_image"]
+                ],
+                "benchmark_stages": sorted(
+                    {
+                        record["stage_id"]
+                        for record in benchmark_records.get(tool_id, [])
+                        if record["admitted_image"]
+                    }
+                ),
+                "unadmitted_image_benchmark_runs": [
+                    record["run_id"]
+                    for record in benchmark_records.get(tool_id, [])
+                    if not record["admitted_image"]
+                ],
                 "evidence_mismatches": (
                     evidence_mismatches if disposition == "retained" else []
                 ),
@@ -286,13 +412,15 @@ def derive_report(
             },
             "runtime": {"path": str(runtime_path), "sha256": sha256_file(runtime_path)},
             "runs": {"path": str(runs_path), "sha256": sha256_file(runs_path)},
+            "benchmarks": [
+                {"path": str(path), "sha256": sha256_file(path)}
+                for path in benchmark_paths
+            ],
         },
         "summary": {
             "tool_count": len(records),
             "qualification": dict(sorted(qualification_counts.items())),
-            "dimension_passes": {
-                name: dimension_passes[name] for name in DIMENSIONS
-            },
+            "dimension_passes": {name: dimension_passes[name] for name in DIMENSIONS},
         },
         "tools": records,
     }
@@ -329,14 +457,10 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "| Evidence link | Current |",
         "|---|---|",
-        "| Inventory → current catalog | "
-        f"{'yes' if compatibility['inventory_catalog'] else 'no'} |",
-        "| Runtime → current catalog | "
-        f"{'yes' if compatibility['runtime_catalog'] else 'no'} |",
-        "| Runtime → published inventory | "
-        f"{'yes' if compatibility['runtime_inventory'] else 'no'} |",
-        "| Inventory/runtime repository commit | "
-        f"{'yes' if compatibility['repository_commit'] else 'no'} |",
+        f"| Inventory → current catalog | {'yes' if compatibility['inventory_catalog'] else 'no'} |",
+        f"| Runtime → current catalog | {'yes' if compatibility['runtime_catalog'] else 'no'} |",
+        f"| Runtime → published inventory | {'yes' if compatibility['runtime_inventory'] else 'no'} |",
+        f"| Inventory/runtime repository commit | {'yes' if compatibility['repository_commit'] else 'no'} |",
         "",
         "## Dimension coverage",
         "",
@@ -344,9 +468,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "|---|---:|",
     ]
     for dimension in DIMENSIONS:
-        lines.append(
-            f"| `{dimension}` | {summary['dimension_passes'][dimension]} |"
-        )
+        lines.append(f"| `{dimension}` | {summary['dimension_passes'][dimension]} |")
     lines.extend(
         [
             "",
@@ -413,6 +535,13 @@ def main() -> int:
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--runtime", type=Path, required=True)
     parser.add_argument("--runs", type=Path, required=True)
+    parser.add_argument(
+        "--benchmark-report",
+        type=Path,
+        action="append",
+        default=[],
+        help="admit one reviewed stage benchmark report; may be repeated",
+    )
     parser.add_argument("--json-output", type=Path, required=True)
     parser.add_argument("--markdown-output", type=Path, required=True)
     parser.add_argument(
@@ -422,7 +551,13 @@ def main() -> int:
     )
     args = parser.parse_args()
     try:
-        report = derive_report(args.catalog, args.inventory, args.runtime, args.runs)
+        report = derive_report(
+            args.catalog,
+            args.inventory,
+            args.runtime,
+            args.runs,
+            tuple(args.benchmark_report),
+        )
         json_content = json.dumps(report, indent=2, sort_keys=True) + "\n"
         markdown_content = render_markdown(report)
         if args.check:

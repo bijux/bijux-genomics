@@ -30,6 +30,7 @@ one campaign record because it admits one final immutable image per tool.
 - [LUNARC Apptainer image inventory](image-inventory.md)
 - [Complete LUNARC run-evidence index](run-evidence.md)
 - [Real-data stage benchmark definition coverage](stage-benchmark-coverage.md)
+- [Ancient-horse BAM genotyping benchmark](run-2001-bam-genotyping.md)
 - [Evidence-dimension qualification matrix](qualification.md)
 - [Apptainer version and help verification](runtime-verification.md)
 - [LUNARC ancient-DNA damage validation](lunarc-ancient-damage.md)
