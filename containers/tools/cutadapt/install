@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/cutadapt.tar.gz"
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" \
+  'https://github.com/marcelm/cutadapt/archive/9276a89d5df9282ff51602b042b40c3b48c98566.tar.gz'
+printf '%s  %s\n' \
+  'ca893162f11dbe31cb1956e7611334d6f5fee91a54d4ddd2272ecf427da776dd' \
+  "$archive" | sha256sum --check --strict
+
+python3 -m venv /opt/cutadapt-venv
+/opt/cutadapt-venv/bin/pip install --no-cache-dir --upgrade \
+  'pip==25.2' \
+  'setuptools==80.9.0' \
+  'wheel==0.45.1' \
+  'Cython==3.1.2'
+SETUPTOOLS_SCM_PRETEND_VERSION_FOR_CUTADAPT=4.9 \
+  /opt/cutadapt-venv/bin/pip install --no-cache-dir "$archive"
+
+/opt/cutadapt-venv/bin/cutadapt --version | grep -Fx '4.9'
+/opt/cutadapt-venv/bin/cutadapt --help >/dev/null
