@@ -56,6 +56,7 @@ python3 -B benchmarks/benchmark_portfolio.py \
   --interfaces benchmarks/contracts/stage-interfaces.toml \
   --catalog containers/contracts/catalog.toml \
   --repository-root . \
+  --evidence-root benchmarks/reports \
   --json-output benchmarks/reports/scientific-benchmark-readiness.json \
   --markdown-output benchmarks/reports/scientific-benchmark-readiness.md
 ```
@@ -176,7 +177,7 @@ Validate the execution definitions and render their coverage report:
 python3 -B benchmarks/benchmark_registry.py \
   --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
-  --evidence-root containers/reports \
+  --evidence-root benchmarks/reports \
   --json-output benchmarks/reports/stage-benchmark-coverage.json \
   --markdown-output benchmarks/reports/stage-benchmark-coverage.md
 ```
@@ -285,6 +286,16 @@ operations do not expose equivalent useful parallelism. Agreement proves that
 the integrations interpret BAM flags consistently for this corpus, not that
 the upstream alignments are true.
 
+The FASTQ profile campaign is the first comparative real-cohort execution. It
+uses all 20 admitted human runs (30 FASTQ files and 3.64 GB compressed input),
+all three retained profilers, immutable Apptainer images, one warmup, and three
+measured repetitions. Each profiler output is normalized to the same versioned
+benchmark schema and must agree exactly with independently recorded admission
+counts before a common comparison consumer accepts it. This establishes
+replayable comparison interoperability. It does not yet establish operational
+pipeline substitution against the full `fastq.profile_reads` stage report, and
+the report states that boundary explicitly.
+
 After accounting collection, validate every archived contract, output digest,
 input lock, resource row, repetition, and Slurm identity before publishing the
 small report:
@@ -321,6 +332,14 @@ python3 -B benchmarks/benchmark_evidence.py \
   --stage-result-root "$STUDY/results/benchmarks/run-2004-bam-mapping-summary" \
   --json-output benchmarks/reports/run-2004-bam-mapping-summary.json \
   --markdown-output benchmarks/reports/run-2004-bam-mapping-summary.md
+
+python3 -B benchmarks/benchmark_evidence.py \
+  --registry benchmarks/contracts/stage-campaigns.toml \
+  --catalog containers/contracts/catalog.toml \
+  --run-id run-2043 \
+  --stage-result-root "$STUDY/results/benchmarks/run-2043-fastq-profile-reads" \
+  --json-output benchmarks/reports/run-2043-fastq-profile-reads.json \
+  --markdown-output benchmarks/reports/run-2043-fastq-profile-reads.md
 ```
 
 The reviewed [BAM-genotyping report](reports/run-2001-bam-genotyping.md)
@@ -329,4 +348,6 @@ report](reports/run-2002-bam-coverage.md) compares the complete retained
 tool closure under their honestly declared concurrency. The [endogenous-content
 report](reports/run-2003-bam-endogenous-content.md) publishes the mapping
 proxy with its biological claim boundary. All reports keep large run products
-on the governed study filesystem.
+on the governed study filesystem. The [FASTQ profile report](reports/run-2043-fastq-profile-reads.md)
+publishes the first real multi-tool comparison and its explicit operational
+substitution boundary.
