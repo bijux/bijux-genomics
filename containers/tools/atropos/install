@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source_archive="$(mktemp)"
+trap 'rm -f "$source_archive"' EXIT
+
+python3 -m venv /opt/atropos-venv
+/opt/atropos-venv/bin/python -m pip install \
+  --no-cache-dir \
+  --only-binary :all: \
+  --require-hashes \
+  --requirement /opt/atropos-build/requirements.lock
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$source_archive" \
+  https://github.com/jdidion/atropos/archive/916a0bfbc18149bbefb83ccff9fe2a0807415807.tar.gz
+printf '%s  %s\n' \
+  '7f23fc141336f508d4198cd491cf223082811d83a0607999c22dc80ca4ed4874' \
+  "$source_archive" | sha256sum --check --strict
+mkdir -p /opt/atropos-source
+tar --extract --gzip --file "$source_archive" --directory /opt/atropos-source --strip-components=1
+
+/opt/atropos-venv/bin/python -m pip install \
+  --no-cache-dir \
+  --no-build-isolation \
+  --no-deps \
+  /opt/atropos-source
+mv /opt/atropos-venv/bin/atropos /opt/atropos-venv/bin/atropos-native
+chmod 0755 /usr/local/bin/atropos
+/usr/local/bin/atropos --version | grep -Fx 'Atropos 1.1.31'
+/usr/local/bin/atropos trim --help >/dev/null
+rm -rf /opt/atropos-source

@@ -2,102 +2,63 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: atropos
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: immutable upstream commit archive and hashed Python build lock
+# Upstream source: https://github.com/jdidion/atropos
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to locked snapshots, wheels, and source archive
+# NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: python@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION Atropos-v1.1.31
     org.opencontainers.image.source https://github.com/jdidion/atropos
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 916a0bfbc18149bbefb83ccff9fe2a0807415807
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses "MIT AND CC0-1.0"
     org.opencontainers.image.version 1.1.31
     org.opencontainers.image.tool atropos
-    org.opencontainers.image.title atropos
+    org.opencontainers.image.title Atropos
+
+%files
+    containers/tools/atropos/requirements.lock /opt/atropos-build/requirements.lock
+    containers/tools/atropos/install /opt/atropos-build/install
+    containers/tools/atropos/atropos /usr/local/bin/atropos
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/opt/atropos-venv/bin:/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+    export PYTHONNOUSERSITE=1
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        ca-certificates && \
+    sed -i \
+      -e 's#http://deb.debian.org/debian-security#https://snapshot.debian.org/archive/debian-security/20260802T000000Z#g' \
+      -e 's#http://deb.debian.org/debian#https://snapshot.debian.org/archive/debian/20260802T000000Z#g' \
+      /etc/apt/sources.list.d/debian.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl
+    /opt/atropos-build/install
+    apt-get purge -y --auto-remove build-essential curl
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
 
-    python3 -m venv /opt/atropos-venv && \
-    /opt/atropos-venv/bin/pip install --no-cache-dir "Cython<3" wheel && \
-    /opt/atropos-venv/bin/pip download --no-binary :all: --no-deps \
-        atropos==1.1.31 -d /tmp/atropos-src && \
-    tar -xzf /tmp/atropos-src/atropos-1.1.31.tar.gz -C /tmp/atropos-src && \
-
-    # Apply import patches using sed
-    find /tmp/atropos-src/atropos-1.1.31/atropos -name '*.py' -exec sed -i \
-        -e 's/from collections import OrderedDict, Iterable, Sequence/from collections import OrderedDict\nfrom collections.abc import Iterable, Sequence/' \
-        -e 's/from collections import Sequence, defaultdict/from collections import defaultdict\nfrom collections.abc import Sequence/' \
-        -e 's/from collections import Iterable, Sequence/from collections.abc import Iterable, Sequence/' \
-        -e 's/from collections import Sequence/from collections.abc import Sequence/' \
-        -e 's/from collections import Iterable/from collections.abc import Iterable/' {} + && \
-
-    cat > /tmp/pygensend.h <<'EOF'
-#include <Python.h>
-#ifndef __PYX_GEN_SEND_COMPAT
-#define __PYX_GEN_SEND_COMPAT
-static inline PyObject* __Pyx_PyGen_Send(PyGenObject* gen, PyObject* value) {
-    PyObject* result = NULL;
-    PySendResult res = PyIter_Send((PyObject*)gen, value, &result);
-    if (res == PYGEN_RETURN) {
-        if (result == NULL) {
-            result = Py_None;
-            Py_INCREF(result);
-        }
-        PyErr_SetObject(PyExc_StopIteration, result);
-        Py_DECREF(result);
-        return NULL;
-    }
-    if (res == PYGEN_ERROR) {
-        return NULL;
-    }
-    return result;
-}
-#endif
-#define _PyGen_Send __Pyx_PyGen_Send
-#define PyGen_Send __Pyx_PyGen_Send
-EOF
-
-    CFLAGS="-include /tmp/pygensend.h" CPPFLAGS="-include /tmp/pygensend.h" \
-    /opt/atropos-venv/bin/pip install --no-cache-dir --no-build-isolation \
-        /tmp/atropos-src/atropos-1.1.31 && \
-    ln -s /opt/atropos-venv/bin/atropos /usr/local/bin/atropos && \
-
-    rm -rf /tmp/atropos-src /tmp/pygensend.h && \
-    rm -rf /var/lib/apt/lists/*
 %runscript
-    if [ $# -eq 0 ]; then
-        exec /usr/local/bin/atropos --version
-    else
-        exec /usr/local/bin/atropos "$@"
-    fi
+    exec /usr/local/bin/atropos "$@"
+
+%test
+    atropos --version | grep -Fx 'Atropos 1.1.31'
+    atropos trim --help >/dev/null
+    if atropos --governed-invalid-option >/dev/null 2>&1; then exit 1; fi
 
 %help
-    This Apptainer image provides Atropos version 1.1.31 with compatibility patches.
-    Run with arguments to execute the tool, or without arguments to display the version.
+    Atropos 1.1.31 built from the exact upstream commit with hashed build tooling.

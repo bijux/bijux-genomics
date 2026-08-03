@@ -1,0 +1,8 @@
+# Build dependencies admitted for Atropos 1.1.31 on the pinned Python 3.10 base.
+cython==0.29.37 \
+    --hash=sha256:12192ab269e7185720f2d2f8894587bf1da4276db1b9b869e4622a093f18cae6 \
+    --hash=sha256:4658499a41255431f6bbdca7e634e9c8d3a4c190bf24b4aa1646dac751d3da4d
+setuptools==80.9.0 \
+    --hash=sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922
+wheel==0.45.1 \
+    --hash=sha256:708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248
