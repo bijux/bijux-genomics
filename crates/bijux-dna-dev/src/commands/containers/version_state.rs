@@ -76,7 +76,6 @@ pub(super) fn append_toml_table(
 pub(super) struct VersionMapItem {
     pub(super) tool: String,
     pub(super) version: String,
-    pub(super) status: String,
     pub(super) source: String,
     pub(super) source_sha256: String,
     pub(super) pinned_commit: String,

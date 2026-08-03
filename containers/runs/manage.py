@@ -4,15 +4,15 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter, defaultdict
 import hashlib
 import json
-from pathlib import Path
 import re
 import shutil
 import sys
-from typing import Any, Iterable
-
+from collections import Counter, defaultdict
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Any
 
 RUN_ID = re.compile(r"run-[1-9][0-9]{3,}")
 TRACKED_RUN = re.compile(r"(run-[1-9][0-9]{3,})-([a-z0-9_]+)")
@@ -356,16 +356,22 @@ def validate_runs(root: Path) -> list[dict[str, Any]]:
     return sorted(records, key=lambda record: int(str(record["run_id"])[4:]))
 
 
-def final_evidence(records: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def final_evidence(
+    records: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     by_tool: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in records:
         by_tool[str(record["tool"])].append(record)
     selected = []
     superseded = []
     for tool, tool_records in sorted(by_tool.items()):
-        passed = [record for record in tool_records if record["execution_status"] == "passed"]
+        passed = [
+            record for record in tool_records if record["execution_status"] == "passed"
+        ]
         if not passed:
-            raise RunEvidenceError(f"{tool}: no successful execution can be published as final evidence")
+            raise RunEvidenceError(
+                f"{tool}: no successful execution can be published as final evidence"
+            )
         final = max(passed, key=lambda record: int(str(record["run_id"])[4:]))
         selected.append(final)
         superseded.extend(record for record in tool_records if record is not final)
@@ -405,7 +411,9 @@ def validate_attempt_ledger(path: Path, records: list[dict[str, Any]]) -> None:
         if not isinstance(run_id, str) or RUN_ID.fullmatch(run_id) is None:
             raise RunEvidenceError(f"attempt ledger run identity is invalid: {path}")
         if run_id in seen or run_id in final_by_id:
-            raise RunEvidenceError(f"attempt ledger run identity is duplicated: {run_id}")
+            raise RunEvidenceError(
+                f"attempt ledger run identity is duplicated: {run_id}"
+            )
         seen.add(run_id)
         final = final_by_id.get(str(final_id))
         if final is None or final["tool"] != attempt.get("tool"):
@@ -458,18 +466,24 @@ def attempt_ledger_rows(
     return sorted(merged.values(), key=lambda row: int(str(row["run_id"])[4:]))
 
 
-def publish_final_evidence(root: Path, ledger_path: Path, apply: bool) -> tuple[int, int]:
+def publish_final_evidence(
+    root: Path, ledger_path: Path, apply: bool
+) -> tuple[int, int]:
     records = validate_runs(root)
     selected, superseded = final_evidence(records)
     existing_attempts: list[dict[str, Any]] = []
     if ledger_path.is_file():
         existing = load_json(ledger_path)
         rows = existing.get("attempts")
-        if existing.get("schema_version") != ATTEMPT_LEDGER_SCHEMA or not isinstance(rows, list):
+        if existing.get("schema_version") != ATTEMPT_LEDGER_SCHEMA or not isinstance(
+            rows, list
+        ):
             raise RunEvidenceError(f"existing attempt ledger is invalid: {ledger_path}")
         existing_attempts = [dict(row) for row in rows if isinstance(row, dict)]
         if len(existing_attempts) != len(rows):
-            raise RunEvidenceError(f"existing attempt ledger contains an invalid row: {ledger_path}")
+            raise RunEvidenceError(
+                f"existing attempt ledger contains an invalid row: {ledger_path}"
+            )
     attempts = attempt_ledger_rows(root, records, existing_attempts)
     ledger = {
         "schema_version": ATTEMPT_LEDGER_SCHEMA,
@@ -477,7 +491,11 @@ def publish_final_evidence(root: Path, ledger_path: Path, apply: bool) -> tuple[
             "published_run_count": len(selected),
             "superseded_attempt_count": len(attempts),
             "execution_status": dict(
-                sorted(Counter(str(record["execution_status"]) for record in attempts).items())
+                sorted(
+                    Counter(
+                        str(record["execution_status"]) for record in attempts
+                    ).items()
+                )
             ),
         },
         "attempts": attempts,
@@ -551,7 +569,7 @@ def render_report(root: Path, output: Path) -> int:
         "# LUNARC container run evidence",
         "",
         "This report indexes the final successful immutable execution admitted for each",
-        "tool. A successful process is not scientific validation, and no tool is promoted",
+        "tool. A successful process is not scientific validation, and no tool is qualified",
         "by this report.",
         "",
         "## Archive boundary",
@@ -657,8 +675,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             action = "published" if args.apply else "would publish"
             print(
-                f"{action} {selected} final records; "
-                f"{superseded} attempts superseded"
+                f"{action} {selected} final records; {superseded} attempts superseded"
             )
             return 0
         if args.command == "render-index":

@@ -4,12 +4,12 @@ use std::fmt::Write as _;
 
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
-    command_hostname, docker_tool_ids, failure_lines, fs, is_non_bijux_apptainer_source,
-    iso_root_path, iso_run_id, json_string_pretty, load_toml, lock_items_by_tool, lock_json_path,
-    out_path_arg, path_from_arg, policy_path, read_json, read_utf8, registry_tool_rows, sha256_hex,
-    success_line, table_bool, table_string, tool_status_manifest, tool_versions, validation,
-    write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path, PathBuf, ProcessRunner,
-    Regex, Result, WalkDir, Workspace,
+    command_hostname, container_support_summary, docker_tool_ids, failure_lines, fs,
+    is_non_bijux_apptainer_source, iso_root_path, iso_run_id, json_string_pretty, load_toml,
+    lock_items_by_tool, lock_json_path, out_path_arg, path_from_arg, policy_path, read_json,
+    read_utf8, registry_tool_rows, sha256_hex, success_line, table_bool, table_string,
+    tool_versions, validation, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context,
+    Path, PathBuf, ProcessRunner, Regex, Result, WalkDir, Workspace,
 };
 
 mod frontend_proofs;
@@ -34,7 +34,6 @@ pub(super) fn check_apptainer_cache_policy(
 }
 
 pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let tool_status = tool_status_manifest(workspace)?;
     let required_labels = canonical_container_label_keys();
     let mut errors = Vec::new();
     let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)")?;
@@ -45,7 +44,6 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
         let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
-        let status = tool_status.get(tool_id).cloned().unwrap_or_else(|| "unknown".to_string());
         let text = read_utf8(&path)?;
         let head = text.lines().take(24).collect::<Vec<_>>().join("\n");
         for marker in [
@@ -134,14 +132,12 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                 .get(1)
                 .map(|value| value.as_str().trim().trim_matches('"').to_ascii_lowercase())
                 .unwrap_or_default();
-            if status == "production"
-                && matches!(
-                    value.as_str(),
-                    "latest" | "latest-pinned" | "main" | "master" | "head" | "unknown" | ""
-                )
-            {
+            if matches!(
+                value.as_str(),
+                "latest" | "latest-pinned" | "main" | "master" | "head" | "unknown" | ""
+            ) {
                 errors.push(format!(
-                    "{rel}: floating/unknown image.version '{value}' is forbidden for production tool"
+                    "{rel}: floating or unknown image.version '{value}' is forbidden"
                 ));
             }
         }
@@ -530,6 +526,7 @@ pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutc
 }
 
 pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let support = container_support_summary(workspace)?;
     let mut registry_ids = BTreeSet::new();
     let mut registry_container_ids = BTreeSet::new();
     for row in registry_tool_rows(workspace)? {
@@ -539,8 +536,8 @@ pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerC
             continue;
         }
         registry_ids.insert(tool_id.clone());
-        let status = table_string(&row, "status");
-        if table_bool(&row, "container") && matches!(status.as_str(), "production" | "experimental")
+        if table_bool(&row, "container")
+            && support.get(&tool_id).is_some_and(|(disposition, _)| disposition == "retained")
         {
             registry_container_ids.insert(tool_id);
         }
@@ -1056,7 +1053,7 @@ pub(super) fn write_vuln_hook_report(
     sbom_root: &Path,
     out: &Path,
     toolkit: &str,
-    promoted_only: bool,
+    retained_only: bool,
 ) -> Result<()> {
     let scanner = if command_exists("grype") {
         Some("grype")
@@ -1066,9 +1063,9 @@ pub(super) fn write_vuln_hook_report(
         None
     };
     let mut allowed_tools = BTreeSet::new();
-    if promoted_only {
-        for (tool, row) in lock_items_by_tool(workspace)? {
-            if row.get("status").and_then(serde_json::Value::as_str) == Some("production") {
+    if retained_only {
+        for (tool, (disposition, _)) in container_support_summary(workspace)? {
+            if disposition == "retained" {
                 allowed_tools.insert(tool);
             }
         }
@@ -1168,7 +1165,7 @@ pub(super) fn write_vuln_hook_report(
                 "schema_version": "bijux.container.vuln_hook.v1",
                 "scanner": scanner.unwrap_or("none"),
                 "toolkit": if toolkit.trim().is_empty() { "all" } else { toolkit },
-                "promoted_only": promoted_only,
+                "retained_only": retained_only,
                 "items": rows,
             }))?
         ),

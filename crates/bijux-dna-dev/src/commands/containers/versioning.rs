@@ -1,11 +1,11 @@
 #![allow(clippy::too_many_lines)]
 
 use super::{
-    anyhow, append_toml_table, container_version_deprecations_path, env_or_empty, failure_lines,
-    fs, git_last_modified_timestamp, governed_container_file_ids, load_toml, lock_items_by_tool,
-    out_path_arg, parse_date, read_lock_json, read_utf8, run_argv, sha256_hex, success_line,
-    table_string, tool_versions, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context,
-    Local, PathBuf, Result, Utc, VersionMapItem, Workspace,
+    anyhow, append_toml_table, container_support_summary, container_version_deprecations_path,
+    env_or_empty, failure_lines, fs, git_last_modified_timestamp, governed_container_file_ids,
+    load_toml, lock_items_by_tool, out_path_arg, parse_date, read_lock_json, read_utf8, run_argv,
+    sha256_hex, success_line, table_string, tool_versions, write_utf8, BTreeMap, BTreeSet,
+    ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc, VersionMapItem, Workspace,
 };
 
 const VERSION_LOCK_GENERATOR_PATH: &str =
@@ -59,11 +59,6 @@ pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<Strin
                 .and_then(toml::Value::as_str)
                 .unwrap_or_default()
                 .to_string(),
-            status: row
-                .get("status")
-                .and_then(toml::Value::as_str)
-                .unwrap_or("production")
-                .to_string(),
             source: row.get("source").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
             source_sha256: row
                 .get("source_sha256")
@@ -85,7 +80,7 @@ pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<Strin
     Ok(format!(
         "{}\n",
         serde_json::to_string_pretty(&serde_json::json!({
-            "schema_version": "bijux.container.version_map.v1",
+            "schema_version": "bijux.container.version_map.v2",
             "source": "containers/versions/versions.toml",
             "items": items,
         }))?
@@ -223,9 +218,9 @@ pub(super) fn check_lock_schema(workspace: &Workspace) -> Result<ContainerComman
         }
     }
     if lock.get("schema_version").and_then(serde_json::Value::as_str)
-        != Some("bijux.container.version_lock.v3")
+        != Some("bijux.container.version_lock.v4")
     {
-        errors.push("schema_version must be bijux.container.version_lock.v3".to_string());
+        errors.push("schema_version must be bijux.container.version_lock.v4".to_string());
     }
     match lock.get("items").and_then(serde_json::Value::as_array) {
         Some(items) if !items.is_empty() => {
@@ -238,7 +233,6 @@ pub(super) fn check_lock_schema(workspace: &Workspace) -> Result<ContainerComman
                 for key in [
                     "tool",
                     "version",
-                    "status",
                     "source",
                     "entry_sha256",
                     "resolved_image_digest",
@@ -284,6 +278,7 @@ pub(super) fn check_version_completeness(workspace: &Workspace) -> Result<Contai
 }
 
 pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let support = container_support_summary(workspace)?;
     let mut errors = Vec::new();
     for (tool, row) in tool_versions(workspace)? {
         let source = table_string(&row, "source");
@@ -302,8 +297,9 @@ pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerC
         }
         let source_sha = table_string(&row, "source_sha256");
         let pin = table_string(&row, "pinned_commit");
-        let status = table_string(&row, "status");
-        if source_sha.is_empty() && pin.is_empty() && status != "unsupported" {
+        let unsupported =
+            support.get(&tool).is_some_and(|(disposition, _)| disposition == "unsupported");
+        if source_sha.is_empty() && pin.is_empty() && !unsupported {
             errors.push(format!("{tool}: missing source_sha256 or pinned_commit"));
         }
         if !source_sha.is_empty()
@@ -365,26 +361,18 @@ pub(super) fn check_version_immutability(workspace: &Workspace) -> Result<Contai
         let Some(current_row) = current_rows.get(&tool) else {
             continue;
         };
-        let previous_status = table_string(&previous_row, "status");
-        let current_status = {
-            let value = table_string(current_row, "status");
-            if value.is_empty() {
-                previous_status.clone()
-            } else {
-                value
-            }
-        };
         let previous_version = table_string(&previous_row, "version");
         let current_version = table_string(current_row, "version");
-        if previous_status == "production"
-            && current_status == "production"
-            && !previous_version.is_empty()
-            && !current_version.is_empty()
-            && previous_version != current_version
-        {
-            errors.push(format!(
-                "{tool}: production version is immutable ({previous_version} -> {current_version})"
-            ));
+        if previous_version == current_version && !current_version.is_empty() {
+            for field in ["source", "source_sha256", "pinned_commit"] {
+                let previous_value = table_string(&previous_row, field);
+                let current_value = table_string(current_row, field);
+                if previous_value != current_value {
+                    errors.push(format!(
+                        "{tool}: {field} changed without a version change ({previous_value} -> {current_value})"
+                    ));
+                }
+            }
         }
     }
     if errors.is_empty() {
@@ -619,7 +607,6 @@ pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<Str
         items.push(serde_json::json!({
             "tool": tool,
             "version": row.get("version").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            "status": row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default(),
             "source": row.get("source").and_then(serde_json::Value::as_str).unwrap_or_default(),
             "source_sha256": row.get("source_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
             "pinned_commit": row.get("pinned_commit").and_then(serde_json::Value::as_str).unwrap_or_default(),
@@ -635,7 +622,7 @@ pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<Str
     }
 
     let output = serde_json::json!({
-        "schema_version": "bijux.container.version_lock.v3",
+        "schema_version": "bijux.container.version_lock.v4",
         "source": "containers/versions/versions.toml",
         "version_map_source": "artifacts/containers/version_map.json",
         "build_manifests_source": "artifacts/containers/manifests/*.json",
@@ -724,10 +711,10 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
     if lock
         .get("schema_version")
         .and_then(serde_json::Value::as_str)
-        .is_none_or(|value| value != "bijux.container.version_lock.v3")
+        .is_none_or(|value| value != "bijux.container.version_lock.v4")
     {
         errors
-            .push("- lock.json schema_version must be bijux.container.version_lock.v3".to_string());
+            .push("- lock.json schema_version must be bijux.container.version_lock.v4".to_string());
     }
     if lock.get("source").and_then(serde_json::Value::as_str)
         != Some("containers/versions/versions.toml")

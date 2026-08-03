@@ -443,12 +443,12 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
         ),
         native(
             "check-vuln-hook",
-            "Validate promoted-tool vulnerability hook coverage and report artifacts.",
+            "Validate retained-tool vulnerability hook coverage and report artifacts.",
             NativeContainerCommandKey::CheckVulnHook,
         ),
         native(
             "check-sbom-artifacts",
-            "Validate SBOM artifacts and smoke-log evidence for promoted tool manifests.",
+            "Validate SBOM artifacts and smoke-log evidence for retained tool manifests.",
             NativeContainerCommandKey::CheckSbomArtifacts,
         ),
         native(
@@ -563,7 +563,7 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
         ),
         native(
             "check-image-size-regression",
-            "Validate promoted image-size growth against the governed acknowledgement policy.",
+            "Validate retained image-size growth against the governed acknowledgement policy.",
             NativeContainerCommandKey::CheckImageSizeRegression,
         ),
         native(

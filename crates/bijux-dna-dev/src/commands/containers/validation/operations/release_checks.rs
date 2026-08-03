@@ -1,9 +1,11 @@
 #![allow(clippy::too_many_lines)]
 
+use crate::commands::containers::container_support_summary;
+
 use super::{
     apptainer_def_paths, dockerfile_paths, env_or_empty, failure_lines, git_show_file, load_toml,
-    read_json, read_utf8, registry_tool_id, success_line, table_bool, table_string, walk_paths,
-    BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex, Result, Workspace,
+    read_json, read_utf8, success_line, table_string, walk_paths, BTreeMap, BTreeSet,
+    ContainerCommandOutcome, Context, PathBuf, Regex, Result, Workspace,
 };
 
 pub(in super::super::super) fn check_image_size_regression(
@@ -16,7 +18,7 @@ pub(in super::super::super) fn check_image_size_regression(
     }
     let policy = load_toml(&policy_path)?;
     let default_limit = policy
-        .get("max_growth_percent_for_promoted")
+        .get("max_growth_percent_for_retained")
         .and_then(toml::Value::as_float)
         .unwrap_or(20.0);
     let mut acknowledgements = BTreeMap::new();
@@ -66,9 +68,6 @@ pub(in super::super::super) fn check_image_size_regression(
     let mut checked = 0usize;
     let mut errors = Vec::new();
     for (tool, current_row) in current_items {
-        if current_row.get("status").and_then(serde_json::Value::as_str) != Some("production") {
-            continue;
-        }
         let Some(previous_row) = previous_items.get(&tool) else {
             continue;
         };
@@ -109,7 +108,7 @@ pub(in super::super::super) fn check_image_size_regression(
     }
     if errors.is_empty() {
         return success_line(format!(
-            "image size regression: OK ({checked} promoted tools compared)"
+            "image size regression: OK ({checked} versioned images compared)"
         ));
     }
     failure_lines("image size regression: FAILED", &errors)
@@ -150,27 +149,20 @@ pub(in super::super::super) fn check_lock_matches_built_output(
         })
         .collect::<BTreeMap<_, _>>();
 
-    let mut production = BTreeMap::new();
-    for rel in [
-        "configs/ci/registry/tool_registry.toml",
-        "configs/ci/registry/tool_registry_vcf.toml",
-        "configs/ci/registry/tool_registry_experimental.toml",
-        "configs/ci/registry/tool_registry_vcf_downstream.toml",
-    ] {
-        let data = load_toml(&workspace.path(rel))?;
-        for row in data.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default() {
-            let Some(row) = row.as_table() else {
-                continue;
-            };
-            if table_string(row, "status") != "production" || !table_bool(row, "container") {
-                continue;
-            }
-            let tool = registry_tool_id(row);
-            if !tool.is_empty() {
-                production.insert(tool, table_string(row, "version"));
-            }
-        }
-    }
+    let versions = load_toml(&workspace.path("containers/versions/versions.toml"))?;
+    let retained = container_support_summary(workspace)?
+        .into_iter()
+        .filter_map(|(tool, (disposition, _))| {
+            (disposition == "retained").then(|| {
+                let version = versions
+                    .get(&tool)
+                    .and_then(toml::Value::as_table)
+                    .map(|row| table_string(row, "version"))
+                    .unwrap_or_default();
+                (tool, version)
+            })
+        })
+        .collect::<BTreeMap<_, _>>();
 
     let summary = read_json(&summary_path)?;
     let mut docker_manifest_by_tool = BTreeMap::new();
@@ -214,7 +206,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
 
     let strict_missing = !env_or_empty("CI").is_empty();
     let mut errors = Vec::new();
-    for (tool, expected_version) in production {
+    for (tool, expected_version) in retained {
         if !lock_tools.contains(&tool) {
             errors.push(format!("{tool}: missing from containers/versions/lock.json"));
         }
@@ -355,10 +347,9 @@ pub(in super::super::super) fn check_toolkit_bundle_buildable(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let bundles = load_toml(&workspace.path("configs/ci/tools/toolkit_bundles.toml"))?;
-    let images = load_toml(&workspace.path("configs/ci/tools/images.toml"))?;
     let bundle_table =
         bundles.get("bundles").and_then(toml::Value::as_table).cloned().unwrap_or_default();
-    let image_table = images.as_table().cloned().unwrap_or_default();
+    let support = container_support_summary(workspace)?;
     let apptainer = apptainer_def_paths(workspace)
         .into_iter()
         .filter_map(|path| path.file_stem().and_then(|value| value.to_str()).map(ToOwned::to_owned))
@@ -390,14 +381,19 @@ pub(in super::super::super) fn check_toolkit_bundle_buildable(
         }
         let mut any_buildable = false;
         for tool in tools {
-            let status = image_table
-                .get(&tool)
-                .and_then(toml::Value::as_table)
-                .map(|row| table_string(row, "status"))
-                .unwrap_or_default();
+            let Some((disposition, _)) = support.get(&tool) else {
+                errors.push(format!("{bundle_id}: tool '{tool}' is absent from the catalog"));
+                continue;
+            };
+            if disposition != "retained" {
+                errors.push(format!(
+                    "{bundle_id}: tool '{tool}' has unsupported catalog disposition '{disposition}'"
+                ));
+                continue;
+            }
             if apptainer.contains(&tool) || docker.contains(&tool) {
                 any_buildable = true;
-            } else if status != "planned" {
+            } else {
                 errors.push(format!(
                     "{bundle_id}: tool '{tool}' is not buildable (no docker/apptainer def)"
                 ));

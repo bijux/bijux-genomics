@@ -1,12 +1,12 @@
 {
-  "build_date_utc": "2026-08-03T09:32:05+02:00",
+  "build_date_utc": "2026-08-03T09:55:26+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
-  "generator_sha256": "7693ff3e7dff936fbdfaee2235a8ddd839702d48e6265716179182b986601c8c",
+  "generator_sha256": "94d1b5c4c5b2020d7bae7ea5ccbe554a034fb7550c0d6da083a2d48d78168447",
   "items": [
     {
-      "entry_sha256": "7e4912686892b36929e6b13291ea5e641e579a63afb74deac372a51d941224d8",
+      "entry_sha256": "7cb10770c9e2147a7e0c9fafa324310dfd3d4361ad6612a41c4d5842d8a6261f",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -17,12 +17,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/MikkelSchubert/adapterremoval",
       "source_sha256": "47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20",
-      "status": "production",
       "tool": "adapterremoval",
       "version": "2.3.4"
     },
     {
-      "entry_sha256": "72c69156c99bf9557c301aae5084f66263d06b5e8098410f6a5b9aff903a1f19",
+      "entry_sha256": "4ba3527266b7c4040d37380ee9ca2bd5b5b2358be1462a426e31b3dc472ad8cb",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -33,12 +32,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/LouisPwr/AdDeam",
       "source_sha256": "baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40",
-      "status": "production",
       "tool": "addeam",
       "version": "1.0.0"
     },
     {
-      "entry_sha256": "9fbbe666a1cfc4b06fc0af2865fe23cf54ff6562faa487a32f41e5d5d9c32724",
+      "entry_sha256": "643e25fc8a9c798b89095e3c8cea3b21f9c1ea4d84dbd3afbac1a89ffff3aad5",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -49,12 +47,11 @@
       "sif_digest_sha256": "",
       "source": "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer",
       "source_sha256": "5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730",
-      "status": "production",
       "tool": "alientrimmer",
       "version": "3.2"
     },
     {
-      "entry_sha256": "c4e76f723f8aa7e3a5c909cd2951b413bab561f6369728302922d4652c233872",
+      "entry_sha256": "7c61b5cab8a1b23b3e194de5aa6753bc477e974907b4db85965d19796f09156d",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -65,12 +62,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/ANGSD/angsd",
       "source_sha256": "e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7",
-      "status": "production",
       "tool": "angsd",
       "version": "0.941"
     },
     {
-      "entry_sha256": "5a913528b6cd9c0269fba41399753ceb67ccf996466642a5594f1707110fdd11",
+      "entry_sha256": "ac782a3fa6949ef7d7e7dbc93ffc326657a48665fc6490e457c3daeb612f9e42",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -81,12 +77,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/jdidion/atropos",
       "source_sha256": "",
-      "status": "production",
       "tool": "atropos",
       "version": "1.1.31"
     },
     {
-      "entry_sha256": "e640eebe001cd4a7b6480703915c9cc9615ff1853fe7cf9ef1a09403f1ce9b07",
+      "entry_sha256": "4e629684914d8af548d406851fd364dbf2f640cb8178109aba8270fe7e65f247",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -97,12 +92,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/StephanePeyregne/AuthentiCT",
       "source_sha256": "179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834",
-      "status": "production",
       "tool": "authenticct",
       "version": "1.0.0"
     },
     {
-      "entry_sha256": "ca31f3e917eded41e9991088f50d907e922b23dca188bcfe3468fc084a715fc9",
+      "entry_sha256": "1e257d72b629d9a092e08c512ea2cc580d70ddb969eb155f1732a18b21accf77",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -113,12 +107,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/pezmaster31/bamtools",
       "source_sha256": "4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8",
-      "status": "production",
       "tool": "bamtools",
       "version": "2.5.2"
     },
     {
-      "entry_sha256": "01e3bcc6d1a44f22fee271ffea4cd015fd53f846d15a1ba33b951e074fa8d35f",
+      "entry_sha256": "a30dcaf21a6b4336f65b837920335d3483181451039b3925a52948632d1ec2cb",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -129,12 +122,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/statgen/bamUtil",
       "source_sha256": "24ac4bdb81eded6e33f60dba85ec3d32ebdb06d42f75df775c2632bbfbd8cce9",
-      "status": "production",
       "tool": "bamutil",
       "version": "1.0.15"
     },
     {
-      "entry_sha256": "0fd23dfd84b13616e2e418e3745da07defe316b62c76114af28c3e030b718ddd",
+      "entry_sha256": "84fb28187bfb8bc152b88872719f6a3d1f684665d170e18f9c5b3e16b676583f",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -145,12 +137,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/ablab/spades",
       "source_sha256": "",
-      "status": "production",
       "tool": "bayeshammer",
       "version": "3.15.5"
     },
     {
-      "entry_sha256": "ef9e8e70fea82a7785bd0c4dfa23ba69a408d6eb250b423493f93992b01e8f5f",
+      "entry_sha256": "8a7f80eb88260f7fabdd018b9a967dff0cdf3b090fbbb84b39174639e216cdd0",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -161,12 +152,11 @@
       "sif_digest_sha256": "",
       "source": "https://sourceforge.net/projects/bbmap/",
       "source_sha256": "",
-      "status": "production",
       "tool": "bbduk",
       "version": "39.06"
     },
     {
-      "entry_sha256": "7eb708605809e13ff26fe8e829f1870dd59a23c351ab89a12796194cf9c4e8de",
+      "entry_sha256": "9c5fee02bd7b3d8c797339f9de157dc65c759e8c30e1962e337da849f6902016",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -177,12 +167,11 @@
       "sif_digest_sha256": "",
       "source": "https://sourceforge.net/projects/bbmap/",
       "source_sha256": "",
-      "status": "production",
       "tool": "bbmerge",
       "version": "39.06"
     },
     {
-      "entry_sha256": "8f28b8c1f42e5e06177adc978542b799ba2c46671a1e4aba4b74d29678ba9df3",
+      "entry_sha256": "7164fd4e6b7d9cb66c246c592bfc4dd3b624cbc068a3591adfe12b756449c838",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -193,12 +182,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/samtools/bcftools",
       "source_sha256": "",
-      "status": "production",
       "tool": "bcftools",
       "version": "1.20"
     },
     {
-      "entry_sha256": "0145e61e5bba387e7addd17e5c4fb7ddaa9ec4de46464ffc1c2bbfc783a4b62b",
+      "entry_sha256": "b5d05eff23fa3709a6297770010cb7c49c47f2cc5703079e9de22c6e35bb04d0",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -209,12 +197,11 @@
       "sif_digest_sha256": "",
       "source": "https://faculty.washington.edu/browning/beagle/beagle.html",
       "source_sha256": "938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956",
-      "status": "experimental",
       "tool": "beagle",
       "version": "5.4"
     },
     {
-      "entry_sha256": "cf3d5d1796ca51298d75aa1f0225484ef79d06a56cef7f9f3661deaba775d765",
+      "entry_sha256": "bc920c66df464dc8341bcacc0b9ffe0e072bfb1afa2256ebda3d26317c7f8ce6",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -225,12 +212,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/arq5x/bedtools2",
       "source_sha256": "",
-      "status": "production",
       "tool": "bedtools",
       "version": "2.31.1"
     },
     {
-      "entry_sha256": "8e6d689dcf11b7734f97360a839bf2db21b686d08b8d2435bd89c800e8b7a3ea",
+      "entry_sha256": "5ba13e0467a0e50f3ae9c8ae9b6a23531205321d84f1a1c19ccdde54963e33ab",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -241,12 +227,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/bijux/bijux-genomics",
       "source_sha256": "a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f1",
-      "status": "production",
       "tool": "bijux_dna",
       "version": "0.1.0"
     },
     {
-      "entry_sha256": "947c34ffe224f2ad1cb3ad79ddaf9a6bb58737fa0acc393f06d2283cb609a77d",
+      "entry_sha256": "858eda7416135a4a5c8ad9148d94b9aedb89139db5be9eabc4e348b476168528",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -257,12 +242,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/BenLangmead/bowtie2",
       "source_sha256": "",
-      "status": "production",
       "tool": "bowtie2",
       "version": "2.5.4"
     },
     {
-      "entry_sha256": "c51023e54147dc933b3da7899ea4332e48c6e3b3fe1bfbcb3ae3d24de52cf2d7",
+      "entry_sha256": "9c6caacf692d8d075653a7f80c57f7cf9ebb08844030f230d4f03003c5d2c948",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -273,12 +257,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/BenLangmead/bowtie2",
       "source_sha256": "",
-      "status": "production",
       "tool": "bowtie2_build",
       "version": "2.5.4"
     },
     {
-      "entry_sha256": "881479aa8e5b8997cf8a163f1080188a78841ec19eafb70a0e7af8e26ed98884",
+      "entry_sha256": "085fdc136a49ab58dd2c63f0d3244d25bd1207c02d52926cf42ec20d794d0791",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -289,12 +272,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/jenniferlu717/Bracken",
       "source_sha256": "",
-      "status": "production",
       "tool": "bracken",
       "version": "2.9"
     },
     {
-      "entry_sha256": "27033785892721160b263ab9ed67c5ecf37ddd8fa449e10a7be35ad15c1ac6ea",
+      "entry_sha256": "7c6facac585892de1ab6721c1970a308b4c7f9a0f648125967aab55099f48a64",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -305,12 +287,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/lh3/bwa",
       "source_sha256": "79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370",
-      "status": "production",
       "tool": "bwa",
       "version": "0.7.17"
     },
     {
-      "entry_sha256": "626dbf533909349cbf94aff0dcaf509f926df3c3d60349790b6b0f3cbcd0088a",
+      "entry_sha256": "bab17711548d01c446695571b796b58c35a795440f7aa0ea557879ce4c284d42",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -321,12 +302,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/DaehwanKimLab/centrifuge",
       "source_sha256": "",
-      "status": "production",
       "tool": "centrifuge",
       "version": "1.0.4"
     },
     {
-      "entry_sha256": "1533186b6e3e5a13f230ab826c214de806e2f7412c2902f83d2c9a05a7af95e2",
+      "entry_sha256": "4d3d90c6e985844f4552eb408a9b1c239826bca65e69e5d935ee4367a98dfe0a",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -337,12 +317,11 @@
       "sif_digest_sha256": "",
       "source": "https://sourceforge.net/projects/bbmap/",
       "source_sha256": "",
-      "status": "production",
       "tool": "clumpify",
       "version": "39.06"
     },
     {
-      "entry_sha256": "8172768f3f0d22be5b9de431d809423ac18da2652feb4a92f7b4ba9c14ee65be",
+      "entry_sha256": "985a7f3f5acbbb925c7f653c86006fba616f86ca0b063067ded46bc8a7a17dc9",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -353,12 +332,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/plfjohnson/contamMix/archive/refs/tags/v1.0-11.tar.gz",
       "source_sha256": "1bfd53eca5554c957771daa51a2520306e90da17423dded39454ac8f23424a22",
-      "status": "production",
       "tool": "contammix",
       "version": "1.0.11"
     },
     {
-      "entry_sha256": "7c1edc27ed8c0f886978038cc5c7cf1a971279b3b61ce8fed35eb081f2f032f9",
+      "entry_sha256": "b238439c682fba084dc29a07c4656d167c1201c8f1b5ab2913c290266be890d5",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -369,12 +347,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/marcelm/cutadapt",
       "source_sha256": "",
-      "status": "production",
       "tool": "cutadapt",
       "version": "4.9"
     },
     {
-      "entry_sha256": "9c54cd6ca913017f810b620c31e8bfbdba7dd4bb4f154a06a549264bb035d412",
+      "entry_sha256": "96c4402e2d83be3c96dcc96740f0c1e20cb184d9e7b02dcba1c5958cf5746311",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -385,12 +362,11 @@
       "sif_digest_sha256": "",
       "source": "https://bioconductor.org/packages/3.18/bioc/html/dada2.html",
       "source_sha256": "c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667",
-      "status": "production",
       "tool": "dada2",
       "version": "1.30.0"
     },
     {
-      "entry_sha256": "b78bfd1810d3d4976389bda1e6c71c635ca9c439ac624ddac333fc0f5b2bb680",
+      "entry_sha256": "51cec3322cd5f0a14d3c765506479b7958ed0cfbbbcc35e02e11a7964bffe0c0",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -401,12 +377,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
       "source_sha256": "",
-      "status": "production",
       "tool": "damageprofiler",
       "version": "1.1"
     },
     {
-      "entry_sha256": "e035fd5903da30f372dfcd5474b7a4fe4b49fba46d75b5357ffee2315c74df3a",
+      "entry_sha256": "b66d92c51757346b84f819e7b6ccd364f75d238cb202805b4b248f2042c8e79b",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -417,12 +392,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/bbuchfink/diamond",
       "source_sha256": "f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53",
-      "status": "production",
       "tool": "diamond",
       "version": "2.1.10"
     },
     {
-      "entry_sha256": "03df9f501c7d07208b7ab9a850185641f0892661d26e3c388be3dc5aff100787",
+      "entry_sha256": "47e33ceb7618af400e705938c2b760f3d9b7a62c3c60e070cd3b27167adcf706",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -433,12 +407,11 @@
       "sif_digest_sha256": "",
       "source": "https://www.ncbi.nlm.nih.gov/books/NBK279690/",
       "source_sha256": "6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0",
-      "status": "production",
       "tool": "dustmasker",
       "version": "2.15.0"
     },
     {
-      "entry_sha256": "e50b58bc0c69db16dea5c2440238f1db880d021530c37a7e83418bff5d4e29db",
+      "entry_sha256": "36c38510ba59555208ca8892b23d92e6fa36f2cd169757f38043c56efad82c2a",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -449,12 +422,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz",
       "source_sha256": "6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255",
-      "status": "production",
       "tool": "eagle",
       "version": "2.4.1"
     },
     {
-      "entry_sha256": "f794ebcc3e2bdbed7aa4c40c7a001ba2e6361437df06827cad59955dabe6c150",
+      "entry_sha256": "ed2090ec75d2bb24e3df0781e7598764617d8dab559c871252f65684f05f07ef",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -465,12 +437,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/DReichLab/EIG",
       "source_sha256": "83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2",
-      "status": "experimental",
       "tool": "eigensoft",
       "version": "8.0.0"
     },
     {
-      "entry_sha256": "14b4b2bc1509954d32c77627a7599de33cfc2ae6b839f74331a29c0a6da26e53",
+      "entry_sha256": "e969050f2bb613758d37beff5899847ed21a7afcc4a734d217b00afc5bce21a8",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -481,12 +452,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/OpenGene/fastp",
       "source_sha256": "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5",
-      "status": "production",
       "tool": "fastp",
       "version": "0.23.4"
     },
     {
-      "entry_sha256": "89aadf294ebd070adbe3d91e1df1ca7485bfa6cb210fb30e065663b359da3108",
+      "entry_sha256": "66e960bb0adc7f3479f310f99c0a9cd7776fce3e7daa43c60e662405ad6ee548",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -497,12 +467,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/rpetit3/fastq-scan",
       "source_sha256": "74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e",
-      "status": "production",
       "tool": "fastq_scan",
       "version": "1.0.1"
     },
     {
-      "entry_sha256": "9c4d11c4da55f30197b1e29168cd7234a38fc6d550948ff9020c79efcca2e944",
+      "entry_sha256": "82a8b99b7d55936f4655baee2612b2b45d1b60dc5cc6b3ccdb9c7647f6f952d3",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -513,12 +482,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/StevenWingett/FastQ-Screen",
       "source_sha256": "",
-      "status": "production",
       "tool": "fastq_screen",
       "version": "0.15.3"
     },
     {
-      "entry_sha256": "fd903c48db2028373e0e812c0ec28b35196d951dd45d18da6e3a591c2ce5eab0",
+      "entry_sha256": "7b75fdf31bddf99ff2de235c7fec65a899ff106749a92dec52eaaf5500494f32",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -529,12 +497,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/s-andrews/FastQC",
       "source_sha256": "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7",
-      "status": "production",
       "tool": "fastqc",
       "version": "0.12.1"
     },
     {
-      "entry_sha256": "a4ad95e8911297aadd22de7e002cacde10dca6fcd945f74799408d2406c6646d",
+      "entry_sha256": "7f6e67f023d48cbca0098a9ff639b55a497f4d7f86b22b862b3dacd94d6061a9",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -545,12 +512,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/statgen/fastQValidator",
       "source_sha256": "0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c",
-      "status": "production",
       "tool": "fastqvalidator",
       "version": "0.1.1"
     },
     {
-      "entry_sha256": "3e5fdaa50499e4af50440d635f660c270197ed8e586bf2fe73b1b02067d895dc",
+      "entry_sha256": "aff38fe42e991721b5f3228eb9f1f86d5e073f4b7c05f67437c610d59d25d7de",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -561,12 +527,11 @@
       "sif_digest_sha256": "",
       "source": "https://sourceforge.net/projects/fastuniq/",
       "source_sha256": "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae",
-      "status": "unsupported",
       "tool": "fastuniq",
       "version": "1.1"
     },
     {
-      "entry_sha256": "2b0b25d9b7127df85ac776e6c14701765415a109a9e474bc584b546aebf273dc",
+      "entry_sha256": "4e3359d21fac559f2dcf6978ce1afa1f0d50b737d528a9e2477cfe6b95110c8a",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -577,12 +542,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/agordon/fastx_toolkit",
       "source_sha256": "9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806",
-      "status": "production",
       "tool": "fastx_clipper",
       "version": "0.0.14"
     },
     {
-      "entry_sha256": "a20a272803c156b5e6976379293db99cdfd8fa873b354f5f2f7b07f97a45a04a",
+      "entry_sha256": "a27bbe06de6aa74408b906e3177ea7da41a3e9bcb11e31c049ab50cc8c8ae801",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -593,12 +557,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/dstreett/FLASH2",
       "source_sha256": "da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8",
-      "status": "production",
       "tool": "flash2",
       "version": "2.2.00"
     },
     {
-      "entry_sha256": "3d315d9781a1478af27a9513a2f35c3f6d63878567953f1492fa76256dc74f0a",
+      "entry_sha256": "467920c9611667347d45e5c78c83e03f698ee22c5a309cb17512960ae2f4e451",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -609,12 +572,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/alastair-droop/fqtools",
       "source_sha256": "209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6",
-      "status": "production",
       "tool": "fqtools",
       "version": "2.3"
     },
     {
-      "entry_sha256": "9acf44babb7b3162fb059be1694c1a03f720d45e70680eead4e2cc230f185ca1",
+      "entry_sha256": "6ef182f38a410ddbcbbf65b9d3ee33ba6c47a41079f7e3139a97c61d3ad6ba86",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -625,12 +587,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/broadinstitute/gatk",
       "source_sha256": "",
-      "status": "production",
       "tool": "gatk",
       "version": "4.6.2.0"
     },
     {
-      "entry_sha256": "6cadcd9fa796c99ee5ff101231891be7723e955689ce21caa6c400ebcbd379d7",
+      "entry_sha256": "10351511f22108430fb34919c94e22e0642668f801f6548fc9a87a5d73f83eff",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -641,12 +602,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/gusevlab/germline",
       "source_sha256": "42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991",
-      "status": "experimental",
       "tool": "germline",
       "version": "1.5.3"
     },
     {
-      "entry_sha256": "ba1d80c46b954107f8fd0311cb20d073f03506fec38372a5bc381952532fbb74",
+      "entry_sha256": "c99589fc96d7c03ec181b4ff32b0c44262791fca7ce034f0274f6ea8abb7fe37",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -657,12 +617,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/odelaneau/GLIMPSE",
       "source_sha256": "d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c",
-      "status": "production",
       "tool": "glimpse",
       "version": "1.1.1"
     },
     {
-      "entry_sha256": "6750adc681caafdc114261e87fbe0b9bc96286ed5694304c685e34d9221a45e7",
+      "entry_sha256": "bb831d03f8ab0b3f4eec25d054facc04e39e9736dca104b0c804bd588c15e0e1",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -673,12 +632,11 @@
       "sif_digest_sha256": "",
       "source": "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml",
       "source_sha256": "195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a",
-      "status": "experimental",
       "tool": "ibdhap",
       "version": "3.4"
     },
     {
-      "entry_sha256": "013b6cf8ee6334618a0b01d1cd22f2043060948e35ba6dd97134417dd6e02029",
+      "entry_sha256": "3a29816ddab3dd3327aff98c0d654534aec5f87e961186fca27621d410baff12",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -689,12 +647,11 @@
       "sif_digest_sha256": "",
       "source": "https://faculty.washington.edu/browning/ibdne.html",
       "source_sha256": "b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665",
-      "status": "production",
       "tool": "ibdne",
       "version": "23Apr20.ae9"
     },
     {
-      "entry_sha256": "df5baf9064b98cdcd52c2dcde5d89f4c0c443d077096b833be1c97b105c74b47",
+      "entry_sha256": "fe1b2644863794d594b1a6f8bae7834e7c2a1cbb4e578d1bc512384bbc7252b2",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -705,12 +662,11 @@
       "sif_digest_sha256": "",
       "source": "https://faculty.washington.edu/browning/ibdseq.html",
       "source_sha256": "a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec",
-      "status": "production",
       "tool": "ibdseq",
       "version": "r1206"
     },
     {
-      "entry_sha256": "2ab9cb1cccbf8141b4036b397687afcf791026edce79456ec56d528ec9a4afb3",
+      "entry_sha256": "011cbe665a0c058e1e25a904c306057e9ad621f763bc97e312bfe3506fce0b6b",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -721,12 +677,11 @@
       "sif_digest_sha256": "",
       "source": "https://jmarchini.org/software/#impute-5",
       "source_sha256": "",
-      "status": "unsupported",
       "tool": "impute5",
       "version": "1.2.0"
     },
     {
-      "entry_sha256": "7fc4b295da462a9e930946ab65f147ce74371ae86f6561e53039191025a77595",
+      "entry_sha256": "f691004743aa811f000e0ff115a82f601ee303441c721f6578d96fd362f50eeb",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -737,12 +692,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/bioinformatics-centre/kaiju",
       "source_sha256": "",
-      "status": "production",
       "tool": "kaiju",
       "version": "1.10.0"
     },
     {
-      "entry_sha256": "57e9c68089b414cabc82265b6cb0662b774dc93fb32a89764cbeb8b412aada25",
+      "entry_sha256": "d79ca23f2864478c3f53a920951d731ba5e92ae1bd6fa1234099d73c2a5c7952",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -753,12 +707,11 @@
       "sif_digest_sha256": "",
       "source": "https://www.kingrelatedness.com/executables/Linux-king230.tar.gz",
       "source_sha256": "5a00cb504b56e3a05c8aa2b4531b1f85c9947e7c9aa89bfec7afd72b28663b39",
-      "status": "production",
       "tool": "king",
       "version": "2.3.0"
     },
     {
-      "entry_sha256": "efb9a2d7dc0147fe9e430ee1a4aa59b81869fb2d1b60d062ba1ec11f0c36fdb0",
+      "entry_sha256": "b60e561b259a864150cace21d8c02eb61352783c91a228865a07c517e4151407",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -769,12 +722,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz",
       "source_sha256": "5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69",
-      "status": "production",
       "tool": "kraken2",
       "version": "2.1.3"
     },
     {
-      "entry_sha256": "c17e7e784722c71021f742d237f07c8597aaccb94ebd36ba85bf405c78ef8d0a",
+      "entry_sha256": "c59c02ec7c1b9bc5e609393bee18d6232449fa048c14362ead22b3f27bdafc6d",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -785,12 +737,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/fbreitwieser/krakenuniq",
       "source_sha256": "",
-      "status": "production",
       "tool": "krakenuniq",
       "version": "1.0.4"
     },
     {
-      "entry_sha256": "0cc138b446d733094922b18190078ba8bd1dadc0474956a790298f5e1ace29ca",
+      "entry_sha256": "2c1496adfde9b366b476208ff5d9710a56878ebf24ae8bd9003825e17531df95",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -801,12 +752,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/grenaud/leeHom",
       "source_sha256": "87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca",
-      "status": "production",
       "tool": "leehom",
       "version": "1.2.18"
     },
     {
-      "entry_sha256": "8b077ff6e8cf5a609a730d011667989c8a2f22dacecdc9342aee555515d64842",
+      "entry_sha256": "d8b106489357bfa5b9edfff6ac620f9854fc424430cba53c61544b6bacb40d8b",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -817,12 +767,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/mourisl/Lighter",
       "source_sha256": "",
-      "status": "production",
       "tool": "lighter",
       "version": "1.1.2"
     },
     {
-      "entry_sha256": "a62c18e482aa5db934204167925f09d8931951ab4763f3e5cc34f7bdfb19e04d",
+      "entry_sha256": "10871b3f7d0fc5144b8eff80e6b8a49bd2a5d6caf68e8b65d1a8cc5413f9caab",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -833,12 +782,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz",
       "source_sha256": "a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54",
-      "status": "production",
       "tool": "mapdamage2",
       "version": "2.2.2"
     },
     {
-      "entry_sha256": "61433cce0f3555e96a00a0b5e699a14faa8268bf025f3a0577f0530ce46b42c8",
+      "entry_sha256": "5f375722417cdf94877d791523c9d26684526f2c16a68c3b9be50da4db05d62f",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -849,12 +797,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/biobakery/MetaPhlAn",
       "source_sha256": "",
-      "status": "production",
       "tool": "metaphlan",
       "version": "4.1.1"
     },
     {
-      "entry_sha256": "5526a7522eabcc24edcbfa8e241358022d1d3dd6492c0db6903e52df5593a4fb",
+      "entry_sha256": "7f03c06021d365382207fa7e5386e6fbc930ad7056c5c6628b08e03879f953f4",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -865,12 +812,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/statgen/Minimac4",
       "source_sha256": "5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3",
-      "status": "production",
       "tool": "minimac4",
       "version": "4.1.6"
     },
     {
-      "entry_sha256": "cae2f782e976ecc93025f16be66f7497e0e6690bdd3ea259e1e73fe65cf0d12c",
+      "entry_sha256": "178817d3f766d4e76946c8383059d7e3a40efaad2b12fde8e3ef14973b1e69d6",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -881,12 +827,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/brentp/mosdepth",
       "source_sha256": "4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2",
-      "status": "production",
       "tool": "mosdepth",
       "version": "0.3.11"
     },
     {
-      "entry_sha256": "1304bea95c85e420b75293fb84df318fc740df5eb8703238092b2fc2349bae7b",
+      "entry_sha256": "079d8519ee42d9fc7b95a7d33ad978aee6bfe5792bc541b6499cda4ef48fa37c",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -897,12 +842,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/multiqc/multiqc",
       "source_sha256": "991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb",
-      "status": "production",
       "tool": "multiqc",
       "version": "1.24"
     },
     {
-      "entry_sha256": "cb9c2dd4ed8260e3990943edb2af6e42c0ceed961b873dbb4425225215a3db08",
+      "entry_sha256": "a7a8dee5c745d7a828de66b0ecc661ae6f70bd7a02072e49f988d4d9dfc97fdd",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -913,12 +857,11 @@
       "sif_digest_sha256": "",
       "source": "https://sourceforge.net/projects/musket/",
       "source_sha256": "306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba",
-      "status": "production",
       "tool": "musket",
       "version": "1.1"
     },
     {
-      "entry_sha256": "d197ccf6cbfb35174a4d8ae60551f2a7c38361982d474e1b33b75e89aca9c8d8",
+      "entry_sha256": "69e4bf06febce787fa5afdae5470413b9631e8409772ece57e0ef552ce078f6c",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -929,12 +872,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz",
       "source_sha256": "afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7",
-      "status": "production",
       "tool": "ngsbriggs",
       "version": "0.01"
     },
     {
-      "entry_sha256": "0f1b936c32a542e421f066e03fae72fcdaf463a4cd52f4e677b0e5730cc71459",
+      "entry_sha256": "ede42383f4d2a659b887b3c239b1dbd13fdf3f401cb8aba1799d675ed92469ff",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -945,12 +887,11 @@
       "sif_digest_sha256": "",
       "source": "https://cme.h-its.org/exelixis/web/software/pear/",
       "source_sha256": "f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b",
-      "status": "production",
       "tool": "pear",
       "version": "0.9.6"
     },
     {
-      "entry_sha256": "eb5995b16a777b2ba2f5baeeb095a933c7d12f4f268c19879893a1c166c8be46",
+      "entry_sha256": "025330a59b77670477c01b97cbad2c83f089aa20604e74355a64a80fd6ab87b8",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -961,12 +902,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/broadinstitute/picard",
       "source_sha256": "58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc",
-      "status": "production",
       "tool": "picard",
       "version": "3.3.0"
     },
     {
-      "entry_sha256": "4e50a5a776322e416fa949c2500b3b7942c6a4ee08cd3a47cd5e9f16cc9e8751",
+      "entry_sha256": "423ef9b7bf23c8301eb7991f5167ead2f958e000ef5780c9f58c2bc70333958d",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -977,12 +917,11 @@
       "sif_digest_sha256": "",
       "source": "https://www.cog-genomics.org/plink/",
       "source_sha256": "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3",
-      "status": "experimental",
       "tool": "plink",
       "version": "1.90b7.2"
     },
     {
-      "entry_sha256": "232f2c9dde1c0ce9183dad54cb72b23d75ff3ad25c733b659d9eabe5029dac95",
+      "entry_sha256": "40319899528da5d359d760bd750929c0e737f4fdcc095016d7ccd3d7d1c460df",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -993,12 +932,11 @@
       "sif_digest_sha256": "",
       "source": "https://www.cog-genomics.org/plink/2.0/",
       "source_sha256": "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
-      "status": "experimental",
       "tool": "plink2",
       "version": "2.00a6"
     },
     {
-      "entry_sha256": "1471a509904e9bdd7b57c8e7b6ef15d851da474e835fd7b8b295aebeddb70c52",
+      "entry_sha256": "0877cf65494bd546a0fa6b5200cf4e2dc9704894ef2c3a8669a7e76b1f4f4246",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1009,12 +947,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/pontussk/PMDtools",
       "source_sha256": "47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405",
-      "status": "production",
       "tool": "pmdtools",
       "version": "0.60"
     },
     {
-      "entry_sha256": "6fe24c84555f11dd947fe6227479ff1955e4c5203cbf0d26a83973c9496b851c",
+      "entry_sha256": "ca0b01529d8025ea67b25b9764515659514f4fa78068f4b5697e7241cf9d1692",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1025,12 +962,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/smithlabcode/preseq/releases/download/v3.2.0/preseq-3.2.0.tar.gz",
       "source_sha256": "95b81c9054e0d651de398585c7e96b807ad98f0bdc541b3e46665febbe2134d9",
-      "status": "production",
       "tool": "preseq",
       "version": "3.2.0"
     },
     {
-      "entry_sha256": "854919d7fb90da2003ffe4ef544e356d40d7e63ce7519e4f971f564a834947d5",
+      "entry_sha256": "922b9d8d00313bca097974d62549e8bde6155207cafbe913b2baeb8ae8632af3",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1041,12 +977,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/Adrian-Cantu/PRINSEQ-plus-plus",
       "source_sha256": "957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3",
-      "status": "production",
       "tool": "prinseq",
       "version": "1.2.4"
     },
     {
-      "entry_sha256": "ffbc26e61410ad4d668830485f3b7c7fcee0ec722a2c8901a4da6264a917a340",
+      "entry_sha256": "d2cf6322b111db2d591e56788fab2f23f5fb092d365c578d506a538d85e441d8",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1057,12 +992,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/maxibor/pydamage",
       "source_sha256": "f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f",
-      "status": "production",
       "tool": "pydamage",
       "version": "1.0"
     },
     {
-      "entry_sha256": "b54df9ad7fe8aac3bc77ea89096b46444dc71ae10beb402b4ef2c80989169967",
+      "entry_sha256": "1f338b828ef2a13732339fab1f2644af4f2a672684e159647ba8605c6b0373db",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1073,12 +1007,11 @@
       "sif_digest_sha256": "",
       "source": "https://bitbucket.org/kokonech/qualimap",
       "source_sha256": "2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40",
-      "status": "production",
       "tool": "qualimap",
       "version": "2.3"
     },
     {
-      "entry_sha256": "aa88096598f930aca64acaa600ef3c0c5a640ce168561ebce19ba7ebc0de5b67",
+      "entry_sha256": "e077819d557a4a57f6f7b2362dc333b9aa8cfabac3dbdbd8906d52188b80b241",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1089,12 +1022,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/mourisl/Rcorrector",
       "source_sha256": "",
-      "status": "production",
       "tool": "rcorrector",
       "version": "1.0.7"
     },
     {
-      "entry_sha256": "910cf8c7f5a9998589d6a0f43d4c26f885544f4cf52f979baa10458edc5652f1",
+      "entry_sha256": "5014b449eaaea9945c189a9a3c09d79166e9ccf35fa259106060888a456e287b",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1105,12 +1037,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/bijux/bijux-genomics",
       "source_sha256": "b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8",
-      "status": "production",
       "tool": "rxy",
       "version": "2.0.0"
     },
     {
-      "entry_sha256": "0472c5668201f46a96d6607d7397fadf5b506c28eb26e6224b4ee55089a91715",
+      "entry_sha256": "6ffa9303e7b14bd884ffee22f20f74f70f10c0451a9293db9258e738a3a01bf5",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1121,12 +1052,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/samtools/samtools",
       "source_sha256": "c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10",
-      "status": "production",
       "tool": "samtools",
       "version": "1.20"
     },
     {
-      "entry_sha256": "60bfcd734b9965d26ce4c94cb32a35d21ed81bb4bd72a6dd365da80682fbc025",
+      "entry_sha256": "1fa6d202f15fa87d3319affd9abdd485776990d032ed99a5c8b8d23fb0db78ef",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1137,12 +1067,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/grenaud/schmutzi",
       "source_sha256": "",
-      "status": "production",
       "tool": "schmutzi",
       "version": "1.5.4"
     },
     {
-      "entry_sha256": "9f6e6d4574f1b44f4db415506ae3d05cc20952fe6dd1a8e6d621db44a33aa6f2",
+      "entry_sha256": "0b3f6aac446b097bea3021f61537bc6476661b2d4c97f051bf33929da421a097",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1153,12 +1082,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/telatin/seqfu2/archive/refs/tags/v1.26.0.tar.gz",
       "source_sha256": "2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff",
-      "status": "production",
       "tool": "seqfu",
       "version": "1.26.0"
     },
     {
-      "entry_sha256": "171ce57cb1b3ff9dd67aa2022bc42f5f50d8eaf7a8d8ab96b525b01126678904",
+      "entry_sha256": "4b3b0c452f2e74c2287df56b9183d6d52006092c887b11ba457ff427b6830f50",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1169,12 +1097,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz",
       "source_sha256": "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc",
-      "status": "production",
       "tool": "seqkit",
       "version": "2.8.2"
     },
     {
-      "entry_sha256": "1812fcccc3136f35e58f3949ce0eba9a3ebf4581a6cc52f40b1651a40cadf4bf",
+      "entry_sha256": "b30cc84e03f7044ff01e0dab9c6d87684ba2716ccefc90c25d7eeafcbae4fbac",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1185,12 +1112,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/shenwei356/seqkit",
       "source_sha256": "",
-      "status": "production",
       "tool": "seqkit_stats",
       "version": "2.8.2"
     },
     {
-      "entry_sha256": "cb0c93d15709d50979ab5bb832ad58021223d235865227e084d8a2a3b7d34331",
+      "entry_sha256": "88ca17dce420f6f5a437cde050973633e7d1e9e8849a9b131f29d51d65f7810e",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1201,12 +1127,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/jstjohn/SeqPrep",
       "source_sha256": "f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8",
-      "status": "production",
       "tool": "seqprep",
       "version": "1.3.2"
     },
     {
-      "entry_sha256": "f36960aaf7422f435709c5fc8b3c0f7a88ae473277c8187175bd951d384433b4",
+      "entry_sha256": "d18416483fb6151e063f2afd771569c1d2c66b5f0bdf5648d2e6954f294bcd6c",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1217,12 +1142,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/imgag/ngs-bits",
       "source_sha256": "",
-      "status": "production",
       "tool": "seqpurge",
       "version": "2026_06"
     },
     {
-      "entry_sha256": "06f1cb56d900164cca0d183b6aeb7139038e2b6df4cca0d3fefd7f765e903cec",
+      "entry_sha256": "854e9f0fd90af8bc6a532f18ca61c8c33de2e3fc2af9f7aa26ad84f17ed77476",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1233,12 +1157,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/lh3/seqtk.git",
       "source_sha256": "",
-      "status": "production",
       "tool": "seqtk",
       "version": "1.4"
     },
     {
-      "entry_sha256": "27dfb59560e895f513c3a41d771dc75a7a890ee5e5b16ded9a7366f721cef78e",
+      "entry_sha256": "a94b43f72e56d0345074c129d4a66940bb478fbae6a9f76cceeeaecd7c71dfba",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1249,12 +1172,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/odelaneau/shapeit4",
       "source_sha256": "2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9",
-      "status": "production",
       "tool": "shapeit",
       "version": "4.2.2"
     },
     {
-      "entry_sha256": "305a5a0746d990ace3c9e0d6226abcd7d65245b2f138ea0d1fd7e92b56a27e15",
+      "entry_sha256": "8c2f403d0d21bf251848caa6cead63ce3bdfba076da4243eb2dc1c6e8b0dd72c",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1265,12 +1187,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz",
       "source_sha256": "dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8",
-      "status": "production",
       "tool": "shapeit5",
       "version": "5.1.1"
     },
     {
-      "entry_sha256": "c883f18f29a7511be204b675783aeda4ed3143321c80bae67010e8131eb5e032",
+      "entry_sha256": "6f83ec69472cec5e15b8c94f29849db99c666414dd71c6f980b80b49ef4fe5cd",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1281,12 +1202,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/relipmoc/skewer",
       "source_sha256": "695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169",
-      "status": "production",
       "tool": "skewer",
       "version": "0.2.2"
     },
     {
-      "entry_sha256": "731c26a11f77c37012b8eeafac8bc8351c8506189109d2f49a5c56de0ff73742",
+      "entry_sha256": "d440f8ad28805d9771a23bfb26cf063a08dfc2af0857d51b894d62b4e10c5e90",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1297,12 +1217,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/biocore/sortmerna",
       "source_sha256": "",
-      "status": "production",
       "tool": "sortmerna",
       "version": "4.3.7"
     },
     {
-      "entry_sha256": "e25ed49c3719ca8ed3ba8b7059cde68fd0de2896beda511587d979637f64dd91",
+      "entry_sha256": "6bbe0cb37f9f27969c8844f01a484c8f2a71c2ba1c449028545db1500a92ecdb",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1313,12 +1232,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/ablab/spades",
       "source_sha256": "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985",
-      "status": "production",
       "tool": "spades",
       "version": "4.2.0"
     },
     {
-      "entry_sha256": "a41275615f16085660ffe4844b3e6ba5ddce4aa06d4d98dfd44f8fa0b04064b9",
+      "entry_sha256": "72f6a9da072a095269ae69c3fbe2f2a3db8af9091b15ba165f35c34f41cc9fd4",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1329,12 +1247,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/alexdobin/STAR",
       "source_sha256": "",
-      "status": "production",
       "tool": "star",
       "version": "2.7.11b"
     },
     {
-      "entry_sha256": "119ed38d47ca0da47f33eb04ab4820617b8235398014e33dcb57d44f6ebd1b9b",
+      "entry_sha256": "4b43647b5caf47caeacfc2f2be80af76e4f776923b98263cdd33d2bf1cae1408",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1345,12 +1262,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/FelixKrueger/TrimGalore",
       "source_sha256": "",
-      "status": "production",
       "tool": "trim_galore",
       "version": "0.6.10"
     },
     {
-      "entry_sha256": "25c8b616ec2782215cd561c0c5cda5c066123583f4a3d06e86aa781d552ad749",
+      "entry_sha256": "68d3ba9639eb935f14e5537b6bab0e7cf7fc034aa15539f3ce7d2fafd83878ad",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1361,12 +1277,11 @@
       "sif_digest_sha256": "",
       "source": "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip",
       "source_sha256": "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca",
-      "status": "production",
       "tool": "trimmomatic",
       "version": "0.39"
     },
     {
-      "entry_sha256": "b435e14bac0ef29a669ade875cac15f964e69e08f57442069ec2fb739b9cd9c0",
+      "entry_sha256": "f2fb77fe1cc0fe6532f50dd6fd5480c2376279a391b777c75dbdfa76d19ae47b",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1377,12 +1292,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/CGATOxford/UMI-tools",
       "source_sha256": "",
-      "status": "production",
       "tool": "umi_tools",
       "version": "1.1.6"
     },
     {
-      "entry_sha256": "0474391e9964e64b5b4dd2437a9f1e638087cac7dcef6b8b18e5cbadc9ab5f5a",
+      "entry_sha256": "ef99279c798cadf2a1988f5393a8f3e3b21fd8198dec50ba9920a9fafb901229",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1393,12 +1307,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/Griffan/VerifyBamID",
       "source_sha256": "",
-      "status": "production",
       "tool": "verifybamid2",
       "version": "2.0.1"
     },
     {
-      "entry_sha256": "a8563e8b7fb6b37c9298aeb903767a083c7630ff476650a95ea7e5b68ff20398",
+      "entry_sha256": "c0d6ff63399d4517979bccab7d182b5ae01045ca06279c276a59c8d98bbebde3",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1409,12 +1322,11 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/torognes/vsearch",
       "source_sha256": "6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e",
-      "status": "production",
       "tool": "vsearch",
       "version": "2.29.3"
     },
     {
-      "entry_sha256": "f9bb1617c1d5d52aa91f15d2cf9bf81f10b4a2c007c2479e0c147f3845c8029d",
+      "entry_sha256": "bc1780bb695806ed73ee1ef4a2600dc164729c396e70e26a549f8c6e42ddee2d",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1425,13 +1337,12 @@
       "sif_digest_sha256": "",
       "source": "https://github.com/genid/Yleaf",
       "source_sha256": "b98f63250878caa3b20d40dea352f2fb81438bcf45bc0830693c6e74f69ab9c4",
-      "status": "production",
       "tool": "yleaf",
       "version": "4.1.4"
     }
   ],
-  "schema_version": "bijux.container.version_lock.v3",
+  "schema_version": "bijux.container.version_lock.v4",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "0a3190a75697fe45de87ca510df7be13ed194183a07835c85344a3f9742f3b9d",
+  "source_sha256": "061c2df802c13dc23c47c88e586e112a2821fb942e20eb76d067b4279d9b7f1b",
   "version_map_source": "artifacts/containers/version_map.json"
 }

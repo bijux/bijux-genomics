@@ -1,5 +1,7 @@
 #![allow(clippy::too_many_lines)]
 
+use crate::commands::containers::container_support_summary;
+
 use super::{
     env_or_empty, failure_lines, fs, load_toml, missing_container_label_markers, read_json,
     read_utf8, registry_tool_id, success_line, table_bool, table_string, BTreeMap, BTreeSet,
@@ -54,16 +56,17 @@ pub(in super::super::super) fn check_build_provenance(
     }
     let data = load_toml(&registry_path)?;
     let rows = data.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
-    let mut promoted = BTreeSet::new();
+    let support = container_support_summary(workspace)?;
+    let mut retained = BTreeSet::new();
     for row in &rows {
         let Some(row) = row.as_table() else {
             continue;
         };
-        if table_string(row, "status") == "production" {
-            let tool = registry_tool_id(row);
-            if !tool.is_empty() {
-                promoted.insert(tool);
-            }
+        let tool = registry_tool_id(row);
+        if table_bool(row, "container")
+            && support.get(&tool).is_some_and(|(disposition, _)| disposition == "retained")
+        {
+            retained.insert(tool);
         }
     }
 
@@ -106,8 +109,8 @@ pub(in super::super::super) fn check_build_provenance(
     }
 
     let artifacts = workspace.path("artifacts/containers");
-    if artifacts.exists() && !promoted.is_empty() {
-        for tool in promoted {
+    if artifacts.exists() && !retained.is_empty() {
+        for tool in retained {
             let manifest_path = artifacts.join(format!("{tool}.json"));
             if !manifest_path.exists() {
                 errors
@@ -344,19 +347,13 @@ pub(in super::super::super) fn check_digest_output_policy(
                 .unwrap_or_default()
                 .trim()
                 .to_string();
-            let status = row
-                .get("status")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default()
-                .trim()
-                .to_string();
             let digest = row
                 .get("resolved_image_digest")
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or_default()
                 .trim()
                 .to_string();
-            if status == "production" && !digest.is_empty() && !digest.starts_with("sha256:") {
+            if !digest.is_empty() && !digest.starts_with("sha256:") {
                 errors.push(format!(
                     "lock.json: {tool} resolved_image_digest must be sha256:* when present"
                 ));

@@ -404,8 +404,8 @@ pub(in super::super::super) fn run_vuln_scan_hook(
             .join("containers/vuln_scan_report.json")
     });
     let toolkit = env_or_empty("TOOLKIT");
-    let promoted_only = env_or_default("PROMOTED_ONLY", "1") != "0";
-    write_vuln_hook_report(workspace, &sbom_root, &out, &toolkit, promoted_only)?;
+    let retained_only = env_or_default("RETAINED_ONLY", "1") != "0";
+    write_vuln_hook_report(workspace, &sbom_root, &out, &toolkit, retained_only)?;
     success_line(format!("vuln-scan-hook: wrote {}", out.display()))
 }
 

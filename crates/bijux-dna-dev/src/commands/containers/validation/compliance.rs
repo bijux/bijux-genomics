@@ -2,12 +2,12 @@
 
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
-    docker_tool_ids, dockerfile_paths, env_or_default, env_or_empty, failure_lines, fs,
-    images_metadata, iso_root_path, load_toml, lock_items_by_tool, read_json, read_utf8,
-    registry_tool_rows, success_line, table_array_strings, table_bool, table_string,
-    tool_status_manifest, tool_versions, toolkit_bundles, write_ensure_images_plan_report,
-    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex,
-    Result, Utc, WalkDir, Workspace,
+    container_support_summary, docker_tool_ids, dockerfile_paths, env_or_default, env_or_empty,
+    failure_lines, fs, images_metadata, iso_root_path, load_toml, read_json, read_utf8,
+    registry_tool_rows, success_line, table_array_strings, table_string, tool_status_manifest,
+    tool_versions, toolkit_bundles, write_ensure_images_plan_report, write_vuln_hook_report,
+    BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex, Result, Utc, WalkDir,
+    Workspace,
 };
 
 pub(in super::super) fn check_tool_name_collision(
@@ -167,12 +167,9 @@ pub(in super::super) fn check_tool_container_coverage(
                 }),
         )
         .collect::<BTreeSet<_>>();
+    let support = container_support_summary(workspace)?;
     let mut errors = Vec::new();
     for row in registry_tool_rows(workspace)? {
-        let status = table_string(&row, "status");
-        if status != "production" || !table_bool(&row, "container") {
-            continue;
-        }
         let tool_id = {
             let id = table_string(&row, "id");
             if id.is_empty() {
@@ -181,6 +178,9 @@ pub(in super::super) fn check_tool_container_coverage(
                 id
             }
         };
+        if !support.get(&tool_id).is_some_and(|(disposition, _)| disposition == "retained") {
+            continue;
+        }
         let runtimes = table_array_strings(&row, "runtimes").into_iter().collect::<BTreeSet<_>>();
         let dockerfile = table_string(&row, "dockerfile");
         let apptainer_def = table_string(&row, "apptainer_def");
@@ -248,20 +248,7 @@ pub(in super::super) fn check_toolkit_bundles(
     let images = images_metadata(workspace)?;
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
-    let mut registry = BTreeMap::new();
-    for row in registry_tool_rows(workspace)? {
-        let tool = {
-            let id = table_string(&row, "id");
-            if id.is_empty() {
-                table_string(&row, "tool_id")
-            } else {
-                id
-            }
-        };
-        if !tool.is_empty() {
-            registry.insert(tool, row);
-        }
-    }
+    let support = container_support_summary(workspace)?;
     let mut errors = Vec::new();
     for (bundle_id, spec) in bundles {
         let tools = table_array_strings(&spec, "tools");
@@ -270,10 +257,16 @@ pub(in super::super) fn check_toolkit_bundles(
             continue;
         }
         for tool in tools {
-            let Some(registry_row) = registry.get(&tool) else {
-                errors.push(format!("{bundle_id}: tool '{tool}' missing from registry"));
+            let Some((disposition, _)) = support.get(&tool) else {
+                errors.push(format!("{bundle_id}: tool '{tool}' missing from container catalog"));
                 continue;
             };
+            if disposition != "retained" {
+                errors.push(format!(
+                    "{bundle_id}: tool '{tool}' has unsupported catalog disposition '{disposition}'"
+                ));
+                continue;
+            }
             let Some(image_meta) = images.get(&tool).and_then(toml::Value::as_table) else {
                 errors.push(format!("{bundle_id}: tool '{tool}' missing images.toml metadata"));
                 continue;
@@ -281,20 +274,6 @@ pub(in super::super) fn check_toolkit_bundles(
             if table_string(image_meta, "version").is_empty() {
                 errors
                     .push(format!("{bundle_id}: tool '{tool}' images.toml entry missing version"));
-            }
-            let status = table_string(registry_row, "status");
-            if !matches!(status.as_str(), "production" | "experimental" | "planned") {
-                errors
-                    .push(format!("{bundle_id}: tool '{tool}' has unsupported status '{status}'"));
-                continue;
-            }
-            if status == "planned" {
-                if image_meta.get("enabled").and_then(toml::Value::as_bool) != Some(false) {
-                    errors.push(format!(
-                        "{bundle_id}: planned tool '{tool}' must be enabled=false in images.toml"
-                    ));
-                }
-                continue;
             }
             let mut policy = table_string(image_meta, "shipping_policy");
             let has_apptainer = apptainer_ids.contains(&tool);
@@ -313,22 +292,22 @@ pub(in super::super) fn check_toolkit_bundles(
             match policy.as_str() {
                 "apptainer_only" if !has_apptainer => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' requires apptainer container"
+                        "{bundle_id}: retained tool '{tool}' requires apptainer container"
                     ));
                 }
                 "docker_only" if !has_docker => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' requires docker container"
+                        "{bundle_id}: retained tool '{tool}' requires docker container"
                     ));
                 }
                 "docker_apptainer" if !(has_apptainer && has_docker) => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' requires both docker and apptainer containers"
+                        "{bundle_id}: retained tool '{tool}' requires both docker and apptainer containers"
                     ));
                 }
                 "none" if !(has_apptainer || has_docker) => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' has no container definition"
+                        "{bundle_id}: retained tool '{tool}' has no container definition"
                     ));
                 }
                 _ => {}
@@ -573,7 +552,7 @@ pub(in super::super) fn check_docker_arch_policy(
     if !text.contains("arm64") {
         errors.push("policy doc must mention arm64 support contract".to_string());
     }
-    for marker in ["build strategy", "publish strategy", "promotion criteria"] {
+    for marker in ["build strategy", "publish strategy", "qualification criteria"] {
         if !text.to_ascii_lowercase().contains(marker) {
             errors.push(format!("policy doc missing required multiarch marker: {marker}"));
         }
@@ -1330,7 +1309,7 @@ pub(in super::super) fn check_vuln_hook(workspace: &Workspace) -> Result<Contain
         &workspace.path("artifacts/containers/sbom"),
         &out,
         &env_or_default("TOOLKIT", "fastq_core"),
-        env_or_default("PROMOTED_ONLY", "1") == "1",
+        env_or_default("RETAINED_ONLY", "1") == "1",
     )?;
     if !out.is_file() {
         return Ok(ContainerCommandOutcome::failure(format!(
@@ -1351,25 +1330,22 @@ pub(in super::super) fn check_vuln_hook(workspace: &Workspace) -> Result<Contain
             Some((tool, row))
         })
         .collect::<BTreeMap<_, _>>();
-    let promoted = lock_items_by_tool(workspace)?
+    let retained = container_support_summary(workspace)?
         .into_iter()
-        .filter_map(|(tool, row)| {
-            (row.get("status").and_then(serde_json::Value::as_str) == Some("production"))
-                .then_some(tool)
-        })
+        .filter_map(|(tool, (disposition, _))| (disposition == "retained").then_some(tool))
         .collect::<Vec<_>>();
     if rows.is_empty() && env_or_empty("CI").is_empty() {
         return success_line("vuln hook: SKIP (no local vuln scan items)");
     }
-    let promoted_only = matches!(
-        env_or_default("PROMOTED_ONLY", "1").trim().to_ascii_lowercase().as_str(),
+    let retained_only = matches!(
+        env_or_default("RETAINED_ONLY", "1").trim().to_ascii_lowercase().as_str(),
         "1" | "true" | "yes"
     );
     let mut errors = Vec::new();
-    if promoted_only && !promoted.is_empty() {
-        for tool in promoted {
+    if retained_only && !retained.is_empty() {
+        for tool in retained {
             let Some(row) = rows.get(&tool) else {
-                errors.push(format!("{tool}: missing vuln scan item for promoted tool"));
+                errors.push(format!("{tool}: missing vuln scan item for retained tool"));
                 continue;
             };
             let status = row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default();
@@ -1401,14 +1377,11 @@ pub(in super::super) fn check_sbom_artifacts(
         }
         return success_line("sbom artifacts: SKIP (no artifacts/containers)");
     }
-    let strict_promoted =
-        !env_or_empty("CI").is_empty() || env_or_default("REQUIRE_PROMOTED_SBOM", "0") == "1";
-    let promoted = lock_items_by_tool(workspace)?
+    let strict_retained =
+        !env_or_empty("CI").is_empty() || env_or_default("REQUIRE_RETAINED_SBOM", "0") == "1";
+    let retained = container_support_summary(workspace)?
         .into_iter()
-        .filter_map(|(tool, row)| {
-            (row.get("status").and_then(serde_json::Value::as_str) == Some("production"))
-                .then_some(tool)
-        })
+        .filter_map(|(tool, (disposition, _))| (disposition == "retained").then_some(tool))
         .collect::<BTreeSet<_>>();
     let mut manifests = BTreeMap::<String, Vec<(PathBuf, serde_json::Value)>>::new();
     for path in fs::read_dir(&manifest_root)
@@ -1434,17 +1407,20 @@ pub(in super::super) fn check_sbom_artifacts(
             manifests.entry(tool).or_default().push((path, data));
         }
     }
-    let tools_to_check = if strict_promoted {
-        promoted.iter().cloned().collect::<Vec<_>>()
+    let tools_to_check = if strict_retained {
+        retained.iter().cloned().collect::<Vec<_>>()
     } else {
         let shared =
-            manifests.keys().filter(|tool| promoted.contains(*tool)).cloned().collect::<Vec<_>>();
+            manifests.keys().filter(|tool| retained.contains(*tool)).cloned().collect::<Vec<_>>();
         if shared.is_empty() {
             manifests.keys().cloned().collect::<Vec<_>>()
         } else {
             shared
         }
     };
+    if tools_to_check.is_empty() && !strict_retained {
+        return success_line("sbom artifacts: SKIP (no local build manifests)");
+    }
     let mut seen = 0;
     let mut errors = Vec::new();
     for tool in tools_to_check {
@@ -1518,6 +1494,9 @@ pub(in super::super) fn check_sbom_artifacts(
                 ));
             }
         }
+    }
+    if errors.is_empty() && seen == 0 {
+        return success_line("sbom artifacts: SKIP (no successful local build manifests)");
     }
     if errors.is_empty() {
         return success_line(format!("sbom artifacts: OK ({seen} manifests)"));
