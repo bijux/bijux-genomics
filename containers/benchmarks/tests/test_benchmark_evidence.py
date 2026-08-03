@@ -121,6 +121,7 @@ class BenchmarkEvidenceTests(unittest.TestCase):
                     },
                 }
             ],
+            "cross_tool_comparison": {"status": "not_applicable", "metrics": []},
             "limitations": ["No sample-level truth genotype is available."],
         }
 
@@ -129,6 +130,35 @@ class BenchmarkEvidenceTests(unittest.TestCase):
         self.assertIn("not genotype accuracy", markdown)
         self.assertIn("candidate_site_recovery_not_genotype_truth", markdown)
         self.assertIn("No sample-level truth genotype", markdown)
+
+    def test_cross_tool_comparison_preserves_disagreement(self) -> None:
+        campaign = {
+            "comparison_metrics": [
+                {
+                    "id": "mean_depth",
+                    "absolute_tolerance": 0.0,
+                    "relative_tolerance": 0.05,
+                }
+            ]
+        }
+        tools = [
+            {
+                "tool": "first",
+                "scientific_observations": {"mean_depth": [1.0, 1.0, 1.0]},
+            },
+            {
+                "tool": "second",
+                "scientific_observations": {"mean_depth": [1.2, 1.2, 1.2]},
+            },
+        ]
+
+        comparison = benchmark_evidence.compare_tools(campaign, tools)
+
+        self.assertEqual(comparison["status"], "outside_tolerance")
+        metric = comparison["metrics"][0]
+        self.assertAlmostEqual(metric["absolute_range"], 0.2)
+        self.assertAlmostEqual(metric["allowed_range"], 0.06)
+        self.assertFalse(metric["within_tolerance"])
 
 
 if __name__ == "__main__":

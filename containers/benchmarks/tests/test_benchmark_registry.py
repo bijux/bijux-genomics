@@ -54,6 +54,15 @@ class BenchmarkRegistryTests(unittest.TestCase):
         ):
             benchmark_registry.validate_registry(self.registry, self.catalog)
 
+    def test_multi_tool_campaign_requires_comparison_metrics(self) -> None:
+        self.registry["campaigns"][1]["comparison_metrics"] = []
+
+        with self.assertRaisesRegex(
+            benchmark_registry.RegistryError,
+            "multi-tool benchmarks require predeclared comparison metrics",
+        ):
+            benchmark_registry.validate_registry(self.registry, self.catalog)
+
     def test_coverage_does_not_claim_missing_campaigns_are_defined(self) -> None:
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)

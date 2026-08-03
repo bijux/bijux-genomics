@@ -40,6 +40,7 @@ scientific_metrics = [
   "alternate_genotypes",
   "mean_depth_at_covered_sites",
 ]
+comparison_metrics = []
 limitations = [
   "The Ensembl panel is independent candidate-site evidence but is not a sample-level genotype truth set.",
   "The first 10 Mb of chromosome 1 is a qualification interval, not a genome-wide accuracy estimate.",
@@ -81,6 +82,12 @@ scientific_metrics = [
   "covered_bases",
   "coverage_fraction",
   "mean_depth",
+]
+comparison_metrics = [
+  {id = "reference_bases", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "covered_bases", absolute_tolerance = 1000.0, relative_tolerance = 0.05},
+  {id = "coverage_fraction", absolute_tolerance = 0.000001, relative_tolerance = 0.05},
+  {id = "mean_depth", absolute_tolerance = 0.0001, relative_tolerance = 0.05},
 ]
 limitations = [
   "The corpus is one low-coverage ancient horse library and does not represent high-depth, long-read, or cohort workloads.",

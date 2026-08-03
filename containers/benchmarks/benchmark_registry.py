@@ -121,6 +121,40 @@ def validate_registry(
         ):
             require_text_list(campaign, key)
         require_text_list(campaign, "database_catalog_ids", allow_empty=True)
+        comparison_metrics = campaign.get("comparison_metrics")
+        if not isinstance(comparison_metrics, list):
+            raise RegistryError("benchmark comparison_metrics must be a list")
+        if len(declared_tools) > 1 and not comparison_metrics:
+            raise RegistryError(
+                "multi-tool benchmarks require predeclared comparison metrics"
+            )
+        comparison_ids: set[str] = set()
+        for comparison in comparison_metrics:
+            if not isinstance(comparison, dict) or set(comparison) != {
+                "id",
+                "absolute_tolerance",
+                "relative_tolerance",
+            }:
+                raise RegistryError("benchmark comparison metric is incomplete")
+            comparison_id = str(comparison["id"])
+            if (
+                comparison_id not in campaign["scientific_metrics"]
+                or comparison_id in comparison_ids
+            ):
+                raise RegistryError(
+                    "benchmark comparison metric must name one unique scientific metric"
+                )
+            comparison_ids.add(comparison_id)
+            for key in ("absolute_tolerance", "relative_tolerance"):
+                value = comparison[key]
+                if (
+                    not isinstance(value, (int, float))
+                    or isinstance(value, bool)
+                    or value < 0
+                ):
+                    raise RegistryError(
+                        f"benchmark comparison metric {key} must be non-negative"
+                    )
         if any(
             re.fullmatch(r"[a-z][a-z0-9_]*_input_bytes", key) is None
             for key in campaign["input_size_keys"]

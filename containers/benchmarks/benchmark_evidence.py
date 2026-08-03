@@ -290,6 +290,51 @@ def tool_report(
     }
 
 
+def compare_tools(
+    campaign: dict[str, Any], tools: list[dict[str, Any]]
+) -> dict[str, Any]:
+    comparisons = []
+    for contract in campaign["comparison_metrics"]:
+        metric = contract["id"]
+        observations = {
+            tool["tool"]: statistics.mean(tool["scientific_observations"][metric])
+            for tool in tools
+        }
+        minimum = min(observations.values())
+        maximum = max(observations.values())
+        absolute_range = maximum - minimum
+        scale = max(abs(value) for value in observations.values())
+        allowed_range = (
+            float(contract["absolute_tolerance"])
+            + float(contract["relative_tolerance"]) * scale
+        )
+        comparisons.append(
+            {
+                "metric": metric,
+                "observations": observations,
+                "minimum": minimum,
+                "maximum": maximum,
+                "absolute_range": absolute_range,
+                "allowed_range": allowed_range,
+                "within_tolerance": absolute_range <= allowed_range,
+                "absolute_tolerance": contract["absolute_tolerance"],
+                "relative_tolerance": contract["relative_tolerance"],
+            }
+        )
+    return {
+        "status": (
+            "not_applicable"
+            if not comparisons
+            else (
+                "within_tolerance"
+                if all(row["within_tolerance"] for row in comparisons)
+                else "outside_tolerance"
+            )
+        ),
+        "metrics": comparisons,
+    }
+
+
 def create_report(
     registry_path: Path,
     catalog_path: Path,
@@ -312,6 +357,7 @@ def create_report(
         tool_report(campaign, tool, stage_result_root / tool)
         for tool in campaign["tool_ids"]
     ]
+    comparison = compare_tools(campaign, tools)
     return {
         "schema_version": REPORT_SCHEMA,
         "verdict": "passed",
@@ -336,6 +382,7 @@ def create_report(
             "result_artifact": campaign["result_artifact"],
         },
         "tools": tools,
+        "cross_tool_comparison": comparison,
         "limitations": campaign["limitations"],
         "interpretation": campaign["interpretation"],
     }
@@ -415,6 +462,34 @@ def render_markdown(report: dict[str, Any]) -> str:
                 "",
             ]
         )
+    comparison = report["cross_tool_comparison"]
+    lines.extend(["## Cross-tool agreement", ""])
+    if comparison["status"] == "not_applicable":
+        lines.extend(
+            [
+                "This campaign has one tool, so cross-tool agreement is not applicable.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                f"Agreement status: **{comparison['status'].replace('_', ' ')}**.",
+                "",
+                "| Metric | Tool means | Observed range | Allowed range | Status |",
+                "|---|---|---:|---:|---|",
+            ]
+        )
+        for row in comparison["metrics"]:
+            observations = ", ".join(
+                f"`{tool}`={value:.12g}" for tool, value in row["observations"].items()
+            )
+            lines.append(
+                f"| `{row['metric']}` | {observations} | {row['absolute_range']:.12g} "
+                f"| {row['allowed_range']:.12g} | "
+                f"{'within' if row['within_tolerance'] else 'outside'} |"
+            )
+        lines.append("")
     lines.extend(["## Limitations", ""])
     lines.extend(f"- {limitation}" for limitation in report["limitations"])
     return "\n".join(lines) + "\n"
