@@ -6,11 +6,13 @@
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=1.0.0
 LABEL org.opencontainers.image.source="https://github.com/StephanePeyregne/AuthentiCT" \
       org.opencontainers.image.revision="13ba26ef82f5a3febd74401f65fb8c1776aa16b2" \
-      org.opencontainers.image.created="governed-by-build-evidence" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0-only" \
-      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
       org.opencontainers.image.tool="authenticct" \
       org.opencontainers.image.title="AuthentiCT" \
       org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \

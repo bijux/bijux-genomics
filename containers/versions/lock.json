@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T11:11:47+02:00",
+  "build_date_utc": "2026-08-03T11:36:52+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -126,19 +126,19 @@
       "version": "1.0.15"
     },
     {
-      "entry_sha256": "84fb28187bfb8bc152b88872719f6a3d1f684665d170e18f9c5b3e16b676583f",
+      "entry_sha256": "bbef8ec95b0ff5ba606e66fe9a43fe0dbc4f2706de66b14fabaae7adda029ed6",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "896694ce5c7a9050a6ffa9fccc950a4cd9f04363",
+      "pinned_commit": "7fee3c1050a732faef8a0d93d70861015a96f44e",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/ablab/spades",
-      "source_sha256": "",
+      "source_sha256": "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985",
       "tool": "bayeshammer",
-      "version": "3.15.5"
+      "version": "4.2.0"
     },
     {
       "entry_sha256": "4de118293a9d9d5739f48d3bad1598ada4dab3db2bf5c2ae43bf8bc558c76d22",
@@ -1343,6 +1343,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v4",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "223f0a9704b864d6b4e607a752607059bec03ae246ab1e0bae6c6433a5755513",
+  "source_sha256": "ac0963e1d4c8225792a4842ba9d95a4a4e2f28a2742a0f0ba2a634f17a059738",
   "version_map_source": "artifacts/containers/version_map.json"
 }

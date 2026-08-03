@@ -26,7 +26,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `authenticct` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/StephanePeyregne/AuthentiCT` | `1.0.0` | `sha256:179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834` |
 | `bamtools` | `retained` | `bijux` | `MIT` | `https://github.com/pezmaster31/bamtools` | `2.5.2` | `sha256:4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8` |
 | `bamutil` | `retained` | `bijux` | `GPL-3.0-or-later` | `https://github.com/statgen/bamUtil` | `1.0.15` | `sha256:24ac4bdb81eded6e33f60dba85ec3d32ebdb06d42f75df775c2632bbfbd8cce9` |
-| `bayeshammer` | `retained` | `bijux` | `GPL-2.0-only` | `https://github.com/ablab/spades` | `3.15.5` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
+| `bayeshammer` | `retained` | `bijux` | `GPL-2.0-only` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
 | `bbduk` | `retained` | `bijux` | `BSD-3-Clause` | `https://sourceforge.net/projects/bbmap/` | `39.06` | `sha256:61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e` |
 | `bbmerge` | `retained` | `bijux` | `BSD-3-Clause` | `https://sourceforge.net/projects/bbmap/` | `39.06` | `sha256:61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e` |
 | `bcftools` | `retained` | `bijux` | `MIT` | `https://github.com/samtools/bcftools` | `1.20` | `sha256:25b6c8ab18ad5eb053c969d2640f9eb58d4638a37f51e5188f9f09d8753ae923` |

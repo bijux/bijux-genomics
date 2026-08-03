@@ -53,10 +53,12 @@ source_sha256 = "4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc
 upstream_license = "MIT"
 
 [bayeshammer]
-version = "3.15.5"
+version = "4.2.0"
 source = "https://github.com/ablab/spades"
-date_pinned = "2026-02-12"
-pinned_commit = "896694ce5c7a9050a6ffa9fccc950a4cd9f04363"
+date_pinned = "2026-08-03"
+pinned_commit = "7fee3c1050a732faef8a0d93d70861015a96f44e"
+source_sha256 = "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985"
+upstream_license = "GPL-2.0-only"
 
 [bbduk]
 version = "39.06"

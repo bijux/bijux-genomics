@@ -5,11 +5,12 @@
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
 ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=2.4.1
 LABEL org.opencontainers.image.source="https://github.com/poruloh/Eagle" \
       org.opencontainers.image.revision="dec140eefc0eda3b7f02233a3c02361eaeb8227c" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0-or-later" \
-      org.opencontainers.image.version="2.4.1" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
       org.opencontainers.image.tool="eagle" \
       org.opencontainers.image.title="Eagle" \
       org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
@@ -33,11 +34,12 @@ RUN set -eu; \
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=2.4.1
 LABEL org.opencontainers.image.source="https://github.com/poruloh/Eagle" \
       org.opencontainers.image.revision="dec140eefc0eda3b7f02233a3c02361eaeb8227c" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0-or-later" \
-      org.opencontainers.image.version="2.4.1" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
       org.opencontainers.image.tool="eagle" \
       org.opencontainers.image.title="Eagle" \
       org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
