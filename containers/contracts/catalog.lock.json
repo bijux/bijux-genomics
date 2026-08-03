@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "f6bc6e79b1c5e0403c1c0a63d0b9d536a7cd35bbf7b7d524be5d64355dd2ec24",
+  "source_sha256": "c06b5e090dc4b500599eacb537b09706caba13582472c7a2defd3abc2388370f",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -471,12 +471,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/StevenWingett/FastQ-Screen",
-      "license": "GPL-3.0-only",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "79a66b7265374c1c1b34ca166eede564bfa7ec58e17c3ba9a0e1de9bbe1c2448",
       "pinned_commit": "6dfa1eef0d3103dd7829eb1f586b4d8a121f911b",
       "apptainer_definition": "containers/apptainer/fastq_screen.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastq_screen",
-      "contract_sha256": "66b109c85f9543e05dbec0e8770537fd7b60ba42b8f8e68a9384c85bdd399701"
+      "contract_sha256": "0f8f88dcf335e6e4193607ac00bf450aca8faf9cbb9b4a6d84f968705cccdb8a"
     },
     {
       "id": "fastqc",
@@ -668,11 +668,11 @@
       "support_reason": "",
       "upstream": "https://github.com/bioinformatics-centre/kaiju",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "b750e692e4ad8bab1dbde836e6e2813812cb2806865ef086f9bbf92b0e1b65a1",
       "pinned_commit": "4653635b1321f5779707adc79c054012ed28b221",
       "apptainer_definition": "containers/apptainer/kaiju.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.kaiju",
-      "contract_sha256": "18369e64ed37b01f4369aa81c7a99fc0da60466566f038711053bbae13e4d631"
+      "contract_sha256": "394833505885c62781369b7c07a39814362e97ee2b3d2fa41bc415a76b3265de"
     },
     {
       "id": "king",
