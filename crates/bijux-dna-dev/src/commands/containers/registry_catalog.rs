@@ -148,6 +148,12 @@ pub(super) fn governed_container_statuses(
             statuses.entry(tool_id).or_insert(status);
         }
     }
+    for (tool_id, row) in versions {
+        let status = table_string(&row, "status");
+        if matches!(status.as_str(), "unsupported" | "retired" | "excluded") {
+            statuses.entry(tool_id).or_insert(status);
+        }
+    }
     Ok(statuses)
 }
 
