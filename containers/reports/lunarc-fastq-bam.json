@@ -93,6 +93,22 @@
       "output_bytes": 246
     },
     {
+      "tool": "fqtools",
+      "run_id": "run-1121",
+      "repository_commit": "4fa8609958a669146869efeca21cb373736192bc",
+      "slurm_job_id": "3458194",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "image_sha256": "a0f39cc7e90e778b603d41d23780a0add9bb0ded2849d73d0787f4e1d7c96488",
+      "build_evidence_sha256": "b13d18f4c7c280ff633e184071e03b087fc2115157117654bacda32b9a3ed39d",
+      "evidence_sha256": "c0b582fc55d400e4ebb4ff7210bcc46c2a8b4adf8898420990c82c3c09d406bc",
+      "accounting_sha256": "1191896641136a10ba1c01b4b5829cbca61d628607f3be21860ecb424580197a",
+      "validation_output_sha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87",
+      "input_reads": 100000,
+      "invalid_reads": 0,
+      "validation_result": "OK"
+    },
+    {
       "tool": "fastq_scan",
       "operation": "compressed_fastq_read_profile",
       "run_id": "run-1118",

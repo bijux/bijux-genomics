@@ -18,6 +18,7 @@ root.
 | read-length profiling | SeqKit Stats 2.8.2 | `run-1072` | `3458025` | 1s | independently reproduced statistics table |
 | FASTQ-to-FASTA conversion | Seqtk 1.4 | `run-1073` | `3458026` | 1s | 16,023,606-byte FASTA stream |
 | FASTQ structural validation | fastQValidator 0.1.1 | `run-1077` | `3458062` | 1s | validator success report |
+| FASTQ structural validation | fqtools 2.3 | `run-1121` | `3458194` | 1s | 100,000 public horse reads accepted with zero invalid records |
 | FASTQ read profiling | FASTQ Scan 1.0.1 | `run-1118` | `3458168` | 1s | JSON read-length and quality distributions for 100,000 reads |
 | read-quality and adapter profiling | FastQC 0.12.1 | `run-1076` | `3458057` | 4s | HTML report plus machine-readable archive |
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
