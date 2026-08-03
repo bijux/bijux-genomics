@@ -177,7 +177,10 @@ Image admission proves that a recipe produced an inspectable SIF; it does not
 prove that the packaged entry points start correctly. After inventory and
 quarantine are complete, run the catalog-wide runtime campaign on the approved
 frontend. It executes version and help checks with a disabled runtime network,
-bounded command time, and one immutable stdout/stderr pair per check:
+an isolated resolvable hostname, bounded command time, and one immutable
+stdout/stderr pair per check. The same hostname policy applies to governed
+Slurm execution so hostname-sensitive runtimes behave consistently without
+restoring network access:
 
 ```console
 runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"

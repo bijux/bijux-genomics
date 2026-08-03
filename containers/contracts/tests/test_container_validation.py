@@ -1068,6 +1068,33 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertEqual(archive["disposition"], "superseded")
         self.assertEqual(archive["reason"], reason)
 
+    def test_apptainer_execution_uses_a_resolvable_isolated_hostname(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            stdout = root / "stdout.log"
+            stderr = root / "stderr.log"
+            with mock.patch.object(
+                container_validation.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ) as execute:
+                status = container_validation.run_apptainer(
+                    root / "tool.sif",
+                    ["tool", "--version"],
+                    [],
+                    root,
+                    stdout,
+                    stderr,
+                )
+
+        self.assertEqual(status, 0)
+        command = execute.call_args.args[0]
+        hostname_index = command.index("--hostname")
+        self.assertEqual(
+            command[hostname_index + 1],
+            container_validation.ISOLATED_RUNTIME_HOSTNAME,
+        )
+
 
 class BuildAdmissionTests(unittest.TestCase):
     def inspection(

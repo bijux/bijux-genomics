@@ -21,6 +21,7 @@ except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
     import tomli as tomllib
 
 from container_validation import (
+    ISOLATED_RUNTIME_HOSTNAME,
     ContractError,
     git_output,
     load_governance,
@@ -177,6 +178,8 @@ def run_check(
                     "exec",
                     "--cleanenv",
                     "--containall",
+                    "--hostname",
+                    ISOLATED_RUNTIME_HOSTNAME,
                     "--net",
                     "--network",
                     "none",
@@ -359,8 +362,10 @@ def render_report(execution_path: Path, output: Path) -> int:
         f"- Repository commit: `{execution['repository_commit']}`",
         f"- Site: `{execution['site']['id']}` on `{execution['site']['host']}`",
         f"- Overall status: **{execution['status']}**",
-        f"- Tool results: **passed {summary.get('passed', 0)}**, "
-        f"**failed {summary.get('failed', 0)}**",
+        (
+            f"- Tool results: **passed {summary.get('passed', 0)}**, "
+            f"**failed {summary.get('failed', 0)}**"
+        ),
         f"- Catalog SHA-256: `{execution['catalog']['sha256']}`",
         f"- Image inventory SHA-256: `{execution['inventory']['sha256']}`",
         f"- Per-command timeout: **{execution['timeout_seconds']} seconds**",

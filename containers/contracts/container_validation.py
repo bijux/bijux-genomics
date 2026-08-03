@@ -20,6 +20,7 @@ import yaml
 
 PIPELINE_SCHEMA_V1 = "bijux.container.pipeline.v1"
 PIPELINE_SCHEMA_V2 = "bijux.container.pipeline.v2"
+ISOLATED_RUNTIME_HOSTNAME = "bijux-runtime"
 PIPELINE_SCHEMAS = {PIPELINE_SCHEMA_V1, PIPELINE_SCHEMA_V2}
 CREDENTIAL_SCHEMA = "bijux.container.credential_reference.v1"
 GOVERNANCE_SCHEMA = "bijux.container.governance.v1"
@@ -1008,6 +1009,8 @@ def run_apptainer(
         "exec",
         "--cleanenv",
         "--containall",
+        "--hostname",
+        ISOLATED_RUNTIME_HOSTNAME,
         "--net",
         "--network",
         "none",

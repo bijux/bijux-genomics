@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import re
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 CONTRACTS = Path(__file__).parents[1]
@@ -23,6 +23,30 @@ ROOT = Path(__file__).parents[3]
 
 
 class RuntimeVerificationTests(unittest.TestCase):
+    def test_runtime_check_uses_a_resolvable_isolated_hostname(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with mock.patch.object(
+                runtime_verification.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ) as execute:
+                check = runtime_verification.run_check(
+                    root / "tool.sif",
+                    ["tool", "--version"],
+                    root / "stdout.log",
+                    root / "stderr.log",
+                    30,
+                )
+
+        self.assertEqual(check["exit_code"], 0)
+        command = execute.call_args.args[0]
+        hostname_index = command.index("--hostname")
+        self.assertEqual(
+            command[hostname_index + 1],
+            runtime_verification.ISOLATED_RUNTIME_HOSTNAME,
+        )
+
     def test_prepare_accepts_the_inventory_frozen_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
