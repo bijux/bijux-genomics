@@ -28,12 +28,16 @@ RUN apt-get update && \
       build-essential \
       ca-certificates \
       curl \
-      libhts-dev && \
+      libhts-dev \
+      patch && \
     curl --fail --location --silent --show-error \
       "https://github.com/smithlabcode/preseq/releases/download/v${VERSION_PRESEQ}/preseq-${VERSION_PRESEQ}.tar.gz" \
       --output /tmp/preseq.tar.gz && \
     echo "${PRESEQ_SHA256}  /tmp/preseq.tar.gz" | sha256sum --check --strict && \
-    tar --extract --gzip --file /tmp/preseq.tar.gz --directory /tmp && \
+    tar --extract --gzip --file /tmp/preseq.tar.gz --directory /tmp
+COPY containers/tools/preseq/gcc-cstdint.patch /opt/preseq-gcc-cstdint.patch
+RUN cd "/tmp/preseq-${VERSION_PRESEQ}" && \
+    patch --strip=1 --input /opt/preseq-gcc-cstdint.patch && \
     cd "/tmp/preseq-${VERSION_PRESEQ}" && \
     ./configure --prefix=/usr/local --enable-hts && \
     make -j2 && \
@@ -42,7 +46,7 @@ RUN apt-get update && \
     install -m 0644 data/SRR1301329_1M_hist.txt /opt/preseq/test-data/counts.hist && \
     preseq c_curve -H -o /tmp/preseq-self-test.txt /opt/preseq/test-data/counts.hist && \
     test -s /tmp/preseq-self-test.txt && \
-    rm -rf "/tmp/preseq-${VERSION_PRESEQ}" /tmp/preseq.tar.gz /tmp/preseq-self-test.txt && \
+    rm -rf "/tmp/preseq-${VERSION_PRESEQ}" /tmp/preseq.tar.gz /tmp/preseq-self-test.txt /opt/preseq-gcc-cstdint.patch && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data

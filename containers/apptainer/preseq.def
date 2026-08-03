@@ -28,6 +28,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export LC_ALL=C
     export TZ=UTC
     export VERSION_PRESEQ=3.2.0
+%files
+    containers/tools/preseq/gcc-cstdint.patch /opt/preseq-gcc-cstdint.patch
 %post
     set -eux
     # NETWORK_SOURCE_VERIFIED_BY_LOCK
@@ -40,7 +42,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
         build-essential \
         ca-certificates \
         curl \
-        libhts-dev
+        libhts-dev \
+        patch
 
     curl --fail --location --silent --show-error \
         "https://github.com/smithlabcode/preseq/releases/download/v${VERSION_PRESEQ}/preseq-${VERSION_PRESEQ}.tar.gz" \
@@ -48,6 +51,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     echo "${PRESEQ_SHA256}  /tmp/preseq.tar.gz" | sha256sum --check --strict
     tar --extract --gzip --file /tmp/preseq.tar.gz --directory /tmp
     cd "/tmp/preseq-${VERSION_PRESEQ}"
+    patch --strip=1 --input /opt/preseq-gcc-cstdint.patch
     ./configure --prefix=/usr/local --enable-hts
     make -j2
     make install
@@ -56,7 +60,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     install -m 0644 data/SRR1301329_1M_hist.txt /opt/preseq/test-data/counts.hist
     preseq c_curve -H -o /tmp/preseq-self-test.txt /opt/preseq/test-data/counts.hist
     test -s /tmp/preseq-self-test.txt
-    rm -rf "/tmp/preseq-${VERSION_PRESEQ}" /tmp/preseq.tar.gz /tmp/preseq-self-test.txt
+    rm -rf "/tmp/preseq-${VERSION_PRESEQ}" /tmp/preseq.tar.gz /tmp/preseq-self-test.txt /opt/preseq-gcc-cstdint.patch
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
