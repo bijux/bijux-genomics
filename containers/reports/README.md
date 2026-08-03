@@ -27,6 +27,7 @@ a new run identifier after the cause is corrected.
 - [LUNARC amplicon ASV validation](lunarc-amplicon-asv.md)
 - [LUNARC BAM coverage validation](lunarc-bam-coverage.md)
 - [LUNARC FASTQ-to-BAM validation](lunarc-fastq-bam.md)
+- [LUNARC paired-read trimming validation](lunarc-paired-read-trimming.md)
 - [LUNARC reference-complexity validation](lunarc-reference-complexity.md)
 - [LUNARC VCF phasing validation](lunarc-vcf-phasing.md)
 - [LUNARC VCF quality-control validation](lunarc-vcf-qc.md)
