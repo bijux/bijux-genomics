@@ -16,6 +16,7 @@ Validate the definitions and render the honest coverage report:
 python3 -B containers/benchmarks/benchmark_registry.py \
   --registry containers/benchmarks/campaigns.toml \
   --catalog containers/contracts/catalog.toml \
+  --evidence-root containers/reports \
   --json-output containers/reports/stage-benchmark-coverage.json \
   --markdown-output containers/reports/stage-benchmark-coverage.md
 ```

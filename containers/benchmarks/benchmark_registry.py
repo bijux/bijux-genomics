@@ -64,9 +64,7 @@ def require_text_list(campaign: dict[str, Any], key: str) -> list[str]:
         or not value
         or any(not isinstance(item, str) or not item for item in value)
     ):
-        raise RegistryError(
-            f"benchmark campaign {key} must be a non-empty text list"
-        )
+        raise RegistryError(f"benchmark campaign {key} must be a non-empty text list")
     if len(value) != len(set(value)):
         raise RegistryError(f"benchmark campaign {key} contains duplicates")
     return value
@@ -120,9 +118,7 @@ def validate_registry(
             "limitations",
         ):
             require_text_list(campaign, key)
-        performance_metrics = set(
-            require_text_list(campaign, "performance_metrics")
-        )
+        performance_metrics = set(require_text_list(campaign, "performance_metrics"))
         if not REQUIRED_PERFORMANCE_METRICS.issubset(performance_metrics):
             raise RegistryError(
                 f"benchmark performance metrics are incomplete for {stage_id}"
@@ -140,7 +136,9 @@ def validate_registry(
         if campaign.get("warmup_repetitions", 0) < 1:
             raise RegistryError("benchmark campaigns require a warmup repetition")
         if campaign.get("measured_repetitions", 0) < 3:
-            raise RegistryError("benchmark campaigns require at least three measurements")
+            raise RegistryError(
+                "benchmark campaigns require at least three measurements"
+            )
         expected_root = "results/benchmarks/{run_id}-{slug}/{tool_id}"
         if campaign.get("result_root_template") != expected_root:
             raise RegistryError("benchmark result root template is not canonical")
@@ -152,26 +150,63 @@ def validate_registry(
 
 
 def coverage_report(
-    campaigns: list[dict[str, Any]], catalog: dict[str, Any]
+    campaigns: list[dict[str, Any]],
+    catalog: dict[str, Any],
+    evidence_root: Path | None = None,
 ) -> dict[str, Any]:
     stage_tools = retained_stage_tools(catalog)
     defined = {str(campaign["stage_id"]): campaign for campaign in campaigns}
     rows = []
     for stage_id, tools in sorted(stage_tools.items()):
         campaign = defined.get(stage_id)
+        execution_status = "not_defined"
+        if campaign:
+            execution_status = "not_admitted"
+            if evidence_root is not None:
+                evidence_path = (
+                    evidence_root / f"{campaign['run_id']}-{campaign['slug']}.json"
+                )
+                if evidence_path.is_file():
+                    try:
+                        evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+                    except (OSError, json.JSONDecodeError) as exc:
+                        raise RegistryError(
+                            f"cannot read benchmark evidence {evidence_path}: {exc}"
+                        ) from exc
+                    if (
+                        not isinstance(evidence, dict)
+                        or evidence.get("schema_version")
+                        != "bijux.container.stage_benchmark_report.v1"
+                        or evidence.get("verdict") != "passed"
+                        or evidence.get("run_id") != campaign["run_id"]
+                        or evidence.get("stage_id") != stage_id
+                        or {
+                            str(tool.get("tool"))
+                            for tool in evidence.get("tools", [])
+                            if isinstance(tool, dict)
+                        }
+                        != set(campaign["tool_ids"])
+                    ):
+                        raise RegistryError(
+                            f"benchmark evidence identity is invalid: {evidence_path}"
+                        )
+                    execution_status = "admitted"
         rows.append(
             {
                 "stage_id": stage_id,
                 "retained_tools": sorted(tools),
                 "campaign_run_id": campaign.get("run_id") if campaign else None,
                 "definition_status": "defined" if campaign else "missing",
+                "execution_status": execution_status,
             }
         )
+    admitted = sum(row["execution_status"] == "admitted" for row in rows)
     return {
         "schema_version": "bijux.container.stage_benchmark_coverage.v1",
         "summary": {
             "retained_stage_count": len(rows),
             "defined_stage_count": len(defined),
+            "admitted_stage_count": admitted,
             "missing_stage_count": len(rows) - len(defined),
         },
         "stages": rows,
@@ -193,17 +228,18 @@ def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -
         "",
         f"- Retained stages: **{summary['retained_stage_count']}**",
         f"- Defined campaigns: **{summary['defined_stage_count']}**",
+        f"- Admitted campaigns: **{summary['admitted_stage_count']}**",
         f"- Missing campaigns: **{summary['missing_stage_count']}**",
         "",
-        "| Stage | Retained tools | Campaign | Definition |",
-        "|---|---|---|---|",
+        "| Stage | Retained tools | Campaign | Definition | Execution |",
+        "|---|---|---|---|---|",
     ]
     for row in report["stages"]:
         tools = ", ".join(f"`{tool}`" for tool in row["retained_tools"])
         run_id = f"`{row['campaign_run_id']}`" if row["campaign_run_id"] else "—"
         lines.append(
             f"| `{row['stage_id']}` | {tools} | {run_id} | "
-            f"{row['definition_status']} |"
+            f"{row['definition_status']} | {row['execution_status']} |"
         )
     markdown_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -214,6 +250,7 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--catalog", type=Path, required=True)
     root.add_argument("--json-output", type=Path)
     root.add_argument("--markdown-output", type=Path)
+    root.add_argument("--evidence-root", type=Path)
     return root
 
 
@@ -223,9 +260,11 @@ def main() -> int:
         registry = load_toml(args.registry)
         catalog = load_toml(args.catalog)
         campaigns = validate_registry(registry, catalog)
-        report = coverage_report(campaigns, catalog)
+        report = coverage_report(campaigns, catalog, args.evidence_root)
         if bool(args.json_output) != bool(args.markdown_output):
-            raise RegistryError("JSON and Markdown report paths must be supplied together")
+            raise RegistryError(
+                "JSON and Markdown report paths must be supplied together"
+            )
         if args.json_output and args.markdown_output:
             write_report(report, args.json_output, args.markdown_output)
         print(

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
-from pathlib import Path
+import json
 import sys
+import tempfile
 import unittest
+from pathlib import Path
 
 BENCHMARKS = Path(__file__).parents[1]
 SPEC = importlib.util.spec_from_file_location(
@@ -27,9 +29,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
         )
 
     def test_campaigns_cover_every_retained_tool_for_the_stage(self) -> None:
-        campaigns = benchmark_registry.validate_registry(
-            self.registry, self.catalog
-        )
+        campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
 
         self.assertEqual(campaigns[0]["stage_id"], "bam.genotyping")
         self.assertEqual(campaigns[0]["tool_ids"], ["bcftools"])
@@ -44,13 +44,37 @@ class BenchmarkRegistryTests(unittest.TestCase):
             benchmark_registry.validate_registry(self.registry, self.catalog)
 
     def test_coverage_does_not_claim_missing_campaigns_are_defined(self) -> None:
-        campaigns = benchmark_registry.validate_registry(
-            self.registry, self.catalog
-        )
+        campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
 
         self.assertEqual(report["summary"]["defined_stage_count"], 1)
+        self.assertEqual(report["summary"]["admitted_stage_count"], 0)
         self.assertGreater(report["summary"]["missing_stage_count"], 1)
+
+    def test_coverage_admits_matching_complete_tool_evidence(self) -> None:
+        campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "run-2001-bam-genotyping.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "bijux.container.stage_benchmark_report.v1",
+                        "verdict": "passed",
+                        "run_id": "run-2001",
+                        "stage_id": "bam.genotyping",
+                        "tools": [{"tool": "bcftools"}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            report = benchmark_registry.coverage_report(campaigns, self.catalog, root)
+
+        row = next(
+            row for row in report["stages"] if row["stage_id"] == "bam.genotyping"
+        )
+        self.assertEqual(report["summary"]["admitted_stage_count"], 1)
+        self.assertEqual(row["execution_status"], "admitted")
 
 
 if __name__ == "__main__":
