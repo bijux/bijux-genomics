@@ -515,6 +515,10 @@ def create_report(
         for tool in campaign["tool_ids"]
     ]
     comparability = validate_comparability(tools)
+    for tool in tools:
+        tool.pop("input_locks")
+        tool.pop("parameters")
+        tool.pop("interface")
     comparison = compare_tools(campaign, tools)
     return {
         "schema_version": REPORT_SCHEMA,
@@ -609,7 +613,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     if isinstance(comparability, dict):
         lines.extend(
             [
-                "## Replay and interchangeability",
+                "## Replay and comparison interface",
                 "",
                 f"- Repository commit: `{comparability['repository_commit']}`",
                 f"- Immutable input closure: `{comparability['input_lock_sha256']}`",
@@ -629,6 +633,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"- Normalized output: `{stage_interface['output_contract']}`",
                     f"- Output schema: `{stage_interface['normalized_result_contract']}`",
                     f"- Tool-independent consumer: `{probe['stage_id']}`",
+                    "- Substitution scope: normalized benchmark comparison only; this run does not claim operational downstream pipeline substitution",
                 ]
             )
         lines.append("")

@@ -103,6 +103,75 @@ class BenchmarkEvidenceTests(unittest.TestCase):
         ):
             benchmark_evidence.validate_comparability(tools)
 
+    def test_markdown_does_not_overclaim_pipeline_substitution(self) -> None:
+        report = {
+            "stage_id": "fastq.profile_reads",
+            "run_id": "run-2043",
+            "evidence_tier": "comparative",
+            "benchmark_profile_id": "fastq-observational-qc",
+            "verdict": "passed",
+            "interpretation": "Comparison parsing passed.",
+            "scientific_question": "Do normalized observations agree?",
+            "comparison_scope": "one governed cohort",
+            "accuracy_claim": "count_concordance",
+            "design": {
+                "tool_closure": ["seqkit"],
+                "runtime": "apptainer",
+                "scheduler": "slurm",
+                "threads_by_tool": {"seqkit": 4},
+                "cache_policy": "warm",
+                "warmup_repetitions": 1,
+                "measured_repetitions": 3,
+                "corpus_catalog_ids": ["corpus"],
+                "corpus_ids": ["corpus"],
+                "reference_catalog_ids": [],
+                "database_catalog_ids": [],
+                "result_artifact": "profile.tsv",
+            },
+            "comparability": {
+                "repository_commit": "a" * 40,
+                "input_lock_sha256": "b" * 64,
+                "parameter_lock_sha256": "c" * 64,
+                "stage_interface": {
+                    "accepted_input_contracts": ["fastq.single.v1"],
+                    "output_contract": "benchmark.profile.v1",
+                    "normalized_result_contract": "profile.schema.json",
+                    "downstream_probe": {"stage_id": "benchmark.compare"},
+                },
+            },
+            "tools": [
+                {
+                    "tool": "seqkit",
+                    "repository_commit": "a" * 40,
+                    "image": {"sha256": "d" * 64},
+                    "slurm": {"job_id": "123"},
+                    "performance": {
+                        key: {"mean": 1.0, "minimum": 1.0, "maximum": 1.0}
+                        for key in (
+                            "wall_seconds",
+                            "cpu_seconds",
+                            "peak_rss_kib",
+                            "output_bytes",
+                        )
+                    },
+                    "scientific_observations": {"read_count": [1, 1, 1]},
+                    "determinism": {
+                        "artifact": "profile.tsv",
+                        "sha256": "e" * 64,
+                    },
+                }
+            ],
+            "cross_tool_comparison": {"status": "not_applicable", "metrics": []},
+            "limitations": ["No transformation output was exercised."],
+        }
+
+        markdown = benchmark_evidence.render_markdown(report)
+
+        self.assertIn("normalized benchmark comparison only", markdown)
+        self.assertIn(
+            "does not claim operational downstream pipeline substitution", markdown
+        )
+
     def test_output_inventory_rejects_unrecorded_files(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
