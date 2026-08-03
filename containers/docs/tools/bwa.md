@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/bwa.license.toml](../../licenses/bwa.license.toml)
 
 - Version: `0.7.17`
+- Support disposition: `retained`
 - License: `GPL-3.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/bbmerge.license.toml](../../licenses/bbmerge.license.toml)
 
 - Version: `39.06`
+- Support disposition: `retained`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

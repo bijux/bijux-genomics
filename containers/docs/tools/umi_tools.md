@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/umi_tools.license.toml](../../licenses/umi_tools.license.toml)
 
 - Version: `1.1.6`
+- Support disposition: `retained`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

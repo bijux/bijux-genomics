@@ -12,9 +12,11 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/fastuniq.license.toml](../../licenses/fastuniq.license.toml)
 
 - Version: `1.1`
+- Support disposition: `unsupported`
 - License: `NOASSERTION`
-- Runtime support: `docker-arm64, apptainer`
+- Runtime support: `none`
 - Smoke status: `unknown`
 
 ## Known Limitations
-- No declared limitations.
+- No runtime implementation currently present.
+- The FastUniq 1.1 source archive and SourceForge project metadata contain no software license grant; Bijux Genomics cannot redistribute a container until upstream licensing is clarified.

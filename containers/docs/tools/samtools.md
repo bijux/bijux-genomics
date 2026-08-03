@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/samtools.license.toml](../../licenses/samtools.license.toml)
 
 - Version: `1.20`
+- Support disposition: `retained`
 - License: `MIT`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

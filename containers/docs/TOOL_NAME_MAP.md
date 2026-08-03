@@ -45,7 +45,7 @@
 | `fastq_screen` | `fastq_screen` | `experimental` |
 | `fastqc` | `fastqc` | `production` |
 | `fastqvalidator` | `fastqvalidator` | `production` |
-| `fastuniq` | `fastuniq` | `production` |
+| `fastuniq` | `fastuniq` | `unsupported` |
 | `fastx_clipper` | `fastx_clipper` | `production` |
 | `flash2` | `flash2` | `production` |
 | `fqtools` | `fqtools` | `production` |

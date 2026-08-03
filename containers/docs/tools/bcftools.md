@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/bcftools.license.toml](../../licenses/bcftools.license.toml)
 
 - Version: `1.20`
+- Support disposition: `retained`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

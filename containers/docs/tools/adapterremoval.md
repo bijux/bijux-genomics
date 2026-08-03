@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/adapterremoval.license.toml](../../licenses/adapterremoval.license.toml)
 
 - Version: `2.3.4`
+- Support disposition: `retained`
 - License: `GPL-3.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

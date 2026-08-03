@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/bamtools.license.toml](../../licenses/bamtools.license.toml)
 
 - Version: `2.5.2`
+- Support disposition: `retained`
 - License: `MIT`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

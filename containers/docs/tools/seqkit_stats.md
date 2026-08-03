@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/seqkit_stats.license.toml](../../licenses/seqkit_stats.license.toml)
 
 - Version: `2.8.2`
+- Support disposition: `retained`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

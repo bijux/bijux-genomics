@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/king.license.toml](../../licenses/king.license.toml)
 
 - Version: `2.3.0`
+- Support disposition: `retained`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

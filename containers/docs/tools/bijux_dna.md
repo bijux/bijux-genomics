@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/bijux_dna.license.toml](../../licenses/bijux_dna.license.toml)
 
 - Version: `0.1.0`
+- Support disposition: `retained`
 - License: `Apache-2.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

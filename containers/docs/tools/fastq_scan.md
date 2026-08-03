@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/fastq_scan.license.toml](../../licenses/fastq_scan.license.toml)
 
 - Version: `1.0.1`
+- Support disposition: `retained`
 - License: `MIT`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

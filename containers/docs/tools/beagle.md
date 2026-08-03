@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/beagle.license.toml](../../licenses/beagle.license.toml)
 
 - Version: `5.4`
+- Support disposition: `retained`
 - License: `GPL-3.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/ibdhap.license.toml](../../licenses/ibdhap.license.toml)
 
 - Version: `3.4`
+- Support disposition: `retained`
 - License: `LicenseRef-MORGAN-2006`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

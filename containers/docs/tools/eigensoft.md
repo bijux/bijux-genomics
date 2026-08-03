@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/eigensoft.license.toml](../../licenses/eigensoft.license.toml)
 
 - Version: `8.0.0`
+- Support disposition: `retained`
 - License: `GPL-2.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

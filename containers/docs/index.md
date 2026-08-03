@@ -72,7 +72,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `fastq_screen` | `experimental` | `bijux` | `arm64` |
 | `fastqc` | `production` | `bijux` | `arm64` |
 | `fastqvalidator` | `production` | `bijux` | `arm64` |
-| `fastuniq` | `production` | `bijux` | `arm64` |
+| `fastuniq` | `unsupported` | `none` | `none` |
 | `fastx_clipper` | `production` | `bijux` | `arm64` |
 | `flash2` | `production` | `bijux` | `arm64` |
 | `fqtools` | `production` | `bijux` | `arm64` |
@@ -92,7 +92,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `mapdamage2` | `production` | `bijux` | `arm64` |
 | `metaphlan` | `experimental` | `bijux` | `arm64` |
 | `minimac4` | `planned` | `non-bijux` | `arm64` |
-| `mosdepth` | `production` | `bijux` | `arm64` |
+| `mosdepth` | `production` | `bijux` | `none` |
 | `multiqc` | `production` | `bijux` | `arm64` |
 | `musket` | `production` | `bijux` | `arm64` |
 | `ngsbriggs` | `experimental` | `bijux` | `arm64` |

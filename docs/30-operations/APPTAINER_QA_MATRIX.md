@@ -60,7 +60,6 @@ Derived from tool registries and container metadata fields.
 | `fastq_screen` | `containers/apptainer/fastq_screen.def` | `fastq_screen --version` | `fastq_screen --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastqc` | `containers/apptainer/fastqc.def` | `fastqc --version` | `fastqc --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `fastqvalidator` | `containers/apptainer/fastqvalidator.def` | `fastqvalidator --version` | `fastqvalidator --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `fastuniq` | `containers/apptainer/fastuniq.def` | `fastuniq --version` | `fastuniq -h` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `fastx_clipper` | `containers/apptainer/fastx_clipper.def` | `fastx_clipper --version` | `fastx_clipper --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `flash2` | `containers/apptainer/flash2.def` | `flash2 --version` | `flash2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `fqtools` | `containers/apptainer/fqtools.def` | `fqtools --version` | `fqtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |

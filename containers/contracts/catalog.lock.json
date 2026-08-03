@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "34be1fcf3a05efe974efba2c643a66ef79b4a0d036cb85b7e27110502f234877",
+  "source_sha256": "fb50392530bcfdc01c77ca67d11fabe722dc018a7186c5ca9a5ec58b5addd128",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -544,16 +544,16 @@
       "id": "fastuniq",
       "display_name": "FastUniq",
       "version": "1.1",
-      "support_disposition": "retained",
-      "support_reason": "",
-      "qualification": "unverified",
+      "support_disposition": "unsupported",
+      "support_reason": "The FastUniq 1.1 source archive and SourceForge project metadata contain no software license grant; Bijux Genomics cannot redistribute a container until upstream licensing is clarified.",
+      "qualification": "not_applicable",
       "upstream": "https://sourceforge.net/projects/fastuniq/",
-      "license": "GPL-3.0",
+      "license": "NOASSERTION",
       "source_sha256": "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae",
-      "pinned_commit": "0000000000000000000000000000000000000000",
-      "apptainer_definition": "containers/apptainer/fastuniq.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.fastuniq",
-      "contract_sha256": "5b120f055d78e194bad620c31ea55de73b753a404d09ec620234112c381d33b8"
+      "pinned_commit": "",
+      "apptainer_definition": "",
+      "dockerfile": "",
+      "contract_sha256": "68175b3d96cfa0f5fecf0098d247a1868deab84608c431c5871ef86d981c183d"
     },
     {
       "id": "fastx_clipper",

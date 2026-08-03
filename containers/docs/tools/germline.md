@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/germline.license.toml](../../licenses/germline.license.toml)
 
 - Version: `1.5.3`
+- Support disposition: `retained`
 - License: `Apache-2.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

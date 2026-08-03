@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/ibdseq.license.toml](../../licenses/ibdseq.license.toml)
 
 - Version: `r1206`
+- Support disposition: `retained`
 - License: `Apache-2.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

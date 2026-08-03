@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T04:07:27+02:00",
+  "build_date_utc": "2026-08-03T04:20:21+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -550,18 +550,18 @@
       "version": "0.1.1"
     },
     {
-      "entry_sha256": "6f4f74e9c78db0c2fc32f9b58924585464f0c3e69774d050e44921901a5f789c",
+      "entry_sha256": "3e5fdaa50499e4af50440d635f660c270197ed8e586bf2fe73b1b02067d895dc",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "0000000000000000000000000000000000000000",
+      "pinned_commit": "",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://sourceforge.net/projects/fastuniq/",
       "source_sha256": "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae",
-      "status": "production",
+      "status": "unsupported",
       "tool": "fastuniq",
       "version": "1.1"
     },
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "f00231aa1df0449516079d39642125d67ea42c7e8ec89c649c8294f9997aaaae",
+  "source_sha256": "c4ea4119e8f46b0c681f4480015fd3f0c5e0c0beb43153cf256714a90068c8dc",
   "version_map_source": "artifacts/containers/version_map.json"
 }

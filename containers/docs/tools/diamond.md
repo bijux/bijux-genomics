@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/diamond.license.toml](../../licenses/diamond.license.toml)
 
 - Version: `2.1.10`
+- Support disposition: `retained`
 - License: `GPL-3.0-or-later`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

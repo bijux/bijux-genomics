@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/vsearch.license.toml](../../licenses/vsearch.license.toml)
 
 - Version: `2.29.3`
+- Support disposition: `retained`
 - License: `BSD-2-Clause`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

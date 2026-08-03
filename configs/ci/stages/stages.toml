@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: dc7c9d21f24cc8b66fee690c70149ce8aa6d8c04
+# source_commit: f8eaefeb316d3814c197fb901bbb8bb9f7597f70
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -805,7 +805,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["clumpify", "fastuniq"]
+tools = ["clumpify"]
 
 [[stages]]
 id = "fastq.report_qc"

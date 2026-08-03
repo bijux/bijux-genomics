@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/flash2.license.toml](../../licenses/flash2.license.toml)
 
 - Version: `2.2.00`
+- Support disposition: `retained`
 - License: `GPL-3.0-or-later`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

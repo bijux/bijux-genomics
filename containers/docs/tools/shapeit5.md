@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/shapeit5.license.toml](../../licenses/shapeit5.license.toml)
 
 - Version: `5.1.1`
+- Support disposition: `retained`
 - License: `MIT`
 - Runtime support: `apptainer`
 - Smoke status: `unknown`

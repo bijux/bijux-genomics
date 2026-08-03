@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/fastp.license.toml](../../licenses/fastp.license.toml)
 
 - Version: `0.23.4`
+- Support disposition: `retained`
 - License: `MIT`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/minimac4.license.toml](../../licenses/minimac4.license.toml)
 
 - Version: `4.1.6`
+- Support disposition: `retained`
 - License: `GPL-3.0-only`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/plink.license.toml](../../licenses/plink.license.toml)
 
 - Version: `1.90b7.2`
+- Support disposition: `retained`
 - License: `GPL-3.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

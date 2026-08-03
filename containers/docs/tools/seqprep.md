@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/seqprep.license.toml](../../licenses/seqprep.license.toml)
 
 - Version: `1.3.2`
+- Support disposition: `retained`
 - License: `MIT`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

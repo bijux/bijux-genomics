@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/ibdne.license.toml](../../licenses/ibdne.license.toml)
 
 - Version: `23Apr20.ae9`
+- Support disposition: `retained`
 - License: `Apache-2.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

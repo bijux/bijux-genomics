@@ -12,6 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/mosdepth.license.toml](../../licenses/mosdepth.license.toml)
 
 - Version: `0.3.11`
+- Support disposition: `retained`
 - License: `MIT`
 - Runtime support: `apptainer`
 - Smoke status: `unknown`

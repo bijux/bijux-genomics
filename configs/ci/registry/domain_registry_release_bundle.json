@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "dc7c9d21f24cc8b66fee690c70149ce8aa6d8c04",
-  "bundle_checksum_sha256": "2ece708eb4f5d86688bc60a41fdf3b59009bcfbe90dab44dead7fe62b6f992ca",
+  "source_commit": "f8eaefeb316d3814c197fb901bbb8bb9f7597f70",
+  "bundle_checksum_sha256": "3e5e5930245b8b1bf599401738d494fc190000ac3d804b45a4c7bf29a7c577c3",
   "domains": [
     {
       "domain_id": "bam",
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "6464690b3dd5758540821a1afa9e11e2de5031038ffffd8e50e35f2fbc12f393"
+      "checksum_sha256": "1d1b8f3b469d471c9367ce7e5432e757b461ed4a5de7c18b2b5b668275fd7605"
     },
     {
       "domain_id": "fastq",
@@ -8319,8 +8319,7 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
-            "clumpify",
-            "fastuniq"
+            "clumpify"
           ],
           "assumptions": [
             "paired-end input may emit r1+r2 outputs; single-end may omit r2 artifact.",
@@ -8339,7 +8338,9 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": []
+          "planned_out_of_scope": [
+            "fastuniq"
+          ]
         },
         {
           "stage_id": "fastq.repair_pairs",
@@ -10475,13 +10476,13 @@
         },
         {
           "tool_id": "fastuniq",
-          "status": "supported",
+          "status": "planned",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "1.1",
           "upstream": "https://sourceforge.net/projects/fastuniq/",
-          "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "pin_strategy": "external_tool",
+          "license": "NOASSERTION",
           "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3527383/",
           "version_cmd": "fastuniq --version",
           "help_cmd": "fastuniq -h",
@@ -10500,10 +10501,10 @@
             "PE"
           ],
           "metrics_schema_id": "bijux.stage.metrics.v1",
-          "comparability_notes": "Comparable when duplicate definition and pair-handling parameters are aligned and the governed report_json plus duplicate_provenance_json artifacts are compared together.",
+          "comparability_notes": "Upstream does not publish a software license grant, so FastUniq remains an external planned option and is excluded from governed execution and comparison.",
           "container": {
-            "image": "bijuxdna/fastuniq",
-            "digest": "sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf"
+            "image": "external",
+            "digest": "external"
           }
         },
         {
@@ -13501,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "9ba3973192cc1d32c2568afe001eb9c282b48f08da81a90cc1952848c84ecc7b"
+      "checksum_sha256": "54405be3eba70080f282215bf87d24a7e810290a933469d4b8bd6728b15b8535"
     },
     {
       "domain_id": "vcf",
@@ -16661,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a8b6dc57876c32d7eb3c17b3c4ff711a987227703450610b4d8cb45b128af8d6"
+      "checksum_sha256": "23b6d626c8e31258e7ed8f8102b7020417759126b812f341099f869b7cf31075"
     }
   ]
 }
