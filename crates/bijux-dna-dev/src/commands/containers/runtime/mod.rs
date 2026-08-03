@@ -116,6 +116,11 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
             if post.contains("apt-get") && !post.contains("rm -rf /var/lib/apt/lists/*") {
                 errors.push(format!("{rel}: apt usage requires cleanup of /var/lib/apt/lists/*"));
             }
+            if apt_tls_peer_verification_disabled(post) {
+                errors.push(format!(
+                    "{rel}: disabling apt TLS peer verification is forbidden; use the governed snapshot bootstrap"
+                ));
+            }
             if post.contains("latest")
                 || post.contains("main")
                 || post.contains("master")
@@ -191,6 +196,10 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         return success_line("apptainer hardening: OK");
     }
     failure_lines("apptainer hardening: failed", &errors)
+}
+
+fn apt_tls_peer_verification_disabled(post: &str) -> bool {
+    post.contains("Acquire::https::Verify-Peer=false")
 }
 
 pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
@@ -1174,7 +1183,7 @@ pub(super) fn merge_outcomes(
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::merge_bijux_command_env;
+    use super::{apt_tls_peer_verification_disabled, merge_bijux_command_env};
 
     #[test]
     fn merge_bijux_command_env_preserves_explicit_values() {
@@ -1186,5 +1195,15 @@ mod tests {
             .iter()
             .any(|(key, value)| key == "BIJUX_BIN" && value == "/tmp/custom-bijux"));
         assert!(merged.iter().any(|(key, value)| key == "OTHER" && value == "value"));
+    }
+
+    #[test]
+    fn apptainer_policy_rejects_disabled_apt_tls_verification() {
+        assert!(apt_tls_peer_verification_disabled(
+            "apt-get -o Acquire::https::Verify-Peer=false update"
+        ));
+        assert!(!apt_tls_peer_verification_disabled(
+            "/bin/sh /usr/local/sbin/bijux-configure-apt-snapshot"
+        ));
     }
 }
