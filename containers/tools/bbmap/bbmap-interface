@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+set -eu
+
+tool=$(basename "$0")
+case "$tool" in
+    bbduk)
+        display_name=BBDuk
+        help_marker='Usage:  bbduk.sh '
+        ;;
+    bbmerge)
+        display_name=BBMerge
+        help_marker='Usage for interleaved files:'
+        ;;
+    clumpify)
+        display_name=Clumpify
+        help_marker='Usage:   clumpify.sh '
+        ;;
+    *)
+        printf 'error: unsupported BBMap interface name: %s\n' "$tool" >&2
+        exit 64
+        ;;
+esac
+
+native_version() {
+    set +e
+    native_output="$(/opt/bbmap/bbversion.sh 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 0 ] || [ "$native_output" != '39.06' ]; then
+        printf 'error: unexpected BBMap version probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+native_help() {
+    set +e
+    native_output="$("/opt/bbmap/$tool.sh" 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 0 ] || ! printf '%s\n' "$native_output" | grep -Fq "$help_marker"; then
+        printf 'error: unexpected %s help probe (status=%s)\n' "$tool" "$native_status" >&2
+        exit 70
+    fi
+}
+
+case "${1:-}" in
+    --version)
+        native_version
+        printf 'BBMap %s (%s)\n' "$native_output" "$display_name"
+        ;;
+    --help|-h|"")
+        native_help
+        printf '%s\n' "$native_output"
+        ;;
+    *) exec "/opt/bbmap/$tool.sh" "$@" ;;
+esac

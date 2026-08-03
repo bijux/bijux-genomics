@@ -3,6 +3,7 @@
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+COPY --chmod=0555 containers/tools/bbmap/bbmap-interface /usr/local/bin/bbduk
 
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=39.06
@@ -25,13 +26,11 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
       'https://downloads.sourceforge.net/project/bbmap/BBMap_39.06.tar.gz?download' && \
     echo '61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e  /tmp/bbmap.tar.gz' | sha256sum --check --strict && \
     mkdir -p /opt && tar --extract --gzip --file /tmp/bbmap.tar.gz --directory /opt && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' \
-      'case "${1:-}" in' \
-      '  --version) printf "%s\\n" "BBMap 39.06 (BBDuk)" ;;' \
-      '  --help|-h|"") exec /opt/bbmap/bbduk.sh ;;' \
-      '  *) exec /opt/bbmap/bbduk.sh "$@" ;;' 'esac' > /usr/local/bin/bbduk && \
-    chmod 0755 /usr/local/bin/bbduk && \
-    test "$(bbduk --version)" = 'BBMap 39.06 (BBDuk)' && \
+    bbduk --version > /tmp/bbduk.version && \
+    grep -Fx 'BBMap 39.06 (BBDuk)' /tmp/bbduk.version && \
+    bbduk --help > /tmp/bbduk.help && \
+    grep -F 'Usage:  bbduk.sh ' /tmp/bbduk.help && \
+    rm -f /tmp/bbduk.version /tmp/bbduk.help && \
     rm -f /tmp/bbmap.tar.gz && rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 

@@ -25,6 +25,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %files
     containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+    containers/tools/bbmap/bbmap-interface /usr/local/bin/bbduk
 
 %environment
     export PATH=/usr/local/bin:/opt/bbmap:/usr/bin:/bin
@@ -46,17 +47,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
         'https://downloads.sourceforge.net/project/bbmap/BBMap_39.06.tar.gz?download'
     echo '61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e  /opt/bbmap-source.tar.gz' | sha256sum --check --strict
     tar --extract --gzip --file /opt/bbmap-source.tar.gz --directory /opt
-    cat > /usr/local/bin/bbduk <<'EOF'
-#!/usr/bin/env sh
-set -eu
-case "${1:-}" in
-  --version) printf '%s\n' 'BBMap 39.06 (BBDuk)' ;;
-  --help|-h|"") exec /opt/bbmap/bbduk.sh ;;
-  *) exec /opt/bbmap/bbduk.sh "$@" ;;
-esac
-EOF
-    chmod 0755 /usr/local/bin/bbduk
-    test "$(bbduk --version)" = 'BBMap 39.06 (BBDuk)'
+    chmod 0555 /usr/local/bin/bbduk
+    bbduk --version > /tmp/bbduk.version
+    grep -Fx 'BBMap 39.06 (BBDuk)' /tmp/bbduk.version
+    bbduk --help > /tmp/bbduk.help
+    grep -F 'Usage:  bbduk.sh ' /tmp/bbduk.help
+    rm -f /tmp/bbduk.version /tmp/bbduk.help
     rm -f /opt/bbmap-source.tar.gz
     rm -rf /var/lib/apt/lists/*
 
@@ -64,8 +60,12 @@ EOF
     exec /usr/local/bin/bbduk "$@"
 
 %test
-    test "$(bbduk --version)" = 'BBMap 39.06 (BBDuk)'
-    bbduk --help >/dev/null
+    bbduk --version > /tmp/bbduk.version
+    grep -Fx 'BBMap 39.06 (BBDuk)' /tmp/bbduk.version
+    bbduk --help > /tmp/bbduk.help
+    grep -F 'Usage:  bbduk.sh ' /tmp/bbduk.help
+    rm -f /tmp/bbduk.version /tmp/bbduk.help
 
 %help
     BBDuk from the checksum-locked BBMap 39.06 release archive.
+    Version and help are validated against the native BBMap release interfaces.
