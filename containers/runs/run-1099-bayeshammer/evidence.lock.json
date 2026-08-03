@@ -1,0 +1,206 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bayeshammer-4.2.0-linux-amd64-29f135aa518c.sif",
+    "sha256": "29f135aa518c0b47a643167eb501f4430d1ab9a1d8b15cbec6336616c2212e99",
+    "size_bytes": 229076992
+  },
+  "repository_commit": "2bc6530df146c688168ce9894483b3774ab6c0eb",
+  "run_id": "run-1099",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458120",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "f85b9cafeb2f5c35cad5f6f86a0fc29c7044ff088f6d732d90730f2f438366c7",
+      "size_bytes": 2716
+    },
+    {
+      "path": "corrected.1.fastq.gz",
+      "sha256": "c7f1fd7b8005b89768302035113348722adee8e06caff4ef2cd2614f9a117404",
+      "size_bytes": 6513088
+    },
+    {
+      "path": "corrected.2.fastq.gz",
+      "sha256": "f5f34cdff293d2b2e0802473683f3eb59817ca30193e65ce0329cb34cadc7d7b",
+      "size_bytes": 6750576
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "ea4a123be146eb0d679cfe4931971302696e8e4d420584030f01516cfa5d59cc",
+      "size_bytes": 4206
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "035619d889e93becf56c999b7e8ac0384a25ef79a3458140203afe06fa04d9e3",
+      "size_bytes": 7299
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "56fe5252c560ffadba3a87c1e03c908db46162dcb3c5577f9b24abf90dfcaad9",
+      "size_bytes": 65
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "b12fb5fc76c402476716c956701fa2d9695abaeaca789411d4f1cc815579ad2e",
+      "size_bytes": 13862
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "99c1f37378a09f232daad4a83eb6c2210b1c086861824057b6a1340110c0e0c4",
+      "size_bytes": 933
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "e9cff6689c79cd946d69dc73eeb0b8376f4b7470bda5ca38552c671b3b5a5301",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "b82c8a133227815c070fdda659cd95d9e86ae9101ee13ace225cf83d5d27fcf3",
+      "size_bytes": 1078
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "fce2e88900623bc2fd8022a045c4d9c229e610c9cb9f7db4028d17b22e96771d",
+      "size_bytes": 18
+    },
+    {
+      "path": "work/corrected/ERR1021817.read-prefix-100000_1.fastq00.0_0.cor.fastq.gz",
+      "sha256": "c7f1fd7b8005b89768302035113348722adee8e06caff4ef2cd2614f9a117404",
+      "size_bytes": 6513088
+    },
+    {
+      "path": "work/corrected/ERR1021817.read-prefix-100000_2.fastq00.0_0.cor.fastq.gz",
+      "sha256": "f5f34cdff293d2b2e0802473683f3eb59817ca30193e65ce0329cb34cadc7d7b",
+      "size_bytes": 6750576
+    },
+    {
+      "path": "work/corrected/ERR1021817.read-prefix-100000__unpaired00.0_0.cor.fastq.gz",
+      "sha256": "82e61451c8c6503b3303986faa8566c304602beefd05fcb08e79b283aa54a5d4",
+      "size_bytes": 31806
+    },
+    {
+      "path": "work/corrected/configs/config.info",
+      "sha256": "381ce0fabac139799ec198afadde2c0675111ae7be142feaf8e2602f75cfb3d6",
+      "size_bytes": 1584
+    },
+    {
+      "path": "work/corrected/corrected.yaml",
+      "sha256": "b98ef5477e65270cfafb56344a60f1d166baf84716ae3c3da1af08e22576dfa1",
+      "size_bytes": 618
+    },
+    {
+      "path": "work/input_dataset.yaml",
+      "sha256": "c63353660e24a9fd3aebeed9336ff91d52232e29e54138191862ee421705e932",
+      "size_bytes": 348
+    },
+    {
+      "path": "work/params.txt",
+      "sha256": "d6cb88484a8824867c4900bf7971dfaf67bc9196f201b2b8e5fc5799bd198d50",
+      "size_bytes": 1702
+    },
+    {
+      "path": "work/pipeline_state/stage_0_before_start",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "work/pipeline_state/stage_1_ec_start",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "work/pipeline_state/stage_2_ec_runtool",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "work/pipeline_state/stage_3_ec_compress",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "work/pipeline_state/stage_4_ec_finish",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "work/pipeline_state/stage_5_bs",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "work/pipeline_state/stage_6_terminate",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "work/run_spades.sh",
+      "sha256": "8d44e483db2b3eec83a61fd77006c5733758edf66c0496c4c9ffe1037e544186",
+      "size_bytes": 968
+    },
+    {
+      "path": "work/run_spades.yaml",
+      "sha256": "ea64983d91302859a8ef6df07565a69f3d2d5d9ff8b5a4caa54a974881976de7",
+      "size_bytes": 2701
+    },
+    {
+      "path": "work/spades.log",
+      "sha256": "cc4d51811bb62babf99569f9d015abc4c6e30f0f132fbc929132486b8da32892",
+      "size_bytes": 13722
+    }
+  ],
+  "source_result": "results/container-validation/bayeshammer/run-1099",
+  "tool": "bayeshammer",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "f85b9cafeb2f5c35cad5f6f86a0fc29c7044ff088f6d732d90730f2f438366c7",
+      "size_bytes": 2716
+    },
+    "evidence.json": {
+      "sha256": "ea4a123be146eb0d679cfe4931971302696e8e4d420584030f01516cfa5d59cc",
+      "size_bytes": 4206
+    },
+    "slurm-accounting.json": {
+      "sha256": "99c1f37378a09f232daad4a83eb6c2210b1c086861824057b6a1340110c0e0c4",
+      "size_bytes": 933
+    }
+  }
+}

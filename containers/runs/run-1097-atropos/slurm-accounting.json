@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T00:15:27.809852+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "1981aaa4cf1e175f25bdf07d7b7651d8dcce811c579fbf75332f554282b8d0e9",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "1",
+      "Elapsed": "00:00:01",
+      "ElapsedRaw": "1",
+      "ExitCode": "1:0",
+      "JobID": "3458118",
+      "JobName": "fastq-trim_reads-atropos-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "2G",
+      "State": "FAILED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1097",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458118",
+  "submit_script_sha256": "161ce11ee42a8136a8f4e9ab22cc6e67c7f5c461870edc4b1c870a465263e90c"
+}
