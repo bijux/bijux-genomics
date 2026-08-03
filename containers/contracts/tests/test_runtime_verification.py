@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import re
 import sys
 import unittest
 
@@ -37,6 +38,18 @@ class RuntimeVerificationTests(unittest.TestCase):
 
         self.assertEqual(
             contracts["bcftools"]["version_command"], ["bcftools", "--version"]
+        )
+
+    def test_plink2_contract_matches_the_packaged_release_banner(self) -> None:
+        contracts = runtime_verification.catalog_contracts(
+            ROOT / "containers/contracts/catalog.toml"
+        )
+
+        self.assertIsNotNone(
+            re.search(
+                contracts["plink2"]["version_regex"],
+                "PLINK v2.00a6 AVX2 (23 Nov 2023)",
+            )
         )
 
 
