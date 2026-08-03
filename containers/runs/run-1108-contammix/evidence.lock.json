@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/contammix-1.0.11-linux-amd64-10a74dccedc1.sif",
+    "sha256": "10a74dccedc1580d500c18d9fc1724fea0229ccc6646825cecab69364e3a4243",
+    "size_bytes": 107102208
+  },
+  "repository_commit": "84651657741bfebe8ab25874e95139dcafd3c962",
+  "run_id": "run-1108",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458130",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "5a85e924dff118a67a0cad74a1ce98230947d0e83d075eb83e3de76a98975aa5",
+      "size_bytes": 2823
+    },
+    {
+      "path": "contammix-chains.Rdata",
+      "sha256": "c26291218f931a95082a40e14f180d30d4c8c693f5c0b60fd1b9220c5338b285",
+      "size_bytes": 2227672
+    },
+    {
+      "path": "contammix-diagnostics.pdf",
+      "sha256": "cb58185f9fe23d6cd84631d06bb3b97f227ba780d04fe9fffc3013d9e7dd178e",
+      "size_bytes": 77854
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "e1d5bcbce5ba834a38c52a44829d300cdf6188a432d5a96d4053797d7466dd9c",
+      "size_bytes": 4407
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "67ce58d87e28837a65f943a220cd701be0716b9d70a966f16be2589920b9c67f",
+      "size_bytes": 318
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "480f24c0644e4e91c3b3daae5f16b087f676fa2b2647e27c77aa564bd720ab91",
+      "size_bytes": 87
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "c4bb25bbfe00f7e4b046a306520837a9e5023b56ecfd0425d1efe49838dc25b3",
+      "size_bytes": 17
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "57dd64bde3b3727a410f5fa6a7abafcd35795859786d09e3a380dea5f5f55ee5",
+      "size_bytes": 56
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "8fb16dffbac64626b5539a645962dff04d5971603ba71bfb819f5de970a2c774",
+      "size_bytes": 926
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "91b6ffe7a788036134478e30a3645241d8a5af91a4691f995bd07968c2ebec80",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "af026f04f826d8922901881c402bf2927847bd8bbb67c729277d4e40d59ce67e",
+      "size_bytes": 1063
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "a534ecc2df1bfbd59e686c2b12ae265dc7c2b918fa523cbe50b4abbbf8f41841",
+      "size_bytes": 44
+    }
+  ],
+  "source_result": "results/container-validation/contammix/run-1108",
+  "tool": "contammix",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "5a85e924dff118a67a0cad74a1ce98230947d0e83d075eb83e3de76a98975aa5",
+      "size_bytes": 2823
+    },
+    "evidence.json": {
+      "sha256": "e1d5bcbce5ba834a38c52a44829d300cdf6188a432d5a96d4053797d7466dd9c",
+      "size_bytes": 4407
+    },
+    "slurm-accounting.json": {
+      "sha256": "8fb16dffbac64626b5539a645962dff04d5971603ba71bfb819f5de970a2c774",
+      "size_bytes": 926
+    }
+  }
+}
