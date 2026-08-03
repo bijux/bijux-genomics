@@ -43,7 +43,7 @@
     "The corpus is one low-coverage ancient horse library and does not establish population-wide or protocol-wide behavior."
   ],
   "run_id": "run-2003",
-  "schema_version": "bijux.container.stage_benchmark_report.v1",
+  "schema_version": "bijux.benchmark.stage_report.v1",
   "scientific_question": "What fraction of primary reads in the governed ancient horse alignment map to the declared EquCab3 reference before duplicate removal?",
   "stage_id": "bam.endogenous_content",
   "tools": [

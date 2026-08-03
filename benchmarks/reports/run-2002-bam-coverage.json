@@ -109,7 +109,7 @@
     "Warm-cache repetitions measure stable execution after one warmup and exclude cold shared-filesystem startup."
   ],
   "run_id": "run-2002",
-  "schema_version": "bijux.container.stage_benchmark_report.v1",
+  "schema_version": "bijux.benchmark.stage_report.v1",
   "scientific_question": "How efficiently and consistently do the retained BAM coverage tools summarize reference-wide breadth and depth for the same real low-coverage ancient horse alignment?",
   "stage_id": "bam.coverage",
   "tools": [
