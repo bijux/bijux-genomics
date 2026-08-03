@@ -131,7 +131,13 @@ def validate_credential_reference(path: Path) -> None:
         raise RunEvidenceError(f"credentials_required disagrees with references in {path}")
     if credentials_required == "false" and not references_are_empty:
         raise RunEvidenceError(f"empty credential references must use [] in {path}")
-    if scalars.get(("redaction", "publish_values")) != "false":
+    inline_redaction = bool(
+        re.search(r"(?m)^redaction:\s*\{\s*publish_values:\s*false\s*\}\s*$", text)
+    )
+    if (
+        scalars.get(("redaction", "publish_values")) != "false"
+        and not inline_redaction
+    ):
         raise RunEvidenceError(f"credential reference lacks a no-publication rule: {path}")
 
 

@@ -81,6 +81,18 @@ class RunEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(manage.RunEvidenceError, "forbidden"):
                 manage.validate_credential_reference(path)
 
+    def test_inline_redaction_mapping_from_historical_runs_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config-credential.yml"
+            path.write_text(
+                "credentials_required: false\n"
+                "references: []\n"
+                "redaction: {publish_values: false}\n",
+                encoding="utf-8",
+            )
+
+            manage.validate_credential_reference(path)
+
     def test_modified_tracked_evidence_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
