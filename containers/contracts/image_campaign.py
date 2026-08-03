@@ -4,15 +4,15 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import datetime as dt
 import json
-from pathlib import Path
 import socket
 import subprocess
 import sys
 import threading
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Any
 
 try:
@@ -21,9 +21,15 @@ except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
     import tomli as tomllib
 
 from container_build import finalize_image
-from container_validation import ContractError, git_output, load_governance, write_json
+from container_validation import (
+    ContractError,
+    freeze_repository,
+    git_output,
+    load_governance,
+    require_under,
+    write_json,
+)
 from image_inventory import INVENTORY_SCHEMA, load_json, sha256_file
-
 
 CAMPAIGN_SCHEMA = "bijux.container.image_campaign.v1"
 CAMPAIGN_EVIDENCE_SCHEMA = "bijux.container.image_campaign_evidence.v1"
@@ -72,6 +78,8 @@ def create_execution(
     governance_path: Path,
     output: Path,
 ) -> dict[str, Any]:
+    if output.exists() or output.is_symlink():
+        raise ContractError(f"refusing to replace campaign execution: {output}")
     campaign = load_campaign(campaign_path)
     inventory = load_json(inventory_path)
     governance = load_governance(governance_path)
@@ -83,6 +91,11 @@ def create_execution(
         raise ContractError(
             "image inventory must be regenerated from the active commit"
         )
+    frozen_repository = freeze_repository(
+        commit,
+        governance_path,
+        checkout_scope="complete",
+    )
     tools = selected_tools(inventory)
     versions = load_tool_versions(catalog_path)
     unknown = sorted(set(tools) - set(versions))
@@ -99,6 +112,7 @@ def create_execution(
         },
         "repository_commit": commit,
         "repository_clean": True,
+        "frozen_repository": str(frozen_repository),
         "campaign": {
             "path": str(campaign_path),
             "sha256": sha256_file(campaign_path),
@@ -121,8 +135,6 @@ def create_execution(
             for tool in tools
         },
     }
-    if output.exists():
-        raise ContractError(f"refusing to replace campaign execution: {output}")
     write_json(output, execution)
     return execution
 
@@ -178,6 +190,7 @@ def build_one(
         definition,
         staged,
         log,
+        repository_path=repository,
     )
     return {
         "status": "passed",
@@ -207,14 +220,19 @@ def execute_campaign(
             f"campaign cannot run from status {execution.get('status')}"
         )
     governance = load_governance(governance_path)
-    repository: Path = governance["active_repository"]
+    repository = Path(str(execution.get("frozen_repository", ""))).resolve()
+    require_under(
+        repository,
+        governance["frozen_repositories"] / "image-builds",
+        "frozen image-build repository",
+    )
     commit = git_output(repository, "rev-parse", "HEAD")
     if git_output(repository, "status", "--porcelain"):
         raise ContractError(
-            "active repository must remain clean during image preparation"
+            "frozen image-build repository must remain clean during image preparation"
         )
     if commit != execution.get("repository_commit"):
-        raise ContractError("active repository moved after campaign preparation")
+        raise ContractError("frozen image-build repository has the wrong commit")
     execution["status"] = "running"
     execution.setdefault("started_at_utc", dt.datetime.now(dt.timezone.utc).isoformat())
     execution["worker_count"] = jobs
@@ -242,9 +260,7 @@ def execute_campaign(
             tool = futures[future]
             try:
                 outcome = future.result()
-            except (
-                Exception
-            ) as exc:  # preserve the full campaign after one build failure
+            except Exception as exc:  # noqa: BLE001 - retain every tool outcome
                 outcome = {
                     "status": "failed",
                     "finished_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),

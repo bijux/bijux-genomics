@@ -36,24 +36,35 @@ the exact clean repository commit, catalog hash, inventory hash, recipe hashes,
 logs, and admitted image hashes; the source campaign cannot contain its own Git
 commit because a Git object cannot self-identify.
 
+Inventory and campaign records are immutable and commit-addressed. Preparation
+creates a clean, complete build worktree beneath the configured
+`paths.frozen_repositories/image-builds/` root. The campaign reads recipes and
+all `%files` inputs from that worktree, so later movement of the active checkout
+cannot change an in-flight build.
+
 ```console
+image_commit="$(git rev-parse HEAD)"
+inventory_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/inventory/${image_commit}"
+campaign_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/campaigns/run-1000-images/${image_commit}"
+mkdir -p "${inventory_root}" "${campaign_root}"
+
 python3 containers/contracts/image_inventory.py audit \
   --catalog containers/contracts/catalog.toml \
   --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
   --evidence-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence \
   --runs-root containers/runs \
   --repository . \
-  --output /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/inventory/image-inventory.json
+  --output "${inventory_root}/image-inventory.json"
 
 python3 containers/contracts/image_campaign.py prepare \
   --campaign containers/runs/run-1000-images/config-campaign.json \
-  --inventory /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/inventory/image-inventory.json \
+  --inventory "${inventory_root}/image-inventory.json" \
   --catalog containers/contracts/catalog.toml \
   --governance containers/contracts/sites/lunarc.yml \
-  --output /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/campaigns/run-1000-images/execution.json
+  --output "${campaign_root}/execution.json"
 
 python3 containers/contracts/image_campaign.py execute \
-  --execution /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/campaigns/run-1000-images/execution.json \
+  --execution "${campaign_root}/execution.json" \
   --governance containers/contracts/sites/lunarc.yml \
   --jobs 2
 ```

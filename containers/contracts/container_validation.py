@@ -252,9 +252,15 @@ def load_governance(path: Path) -> dict[str, Any]:
     return governance
 
 
-def freeze_repository(commit: str, governance_path: Path) -> Path:
+def freeze_repository(
+    commit: str,
+    governance_path: Path,
+    checkout_scope: str = "contracts",
+) -> Path:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ContractError("frozen repository commit must be a full Git commit")
+    if checkout_scope not in {"contracts", "complete"}:
+        raise ContractError("frozen repository scope must be contracts or complete")
     governance = load_governance(governance_path)
     active_repository: Path = governance["active_repository"]
     frozen_repositories: Path = governance["frozen_repositories"]
@@ -263,7 +269,11 @@ def freeze_repository(commit: str, governance_path: Path) -> Path:
             "active LUNARC repository must be clean before freezing a run"
         )
     git_output(active_repository, "cat-file", "-e", f"{commit}^{{commit}}")
-    target = frozen_repositories / commit
+    target = (
+        frozen_repositories / commit
+        if checkout_scope == "contracts"
+        else frozen_repositories / "image-builds" / commit
+    )
     if target.exists():
         if git_output(target, "rev-parse", "HEAD") != commit:
             raise ContractError(
@@ -272,19 +282,20 @@ def freeze_repository(commit: str, governance_path: Path) -> Path:
         if git_output(target, "status", "--porcelain"):
             raise ContractError(f"existing frozen worktree is dirty: {target}")
         return target
-    frozen_repositories.mkdir(parents=True, exist_ok=True)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    worktree_arguments = [
+        "git",
+        "-C",
+        str(active_repository),
+        "worktree",
+        "add",
+        "--detach",
+    ]
+    if checkout_scope == "contracts":
+        worktree_arguments.append("--no-checkout")
+    worktree_arguments.extend([str(target), commit])
     completed = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(active_repository),
-            "worktree",
-            "add",
-            "--detach",
-            "--no-checkout",
-            str(target),
-            commit,
-        ],
+        worktree_arguments,
         check=False,
         capture_output=True,
         text=True,
@@ -297,13 +308,18 @@ def freeze_repository(commit: str, governance_path: Path) -> Path:
         raise ContractError(
             f"cannot create frozen worktree: {completed.stderr.strip()}{cleanup_note}"
         )
-    for arguments, label in (
+    checkout_commands = (
         (
-            ("sparse-checkout", "set", "--cone", *FROZEN_CHECKOUT_PATHS),
-            "configure frozen sparse checkout",
-        ),
-        (("read-tree", "-mu", "HEAD"), "populate frozen sparse checkout"),
-    ):
+            (
+                ("sparse-checkout", "set", "--cone", *FROZEN_CHECKOUT_PATHS),
+                "configure frozen sparse checkout",
+            ),
+            (("read-tree", "-mu", "HEAD"), "populate frozen sparse checkout"),
+        )
+        if checkout_scope == "contracts"
+        else ()
+    )
+    for arguments, label in checkout_commands:
         configured = subprocess.run(
             ["git", "-C", str(target), *arguments],
             check=False,

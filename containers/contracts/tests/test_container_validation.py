@@ -157,6 +157,11 @@ class GovernanceContractTests(unittest.TestCase):
                     commit,
                     governance_path,
                 )
+                complete = container_validation.freeze_repository(
+                    commit,
+                    governance_path,
+                    checkout_scope="complete",
+                )
 
             self.assertEqual(frozen.name, commit)
             self.assertEqual(
@@ -174,6 +179,15 @@ class GovernanceContractTests(unittest.TestCase):
             )
             self.assertEqual(
                 container_validation.git_output(frozen, "status", "--porcelain"),
+                "",
+            )
+            self.assertEqual(complete.parent.name, "image-builds")
+            self.assertEqual(
+                (complete / "other" / "unselected.txt").read_text(),
+                "complete tree\n",
+            )
+            self.assertEqual(
+                container_validation.git_output(complete, "status", "--porcelain"),
                 "",
             )
 

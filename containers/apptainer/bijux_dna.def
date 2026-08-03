@@ -34,6 +34,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     configs /opt/bijux-src/configs
     domain /opt/bijux-src/domain
     benchmarks /opt/bijux-src/benchmarks
+    assets /opt/bijux-src/assets
 
 %environment
     export PATH=/opt/rust/bin:/usr/local/bin:/usr/bin:/bin
@@ -70,7 +71,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     cd /opt/bijux-src
     cargo build --locked --release -p bijux-dna
     install -Dm0755 target/release/bijux-dna /usr/local/bin/bijux-dna
-    install -d /opt/bijux/configs /opt/bijux/domain /opt/bijux/benchmarks
+    install -d /opt/bijux/assets /opt/bijux/configs /opt/bijux/domain /opt/bijux/benchmarks
+    cp -a assets/. /opt/bijux/assets/
     cp -a configs/. /opt/bijux/configs/
     cp -a domain/. /opt/bijux/domain/
     cp -a benchmarks/. /opt/bijux/benchmarks/
