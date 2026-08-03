@@ -82,7 +82,7 @@ qualification remain independent requirements.
 | `plink` | `1.90b7.2` | retained | **current** | 1 |
 | `plink2` | `2.00a6` | retained | **current** | 2 |
 | `pmdtools` | `0.60` | retained | **current** | 0 |
-| `preseq` | `3.2.0` | retained | **current** | 0 |
+| `preseq` | `3.2.0` | retained | **current** | 1 |
 | `prinseq` | `1.2.4` | retained | **current** | 1 |
 | `pydamage` | `1.0` | retained | **current** | 5 |
 | `qualimap` | `2.3` | retained | **current** | 3 |

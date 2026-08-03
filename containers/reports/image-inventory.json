@@ -1,7 +1,7 @@
 {
-  "catalog_sha256": "9bd407332d3a217f8ecf9e8259c6d63442a41be5e93d2bb070431462ef560cbd",
-  "created_at_utc": "2026-08-03T06:26:16.588994+00:00",
-  "repository_commit": "4cc9c31248c4da1e50aa5e356174140fbe83a078",
+  "catalog_sha256": "e87319f9871ec78271b345ff331792bd3fc23933262887756372ec215b4cd9e0",
+  "created_at_utc": "2026-08-03T07:00:21.512172+00:00",
+  "repository_commit": "fdcc6d75bfdf6ead103b48f4a10d96e5bdb882b7",
   "schema_version": "bijux.container.image_inventory.v1",
   "staged_images": [],
   "summary": {
@@ -2377,25 +2377,25 @@
             {
               "definition_matches_commit": true,
               "definition_matches_current": true,
-              "definition_sha256": "2f77d895d68b7361fc3f48173051713d5092f422c18fd5731dd271a4164c8136",
+              "definition_sha256": "b649ef7cba355c90d0f8fcc323a9f6d16d020726a121c617723e7818fe95a213",
               "image_matches": true,
-              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/preseq-3.2.0-c8a697fe0540.build.json",
-              "repository_commit": "1811d96605f1a6ea8136eb344383f39bea6a7de2",
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/preseq-3.2.0-6ef1786da19b.build.json",
+              "repository_commit": "6a3f66c7ed49410bd60e3db901e09e73fb2d9a51",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "preseq-3.2.0-linux-amd64-c8a697fe0540.sif",
-          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-c8a697fe0540.sif",
-          "real_run_references": 0,
-          "sha256": "c8a697fe0540f64207c8d7b53944d18f7963328535749777fb39260d0f0733c1",
-          "size_bytes": 33329152
+          "name": "preseq-3.2.0-linux-amd64-6ef1786da19b.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-6ef1786da19b.sif",
+          "real_run_references": 1,
+          "sha256": "6ef1786da19b8447539a1b04ab3f6801c116618308639873d6c6de6b321651b8",
+          "size_bytes": 141492224
         }
       ],
-      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-c8a697fe0540.sif",
-      "selected_image_sha256": "c8a697fe0540f64207c8d7b53944d18f7963328535749777fb39260d0f0733c1",
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-6ef1786da19b.sif",
+      "selected_image_sha256": "6ef1786da19b8447539a1b04ab3f6801c116618308639873d6c6de6b321651b8",
       "state": "current",
       "support_disposition": "retained",
       "tool": "preseq",
