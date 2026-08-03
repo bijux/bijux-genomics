@@ -54,6 +54,12 @@ of averaging it away. A comparison outside those tolerances fails benchmark
 admission while preserving the observations in the report. Without an
 independent truth surface the comparison is not an accuracy claim.
 
+The BAM endogenous-content campaign measures primary mapped reads before
+duplicate removal with explicit BAM-flag masks. It calls that fraction an
+operational proxy: mapping to EquCab3 depends on the reference and upstream
+alignment, and contamination can map too. The report must not relabel this
+reproducible mapping statistic as biological ground truth.
+
 After accounting collection, validate every archived contract, output digest,
 input lock, resource row, repetition, and Slurm identity before publishing the
 small report:

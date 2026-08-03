@@ -94,3 +94,46 @@ limitations = [
   "Cross-tool agreement can reveal integration defects but does not establish accuracy without an independent truth coverage surface.",
   "Warm-cache repetitions measure stable execution after one warmup and exclude cold shared-filesystem startup.",
 ]
+
+[[campaigns]]
+run_id = "run-2003"
+slug = "bam-endogenous-content"
+domain = "bam"
+stage_id = "bam.endogenous_content"
+scientific_question = "What fraction of primary reads in the governed ancient horse alignment map to the declared EquCab3 reference before duplicate removal?"
+comparison_scope = "primary mapped-read fraction from one governed coordinate-sorted EquCab3 BAM"
+tool_ids = ["samtools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = ["equcab3-gcf-002863925.1"]
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "endogenous-content.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "mapping_derived_fraction_not_endogenous_truth"
+interpretation = "This campaign measures a reproducible primary mapped-read fraction for one BAM and one reference. It is an operational endogenous-content proxy, not biological truth about the library's endogenous DNA fraction."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "total_primary_reads",
+  "mapped_primary_reads",
+  "mapped_fraction",
+  "mapped_nonduplicate_primary_reads",
+]
+comparison_metrics = []
+limitations = [
+  "The result depends on the EquCab3 reference, upstream alignment parameters, and the BAM flag semantics declared by this campaign.",
+  "Mapped-read fraction does not distinguish authentic ancient horse molecules from contamination that also maps to EquCab3.",
+  "The corpus is one low-coverage ancient horse library and does not establish population-wide or protocol-wide behavior.",
+]

@@ -86,9 +86,9 @@
       "stage_id": "bam.duplication_metrics"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "campaign_run_id": "run-2003",
+      "definition_status": "defined",
+      "execution_status": "not_admitted",
       "retained_tools": [
         "samtools"
       ],
@@ -725,8 +725,8 @@
   ],
   "summary": {
     "admitted_stage_count": 2,
-    "defined_stage_count": 2,
-    "missing_stage_count": 69,
+    "defined_stage_count": 3,
+    "missing_stage_count": 68,
     "retained_stage_count": 71
   }
 }

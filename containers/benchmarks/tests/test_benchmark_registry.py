@@ -39,6 +39,8 @@ class BenchmarkRegistryTests(unittest.TestCase):
             benchmark_registry.threads_by_tool(campaigns[1]),
             {"bedtools": 1, "mosdepth": 4, "samtools": 1},
         )
+        self.assertEqual(campaigns[2]["stage_id"], "bam.endogenous_content")
+        self.assertEqual(campaigns[2]["tool_ids"], ["samtools"])
 
     def test_per_tool_threads_must_cover_the_tool_closure(self) -> None:
         self.registry["campaigns"][1]["threads_by_tool"].pop("samtools")
@@ -80,7 +82,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
 
-        self.assertEqual(report["summary"]["defined_stage_count"], 2)
+        self.assertEqual(report["summary"]["defined_stage_count"], 3)
         self.assertEqual(report["summary"]["admitted_stage_count"], 0)
         self.assertGreater(report["summary"]["missing_stage_count"], 1)
 
