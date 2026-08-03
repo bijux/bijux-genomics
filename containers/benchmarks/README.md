@@ -31,6 +31,33 @@ sets `run.kind: benchmark`; the execution validator then confines results to
 admitted Apptainer image. LUNARC modules or host-installed scientific binaries
 are not valid benchmark participants.
 
+The mapping-summary campaign has a tracked specification generator rather than
+an operator-maintained YAML copy. On LUNARC, first build the verified data
+index for the exact clean commit, freeze that commit, and then prepare both
+tool contracts from the site policy, data index, and canonical image inventory:
+
+```console
+commit=$(git rev-parse HEAD)
+index="$STUDY/data/evidence/indexes/$commit/data-index.json"
+
+python3 -B containers/contracts/container_validation.py freeze-repository \
+  --governance containers/contracts/sites/lunarc.yml \
+  --commit "$commit"
+
+python3 -B containers/benchmarks/mapping_summary_specs.py \
+  --governance containers/contracts/sites/lunarc.yml \
+  --data-index "$index" \
+  --image-inventory containers/reports/image-inventory.json
+```
+
+The generator refuses a dirty repository, an ineligible corpus, a non-current
+image, an incomplete tool closure, or an existing destination. It writes
+`config-pipeline.yml` and `config-credential.yml` for Picard and Samtools under
+`$STUDY/containers/runs/run-2004-bam-mapping-summary/`. Validate each pair with
+`container_validation.py validate`, then submit with
+`container_validation.py submit`. Submission is asynchronous; accounting and
+benchmark admission happen only after both jobs reach a terminal state.
+
 Measured Apptainer images include GNU `time` as a non-scientific runtime
 dependency. The campaign records wall, user, system, and peak-resident-memory
 values inside the same container boundary as the tool; a missing measurement
