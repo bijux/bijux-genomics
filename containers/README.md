@@ -95,3 +95,34 @@ python3 containers/contracts/image_storage.py verify \
 `rollback` restores every file only after rechecking its size and SHA-256.
 Unknown images and images referenced by historical runs are excluded from the
 quarantine plan.
+
+## Verify version and help contracts
+
+Image admission proves that a recipe produced an inspectable SIF; it does not
+prove that the packaged entry points start correctly. After inventory and
+quarantine are complete, run the catalog-wide runtime campaign on the approved
+frontend. It executes version and help checks with a disabled runtime network,
+bounded command time, and one immutable stdout/stderr pair per check:
+
+```console
+runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
+mkdir -p "${runtime_root}"
+
+python3 containers/contracts/runtime_verification.py prepare \
+  --inventory "${inventory_root}/image-inventory-post-quarantine.json" \
+  --catalog containers/contracts/catalog.toml \
+  --governance containers/contracts/sites/lunarc.yml \
+  --output "${runtime_root}/execution.json"
+
+python3 containers/contracts/runtime_verification.py execute \
+  --execution "${runtime_root}/execution.json" \
+  --governance containers/contracts/sites/lunarc.yml \
+  --jobs 8 \
+  --timeout-seconds 30
+```
+
+The execution record retains the exact repository, catalog, inventory, image,
+command, output, and log digests. A passing runtime campaign qualifies only the
+version and help dimensions. Real one-sample execution remains a governed
+Slurm run, and scientific, benchmark, security, and release claims remain
+independent.
