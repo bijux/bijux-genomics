@@ -8,12 +8,12 @@ benchmark, security, or release qualification.
 
 ## Evidence boundary
 
-- Repository commit: `73f5a4056bb8b86aff44b22a943dd9c8489baa04`
+- Repository commit: `224ef1de713444b4646a60e30ce930833be73777`
 - Site: `lunarc` on `cosmos3.int.lunarc`
 - Overall status: **passed**
 - Tool results: **passed 87**, **failed 0**
-- Catalog SHA-256: `677b2fd88089ff593a60532a22d246e585bb272d3bc9c01ef9d612ec19ec0238`
-- Image inventory SHA-256: `d5e889f3ff30130cce2c2fe31623c9ce553952a58820b04bf05bf68e16e38172`
+- Catalog SHA-256: `b97340aa9eba6892ec3e068aecf60be8c79661d13dc17a605f482498b015e580`
+- Image inventory SHA-256: `0018c0780e42f1318cb823ffc1ae283dc7c70fc6ab0f1ed8bd462b0bb361ea65`
 - Per-command timeout: **30 seconds**
 - Runtime network: **disabled**
 
@@ -78,7 +78,7 @@ paths and SHA-256 digests are retained in the machine-readable companion
 | `metaphlan` | `4.1.1` | passed | passed | **passed** |
 | `minimac4` | `4.1.6` | passed | passed | **passed** |
 | `mosdepth` | `0.3.11` | passed | passed | **passed** |
-| `multiqc` | `1.21` | passed | passed | **passed** |
+| `multiqc` | `1.24` | passed | passed | **passed** |
 | `musket` | `1.1` | passed | passed | **passed** |
 | `ngsbriggs` | `0.01` | passed | passed | **passed** |
 | `pear` | `0.9.6` | passed | passed | **passed** |
@@ -88,7 +88,7 @@ paths and SHA-256 digests are retained in the machine-readable companion
 | `pmdtools` | `0.60` | passed | passed | **passed** |
 | `preseq` | `3.2.0` | passed | passed | **passed** |
 | `prinseq` | `1.2.4` | passed | passed | **passed** |
-| `pydamage` | `0.80` | passed | passed | **passed** |
+| `pydamage` | `1.0` | passed | passed | **passed** |
 | `qualimap` | `2.3` | passed | passed | **passed** |
 | `rcorrector` | `1.0.7` | passed | passed | **passed** |
 | `rxy` | `1.0.0` | passed | passed | **passed** |
@@ -104,7 +104,7 @@ paths and SHA-256 digests are retained in the machine-readable companion
 | `shapeit5` | `5.1.1` | passed | passed | **passed** |
 | `skewer` | `0.2.2` | passed | passed | **passed** |
 | `sortmerna` | `4.3.7` | passed | passed | **passed** |
-| `spades` | `4.0.0` | passed | passed | **passed** |
+| `spades` | `4.2.0` | passed | passed | **passed** |
 | `star` | `2.7.11b` | passed | passed | **passed** |
 | `trim_galore` | `0.6.10` | passed | passed | **passed** |
 | `trimmomatic` | `0.39` | passed | passed | **passed** |

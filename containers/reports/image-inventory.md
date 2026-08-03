@@ -74,7 +74,7 @@ qualification remain independent requirements.
 | `metaphlan` | `4.1.1` | retained | **current** | 0 |
 | `minimac4` | `4.1.6` | retained | **current** | 0 |
 | `mosdepth` | `0.3.11` | retained | **current** | 1 |
-| `multiqc` | `1.21` | retained | **current** | 0 |
+| `multiqc` | `1.24` | retained | **current** | 0 |
 | `musket` | `1.1` | retained | **current** | 1 |
 | `ngsbriggs` | `0.01` | retained | **current** | 2 |
 | `pear` | `0.9.6` | retained | **current** | 2 |
@@ -84,7 +84,7 @@ qualification remain independent requirements.
 | `pmdtools` | `0.60` | retained | **current** | 0 |
 | `preseq` | `3.2.0` | retained | **current** | 0 |
 | `prinseq` | `1.2.4` | retained | **current** | 1 |
-| `pydamage` | `0.80` | retained | **current** | 0 |
+| `pydamage` | `1.0` | retained | **current** | 0 |
 | `qualimap` | `2.3` | retained | **current** | 3 |
 | `rcorrector` | `1.0.7` | retained | **current** | 0 |
 | `rxy` | `1.0.0` | retained | **current** | 0 |
@@ -100,10 +100,10 @@ qualification remain independent requirements.
 | `shapeit5` | `5.1.1` | retained | **current** | 1 |
 | `skewer` | `0.2.2` | retained | **current** | 1 |
 | `sortmerna` | `4.3.7` | retained | **current** | 0 |
-| `spades` | `4.0.0` | retained | **current** | 0 |
+| `spades` | `4.2.0` | retained | **current** | 0 |
 | `star` | `2.7.11b` | retained | **current** | 0 |
-| `trim_galore` | `0.6.10` | retained | **current** | 0 |
-| `trimmomatic` | `0.39` | retained | **current** | 0 |
+| `trim_galore` | `0.6.10` | retained | **current** | 1 |
+| `trimmomatic` | `0.39` | retained | **current** | 1 |
 | `umi_tools` | `1.1.6` | retained | **current** | 0 |
 | `verifybamid2` | `2.0.1` | retained | **current** | 0 |
 | `vsearch` | `2.29.3` | retained | **current** | 1 |

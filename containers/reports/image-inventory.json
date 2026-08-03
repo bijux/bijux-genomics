@@ -1,7 +1,7 @@
 {
-  "catalog_sha256": "06dad0ca67cc1be0ff6a1bd474292bf56478d84886590c7bd6662e1ecc8e6304",
-  "created_at_utc": "2026-08-03T04:24:14.232268+00:00",
-  "repository_commit": "5695ecaa7ad63f29713aa1eacb42a7086b2e1d03",
+  "catalog_sha256": "b97340aa9eba6892ec3e068aecf60be8c79661d13dc17a605f482498b015e580",
+  "created_at_utc": "2026-08-03T05:09:58.410539+00:00",
+  "repository_commit": "224ef1de713444b4646a60e30ce930833be73777",
   "schema_version": "bijux.container.image_inventory.v1",
   "staged_images": [],
   "summary": {
@@ -2079,29 +2079,29 @@
             {
               "definition_matches_commit": true,
               "definition_matches_current": true,
-              "definition_sha256": "2496f289bff407b294cde7c1802b2e9df45490f15ac36e5000edc6fb0adfcedf",
+              "definition_sha256": "4acfa95a8b24937936a70f66621a4d42cbe988ec8619b401b1f67557fdcd7068",
               "image_matches": true,
-              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/multiqc-1.21-19ecf6c8e49f.build.json",
-              "repository_commit": "1811d96605f1a6ea8136eb344383f39bea6a7de2",
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/multiqc-1.24-72668c0158ad.build.json",
+              "repository_commit": "5306d62788b314d1b0cfac8f6fa19ee55d45dd35",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "multiqc-1.21-linux-amd64-19ecf6c8e49f.sif",
-          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/multiqc-1.21-linux-amd64-19ecf6c8e49f.sif",
+          "name": "multiqc-1.24-linux-amd64-72668c0158ad.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-72668c0158ad.sif",
           "real_run_references": 0,
-          "sha256": "19ecf6c8e49f6f80603fba4ac44547a0ebb5947f568949f29225803e1a5e8f6d",
+          "sha256": "72668c0158ad9355aad107338ac3de92fa2c53fa66190cea2d267e2f77c8132a",
           "size_bytes": 133935104
         }
       ],
-      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/multiqc-1.21-linux-amd64-19ecf6c8e49f.sif",
-      "selected_image_sha256": "19ecf6c8e49f6f80603fba4ac44547a0ebb5947f568949f29225803e1a5e8f6d",
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-72668c0158ad.sif",
+      "selected_image_sha256": "72668c0158ad9355aad107338ac3de92fa2c53fa66190cea2d267e2f77c8132a",
       "state": "current",
       "support_disposition": "retained",
       "tool": "multiqc",
-      "version": "1.21"
+      "version": "1.24"
     },
     {
       "apptainer_supported": true,
@@ -2443,29 +2443,29 @@
             {
               "definition_matches_commit": true,
               "definition_matches_current": true,
-              "definition_sha256": "a8425d6e5ef325e987de29010ba5b9bf46c7450c3909364a1951d284f0af8e34",
+              "definition_sha256": "0d0fb8fe021acc456ae18a93a6c3eaef7172cad4947269b681fd5ea2678f68a1",
               "image_matches": true,
-              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/pydamage-0.80-864b5737ec7e.build.json",
-              "repository_commit": "1811d96605f1a6ea8136eb344383f39bea6a7de2",
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/pydamage-1.0-482276fbaa17.build.json",
+              "repository_commit": "5306d62788b314d1b0cfac8f6fa19ee55d45dd35",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "pydamage-0.80-linux-amd64-864b5737ec7e.sif",
-          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pydamage-0.80-linux-amd64-864b5737ec7e.sif",
+          "name": "pydamage-1.0-linux-amd64-482276fbaa17.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif",
           "real_run_references": 0,
-          "sha256": "864b5737ec7e9147ab3c0494038bbf4ddda29fa636f5ec621e092e2d024091d2",
-          "size_bytes": 314101760
+          "sha256": "482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd",
+          "size_bytes": 291561472
         }
       ],
-      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pydamage-0.80-linux-amd64-864b5737ec7e.sif",
-      "selected_image_sha256": "864b5737ec7e9147ab3c0494038bbf4ddda29fa636f5ec621e092e2d024091d2",
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif",
+      "selected_image_sha256": "482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd",
       "state": "current",
       "support_disposition": "retained",
       "tool": "pydamage",
-      "version": "0.80"
+      "version": "1.0"
     },
     {
       "apptainer_supported": true,
@@ -3015,29 +3015,29 @@
             {
               "definition_matches_commit": true,
               "definition_matches_current": true,
-              "definition_sha256": "66e8f2c59072696d489f9472bde75ef929cd4c0ea6fd49b6e0765e06f3b1e8f6",
+              "definition_sha256": "51c2b49bb85242182b4993382faa44df5ca09ab0b66e4aee562a36f01709c270",
               "image_matches": true,
-              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/spades-4.0.0-d0790b6e13b1.build.json",
-              "repository_commit": "1811d96605f1a6ea8136eb344383f39bea6a7de2",
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/spades-4.2.0-12ec3751a5cc.build.json",
+              "repository_commit": "5306d62788b314d1b0cfac8f6fa19ee55d45dd35",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "spades-4.0.0-linux-amd64-d0790b6e13b1.sif",
-          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.0.0-linux-amd64-d0790b6e13b1.sif",
+          "name": "spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
           "real_run_references": 0,
-          "sha256": "d0790b6e13b14c8c769ff62c5719c59ea4a41ae161288450c052e450def4d0bd",
+          "sha256": "12ec3751a5ccabc4225569f492434119c2d064f2df04a1433c31bed343469547",
           "size_bytes": 226881536
         }
       ],
-      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.0.0-linux-amd64-d0790b6e13b1.sif",
-      "selected_image_sha256": "d0790b6e13b14c8c769ff62c5719c59ea4a41ae161288450c052e450def4d0bd",
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
+      "selected_image_sha256": "12ec3751a5ccabc4225569f492434119c2d064f2df04a1433c31bed343469547",
       "state": "current",
       "support_disposition": "retained",
       "tool": "spades",
-      "version": "4.0.0"
+      "version": "4.2.0"
     },
     {
       "apptainer_supported": true,
@@ -3093,7 +3093,7 @@
           "immutable_name": true,
           "name": "trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif",
-          "real_run_references": 0,
+          "real_run_references": 1,
           "sha256": "25567e0ec95dcb8914178d6daf3f0439a24e9e3cfd8832e88e79cc1154387b14",
           "size_bytes": 382722048
         }
@@ -3126,7 +3126,7 @@
           "immutable_name": true,
           "name": "trimmomatic-0.39-linux-amd64-329c9ec4abfd.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/trimmomatic-0.39-linux-amd64-329c9ec4abfd.sif",
-          "real_run_references": 0,
+          "real_run_references": 1,
           "sha256": "329c9ec4abfdfd6543ed7973f24ab4dba870899b0a98e16784ae2127797a9e7d",
           "size_bytes": 99934208
         }
@@ -3273,6 +3273,8 @@
   ],
   "unknown_images": [
     {
+      "catalog_tool": "fastuniq",
+      "disposition": "historical_run_dependency",
       "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastuniq-1.1-linux-amd64-acd5448128a3.sif",
       "real_run_references": 2,
       "sha256": "acd5448128a3cb760ca97ce9ba38e87275e994c6434d33e7c3b04e2b35a3632e",
