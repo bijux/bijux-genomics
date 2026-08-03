@@ -321,6 +321,8 @@ def collect(specification: Path) -> Path:
     except ImportError as exc:
         raise SpecificationError("PyYAML and benchmark data catalog are required") from exc
     specification = specification.resolve()
+    collector_repository = Path(__file__).resolve().parents[1]
+    collector_commit = validate_repository(collector_repository)
     evidence_path = specification / "materialization-evidence.json"
     accounting_path = specification / "slurm-accounting.json"
     if evidence_path.exists() or accounting_path.exists():
@@ -396,6 +398,8 @@ def collect(specification: Path) -> Path:
         "schema_version": "bijux.benchmark.corpus_materialization_evidence.v1",
         "status": "passed" if passed else "failed",
         "repository_commit": repository_commit,
+        "collector_commit": collector_commit,
+        "collector_sha256": sha256_file(Path(__file__).resolve()),
         "job_id": job_id,
         "pipeline_sha256": sha256_file(pipeline_path),
         "credential_reference_sha256": sha256_file(credential_path),
