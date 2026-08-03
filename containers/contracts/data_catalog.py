@@ -143,17 +143,24 @@ def file_contract(
         source_fields = ("name", "sha256", "size_bytes")
     for path_key, digest_key, size_key in PATH_CONTRACTS:
         if path_key in value:
-            if not all(key in value for key in (path_key, digest_key, size_key)):
+            legacy_parent = label.startswith("catalog.parents.")
+            if path_key not in value or digest_key not in value:
+                raise DataCatalogError(f"incomplete file identity at {label}")
+            if size_key not in value and not legacy_parent:
                 raise DataCatalogError(f"incomplete file identity at {label}")
             path = Path(str(value[path_key]))
             digest = value[digest_key]
-            size = value[size_key]
-            source_fields = (path_key, digest_key, size_key)
+            size = value.get(size_key)
+            source_fields = tuple(
+                key for key in (path_key, digest_key, size_key) if key in value
+            )
             break
     if path is None:
         return None
     if not path.is_absolute():
         raise DataCatalogError(f"governed file path must be absolute at {label}: {path}")
+    if size is None and label.startswith("catalog.parents."):
+        size = path.stat().st_size if path.is_file() else None
     if not isinstance(size, int) or isinstance(size, bool) or size < 0:
         raise DataCatalogError(f"governed file size is invalid at {label}")
     if not isinstance(digest, str) or SHA256.fullmatch(digest) is None:

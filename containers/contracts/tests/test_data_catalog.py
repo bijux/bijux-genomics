@@ -108,6 +108,36 @@ class DataCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(catalog.DataCatalogError, "not uniquely"):
                 catalog.build_index(catalog_root, data_root)
 
+    def test_legacy_parent_size_is_derived_after_digest_verification(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            data_root, catalog_root, record_path = self.make_record(Path(directory))
+            parent = data_root / "corpora" / "horse" / "source.cram"
+            parent.write_bytes(b"governed-parent")
+            record = json.loads(record_path.read_text())
+            record["parents"] = [
+                {
+                    "path": str(parent),
+                    "sha256": catalog.sha256_file(parent),
+                }
+            ]
+            record_path.write_text(json.dumps(record), encoding="utf-8")
+
+            index = catalog.build_index(catalog_root, data_root)
+
+        files = {entry["path"]: entry for entry in index["records"][0]["files"]}
+        parent_entry = files["study://data/corpora/horse/source.cram"]
+        self.assertEqual(parent_entry["size_bytes"], len(b"governed-parent"))
+
+    def test_missing_size_outside_parent_contract_remains_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            data_root, catalog_root, record_path = self.make_record(Path(directory))
+            record = json.loads(record_path.read_text())
+            record["files"][0].pop("size_bytes")
+            record_path.write_text(json.dumps(record), encoding="utf-8")
+
+            with self.assertRaisesRegex(catalog.DataCatalogError, "incomplete"):
+                catalog.build_index(catalog_root, data_root)
+
 
 if __name__ == "__main__":
     unittest.main()
