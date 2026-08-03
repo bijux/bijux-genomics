@@ -262,6 +262,7 @@ def audit_images(
         key=len,
         reverse=True,
     )
+    historical_images = []
     unknown_images = []
     for image in sorted(image_root.glob("*.sif")):
         if image not in known_images:
@@ -279,24 +280,23 @@ def audit_images(
                 None,
             )
             reference_count = references[digest]
-            unknown_images.append(
-                {
-                    "path": str(image),
-                    "sha256": digest,
-                    "size_bytes": image.stat().st_size,
-                    "real_run_references": reference_count,
-                    "catalog_tool": catalog_tool,
-                    "disposition": (
-                        "historical_run_dependency"
-                        if reference_count
-                        else (
-                            "unreferenced_obsolete"
-                            if catalog_tool is not None
-                            else "unclassified"
-                        )
-                    ),
-                }
-            )
+            record = {
+                "path": str(image),
+                "sha256": digest,
+                "size_bytes": image.stat().st_size,
+                "real_run_references": reference_count,
+                "catalog_tool": catalog_tool,
+            }
+            if catalog_tool is not None and reference_count:
+                record["disposition"] = "historical_run_dependency"
+                historical_images.append(record)
+            else:
+                record["disposition"] = (
+                    "unreferenced_obsolete"
+                    if catalog_tool is not None
+                    else "unclassified"
+                )
+                unknown_images.append(record)
     staged_images = [
         {
             "path": str(path),
@@ -322,6 +322,7 @@ def audit_images(
         "summary": {
             "tool_count": len(records),
             "states": dict(sorted(states.items())),
+            "historical_dependency_count": len(historical_images),
             "unknown_image_count": len(unknown_images),
             "staged_image_count": len(staged_images),
             "unreferenced_obsolete_count": sum(
@@ -335,6 +336,7 @@ def audit_images(
             ),
         },
         "tools": records,
+        "historical_images": historical_images,
         "unknown_images": unknown_images,
         "staged_images": staged_images,
     }
@@ -364,6 +366,7 @@ def render_report(inventory_path: Path, output: Path) -> int:
         + ", ".join(
             f"**{state} {count}**" for state, count in sorted(summary["states"].items())
         ),
+        f"- Historical run dependencies: **{summary.get('historical_dependency_count', 0)}**",
         f"- Unknown immutable images: **{summary['unknown_image_count']}**",
         f"- Interrupted staged images: **{summary['staged_image_count']}**",
         f"- Unreferenced obsolete images: **{summary['unreferenced_obsolete_count']}**",
@@ -387,6 +390,8 @@ def render_report(inventory_path: Path, output: Path) -> int:
             "`missing` means no admitted SIF exists for the catalog version. `stale_recipe`",
             "means an admitted historical image exists but does not represent the active",
             "recipe. `unsupported` is an explicit catalog decision, not a failed build.",
+            "A historical run dependency is preserved because a final governed run records",
+            "its immutable path and digest; it is not current support or release evidence.",
             "",
             "The machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).",
         ]

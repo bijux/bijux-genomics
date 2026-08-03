@@ -91,8 +91,7 @@ class ImageInventoryTests(unittest.TestCase):
             previous_bytes = b"previous-immutable-sif"
             previous_digest = __import__("hashlib").sha256(previous_bytes).hexdigest()
             previous = (
-                image_root
-                / f"samtools-1.19-linux-amd64-{previous_digest[:12]}.sif"
+                image_root / f"samtools-1.19-linux-amd64-{previous_digest[:12]}.sif"
             )
             previous.write_bytes(previous_bytes)
             (evidence_root / "samtools.build.json").write_text(
@@ -176,6 +175,67 @@ class ImageInventoryTests(unittest.TestCase):
         self.assertIn("not a release certificate", report)
         self.assertIn("Scientific and security", report)
         self.assertIn("**missing**", report)
+
+    def test_referenced_unsupported_image_is_a_historical_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repository, _, _ = self.make_repository(root)
+            catalog = repository / "containers" / "contracts" / "catalog.toml"
+            catalog.parent.mkdir()
+            catalog.write_text(
+                "[[tools]]\n"
+                'id = "fastuniq"\n'
+                'version = "1.1"\n'
+                'support_disposition = "unsupported"\n'
+                "apptainer_supported = false\n",
+                encoding="utf-8",
+            )
+            subprocess.run(["git", "-C", repository, "add", catalog], check=True)
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    repository,
+                    "-c",
+                    "user.name=Bijux Test",
+                    "-c",
+                    "user.email=test@bijux.io",
+                    "commit",
+                    "-qm",
+                    "add unsupported catalog entry",
+                ],
+                check=True,
+            )
+            images = root / "images"
+            evidence = root / "evidence"
+            runs = root / "runs" / "run-1023-fastuniq"
+            images.mkdir()
+            evidence.mkdir()
+            runs.mkdir(parents=True)
+            image_bytes = b"historical-fastuniq-image"
+            digest = __import__("hashlib").sha256(image_bytes).hexdigest()
+            image = images / f"fastuniq-1.1-linux-amd64-{digest[:12]}.sif"
+            image.write_bytes(image_bytes)
+            (runs / "evidence.lock.json").write_text(
+                json.dumps({"image": {"sha256": digest}}), encoding="utf-8"
+            )
+
+            result = inventory.audit_images(
+                catalog,
+                images,
+                evidence,
+                root / "runs",
+                repository,
+                root / "inventory.json",
+            )
+
+        self.assertEqual(result["summary"]["historical_dependency_count"], 1)
+        self.assertEqual(result["summary"]["unknown_image_count"], 0)
+        self.assertEqual(result["historical_images"][0]["catalog_tool"], "fastuniq")
+        self.assertEqual(
+            result["historical_images"][0]["disposition"],
+            "historical_run_dependency",
+        )
 
     def test_audit_refuses_to_replace_immutable_inventory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

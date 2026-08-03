@@ -139,8 +139,9 @@ python3 -B containers/contracts/image_storage.py verify \
 ```
 
 `rollback` restores every file only after rechecking its size and SHA-256.
-Unknown images and images referenced by historical runs are excluded from the
-quarantine plan.
+Unclassified images and images referenced by historical runs are excluded from
+the quarantine plan. Catalog-recognized obsolete images with no run references
+are eligible only through the checksummed, reversible plan above.
 
 ## Verify version and help contracts
 
