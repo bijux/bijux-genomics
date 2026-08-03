@@ -567,8 +567,11 @@ source_sha256 = "6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e
 [fastq_scan]
 version = "1.0.1"
 source = "https://github.com/rpetit3/fastq-scan"
-date_pinned = "2026-02-16"
+date_pinned = "2026-08-03"
+status = "production"
+upstream_license = "MIT"
 pinned_commit = "966991c58bd44cbf7644851b7118f7d06146f3c5"
+source_sha256 = "74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e"
 
 [fastuniq]
 version = "1.1"
