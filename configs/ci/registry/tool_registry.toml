@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 9f49964228ec00ff7457ef652d0e37ba70c0282c
+# source_commit: 6c5f4dc47c4e75f02b5a6b7bc34a7a6945252208
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1650,22 +1650,22 @@ status = "production"
 stage_ids = ["bam.sex"]
 bindings = ["bam.sex"]
 tool_role = "transform"
-version = "1.0.0"
-default_version = "1.0.0"
+version = "2.0.0"
+default_version = "2.0.0"
 upstream = "https://github.com/bijux/bijux-genomics"
 version_rule = "pinned"
 license = "Apache-2.0"
 citation = "upstream:https://github.com/bijux/bijux-genomics"
-pinned_commit = "sha256:1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38"
+pinned_commit = "sha256:b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8"
 pin_strategy = "source_sha256"
-container_ref = "bijuxdna/rxy:1.0.0"
+container_ref = "bijuxdna/rxy:2.0.0"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "rxy --version"
 help_cmd = "rxy --help"
 smoke_version_cmd = "rxy --version"
 smoke_help_cmd = "rxy --help"
-expected_version_regex = "rxy 1[.]0[.]0"
+expected_version_regex = "^rxy 2[.]0[.]0$"
 healthcheck_cmd = "rxy --help"
 expected_bin = "rxy"
 expected_artifacts = ["sex_estimate"]

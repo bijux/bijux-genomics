@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "20082b58f1b55e0bff85077823b4bdf449876704850f975a9a5d5a7f579849e1",
+  "source_sha256": "72935c1387ac27debb857a7929219815f9bc083e4830f46ee9355c39606ce43f",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1053,17 +1053,17 @@
     {
       "id": "rxy",
       "display_name": "Rxy",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/bijux/bijux-genomics",
       "license": "Apache-2.0",
-      "source_sha256": "1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38",
+      "source_sha256": "b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/rxy.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.rxy",
-      "contract_sha256": "50e7addd189e3a51990441d26d67bb5b731e0bb1dac070717fb6583ee82a1143"
+      "contract_sha256": "d20127adab35fc925e62cede6be6c8f618aac25d72cacb02e0548aaad9212ba7"
     },
     {
       "id": "samtools",

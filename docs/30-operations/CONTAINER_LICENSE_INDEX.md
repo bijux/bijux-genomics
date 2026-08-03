@@ -86,7 +86,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `pydamage` | `production` | `bijux` | `NOASSERTION` | `https://github.com/maxibor/pydamage` | `1.0` | `sha256:f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f` |
 | `qualimap` | `experimental` | `bijux` | `NOASSERTION` | `https://bitbucket.org/kokonech/qualimap` | `2.3` | `sha256:2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40` |
 | `rcorrector` | `production` | `bijux` | `NOASSERTION` | `https://github.com/mourisl/Rcorrector` | `1.0.7` | `sha256:33274474f6215e3b78829a2b7f86b5a0f6f191d1da7a2da96cba67f1fb4605a8` |
-| `rxy` | `production` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-genomics` | `1.0.0` | `sha256:1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38` |
+| `rxy` | `production` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-genomics` | `2.0.0` | `sha256:b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8` |
 | `samtools` | `production` | `bijux` | `MIT` | `https://github.com/samtools/samtools` | `1.20` | `sha256:c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10` |
 | `schmutzi` | `production` | `bijux` | `NOASSERTION` | `https://github.com/grenaud/schmutzi` | `1.5.4` | `sha256:46ed7c4f429836afdc96b2f7f1853eef2e1c2ebef679f847fcc443c447d84029` |
 | `seqfu` | `production` | `bijux` | `NOASSERTION` | `https://github.com/telatin/seqfu2/archive/refs/tags/v1.26.0.tar.gz` | `1.26.0` | `sha256:2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff` |
