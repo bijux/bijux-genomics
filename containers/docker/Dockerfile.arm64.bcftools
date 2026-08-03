@@ -19,6 +19,7 @@ LABEL org.opencontainers.image.tool="bcftools"
 LABEL org.opencontainers.image.title="bcftools"
 LABEL org.opencontainers.image.base.name="quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d"
 LABEL org.opencontainers.image.base.digest="sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d"
+LABEL io.bijux.tool.version="1.20"
 
 ENTRYPOINT ["bcftools"]
 CMD ["--help"]
