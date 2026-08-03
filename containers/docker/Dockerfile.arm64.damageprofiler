@@ -3,30 +3,37 @@
 #
 # Container definition license: GPL-3.0.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl
+COPY containers/tools/damageprofiler/install /opt/damageprofiler-build/install
+RUN chmod 0755 /opt/damageprofiler-build/install && /opt/damageprofiler-build/install
+
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=1.1
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+LABEL org.opencontainers.image.source="https://github.com/Integrative-Transcriptomics/DamageProfiler" \
+      org.opencontainers.image.revision="3be52404124ae294f0eaf2fa622fe8af548bb6ed" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.licenses="GPL-3.0-only" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="damageprofiler"
 LABEL org.opencontainers.image.title="damageprofiler"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
-ARG TOOL_VERSION
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    ca-certificates curl openjdk-17-jre-headless && \
-    rm -rf /var/lib/apt/lists/*
-RUN curl -fsSL -o /opt/damageprofiler.jar "https://github.com/Integrative-Transcriptomics/DamageProfiler/releases/download/v${TOOL_VERSION}/DamageProfiler-${TOOL_VERSION}-java11.jar"
-RUN cat > /usr/local/bin/damageprofiler <<'SH' && chmod +x /usr/local/bin/damageprofiler
-#!/bin/sh
-set -eu
-exec java -jar /opt/damageprofiler.jar "$@"
-SH
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=builder /opt/damageprofiler.jar /opt/damageprofiler.jar
+COPY containers/tools/damageprofiler/damageprofiler /usr/local/bin/damageprofiler
+RUN chmod 0755 /usr/local/bin/damageprofiler && \
+    damageprofiler --version | grep -Fx 'DamageProfiler v1.1' && \
+    damageprofiler --help >/dev/null
+
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/damageprofiler"]
 CMD ["--help"]
