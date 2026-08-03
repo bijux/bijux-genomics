@@ -23,7 +23,7 @@ STAGE_ID = "bam.mapping_summary"
 STAGE_SLUG = "bam-mapping-summary"
 CORPUS_ID = "ena-prjeb22390-err2112767-bam"
 TOOLS = ("picard", "samtools")
-IMAGE_SCHEMA = "bijux.container.image_inventory_publication.v1"
+IMAGE_SCHEMA = "bijux.container.image_inventory.v1"
 DATA_SCHEMA = "bijux.data_index.v1"
 GOVERNANCE_SCHEMA = "bijux.container.governance.v1"
 CATALOG_SCHEMA = "bijux.container.catalog.v1"
@@ -88,9 +88,13 @@ def runtime_contracts(catalog: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 def study_path(uri: str, study_root: Path) -> Path:
     prefix = "study://"
-    if not uri.startswith(prefix):
+    value = Path(uri)
+    if value.is_absolute():
+        path = value.resolve()
+    elif uri.startswith(prefix):
+        path = (study_root / uri.removeprefix(prefix)).resolve()
+    else:
         raise SpecificationError(f"governed path is not study-relative: {uri}")
-    path = (study_root / uri.removeprefix(prefix)).resolve()
     try:
         path.relative_to(study_root.resolve())
     except ValueError as exc:

@@ -50,7 +50,7 @@ class MappingSummarySpecificationTests(unittest.TestCase):
         inventory.write_text(
             json.dumps(
                 {
-                    "schema_version": specifications.IMAGE_SCHEMA,
+                    "schema_version": "bijux.container.image_inventory.v1",
                     "tools": [
                         {
                             "tool": tool,
@@ -114,6 +114,62 @@ expected_version_regex = "^samtools 1[.]20"
             encoding="utf-8",
         )
         return governance, index, inventory, catalog, study
+
+    def test_absolute_inventory_paths_remain_confined_to_the_study(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, study = self.fixtures(root)
+            data = json.loads(inventory.read_text())
+            for tool in data["tools"]:
+                tool["selected_image"] = str(
+                    study / "containers" / f"{tool['tool']}.sif"
+                )
+            inventory.write_text(json.dumps(data), encoding="utf-8")
+
+            with patch.object(specifications, "current_commit", return_value="f" * 40):
+                destination = specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    root / "specifications",
+                    "2026-08-03T00:00:00+00:00",
+                )
+
+            pipeline = yaml.safe_load(
+                (
+                    destination
+                    / "run-2004-picard"
+                    / "config-pipeline.yml"
+                ).read_text()
+            )
+            self.assertEqual(
+                pipeline["image"]["path"],
+                str(study / "containers" / "picard.sif"),
+            )
+
+    def test_absolute_inventory_path_cannot_escape_the_study(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, _ = self.fixtures(root)
+            data = json.loads(inventory.read_text())
+            data["tools"][0]["selected_image"] = str(root / "outside.sif")
+            inventory.write_text(json.dumps(data), encoding="utf-8")
+
+            with (
+                patch.object(specifications, "current_commit", return_value="f" * 40),
+                self.assertRaisesRegex(
+                    specifications.SpecificationError,
+                    "escapes the study root",
+                ),
+            ):
+                specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    root / "specifications",
+                )
 
     def test_preparation_emits_complete_tool_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
