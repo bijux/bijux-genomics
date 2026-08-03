@@ -46,11 +46,26 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
     apt-get install -y --no-install-recommends build-essential ca-certificates curl pkg-config libssl-dev xz-utils
-    curl -fsSL -o /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz \
-        https://static.rust-lang.org/dist/2026-04-16/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz
-    echo "094c9c36531911c5cc7dd6ab2d3069ab8dcd744d6239b0bda1387b243dfc391e  /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz" | sha256sum -c -
-    tar -xJf /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz -C /tmp
-    /tmp/rust-1.95.0-aarch64-unknown-linux-gnu/install.sh --prefix=/opt/rust --without=rust-docs
+    case "$(uname -m)" in
+        x86_64)
+            rust_target=x86_64-unknown-linux-gnu
+            rust_sha256=2e0338f18ecbaa4a0f631b9e80e8b8e26bb6fe77dd5454fba8a70cf96c1e84a1
+            ;;
+        aarch64)
+            rust_target=aarch64-unknown-linux-gnu
+            rust_sha256=094c9c36531911c5cc7dd6ab2d3069ab8dcd744d6239b0bda1387b243dfc391e
+            ;;
+        *)
+            echo "unsupported build architecture: $(uname -m)" >&2
+            exit 1
+            ;;
+    esac
+    rust_archive="rust-1.95.0-${rust_target}.tar.xz"
+    curl -fsSL -o "/tmp/${rust_archive}" \
+        "https://static.rust-lang.org/dist/2026-04-16/${rust_archive}"
+    echo "${rust_sha256}  /tmp/${rust_archive}" | sha256sum -c -
+    tar -xJf "/tmp/${rust_archive}" -C /tmp
+    "/tmp/rust-1.95.0-${rust_target}/install.sh" --prefix=/opt/rust --without=rust-docs
     export PATH=/opt/rust/bin:${PATH}
     cd /opt/bijux-src
     cargo build --locked --release -p bijux-dna
@@ -60,7 +75,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     cp -a domain/. /opt/bijux/domain/
     cp -a benchmarks/. /opt/bijux/benchmarks/
     rm -rf /var/lib/apt/lists/*
-    rm -rf /tmp/rust-1.95.0-aarch64-unknown-linux-gnu /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz
+    rm -rf "/tmp/rust-1.95.0-${rust_target}" "/tmp/${rust_archive}"
     rm -rf /opt/bijux-src
 
 %runscript
