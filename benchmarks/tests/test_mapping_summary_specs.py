@@ -26,7 +26,13 @@ class MappingSummarySpecificationTests(unittest.TestCase):
         study = root / "study"
         repository = root / "repository"
         frozen = root / "frozen"
-        for path in (study / "containers", study / "data", study / "results", repository, frozen):
+        for path in (
+            study / "containers",
+            study / "data",
+            study / "results",
+            repository,
+            frozen,
+        ):
             path.mkdir(parents=True)
         governance = root / "governance.yml"
         governance.write_text(
@@ -137,15 +143,11 @@ expected_version_regex = "^samtools 1[.]20"
                 )
 
             pipeline = yaml.safe_load(
-                (
-                    destination
-                    / "run-2004-picard"
-                    / "config-pipeline.yml"
-                ).read_text()
+                (destination / "run-2004-picard" / "config-pipeline.yml").read_text()
             )
             self.assertEqual(
                 pipeline["image"]["path"],
-                str(study / "containers" / "picard.sif"),
+                str((study / "containers" / "picard.sif").resolve()),
             )
 
     def test_absolute_inventory_path_cannot_escape_the_study(self) -> None:
@@ -193,6 +195,19 @@ expected_version_regex = "^samtools 1[.]20"
                 )
                 for tool in specifications.TOOLS
             }
+            parameter_files = {
+                tool: (
+                    (
+                        destination
+                        / f"run-2004-{tool}"
+                        / "config-pipeline-parameters.yml"
+                    ).is_file(),
+                    (
+                        destination / f"run-2004-{tool}" / "effective-parameters.json"
+                    ).is_file(),
+                )
+                for tool in specifications.TOOLS
+            }
 
         self.assertEqual(set(pipelines), set(specifications.TOOLS))
         for tool, pipeline in pipelines.items():
@@ -201,12 +216,13 @@ expected_version_regex = "^samtools 1[.]20"
             self.assertEqual(pipeline["execution"]["threads"], 1)
             self.assertEqual(len(pipeline["outputs"]["required_files"]), 13)
             self.assertEqual(
+                pipeline["parameters"]["defaults_provider"],
+                specifications.DEFAULTS_PROVIDER,
+            )
+            self.assertEqual(parameter_files[tool], (True, True))
+            self.assertEqual(
                 pipeline["outputs"]["result_root"],
-                str(
-                    study
-                    / "results/benchmarks/run-2004-bam-mapping-summary"
-                    / tool
-                ),
+                str(study / "results/benchmarks/run-2004-bam-mapping-summary" / tool),
             )
 
     def test_commands_encode_one_warmup_and_three_measured_repetitions(self) -> None:
@@ -238,6 +254,11 @@ expected_version_regex = "^samtools 1[.]20"
                 "help": ["picard", "--help"],
                 "version_regex": "^picard 3[.]3[.]0$",
             },
+            {
+                "schema_version": "bijux.benchmark.parameter_evidence.v1",
+                "parameter_schema_version": specifications.PARAMETER_SCHEMA,
+                "defaults_provider": specifications.DEFAULTS_PROVIDER,
+            },
         )["commands"]["real"][2]
         samtools = specifications.pipeline(
             "samtools",
@@ -250,6 +271,11 @@ expected_version_regex = "^samtools 1[.]20"
                 "version": ["samtools", "--version"],
                 "help": ["samtools", "--help"],
                 "version_regex": "^samtools 1[.]20",
+            },
+            {
+                "schema_version": "bijux.benchmark.parameter_evidence.v1",
+                "parameter_schema_version": specifications.PARAMETER_SCHEMA,
+                "defaults_provider": specifications.DEFAULTS_PROVIDER,
             },
         )["commands"]["real"][2]
 

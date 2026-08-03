@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import shlex
 import subprocess
@@ -27,6 +28,10 @@ IMAGE_SCHEMA = "bijux.container.image_inventory.v1"
 DATA_SCHEMA = "bijux.data_index.v1"
 GOVERNANCE_SCHEMA = "bijux.container.governance.v1"
 CATALOG_SCHEMA = "bijux.container.catalog.v1"
+PARAMETER_SCHEMA = "bijux.bam.params.mapping_summary.v1"
+DEFAULTS_PROVIDER = (
+    "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)"
+)
 
 
 class SpecificationError(RuntimeError):
@@ -63,6 +68,58 @@ def load_toml(path: Path) -> dict[str, Any]:
     return value
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_parameter_evidence(root: Path) -> dict[str, Any]:
+    overrides_path = root / "config-pipeline-parameters.yml"
+    effective_path = root / "effective-parameters.json"
+    overrides = {
+        "schema_version": "bijux.benchmark.pipeline_parameters.v1",
+        "profile": "bam-mapping-summary",
+        "stages": {
+            STAGE_ID: {
+                "parameter_schema_version": PARAMETER_SCHEMA,
+                "defaults_provider": DEFAULTS_PROVIDER,
+                "overrides": {},
+            }
+        },
+    }
+    effective = {
+        "schema_version": "bijux.benchmark.effective_parameters.v1",
+        "stage_id": STAGE_ID,
+        "parameter_schema_version": PARAMETER_SCHEMA,
+        "defaults_provider": DEFAULTS_PROVIDER,
+        "overrides": {},
+        "resolved_by_sample": {
+            "ERR2112767": {
+                "schema_version": PARAMETER_SCHEMA,
+                "regions": None,
+            }
+        },
+    }
+    overrides_path.write_text(
+        yaml.safe_dump(overrides, sort_keys=False), encoding="utf-8"
+    )
+    effective_path.write_text(
+        json.dumps(effective, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return {
+        "schema_version": "bijux.benchmark.parameter_evidence.v1",
+        "parameter_schema_version": PARAMETER_SCHEMA,
+        "defaults_provider": DEFAULTS_PROVIDER,
+        "overrides_file": overrides_path.name,
+        "overrides_sha256": sha256_file(overrides_path),
+        "effective_file": effective_path.name,
+        "effective_sha256": sha256_file(effective_path),
+    }
+
+
 def runtime_contracts(catalog: dict[str, Any]) -> dict[str, dict[str, Any]]:
     if catalog.get("schema_version") != CATALOG_SCHEMA:
         raise SpecificationError("container catalog schema is unsupported")
@@ -74,7 +131,10 @@ def runtime_contracts(catalog: dict[str, Any]) -> dict[str, dict[str, Any]]:
             raise SpecificationError(f"{record.get('id')} is not retained")
         tool = str(record["id"])
         fields = ("version_command", "help_command", "expected_version_regex")
-        if any(not isinstance(record.get(field), str) or not record[field] for field in fields):
+        if any(
+            not isinstance(record.get(field), str) or not record[field]
+            for field in fields
+        ):
             raise SpecificationError(f"{tool} runtime contract is incomplete")
         contracts[tool] = {
             "version": shlex.split(str(record["version_command"])),
@@ -98,7 +158,9 @@ def study_path(uri: str, study_root: Path) -> Path:
     try:
         path.relative_to(study_root.resolve())
     except ValueError as exc:
-        raise SpecificationError(f"governed path escapes the study root: {uri}") from exc
+        raise SpecificationError(
+            f"governed path escapes the study root: {uri}"
+        ) from exc
     return path
 
 
@@ -159,8 +221,13 @@ def selected_images(
     for record in inventory.get("tools", []):
         if not isinstance(record, dict) or record.get("tool") not in TOOLS:
             continue
-        if record.get("support_disposition") != "retained" or record.get("state") != "current":
-            raise SpecificationError(f"{record.get('tool')} lacks a current retained image")
+        if (
+            record.get("support_disposition") != "retained"
+            or record.get("state") != "current"
+        ):
+            raise SpecificationError(
+                f"{record.get('tool')} lacks a current retained image"
+            )
         tool = str(record["tool"])
         selected[tool] = {
             "path": str(study_path(str(record["selected_image"]), study_root)),
@@ -171,9 +238,7 @@ def selected_images(
     return selected
 
 
-def corpus_inputs(
-    index: dict[str, Any], study_root: Path
-) -> list[dict[str, str]]:
+def corpus_inputs(index: dict[str, Any], study_root: Path) -> list[dict[str, str]]:
     if index.get("schema_version") != DATA_SCHEMA:
         raise SpecificationError("data index schema is unsupported")
     records = [
@@ -225,8 +290,8 @@ def corpus_inputs(
 
 def resource_conversion() -> str:
     return (
-        "awk '{for (field=1; field<=NF; field++) {split($field, parts, \"=\"); "
-        "printf \"%s\\t%s\\n\", parts[1], parts[2]}}' \"$resource_raw\" > \"$resource\";"
+        'awk \'{for (field=1; field<=NF; field++) {split($field, parts, "="); '
+        'printf "%s\\t%s\\n", parts[1], parts[2]}}\' "$resource_raw" > "$resource";'
     )
 
 
@@ -244,11 +309,11 @@ def picard_command() -> str:
             'resource="/result/repetitions/repetition-${repetition}.resource.tsv";',
             'resource_raw="/scratch/repetition-${repetition}.resource.txt";',
             'mkdir -p "/scratch/picard-${repetition}";',
-            "/usr/bin/time -f 'wall_seconds=%e user_seconds=%U system_seconds=%S peak_rss_kib=%M' -o \"$resource_raw\" picard CollectAlignmentSummaryMetrics I=/input/ERR2112767.sorted.bam O=\"$raw\" VALIDATION_STRINGENCY=SILENT TMP_DIR=\"/scratch/picard-${repetition}\";",
+            '/usr/bin/time -f \'wall_seconds=%e user_seconds=%U system_seconds=%S peak_rss_kib=%M\' -o "$resource_raw" picard CollectAlignmentSummaryMetrics I=/input/ERR2112767.sorted.bam O="$raw" VALIDATION_STRINGENCY=SILENT TMP_DIR="/scratch/picard-${repetition}";',
             resource_conversion(),
-            "awk -F '\\t' '$1==\"CATEGORY\" {for (field=1; field<=NF; field++) column[$field]=field} $1==\"PAIR\" || $1==\"UNPAIRED\" {total += $(column[\"TOTAL_READS\"]); mapped += $(column[\"PF_READS_ALIGNED\"]); if ($1==\"PAIR\") paired += $(column[\"TOTAL_READS\"])} END {if (total <= 0) exit 2; printf \"metric\\tvalue\\nprimary_reads\\t%.0f\\nmapped_primary_reads\\t%.0f\\nmapped_primary_fraction\\t%.12f\\npaired_primary_reads\\t%.0f\\n\", total, mapped, mapped/total, paired}' \"$raw\" > \"$summary\";",
+            'awk -F \'\\t\' \'$1=="CATEGORY" {for (field=1; field<=NF; field++) column[$field]=field} $1=="PAIR" || $1=="UNPAIRED" {total += $(column["TOTAL_READS"]); mapped += $(column["PF_READS_ALIGNED"]); if ($1=="PAIR") paired += $(column["TOTAL_READS"])} END {if (total <= 0) exit 2; printf "metric\\tvalue\\nprimary_reads\\t%.0f\\nmapped_primary_reads\\t%.0f\\nmapped_primary_fraction\\t%.12f\\npaired_primary_reads\\t%.0f\\n", total, mapped, mapped/total, paired}\' "$raw" > "$summary";',
             'output_bytes=$(wc -c "$raw" "$summary" | awk \'END {print $1}\');',
-            "awk -F '\\t' -v bytes=\"$output_bytes\" 'NR > 1 {value[$1]=$2} END {printf \"{\\\"primary_reads\\\":%s,\\\"mapped_primary_reads\\\":%s,\\\"mapped_primary_fraction\\\":%s,\\\"paired_primary_reads\\\":%s,\\\"output_bytes\\\":%s}\\n\", value[\"primary_reads\"], value[\"mapped_primary_reads\"], value[\"mapped_primary_fraction\"], value[\"paired_primary_reads\"], bytes}' \"$summary\" > \"$metrics\";",
+            'awk -F \'\\t\' -v bytes="$output_bytes" \'NR > 1 {value[$1]=$2} END {printf "{\\"primary_reads\\":%s,\\"mapped_primary_reads\\":%s,\\"mapped_primary_fraction\\":%s,\\"paired_primary_reads\\":%s,\\"output_bytes\\":%s}\\n", value["primary_reads"], value["mapped_primary_reads"], value["mapped_primary_fraction"], value["paired_primary_reads"], bytes}\' "$summary" > "$metrics";',
             "done;",
             "write_context",
         )
@@ -267,11 +332,11 @@ def samtools_command() -> str:
             'metrics="/result/repetitions/repetition-${repetition}.metrics.json";',
             'resource="/result/repetitions/repetition-${repetition}.resource.tsv";',
             'resource_raw="/scratch/repetition-${repetition}.resource.txt";',
-            "/usr/bin/time -f 'wall_seconds=%e user_seconds=%U system_seconds=%S peak_rss_kib=%M' -o \"$resource_raw\" sh -c 'samtools flagstat /input/ERR2112767.sorted.bam > \"$1\"' sh \"$raw\";",
+            '/usr/bin/time -f \'wall_seconds=%e user_seconds=%U system_seconds=%S peak_rss_kib=%M\' -o "$resource_raw" sh -c \'samtools flagstat /input/ERR2112767.sorted.bam > "$1"\' sh "$raw";',
             resource_conversion(),
-            "awk '$4==\"primary\" && NF==4 {total=$1+$3} $4==\"primary\" && $5==\"mapped\" {mapped=$1+$3} $4==\"paired\" && $5==\"in\" && $6==\"sequencing\" {paired=$1+$3} END {if (total <= 0) exit 2; printf \"metric\\tvalue\\nprimary_reads\\t%.0f\\nmapped_primary_reads\\t%.0f\\nmapped_primary_fraction\\t%.12f\\npaired_primary_reads\\t%.0f\\n\", total, mapped, mapped/total, paired}' \"$raw\" > \"$summary\";",
+            'awk \'$4=="primary" && NF==4 {total=$1+$3} $4=="primary" && $5=="mapped" {mapped=$1+$3} $4=="paired" && $5=="in" && $6=="sequencing" {paired=$1+$3} END {if (total <= 0) exit 2; printf "metric\\tvalue\\nprimary_reads\\t%.0f\\nmapped_primary_reads\\t%.0f\\nmapped_primary_fraction\\t%.12f\\npaired_primary_reads\\t%.0f\\n", total, mapped, mapped/total, paired}\' "$raw" > "$summary";',
             'output_bytes=$(wc -c "$raw" "$summary" | awk \'END {print $1}\');',
-            "awk -F '\\t' -v bytes=\"$output_bytes\" 'NR > 1 {value[$1]=$2} END {printf \"{\\\"primary_reads\\\":%s,\\\"mapped_primary_reads\\\":%s,\\\"mapped_primary_fraction\\\":%s,\\\"paired_primary_reads\\\":%s,\\\"output_bytes\\\":%s}\\n\", value[\"primary_reads\"], value[\"mapped_primary_reads\"], value[\"mapped_primary_fraction\"], value[\"paired_primary_reads\"], bytes}' \"$summary\" > \"$metrics\";",
+            'awk -F \'\\t\' -v bytes="$output_bytes" \'NR > 1 {value[$1]=$2} END {printf "{\\"primary_reads\\":%s,\\"mapped_primary_reads\\":%s,\\"mapped_primary_fraction\\":%s,\\"paired_primary_reads\\":%s,\\"output_bytes\\":%s}\\n", value["primary_reads"], value["mapped_primary_reads"], value["mapped_primary_fraction"], value["paired_primary_reads"], bytes}\' "$summary" > "$metrics";',
             "done;",
             "write_context",
         )
@@ -282,9 +347,9 @@ def complete_command(command: str) -> str:
     context = (
         "bam_bytes=$(wc -c < /input/ERR2112767.sorted.bam | tr -d ' '); "
         "bam_index_bytes=$(wc -c < /input/ERR2112767.sorted.bam.bai | tr -d ' '); "
-        "printf '{\"warmup_repetitions\":1,\"measured_repetitions\":3,"
-        "\"cache_policy\":\"warm\",\"threads\":1,\"bam_input_bytes\":%s,"
-        "\"bam_index_input_bytes\":%s}\\n' \"$bam_bytes\" \"$bam_index_bytes\" "
+        'printf \'{"warmup_repetitions":1,"measured_repetitions":3,'
+        '"cache_policy":"warm","threads":1,"bam_input_bytes":%s,'
+        '"bam_index_input_bytes":%s}\\n\' "$bam_bytes" "$bam_index_bytes" '
         "> /result/benchmark-context.json"
     )
     return command.replace("write_context", context)
@@ -314,10 +379,25 @@ def pipeline(
     inputs: list[dict[str, str]],
     submitted_at: str,
     runtime_contract: dict[str, Any],
+    parameter_evidence: dict[str, Any],
 ) -> dict[str, Any]:
     command = picard_command() if tool == "picard" else samtools_command()
-    negative = ["picard", "CollectAlignmentSummaryMetrics", "I=/input/missing.bam", "O=/scratch/missing.tsv"] if tool == "picard" else ["samtools", "flagstat", "/input/missing.bam"]
-    result_root = Path(str(roots["results_root"])) / "benchmarks" / f"{RUN_ID}-{STAGE_SLUG}" / tool
+    negative = (
+        [
+            "picard",
+            "CollectAlignmentSummaryMetrics",
+            "I=/input/missing.bam",
+            "O=/scratch/missing.tsv",
+        ]
+        if tool == "picard"
+        else ["samtools", "flagstat", "/input/missing.bam"]
+    )
+    result_root = (
+        Path(str(roots["results_root"]))
+        / "benchmarks"
+        / f"{RUN_ID}-{STAGE_SLUG}"
+        / tool
+    )
     metrics = [
         {
             "id": metric,
@@ -361,6 +441,7 @@ def pipeline(
             "real": ["sh", "-c", complete_command(command)],
             "negative": negative,
         },
+        "parameters": parameter_evidence,
         "outputs": {
             "result_root": str(result_root),
             "mount_path": "/result",
@@ -437,6 +518,7 @@ def prepare(
     for tool in TOOLS:
         tool_root = tool_roots[tool]
         tool_root.mkdir(parents=True)
+        parameter_evidence = write_parameter_evidence(tool_root)
         (tool_root / "config-pipeline.yml").write_text(
             yaml.safe_dump(
                 pipeline(
@@ -447,6 +529,7 @@ def prepare(
                     inputs,
                     timestamp,
                     contracts[tool],
+                    parameter_evidence,
                 ),
                 sort_keys=False,
             ),

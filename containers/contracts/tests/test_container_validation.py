@@ -525,6 +525,64 @@ class CurrentPipelineContractTests(unittest.TestCase):
         )
         return governance_path, pipeline_path, credential_path
 
+    def attach_parameter_evidence(
+        self,
+        paths: tuple[Path, Path, Path],
+        *,
+        stage_id: str = "fastq.validate",
+    ) -> tuple[Path, Path]:
+        _, pipeline_path, _ = paths
+        parameter_schema = f"bijux.test.params.{stage_id}.v1"
+        defaults_provider = "bijux_test::stage_defaults"
+        overrides_path = pipeline_path.parent / "config-pipeline-parameters.yml"
+        effective_path = pipeline_path.parent / "effective-parameters.json"
+        overrides = {
+            "schema_version": "bijux.benchmark.pipeline_parameters.v1",
+            "profile": "test-profile",
+            "stages": {
+                stage_id: {
+                    "parameter_schema_version": parameter_schema,
+                    "defaults_provider": defaults_provider,
+                    "overrides": {"threads": 2},
+                }
+            },
+        }
+        effective = {
+            "schema_version": "bijux.benchmark.effective_parameters.v1",
+            "stage_id": stage_id,
+            "parameter_schema_version": parameter_schema,
+            "defaults_provider": defaults_provider,
+            "overrides": {"threads": 2},
+            "resolved_by_sample": {
+                "sample": {
+                    "schema_version": parameter_schema,
+                    "threads": 2,
+                }
+            },
+        }
+        overrides_path.write_text(
+            container_validation.yaml.safe_dump(overrides, sort_keys=False),
+            encoding="utf-8",
+        )
+        effective_path.write_text(
+            json.dumps(effective, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        pipeline = container_validation.load_yaml(pipeline_path)
+        pipeline["parameters"] = {
+            "schema_version": "bijux.benchmark.parameter_evidence.v1",
+            "parameter_schema_version": parameter_schema,
+            "defaults_provider": defaults_provider,
+            "overrides_file": overrides_path.name,
+            "overrides_sha256": container_validation.sha256_file(overrides_path),
+            "effective_file": effective_path.name,
+            "effective_sha256": container_validation.sha256_file(effective_path),
+        }
+        pipeline_path.write_text(
+            container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+            encoding="utf-8",
+        )
+        return overrides_path, effective_path
+
     def test_current_contract_freezes_science_and_execution_parameters(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             paths = self.make_contracts(Path(directory))
@@ -544,6 +602,37 @@ class CurrentPipelineContractTests(unittest.TestCase):
             container_validation.tool_output_root(contract),
             contract["result_root"] / "outputs",
         )
+
+    def test_parameter_evidence_freezes_overrides_and_effective_values(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            overrides_path, effective_path = self.attach_parameter_evidence(paths)
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(
+            contract["parameters"]["files"], [overrides_path, effective_path]
+        )
+        self.assertEqual(contract["parameters"]["evidence"]["resolved_sample_count"], 1)
+
+    def test_parameter_evidence_rejects_changed_effective_values(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            _, effective_path = self.attach_parameter_evidence(paths)
+            effective = json.loads(effective_path.read_text(encoding="utf-8"))
+            effective["resolved_by_sample"]["sample"]["threads"] = 8
+            effective_path.write_text(json.dumps(effective), encoding="utf-8")
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError, "digest mismatch"
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
 
     def test_current_contract_rejects_host_paths_as_container_mounts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -582,6 +671,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 container_validation.yaml.safe_dump(pipeline, sort_keys=False),
                 encoding="utf-8",
             )
+            self.attach_parameter_evidence(paths, stage_id="bam.genotyping")
             with mock.patch.object(
                 container_validation.socket,
                 "gethostname",
@@ -592,9 +682,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertEqual(contract["evidence_kind"], "benchmark")
         self.assertEqual(
             contract["result_root"],
-            (
-                root / "study/results/benchmarks/run-2000-bam-genotyping/tool"
-            ).resolve(),
+            (root / "study/results/benchmarks/run-2000-bam-genotyping/tool").resolve(),
         )
 
     def test_benchmark_contract_rejects_qualification_result_paths(self) -> None:
@@ -606,6 +694,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 container_validation.yaml.safe_dump(pipeline, sort_keys=False),
                 encoding="utf-8",
             )
+            self.attach_parameter_evidence(paths)
             with (
                 mock.patch.object(
                     container_validation.socket,
@@ -615,6 +704,30 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 self.assertRaisesRegex(
                     container_validation.ContractError,
                     "benchmark outputs.result_root must equal",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
+    def test_benchmark_contract_requires_replayable_parameter_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-fastq-validate/tool"
+            )
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "must archive override and effective parameter evidence",
                 ),
             ):
                 container_validation.validate_contracts(*paths)
@@ -668,8 +781,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
             study = root / "study"
 
             container_validation.require_current_manifest_path(
-                study
-                / "containers/evidence/specifications/run-2000-tool",
+                study / "containers/evidence/specifications/run-2000-tool",
                 active,
                 study / "containers",
             )
@@ -803,14 +915,13 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 )
                 self.assertTrue(script.is_file())
 
-    def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(self) -> None:
+    def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             paths = self.make_contracts(root)
-            upstream = (
-                root
-                / "study/results/container-validation/run-1999-source"
-            )
+            upstream = root / "study/results/container-validation/run-1999-source"
             upstream.mkdir(parents=True)
             output = upstream / "source.fastq.gz"
             output.write_bytes(b"governed upstream output")
@@ -951,9 +1062,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
             root = Path(directory)
             study = root / "study"
             containers_root = study / "containers"
-            submission = (
-                containers_root / "evidence/submissions/run-2000-tool"
-            )
+            submission = containers_root / "evidence/submissions/run-2000-tool"
             result = study / "results/container-validation/run-2000-tool"
             manifest = containers_root / "evidence/specifications/run-2000-tool"
             submission.mkdir(parents=True)
@@ -1020,9 +1129,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             containers_root = root / "study/containers"
-            submission = (
-                containers_root / "evidence/submissions/run-2000-tool"
-            )
+            submission = containers_root / "evidence/submissions/run-2000-tool"
             result = root / "study/results/container-validation/run-2000-tool"
             manifest = containers_root / "evidence/specifications/run-2000-tool"
             submission.mkdir(parents=True)
@@ -1108,9 +1215,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                     "results_root": study / "results",
                 },
             }
-            reason = (
-                "resource measurements used literal separators instead of TSV rows"
-            )
+            reason = "resource measurements used literal separators instead of TSV rows"
             with mock.patch.object(
                 container_validation,
                 "validate_contracts",

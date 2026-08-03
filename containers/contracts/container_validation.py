@@ -26,6 +26,8 @@ CREDENTIAL_SCHEMA = "bijux.container.credential_reference.v1"
 GOVERNANCE_SCHEMA = "bijux.container.governance.v1"
 EVIDENCE_SCHEMA_V1 = "bijux.container.evidence.v1"
 EVIDENCE_SCHEMA_V2 = "bijux.container.evidence.v2"
+PARAMETER_EVIDENCE_SCHEMA = "bijux.benchmark.parameter_evidence.v1"
+EFFECTIVE_PARAMETERS_SCHEMA = "bijux.benchmark.effective_parameters.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 ACTIVE_SLURM_STATES = {
@@ -79,6 +81,99 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def validate_parameter_evidence(
+    value: Any, pipeline_path: Path, stage_id: str
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ContractError("parameters must be a mapping")
+    require_keys(
+        value,
+        {
+            "schema_version",
+            "parameter_schema_version",
+            "defaults_provider",
+            "overrides_file",
+            "overrides_sha256",
+            "effective_file",
+            "effective_sha256",
+        },
+        "parameters",
+    )
+    if value.get("schema_version") != PARAMETER_EVIDENCE_SCHEMA:
+        raise ContractError("parameters schema_version is unsupported")
+    parameter_schema = require_text(value, "parameter_schema_version")
+    defaults_provider = require_text(value, "defaults_provider")
+    file_contracts = (
+        ("overrides_file", "overrides_sha256", "config-pipeline-parameters.yml"),
+        ("effective_file", "effective_sha256", "effective-parameters.json"),
+    )
+    paths: list[Path] = []
+    for file_key, digest_key, expected_name in file_contracts:
+        name = require_text(value, file_key)
+        if name != expected_name:
+            raise ContractError(f"parameters.{file_key} must equal {expected_name}")
+        path = pipeline_path.parent / name
+        if not path.is_file():
+            raise ContractError(f"parameter evidence file is absent: {path}")
+        digest = require_text(value, digest_key)
+        validate_digest(digest, f"parameters.{digest_key}")
+        if sha256_file(path) != digest:
+            raise ContractError(f"parameter evidence digest mismatch: {name}")
+        paths.append(path)
+
+    override_config = load_yaml(paths[0])
+    stages = override_config.get("stages")
+    if not isinstance(stages, dict) or stage_id not in stages:
+        raise ContractError(f"parameter override file lacks stage {stage_id}")
+    stage_config = stages[stage_id]
+    if not isinstance(stage_config, dict):
+        raise ContractError(f"parameter override entry is invalid: {stage_id}")
+    if (
+        stage_config.get("parameter_schema_version") != parameter_schema
+        or stage_config.get("defaults_provider") != defaults_provider
+        or not isinstance(stage_config.get("overrides"), dict)
+    ):
+        raise ContractError("parameter override entry disagrees with pipeline evidence")
+
+    effective = load_json(paths[1])
+    if effective.get("schema_version") != EFFECTIVE_PARAMETERS_SCHEMA:
+        raise ContractError("effective parameter schema is unsupported")
+    if (
+        effective.get("stage_id") != stage_id
+        or effective.get("parameter_schema_version") != parameter_schema
+        or effective.get("defaults_provider") != defaults_provider
+        or effective.get("overrides") != stage_config["overrides"]
+    ):
+        raise ContractError(
+            "effective parameters disagree with declared defaults or overrides"
+        )
+    resolved_by_sample = effective.get("resolved_by_sample")
+    if not isinstance(resolved_by_sample, dict) or not resolved_by_sample:
+        raise ContractError("effective parameters contain no resolved samples")
+    for sample_id, resolved_parameters in resolved_by_sample.items():
+        if (
+            not isinstance(sample_id, str)
+            or not sample_id
+            or not isinstance(resolved_parameters, dict)
+        ):
+            raise ContractError("effective parameters contain an invalid sample entry")
+        if resolved_parameters.get("schema_version") != parameter_schema:
+            raise ContractError(
+                f"effective parameters for {sample_id} use the wrong schema"
+            )
+    return {
+        "files": paths,
+        "evidence": {
+            "schema_version": PARAMETER_EVIDENCE_SCHEMA,
+            "parameter_schema_version": parameter_schema,
+            "defaults_provider": defaults_provider,
+            "overrides_sha256": value["overrides_sha256"],
+            "effective_sha256": value["effective_sha256"],
+            "resolved_sample_count": len(resolved_by_sample),
+        },
+    }
 
 
 def require_mapping(parent: dict[str, Any], key: str) -> dict[str, Any]:
@@ -339,7 +434,9 @@ def freeze_repository(
         )
     if checkout_scope == "sources":
         if re.fullmatch(r"[a-z][a-z0-9-]*", source_namespace) is None:
-            raise ContractError("source freeze namespace must be a durable path identity")
+            raise ContractError(
+                "source freeze namespace must be a durable path identity"
+            )
         if not checkout_paths:
             raise ContractError("source freeze requires at least one checkout path")
         for value in checkout_paths:
@@ -529,9 +626,10 @@ def validate_completed_dependencies(
         if evidence.get("run_id") != run_id or evidence.get("status") != "passed":
             raise ContractError(f"dependency {run_id} lacks passing execution evidence")
         runtime = evidence.get("runtime")
-        if not isinstance(runtime, dict) or runtime.get("slurm_job_id") != dependency[
-            "slurm_job_id"
-        ]:
+        if (
+            not isinstance(runtime, dict)
+            or runtime.get("slurm_job_id") != dependency["slurm_job_id"]
+        ):
             raise ContractError(
                 f"dependency {run_id} Slurm identity disagrees with evidence"
             )
@@ -580,6 +678,8 @@ def validate_pipeline(
     }
     if is_current:
         top_level_fields.add("dependencies")
+        if "parameters" in config:
+            top_level_fields.add("parameters")
     require_keys(
         config,
         top_level_fields,
@@ -617,11 +717,18 @@ def validate_pipeline(
         require_text(run, key)
     if is_current:
         require_utc_timestamp(run, "submitted_at_utc", "run")
-    evidence_kind = (
-        run.get("kind", "qualification") if is_current else "qualification"
-    )
+    evidence_kind = run.get("kind", "qualification") if is_current else "qualification"
     if evidence_kind not in {"qualification", "benchmark"}:
         raise ContractError("run.kind must be qualification or benchmark")
+    if evidence_kind == "benchmark" and "parameters" not in config:
+        raise ContractError(
+            "benchmark pipelines must archive override and effective parameter evidence"
+        )
+    parameter_evidence = None
+    if "parameters" in config:
+        parameter_evidence = validate_parameter_evidence(
+            config["parameters"], pipeline_path, str(run["stage"])
+        )
 
     dependencies: list[dict[str, Any]] = []
     if is_current:
@@ -755,8 +862,7 @@ def validate_pipeline(
             mount_path = Path(require_text(item, "mount_path"))
             if (
                 mount_path.parent != Path("/input")
-                or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", mount_path.name)
-                is None
+                or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", mount_path.name) is None
             ):
                 raise ContractError(
                     f"data input {index} mount_path must be one safe filename under /input"
@@ -800,9 +906,7 @@ def validate_pipeline(
         raise ContractError("outputs.result_root must be absolute")
     result_root = resolved(str(declared_result_root))
     if is_current and evidence_kind == "benchmark":
-        stage_slug = re.sub(
-            r"[^a-z0-9]+", "-", str(run["stage"]).lower()
-        ).strip("-")
+        stage_slug = re.sub(r"[^a-z0-9]+", "-", str(run["stage"]).lower()).strip("-")
         expected_result_root = (
             governance["results_root"]
             / "benchmarks"
@@ -811,8 +915,7 @@ def validate_pipeline(
         )
         if result_root != expected_result_root:
             raise ContractError(
-                "benchmark outputs.result_root must equal "
-                f"{expected_result_root}"
+                f"benchmark outputs.result_root must equal {expected_result_root}"
             )
     else:
         qualification_root = governance["results_root"] / "container-validation"
@@ -999,6 +1102,7 @@ def validate_pipeline(
         "metrics": metrics,
         "dependencies": dependencies,
         "pipeline_schema": schema_version,
+        "parameters": parameter_evidence,
         "governance": governance,
     }
 
@@ -1183,6 +1287,9 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
     (result_root / "config-governance.yml").write_bytes(governance_path.read_bytes())
     (result_root / "config-pipeline.yml").write_bytes(pipeline_path.read_bytes())
     (result_root / "config-credential.yml").write_bytes(credential_path.read_bytes())
+    if contract["parameters"] is not None:
+        for parameter_path in contract["parameters"]["files"]:
+            (result_root / parameter_path.name).write_bytes(parameter_path.read_bytes())
 
     input_binds = [(source, target, "ro") for source, target in contract["input_binds"]]
     scratch_value = os.environ.get("TMPDIR")
@@ -1279,6 +1386,11 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
         },
         "pipeline_sha256": sha256_file(pipeline_path),
         "credential_reference_sha256": sha256_file(credential_path),
+        "parameters": (
+            contract["parameters"]["evidence"]
+            if contract["parameters"] is not None
+            else None
+        ),
         "image": {
             "path": str(contract["image_path"]),
             "sha256": contract["image_sha256"],
@@ -1332,8 +1444,8 @@ def render_slurm(
         scratch_environment = contract["governance"]["slurm_scratch_environment"]
         if scratch_environment is None:
             scratch_root = contract["governance"]["slurm_scratch_root"]
-            scratch_setup = (
-                "readonly GOVERNED_SCRATCH_ROOT=" + shlex.quote(str(scratch_root))
+            scratch_setup = "readonly GOVERNED_SCRATCH_ROOT=" + shlex.quote(
+                str(scratch_root)
             )
         else:
             scratch_setup = (
@@ -1460,12 +1572,15 @@ def archived_contract_paths(
     governance_path: Path,
     pipeline_path: Path,
     credential_path: Path,
+    parameter_paths: list[Path] | None = None,
 ) -> tuple[tuple[Path, str], ...]:
-    return (
+    core = (
         (governance_path, "config-governance.yml"),
         (pipeline_path, "config-pipeline.yml"),
         (credential_path, "config-credential.yml"),
     )
+    parameters = tuple((path, path.name) for path in (parameter_paths or []))
+    return core + parameters
 
 
 def submit_manifest(
@@ -1506,6 +1621,11 @@ def submit_manifest(
             governance_path,
             pipeline_path,
             credential_path,
+            (
+                contract["parameters"]["files"]
+                if contract["parameters"] is not None
+                else None
+            ),
         ):
             (submission_root / archived_name).write_bytes(source.read_bytes())
         governance_path = submission_root / "config-governance.yml"
@@ -1638,6 +1758,11 @@ def collect_accounting(
         "governance_sha256": sha256_file(governance_path),
         "pipeline_sha256": sha256_file(pipeline_path),
         "credential_reference_sha256": sha256_file(credential_path),
+        "parameters": (
+            contract["parameters"]["evidence"]
+            if contract["parameters"] is not None
+            else None
+        ),
     }
     (result_root / "submit.sh").write_bytes(submit_path.read_bytes())
     (result_root / "slurm-job-id.txt").write_text(job_id + "\n", encoding="utf-8")
@@ -1645,6 +1770,11 @@ def collect_accounting(
         governance_path,
         pipeline_path,
         credential_path,
+        (
+            contract["parameters"]["files"]
+            if contract["parameters"] is not None
+            else None
+        ),
     ):
         archived = result_root / archived_name
         if not archived.exists():
@@ -1705,6 +1835,11 @@ def collect_accounting(
             },
             "pipeline_sha256": sha256_file(pipeline_path),
             "credential_reference_sha256": sha256_file(credential_path),
+            "parameters": (
+                contract["parameters"]["evidence"]
+                if contract["parameters"] is not None
+                else None
+            ),
             "image": {
                 "path": str(contract["image_path"]),
                 "sha256": contract["image_sha256"],

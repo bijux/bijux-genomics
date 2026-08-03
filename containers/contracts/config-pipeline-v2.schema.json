@@ -88,6 +88,28 @@
       },
       "additionalProperties": false
     },
+    "parameters": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "parameter_schema_version",
+        "defaults_provider",
+        "overrides_file",
+        "overrides_sha256",
+        "effective_file",
+        "effective_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.parameter_evidence.v1"},
+        "parameter_schema_version": {"type": "string", "minLength": 1},
+        "defaults_provider": {"type": "string", "minLength": 1},
+        "overrides_file": {"const": "config-pipeline-parameters.yml"},
+        "overrides_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "effective_file": {"const": "effective-parameters.json"},
+        "effective_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
     "outputs": {
       "type": "object",
       "required": ["result_root", "mount_path", "required_files", "collection_rule"],
