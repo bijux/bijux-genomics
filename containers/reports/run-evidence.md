@@ -8,10 +8,10 @@ by this report.
 
 ## Archive boundary
 
-- Final governed runs: **70**
-- Tools represented: **70**
-- Execution status: **passed 70**
-- Scientific status: **not_assessed 70**
+- Final governed runs: **71**
+- Tools represented: **71**
+- Execution status: **passed 71**
+- Scientific status: **not_assessed 71**
 
 Superseded successful, failed, and incomplete attempts are summarized in the
 checksummed attempt ledger without presenting them as current evidence. Their raw
@@ -67,6 +67,7 @@ the identities and lock hashes of superseded attempts.
 | `ibdseq` | [run-1052](../runs/run-1052-ibdseq/) | `1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome` | `vcf.ibd` | passed | not_assessed |
 | `kraken2` | [run-1102](../runs/run-1102-kraken2/) | `ena-prjeb10854-err1021817-read-prefix-100000` | `fastq.screen_taxonomy` | passed | not_assessed |
 | `leehom` | [run-1016](../runs/run-1016-leehom/) | `ena-prjeb10854-err1021817-read-prefix-100000` | `adapter-trimming-and-merging` | passed | not_assessed |
+| `lighter` | [run-1139](../runs/run-1139-lighter/) | `ena-prjeb10854-err1021817-split-paired-fastq` | `fastq.correct_errors` | passed | not_assessed |
 | `mapdamage2` | [run-1050](../runs/run-1050-mapdamage2/) | `ena-prjeb22390-err2112767` | `bam.damage` | passed | not_assessed |
 | `mosdepth` | [run-1088](../runs/run-1088-mosdepth/) | `ena-prjeb10854-err1021817-read-prefix-100000-equcab3` | `bam.coverage` | passed | not_assessed |
 | `multiqc` | [run-1129](../runs/run-1129-multiqc/) | `ena-prjeb10854-err1021817-read-prefix-100000` | `fastq.report_qc` | passed | not_assessed |

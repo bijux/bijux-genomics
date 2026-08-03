@@ -1174,6 +1174,23 @@
       "tool": "picard"
     },
     {
+      "campaign": "public-horse-whole-genome-error-correction",
+      "corpus": "ena-prjeb10854-err1021817-split-paired-fastq",
+      "domain": "fastq",
+      "evidence_lock_sha256": "2bc5309f86787b6610f4277c0b9b8319c16904692a25cedb542462c625031358",
+      "execution_status": "passed",
+      "pipeline_schema_version": "bijux.container.pipeline.v2",
+      "repository_commit": "04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f",
+      "run_id": "run-1139",
+      "sample": "ERR1021817",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3459752",
+      "source_file_count": 20,
+      "source_result": "results/container-validation/run-1139-lighter",
+      "stage": "fastq.correct_errors",
+      "tool": "lighter"
+    },
+    {
       "campaign": "ancient-horse-candidate-site-genotyping",
       "corpus": "ena-prjeb22390-err2112767-bam",
       "domain": "bam",
@@ -1194,12 +1211,12 @@
   "schema_version": "bijux.container.run_evidence_index.v2",
   "summary": {
     "execution_status": {
-      "passed": 70
+      "passed": 71
     },
-    "run_count": 70,
+    "run_count": 71,
     "scientific_status": {
-      "not_assessed": 70
+      "not_assessed": 71
     },
-    "tool_count": 70
+    "tool_count": 71
   }
 }
