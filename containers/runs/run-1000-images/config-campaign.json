@@ -1,5 +1,5 @@
 {
-  "description": "Build and admit every noncurrent catalog-supported Apptainer image on the governed LUNARC frontend.",
+  "description": "Build and admit every catalog-supported Apptainer image on the governed LUNARC frontend.",
   "evidence_dimensions": [
     "source",
     "build",
@@ -9,6 +9,6 @@
   "run_id": "run-1000",
   "runtime": "apptainer",
   "schema_version": "bijux.container.image_campaign.v1",
-  "selection": "catalog_apptainer_supported_noncurrent",
+  "selection": "catalog_apptainer_supported_all",
   "site": "lunarc"
 }

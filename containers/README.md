@@ -29,67 +29,90 @@ credential-reference contracts.
 
 ## Reproduce the LUNARC image roster
 
-`run-1000` is the governed frontend campaign that prepares immutable SIFs. It
-selects only supported catalog tools whose admitted image is missing or no
-longer matches the active recipe. The operational execution record resolves
-the exact clean repository commit, catalog hash, inventory hash, recipe hashes,
-logs, and admitted image hashes; the source campaign cannot contain its own Git
-commit because a Git object cannot self-identify.
+`run-1000` is the governed frontend campaign that rebuilds every supported
+Apptainer image. It is intentionally complete: a successful execution against
+an empty admission root proves that the whole roster can be recovered from the
+catalog, recipes, and pinned sources. The operational execution record resolves
+the exact clean repository commit, catalog hash, inventory hash, admission
+root, recipe hashes, logs, and admitted image hashes; the source campaign
+cannot contain its own Git commit because a Git object cannot self-identify.
 
 Inventory and campaign records are immutable and commit-addressed. Preparation
 creates a clean, complete build worktree beneath the configured
 `paths.frozen_repositories/image-builds/` root. The campaign reads recipes and
 all `%files` inputs from that worktree, so later movement of the active checkout
-cannot change an in-flight build.
+cannot change an in-flight build. A routine proof uses an isolated root below
+the configured `containers_root`; it never deletes or overwrites admitted
+images. The same commands repopulate the canonical `apptainer/` directory after
+an explicitly reviewed storage migration by setting `rebuild_root` to the
+configured containers root.
 
 ```console
 image_commit="$(git rev-parse HEAD)"
-inventory_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/inventory/${image_commit}"
-campaign_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/campaigns/run-1000-images/${image_commit}"
-mkdir -p "${inventory_root}" "${campaign_root}"
+containers_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers"
+rebuild_root="${containers_root}/rebuild-verification/${image_commit}"
+inventory_root="${rebuild_root}/inventory"
+campaign_root="${rebuild_root}/campaign"
+mkdir -p "${rebuild_root}/apptainer" "${rebuild_root}/evidence" \
+  "${inventory_root}" "${campaign_root}"
 
 python3 -B containers/contracts/image_inventory.py audit \
   --catalog containers/contracts/catalog.toml \
-  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
-  --evidence-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence \
+  --image-root "${rebuild_root}/apptainer" \
+  --evidence-root "${rebuild_root}/evidence" \
   --runs-root containers/runs \
   --repository . \
-  --output "${inventory_root}/image-inventory.json"
+  --output "${inventory_root}/before-build.json"
 
 python3 -B containers/contracts/image_campaign.py prepare \
   --campaign containers/runs/run-1000-images/config-campaign.json \
-  --inventory "${inventory_root}/image-inventory.json" \
+  --inventory "${inventory_root}/before-build.json" \
   --catalog containers/contracts/catalog.toml \
   --governance containers/contracts/sites/lunarc.yml \
+  --image-root "${rebuild_root}/apptainer" \
   --output "${campaign_root}/execution.json"
 
 python3 -B containers/contracts/image_campaign.py execute \
   --execution "${campaign_root}/execution.json" \
   --governance containers/contracts/sites/lunarc.yml \
   --jobs 2
+
+python3 -B containers/contracts/image_inventory.py audit \
+  --catalog containers/contracts/catalog.toml \
+  --image-root "${rebuild_root}/apptainer" \
+  --evidence-root "${rebuild_root}/evidence" \
+  --runs-root containers/runs \
+  --repository . \
+  --output "${inventory_root}/after-build.json"
 ```
 
-Image construction runs on the approved frontend. Real scientific tool runs
-remain Slurm jobs with separate pipeline and credential-reference contracts.
+The before-build inventory must report every catalog-supported image as missing
+and preserve each unsupported disposition. The execution and after-build
+inventory must report every selected image as passed/current with no staged or
+unknown images. Image construction runs on the approved frontend. Real
+scientific tool runs remain Slurm jobs with separate pipeline and
+credential-reference contracts.
 
 Superseded images and interrupted builds are never deleted from an ad hoc
 shell command. After the image campaign is idle, create and inspect a
 checksummed quarantine plan, then apply and verify its same-filesystem moves:
 
 ```console
+canonical_inventory="${containers_root}/evidence/inventory/${image_commit}/image-inventory.json"
+
 python3 -B containers/contracts/image_storage.py plan \
-  --inventory "${inventory_root}/image-inventory.json" \
-  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
-  --quarantine-root "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/.quarantine/${image_commit}" \
-  --plan "${inventory_root}/image-storage-plan.json"
+  --inventory "${canonical_inventory}" \
+  --image-root "${containers_root}/apptainer" \
+  --quarantine-root "${containers_root}/apptainer/.quarantine/${image_commit}" \
+  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json"
 
 python3 -B containers/contracts/image_storage.py apply \
-  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
-  --plan "${inventory_root}/image-storage-plan.json"
+  --image-root "${containers_root}/apptainer" \
+  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json"
 
 python3 -B containers/contracts/image_storage.py verify \
-  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
-  --plan "${inventory_root}/image-storage-plan.json"
+  --image-root "${containers_root}/apptainer" \
+  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json"
 ```
 
 `rollback` restores every file only after rechecking its size and SHA-256.
@@ -109,7 +132,7 @@ runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/
 mkdir -p "${runtime_root}"
 
 python3 -B containers/contracts/runtime_verification.py prepare \
-  --inventory "${inventory_root}/image-inventory-post-quarantine.json" \
+  --inventory "${canonical_inventory}" \
   --catalog containers/contracts/catalog.toml \
   --governance containers/contracts/sites/lunarc.yml \
   --output "${runtime_root}/execution.json"

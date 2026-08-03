@@ -309,6 +309,9 @@ def audit_images(
     inventory = {
         "schema_version": INVENTORY_SCHEMA,
         "created_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "image_root": str(image_root.resolve()),
+        "evidence_root": str(evidence_root.resolve()),
+        "runs_root": str(runs_root.resolve()),
         "repository_commit": subprocess.run(
             ["git", "-C", str(repository), "rev-parse", "HEAD"],
             check=True,

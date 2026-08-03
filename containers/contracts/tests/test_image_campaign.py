@@ -44,10 +44,52 @@ class ImageCampaignTests(unittest.TestCase):
                         "state": "unsupported",
                     },
                 ],
-            }
+            },
+            "catalog_apptainer_supported_noncurrent",
         )
 
         self.assertEqual(selected, ["bcftools", "fastqc"])
+
+    def test_complete_selection_includes_current_supported_images(self) -> None:
+        selected = campaign.selected_tools(
+            {
+                "schema_version": campaign.INVENTORY_SCHEMA,
+                "tools": [
+                    {
+                        "tool": "samtools",
+                        "apptainer_supported": True,
+                        "state": "current",
+                    },
+                    {
+                        "tool": "impute5",
+                        "apptainer_supported": False,
+                        "state": "unsupported",
+                    },
+                ],
+            },
+            "catalog_apptainer_supported_all",
+        )
+
+        self.assertEqual(selected, ["samtools"])
+
+    def test_isolated_admission_keeps_images_and_evidence_together(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            containers_root = Path(directory) / "containers"
+            image_root = containers_root / "rebuild-verification" / "commit" / "apptainer"
+
+            admitted, evidence = campaign.admission_roots(containers_root, image_root)
+
+        self.assertEqual(admitted, image_root.resolve())
+        self.assertEqual(
+            evidence,
+            (containers_root / "rebuild-verification" / "commit" / "evidence").resolve(),
+        )
+
+    def test_admission_outside_governed_containers_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaisesRegex(campaign.ContractError, "must remain under"):
+                campaign.admission_roots(root / "containers", root / "outside")
 
     def test_campaign_requires_fixed_frontend_identity(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

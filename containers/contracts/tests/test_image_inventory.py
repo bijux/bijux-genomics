@@ -124,6 +124,9 @@ class ImageInventoryTests(unittest.TestCase):
             )
 
         self.assertEqual(result["summary"]["states"], {"current": 1})
+        self.assertEqual(result["image_root"], str(image_root.resolve()))
+        self.assertEqual(result["evidence_root"], str(evidence_root.resolve()))
+        self.assertEqual(result["runs_root"], str(runs_root.resolve()))
         self.assertEqual(
             result["tools"][0]["candidates"][0]["disposition"], "canonical"
         )
