@@ -31,6 +31,7 @@ PARAMETER_EVIDENCE_SCHEMA = "bijux.benchmark.parameter_evidence.v1"
 EFFECTIVE_PARAMETERS_SCHEMA = "bijux.benchmark.effective_parameters.v1"
 STAGE_INTERFACE_EVIDENCE_SCHEMA = "bijux.benchmark.stage_interface_evidence.v1"
 STAGE_INTERFACE_CATALOG_SCHEMA = "bijux.benchmark.stage_interfaces.v1"
+REPEATED_MEASUREMENT_SCHEMA = "bijux.benchmark.repeated_measurement.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 ACTIVE_SLURM_STATES = {
@@ -784,6 +785,8 @@ def validate_pipeline(
             top_level_fields.add("parameters")
         if "interface" in config:
             top_level_fields.add("interface")
+        if "measurement" in config:
+            top_level_fields.add("measurement")
     require_keys(
         config,
         top_level_fields,
@@ -1001,10 +1004,50 @@ def validate_pipeline(
             governance["results_root"],
         )
 
+    measurement = config.get("measurement")
+    if measurement is not None:
+        if evidence_kind != "benchmark" or not isinstance(measurement, dict):
+            raise ContractError("measurement is valid only for benchmark pipelines")
+        require_keys(
+            measurement,
+            {
+                "schema_version",
+                "warmup_repetitions",
+                "measured_repetitions",
+                "resource_file_template",
+                "runtime_scope",
+            },
+            "measurement",
+        )
+        if measurement.get("schema_version") != REPEATED_MEASUREMENT_SCHEMA:
+            raise ContractError("measurement schema is unsupported")
+        if measurement.get("warmup_repetitions") != 1:
+            raise ContractError("measurement requires exactly one warmup repetition")
+        measured_repetitions = measurement.get("measured_repetitions")
+        if (
+            not isinstance(measured_repetitions, int)
+            or isinstance(measured_repetitions, bool)
+            or not 1 <= measured_repetitions <= 10
+        ):
+            raise ContractError("measurement repetitions must be between 1 and 10")
+        if measurement.get("resource_file_template") != (
+            "repetitions/repetition-{repetition}.resource.tsv"
+        ):
+            raise ContractError("measurement resource path template is unsupported")
+        if measurement.get("runtime_scope") != "containerized_stage_end_to_end":
+            raise ContractError("measurement runtime scope is unsupported")
+
     commands = require_mapping(config, "commands")
-    require_keys(commands, {"version", "help", "real", "negative"}, "commands")
-    for key in ("version", "help", "real", "negative"):
+    command_fields = {"version", "help", "real", "negative"}
+    if measurement is not None:
+        command_fields.add("warmup")
+    require_keys(commands, command_fields, "commands")
+    for key in command_fields:
         require_argv(commands, key)
+    if measurement is not None and not any(
+        "{repetition}" in token for token in commands["real"]
+    ):
+        raise ContractError("measured command must identify its repetition")
 
     outputs = require_mapping(config, "outputs")
     output_fields = {"result_root", "required_files"}
@@ -1214,6 +1257,7 @@ def validate_pipeline(
         "pipeline_schema": schema_version,
         "parameters": parameter_evidence,
         "interface": interface_evidence,
+        "measurement": measurement,
         "governance": governance,
     }
 
@@ -1245,6 +1289,23 @@ def run_apptainer(
     stdout_path: Path,
     stderr_path: Path,
 ) -> int:
+    command = apptainer_command(image_path, argv, binds)
+    with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
+        completed = subprocess.run(
+            command,
+            check=False,
+            stdout=stdout,
+            stderr=stderr,
+            env=apptainer_environment(scratch_path),
+        )
+    return completed.returncode
+
+
+def apptainer_command(
+    image_path: Path,
+    argv: list[str],
+    binds: list[tuple[Path, Path, str]],
+) -> list[str]:
     command = [
         "apptainer",
         "exec",
@@ -1259,20 +1320,52 @@ def run_apptainer(
     for source, target, mode in binds:
         command.extend(["--bind", f"{source}:{target}:{mode}"])
     command.extend([str(image_path), *argv])
+    return command
+
+
+def apptainer_environment(scratch_path: Path) -> dict[str, str]:
+    return {
+        "APPTAINERENV_TMPDIR": "/scratch",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": os.environ["PATH"],
+        "TMPDIR": str(scratch_path),
+        "TZ": "UTC",
+    }
+
+
+def run_apptainer_measured(
+    image_path: Path,
+    argv: list[str],
+    binds: list[tuple[Path, Path, str]],
+    scratch_path: Path,
+    stdout_path: Path,
+    stderr_path: Path,
+    resource_path: Path,
+) -> int:
+    command = [
+        "/usr/bin/time",
+        "-f",
+        (
+            "metric\\tvalue\\tunit\\n"
+            "wall_seconds\\t%e\\tseconds\\n"
+            "user_seconds\\t%U\\tseconds\\n"
+            "system_seconds\\t%S\\tseconds\\n"
+            "peak_rss_kib\\t%M\\tkibibytes\\n"
+            "filesystem_input_operations\\t%I\\toperations\\n"
+            "filesystem_output_operations\\t%O\\toperations"
+        ),
+        "-o",
+        str(resource_path),
+        *apptainer_command(image_path, argv, binds),
+    ]
     with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
         completed = subprocess.run(
             command,
             check=False,
             stdout=stdout,
             stderr=stderr,
-            env={
-                "APPTAINERENV_TMPDIR": "/scratch",
-                "LANG": "C",
-                "LC_ALL": "C",
-                "PATH": os.environ["PATH"],
-                "TMPDIR": str(scratch_path),
-                "TZ": "UTC",
-            },
+            env=apptainer_environment(scratch_path),
         )
     return completed.returncode
 
@@ -1422,7 +1515,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
         (scratch_path, Path("/scratch"), "rw"),
     ]
     checks: dict[str, dict[str, Any]] = {}
-    for name in ("version", "help", "real", "negative"):
+    for name in ("version", "help"):
         stdout_path = result_root / f"{name}.stdout.log"
         stderr_path = result_root / f"{name}.stderr.log"
         exit_code = run_apptainer(
@@ -1440,6 +1533,98 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
             "stderr_sha256": sha256_file(stderr_path),
         }
 
+    measurement = contract["measurement"]
+    if measurement is None:
+        stdout_path = result_root / "real.stdout.log"
+        stderr_path = result_root / "real.stderr.log"
+        exit_code = run_apptainer(
+            contract["image_path"],
+            contract["commands"]["real"],
+            binds,
+            scratch_path,
+            stdout_path,
+            stderr_path,
+        )
+        checks["real"] = {
+            "argv": contract["commands"]["real"],
+            "exit_code": exit_code,
+            "stdout_sha256": sha256_file(stdout_path),
+            "stderr_sha256": sha256_file(stderr_path),
+        }
+    else:
+        warmup_stdout = result_root / "warmup.stdout.log"
+        warmup_stderr = result_root / "warmup.stderr.log"
+        warmup_exit = run_apptainer(
+            contract["image_path"],
+            contract["commands"]["warmup"],
+            binds,
+            scratch_path,
+            warmup_stdout,
+            warmup_stderr,
+        )
+        checks["warmup"] = {
+            "argv": contract["commands"]["warmup"],
+            "exit_code": warmup_exit,
+            "stdout_sha256": sha256_file(warmup_stdout),
+            "stderr_sha256": sha256_file(warmup_stderr),
+        }
+        repetitions = []
+        for repetition in range(1, measurement["measured_repetitions"] + 1):
+            argv = [
+                token.replace("{repetition}", str(repetition))
+                for token in contract["commands"]["real"]
+            ]
+            stdout_path = result_root / f"real.repetition-{repetition}.stdout.log"
+            stderr_path = result_root / f"real.repetition-{repetition}.stderr.log"
+            resource_relative = measurement["resource_file_template"].replace(
+                "{repetition}", str(repetition)
+            )
+            resource_path = output_root / resource_relative
+            resource_path.parent.mkdir(parents=True, exist_ok=True)
+            exit_code = run_apptainer_measured(
+                contract["image_path"],
+                argv,
+                binds,
+                scratch_path,
+                stdout_path,
+                stderr_path,
+                resource_path,
+            )
+            repetitions.append(
+                {
+                    "repetition": repetition,
+                    "argv": argv,
+                    "exit_code": exit_code,
+                    "stdout_sha256": sha256_file(stdout_path),
+                    "stderr_sha256": sha256_file(stderr_path),
+                    "resource_path": resource_relative,
+                    "resource_sha256": sha256_file(resource_path),
+                }
+            )
+        checks["real"] = {
+            "argv_template": contract["commands"]["real"],
+            "exit_code": max(record["exit_code"] for record in repetitions),
+            "repetitions": repetitions,
+            "runtime_scope": measurement["runtime_scope"],
+        }
+
+    negative_stdout = result_root / "negative.stdout.log"
+    negative_stderr = result_root / "negative.stderr.log"
+    negative_exit = run_apptainer(
+        contract["image_path"],
+        contract["commands"]["negative"],
+        binds,
+        scratch_path,
+        negative_stdout,
+        negative_stderr,
+    )
+    checks["negative"] = {
+        "argv": contract["commands"]["negative"],
+        "exit_code": negative_exit,
+        "stdout_sha256": sha256_file(negative_stdout),
+        "stderr_sha256": sha256_file(negative_stderr),
+    }
+
     version_text = (result_root / "version.stdout.log").read_text(
         encoding="utf-8", errors="replace"
     ) + (result_root / "version.stderr.log").read_text(
@@ -1453,8 +1638,10 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
         failures.append("version output did not match the catalog contract")
     if checks["help"]["exit_code"] != 0:
         failures.append("help command failed")
+    if "warmup" in checks and checks["warmup"]["exit_code"] != 0:
+        failures.append("warmup command failed")
     if checks["real"]["exit_code"] != 0:
-        failures.append("real one-sample command failed")
+        failures.append("real command failed")
     if checks["negative"]["exit_code"] == 0:
         failures.append("negative command unexpectedly succeeded")
 
@@ -1504,6 +1691,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
             else None
         ),
         "interface": contract["interface"],
+        "measurement": contract["measurement"],
         "image": {
             "path": str(contract["image_path"]),
             "sha256": contract["image_sha256"],

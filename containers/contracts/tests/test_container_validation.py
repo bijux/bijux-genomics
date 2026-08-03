@@ -837,6 +837,78 @@ assertions = ["the report consumer accepts the normalized result"]
             ):
                 container_validation.validate_contracts(*paths)
 
+    def test_repeated_measurement_governs_warmup_and_measured_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-fastq-validate/tool"
+            )
+            pipeline["commands"]["warmup"] = ["tool", "warmup"]
+            pipeline["commands"]["real"] = [
+                "tool",
+                "run",
+                "--output",
+                "/result/repetition-{repetition}.json",
+            ]
+            pipeline["measurement"] = {
+                "schema_version": "bijux.benchmark.repeated_measurement.v1",
+                "warmup_repetitions": 1,
+                "measured_repetitions": 3,
+                "resource_file_template": (
+                    "repetitions/repetition-{repetition}.resource.tsv"
+                ),
+                "runtime_scope": "containerized_stage_end_to_end",
+            }
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            self.attach_parameter_evidence(paths)
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(contract["measurement"]["measured_repetitions"], 3)
+
+    def test_repeated_measurement_requires_a_repetition_output_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-fastq-validate/tool"
+            )
+            pipeline["commands"]["warmup"] = ["tool", "warmup"]
+            pipeline["measurement"] = {
+                "schema_version": "bijux.benchmark.repeated_measurement.v1",
+                "warmup_repetitions": 1,
+                "measured_repetitions": 3,
+                "resource_file_template": (
+                    "repetitions/repetition-{repetition}.resource.tsv"
+                ),
+                "runtime_scope": "containerized_stage_end_to_end",
+            }
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            self.attach_parameter_evidence(paths)
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "must identify its repetition",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
     def test_current_contract_rejects_duplicate_container_mounts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             paths = self.make_contracts(Path(directory))
@@ -1371,6 +1443,33 @@ assertions = ["the report consumer accepts the normalized result"]
             command[hostname_index + 1],
             container_validation.ISOLATED_RUNTIME_HOSTNAME,
         )
+
+    def test_measured_execution_uses_host_time_around_apptainer(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            stdout = root / "stdout.log"
+            stderr = root / "stderr.log"
+            resource = root / "resource.tsv"
+            with mock.patch.object(
+                container_validation.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ) as execute:
+                status = container_validation.run_apptainer_measured(
+                    root / "tool.sif",
+                    ["tool", "run"],
+                    [],
+                    root,
+                    stdout,
+                    stderr,
+                    resource,
+                )
+
+        command = execute.call_args.args[0]
+        self.assertEqual(status, 0)
+        self.assertEqual(command[0], "/usr/bin/time")
+        self.assertIn("apptainer", command)
+        self.assertIn(str(resource), command)
 
 
 class BuildAdmissionTests(unittest.TestCase):

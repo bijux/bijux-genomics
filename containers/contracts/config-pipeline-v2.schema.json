@@ -83,8 +83,27 @@
       "properties": {
         "version": {"$ref": "#/$defs/argv"},
         "help": {"$ref": "#/$defs/argv"},
+        "warmup": {"$ref": "#/$defs/argv"},
         "real": {"$ref": "#/$defs/argv"},
         "negative": {"$ref": "#/$defs/argv"}
+      },
+      "additionalProperties": false
+    },
+    "measurement": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "warmup_repetitions",
+        "measured_repetitions",
+        "resource_file_template",
+        "runtime_scope"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.repeated_measurement.v1"},
+        "warmup_repetitions": {"const": 1},
+        "measured_repetitions": {"type": "integer", "minimum": 1, "maximum": 10},
+        "resource_file_template": {"const": "repetitions/repetition-{repetition}.resource.tsv"},
+        "runtime_scope": {"const": "containerized_stage_end_to_end"}
       },
       "additionalProperties": false
     },
