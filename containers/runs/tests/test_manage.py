@@ -231,6 +231,46 @@ class RunEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(manage.RunEvidenceError, "digest is invalid"):
                 manage.validate_runs(runs)
 
+    def test_report_rejects_superseded_attempt_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = self.make_result(root / "results")
+            runs = root / "runs"
+            report = root / "run-evidence.md"
+            manage.import_evidence(root / "results", runs, None, None)
+            duplicate = result.parent / "run-1002"
+            duplicate.mkdir()
+            for source in result.iterdir():
+                (duplicate / source.name).write_bytes(source.read_bytes())
+            pipeline = duplicate / "config-pipeline.yml"
+            pipeline.write_text(
+                pipeline.read_text(encoding="utf-8").replace("run-1001", "run-1002"),
+                encoding="utf-8",
+            )
+            evidence = json.loads((duplicate / "evidence.json").read_text(encoding="utf-8"))
+            evidence["run_id"] = "run-1002"
+            (duplicate / "evidence.json").write_text(json.dumps(evidence), encoding="utf-8")
+            manage.import_evidence(root / "results", runs, 1002, 1002)
+
+            with self.assertRaisesRegex(manage.RunEvidenceError, "superseded attempts"):
+                manage.render_report(runs, report)
+
+    def test_report_rejects_attempt_ledger_count_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_result(root / "results")
+            runs = root / "runs"
+            report = root / "run-evidence.md"
+            manage.import_evidence(root / "results", runs, None, None)
+            ledger = runs / "attempt-ledger.json"
+            manage.publish_final_evidence(runs, ledger, True)
+            value = json.loads(ledger.read_text(encoding="utf-8"))
+            value["summary"]["published_run_count"] = 2
+            ledger.write_text(json.dumps(value), encoding="utf-8")
+
+            with self.assertRaisesRegex(manage.RunEvidenceError, "published count drifted"):
+                manage.render_report(runs, report)
+
 
 if __name__ == "__main__":
     unittest.main()

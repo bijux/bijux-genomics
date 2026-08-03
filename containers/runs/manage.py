@@ -513,6 +513,8 @@ def index_rows(root: Path, records: list[dict[str, Any]]) -> list[dict[str, Any]
 
 def render_index(root: Path, output: Path) -> int:
     records = validate_runs(root)
+    validate_final_evidence(records)
+    validate_attempt_ledger(root / "attempt-ledger.json", records)
     rows = index_rows(root, records)
     write_json(
         output,
@@ -536,6 +538,8 @@ def render_index(root: Path, output: Path) -> int:
 
 def render_report(root: Path, output: Path) -> int:
     records = validate_runs(root)
+    validate_final_evidence(records)
+    validate_attempt_ledger(root / "attempt-ledger.json", records)
     by_tool: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in records:
         by_tool[str(record["tool"])].append(record)
@@ -643,6 +647,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "validate":
             records = validate_runs(args.runs_root)
+            validate_final_evidence(records)
+            validate_attempt_ledger(args.runs_root / "attempt-ledger.json", records)
             print(f"validated {len(records)} governed run records")
             return 0
         if args.command == "publish-final-evidence":
