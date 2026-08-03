@@ -972,6 +972,11 @@ fn docker_apt_policy_violations(rel: &str, dockerfile: &str) -> Result<Vec<Strin
     let mut snapshot_active = false;
     let mut governed_helper_available = false;
     let mut errors = Vec::new();
+    if dockerfile.contains("Acquire::https::Verify-Peer=false") {
+        errors.push(format!(
+            "{rel}: disabling apt TLS peer verification is forbidden; use the governed snapshot bootstrap"
+        ));
+    }
     for instruction in logical_lines {
         if instruction.starts_with("FROM ") {
             snapshot_active = false;
@@ -1731,6 +1736,19 @@ RUN apt-get update && \
         assert_eq!(violations.len(), 2);
         assert!(violations.iter().any(|row| row.contains("'curl'")));
         assert!(violations.iter().any(|row| row.contains("'zlib1g'")));
+    }
+
+    #[test]
+    fn apt_policy_rejects_disabled_tls_verification() {
+        let dockerfile = r#"
+FROM ubuntu:24.04
+RUN apt-get -o Acquire::https::Verify-Peer=false update
+"#;
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 1);
+        assert!(violations[0].contains("TLS peer verification"));
     }
 
     #[test]
