@@ -26,6 +26,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.tool king
     org.opencontainers.image.title king
 
+%files
+    containers/tools/king/king /usr/local/bin/king
+
 %environment
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
@@ -44,35 +47,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     tar -xzf /tmp/Linux-king230.tar.gz -C /usr/local/libexec/king
     install -m 0755 /usr/local/libexec/king/king /usr/local/libexec/king/king-bin
     rm -f /tmp/Linux-king230.tar.gz
-    cat > /usr/local/bin/king <<'EOS'
-#!/usr/bin/env sh
-set -eu
-bin="/usr/local/libexec/king/king-bin"
-native_info() {
-  set +e
-  native_output="$("$bin" --help 2>&1)"
-  native_status=$?
-  set -e
-  if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'KING 2.3.0 -'; then
-    printf 'error: unexpected KING information probe (status=%s)\n' "$native_status" >&2
-    exit 70
-  fi
-}
-case "${1:-}" in
-  --version)
-    native_info
-    printf 'KING 2.3.0\n'
-    exit 0
-    ;;
-  --help|-h|"")
-    native_info
-    printf '%s\n' "$native_output"
-    exit 0
-    ;;
-esac
-exec "$bin" "$@"
-EOS
-    chmod +x /usr/local/bin/king
+    chmod 0555 /usr/local/bin/king
     king --version > /tmp/king.version
     grep -Fx 'KING 2.3.0' /tmp/king.version
     king --help > /tmp/king.help

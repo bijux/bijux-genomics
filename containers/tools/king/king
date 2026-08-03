@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+set -eu
+
+native_bin=/usr/local/libexec/king/king-bin
+
+native_information() {
+    set +e
+    native_output="$("$native_bin" --help 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'KING 2.3.0 -'; then
+        printf 'error: unexpected KING information probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+case "${1:-}" in
+    --version)
+        native_information
+        printf 'KING 2.3.0\n'
+        ;;
+    --help|-h|"")
+        native_information
+        printf '%s\n' "$native_output"
+        ;;
+    *) exec "$native_bin" "$@" ;;
+esac
