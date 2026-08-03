@@ -171,13 +171,47 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
             docker_source.to_string(),
         ));
     }
+    let inventory = read_json(&workspace.path("containers/reports/image-inventory.json"))?;
+    let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
+    let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
+    let inventory_states = inventory
+        .pointer("/summary/states")
+        .and_then(serde_json::Value::as_object)
+        .map(|states| {
+            states
+                .iter()
+                .map(|(state, count)| format!("{state} {}", count.as_u64().unwrap_or(0)))
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .unwrap_or_else(|| "unavailable".to_string());
+    let runtime_status =
+        runtime.get("status").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let runtime_passed =
+        runtime.pointer("/summary/passed").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let governed_runs =
+        runs.pointer("/summary/run_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let passed_runs = runs
+        .pointer("/summary/execution_status/passed")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
         String::new(),
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->".to_string(),
         String::new(),
-        "Purpose: Authoritative tool/container index for container governance and CI checks.".to_string(),
+        "This page routes operators and reviewers to the evidence that supports each".to_string(),
+        "container claim. Recipe presence and planner lifecycle labels are not proof that".to_string(),
+        "an image builds, starts, processes real data, or produces scientifically useful".to_string(),
+        "output.".to_string(),
+        String::new(),
+        "## Current evidence".to_string(),
+        String::new(),
+        format!("- Image inventory: **{inventory_states}** ([details](../reports/image-inventory.md))."),
+        format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
+        format!("- Governed real executions: **{governed_runs} attempts**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
+        "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),
         "- Root contract: [containers/README.md](../README.md)".to_string(),
@@ -206,16 +240,20 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         String::new(),
         "## Authority".to_string(),
-        "- Tool IDs + lifecycle status: [containers/TOOL_IDS.txt](../TOOL_IDS.txt) (generated from registry).".to_string(),
-        "- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.".to_string(),
-        "- Container version metadata: [containers/versions/versions.toml](../versions/versions.toml) + [containers/versions/lock.json](../versions/lock.json).".to_string(),
+        "- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
+        "- Immutable admitted images: [image inventory](../reports/image-inventory.md).".to_string(),
+        "- Planner registry labels: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); these labels describe planner compatibility, not production qualification.".to_string(),
+        "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
         "- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
-        "- Ownership authority: [containers/contracts/catalog.toml](../contracts/catalog.toml)."
-            .to_string(),
         String::new(),
-        "## Tool Container Coverage".to_string(),
+        "## Planner compatibility surface".to_string(),
+        String::new(),
+        "This compatibility table is retained for workflow planning and build-matrix".to_string(),
+        "validation. Its `status` column is not a production or scientific claim; use the".to_string(),
+        "catalog and evidence reports above for those decisions.".to_string(),
+        String::new(),
         "| tool_id | status | apptainer_source | docker_source |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
