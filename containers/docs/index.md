@@ -4,13 +4,14 @@
 <!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->
 
 This page routes operators and reviewers to the evidence that supports each
-container claim. Recipe presence and planner lifecycle labels are not proof that
+container claim. Recipe presence and registry maturity labels are not proof that
 an image builds, starts, processes real data, or produces scientifically useful
 output.
 
 ## Current evidence
 
 - Image inventory: **current 87, unsupported 2** ([details](../reports/image-inventory.md)).
+- Complete isolated rebuild: **passed**, **87 retained images** ([details](../reports/lunarc-image-rebuild.md)).
 - Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
 - Final governed real executions: **70 tools**, **70 passed**; scientific status is tracked independently ([details](../reports/run-evidence.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
@@ -38,6 +39,7 @@ output.
 ## Authority
 - Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).
 - Immutable admitted images: [image inventory](../reports/image-inventory.md).
+- Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).
 - Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.
 - Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.

@@ -86,14 +86,25 @@ python3 -B containers/contracts/image_campaign.py execute \
   --governance containers/contracts/sites/lunarc.yml \
   --jobs 1
 
+frozen_repository="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["frozen_repository"])' "${campaign_root}/execution.json")"
+
 python3 -B containers/contracts/image_inventory.py audit \
-  --catalog containers/contracts/catalog.toml \
+  --catalog "${frozen_repository}/containers/contracts/catalog.toml" \
   --image-root "${rebuild_root}/apptainer" \
   --evidence-root "${rebuild_root}/evidence" \
-  --runs-root containers/runs \
-  --repository . \
+  --runs-root "${frozen_repository}/containers/runs" \
+  --repository "${frozen_repository}" \
   --output "${inventory_root}/after-build.json"
+
+python3 -B containers/contracts/image_campaign.py report \
+  --execution "${campaign_root}/execution.json" \
+  --inventory "${inventory_root}/after-build.json" \
+  --json-output containers/reports/lunarc-image-rebuild.json \
+  --markdown-output containers/reports/lunarc-image-rebuild.md
 ```
+
+The tracked [complete-roster rebuild report](reports/lunarc-image-rebuild.md)
+is the reviewed source/build/freshness summary for this campaign.
 
 The before-build inventory must report every catalog-supported image as missing
 and preserve each unsupported disposition. The execution and after-build

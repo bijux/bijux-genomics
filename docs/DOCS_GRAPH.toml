@@ -206,6 +206,7 @@ children = [
   "docs/30-operations/container-evidence/BAM_COVERAGE.md",
   "docs/30-operations/container-evidence/FASTQ_BAM.md",
   "docs/30-operations/container-evidence/IMAGE_INVENTORY.md",
+  "docs/30-operations/container-evidence/IMAGE_REBUILD.md",
   "docs/30-operations/container-evidence/PAIRED_READ_TRIMMING.md",
   "docs/30-operations/container-evidence/QUALIFICATION.md",
   "docs/30-operations/container-evidence/REFERENCE_COMPLEXITY.md",

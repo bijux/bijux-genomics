@@ -9,6 +9,9 @@ steps alone establishes scientific validity or release readiness.
 
 ## What is verified now
 
+- [Complete-roster rebuild](reports/lunarc-image-rebuild.md): all 87 retained
+  Apptainer images were rebuilt from one frozen commit, with zero staged,
+  unknown, or unreferenced obsolete images in the isolated admission root.
 - [Image inventory](reports/image-inventory.md): every supported Apptainer
   recipe has a current, immutable amd64 SIF. Unsupported tools remain explicit.
 - [Runtime verification](reports/runtime-verification.md): version and help

@@ -14,11 +14,14 @@ A report must distinguish these claims:
 - **release**: all required evidence dimensions are complete.
 
 Stage execution alone is not scientific validation or release qualification.
-Failed runs remain visible in the execution-site evidence and are replaced by
-a new run identifier after the cause is corrected.
+Failed scientific Slurm runs remain visible in the execution-site evidence and
+are replaced by a new run identifier after the cause is corrected. The
+complete-roster `run-1000` image campaign instead retains each build attempt in
+one campaign record because it admits one final immutable image per tool.
 
 ## Reports
 
+- [Complete LUNARC Apptainer image rebuild](lunarc-image-rebuild.md)
 - [LUNARC Apptainer image inventory](image-inventory.md)
 - [Complete LUNARC run-evidence index](run-evidence.md)
 - [Evidence-dimension qualification matrix](qualification.md)

@@ -6,6 +6,7 @@ governed study tree; the website publishes reviewed summaries with immutable
 evidence identities.
 
 - [Qualification matrix](QUALIFICATION.md)
+- [Complete Apptainer image rebuild](IMAGE_REBUILD.md)
 - [Image inventory](IMAGE_INVENTORY.md)
 - [Runtime verification](RUNTIME_VERIFICATION.md)
 - [Ancient DNA damage](ANCIENT_DAMAGE.md)

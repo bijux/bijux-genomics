@@ -217,6 +217,89 @@ class ImageCampaignTests(unittest.TestCase):
 
         self.assertEqual(campaign.next_attempt_number(tool), 2)
 
+    def test_rebuild_report_records_retry_without_expanding_science_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            execution_path = root / "execution.json"
+            inventory_path = root / "after-build.json"
+            execution_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": campaign.CAMPAIGN_EVIDENCE_SCHEMA,
+                        "run_id": "run-1000",
+                        "status": "passed",
+                        "site": {"id": "lunarc", "host": "cosmos3"},
+                        "repository_commit": "a" * 40,
+                        "finished_at_utc": "2026-08-03T00:00:00+00:00",
+                        "selected_tools": ["addeam"],
+                        "summary": {"passed": 1},
+                        "tools": {
+                            "addeam": {
+                                "version": "1.0.0",
+                                "status": "passed",
+                                "attempt": 2,
+                                "attempts": [
+                                    {"attempt": 1, "status": "failed"},
+                                    {"attempt": 2, "status": "passed"},
+                                ],
+                                "image": "/study/containers/rebuild-verification/"
+                                + "a" * 40
+                                + "/apptainer/addeam.sif",
+                                "image_sha256": "0123456789abcdef" * 4,
+                                "image_size_bytes": 123,
+                                "build_log": "/study/containers/rebuild-verification/"
+                                + "a" * 40
+                                + "/evidence/addeam-attempt-2.log",
+                                "build_log_sha256": "fedcba9876543210" * 4,
+                            }
+                        },
+                        "evidence_root": "/study/containers/rebuild-verification/"
+                        + "a" * 40
+                        + "/evidence",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            inventory_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": campaign.INVENTORY_SCHEMA,
+                        "repository_commit": "a" * 40,
+                        "summary": {
+                            "states": {"current": 1, "unsupported": 2},
+                            "staged_image_count": 0,
+                            "unknown_image_count": 0,
+                            "unreferenced_obsolete_count": 0,
+                        },
+                        "tools": [
+                            {
+                                "tool": "addeam",
+                                "version": "1.0.0",
+                                "state": "current",
+                                "selected_image_sha256": "0123456789abcdef" * 4,
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            report, markdown = campaign.campaign_report(execution_path, inventory_path)
+
+        self.assertEqual(report["verdict"], "passed")
+        self.assertEqual(report["tools"][0]["attempt_count"], 2)
+        self.assertEqual(report["tools"][0]["failed_attempt_count"], 1)
+        self.assertTrue(report["tools"][0]["inventory_matches_execution"])
+        self.assertEqual(
+            report["source_artifacts"]["execution"]["study_relative_path"],
+            "containers/rebuild-verification/" + "a" * 40 + "/campaign/execution.json",
+        )
+        self.assertEqual(
+            report["evidence_dimensions"], ["source", "build", "freshness"]
+        )
+        self.assertIn("science", report["not_evidence_for"])
+        self.assertIn("does not prove runtime behavior", markdown)
+
 
 if __name__ == "__main__":
     unittest.main()

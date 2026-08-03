@@ -175,6 +175,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         ));
     }
     let inventory = read_json(&workspace.path("containers/reports/image-inventory.json"))?;
+    let rebuild = read_json(&workspace.path("containers/reports/lunarc-image-rebuild.json"))?;
     let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
     let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
     let inventory_states = inventory
@@ -190,6 +191,10 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         .unwrap_or_else(|| "unavailable".to_string());
     let runtime_status =
         runtime.get("status").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let rebuild_verdict =
+        rebuild.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let rebuild_tools =
+        rebuild.get("selected_tool_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let runtime_passed =
         runtime.pointer("/summary/passed").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let governed_runs =
@@ -205,13 +210,14 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->".to_string(),
         String::new(),
         "This page routes operators and reviewers to the evidence that supports each".to_string(),
-        "container claim. Recipe presence and planner lifecycle labels are not proof that".to_string(),
+        "container claim. Recipe presence and registry maturity labels are not proof that".to_string(),
         "an image builds, starts, processes real data, or produces scientifically useful".to_string(),
         "output.".to_string(),
         String::new(),
         "## Current evidence".to_string(),
         String::new(),
         format!("- Image inventory: **{inventory_states}** ([details](../reports/image-inventory.md))."),
+        format!("- Complete isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images** ([details](../reports/lunarc-image-rebuild.md))."),
         format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
         format!("- Final governed real executions: **{governed_runs} tools**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
@@ -244,6 +250,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "## Authority".to_string(),
         "- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
         "- Immutable admitted images: [image inventory](../reports/image-inventory.md).".to_string(),
+        "- Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).".to_string(),
         "- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.".to_string(),
         "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
