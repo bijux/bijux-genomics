@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: f8eaefeb316d3814c197fb901bbb8bb9f7597f70
+# source_commit: ce73bbbfbe4d11ddc38d62916cb8aafae6f8fcc5
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -906,10 +906,10 @@ version = "0.0.14"
 default_version = "0.0.14"
 upstream = "https://github.com/agordon/fastx_toolkit"
 version_rule = "pinned"
-license = "GPL-3.0"
-citation = "software:http://hannonlab.cshl.edu/fastx_toolkit/"
-pinned_commit = "git:105a189a102d66d246bd618f07af2b861916272c"
-pin_strategy = "source_commit"
+license = "AGPL-3.0-or-later"
+citation = "software:https://github.com/agordon/fastx_toolkit/tree/0.0.14"
+pinned_commit = "sha256:9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/fastx_clipper:0.0.14"
 runtimes = ["docker", "apptainer"]
 container = true

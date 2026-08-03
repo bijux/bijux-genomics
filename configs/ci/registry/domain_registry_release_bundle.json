@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "f8eaefeb316d3814c197fb901bbb8bb9f7597f70",
-  "bundle_checksum_sha256": "3e5e5930245b8b1bf599401738d494fc190000ac3d804b45a4c7bf29a7c577c3",
+  "source_commit": "ce73bbbfbe4d11ddc38d62916cb8aafae6f8fcc5",
+  "bundle_checksum_sha256": "7456537a00440aab1c9de27d5dee363d99f75e7ca9203ed0d5038a34c4d1b145",
   "domains": [
     {
       "domain_id": "bam",
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "1d1b8f3b469d471c9367ce7e5432e757b461ed4a5de7c18b2b5b668275fd7605"
+      "checksum_sha256": "6b1dbc59445a4e8b00d8f5dbbcef9a952e16889468fa904a4c96cddb95729b91"
     },
     {
       "domain_id": "fastq",
@@ -10515,8 +10515,8 @@
           "default_version": "0.0.14",
           "upstream": "https://github.com/agordon/fastx_toolkit",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
-          "citation": "software:http://hannonlab.cshl.edu/fastx_toolkit/",
+          "license": "AGPL-3.0-or-later",
+          "citation": "software:https://github.com/agordon/fastx_toolkit/tree/0.0.14",
           "version_cmd": "fastx_clipper --version",
           "help_cmd": "fastx_clipper --help",
           "stage_ids": [
@@ -13502,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "54405be3eba70080f282215bf87d24a7e810290a933469d4b8bd6728b15b8535"
+      "checksum_sha256": "82367242b0e2ac4465f5a5ea4bbb92a1025717e6c839a64b2a220cc7729a3721"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "23b6d626c8e31258e7ed8f8102b7020417759126b812f341099f869b7cf31075"
+      "checksum_sha256": "8129313d396ac051501fb7deda51ccdca8deea1acffdf67c8351150e2cf3509c"
     }
   ]
 }
