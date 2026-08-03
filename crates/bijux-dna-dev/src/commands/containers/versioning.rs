@@ -781,9 +781,15 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
         .filter(|rel| rel.starts_with("containers/"))
         .filter(|rel| !rel.starts_with("containers/docs/"))
         .filter(|rel| {
+            !["requirements.lock", "package-lock.json", "pnpm-lock.yaml", "poetry.lock", "uv.lock"]
+                .iter()
+                .any(|name| rel.ends_with(name))
+        })
+        .filter(|rel| {
             !matches!(
                 rel.as_str(),
-                "containers/versions/versions.toml"
+                "containers/contracts/catalog.lock.json"
+                    | "containers/versions/versions.toml"
                     | "containers/versions/lock.json"
                     | "containers/versions/LOCK.md"
                     | "containers/versions/index.md"
@@ -855,7 +861,10 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
         errors.push("- lock.json items must be a non-empty list".to_string());
     }
 
-    let version_source_marker = "VERSION_SOURCE: containers/versions/versions.toml";
+    let version_source_markers = [
+        "VERSION_SOURCE: containers/contracts/catalog.toml",
+        "VERSION_SOURCE: containers/versions/versions.toml",
+    ];
     for root in [workspace.path("containers/apptainer"), workspace.path("containers/docker")] {
         for entry in walkdir::WalkDir::new(&root)
             .into_iter()
@@ -869,9 +878,9 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
                 continue;
             }
             let raw = read_utf8(entry.path()).unwrap_or_default();
-            if !raw.contains(version_source_marker) {
+            if !version_source_markers.iter().any(|marker| raw.contains(marker)) {
                 errors.push(format!(
-                    "- version authority: missing VERSION_SOURCE marker in {}",
+                    "- version authority: missing canonical VERSION_SOURCE marker in {}",
                     workspace.rel(entry.path()).display()
                 ));
             }
