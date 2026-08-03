@@ -19,9 +19,10 @@ RUN cargo build --release -p bijux-dna
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+ARG OCI_REVISION
+ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=0.1.0
+RUN printf '%s\n' "${OCI_REVISION}" | grep -Eq '^[0-9a-f]{40}$'
 LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \

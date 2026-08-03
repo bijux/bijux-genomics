@@ -809,6 +809,12 @@ pub(in super::super) fn check_docker_hardening(
                 "{rel}: build commands must not convert failures into successful images"
             ));
         }
+        if text.contains("OCI_REVISION=unknown") || text.contains("image.revision=\"unknown\"") {
+            errors.push(format!("{rel}: source revision must not use an unknown placeholder"));
+        }
+        if text.contains("OCI_CREATED=unknown") || text.contains("image.created=\"unknown\"") {
+            errors.push(format!("{rel}: creation provenance must not use an unknown placeholder"));
+        }
         let first_from = text
             .lines()
             .find(|line| line.trim().starts_with("FROM "))
