@@ -8,12 +8,13 @@ container claim. Recipe presence and registry maturity labels are not proof that
 an image builds, starts, processes real data, or produces scientifically useful
 output.
 
-## Current evidence
+## Published evidence and current qualification
 
-- Image inventory: **current 87, unsupported 2** ([details](../reports/image-inventory.md)).
-- Canonical image storage: **passed**, **14 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
-- Complete isolated rebuild: **passed**, **87 retained images** ([details](../reports/lunarc-image-rebuild.md)).
-- Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
+- Qualification evidence chain: **stale**; the current catalog recognizes **0 build**, **0 runtime**, and **0 freshness** passes ([details](../reports/qualification.md)).
+- Published image inventory records **current 87, unsupported 2**; these counts are historical when the qualification chain is stale ([details](../reports/image-inventory.md)).
+- Published canonical storage report: **passed**, **14 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
+- Published isolated rebuild: **passed**, **87 retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md)).
+- Published version/help campaign: **passed**, **87 images passed at that campaign commit** ([details](../reports/runtime-verification.md)).
 - Final run records: **70 tools**, **70 execution passes**; **46** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 

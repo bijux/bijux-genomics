@@ -7,18 +7,21 @@ becomes runtime-verified after its real version and help entry points pass; and
 it gains real-data evidence only through an archived Slurm run. None of those
 steps alone establishes scientific validity or release readiness.
 
-## What is verified now
+## Evidence available now
 
-- [Canonical image storage](reports/image-storage.md): 14 unreferenced obsolete
-  SIFs were moved into a checksummed, reversible quarantine; the active root
-  has no unknown, staged, or unreferenced obsolete images.
-- [Complete-roster rebuild](reports/lunarc-image-rebuild.md): all 87 retained
-  Apptainer images were rebuilt from one frozen commit, with zero staged,
-  unknown, or unreferenced obsolete images in the isolated admission root.
-- [Image inventory](reports/image-inventory.md): every supported Apptainer
-  recipe has a current, immutable amd64 SIF. Unsupported tools remain explicit.
-- [Runtime verification](reports/runtime-verification.md): version and help
-  commands are checked inside every admitted image with network access disabled.
+- [Current qualification](reports/qualification.md): the published inventory
+  and runtime campaign are stale relative to the present catalog, so they
+  contribute zero current build, runtime, or freshness passes.
+- [Canonical image storage](reports/image-storage.md): a previous governed
+  campaign moved 14 unreferenced obsolete SIFs into a checksummed, reversible
+  quarantine. Its counts describe that campaign commit, not the current tree.
+- [Complete-roster rebuild](reports/lunarc-image-rebuild.md): a previous frozen
+  commit rebuilt 87 then-retained Apptainer images. This remains historical
+  build evidence while the current 85-image roster is rebuilt and published.
+- [Image inventory](reports/image-inventory.md) and [runtime
+  verification](reports/runtime-verification.md): the previous campaign's
+  admitted-image and version/help records remain auditable, but cannot support
+  current qualification until regenerated from the current catalog.
 - [Real executions](reports/run-evidence.md): successful, failed, and incomplete
   LUNARC attempts are all retained; scientific assessment remains separate.
 - [Scientific reports](reports/README.md): reviewed cross-tool reports state the

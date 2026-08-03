@@ -197,6 +197,27 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         .pointer("/summary/dimension_passes/science")
         .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
+    let qualified_builds = qualification
+        .pointer("/summary/dimension_passes/build")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let qualified_runtimes = qualification
+        .pointer("/summary/dimension_passes/runtime")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let qualified_freshness = qualification
+        .pointer("/summary/dimension_passes/freshness")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let evidence_chain_current = qualification
+        .get("evidence_compatibility")
+        .and_then(serde_json::Value::as_object)
+        .is_some_and(|links| {
+            ["inventory_catalog", "runtime_catalog", "runtime_inventory", "repository_commit"]
+                .iter()
+                .all(|link| links.get(*link).and_then(serde_json::Value::as_bool) == Some(true))
+        });
+    let evidence_chain_status = if evidence_chain_current { "current" } else { "stale" };
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
         String::new(),
@@ -208,12 +229,13 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "an image builds, starts, processes real data, or produces scientifically useful".to_string(),
         "output.".to_string(),
         String::new(),
-        "## Current evidence".to_string(),
+        "## Published evidence and current qualification".to_string(),
         String::new(),
-        format!("- Image inventory: **{inventory_states}** ([details](../reports/image-inventory.md))."),
-        format!("- Canonical image storage: **{storage_verdict}**, **{storage_moved} obsolete images quarantined reversibly** ([details](../reports/image-storage.md))."),
-        format!("- Complete isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images** ([details](../reports/lunarc-image-rebuild.md))."),
-        format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
+        format!("- Qualification evidence chain: **{evidence_chain_status}**; the current catalog recognizes **{qualified_builds} build**, **{qualified_runtimes} runtime**, and **{qualified_freshness} freshness** passes ([details](../reports/qualification.md))."),
+        format!("- Published image inventory records **{inventory_states}**; these counts are historical when the qualification chain is stale ([details](../reports/image-inventory.md))."),
+        format!("- Published canonical storage report: **{storage_verdict}**, **{storage_moved} obsolete images quarantined reversibly** ([details](../reports/image-storage.md))."),
+        format!("- Published isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md))."),
+        format!("- Published version/help campaign: **{runtime_status}**, **{runtime_passed} images passed at that campaign commit** ([details](../reports/runtime-verification.md))."),
         format!("- Final run records: **{governed_runs} tools**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
