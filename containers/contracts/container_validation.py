@@ -1397,6 +1397,7 @@ def require_current_manifest_path(
 ) -> None:
     allowed_roots = (
         active_repository / "containers" / "runs",
+        containers_root / "runs",
         containers_root / "evidence" / "specifications",
     )
     for root in allowed_roots:
