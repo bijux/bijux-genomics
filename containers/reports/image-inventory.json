@@ -1,7 +1,7 @@
 {
-  "catalog_sha256": "b97340aa9eba6892ec3e068aecf60be8c79661d13dc17a605f482498b015e580",
-  "created_at_utc": "2026-08-03T05:09:58.410539+00:00",
-  "repository_commit": "224ef1de713444b4646a60e30ce930833be73777",
+  "catalog_sha256": "9bd407332d3a217f8ecf9e8259c6d63442a41be5e93d2bb070431462ef560cbd",
+  "created_at_utc": "2026-08-03T06:11:38.033116+00:00",
+  "repository_commit": "da2781b3de2ee68d5983c2f112a0147452abb1b3",
   "schema_version": "bijux.container.image_inventory.v1",
   "staged_images": [],
   "summary": {
@@ -12,7 +12,7 @@
     },
     "tool_count": 89,
     "unknown_image_count": 1,
-    "unreferenced_obsolete_count": 0
+    "unreferenced_obsolete_count": 1
   },
   "tools": [
     {
@@ -3014,7 +3014,7 @@
           "build_evidence": [
             {
               "definition_matches_commit": true,
-              "definition_matches_current": true,
+              "definition_matches_current": false,
               "definition_sha256": "51c2b49bb85242182b4993382faa44df5ca09ab0b66e4aee562a36f01709c270",
               "image_matches": true,
               "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/spades-4.2.0-12ec3751a5cc.build.json",
@@ -3022,18 +3022,40 @@
               "status": "passed"
             }
           ],
-          "current_recipe": true,
-          "disposition": "canonical",
+          "current_recipe": false,
+          "disposition": "unreferenced_obsolete",
           "immutable_name": true,
           "name": "spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
           "real_run_references": 0,
           "sha256": "12ec3751a5ccabc4225569f492434119c2d064f2df04a1433c31bed343469547",
           "size_bytes": 226881536
+        },
+        {
+          "admitted": true,
+          "build_evidence": [
+            {
+              "definition_matches_commit": true,
+              "definition_matches_current": true,
+              "definition_sha256": "edcadd064f88b699520c0ff72bfa2bba985dcafdaf8a84115f5f78e215984511",
+              "image_matches": true,
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/spades-4.2.0-1ac426328807.build.json",
+              "repository_commit": "bd9bb1b7244adf096cbc56c23ccba288af21e832",
+              "status": "passed"
+            }
+          ],
+          "current_recipe": true,
+          "disposition": "canonical",
+          "immutable_name": true,
+          "name": "spades-4.2.0-linux-amd64-1ac426328807.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-1ac426328807.sif",
+          "real_run_references": 0,
+          "sha256": "1ac4263288074952b2123c2a85ff84d5b12bc93d4247ebe63e7551f0f9defda8",
+          "size_bytes": 227045376
         }
       ],
-      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
-      "selected_image_sha256": "12ec3751a5ccabc4225569f492434119c2d064f2df04a1433c31bed343469547",
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-1ac426328807.sif",
+      "selected_image_sha256": "1ac4263288074952b2123c2a85ff84d5b12bc93d4247ebe63e7551f0f9defda8",
       "state": "current",
       "support_disposition": "retained",
       "tool": "spades",
@@ -3093,7 +3115,7 @@
           "immutable_name": true,
           "name": "trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif",
-          "real_run_references": 1,
+          "real_run_references": 2,
           "sha256": "25567e0ec95dcb8914178d6daf3f0439a24e9e3cfd8832e88e79cc1154387b14",
           "size_bytes": 382722048
         }
@@ -3126,7 +3148,7 @@
           "immutable_name": true,
           "name": "trimmomatic-0.39-linux-amd64-329c9ec4abfd.sif",
           "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/trimmomatic-0.39-linux-amd64-329c9ec4abfd.sif",
-          "real_run_references": 1,
+          "real_run_references": 2,
           "sha256": "329c9ec4abfdfd6543ed7973f24ab4dba870899b0a98e16784ae2127797a9e7d",
           "size_bytes": 99934208
         }

@@ -13,7 +13,7 @@ qualification remain independent requirements.
 - States: **current 87**, **unsupported 2**
 - Unknown immutable images: **1**
 - Interrupted staged images: **0**
-- Unreferenced obsolete images: **0**
+- Unreferenced obsolete images: **1**
 
 ## Catalog coverage
 
@@ -102,8 +102,8 @@ qualification remain independent requirements.
 | `sortmerna` | `4.3.7` | retained | **current** | 0 |
 | `spades` | `4.2.0` | retained | **current** | 0 |
 | `star` | `2.7.11b` | retained | **current** | 0 |
-| `trim_galore` | `0.6.10` | retained | **current** | 1 |
-| `trimmomatic` | `0.39` | retained | **current** | 1 |
+| `trim_galore` | `0.6.10` | retained | **current** | 2 |
+| `trimmomatic` | `0.39` | retained | **current** | 2 |
 | `umi_tools` | `1.1.6` | retained | **current** | 0 |
 | `verifybamid2` | `2.0.1` | retained | **current** | 0 |
 | `vsearch` | `2.29.3` | retained | **current** | 1 |
