@@ -1,0 +1,437 @@
+{
+  "accuracy_claim": "cross_tool_coverage_summary_consistency_not_truth_accuracy",
+  "comparison_scope": "whole-reference coverage summaries from one governed coordinate-sorted EquCab3 BAM",
+  "cross_tool_comparison": {
+    "metrics": [
+      {
+        "absolute_range": 0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 2506966135,
+        "metric": "reference_bases",
+        "minimum": 2506966135,
+        "observations": {
+          "bedtools": 2506966135,
+          "mosdepth": 2506966135,
+          "samtools": 2506966135
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0,
+        "absolute_tolerance": 1000.0,
+        "allowed_range": 1155969.05,
+        "maximum": 23099381,
+        "metric": "covered_bases",
+        "minimum": 23099381,
+        "observations": {
+          "bedtools": 23099381,
+          "mosdepth": 23099381,
+          "samtools": 23099381
+        },
+        "relative_tolerance": 0.05,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0.0,
+        "absolute_tolerance": 1e-06,
+        "allowed_range": 0.0004617038898,
+        "maximum": 0.009214077796,
+        "metric": "coverage_fraction",
+        "minimum": 0.009214077796,
+        "observations": {
+          "bedtools": 0.009214077796,
+          "mosdepth": 0.009214077796,
+          "samtools": 0.009214077796
+        },
+        "relative_tolerance": 0.05,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 9.020000007325946e-10,
+        "absolute_tolerance": 0.0001,
+        "allowed_range": 0.0005665602964,
+        "maximum": 0.009331205928,
+        "metric": "mean_depth",
+        "minimum": 0.009331205026,
+        "observations": {
+          "bedtools": 0.009331205026,
+          "mosdepth": 0.009331205026,
+          "samtools": 0.009331205928
+        },
+        "relative_tolerance": 0.05,
+        "within_tolerance": true
+      }
+    ],
+    "status": "within_tolerance"
+  },
+  "design": {
+    "cache_policy": "warm",
+    "container_only": true,
+    "corpus_catalog_ids": [
+      "ena-prjeb22390-err2112767-bam"
+    ],
+    "database_catalog_ids": [],
+    "input_size_keys": [
+      "bam_input_bytes",
+      "bam_index_input_bytes",
+      "reference_index_input_bytes"
+    ],
+    "measured_repetitions": 3,
+    "reference_catalog_ids": [
+      "equcab3-gcf-002863925.1"
+    ],
+    "result_artifact": "coverage-summary.tsv",
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "threads_by_tool": {
+      "bedtools": 1,
+      "mosdepth": 4,
+      "samtools": 1
+    },
+    "tool_closure": [
+      "bedtools",
+      "mosdepth",
+      "samtools"
+    ],
+    "warmup_repetitions": 1
+  },
+  "interpretation": "This campaign compares resource use, repeatability, and agreement of coverage summaries over one real ancient horse BAM. Agreement is a consistency check, not an accuracy claim against an independent coverage truth set.",
+  "limitations": [
+    "The corpus is one low-coverage ancient horse library and does not represent high-depth, long-read, or cohort workloads.",
+    "Cross-tool agreement can reveal integration defects but does not establish accuracy without an independent truth coverage surface.",
+    "Warm-cache repetitions measure stable execution after one warmup and exclude cold shared-filesystem startup."
+  ],
+  "run_id": "run-2002",
+  "schema_version": "bijux.container.stage_benchmark_report.v1",
+  "scientific_question": "How efficiently and consistently do the retained BAM coverage tools summarize reference-wide breadth and depth for the same real low-coverage ancient horse alignment?",
+  "stage_id": "bam.coverage",
+  "tools": [
+    {
+      "determinism": {
+        "artifact": "coverage-summary.tsv",
+        "identical_across_repetitions": true,
+        "sha256": "68ad5329418c08716d19b4de93f0c932f78b575392f23e526f55e7aa0466bf7f"
+      },
+      "image": {
+        "name": "bedtools-2.31.1-linux-amd64-fe469da8f256.sif",
+        "sha256": "fe469da8f256a3a5730207531c03886b72675fecadbed2b3979c29e34634597e",
+        "size_bytes": 45867008
+      },
+      "input_bytes": {
+        "bam": 23312078,
+        "bam_index": 3280144,
+        "reference_index": 175688,
+        "total": 26767910
+      },
+      "input_locks": [
+        {
+          "id": "err2112767_bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "err2112767_bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "err2112767_catalog",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.catalog.json",
+          "sha256": "2e30dda04f4f1b3e44e97973d007420347a6cdc7f01b1637307ec8f9368ca6ff"
+        },
+        {
+          "id": "equcab3_reference_index",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna.fai",
+          "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+        },
+        {
+          "id": "equcab3_reference_catalog",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.catalog.json",
+          "sha256": "f26f2abf91cc718eef7f82bbf41c2417cbc9200c8a82ab61f3d51eec5358ff7f"
+        }
+      ],
+      "performance": {
+        "cpu_seconds": {
+          "maximum": 69.94,
+          "mean": 69.81,
+          "minimum": 69.55,
+          "sample_standard_deviation": 0.225167
+        },
+        "output_bytes": {
+          "maximum": 234842.0,
+          "mean": 234842.0,
+          "minimum": 234842.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "maximum": 1476840.0,
+          "mean": 1476758.666667,
+          "minimum": 1476684.0,
+          "sample_standard_deviation": 78.213383
+        },
+        "wall_seconds": {
+          "maximum": 70.34,
+          "mean": 70.156667,
+          "minimum": 69.88,
+          "sample_standard_deviation": 0.24379
+        }
+      },
+      "repository_commit": "b087cd5ca6412b19a51cb43e7bf4eb098235b7db",
+      "scientific_observations": {
+        "coverage_fraction": [
+          0.009214077796,
+          0.009214077796,
+          0.009214077796
+        ],
+        "covered_bases": [
+          23099381,
+          23099381,
+          23099381
+        ],
+        "mean_depth": [
+          0.009331205026,
+          0.009331205026,
+          0.009331205026
+        ],
+        "reference_bases": [
+          2506966135,
+          2506966135,
+          2506966135
+        ]
+      },
+      "slurm": {
+        "allocated_cpus": "1",
+        "elapsed": "00:04:42",
+        "host": "cn091",
+        "job_id": "3459834"
+      },
+      "source_evidence_sha256": "a1ebb63f93445077ebecde8c0df680ad17e4c3e0592105375bf7b66a99cadf34",
+      "tool": "bedtools",
+      "verdict": "passed"
+    },
+    {
+      "determinism": {
+        "artifact": "coverage-summary.tsv",
+        "identical_across_repetitions": true,
+        "sha256": "68ad5329418c08716d19b4de93f0c932f78b575392f23e526f55e7aa0466bf7f"
+      },
+      "image": {
+        "name": "mosdepth-0.3.11-linux-amd64-8bd0a039c887.sif",
+        "sha256": "8bd0a039c887f56a6fa9d68e0ac94edfc1177843bc1321eb5e941a1f516dde04",
+        "size_bytes": 38289408
+      },
+      "input_bytes": {
+        "bam": 23312078,
+        "bam_index": 3280144,
+        "reference_index": 175688,
+        "total": 26767910
+      },
+      "input_locks": [
+        {
+          "id": "err2112767_bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "err2112767_bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "err2112767_catalog",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.catalog.json",
+          "sha256": "2e30dda04f4f1b3e44e97973d007420347a6cdc7f01b1637307ec8f9368ca6ff"
+        },
+        {
+          "id": "equcab3_reference_index",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna.fai",
+          "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+        },
+        {
+          "id": "equcab3_reference_catalog",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.catalog.json",
+          "sha256": "f26f2abf91cc718eef7f82bbf41c2417cbc9200c8a82ab61f3d51eec5358ff7f"
+        }
+      ],
+      "performance": {
+        "cpu_seconds": {
+          "maximum": 14.94,
+          "mean": 14.886667,
+          "minimum": 14.85,
+          "sample_standard_deviation": 0.047258
+        },
+        "output_bytes": {
+          "maximum": 425471.0,
+          "mean": 425471.0,
+          "minimum": 425471.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "maximum": 2155280.0,
+          "mean": 1896014.666667,
+          "minimum": 1766312.0,
+          "sample_standard_deviation": 224530.375899
+        },
+        "wall_seconds": {
+          "maximum": 13.83,
+          "mean": 13.8,
+          "minimum": 13.76,
+          "sample_standard_deviation": 0.036056
+        }
+      },
+      "repository_commit": "b087cd5ca6412b19a51cb43e7bf4eb098235b7db",
+      "scientific_observations": {
+        "coverage_fraction": [
+          0.009214077796,
+          0.009214077796,
+          0.009214077796
+        ],
+        "covered_bases": [
+          23099381,
+          23099381,
+          23099381
+        ],
+        "mean_depth": [
+          0.009331205026,
+          0.009331205026,
+          0.009331205026
+        ],
+        "reference_bases": [
+          2506966135,
+          2506966135,
+          2506966135
+        ]
+      },
+      "slurm": {
+        "allocated_cpus": "4",
+        "elapsed": "00:00:56",
+        "host": "cn091",
+        "job_id": "3459839"
+      },
+      "source_evidence_sha256": "f8a2c3ba55983af6d26eb8f48eef92e0e66499fe1137fe0452549128476f7bf1",
+      "tool": "mosdepth",
+      "verdict": "passed"
+    },
+    {
+      "determinism": {
+        "artifact": "coverage-summary.tsv",
+        "identical_across_repetitions": true,
+        "sha256": "06290c6c481cecdf70926fd7d2597490bbfdb4e3789b7e8af6838445e8c42783"
+      },
+      "image": {
+        "name": "samtools-1.20-linux-amd64-a29122faccca.sif",
+        "sha256": "a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f",
+        "size_bytes": 122376192
+      },
+      "input_bytes": {
+        "bam": 23312078,
+        "bam_index": 3280144,
+        "reference_index": 175688,
+        "total": 26767910
+      },
+      "input_locks": [
+        {
+          "id": "err2112767_bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "err2112767_bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "err2112767_catalog",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.catalog.json",
+          "sha256": "2e30dda04f4f1b3e44e97973d007420347a6cdc7f01b1637307ec8f9368ca6ff"
+        },
+        {
+          "id": "equcab3_reference_index",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna.fai",
+          "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+        },
+        {
+          "id": "equcab3_reference_catalog",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.catalog.json",
+          "sha256": "f26f2abf91cc718eef7f82bbf41c2417cbc9200c8a82ab61f3d51eec5358ff7f"
+        }
+      ],
+      "performance": {
+        "cpu_seconds": {
+          "maximum": 0.75,
+          "mean": 0.75,
+          "minimum": 0.75,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "maximum": 195906.0,
+          "mean": 195906.0,
+          "minimum": 195906.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "maximum": 9984.0,
+          "mean": 9728.0,
+          "minimum": 9600.0,
+          "sample_standard_deviation": 221.702503
+        },
+        "wall_seconds": {
+          "maximum": 0.76,
+          "mean": 0.76,
+          "minimum": 0.76,
+          "sample_standard_deviation": 0.0
+        }
+      },
+      "repository_commit": "b087cd5ca6412b19a51cb43e7bf4eb098235b7db",
+      "scientific_observations": {
+        "coverage_fraction": [
+          0.009214077796,
+          0.009214077796,
+          0.009214077796
+        ],
+        "covered_bases": [
+          23099381,
+          23099381,
+          23099381
+        ],
+        "mean_depth": [
+          0.009331205928,
+          0.009331205928,
+          0.009331205928
+        ],
+        "reference_bases": [
+          2506966135,
+          2506966135,
+          2506966135
+        ]
+      },
+      "slurm": {
+        "allocated_cpus": "1",
+        "elapsed": "00:00:04",
+        "host": "cn101",
+        "job_id": "3459793"
+      },
+      "source_evidence_sha256": "1255f398a1b08885adf31fad1156ab6414273315424e3c3052fd3eb0ae66e1a6",
+      "tool": "samtools",
+      "verdict": "passed"
+    }
+  ],
+  "verdict": "passed"
+}

@@ -10,9 +10,9 @@ steps alone establishes scientific validity or release readiness.
 ## Evidence available now
 
 - [Current qualification](reports/qualification.md): the published inventory
-  supports 85 current build, runtime, and freshness checks, 47 real-data
-  checks, and one governed benchmark. No tool yet has scientific, security, or
-  release acceptance.
+  is the authority for current dimension counts. Four tools now have governed
+  benchmark evidence across two stage campaigns. No tool yet has scientific,
+  security, or release acceptance.
 - [Canonical image storage](reports/image-storage.md): the latest governed
   reconciliation moved three superseded SIFs into a checksummed, reversible
   quarantine and left no unknown, staged, or unreferenced obsolete image.
@@ -24,7 +24,8 @@ steps alone establishes scientific validity or release readiness.
   verification](reports/runtime-verification.md): all 85 supported tools have
   admitted images and passing version/help records. Qualification independently
   recomputes each definition and repository-owned build-input identity against
-  the present source tree.
+  the present source tree, so a later source change can invalidate build
+  freshness without erasing the historical image or runtime record.
 - [Real executions](reports/run-evidence.md): successful, failed, and incomplete
   LUNARC attempts are all retained; scientific assessment remains separate.
 - [Scientific reports](reports/README.md): reviewed cross-tool reports state the

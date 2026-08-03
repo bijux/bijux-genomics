@@ -34,15 +34,15 @@ repository commit. A stale source remains auditable but contributes no pass.
 |---|---:|
 | `catalog` | 85 |
 | `source` | 85 |
-| `build` | 85 |
+| `build` | 84 |
 | `runtime` | 85 |
 | `stage` | 47 |
 | `real_data` | 47 |
 | `science` | 0 |
-| `benchmark` | 1 |
+| `benchmark` | 4 |
 | `security` | 0 |
 | `release` | 0 |
-| `freshness` | 85 |
+| `freshness` | 84 |
 
 ## Tool matrix
 
@@ -66,8 +66,8 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `bbmerge` | `39.06` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bcftools` | `1.20` | retained | pass | pass | missing | missing | pass | missing | missing | **unverified** |
 | `beagle` | `5.4` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
-| `bedtools` | `2.31.1` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `bijux_dna` | `0.1.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `bedtools` | `2.31.1` | retained | pass | pass | pass | missing | pass | missing | missing | **unverified** |
+| `bijux_dna` | `0.1.0` | retained | missing | pass | missing | missing | missing | missing | missing | **unverified** |
 | `bowtie2` | `2.5.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bowtie2_build` | `2.5.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bracken` | `2.9` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
@@ -107,7 +107,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `mapdamage2` | `2.2.2` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `metaphlan` | `4.1.1` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `minimac4` | `4.1.6` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
-| `mosdepth` | `0.3.11` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
+| `mosdepth` | `0.3.11` | retained | pass | pass | pass | missing | pass | missing | missing | **unverified** |
 | `multiqc` | `1.24` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `musket` | `1.1` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `ngsbriggs` | `0.01` | unsupported | n/a | n/a | n/a | n/a | n/a | n/a | n/a | **unsupported** |
@@ -122,7 +122,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `qualimap` | `2.3` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `rcorrector` | `1.0.7` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `rxy` | `2.0.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
-| `samtools` | `1.20` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `samtools` | `1.20` | retained | pass | pass | missing | missing | pass | missing | missing | **unverified** |
 | `schmutzi` | `1.5.4` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `seqfu` | `1.26.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `seqkit` | `2.8.2` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |

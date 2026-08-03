@@ -66,8 +66,18 @@ python3 -B containers/benchmarks/benchmark_evidence.py \
   --stage-result-root "$STUDY/results/benchmarks/run-2001-bam-genotyping" \
   --json-output containers/reports/run-2001-bam-genotyping.json \
   --markdown-output containers/reports/run-2001-bam-genotyping.md
+
+python3 -B containers/benchmarks/benchmark_evidence.py \
+  --registry containers/benchmarks/campaigns.toml \
+  --catalog containers/contracts/catalog.toml \
+  --run-id run-2002 \
+  --stage-result-root "$STUDY/results/benchmarks/run-2002-bam-coverage" \
+  --json-output containers/reports/run-2002-bam-coverage.json \
+  --markdown-output containers/reports/run-2002-bam-coverage.md
 ```
 
 The reviewed [BAM-genotyping report](../reports/run-2001-bam-genotyping.md)
-records performance and candidate-site observations without importing the
-large run products into Git.
+records performance and candidate-site observations. The [BAM-coverage
+report](../reports/run-2002-bam-coverage.md) compares the complete retained
+tool closure under their honestly declared concurrency. Both reports keep
+large run products on the governed study filesystem.
