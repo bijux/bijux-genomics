@@ -1385,24 +1385,79 @@
       "source_file_count": 34,
       "source_result": "results/container-validation/run-1129-multiqc",
       "tool": "multiqc"
+    },
+    {
+      "evidence_lock_sha256": "aa16f4dfe73d15f2e3774dd4a95fe506526bbae0b796e7cd2d0b095949793bcd",
+      "execution_status": "failed",
+      "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+      "run_id": "run-1130",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458683",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/run-1130-pydamage",
+      "tool": "pydamage"
+    },
+    {
+      "evidence_lock_sha256": "f89053dc937840b207628382355f9fc660666413df9b3368b697a338dde49756",
+      "execution_status": "failed",
+      "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+      "run_id": "run-1131",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458689",
+      "source_file_count": 9,
+      "source_result": "results/container-validation/run-1131-pydamage",
+      "tool": "pydamage"
+    },
+    {
+      "evidence_lock_sha256": "63493057d9171d63bcc27dc626b10c158fb9430b05517a1e2ce065c58776a3dc",
+      "execution_status": "failed",
+      "repository_commit": "cba3cd2cba2258845fca9471a660febd39490830",
+      "run_id": "run-1132",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458694",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/run-1132-pydamage",
+      "tool": "pydamage"
+    },
+    {
+      "evidence_lock_sha256": "ce5d5169d44de76f01f96951fe6f0610094d48a4034d5a4ef44f5b6e068ea765",
+      "execution_status": "failed",
+      "repository_commit": "cba3cd2cba2258845fca9471a660febd39490830",
+      "run_id": "run-1133",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458695",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/run-1133-pydamage",
+      "tool": "pydamage"
+    },
+    {
+      "evidence_lock_sha256": "760f24e1d1c5675b29054dcef0edcdfef84c5498840cea767fa7ebb33db2bcd8",
+      "execution_status": "passed",
+      "repository_commit": "cba3cd2cba2258845fca9471a660febd39490830",
+      "run_id": "run-1134",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458696",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/run-1134-pydamage",
+      "tool": "pydamage"
     }
   ],
   "schema_version": "bijux.container.run_evidence_index.v1",
   "summary": {
     "execution_status": {
-      "failed": 36,
+      "failed": 40,
       "incomplete": 1,
-      "passed": 89
+      "passed": 90
     },
     "missing_run_ids": [
       "run-1081",
       "run-1085",
       "run-1126"
     ],
-    "run_count": 126,
+    "run_count": 131,
     "scientific_status": {
-      "not_assessed": 126
+      "not_assessed": 131
     },
-    "tool_count": 66
+    "tool_count": 67
   }
 }

@@ -22,8 +22,8 @@ or successful command does not become a scientific or release claim.
 | `source` | 87 |
 | `build` | 87 |
 | `runtime` | 87 |
-| `stage` | 64 |
-| `real_data` | 64 |
+| `stage` | 65 |
+| `real_data` | 65 |
 | `science` | 0 |
 | `benchmark` | 0 |
 | `security` | 0 |
@@ -102,7 +102,7 @@ permitted. Unsupported tools use `n/a`.
 | `pmdtools` | `0.60` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `preseq` | `3.2.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `prinseq` | `1.2.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `pydamage` | `1.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `pydamage` | `1.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `qualimap` | `2.3` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `rcorrector` | `1.0.7` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `rxy` | `1.0.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |

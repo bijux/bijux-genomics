@@ -8,10 +8,10 @@ recorded scientific status, and no tool is promoted by this report.
 
 ## Archive boundary
 
-- Governed runs: **126**
-- Tools represented: **66**
-- Execution status: **failed 36**, **incomplete 1**, **passed 89**
-- Scientific status: **not_assessed 126**
+- Governed runs: **131**
+- Tools represented: **67**
+- Execution status: **failed 40**, **incomplete 1**, **passed 90**
+- Scientific status: **not_assessed 131**
 - Unassigned historical identifiers: `run-1081`, `run-1085`, `run-1126`
 
 The gaps are not silently filled. Failed and incomplete attempts remain part of
@@ -73,6 +73,7 @@ directory records their paths, sizes, and SHA-256 digests.
 | `plink` | 1 | 1 | 0 | [run-1066](../runs/run-1066-plink/) | not_assessed |
 | `plink2` | 2 | 2 | 0 | [run-1064](../runs/run-1064-plink2/) | not_assessed |
 | `prinseq` | 1 | 1 | 0 | [run-1018](../runs/run-1018-prinseq/) | not_assessed |
+| `pydamage` | 5 | 1 | 4 | [run-1134](../runs/run-1134-pydamage/) | not_assessed |
 | `qualimap` | 3 | 1 | 2 | [run-1030](../runs/run-1030-qualimap/) | not_assessed |
 | `samtools` | 14 | 9 | 5 | [run-1112](../runs/run-1112-samtools/) | not_assessed |
 | `seqfu` | 1 | 1 | 0 | [run-1031](../runs/run-1031-seqfu/) | not_assessed |

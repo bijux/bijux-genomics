@@ -1,0 +1,87 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "Slurm job ended in FAILED with exit code 1:0 without completing execution evidence"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif",
+    "sha256": "482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd",
+    "size_bytes": 291561472
+  },
+  "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "run_id": "run-1131",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458689",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "f6eb54dc9afc8a6399b877b27105d4fd263d958a82c455c7b8700f36d619e375",
+      "size_bytes": 2537
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "febbb089cb3d9101c408491cb4f761a0a109c0b252793f725fbd84ef77eb991a",
+      "size_bytes": 2378
+    },
+    {
+      "path": "slurm-3458689.stderr.log",
+      "sha256": "844ead0364d8a076b9b52e096a8a761957f0be6b1b4d1db20c7bc1515b51a5d8",
+      "size_bytes": 1258
+    },
+    {
+      "path": "slurm-3458689.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "1b447c24ca0fb7047c269701519a0302e58e15e8c7831398dca16abb2f588d81",
+      "size_bytes": 916
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "676b48a788703e872e5d70dcb784455f7985987678dc6744774ea3a991451657",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "fc13c52add12a16ffe771b74ee744febc0130c9b2dc3376c861ea403e7358284",
+      "size_bytes": 1784
+    }
+  ],
+  "source_result": "results/container-validation/run-1131-pydamage",
+  "tool": "pydamage",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    "config-pipeline.yml": {
+      "sha256": "f6eb54dc9afc8a6399b877b27105d4fd263d958a82c455c7b8700f36d619e375",
+      "size_bytes": 2537
+    },
+    "evidence.json": {
+      "sha256": "febbb089cb3d9101c408491cb4f761a0a109c0b252793f725fbd84ef77eb991a",
+      "size_bytes": 2378
+    },
+    "slurm-accounting.json": {
+      "sha256": "1b447c24ca0fb7047c269701519a0302e58e15e8c7831398dca16abb2f588d81",
+      "size_bytes": 916
+    }
+  }
+}

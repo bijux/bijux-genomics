@@ -1,0 +1,70 @@
+{
+  "checks": {},
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 2,
+    "timezone": "UTC"
+  },
+  "failure_class": "execution_evidence_missing",
+  "failures": [
+    "Slurm job ended in FAILED with exit code 1:0 without completing execution evidence"
+  ],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif",
+    "sha256": "482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd",
+    "size_bytes": 291561472
+  },
+  "inputs": [
+    {
+      "id": "err2112767_alignment",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    }
+  ],
+  "metrics": [],
+  "outputs": [],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "f6eb54dc9afc8a6399b877b27105d4fd263d958a82c455c7b8700f36d619e375",
+  "repository_clean": true,
+  "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "run_id": "run-1131",
+  "runtime": {
+    "apptainer_version": "",
+    "cpus": "2",
+    "finished_at_utc": "2026-08-03T05:53:01.774391+00:00",
+    "host": "",
+    "scheduler_exit_code": "1:0",
+    "scheduler_state": "FAILED",
+    "scratch_path": "",
+    "slurm_job_id": "3458689",
+    "started_at_utc": ""
+  },
+  "scheduler_logs": [
+    {
+      "path": "slurm-3458689.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-3458689.stderr.log",
+      "sha256": "844ead0364d8a076b9b52e096a8a761957f0be6b1b4d1db20c7bc1515b51a5d8",
+      "size_bytes": 1258
+    }
+  ],
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cosmos3.int.lunarc",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}

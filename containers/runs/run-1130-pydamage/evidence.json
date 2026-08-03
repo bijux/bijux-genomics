@@ -1,0 +1,120 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "pydamage",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "40343490695397aeff2746d85baf34ce8ec2738ce8298eadda5bd637d50b4ddd"
+    },
+    "negative": {
+      "argv": [
+        "pydamage",
+        "analyze",
+        "/input/not-present.bam"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "517fec06dc78e27f5991936b076509b850f098e3bb8d11cfe708a7d036083a71",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bash",
+        "-c",
+        "set -euo pipefail; pydamage --outdir /result analyze --group --process 2 /input/ERR2112767.sorted.bam; python3 -c 'import csv,json; rows=list(csv.DictReader(open(\"/result/pydamage_results.csv\", encoding=\"utf-8\"))); aligned=sum(int(float(row[\"nb_reads_aligned\"])) for row in rows); json.dump({\"analyzed_references\": len(rows), \"aligned_reads\": aligned}, open(\"/result/metrics.json\", \"w\", encoding=\"utf-8\"))'"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "05e972e65e43b291a6688594edd0a16f41d26be7c4e657a4875531347b598291",
+      "stdout_sha256": "4a32aa1666831d8ed4184b8187f8961f19ad52f64bff031ca0fdce64bb009458"
+    },
+    "version": {
+      "argv": [
+        "pydamage",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e442c28fa674f249424909be4176816a383d40700ec56c3de5e0d3efb0f67962"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 2,
+    "timezone": "UTC"
+  },
+  "failure_class": "container_validation",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: pydamage_results.csv",
+    "required output is absent or empty: metrics.json",
+    "metric analyzed_references cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json'",
+    "metric aligned_reads cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json'"
+  ],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif",
+    "sha256": "482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd",
+    "size_bytes": 291561472
+  },
+  "inputs": [
+    {
+      "id": "err2112767_alignment",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 1,
+      "id": "analyzed_references",
+      "json_pointer": "/analyzed_references",
+      "observed": null,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "failed",
+      "unit": "references"
+    },
+    {
+      "expected": 1,
+      "id": "aligned_reads",
+      "json_pointer": "/aligned_reads",
+      "observed": null,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "failed",
+      "unit": "reads"
+    }
+  ],
+  "outputs": [],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "5e7381f2f0d5575dd1bbe84504aa3d1ee208d999a64902df7a41e4fabf92fe8d",
+  "repository_clean": true,
+  "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "run_id": "run-1130",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "finished_at_utc": "2026-08-03T05:50:09.876207+00:00",
+    "host": "cn092",
+    "scratch_path": "/tmp/bijux-genomics-3458683-R6LVyZ",
+    "slurm_job_id": "3458683",
+    "started_at_utc": "2026-08-03T05:49:57.904856+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn092",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}
