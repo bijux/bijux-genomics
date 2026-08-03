@@ -34,6 +34,10 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
         --directory /opt/schmutzi/bamtools --strip-components 1 && \
     patch --directory /opt/schmutzi/bamtools --strip=1 \
         < /opt/bamtools-gcc13.patch && \
+    cmake -S /opt/schmutzi/bamtools -B /opt/schmutzi/bamtools/build \
+        -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /opt/schmutzi/bamtools/build --parallel 2 && \
+    make --directory /opt/schmutzi/libgab -j2 && \
     make --directory /opt/schmutzi -j2 && \
     test -x /opt/schmutzi/schmutzi.pl && \
     test -x /opt/schmutzi/contDeam.pl && \
