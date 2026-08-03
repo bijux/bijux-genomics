@@ -21,13 +21,13 @@ ROOT = Path(__file__).parents[2]
 class BenchmarkPortfolioTests(unittest.TestCase):
     def setUp(self) -> None:
         self.portfolio = benchmark_portfolio.load_toml(
-            ROOT / "benchmarks/portfolio.toml"
+            ROOT / "benchmarks/contracts/portfolio.toml"
         )
         self.catalog = benchmark_portfolio.load_toml(
             ROOT / "containers/contracts/catalog.toml"
         )
         self.registry = benchmark_portfolio.load_toml(
-            ROOT / "benchmarks/campaigns.toml"
+            ROOT / "benchmarks/contracts/stage-campaigns.toml"
         )
 
     def validate(self, portfolio: dict | None = None) -> dict:

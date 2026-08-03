@@ -25,7 +25,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
             ROOT / "containers/contracts/catalog.toml"
         )
         self.registry = benchmark_registry.load_toml(
-            ROOT / "benchmarks/campaigns.toml"
+            ROOT / "benchmarks/contracts/stage-campaigns.toml"
         )
 
     def test_campaigns_cover_every_retained_tool_for_the_stage(self) -> None:

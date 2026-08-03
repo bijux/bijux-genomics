@@ -23,7 +23,7 @@ BAM, and VCF stage. It does not treat a successful container invocation,
 one-sample timing, fixture execution, or agreement between two programs as
 scientific completion.
 
-[`portfolio.toml`](portfolio.toml) is the scientific admission authority. It
+[`contracts/portfolio.toml`](contracts/portfolio.toml) is the scientific admission authority. It
 defines the real-data corpus portfolio, minimum cohort sizes, truth strategy,
 resource measurements, canonical output contract, and downstream substitution
 probe required for each of the 71 retained stages. The assignment closure is
@@ -51,8 +51,8 @@ Validate the portfolio and render the exact blockers for every stage:
 
 ```console
 python3 -B benchmarks/benchmark_portfolio.py \
-  --portfolio benchmarks/portfolio.toml \
-  --registry benchmarks/campaigns.toml \
+  --portfolio benchmarks/contracts/portfolio.toml \
+  --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
   --repository-root . \
   --json-output benchmarks/reports/scientific-benchmark-readiness.json \
@@ -157,7 +157,7 @@ identities. A record remains ineligible when file integrity, source identity,
 retrieval or admission time, access classification, redistribution policy, or
 known limitations are missing.
 
-[`campaigns.toml`](campaigns.toml) assigns stable `run-2001+` campaign
+[`contracts/stage-campaigns.toml`](contracts/stage-campaigns.toml) assigns stable `run-2001+` campaign
 identities and labels each execution as `qualification` or `comparative`.
 The numeric identity never upgrades the evidence tier. Every campaign names
 its governed corpus, reference, helper
@@ -173,7 +173,7 @@ Validate the execution definitions and render their coverage report:
 
 ```console
 python3 -B benchmarks/benchmark_registry.py \
-  --registry benchmarks/campaigns.toml \
+  --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
   --evidence-root containers/reports \
   --json-output benchmarks/reports/stage-benchmark-coverage.json \
@@ -290,7 +290,7 @@ small report:
 
 ```console
 python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/campaigns.toml \
+  --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
   --run-id run-2001 \
   --stage-result-root "$STUDY/results/benchmarks/run-2001-bam-genotyping" \
@@ -298,7 +298,7 @@ python3 -B benchmarks/benchmark_evidence.py \
   --markdown-output benchmarks/reports/run-2001-bam-genotyping.md
 
 python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/campaigns.toml \
+  --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
   --run-id run-2002 \
   --stage-result-root "$STUDY/results/benchmarks/run-2002-bam-coverage" \
@@ -306,7 +306,7 @@ python3 -B benchmarks/benchmark_evidence.py \
   --markdown-output benchmarks/reports/run-2002-bam-coverage.md
 
 python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/campaigns.toml \
+  --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
   --run-id run-2003 \
   --stage-result-root "$STUDY/results/benchmarks/run-2003-bam-endogenous-content" \
@@ -314,7 +314,7 @@ python3 -B benchmarks/benchmark_evidence.py \
   --markdown-output benchmarks/reports/run-2003-bam-endogenous-content.md
 
 python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/campaigns.toml \
+  --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
   --run-id run-2004 \
   --stage-result-root "$STUDY/results/benchmarks/run-2004-bam-mapping-summary" \
