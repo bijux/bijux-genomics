@@ -98,7 +98,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `shapeit` | `retained` | `bijux` | `MIT` | `https://github.com/odelaneau/shapeit4` | `4.2.2` | `sha256:2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9` |
 | `shapeit5` | `retained` | `bijux` | `MIT` | `https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz` | `5.1.1` | `sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8` |
 | `skewer` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/relipmoc/skewer` | `0.2.2` | `sha256:695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169` |
-| `sortmerna` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/biocore/sortmerna` | `4.3.7` | `sha256:c82be49fb7077411860e0d4e3c28b422c2930312ec70168bdb17d96483d613ee` |
+| `sortmerna` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/sortmerna/sortmerna` | `4.3.7` | `sha256:1add6d30e2ce3cffd8bc022e5cf359882aa50dcae647bfaef3937132e46a0ab3` |
 | `spades` | `retained` | `bijux` | `GPL-2.0-only` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
 | `star` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e` |
 | `trim_galore` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:8efa46f091785659e6cc36e8bf0d89c2beaead17f11ff793c64c57b93b9d33ec` |

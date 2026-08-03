@@ -138,7 +138,7 @@ authorship. Upstream source and license remain catalog-owned facts.
 | `shapeit` | `retained` | `bijux-genomics` | `none` |
 | `shapeit5` | `retained` | `bijux-genomics` | `none` |
 | `skewer` | `retained` | `bijux-genomics` | `arm64` |
-| `sortmerna` | `retained` | `bijux-genomics` | `arm64` |
+| `sortmerna` | `retained` | `bijux-genomics` | `none` |
 | `spades` | `retained` | `bijux-genomics` | `arm64` |
 | `star` | `retained` | `bijux-genomics` | `arm64` |
 | `trim_galore` | `retained` | `bijux-genomics` | `arm64` |

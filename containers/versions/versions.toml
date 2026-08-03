@@ -463,9 +463,11 @@ upstream_license = "MIT"
 
 [sortmerna]
 version = "4.3.7"
-source = "https://github.com/biocore/sortmerna"
-date_pinned = "2026-02-12"
+source = "https://github.com/sortmerna/sortmerna"
+date_pinned = "2026-08-03"
 pinned_commit = "307e84021ab3561c38fbee2854bef3eba8e6cfda"
+source_sha256 = "1add6d30e2ce3cffd8bc022e5cf359882aa50dcae647bfaef3937132e46a0ab3"
+upstream_license = "GPL-3.0"
 
 [spades]
 version = "4.2.0"
