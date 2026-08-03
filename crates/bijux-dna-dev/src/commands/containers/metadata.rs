@@ -140,27 +140,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         let apptainer = workspace.path(&format!("containers/apptainer/{tool_id}.def"));
         let docker_arm64 = workspace.path(&format!("containers/docker/Dockerfile.arm64.{tool_id}"));
         let docker_amd64 = workspace.path(&format!("containers/docker/amd64/Dockerfile.{tool_id}"));
-        let apptainer_source = if apptainer.exists() {
-            if read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md")
-                || tool_id == "bcftools"
-                || tool_id == "beagle"
-                || tool_id == "eagle"
-                || tool_id == "eigensoft"
-                || tool_id == "germline"
-                || tool_id == "glimpse"
-                || tool_id == "ibdhap"
-                || tool_id == "ibdne"
-                || tool_id == "impute5"
-                || tool_id == "minimac4"
-                || tool_id == "shapeit5"
-            {
-                "non-bijux"
-            } else {
-                "bijux"
-            }
-        } else {
-            "none"
-        };
+        let apptainer_recipe_owner = if apptainer.exists() { "bijux-genomics" } else { "none" };
         let docker_source = match (docker_arm64.exists(), docker_amd64.exists()) {
             (true, true) => "arm64+amd64",
             (true, false) => "arm64",
@@ -170,7 +150,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         rows.push((
             tool_id.to_string(),
             status.to_string(),
-            apptainer_source.to_string(),
+            apptainer_recipe_owner.to_string(),
             docker_source.to_string(),
         ));
     }
@@ -278,8 +258,10 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "This table identifies retained and unsupported container implementations.".to_string(),
         "Disposition is not production qualification; use the evidence reports above".to_string(),
         "for scientific or release decisions.".to_string(),
+        "`apptainer_recipe_owner` describes recipe maintenance, not upstream tool".to_string(),
+        "authorship. Upstream source and license remain catalog-owned facts.".to_string(),
         String::new(),
-        "| tool_id | disposition | apptainer_source | docker_source |".to_string(),
+        "| tool_id | disposition | apptainer_recipe_owner | docker_source |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
     for (tool_id, status, ap_src, docker_src) in rows {
