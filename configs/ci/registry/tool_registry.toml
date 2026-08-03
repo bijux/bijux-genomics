@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 30956eea7138fdd3fa12628064c00684c7e6aae2
+# source_commit: 31e36aef8233b3f62da1763579e2cc24fc411ea0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -566,10 +566,10 @@ version = "1.0.4"
 default_version = "1.0.4"
 upstream = "https://github.com/DaehwanKimLab/centrifuge"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "GPL-3.0-or-later"
 citation = "paper:https://genome.cshlp.org/content/26/12/1721"
-pinned_commit = "git:92d6e7969afd786ba196b019620453a965a46cdd"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:43b07cf2adcd8ad8b4b79721db6512cc5d3fe53f80ed306ece65fe468fe021cb"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/centrifuge:1.0.4"
 runtimes = ["docker", "apptainer"]
 container = true
@@ -577,7 +577,7 @@ version_cmd = "centrifuge --version"
 help_cmd = "centrifuge --help"
 smoke_version_cmd = "centrifuge --version"
 smoke_help_cmd = "centrifuge --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "^Centrifuge 1[.]0[.]4$"
 healthcheck_cmd = "centrifuge --help"
 expected_bin = "centrifuge"
 expected_artifacts = ["classification_report_json", "screen_report_tsv"]

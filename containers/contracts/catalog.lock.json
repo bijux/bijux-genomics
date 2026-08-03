@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "d5a613e88d9263dbae7f21b27a7a4ab64b5ca04af7bd4fbcc5271eb7b946574b",
+  "source_sha256": "cb1de64d3c3cac316db6cdeefb7ad37e9656f69b278ccd84268305d27f8b2e7d",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -323,12 +323,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/DaehwanKimLab/centrifuge",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "43b07cf2adcd8ad8b4b79721db6512cc5d3fe53f80ed306ece65fe468fe021cb",
       "pinned_commit": "92d6e7969afd786ba196b019620453a965a46cdd",
       "apptainer_definition": "containers/apptainer/centrifuge.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.centrifuge",
-      "contract_sha256": "36fcc15facdd201a3d22edab4011965d10b18c2492502dd5f2a4ff41c7b284e4"
+      "contract_sha256": "47c3f36554607e2eb2558dd15d78e985ef0becd14e839c7d24c12b5d03796407"
     },
     {
       "id": "clumpify",
