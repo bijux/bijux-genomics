@@ -5,6 +5,7 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=0.6.10
@@ -22,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION_TRIM_GALORE=0.6.10
 ENV TRIM_GALORE=${VERSION_TRIM_GALORE}
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev build-essential fastqc wget && \
     rm -rf /var/lib/apt/lists/*
 

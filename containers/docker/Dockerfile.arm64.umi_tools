@@ -5,6 +5,7 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=1.1.6
@@ -22,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION_UMI_TOOLS=1.1.6
 ENV VERSION_UMI_TOOLS=${VERSION_UMI_TOOLS}
 
-RUN apt-get update -qq && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
