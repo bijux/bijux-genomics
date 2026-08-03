@@ -1,0 +1,136 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-f762917cc1ad.sif",
+    "sha256": "f762917cc1adb21f95d56298831c06ec37e3fc44e240272768aca193cebc8fdf",
+    "size_bytes": 175280128
+  },
+  "repository_commit": "f8db1d4c07f050720797a662b64f202cb52dd933",
+  "run_id": "run-1049",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457866",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "49d4b805c492591bf9d7a0faeafa1790d6d559a46feb82459fe3e8381e19fa22",
+      "size_bytes": 2903
+    },
+    {
+      "path": "damage.mapdamage2.txt",
+      "sha256": "a039cc80941fc25d8e246b14c837c5f518d1dcd0550b9dad5adbeb0b80274f99",
+      "size_bytes": 38
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "1836766bb0c298f89f5872a51f55970cada52631aeba28cee09f6a6110389031",
+      "size_bytes": 4929
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "28f6480f7cfef4122dd9a9757d501b8095d05364e63fb203dbe956629899fd46",
+      "size_bytes": 5212
+    },
+    {
+      "path": "mapdamage2-native/Runtime_log.txt",
+      "sha256": "2c1e7b37743de8dabeddc19ce8cda25e977940feb8784028f289f7276841b30b",
+      "size_bytes": 638
+    },
+    {
+      "path": "mapdamage2-native/dnacomp.txt",
+      "sha256": "bea98108247f53f2735706b7d6d559e7f878ace5762a9ca0c108cb19cf9a2356",
+      "size_bytes": 50161647
+    },
+    {
+      "path": "mapdamage2-native/lgdistribution.txt",
+      "sha256": "3bfd0913ad3b2dc6fd5f8c7e9a3b9180a3bd222cc275a3b21435ee0e8cc9239f",
+      "size_bytes": 1183
+    },
+    {
+      "path": "mapdamage2-native/misincorporation.txt",
+      "sha256": "de42841bddf18fc5031a898562ac604c0cfde6ab72cd291f07288b9119875072",
+      "size_bytes": 98654497
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "b15a7345a2334965b53771ddafcd881fbc30a98cc4b7afb63266860ca384b6e6",
+      "size_bytes": 63
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "d3a7cbd36f64f67fa033e2a7fa2c938c6e5ad1d67bfa96ec78d88cbb65f138a3",
+      "size_bytes": 431
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "078dfde34c831a83c5d1cbe50deb77e514a9f0e211493e1570090672ea710368",
+      "size_bytes": 586
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "5656f881082db447b636a8388f14dd4bcea5648fdf2a2ab75a70b6cf550bde3f",
+      "size_bytes": 924
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "0e6704804fd90b8a2086d2295acd8acaf052b6ee6341fb94a5844cb79ab2a2fe",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "82b3753603e29c6afc09bc194148c731bf9d88b346ce33753415651d7ba12ed9",
+      "size_bytes": 1063
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "7a27b402b3c36f7248792c401030986da2f3901519e1be3d4240f1e0d66a5fbc",
+      "size_bytes": 67
+    }
+  ],
+  "source_result": "results/container-validation/mapdamage2/run-1049",
+  "tool": "mapdamage2",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "49d4b805c492591bf9d7a0faeafa1790d6d559a46feb82459fe3e8381e19fa22",
+      "size_bytes": 2903
+    },
+    "evidence.json": {
+      "sha256": "1836766bb0c298f89f5872a51f55970cada52631aeba28cee09f6a6110389031",
+      "size_bytes": 4929
+    },
+    "slurm-accounting.json": {
+      "sha256": "5656f881082db447b636a8388f14dd4bcea5648fdf2a2ab75a70b6cf550bde3f",
+      "size_bytes": 924
+    }
+  }
+}

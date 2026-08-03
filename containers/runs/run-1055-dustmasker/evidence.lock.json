@@ -1,0 +1,126 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/dustmasker-2.15.0-linux-amd64-416c38e6a7e1.sif",
+    "sha256": "416c38e6a7e13ea4042d15aa7f7f177c287aa535ee8e3aef6dc4bc543518682d",
+    "size_bytes": 40480768
+  },
+  "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
+  "run_id": "run-1055",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457878",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "32a1aa9fdbf90418fb2995cf1f6ce5c28da5138b99f9c292b60859d9e810abbe",
+      "size_bytes": 2223
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "6ea271eda22ee138243e175553cd6d1b257222261542dbdd83a71e09238f185b",
+      "size_bytes": 3771
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "7364c0c543f559157b1220c918c2e343a83525ba71df6da6a963f2fed73439b4",
+      "size_bytes": 1681
+    },
+    {
+      "path": "low-complexity.intervals",
+      "sha256": "e2dd6a037053ddff8ccc8c72c16a31bd37ef96707f97f1aa597d9ee3f56af924",
+      "size_bytes": 15274
+    },
+    {
+      "path": "masked.fasta",
+      "sha256": "b929c7182b9cadd81403d2a9acdf7d623deb7a2506f977081c558fba5799b909",
+      "size_bytes": 1016675
+    },
+    {
+      "path": "missing.intervals",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "cddbafad46a8f45a8bdce187e591260f5b2a9a68b25511de765f3c77a01ac322",
+      "size_bytes": 735
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "f255f19a93871d65598a14cb73d37fb16e5dc0bab52db8d18f91f71de0e4cfa5",
+      "size_bytes": 956
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "25ba6fb7c4e6e31fe72197be4cb3750d94425aa9d6d078376ce603460fba23f9",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "b3fab683141fa988d905375d2793d7aef18d8cc4946126dd12cf1b137c169c18",
+      "size_bytes": 1098
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "654e96d2848bc5cbe134a473a16fbfc33fc4213850cc0bf9bd1ba718d2e61a23",
+      "size_bytes": 18
+    }
+  ],
+  "source_result": "results/container-validation/dustmasker/run-1055",
+  "tool": "dustmasker",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "32a1aa9fdbf90418fb2995cf1f6ce5c28da5138b99f9c292b60859d9e810abbe",
+      "size_bytes": 2223
+    },
+    "evidence.json": {
+      "sha256": "6ea271eda22ee138243e175553cd6d1b257222261542dbdd83a71e09238f185b",
+      "size_bytes": 3771
+    },
+    "slurm-accounting.json": {
+      "sha256": "f255f19a93871d65598a14cb73d37fb16e5dc0bab52db8d18f91f71de0e4cfa5",
+      "size_bytes": 956
+    }
+  }
+}

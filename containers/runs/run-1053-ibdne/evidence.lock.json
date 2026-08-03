@@ -1,0 +1,141 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/ibdne-23Apr20.ae9-linux-amd64-ba400ac39ae8.sif",
+    "sha256": "ba400ac39ae8e69794d839b409135ecb66e92159c3456825cf396bcad22b296d",
+    "size_bytes": 104599552
+  },
+  "repository_commit": "cd19ed5c31348a9786a7bb7fdebd546239fdeb24",
+  "run_id": "run-1053",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457875",
+  "source_files": [
+    {
+      "path": "chr22.plink.map",
+      "sha256": "336b38f9893371b56b9dc5926c751c62061895d971ddd47135b05cb7327c8ea6",
+      "size_bytes": 1341636
+    },
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "12260fa625aece67b2119e2c88248062c6f5cc2753dbe811df3479236d4b1308",
+      "size_bytes": 2586
+    },
+    {
+      "path": "demography.boot",
+      "sha256": "3a22c590e5ba39e8fd2193448fcd35e9dbac908e65deb07bb3b1cded5d3fd472",
+      "size_bytes": 1834
+    },
+    {
+      "path": "demography.log",
+      "sha256": "d7e0ca3abec018a9ad3cb9a3ede4873fde752448daeafb1162c6dd7f094c7bf9",
+      "size_bytes": 1057
+    },
+    {
+      "path": "demography.ne",
+      "sha256": "66da6c7e1cab069a13775f7f045174c98299cee31a5875b51fd3d1b6ea94edec",
+      "size_bytes": 3208
+    },
+    {
+      "path": "demography.pair.excl",
+      "sha256": "7c1cc897feb02add398e6706906ac22cc8104b7bed37dfa5b7aba0d369b19b56",
+      "size_bytes": 139
+    },
+    {
+      "path": "demography.region.excl",
+      "sha256": "954170a8d3f36f9f157357c0d837fb35b1629cfa1bcb42b0f68e0ff8c7b36435",
+      "size_bytes": 194
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "8124c0e86f1d7b6c156825ecd8e0847f3460f77cc19e736645046363cd874dae",
+      "size_bytes": 4555
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "658c9bbc018653899416aad4e89dd7d481c180e2ae48751038afa72f25e57dc9",
+      "size_bytes": 1092
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "d9854dbfe92336b17dba55a9473e8c757e275704d90c74e7b54c6a6d6c67ddac",
+      "size_bytes": 231
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "d7e0ca3abec018a9ad3cb9a3ede4873fde752448daeafb1162c6dd7f094c7bf9",
+      "size_bytes": 1057
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "a15319dafabdeafbb9cf26569996fb8354aa725453c8e87103e5c23650b96671",
+      "size_bytes": 928
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "6b171e096217da4c8f4c81af3721d3549df064935bd9c1061076f592087ae414",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "6a5a810b315ab7e0afce3e00d5bfb695b0c5786b1593643ad2e817abe84ad0e5",
+      "size_bytes": 1044
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "105499d5b3d13ac9ebfdc809e19a5131c479f858675262a98303b0c4ff56d43a",
+      "size_bytes": 18
+    }
+  ],
+  "source_result": "results/container-validation/ibdne/run-1053",
+  "tool": "ibdne",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "12260fa625aece67b2119e2c88248062c6f5cc2753dbe811df3479236d4b1308",
+      "size_bytes": 2586
+    },
+    "evidence.json": {
+      "sha256": "8124c0e86f1d7b6c156825ecd8e0847f3460f77cc19e736645046363cd874dae",
+      "size_bytes": 4555
+    },
+    "slurm-accounting.json": {
+      "sha256": "a15319dafabdeafbb9cf26569996fb8354aa725453c8e87103e5c23650b96671",
+      "size_bytes": 928
+    }
+  }
+}
