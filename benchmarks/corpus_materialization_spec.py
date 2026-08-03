@@ -199,11 +199,18 @@ def write_specification(
     output: Path,
     jobs: int,
 ) -> None:
+    repository = repository.resolve()
+    contract_modules = repository / "containers" / "contracts"
+    sys.path.insert(0, str(repository))
+    sys.path.insert(0, str(contract_modules))
     try:
         from containers.contracts.container_validation import load_governance
         import yaml
     except ImportError as exc:
         raise SpecificationError("PyYAML and container governance are required") from exc
+    finally:
+        sys.path.remove(str(contract_modules))
+        sys.path.remove(str(repository))
     governance = load_governance(governance_path)
     pipeline, credentials, slurm = build_specification(
         governance, plan_path, repository, frozen_repository, output, jobs
