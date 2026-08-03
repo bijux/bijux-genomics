@@ -114,10 +114,21 @@ def validate_registry(
             "corpus_catalog_ids",
             "reference_catalog_ids",
             "database_catalog_ids",
+            "input_size_keys",
             "scientific_metrics",
             "limitations",
         ):
             require_text_list(campaign, key)
+        if any(
+            re.fullmatch(r"[a-z][a-z0-9_]*_input_bytes", key) is None
+            for key in campaign["input_size_keys"]
+        ):
+            raise RegistryError(
+                "benchmark input_size_keys must name governed byte-count fields"
+            )
+        result_artifact = require_text(campaign, "result_artifact")
+        if re.fullmatch(r"[a-z0-9][a-z0-9._-]*", result_artifact) is None:
+            raise RegistryError("benchmark result_artifact must be a safe filename")
         performance_metrics = set(require_text_list(campaign, "performance_metrics"))
         if not REQUIRED_PERFORMANCE_METRICS.issubset(performance_metrics):
             raise RegistryError(
@@ -145,6 +156,7 @@ def validate_registry(
         require_text(campaign, "scientific_question")
         require_text(campaign, "comparison_scope")
         require_text(campaign, "accuracy_claim")
+        require_text(campaign, "interpretation")
         validated.append(campaign)
     return validated
 

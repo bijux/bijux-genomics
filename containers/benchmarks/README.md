@@ -6,9 +6,12 @@ raw outputs or pretend that fixture timing is scientific evidence.
 [`campaigns.toml`](campaigns.toml) assigns the stable `run-2001+` campaign
 identities. Every campaign names its governed corpus, reference, helper
 databases, complete retained-tool set, cache policy, repetitions, scientific
-question, quality metrics, resource metrics, and limitations. The validator
-derives each complete tool set from the canonical container catalog; omitting a
-retained tool makes the campaign invalid.
+question, interpretation, quality metrics, resource metrics, repeated result
+artifact, measured input-size fields, and limitations. These declarations keep
+the evidence validator stage-neutral: a coverage campaign cannot silently
+inherit genotyping outputs or claims. The validator derives each complete tool
+set from the canonical container catalog; omitting a retained tool makes the
+campaign invalid.
 
 Validate the definitions and render the honest coverage report:
 

@@ -93,6 +93,7 @@ class BenchmarkEvidenceTests(unittest.TestCase):
                 "corpus_catalog_ids": ["corpus"],
                 "reference_catalog_ids": ["reference"],
                 "database_catalog_ids": ["database"],
+                "result_artifact": "genotypes.tsv",
             },
             "tools": [
                 {
@@ -114,7 +115,10 @@ class BenchmarkEvidenceTests(unittest.TestCase):
                         )
                     },
                     "scientific_observations": {"covered_sites": [21, 21, 21]},
-                    "determinism": {"genotype_table_sha256": "c" * 64},
+                    "determinism": {
+                        "artifact": "genotypes.tsv",
+                        "sha256": "c" * 64,
+                    },
                 }
             ],
             "limitations": ["No sample-level truth genotype is available."],

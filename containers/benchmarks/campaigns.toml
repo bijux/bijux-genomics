@@ -14,6 +14,8 @@ database_catalog_ids = [
   "ensembl-113-equcab3-refseq-known-sites-10mb",
   "ensembl-113-equcab3-refseq-genotyping-inputs-10mb",
 ]
+input_size_keys = ["bam_input_bytes", "reference_input_bytes", "database_input_bytes"]
+result_artifact = "genotypes.tsv"
 runtime = "apptainer"
 scheduler = "slurm"
 container_only = true
@@ -23,6 +25,7 @@ measured_repetitions = 3
 cache_policy = "warm"
 result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
 accuracy_claim = "candidate_site_recovery_not_genotype_truth"
+interpretation = "This execution establishes reproducible candidate-site genotyping and resource use for the retained tool set. It does not establish genotype accuracy because no sample-level truth genotype is available."
 performance_metrics = [
   "wall_seconds",
   "cpu_seconds",

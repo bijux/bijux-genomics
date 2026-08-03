@@ -186,7 +186,7 @@ def tool_report(
     for key, expected in expected_context.items():
         if context.get(key) != expected:
             raise BenchmarkEvidenceError(f"{tool} benchmark context disagrees on {key}")
-    input_keys = ("bam_input_bytes", "reference_input_bytes", "database_input_bytes")
+    input_keys = campaign["input_size_keys"]
     if any(
         not isinstance(context.get(key), int) or context[key] <= 0 for key in input_keys
     ):
@@ -194,7 +194,7 @@ def tool_report(
 
     resources: list[dict[str, float]] = []
     science: list[dict[str, Any]] = []
-    genotype_digests: list[str] = []
+    result_digests: list[str] = []
     for repetition in range(1, measured + 1):
         root = result_root / "outputs/repetitions"
         resources.append(read_resources(root / f"repetition-{repetition}.resource.tsv"))
@@ -215,12 +215,12 @@ def tool_report(
                 f"{tool} repetition {repetition} contains invalid science metrics"
             )
         science.append(metrics)
-        genotype_digests.append(
-            sha256_file(root / f"repetition-{repetition}.genotypes.tsv")
+        result_digests.append(
+            sha256_file(root / f"repetition-{repetition}.{campaign['result_artifact']}")
         )
-    if len(set(genotype_digests)) != 1:
+    if len(set(result_digests)) != 1:
         raise BenchmarkEvidenceError(
-            f"{tool} genotype tables differ across repetitions"
+            f"{tool} result artifacts differ across repetitions"
         )
 
     wall = [row["wall_seconds"] for row in resources]
@@ -270,9 +270,9 @@ def tool_report(
         "source_evidence_sha256": sha256_file(evidence_path),
         "input_locks": input_locks,
         "input_bytes": {
-            "bam": context["bam_input_bytes"],
-            "reference": context["reference_input_bytes"],
-            "database": context["database_input_bytes"],
+            key.removesuffix("_input_bytes"): context[key] for key in input_keys
+        }
+        | {
             "total": sum(context[key] for key in input_keys),
         },
         "performance": {
@@ -283,7 +283,8 @@ def tool_report(
         },
         "scientific_observations": scientific_observations,
         "determinism": {
-            "genotype_table_sha256": genotype_digests[0],
+            "artifact": campaign["result_artifact"],
+            "sha256": result_digests[0],
             "identical_across_repetitions": True,
         },
     }
@@ -331,14 +332,12 @@ def create_report(
             "corpus_catalog_ids": campaign["corpus_catalog_ids"],
             "reference_catalog_ids": campaign["reference_catalog_ids"],
             "database_catalog_ids": campaign["database_catalog_ids"],
+            "input_size_keys": campaign["input_size_keys"],
+            "result_artifact": campaign["result_artifact"],
         },
         "tools": tools,
         "limitations": campaign["limitations"],
-        "interpretation": (
-            "This execution establishes reproducible candidate-site genotyping and "
-            "resource use for the retained tool set. It does not establish genotype "
-            "accuracy because no sample-level truth genotype is available."
-        ),
+        "interpretation": campaign["interpretation"],
     }
 
 
@@ -369,6 +368,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Corpus: {', '.join(f'`{item}`' for item in design['corpus_catalog_ids'])}",
         f"- Reference: {', '.join(f'`{item}`' for item in design['reference_catalog_ids'])}",
         f"- Databases: {', '.join(f'`{item}`' for item in design['database_catalog_ids'])}",
+        f"- Repeated result artifact: `{design['result_artifact']}`",
         "",
         "## Performance",
         "",
@@ -404,7 +404,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.extend(
             [
                 "",
-                f"The genotype table was byte-identical across all repetitions: `{tool['determinism']['genotype_table_sha256']}`.",
+                f"The `{tool['determinism']['artifact']}` result was byte-identical across all repetitions: `{tool['determinism']['sha256']}`.",
                 "",
                 f"Evidence: Slurm job `{tool['slurm']['job_id']}`, repository `{tool['repository_commit']}`, image `{tool['image']['sha256']}`.",
                 "",

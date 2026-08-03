@@ -43,6 +43,15 @@ class BenchmarkRegistryTests(unittest.TestCase):
         ):
             benchmark_registry.validate_registry(self.registry, self.catalog)
 
+    def test_result_artifact_cannot_escape_a_repetition_directory(self) -> None:
+        self.registry["campaigns"][0]["result_artifact"] = "../result.tsv"
+
+        with self.assertRaisesRegex(
+            benchmark_registry.RegistryError,
+            "result_artifact must be a safe filename",
+        ):
+            benchmark_registry.validate_registry(self.registry, self.catalog)
+
     def test_coverage_does_not_claim_missing_campaigns_are_defined(self) -> None:
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
