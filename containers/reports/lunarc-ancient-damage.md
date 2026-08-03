@@ -1,7 +1,8 @@
 # LUNARC ancient-DNA damage validation
 
 This report records runtime and stage qualification of the ngsBriggs,
-mapDamage 2, and AuthentiCT containers on public ancient-horse run `ERR2112767`
+mapDamage 2, AuthentiCT, and AdDeam containers on public ancient-horse run
+`ERR2112767`
 (`Borly4_PAVH8_4978`, BioSample `SAMEA104233654`) against EquCab3.0. The source
 alignment and reference were admitted by checksum. Every execution used an
 immutable Apptainer image, a clean commit-addressed checkout, a governed output
@@ -27,6 +28,8 @@ from `containers/contracts/sites/lunarc.yml` and archived with each run.
 | expose an acceptance-regex defect | Samtools 1.20 | `run-1090` | `3458076` | failed | 1s | valid SAM was not admitted |
 | materialize the MD-tagged alignment stream | Samtools 1.20 | `run-1092` | `3458078` | passed | 1s | 86,363,583-byte checksummed SAM |
 | measure terminal deamination | AuthentiCT 1.0.0 | `run-1093` | `3458079` | passed | 40s | 7,817-byte deamination table |
+| expose an omitted BAM-index bind | AdDeam 1.0.0 | `run-1095` | `3458116` | failed | 1s | native profiling rejected an inaccessible BAI |
+| generate terminal damage profiles | AdDeam 1.0.0 | `run-1096` | `3458117` | passed | 2s | native 5′ and 3′ substitution profiles for 244,634 mapped records |
 
 The preparation command used `samtools view -b -F 5`: bit `0x1` removes paired
 records and bit `0x4` removes unmapped records. This is an explicit adapter to
@@ -71,6 +74,15 @@ the documented leading version line without weakening any execution check.
 `run-1093` consumed that exact SAM digest with mapping-quality, read-length,
 and base-quality cutoffs of 20, 30, and 20 respectively.
 
+AdDeam's upstream Python driver invoked the native profiler twice and did not
+propagate a failed native exit status. The admitted image applies a reviewed
+source patch that executes each BAM once and raises on failure. That correction
+made `run-1095` expose a missing BAI bind instead of reporting false success.
+The failure remains archived. `run-1096` declares and mounts the checksum-
+admitted BAM, BAI, and one-line BAM list, then executes classic combined-strand
+profiling with mapping quality 20, minimum read length 30, ten terminal
+positions, and a declared convergence configuration.
+
 ## Observed outputs
 
 The admitted result contains:
@@ -93,6 +105,12 @@ derived and total counts plus confidence intervals. The rates at positions
 79/39,844 and 123/37,504 observations respectively. These are recorded
 measurements, not authenticity or contamination acceptance decisions.
 
+The AdDeam result contains the native 5′ and 3′ substitution matrices. The
+terminal combined-strand rates were `C→T (5′) = 0.00806452` and
+`G→A (3′) = 0.00694444` across 244,634 mapped records. These are observed
+profile values under the declared convergence settings, not authenticity or
+damage-detection acceptance decisions.
+
 The terminal rates in this deliberately small admitted slice were
 `C→T (5′) = 0.0` and `G→A (3′) = 0.0`. Those values demonstrate parsing and
 contract closure only. They are not evidence that the sample lacks ancient-DNA
@@ -105,10 +123,11 @@ reproduced those values. Reference merging did not change either rate.
 
 ## Claim boundary
 
-This evidence closes the ngsBriggs, mapDamage, and AuthentiCT runtime and real-stage
-contracts on LUNARC. It verifies immutable inputs, negative-input behavior,
-native output retention, governed projection, independently recalculated
-rates, and Slurm provenance. AuthentiCT's qualified command measures its native
+This evidence closes the ngsBriggs, mapDamage, AuthentiCT, and AdDeam runtime
+and real-stage contracts on LUNARC. It verifies immutable inputs,
+negative-input behavior, native output retention, governed projection,
+independently recalculated rates, and Slurm provenance. AuthentiCT's qualified
+command measures its native
 deamination surface; it does not run `deam2cont` or establish that the source
 library satisfies AuthentiCT's single-stranded-library assumptions. The
 evidence does not establish damage detection sensitivity, ancient-DNA
@@ -119,4 +138,6 @@ The admitted BAM was produced by an external preprocessing pipeline and the
 single-end compatibility slice is small. A scientific claim requires a
 predeclared corpus, positive and negative controls, minimum informative-base
 counts, acceptance thresholds, and comparison with another retained damage
-profiler.
+profiler. AdDeam's qualified command generates native damage matrices; it does
+not establish that its early-convergence settings preserve every feature of a
+full-corpus profile.
