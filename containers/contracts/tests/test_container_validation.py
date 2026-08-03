@@ -513,6 +513,65 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertIn("available_scratch_kib < 1048576", rendered)
         self.assertIn("umask 027", rendered)
 
+    def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            upstream = (
+                root
+                / "study/results/container-validation/run-1999-source"
+            )
+            upstream.mkdir(parents=True)
+            output = upstream / "source.fastq.gz"
+            output.write_bytes(b"governed upstream output")
+            digest = container_validation.sha256_file(output)
+            (upstream / "evidence.json").write_text(
+                json.dumps(
+                    {
+                        "run_id": "run-1999",
+                        "status": "passed",
+                        "runtime": {"slurm_job_id": "3457000"},
+                        "outputs": [{"path": output.name, "sha256": digest}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["data"]["inputs"] = [
+                {
+                    "id": "source_fastq",
+                    "kind": "upstream_result",
+                    "path": str(output),
+                    "mount_path": "/input/source.fastq.gz",
+                    "sha256": digest,
+                }
+            ]
+            pipeline["dependencies"] = [
+                {
+                    "run_id": "run-1999",
+                    "slurm_job_id": "3457000",
+                    "required_outputs": [digest],
+                }
+            ]
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            script = root / "submit.sh"
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+                container_validation.render_slurm(*paths, script)
+                rendered = script.read_text(encoding="utf-8")
+
+        self.assertEqual(contract["dependencies"][0]["run_id"], "run-1999")
+        self.assertRegex(
+            contract["dependencies"][0]["evidence_sha256"],
+            "^[0-9a-f]{64}$",
+        )
+        self.assertNotIn("#SBATCH --dependency", rendered)
+
     def test_accounting_preserves_a_failure_before_executor_startup(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

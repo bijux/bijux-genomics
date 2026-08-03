@@ -62,6 +62,16 @@ def load_yaml(path: Path) -> dict[str, Any]:
     return value
 
 
+def load_json(path: Path) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ContractError(f"cannot read JSON contract {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ContractError(f"JSON contract must be an object: {path}")
+    return value
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -401,6 +411,69 @@ def validate_credentials(config: dict[str, Any]) -> None:
     require_keys(redaction, {"publish_values"}, "credential redaction")
 
 
+def validate_completed_dependencies(
+    dependencies: list[dict[str, Any]],
+    inputs: list[dict[str, Any]],
+    study_root: Path,
+) -> list[dict[str, Any]]:
+    """Bind upstream results to passed immutable evidence before submission."""
+    result_root = (study_root / "results" / "container-validation").resolve()
+    records = []
+    for dependency in dependencies:
+        run_id = dependency["run_id"]
+        required_digests = set(dependency["required_outputs"])
+        matching_inputs = [
+            item
+            for item in inputs
+            if item.get("kind") == "upstream_result"
+            and item.get("sha256") in required_digests
+        ]
+        if {item["sha256"] for item in matching_inputs} != required_digests:
+            raise ContractError(
+                f"dependency {run_id} is not fully represented by upstream-result inputs"
+            )
+        run_directories = set()
+        for item in matching_inputs:
+            relative = resolved(item["path"]).relative_to(result_root)
+            if not relative.parts or not relative.parts[0].startswith(f"{run_id}-"):
+                raise ContractError(
+                    f"dependency {run_id} input is outside its governed result directory"
+                )
+            run_directories.add(result_root / relative.parts[0])
+        if len(run_directories) != 1:
+            raise ContractError(
+                f"dependency {run_id} inputs must share one governed result directory"
+            )
+        upstream_root = run_directories.pop()
+        evidence_path = upstream_root / "evidence.json"
+        evidence = load_json(evidence_path)
+        if evidence.get("run_id") != run_id or evidence.get("status") != "passed":
+            raise ContractError(f"dependency {run_id} lacks passing execution evidence")
+        runtime = evidence.get("runtime")
+        if not isinstance(runtime, dict) or runtime.get("slurm_job_id") != dependency[
+            "slurm_job_id"
+        ]:
+            raise ContractError(
+                f"dependency {run_id} Slurm identity disagrees with evidence"
+            )
+        output_digests = {
+            output.get("sha256")
+            for output in evidence.get("outputs", [])
+            if isinstance(output, dict)
+        }
+        if not required_digests.issubset(output_digests):
+            raise ContractError(f"dependency {run_id} output digest lacks evidence")
+        records.append(
+            {
+                "run_id": run_id,
+                "slurm_job_id": dependency["slurm_job_id"],
+                "required_outputs": sorted(required_digests),
+                "evidence_sha256": sha256_file(evidence_path),
+            }
+        )
+    return records
+
+
 def validate_pipeline(
     config: dict[str, Any],
     governance: dict[str, Any],
@@ -460,13 +533,13 @@ def validate_pipeline(
     if is_current:
         require_utc_timestamp(run, "submitted_at_utc", "run")
 
-    dependency_job_ids: list[str] = []
+    dependencies: list[dict[str, Any]] = []
     if is_current:
-        dependencies = config.get("dependencies")
-        if not isinstance(dependencies, list):
+        declared_dependencies = config.get("dependencies")
+        if not isinstance(declared_dependencies, list):
             raise ContractError("dependencies must be a list")
         dependency_run_ids: set[str] = set()
-        for index, dependency in enumerate(dependencies):
+        for index, dependency in enumerate(declared_dependencies):
             if not isinstance(dependency, dict):
                 raise ContractError(f"dependency {index} must be a mapping")
             require_keys(
@@ -496,7 +569,7 @@ def validate_pipeline(
                         f"dependency {index} output digests must be text"
                     )
                 validate_digest(output_digest, f"dependency {index} output digest")
-            dependency_job_ids.append(job_id)
+            dependencies.append(dependency)
 
     repository = require_mapping(config, "repository")
     require_keys(repository, {"path", "commit", "clean"}, "repository")
@@ -617,6 +690,11 @@ def validate_pipeline(
             raise ContractError(
                 "dependency output digests must exactly match upstream-result inputs"
             )
+        dependencies = validate_completed_dependencies(
+            dependencies,
+            inputs,
+            study_root,
+        )
 
     commands = require_mapping(config, "commands")
     require_keys(commands, {"version", "help", "real", "negative"}, "commands")
@@ -816,7 +894,7 @@ def validate_pipeline(
         "execution": execution,
         "acceptance": acceptance,
         "metrics": metrics,
-        "dependency_job_ids": dependency_job_ids,
+        "dependencies": dependencies,
         "pipeline_schema": schema_version,
         "governance": governance,
     }
@@ -1073,6 +1151,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
             "size_bytes": contract["image_path"].stat().st_size,
         },
         "inputs": contract["inputs"],
+        "dependencies": contract["dependencies"],
         "checks": checks,
         "outputs": output_records,
         "metrics": metric_records,
@@ -1108,13 +1187,6 @@ def render_slurm(
     )
     stdout_path = output_path.parent / "slurm-%j.stdout.log"
     stderr_path = output_path.parent / "slurm-%j.stderr.log"
-    dependency_directive = ""
-    if contract["dependency_job_ids"]:
-        dependency_directive = (
-            "#SBATCH --dependency=afterok:"
-            + ":".join(contract["dependency_job_ids"])
-            + "\n"
-        )
     scratch_preflight = ""
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2:
         required_scratch_kib = resources["scratch_mb"] * 1024
@@ -1149,7 +1221,7 @@ fi
 #SBATCH --time={resources["walltime"]}
 #SBATCH --output={stdout_path}
 #SBATCH --error={stderr_path}
-{dependency_directive}#SBATCH --no-requeue
+#SBATCH --no-requeue
 
 set -euo pipefail
 umask 027
@@ -1302,6 +1374,19 @@ def submit_manifest(
         text=True,
     )
     if submitted.returncode != 0:
+        write_json(
+            submission_root / "submission-failure.json",
+            {
+                "schema_version": "bijux.slurm.submission_failure.v1",
+                "run_id": contract["run_id"],
+                "recorded_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "failure_class": "slurm_submission",
+                "exit_code": submitted.returncode,
+                "stdout": submitted.stdout,
+                "stderr": submitted.stderr,
+                "submit_script_sha256": sha256_file(submit_path),
+            },
+        )
         raise ContractError(f"Slurm submission failed: {submitted.stderr.strip()}")
     job_id = parse_sbatch_job_id(submitted.stdout)
     job_id_path.write_text(job_id + "\n", encoding="utf-8")
@@ -1459,6 +1544,7 @@ def collect_accounting(
                 "size_bytes": contract["image_path"].stat().st_size,
             },
             "inputs": contract["inputs"],
+            "dependencies": contract["dependencies"],
             "checks": {},
             "outputs": [],
             "metrics": [],
