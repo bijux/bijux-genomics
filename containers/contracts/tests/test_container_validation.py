@@ -262,9 +262,10 @@ class CurrentPipelineContractTests(unittest.TestCase):
             "data": {
                 "inputs": [
                     {
-                        "id": "public-corpus-sample",
+                        "id": "public_corpus_sample",
                         "kind": "data",
                         "path": str(input_path),
+                        "mount_path": "/input/public_corpus_sample",
                         "sha256": container_validation.sha256_file(input_path),
                     }
                 ]
@@ -279,6 +280,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 "result_root": str(
                     study / "results" / "container-validation" / "run-2000-tool"
                 ),
+                "mount_path": "/result",
                 "required_files": ["metrics.json"],
                 "collection_rule": "required_files_and_metrics",
             },
@@ -345,6 +347,32 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertEqual(contract["pipeline_schema"], "bijux.container.pipeline.v2")
         self.assertEqual(contract["execution"]["random_seed"], 17)
         self.assertEqual(contract["metrics"][0]["id"], "valid_reads")
+        self.assertEqual(
+            contract["input_binds"][0][1], Path("/input/public_corpus_sample")
+        )
+        self.assertEqual(contract["result_mount_path"], Path("/result"))
+
+    def test_current_contract_rejects_host_paths_as_container_mounts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["data"]["inputs"][0]["mount_path"] = pipeline["data"]["inputs"][0][
+                "path"
+            ]
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "mount_path must equal /input/public_corpus_sample",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
 
     def test_current_contract_refuses_unimplemented_automatic_retries(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

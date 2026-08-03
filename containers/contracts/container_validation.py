@@ -522,8 +522,13 @@ def validate_pipeline(
         if not isinstance(item, dict):
             raise ContractError(f"data input {index} must be a mapping")
         allowed_input_keys = {"id", "kind", "path", "sha256"}
+        if is_current:
+            allowed_input_keys.add("mount_path")
         unknown_input_keys = set(item).difference(allowed_input_keys)
-        missing_input_keys = {"id", "path", "sha256"}.difference(item)
+        required_input_keys = {"id", "path", "sha256"}
+        if is_current:
+            required_input_keys.add("mount_path")
+        missing_input_keys = required_input_keys.difference(item)
         if missing_input_keys:
             raise ContractError(
                 f"data input {index} is missing required fields: {sorted(missing_input_keys)}"
@@ -532,7 +537,9 @@ def validate_pipeline(
             raise ContractError(
                 f"data input {index} contains unknown fields: {sorted(unknown_input_keys)}"
             )
-        require_text(item, "id")
+        input_id = require_text(item, "id")
+        if is_current and re.fullmatch(r"[a-z0-9_]+", input_id) is None:
+            raise ContractError(f"data input {index} id must use lowercase snake case")
         input_kind = item.get("kind", "data")
         if input_kind not in {"data", "reference", "database", "upstream_result"}:
             raise ContractError(
@@ -556,7 +563,16 @@ def validate_pipeline(
             raise ContractError(f"data input digest mismatch: {input_path}")
         if input_kind == "upstream_result":
             upstream_result_digests.add(digest)
-        input_binds.append((input_path, declared_input_path))
+        if is_current:
+            mount_path = Path(require_text(item, "mount_path"))
+            expected_mount_path = Path("/input") / input_id
+            if mount_path != expected_mount_path:
+                raise ContractError(
+                    f"data input {index} mount_path must equal {expected_mount_path}"
+                )
+            input_binds.append((input_path, mount_path))
+        else:
+            input_binds.append((input_path, declared_input_path))
     if is_current:
         dependency_output_digests = {
             digest
@@ -576,7 +592,7 @@ def validate_pipeline(
     outputs = require_mapping(config, "outputs")
     output_fields = {"result_root", "required_files"}
     if is_current:
-        output_fields.add("collection_rule")
+        output_fields.update({"collection_rule", "mount_path"})
     require_keys(outputs, output_fields, "outputs")
     declared_result_root = Path(require_text(outputs, "result_root"))
     if not declared_result_root.is_absolute():
@@ -592,6 +608,11 @@ def validate_pipeline(
         raise ContractError(
             f"outputs.result_root must end with {expected_result_name!r}"
         )
+    result_mount_path = declared_result_root
+    if is_current:
+        result_mount_path = Path(require_text(outputs, "mount_path"))
+        if result_mount_path != Path("/result"):
+            raise ContractError("outputs.mount_path must equal /result")
     required_files = outputs.get("required_files")
     if not isinstance(required_files, list) or any(
         not isinstance(path, str) or not path for path in required_files
@@ -755,6 +776,7 @@ def validate_pipeline(
         "commands": commands,
         "result_root": result_root,
         "declared_result_root": declared_result_root,
+        "result_mount_path": result_mount_path,
         "required_files": required_files,
         "resources": resources,
         "execution": execution,
@@ -914,7 +936,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
     input_binds = [(source, target, "ro") for source, target in contract["input_binds"]]
     binds = [
         *input_binds,
-        (result_root, contract["declared_result_root"], "rw"),
+        (result_root, contract["result_mount_path"], "rw"),
     ]
     checks: dict[str, dict[str, Any]] = {}
     for name in ("version", "help", "real", "negative"):

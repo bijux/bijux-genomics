@@ -62,11 +62,12 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["id", "path", "sha256"],
+            "required": ["id", "path", "mount_path", "sha256"],
             "properties": {
               "id": {"type": "string", "minLength": 1},
               "kind": {"enum": ["data", "reference", "database", "upstream_result"]},
               "path": {"type": "string", "minLength": 1},
+              "mount_path": {"type": "string", "pattern": "^/input/[a-z0-9_]+$"},
               "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
             },
             "additionalProperties": false
@@ -88,9 +89,10 @@
     },
     "outputs": {
       "type": "object",
-      "required": ["result_root", "required_files", "collection_rule"],
+      "required": ["result_root", "mount_path", "required_files", "collection_rule"],
       "properties": {
         "result_root": {"type": "string", "minLength": 1},
+        "mount_path": {"const": "/result"},
         "required_files": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/relative_path"}},
         "collection_rule": {"const": "required_files_and_metrics"}
       },
