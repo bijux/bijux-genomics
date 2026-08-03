@@ -265,6 +265,17 @@ def write_text(path: Path, content: str) -> None:
     temporary.replace(path)
 
 
+def require_current(path: Path, expected: str) -> None:
+    try:
+        actual = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise QualificationError(f"cannot read generated report {path}: {exc}") from exc
+    if actual != expected:
+        raise QualificationError(
+            f"generated report is stale: {path}; rerun qualification_report.py"
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--catalog", type=Path, required=True)
@@ -273,12 +284,25 @@ def main() -> int:
     parser.add_argument("--runs", type=Path, required=True)
     parser.add_argument("--json-output", type=Path, required=True)
     parser.add_argument("--markdown-output", type=Path, required=True)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail when the existing outputs differ instead of rewriting them",
+    )
     args = parser.parse_args()
     try:
         report = derive_report(args.catalog, args.inventory, args.runtime, args.runs)
-        write_text(args.json_output, json.dumps(report, indent=2, sort_keys=True) + "\n")
-        write_text(args.markdown_output, render_markdown(report))
-        print(f"qualified {report['summary']['tool_count']} container tools")
+        json_content = json.dumps(report, indent=2, sort_keys=True) + "\n"
+        markdown_content = render_markdown(report)
+        if args.check:
+            require_current(args.json_output, json_content)
+            require_current(args.markdown_output, markdown_content)
+            action = "verified"
+        else:
+            write_text(args.json_output, json_content)
+            write_text(args.markdown_output, markdown_content)
+            action = "qualified"
+        print(f"{action} {report['summary']['tool_count']} container tools")
         return 0
     except QualificationError as exc:
         print(f"container qualification failed: {exc}", file=sys.stderr)

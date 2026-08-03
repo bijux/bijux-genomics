@@ -74,6 +74,17 @@ class QualificationReportTests(unittest.TestCase):
         self.assertEqual(tool["qualification"], "unverified")
         self.assertEqual(report["summary"]["qualification"], {"unverified": 1})
 
+    def test_generated_report_check_rejects_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "qualification.md"
+            report.write_text("current\n", encoding="utf-8")
+
+            qualification.require_current(report, "current\n")
+            with self.assertRaisesRegex(
+                qualification.QualificationError, "generated report is stale"
+            ):
+                qualification.require_current(report, "expected\n")
+
 
 if __name__ == "__main__":
     unittest.main()
