@@ -373,6 +373,10 @@ class CurrentPipelineContractTests(unittest.TestCase):
             contract["input_binds"][0][1], Path("/input/public-corpus-sample.fastq.gz")
         )
         self.assertEqual(contract["result_mount_path"], Path("/result"))
+        self.assertEqual(
+            container_validation.tool_output_root(contract),
+            contract["result_root"] / "outputs",
+        )
 
     def test_current_contract_rejects_host_paths_as_container_mounts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

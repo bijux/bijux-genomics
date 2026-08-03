@@ -1042,6 +1042,14 @@ def load_json_document(path: Path) -> Any:
         raise ContractError(f"metric source is not valid JSON: {path}: {exc}") from exc
 
 
+def tool_output_root(contract: dict[str, Any]) -> Path:
+    """Keep current tool writes below immutable run-governance evidence."""
+    result_root: Path = contract["result_root"]
+    if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2:
+        return result_root / "outputs"
+    return result_root
+
+
 def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -> int:
     contract = validate_contracts(governance_path, pipeline_path, credential_path)
     started_at = dt.datetime.now(dt.timezone.utc)
@@ -1049,6 +1057,8 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
     if result_root.exists():
         raise ContractError(f"refusing to overwrite run result root: {result_root}")
     result_root.mkdir(parents=True, mode=0o750)
+    output_root = tool_output_root(contract)
+    output_root.mkdir(mode=0o750)
     (result_root / "config-governance.yml").write_bytes(governance_path.read_bytes())
     (result_root / "config-pipeline.yml").write_bytes(pipeline_path.read_bytes())
     (result_root / "config-credential.yml").write_bytes(credential_path.read_bytes())
@@ -1067,7 +1077,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
         raise ContractError(f"Slurm scratch directory does not exist: {scratch_path}")
     binds = [
         *input_binds,
-        (result_root, contract["result_mount_path"], "rw"),
+        (output_root, contract["result_mount_path"], "rw"),
         (scratch_path, Path("/scratch"), "rw"),
     ]
     checks: dict[str, dict[str, Any]] = {}
@@ -1109,19 +1119,20 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
 
     output_records = []
     for relative in contract["required_files"]:
-        output = result_root / relative
+        output = output_root / relative
         if not output.is_file() or output.stat().st_size == 0:
             failures.append(f"required output is absent or empty: {relative}")
             continue
+        evidence_path = output.relative_to(result_root).as_posix()
         output_records.append(
             {
-                "path": relative,
+                "path": evidence_path,
                 "size_bytes": output.stat().st_size,
                 "sha256": sha256_file(output),
             }
         )
 
-    metric_records, metric_failures = evaluate_metrics(result_root, contract["metrics"])
+    metric_records, metric_failures = evaluate_metrics(output_root, contract["metrics"])
     failures.extend(metric_failures)
 
     evidence = {
