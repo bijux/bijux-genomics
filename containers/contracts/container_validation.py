@@ -1225,6 +1225,18 @@ def manifest_contract_paths(
     return governance_path, pipeline_path, credential_path
 
 
+def archived_contract_paths(
+    governance_path: Path,
+    pipeline_path: Path,
+    credential_path: Path,
+) -> tuple[tuple[Path, str], ...]:
+    return (
+        (governance_path, "config-governance.yml"),
+        (pipeline_path, "config-pipeline.yml"),
+        (credential_path, "config-credential.yml"),
+    )
+
+
 def submit_manifest(
     manifest_path: Path,
     governance_override: Path | None = None,
@@ -1258,11 +1270,15 @@ def submit_manifest(
                 f"refusing to overwrite an existing submission record: {submission_root}"
             )
         submission_root.mkdir(parents=True, mode=0o750)
-        for source in (governance_path, pipeline_path, credential_path):
-            (submission_root / source.name).write_bytes(source.read_bytes())
-        governance_path = submission_root / governance_path.name
-        pipeline_path = submission_root / pipeline_path.name
-        credential_path = submission_root / credential_path.name
+        for source, archived_name in archived_contract_paths(
+            governance_path,
+            pipeline_path,
+            credential_path,
+        ):
+            (submission_root / archived_name).write_bytes(source.read_bytes())
+        governance_path = submission_root / "config-governance.yml"
+        pipeline_path = submission_root / "config-pipeline.yml"
+        credential_path = submission_root / "config-credential.yml"
     submit_path = submission_root / "submit.sh"
     job_id_path = submission_root / "slurm-job-id.txt"
     if submit_path.exists() or job_id_path.exists():
@@ -1350,8 +1366,11 @@ def collect_accounting(
             f"Slurm job {job_id} is not terminal: {sorted(active_states)}"
         )
     result_root: Path = contract["result_root"]
-    if not result_root.is_dir():
-        raise ContractError(f"run result root does not exist: {result_root}")
+    result_root_existed = result_root.is_dir()
+    if result_root.exists() and not result_root_existed:
+        raise ContractError(f"run result root is not a directory: {result_root}")
+    if not result_root_existed:
+        result_root.mkdir(parents=True, mode=0o750)
     accounting_path = result_root / "slurm-accounting.json"
     if accounting_path.exists():
         raise ContractError(
@@ -1369,9 +1388,96 @@ def collect_accounting(
         "pipeline_sha256": sha256_file(pipeline_path),
         "credential_reference_sha256": sha256_file(credential_path),
     }
-    write_json(accounting_path, record)
     (result_root / "submit.sh").write_bytes(submit_path.read_bytes())
     (result_root / "slurm-job-id.txt").write_text(job_id + "\n", encoding="utf-8")
+    for source, archived_name in archived_contract_paths(
+        governance_path,
+        pipeline_path,
+        credential_path,
+    ):
+        archived = result_root / archived_name
+        if not archived.exists():
+            archived.write_bytes(source.read_bytes())
+    evidence_path = result_root / "evidence.json"
+    if not evidence_path.exists():
+        primary_row = next(
+            (row for row in rows if row["JobID"] == job_id),
+            rows[0],
+        )
+        scheduler_logs = []
+        for stream in ("stdout", "stderr"):
+            source = submission_root / f"slurm-{job_id}.{stream}.log"
+            if not source.is_file():
+                continue
+            destination = result_root / source.name
+            destination.write_bytes(source.read_bytes())
+            scheduler_logs.append(
+                {
+                    "path": destination.name,
+                    "size_bytes": destination.stat().st_size,
+                    "sha256": sha256_file(destination),
+                }
+            )
+        state = primary_row["State"].split("+", 1)[0]
+        failure_class = (
+            "execution_evidence_missing"
+            if result_root_existed
+            else "slurm_pre_execution"
+        )
+        failure = (
+            f"Slurm job ended in {state} with exit code {primary_row['ExitCode']} "
+            + (
+                "without completing execution evidence"
+                if result_root_existed
+                else "before the executor created the run result"
+            )
+        )
+        evidence = {
+            "schema_version": (
+                EVIDENCE_SCHEMA_V2
+                if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2
+                else EVIDENCE_SCHEMA_V1
+            ),
+            "pipeline_schema_version": contract["pipeline_schema"],
+            "run_id": contract["run_id"],
+            "status": "failed",
+            "failure_class": failure_class,
+            "failures": [failure],
+            "repository_commit": contract["repository_commit"],
+            "repository_path": str(contract["repository_path"]),
+            "repository_clean": True,
+            "governance_sha256": sha256_file(governance_path),
+            "site": {
+                "id": contract["governance"]["site_id"],
+                "host": contract["governance"]["hostname"],
+            },
+            "pipeline_sha256": sha256_file(pipeline_path),
+            "credential_reference_sha256": sha256_file(credential_path),
+            "image": {
+                "path": str(contract["image_path"]),
+                "sha256": contract["image_sha256"],
+                "size_bytes": contract["image_path"].stat().st_size,
+            },
+            "inputs": contract["inputs"],
+            "checks": {},
+            "outputs": [],
+            "metrics": [],
+            "execution": contract["execution"],
+            "runtime": {
+                "host": "",
+                "slurm_job_id": job_id,
+                "cpus": primary_row["AllocCPUS"],
+                "started_at_utc": "",
+                "finished_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "apptainer_version": "",
+                "scratch_path": "",
+                "scheduler_state": state,
+                "scheduler_exit_code": primary_row["ExitCode"],
+            },
+            "scheduler_logs": scheduler_logs,
+        }
+        write_json(evidence_path, evidence)
+    write_json(accounting_path, record)
     return accounting_path
 
 

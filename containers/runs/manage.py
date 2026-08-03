@@ -19,6 +19,7 @@ TRACKED_RUN = re.compile(r"(run-[1-9][0-9]{3,})-([a-z0-9_]+)")
 LOCK_SCHEMA = "bijux.container.run_evidence_lock.v1"
 INDEX_SCHEMA = "bijux.container.run_evidence_index.v1"
 COPIED_EVIDENCE = (
+    "config-governance.yml",
     "config-pipeline.yml",
     "config-credential.yml",
     "evidence.json",

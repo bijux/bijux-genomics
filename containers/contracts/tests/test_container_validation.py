@@ -513,6 +513,90 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertIn("available_scratch_kib < 1048576", rendered)
         self.assertIn("umask 027", rendered)
 
+    def test_accounting_preserves_a_failure_before_executor_startup(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            manifest = paths[1].parent
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+            submission = container_validation.operational_submission_root(
+                manifest,
+                contract,
+            )
+            submission.mkdir(parents=True)
+            (submission / "submit.sh").write_text("#!/bin/bash\nexit 1\n")
+            (submission / "slurm-job-id.txt").write_text("3458665\n")
+            (submission / "slurm-3458665.stderr.log").write_text(
+                "scratch preflight failed\n"
+            )
+            fields = [
+                "3458665",
+                "fastq-validate-tool-sample",
+                "FAILED",
+                "1:0",
+                "00:00:00",
+                "0",
+                "2",
+                "1024M",
+                "",
+                "",
+                "00:00:00",
+                "0",
+                "cn001",
+            ]
+            accounting = subprocess.CompletedProcess(
+                ["sacct"],
+                0,
+                stdout="|".join(fields) + "\n",
+                stderr="",
+            )
+            real_run = subprocess.run
+
+            def run_command(
+                argv: list[str],
+                **kwargs: object,
+            ) -> subprocess.CompletedProcess[str]:
+                if argv[0] == "sacct":
+                    return accounting
+                return real_run(argv, **kwargs)
+
+            with (
+                mock.patch.object(
+                    container_validation.socket,
+                    "gethostname",
+                    return_value="worker-7",
+                ),
+                mock.patch.object(
+                    container_validation.subprocess,
+                    "run",
+                    side_effect=run_command,
+                ),
+            ):
+                accounting_path = container_validation.collect_accounting(
+                    manifest,
+                    paths[0],
+                )
+
+            result = root / "study/results/container-validation/run-2000-tool"
+            evidence = json.loads((result / "evidence.json").read_text())
+            governance_archived = (result / "config-governance.yml").is_file()
+
+        self.assertEqual(accounting_path.name, "slurm-accounting.json")
+        self.assertEqual(evidence["status"], "failed")
+        self.assertEqual(evidence["failure_class"], "slurm_pre_execution")
+        self.assertEqual(evidence["checks"], {})
+        self.assertEqual(evidence["outputs"], [])
+        self.assertEqual(evidence["metrics"], [])
+        self.assertEqual(evidence["runtime"]["scheduler_state"], "FAILED")
+        self.assertTrue(governance_archived)
+        self.assertEqual(
+            evidence["scheduler_logs"][0]["path"],
+            "slurm-3458665.stderr.log",
+        )
+
 
 class BuildAdmissionTests(unittest.TestCase):
     def test_immutable_name_carries_runtime_and_content_identity(self) -> None:
