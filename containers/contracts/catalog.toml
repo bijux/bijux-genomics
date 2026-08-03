@@ -965,14 +965,14 @@ real_test_input_kind = "fastq"
 [[tools]]
 id = "fastx_clipper"
 display_name = "FASTX Clipper"
-purpose = "Provides trimmer execution for governed genomics stages."
+purpose = "Clips declared adapter sequences from FASTA or FASTQ reads."
 version = "0.0.14"
 support_disposition = "retained"
 qualification = "unverified"
 upstream = "https://github.com/agordon/fastx_toolkit"
 documentation = "https://github.com/agordon/fastx_toolkit"
-license = "GPL-3.0"
-source_sha256 = ""
+license = "AGPL-3.0-or-later"
+source_sha256 = "9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806"
 pinned_commit = "105a189a102d66d246bd618f07af2b861916272c"
 domains = ["fastq"]
 stage_ids = ["fastq.trim_reads"]

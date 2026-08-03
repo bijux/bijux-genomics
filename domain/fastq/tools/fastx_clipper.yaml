@@ -5,8 +5,8 @@ versioning_strategy: pinned
 pin_strategy: pinned
 default_version: 0.0.14
 install_kind: container
-license: GPL-3.0
-citation: software:http://hannonlab.cshl.edu/fastx_toolkit/
+license: AGPL-3.0-or-later
+citation: software:https://github.com/agordon/fastx_toolkit/tree/0.0.14
 container:
   image: bijuxdna/fastx_clipper
 outputs:
