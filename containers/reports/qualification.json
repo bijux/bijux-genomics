@@ -22,7 +22,7 @@
     "dimension_passes": {
       "benchmark": 0,
       "build": 87,
-      "catalog": 87,
+      "catalog": 83,
       "freshness": 87,
       "real_data": 48,
       "release": 0,
@@ -144,7 +144,7 @@
       "dimensions": {
         "benchmark": "missing",
         "build": "passed",
-        "catalog": "passed",
+        "catalog": "missing",
         "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
@@ -157,6 +157,7 @@
       "id": "angsd",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
+        "catalog",
         "science",
         "benchmark",
         "security",
@@ -1054,7 +1055,7 @@
       "dimensions": {
         "benchmark": "missing",
         "build": "passed",
-        "catalog": "passed",
+        "catalog": "missing",
         "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
@@ -1067,6 +1068,7 @@
       "id": "fastq_screen",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
+        "catalog",
         "stage",
         "real_data",
         "science",
@@ -1146,7 +1148,7 @@
       "version": "0.1.1"
     },
     {
-      "declared_real_test_stage": "fastq.validate_reads",
+      "declared_real_test_stage": "fastq.remove_duplicates",
       "dimensions": {
         "benchmark": "not_applicable",
         "build": "not_applicable",
@@ -1465,7 +1467,7 @@
       "version": "r1206"
     },
     {
-      "declared_real_test_stage": "vcf.ibd",
+      "declared_real_test_stage": "vcf.imputation_metrics",
       "dimensions": {
         "benchmark": "not_applicable",
         "build": "not_applicable",
@@ -1722,7 +1724,7 @@
       "dimensions": {
         "benchmark": "missing",
         "build": "passed",
-        "catalog": "passed",
+        "catalog": "missing",
         "freshness": "passed",
         "real_data": "missing",
         "release": "missing",
@@ -1735,6 +1737,7 @@
       "id": "metaphlan",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
+        "catalog",
         "stage",
         "real_data",
         "science",
@@ -1884,7 +1887,7 @@
       "dimensions": {
         "benchmark": "missing",
         "build": "passed",
-        "catalog": "passed",
+        "catalog": "missing",
         "freshness": "passed",
         "real_data": "passed",
         "release": "missing",
@@ -1897,6 +1900,7 @@
       "id": "ngsbriggs",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
+        "catalog",
         "science",
         "benchmark",
         "security",

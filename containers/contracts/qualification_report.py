@@ -79,6 +79,19 @@ def source_identity_is_resolved(tool: dict[str, Any]) -> bool:
     )
 
 
+def catalog_identity_is_resolved(tool: dict[str, Any]) -> bool:
+    """Return whether public catalog identity and licensing are release-auditable."""
+    license_id = str(tool.get("license", ""))
+    return (
+        bool(str(tool.get("id", "")))
+        and bool(str(tool.get("version", "")))
+        and str(tool.get("upstream", "")).startswith("https://")
+        and str(tool.get("documentation", "")).startswith("https://")
+        and bool(str(tool.get("real_test_stage", "")))
+        and license_id not in {"", "NOASSERTION"}
+    )
+
+
 def derive_report(
     catalog_path: Path,
     inventory_path: Path,
@@ -114,6 +127,7 @@ def derive_report(
     for tool in catalog["tools"]:
         tool_id = str(tool["id"])
         disposition = str(tool["support_disposition"])
+        declared_stage = str(tool.get("real_test_stage", ""))
         if disposition != "retained":
             dimensions = {name: "not_applicable" for name in DIMENSIONS}
             qualification = "unsupported"
@@ -122,7 +136,6 @@ def derive_report(
             image = inventory_tools.get(tool_id, {})
             runtime_record = runtime_tools.get(tool_id, {})
             attempts = run_records.get(tool_id, [])
-            declared_stage = str(tool.get("real_test_stage", ""))
             stage_attempts = [
                 record
                 for record in attempts
@@ -142,13 +155,16 @@ def derive_report(
                 }
             )
             science_passed = any(
-                record.get("scientific_status") == "passed" for record in attempts
+                record.get("scientific_status") == "passed"
+                for record in stage_attempts
             )
             evidence_commit_agrees = (
                 inventory.get("repository_commit") == runtime.get("repository_commit")
             )
             dimensions = {
-                "catalog": "passed",
+                "catalog": (
+                    "passed" if catalog_identity_is_resolved(tool) else "missing"
+                ),
                 "source": (
                     "passed" if source_identity_is_resolved(tool) else "missing"
                 ),
