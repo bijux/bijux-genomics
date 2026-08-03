@@ -1,0 +1,361 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-afd592cf021b.sif",
+    "sha256": "afd592cf021b3c42f71e6f1c305638218a7107e791c2779cb7e4bb232545dc3f",
+    "size_bytes": 135204864
+  },
+  "repository_commit": "703dd600386cd668f4f75726a523a4e113034da7",
+  "run_id": "run-1030",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457679",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "9a385f3fbddbb8cb398c3be147c6edd47ae26552c3c2cececd51f46293106472",
+      "size_bytes": 1981
+    },
+    {
+      "path": "css/agogo.css",
+      "sha256": "62bda9274bbb8a76aa99544d98f47fb11dd27fac40ec617d1d7214a502894499",
+      "size_bytes": 7130
+    },
+    {
+      "path": "css/ajax-loader.gif",
+      "sha256": "5d045fd991ddf2b208dd9bf39a591f50e6ec793416e2867f54e8c6c7e89b68c2",
+      "size_bytes": 673
+    },
+    {
+      "path": "css/basic.css",
+      "sha256": "6027946d6cab21fa748e64d5cfa4f4973f0232b1b9f3956c5841efe78d69eb2e",
+      "size_bytes": 8461
+    },
+    {
+      "path": "css/bgfooter.png",
+      "sha256": "388e9180fd24aed3637e5063af72aeb6c1361f62625dfe7d4cdf1b574becaedf",
+      "size_bytes": 434
+    },
+    {
+      "path": "css/bgtop.png",
+      "sha256": "ad20cd15dc8e99bb6e23e2030780ab62d1a1e3f1df9217b929047cfd154f2e84",
+      "size_bytes": 430
+    },
+    {
+      "path": "css/comment-bright.png",
+      "sha256": "fbf050c2a28e6cee57d0cc9611371951519946dd4997fe16f22e5645034ba9ab",
+      "size_bytes": 3500
+    },
+    {
+      "path": "css/comment-close.png",
+      "sha256": "3ea320043e367d66516cb66f175a015c64199b44af409b83d91209019ee9c530",
+      "size_bytes": 3578
+    },
+    {
+      "path": "css/comment.png",
+      "sha256": "d3eb24bb509cbc6bc987d9ee2df98dab9150931aafe02046f040dd042764e605",
+      "size_bytes": 3445
+    },
+    {
+      "path": "css/doctools.js",
+      "sha256": "8b9faeae765ee1e9afa8145ba4695652b2c4eebdaf698bc74f779e56e7f56415",
+      "size_bytes": 6840
+    },
+    {
+      "path": "css/down-pressed.png",
+      "sha256": "0e6472317b0dbe74a73361c7cb16681c63747fd9203b2e244861ff543bdf6ba2",
+      "size_bytes": 368
+    },
+    {
+      "path": "css/down.png",
+      "sha256": "6ba01d176cbd96888354284a0c9dbe24543b81f8c47a64e940bb5490c7f413cb",
+      "size_bytes": 363
+    },
+    {
+      "path": "css/file.png",
+      "sha256": "1834b8fc8c98c09f88cb2264011c3ef917fe651f2678721384c0aae346dfb062",
+      "size_bytes": 392
+    },
+    {
+      "path": "css/jquery.js",
+      "sha256": "e23a2a4e2d7c2b41ebcdd8ffc0679df7140eb7f52e1eebabf827a88182643c59",
+      "size_bytes": 72174
+    },
+    {
+      "path": "css/minus.png",
+      "sha256": "141ae2a6288687b83d817f7fc0daef577e43d1410871f2f9fd1ceff0af825faa",
+      "size_bytes": 199
+    },
+    {
+      "path": "css/plus.png",
+      "sha256": "55fcc0d9d9d52070dae60f646ec56c0dd111be1c13459b06470c7ff5b6f2fbf7",
+      "size_bytes": 199
+    },
+    {
+      "path": "css/pygments.css",
+      "sha256": "9a34b97c69412d94ce88fa6f43b208ab09e58166a2c9d798aaa769dff02083cd",
+      "size_bytes": 3932
+    },
+    {
+      "path": "css/qualimap_logo_small.png",
+      "sha256": "69f7dd2c4fd18734c90841718ff1af4fe925c6f9e934c54fd086861f17be5505",
+      "size_bytes": 2922
+    },
+    {
+      "path": "css/report.css",
+      "sha256": "c5600ddca3008a0018c131f31f2382ca936f92ad0aa0c3e5fc67e4943bfaac78",
+      "size_bytes": 608
+    },
+    {
+      "path": "css/searchtools.js",
+      "sha256": "a7469788210da2c5ee8583b28f7aeafb8a5a7c56137d2b9e2a9bec8a8f690d45",
+      "size_bytes": 16043
+    },
+    {
+      "path": "css/underscore.js",
+      "sha256": "d5e0c52ccd3aee99f6562c12f8e261bb97c44795bafc4fe9bca29961d6843547",
+      "size_bytes": 8574
+    },
+    {
+      "path": "css/up-pressed.png",
+      "sha256": "c8f4ce1c60d51b25fcf8317e1371b3fbbed3262199366d90abdd4df9d39a658e",
+      "size_bytes": 372
+    },
+    {
+      "path": "css/up.png",
+      "sha256": "36946056f97cc557c78918d50b635167168d5252523e61668746f3a64d1139c3",
+      "size_bytes": 363
+    },
+    {
+      "path": "css/websupport.js",
+      "sha256": "9a8a2f3ed9471f795195fe3340ff3263223f851a9a584637d30663d8ec7e13ed",
+      "size_bytes": 25246
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "9dfcfe082f6d3f9336001166dad137dd72466ef3d153be2977e1071ace1e83b1",
+      "size_bytes": 3685
+    },
+    {
+      "path": "genome_results.txt",
+      "sha256": "169f9d6b0e02cb679764512568606cf8df3801c05014e9af48ac3743fe0bf043",
+      "size_bytes": 160819
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "246f0b5e334963fa2389ae8f69f3ce51c5a6d811db4a34eaac5b2ddfefb34ee7",
+      "size_bytes": 90
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "47b74c269c4e91dfd90f4eda6e4c7e67f490ace54f122039efd5349600ead567",
+      "size_bytes": 726
+    },
+    {
+      "path": "images_qualimapReport/genome_coverage_0to50_histogram.png",
+      "sha256": "ab7c66d55b33d709879264a3c897030d9009da758cb7937ee8b6d6aa799d4f64",
+      "size_bytes": 42339
+    },
+    {
+      "path": "images_qualimapReport/genome_coverage_across_reference.png",
+      "sha256": "35b3333d4921b3012cb95346edb8078c65c99e15e67aaca5395906c4c7dafab8",
+      "size_bytes": 280725
+    },
+    {
+      "path": "images_qualimapReport/genome_coverage_histogram.png",
+      "sha256": "b557ee16e4bfbd9432413be4a6802121390bf4d6556beed605f920252891a002",
+      "size_bytes": 50412
+    },
+    {
+      "path": "images_qualimapReport/genome_coverage_quotes.png",
+      "sha256": "b135bd411c64c19b2ed03683c5fc29fdc1a673053eaaed7f69acd4a80281f382",
+      "size_bytes": 44715
+    },
+    {
+      "path": "images_qualimapReport/genome_gc_content_per_window.png",
+      "sha256": "1b3e1f30be4ae66d1852df73ee2a30b76dd74922611d29f7e772137beaea99ed",
+      "size_bytes": 49710
+    },
+    {
+      "path": "images_qualimapReport/genome_homopolymer_indels.png",
+      "sha256": "d3dd68b2f1c58c7aa956a96bfc1571798e8d4ac4e369fad16493257ae35f85fb",
+      "size_bytes": 24718
+    },
+    {
+      "path": "images_qualimapReport/genome_insert_size_across_reference.png",
+      "sha256": "53a6d699631cafcaafe12ed3d5495006fa714cd27dce02b25acc47eb669378f5",
+      "size_bytes": 79335
+    },
+    {
+      "path": "images_qualimapReport/genome_insert_size_histogram.png",
+      "sha256": "28d3416eeac81e450ea3cac3c92d67677b7dab1b09c903f8f736d7a4094785df",
+      "size_bytes": 50048
+    },
+    {
+      "path": "images_qualimapReport/genome_mapping_quality_across_reference.png",
+      "sha256": "ae6625c09be0c8a7cf806d36674fd828e4c1ce1151c5d7bc1986ab0f6d60011f",
+      "size_bytes": 98331
+    },
+    {
+      "path": "images_qualimapReport/genome_mapping_quality_histogram.png",
+      "sha256": "3559b7c27e84b7d9adff2840035f26ccd333032cbc34a64fbd6cf6c06a7e3433",
+      "size_bytes": 46040
+    },
+    {
+      "path": "images_qualimapReport/genome_reads_clipping_profile.png",
+      "sha256": "4d56341703237f095d1d0efc2a1efab9041ef5e6b6f62dada30982ce522fa32f",
+      "size_bytes": 42066
+    },
+    {
+      "path": "images_qualimapReport/genome_reads_content_per_read_position.png",
+      "sha256": "10acb76ad93dec2dade95530517a4be14fd90ffbabf54693b335ca5466269df6",
+      "size_bytes": 48910
+    },
+    {
+      "path": "images_qualimapReport/genome_uniq_read_starts_histogram.png",
+      "sha256": "39efa3db70e7a7a2d4b371050b81534bf58e40ad2a4c5fd4c4f525bd1ebe9c04",
+      "size_bytes": 39263
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "246f0b5e334963fa2389ae8f69f3ce51c5a6d811db4a34eaac5b2ddfefb34ee7",
+      "size_bytes": 90
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "41f361f639270be51386274ce9f152b81e31c595161ce75720ac8b4d862bb8c0",
+      "size_bytes": 3699
+    },
+    {
+      "path": "qualimapReport.html",
+      "sha256": "26e17ccb68b046f02b131132b868d28e914b266d1eeae255c7fde136da81a48f",
+      "size_bytes": 891256
+    },
+    {
+      "path": "raw_data_qualimapReport/coverage_across_reference.txt",
+      "sha256": "5cffd3195e3a59a91ba67132205d3c0ae37d44166f545f6103e4827d2ca5172a",
+      "size_bytes": 134978
+    },
+    {
+      "path": "raw_data_qualimapReport/coverage_histogram.txt",
+      "sha256": "69ca66f1ed42eb0d0f12cbb902d49d2e32d0c36483f247cf381c84495cbe7cd7",
+      "size_bytes": 337
+    },
+    {
+      "path": "raw_data_qualimapReport/duplication_rate_histogram.txt",
+      "sha256": "4fa2fd7b474283a29d4dedff23a0d577c20f92ed72ca115a032183f108c5a126",
+      "size_bytes": 479
+    },
+    {
+      "path": "raw_data_qualimapReport/genome_fraction_coverage.txt",
+      "sha256": "427f7360c30648428598e12497a8d2884166fba1b497319aba5be71a1e09a9c0",
+      "size_bytes": 857
+    },
+    {
+      "path": "raw_data_qualimapReport/homopolymer_indels.txt",
+      "sha256": "d7b77d970d28e0aca97a25bc637515ebb93eee593d22bfc3e4e355fad2a59d25",
+      "size_bytes": 94
+    },
+    {
+      "path": "raw_data_qualimapReport/insert_size_across_reference.txt",
+      "sha256": "cfc29ca5269189b26d33880f7f04bea278561721efdea0127750ea02fc1278e8",
+      "size_bytes": 94284
+    },
+    {
+      "path": "raw_data_qualimapReport/insert_size_histogram.txt",
+      "sha256": "bd203f6d38e208a6ac7cb9de97e5cc2327b1fab2ec3ec1ead5b26c6e88f1f00d",
+      "size_bytes": 4715
+    },
+    {
+      "path": "raw_data_qualimapReport/mapped_reads_clipping_profile.txt",
+      "sha256": "3479b10beb5058f44b6e3963e69416c476c8d22ac372113333435e4d54505a28",
+      "size_bytes": 2367
+    },
+    {
+      "path": "raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
+      "sha256": "c7a03840c6051130ca7064b6229a267008df1c26d33d1bc46d8a91884c374a9c",
+      "size_bytes": 1855
+    },
+    {
+      "path": "raw_data_qualimapReport/mapped_reads_nucleotide_content.txt",
+      "sha256": "759568439b09f1729c25043a07759d76204166632316821e1ebae61ee9b73906",
+      "size_bytes": 9668
+    },
+    {
+      "path": "raw_data_qualimapReport/mapping_quality_across_reference.txt",
+      "sha256": "e7e18354b42c2f2c8e4015b873808564a94321aab6bb788f89633a1cc0983e2d",
+      "size_bytes": 96954
+    },
+    {
+      "path": "raw_data_qualimapReport/mapping_quality_histogram.txt",
+      "sha256": "72503508e23f9aae5fcafe5049439ca963b90b34bfccaaf676a994e106fe826c",
+      "size_bytes": 755
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "246f0b5e334963fa2389ae8f69f3ce51c5a6d811db4a34eaac5b2ddfefb34ee7",
+      "size_bytes": 90
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "a391da0fc291e84e14a67b589469dfbd623cb88f5a3ce110db30a780af04c58c",
+      "size_bytes": 1434
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "5482885f20e7e92aa1d9cc8ea09b2733b3f8f57891f27c1df4d4b74a15b4a8eb",
+      "size_bytes": 929
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "1b2ed9ec17b54e48d177c036c819ce4304d5e43740e6845a5b729d0695c8fb22",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "118116e4515c09170e31ffe89ec94d363e1e8d2aacb2a034d972d5ca580917d3",
+      "size_bytes": 1029
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "022804d19c8fe566dc00dca4721c1eadf6ed71164d647a2e77493ac87c4fe3a6",
+      "size_bytes": 4
+    }
+  ],
+  "source_result": "results/container-validation/qualimap/run-1030",
+  "tool": "qualimap",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "9a385f3fbddbb8cb398c3be147c6edd47ae26552c3c2cececd51f46293106472",
+      "size_bytes": 1981
+    },
+    "evidence.json": {
+      "sha256": "9dfcfe082f6d3f9336001166dad137dd72466ef3d153be2977e1071ace1e83b1",
+      "size_bytes": 3685
+    },
+    "slurm-accounting.json": {
+      "sha256": "5482885f20e7e92aa1d9cc8ea09b2733b3f8f57891f27c1df4d4b74a15b4a8eb",
+      "size_bytes": 929
+    }
+  }
+}

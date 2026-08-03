@@ -1,0 +1,116 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/seqfu-1.26.0-linux-amd64-5ff9145d6996.sif",
+    "sha256": "5ff9145d6996eb9f2b38c8d896f77f676d51640cc736f76293984fec8a7a7f76",
+    "size_bytes": 37580800
+  },
+  "repository_commit": "ca54ce7ccd10601fe5feceabdb2834493ecb44cd",
+  "run_id": "run-1031",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457689",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "57f0cb0c44e03237292f86ef2fae43402899e2a1b1059c544b4527e803f07b7f",
+      "size_bytes": 2074
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "e5fede7978c0c0c7e7a2d397af8d0ead60a687ed3611a5bd53859b0e7431745f",
+      "size_bytes": 3580
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "303749447ab68a869e869fb8e8813bfe14ad7e10185415a234abd6dfb5b270cc",
+      "size_bytes": 1932
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "1e22f259afec7990cc8575d42c3afe6aa37b407ba7406d4bcda4900680487c0e",
+      "size_bytes": 130
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "aaadc29559186aee53c981a1c19c19a9d2a0b6d856c4e8a7a0798580def29d1c",
+      "size_bytes": 932
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "35d2624aabd687323035b6e21e4fbf68256dfa3bcddf9740d5a066ceddd19276",
+      "size_bytes": 8
+    },
+    {
+      "path": "stats.json",
+      "sha256": "1bc7a78f5c375d131266b9fa40470e4554f9f5990b44bb64c9a9a2c67380b8ce",
+      "size_bytes": 603
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "09656714f71b873b561e5ca4bf5912e429dee696ed81d413e9f382b87ab92d77",
+      "size_bytes": 1048
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "acef448c3973160e815171b20f8788735d99b01e7bf551b3619bbde1ae1db7a8",
+      "size_bytes": 7
+    }
+  ],
+  "source_result": "results/container-validation/seqfu/run-1031",
+  "tool": "seqfu",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "57f0cb0c44e03237292f86ef2fae43402899e2a1b1059c544b4527e803f07b7f",
+      "size_bytes": 2074
+    },
+    "evidence.json": {
+      "sha256": "e5fede7978c0c0c7e7a2d397af8d0ead60a687ed3611a5bd53859b0e7431745f",
+      "size_bytes": 3580
+    },
+    "slurm-accounting.json": {
+      "sha256": "aaadc29559186aee53c981a1c19c19a9d2a0b6d856c4e8a7a0798580def29d1c",
+      "size_bytes": 932
+    }
+  }
+}

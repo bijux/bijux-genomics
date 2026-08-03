@@ -1,0 +1,123 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "real one-sample command failed"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-ccf357b5a38d.sif",
+    "sha256": "ccf357b5a38da71b3ab17ab98e59dd1108c18843fdf3a9b28f796bcfb1257054",
+    "size_bytes": 134848512
+  },
+  "repository_commit": "d5592224389e4a41282c88b39afdb12ce1703988",
+  "run_id": "run-1029",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457664",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "b6a48f5d5138a90afadfc913668baa862a4145c73aa2ccd2bc5e447d40018102",
+      "size_bytes": 1981
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "22fcaaeca3940ab6a9db2e84663499f428af3e259e7be8d29216debe69704a9b",
+      "size_bytes": 3743
+    },
+    {
+      "path": "genome_results.txt",
+      "sha256": "1c7175aab2e8d715253dd8d7bd3089e354d6daa19532d702aa6fd71a4729a3c8",
+      "size_bytes": 160819
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "246f0b5e334963fa2389ae8f69f3ce51c5a6d811db4a34eaac5b2ddfefb34ee7",
+      "size_bytes": 90
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "47b74c269c4e91dfd90f4eda6e4c7e67f490ace54f122039efd5349600ead567",
+      "size_bytes": 726
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "246f0b5e334963fa2389ae8f69f3ce51c5a6d811db4a34eaac5b2ddfefb34ee7",
+      "size_bytes": 90
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "41f361f639270be51386274ce9f152b81e31c595161ce75720ac8b4d862bb8c0",
+      "size_bytes": 3699
+    },
+    {
+      "path": "qualimapReport.html",
+      "sha256": "78c97db480bbcb0e0b89bc73ee1a2609fa01fa4fcda3a8484f1f245a6204620c",
+      "size_bytes": 891256
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "da7ca65ca99c88b412802993d305c5536cffe6d7315c9df9da90383eea61f978",
+      "size_bytes": 3340
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "0984ab5669a6fa7de9ee27662f15b3d19659cbbf6a86a34e8b77e83b6379fdba",
+      "size_bytes": 1391
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "82cfd1102fc866f807a4d4e1b68d5522dd0479d8dede6ff850aaf17070c2f786",
+      "size_bytes": 926
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "46d84740687138082e2993841a394ebd3cc034c24db7ca64248e027b9d969416",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "d4339ec9c2966b5f10d35dc86f91bf3203468bacd162498fa45d86104ab3c000",
+      "size_bytes": 1059
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "022804d19c8fe566dc00dca4721c1eadf6ed71164d647a2e77493ac87c4fe3a6",
+      "size_bytes": 4
+    }
+  ],
+  "source_result": "results/container-validation/qualimap/run-1029",
+  "tool": "qualimap",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "b6a48f5d5138a90afadfc913668baa862a4145c73aa2ccd2bc5e447d40018102",
+      "size_bytes": 1981
+    },
+    "evidence.json": {
+      "sha256": "22fcaaeca3940ab6a9db2e84663499f428af3e259e7be8d29216debe69704a9b",
+      "size_bytes": 3743
+    },
+    "slurm-accounting.json": {
+      "sha256": "82cfd1102fc866f807a4d4e1b68d5522dd0479d8dede6ff850aaf17070c2f786",
+      "size_bytes": 926
+    }
+  }
+}
