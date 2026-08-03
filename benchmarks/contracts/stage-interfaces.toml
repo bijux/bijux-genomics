@@ -1,6 +1,54 @@
 schema_version = "bijux.benchmark.stage_interfaces.v1"
 
 [[interfaces]]
+stage_id = "fastq.profile_read_lengths"
+accepted_input_contracts = [
+  "bijux.fastq.artifact.single_end.v1",
+  "bijux.fastq.artifact.paired_end.v1",
+]
+output_contract = "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json"
+parameter_schema_version = "bijux.fastq.params.read_length_profile.v1"
+default_provider = "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+planner_contract = "benchmarks/contracts/planner/fastq-profile-read-lengths.planner-contract.json"
+operator_override_keys = ["threads", "histogram_bins"]
+input_derived_parameters = ["paired_mode"]
+immutable_parameters = ["schema_version"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["seqfu", "seqkit"]
+provenance_sources = [
+  "domain/fastq/stages/profile_read_lengths.yaml",
+  "domain/fastq/execution_support.yaml",
+  "crates/bijux-dna-domain-fastq/src/params/quality/stats.rs",
+  "crates/bijux-dna-domain-fastq/src/params/defaults/profiling.rs",
+  "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/profile_read_lengths.rs",
+  "crates/bijux-dna-api/src/internal/fastq/stages/profile_read_lengths.rs",
+]
+
+[interfaces.adapters]
+seqfu = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths"
+seqkit = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths"
+
+[interfaces.parameter_projections.seqfu]
+threads = "scheduler allocation; SeqFu tabulate is single-stream"
+histogram_bins = "shared normalizer"
+
+[interfaces.parameter_projections.seqkit]
+threads = "seqkit fx2tab --threads"
+histogram_bins = "shared normalizer"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.fastq.profile_read_lengths.compare"
+input_contract = "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+source = "benchmarks/execution/fastq_read_lengths.awk"
+assertions = [
+  "every retained backend emits record_id<TAB>length without tool-specific downstream parsing",
+  "every backend observation set exactly matches the independently decoded FASTQ truth rows",
+  "every normalized bundle satisfies one result schema and preserves a deterministic histogram artifact",
+]
+
+[[interfaces]]
 stage_id = "fastq.profile_reads"
 accepted_input_contracts = [
   "bijux.fastq.artifact.single_end.v1",

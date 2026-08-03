@@ -200,6 +200,70 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2042"
+slug = "fastq-profile-read-lengths"
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+evidence_tier = "comparative"
+profile_id = "fastq-observational-qc"
+corpus_ids = ["human-short-read-diversity"]
+scientific_question = "Do both exact read-length backends recover every independently decoded per-record length across the complete real human short-read diversity cohort, and what resources does each implementation consume?"
+comparison_scope = "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end libraries"
+tool_ids = ["seqfu", "seqkit"]
+corpus_catalog_ids = ["human-short-read-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["fastq_input_bytes"]
+result_artifact = "read-lengths.json"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads_by_tool = { seqfu = 1, seqkit = 4 }
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "exact_per_record_length_concordance_with_independent_fastq_decode"
+interpretation = "Exact row agreement with an independent FASTQ decoder establishes record coverage and read-length correctness for this cohort. It does not assess read transformation, biological representativeness, or every valid FASTQ encoding."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+  "throughput_reads_per_second",
+]
+scientific_metrics = [
+  "file_count",
+  "read_count",
+  "minimum_read_length",
+  "mean_read_length",
+  "median_read_length",
+  "maximum_read_length",
+  "distinct_read_lengths",
+  "histogram_sha256",
+]
+comparison_metrics = [
+  {id = "file_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "read_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "minimum_read_length", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "mean_read_length", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "median_read_length", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "maximum_read_length", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "distinct_read_lengths", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+]
+limitations = [
+  "The cohort is curated for workload diversity and is not population-representative.",
+  "The independent truth surface validates lengths and record closure but not sequence identity beyond the preserved record identifiers.",
+  "Warm-cache repetitions characterize stable parsing after one warmup and do not measure cold shared-filesystem startup.",
+  "SeqFu tabulate is single-stream; its one-CPU allocation is intentional and recorded rather than falsely projecting the shared thread override into unsupported backend flags.",
+]
+
+[[campaigns]]
 run_id = "run-2043"
 slug = "fastq-profile-reads"
 domain = "fastq"
