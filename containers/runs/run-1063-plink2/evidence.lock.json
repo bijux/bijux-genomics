@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/plink2-2.00a6-linux-amd64-ec2c69253b84.sif",
+    "sha256": "ec2c69253b8417d63472eca31c46e7dab082767752725a47296cad598337d645",
+    "size_bytes": 43601920
+  },
+  "repository_commit": "7950bde13673acbf12afd252b278ed185234274c",
+  "run_id": "run-1063",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457946",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "b6d8a7d166ca95f5643991be340848ed35cbebacc2502297e3761405eff1d5f0",
+      "size_bytes": 2038
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "5f76fbc09392ef7ba0b447a66e3ee6aa5ff09df51245932cb71cee82a055aef2",
+      "size_bytes": 3544
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "5e9d2516da44570e078bc977ef6defbe49cc57168052f5e5a99cb10cef3716ce",
+      "size_bytes": 133434
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "1f012050247fd0fcaf437de2bdc02445e2feb21b2850f21e947c90f7d5222738",
+      "size_bytes": 165
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "9f8fd8314d3bc14e43e3927c0b1a9c9aa10491ccc4d0ea1a8080d7b85b75bbcb",
+      "size_bytes": 158
+    },
+    {
+      "path": "plink2.afreq",
+      "sha256": "b30fdaa5cf4f171a0b39df7848b2de6174cb75a98a6f55d0211c5bb1cc02e103",
+      "size_bytes": 651851
+    },
+    {
+      "path": "plink2.log",
+      "sha256": "2f223b27ab47e685ffb6446ed26c1d06145345a75635f92a59011dc3bc346093",
+      "size_bytes": 1531
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e93b343797546bb902ce8da3f4d3bffc5c6bc12b2dfb3f56ffbf773c97111939",
+      "size_bytes": 34954
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "c050b610a45964d9da8f1a2f9e981420bd711851a05e38c889bc155b5ada5127",
+      "size_bytes": 932
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "119ad32e12acf17bb3418b73c17a6d5dc76a4241b9be4f4012f5b155f1fb81e1",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "c2d0e377a1d607fa5c139032d0d15177370ce722bec17c0a3dd0c392fd66c66e",
+      "size_bytes": 1018
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "0679d2acd0a4dae53b308efd08d8a801f35ea064f6bb1c50df59c0a81e47437e",
+      "size_bytes": 33
+    }
+  ],
+  "source_result": "results/container-validation/plink2/run-1063",
+  "tool": "plink2",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "b6d8a7d166ca95f5643991be340848ed35cbebacc2502297e3761405eff1d5f0",
+      "size_bytes": 2038
+    },
+    "evidence.json": {
+      "sha256": "5f76fbc09392ef7ba0b447a66e3ee6aa5ff09df51245932cb71cee82a055aef2",
+      "size_bytes": 3544
+    },
+    "slurm-accounting.json": {
+      "sha256": "c050b610a45964d9da8f1a2f9e981420bd711851a05e38c889bc155b5ada5127",
+      "size_bytes": 932
+    }
+  }
+}
