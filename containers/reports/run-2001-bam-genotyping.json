@@ -1,0 +1,193 @@
+{
+  "accuracy_claim": "candidate_site_recovery_not_genotype_truth",
+  "comparison_scope": "candidate-site genotyping on one governed 10 Mb EquCab3 interval",
+  "design": {
+    "cache_policy": "warm",
+    "container_only": true,
+    "corpus_catalog_ids": [
+      "ena-prjeb22390-err2112767-bam"
+    ],
+    "database_catalog_ids": [
+      "ensembl-113-equcab3-refseq-known-sites-10mb",
+      "ensembl-113-equcab3-refseq-genotyping-inputs-10mb"
+    ],
+    "measured_repetitions": 3,
+    "reference_catalog_ids": [
+      "equcab3-gcf-002863925.1"
+    ],
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "threads": 4,
+    "tool_closure": [
+      "bcftools"
+    ],
+    "warmup_repetitions": 1
+  },
+  "interpretation": "This execution establishes reproducible candidate-site genotyping and resource use for the retained tool set. It does not establish genotype accuracy because no sample-level truth genotype is available.",
+  "limitations": [
+    "The Ensembl panel is independent candidate-site evidence but is not a sample-level genotype truth set.",
+    "The first 10 Mb of chromosome 1 is a qualification interval, not a genome-wide accuracy estimate.",
+    "Warm-cache repetitions measure stable tool execution after one unmeasured warmup; they do not estimate cold filesystem startup cost."
+  ],
+  "run_id": "run-2001",
+  "schema_version": "bijux.container.stage_benchmark_report.v1",
+  "scientific_question": "How reliably and efficiently does each retained BAM genotyping tool recover independently catalogued EquCab3 candidate sites from a real low-coverage ancient horse alignment?",
+  "stage_id": "bam.genotyping",
+  "tools": [
+    {
+      "determinism": {
+        "genotype_table_sha256": "0f6907c7b606b91ad4ddf2cac410577f7a38aadfc2be16a5d88c0a285f234761",
+        "identical_across_repetitions": true
+      },
+      "image": {
+        "name": "bcftools-1.20-linux-amd64-408eeb428a48.sif",
+        "sha256": "408eeb428a48286e9f8160571db10e4cb1b519fea336983a41e7bcab4551e761",
+        "size_bytes": 63156224
+      },
+      "input_bytes": {
+        "bam": 23312078,
+        "database": 1301430,
+        "reference": 2538992441,
+        "total": 2563605949
+      },
+      "input_locks": [
+        {
+          "id": "err2112767_bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "err2112767_bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "err2112767_catalog",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.catalog.json",
+          "sha256": "2e30dda04f4f1b3e44e97973d007420347a6cdc7f01b1637307ec8f9368ca6ff"
+        },
+        {
+          "id": "equcab3_reference",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna",
+          "sha256": "3a60f0b912bad2d78d76add5eb93fc08cb2ad52e4afdb9181046c219671809b6"
+        },
+        {
+          "id": "equcab3_reference_index",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna.fai",
+          "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+        },
+        {
+          "id": "equcab3_reference_catalog",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.catalog.json",
+          "sha256": "f26f2abf91cc718eef7f82bbf41c2417cbc9200c8a82ab61f3d51eec5358ff7f"
+        },
+        {
+          "id": "ensembl_113_known_sites",
+          "kind": "database",
+          "mount_path": "/input/known-sites.vcf.gz",
+          "sha256": "82347b2f251d35daa712f9af722ca4c6b1a45ff7095219744ed3b20f3cbddf68"
+        },
+        {
+          "id": "ensembl_113_known_sites_index",
+          "kind": "database",
+          "mount_path": "/input/known-sites.vcf.gz.csi",
+          "sha256": "c147a0f08d43f96e743350208368a98659e8e2c8c3d0fe847ccbfbf002d19466"
+        },
+        {
+          "id": "ensembl_113_known_sites_regions",
+          "kind": "database",
+          "mount_path": "/input/known-sites.bed",
+          "sha256": "5b7d66827570d4a3d40c5dcff82e903bde5acd58c3f7adde56fe73885fcbde72"
+        },
+        {
+          "id": "ensembl_113_known_sites_alleles",
+          "kind": "database",
+          "mount_path": "/input/known-sites.alleles.tsv",
+          "sha256": "529fccd7a2a9beb7f2f41340f6a4806063d5bb785379e066ae5540e4743b08ff"
+        },
+        {
+          "id": "ensembl_113_known_sites_catalog",
+          "kind": "database",
+          "mount_path": "/input/known-sites.catalog.json",
+          "sha256": "3e1d7f5b7739b70a7ad4f3171041bdc270d62e1484db0611a9f002bd140e0be3"
+        },
+        {
+          "id": "ensembl_113_genotyping_inputs_catalog",
+          "kind": "database",
+          "mount_path": "/input/genotyping-inputs.catalog.json",
+          "sha256": "8a79b4c395541b245afcf1dcdb03de7e4e11790a85e75cf8fd09c69bd5462dd4"
+        }
+      ],
+      "performance": {
+        "cpu_seconds": {
+          "maximum": 8.03,
+          "mean": 8.013333,
+          "minimum": 8.0,
+          "sample_standard_deviation": 0.015275
+        },
+        "output_bytes": {
+          "maximum": 577470.0,
+          "mean": 577469.333333,
+          "minimum": 577469.0,
+          "sample_standard_deviation": 0.57735
+        },
+        "peak_rss_kib": {
+          "maximum": 958688.0,
+          "mean": 956965.333333,
+          "minimum": 955424.0,
+          "sample_standard_deviation": 1639.538146
+        },
+        "wall_seconds": {
+          "maximum": 7.77,
+          "mean": 7.75,
+          "minimum": 7.72,
+          "sample_standard_deviation": 0.026458
+        }
+      },
+      "repository_commit": "1e1c136988a2932b77537786fdc759a193149149",
+      "scientific_observations": {
+        "alternate_genotypes": [
+          3,
+          3,
+          3
+        ],
+        "called_genotypes": [
+          21,
+          21,
+          21
+        ],
+        "covered_sites": [
+          21,
+          21,
+          21
+        ],
+        "mean_depth_at_covered_sites": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "total_records": [
+          139907,
+          139907,
+          139907
+        ]
+      },
+      "slurm": {
+        "allocated_cpus": "4",
+        "elapsed": "00:00:45",
+        "host": "cn284",
+        "job_id": "3459734"
+      },
+      "source_evidence_sha256": "f3864fcae9ac8e9f1474168480e38d8640d7146a301ca39e3c3d245ea805b7e1",
+      "tool": "bcftools",
+      "verdict": "passed"
+    }
+  ],
+  "verdict": "passed"
+}
