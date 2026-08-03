@@ -18,6 +18,7 @@ root.
 | read-length profiling | SeqKit Stats 2.8.2 | `run-1072` | `3458025` | 1s | independently reproduced statistics table |
 | FASTQ-to-FASTA conversion | Seqtk 1.4 | `run-1073` | `3458026` | 1s | 16,023,606-byte FASTA stream |
 | FASTQ structural validation | fastQValidator 0.1.1 | `run-1077` | `3458062` | 1s | validator success report |
+| FASTQ read profiling | FASTQ Scan 1.0.1 | `run-1118` | `3458168` | 1s | JSON read-length and quality distributions for 100,000 reads |
 | read-quality and adapter profiling | FastQC 0.12.1 | `run-1076` | `3458057` | 4s | HTML report plus machine-readable archive |
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read adapter trimming | Atropos 1.1.31 | `run-1098` | `3458119` | 7s | two digest-pinned trimmed FASTQ streams |
@@ -69,8 +70,18 @@ threshold was applied to those observations. FastQC likewise produced its full
 quality and adapter report; individual module statuses remain observations
 rather than governed pass/fail criteria. fastQValidator accepted the complete
 FASTQ stream structurally; this is format evidence, not evidence that the reads
-are biologically suitable for a downstream analysis. FLASH2 produced merged
-reads from the governed pair, but overlap correctness and agreement with
+are biologically suitable for a downstream analysis. FASTQ Scan consumed all
+100,000 first-mate reads through its governed gzip adapter and emitted valid
+JSON with 9,686,172 total bases, mean read length 96.862, and mean quality
+36.221. The container passed exact version, help, missing-input, output, and
+Slurm-accounting checks without runtime network access. Its current domain
+binding names `fastq.profile_overrepresented_sequences`, but native FASTQ Scan
+does not count sequence identities or report enrichment. This evidence is
+therefore deliberately limited to read-length, quality, and readable-input
+profiling; it does not support an overrepresented-sequence claim. That binding
+must be corrected independently rather than using a successful runtime as
+scientific evidence for an output the tool does not produce. FLASH2 produced
+merged reads from the governed pair, but overlap correctness and agreement with
 another merger have not been assessed. Skewer exercised its default adapter
 contract on the full read stream; retained-read and adapter-removal thresholds
 have not yet been declared or assessed. AlienTrimmer consumed both digest-pinned
