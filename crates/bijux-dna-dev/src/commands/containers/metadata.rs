@@ -8,12 +8,12 @@ use super::*;
 type SummaryStatus = (BTreeMap<String, String>, BTreeMap<String, String>, BTreeMap<String, String>);
 
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
-    let statuses = governed_container_statuses(workspace)?;
+    let support = catalog_container_support(workspace)?;
     let mut out = String::from(
-        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><status>\n",
+        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><support_disposition>\n",
     );
-    for (tool_id, status) in statuses {
-        let _ = writeln!(out, "{tool_id}\t{status}");
+    for (tool_id, (disposition, _)) in support {
+        let _ = writeln!(out, "{tool_id}\t{disposition}");
     }
     Ok(out)
 }
@@ -68,7 +68,7 @@ pub(super) fn check_tool_id_manifest(workspace: &Workspace) -> Result<ContainerC
 
 fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
     let rows = registry_tool_map(workspace)?;
-    let statuses = governed_container_statuses(workspace)?;
+    let support = catalog_container_support(workspace)?;
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-name-map -->".to_string(),
@@ -82,14 +82,17 @@ fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         "- Tool docs index: [containers/docs/tools/index.md](tools/index.md)".to_string(),
         String::new(),
-        "| Tool ID | Expected Binary | Status |".to_string(),
-        "|---|---|---|".to_string(),
+        "| Tool ID | Expected Binary | Support disposition | Qualification |".to_string(),
+        "|---|---|---|---|".to_string(),
     ];
-    for (tool_id, status) in statuses {
+    for (tool_id, (disposition, qualification)) in support {
         let row = rows.get(&tool_id).cloned().unwrap_or_default();
         let expected_bin =
             row.get("expected_bin").and_then(toml::Value::as_str).unwrap_or(&tool_id);
-        lines.push(format!("| `{tool_id}` | `{}` | `{status}` |", expected_bin.trim()));
+        lines.push(format!(
+            "| `{tool_id}` | `{}` | `{disposition}` | `{qualification}` |",
+            expected_bin.trim()
+        ));
     }
     Ok(format!("{}\n", lines.join("\n")))
 }
@@ -242,19 +245,19 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "## Authority".to_string(),
         "- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
         "- Immutable admitted images: [image inventory](../reports/image-inventory.md).".to_string(),
-        "- Planner registry labels: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); these labels describe planner compatibility, not production qualification.".to_string(),
+        "- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.".to_string(),
         "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
         "- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
         String::new(),
-        "## Planner compatibility surface".to_string(),
+        "## Container implementation surface".to_string(),
         String::new(),
-        "This compatibility table is retained for workflow planning and build-matrix".to_string(),
-        "validation. Its `status` column is not a production or scientific claim; use the".to_string(),
-        "catalog and evidence reports above for those decisions.".to_string(),
+        "This table identifies retained and unsupported container implementations.".to_string(),
+        "Disposition is not production qualification; use the evidence reports above".to_string(),
+        "for scientific or release decisions.".to_string(),
         String::new(),
-        "| tool_id | status | apptainer_source | docker_source |".to_string(),
+        "| tool_id | disposition | apptainer_source | docker_source |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
     for (tool_id, status, ap_src, docker_src) in rows {

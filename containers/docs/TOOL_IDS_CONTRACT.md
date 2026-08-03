@@ -1,6 +1,7 @@
 # Tool ID Contract
 
-Purpose: Define the strict format and lifecycle contract for `containers/TOOL_IDS.txt`.
+Purpose: Define the strict identity and support-disposition contract for
+`containers/TOOL_IDS.txt`.
 
 Authority surfaces:
 - [../README.md](../README.md)
@@ -12,14 +13,19 @@ Authority surfaces:
 - Header lines are required:
   - `# GENERATED FILE - DO NOT EDIT`
   - `# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids`
-  - `# format: <tool_id><TAB><status>`
-- Data rows must be exactly `<tool_id>\t<status>`.
+  - `# format: <tool_id><TAB><support_disposition>`
+- Data rows must be exactly `<tool_id>\t<support_disposition>`.
 
 ## Naming Rules
 - `tool_id` must match `^[a-z][a-z0-9_]*$`.
 - `tool_id` values are unique within the file.
-- `status` must be one of `production`, `experimental`, `planned`.
+- `support_disposition` must be one of `retained`, `unsupported`, `retired`,
+  or `excluded`.
+- Disposition answers whether Bijux Genomics ships the implementation. It is
+  not a production claim. Qualification remains evidence-derived in
+  [qualification.md](../reports/qualification.md).
 
 ## Authority
-- `containers/TOOL_IDS.txt` is authoritative for allowed container filename IDs.
+- The canonical catalog generates `containers/TOOL_IDS.txt`; the manifest is
+  the compact filename-ID boundary consumed by validation commands.
 - Container defs and Dockerfiles must not introduce tool IDs absent from this file.

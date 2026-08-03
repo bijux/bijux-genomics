@@ -157,6 +157,28 @@ pub(super) fn governed_container_statuses(
     Ok(statuses)
 }
 
+pub(super) fn catalog_container_support(
+    workspace: &Workspace,
+) -> Result<BTreeMap<String, (String, String)>> {
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let mut support = BTreeMap::new();
+    for row in catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+    {
+        let tool_id = table_string(row, "id");
+        let disposition = table_string(row, "support_disposition");
+        let qualification = table_string(row, "qualification");
+        if !tool_id.is_empty() {
+            support.insert(tool_id, (disposition, qualification));
+        }
+    }
+    Ok(support)
+}
+
 pub(super) fn is_non_bijux_apptainer_source(workspace: &Workspace, tool_id: &str) -> bool {
     let apptainer = workspace.path(&format!("containers/apptainer/{tool_id}.def"));
     (apptainer.exists()

@@ -661,10 +661,10 @@ pub(in super::super) fn check_tool_id_contract(
     let required_headers = [
         "# GENERATED FILE - DO NOT EDIT",
         "# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids",
-        "# format: <tool_id><TAB><status>",
+        "# format: <tool_id><TAB><support_disposition>",
     ];
     let allowed_status =
-        ["production", "experimental", "planned"].into_iter().collect::<BTreeSet<_>>();
+        ["retained", "unsupported", "retired", "excluded"].into_iter().collect::<BTreeSet<_>>();
     let tool_re = Regex::new(r"^[a-z][a-z0-9_]*$")?;
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
@@ -702,15 +702,15 @@ pub(in super::super) fn check_tool_id_contract(
     for (tool_id, status) in status_by_id {
         let ap_count = usize::from(apptainer_ids.contains(&tool_id));
         let docker_count = usize::from(docker_ids.contains(&tool_id));
-        if matches!(status.as_str(), "production" | "experimental") {
+        if status == "retained" {
             if ap_count != 1 {
                 errors.push(format!(
                     "tool '{tool_id}' ({status}) must map to exactly one apptainer def (found {ap_count})"
                 ));
             }
-            if docker_count != 1 {
+            if docker_count > 1 {
                 errors.push(format!(
-                    "tool '{tool_id}' ({status}) must map to exactly one dockerfile (found {docker_count})"
+                    "tool '{tool_id}' ({status}) has ambiguous dockerfiles (found {docker_count})"
                 ));
             }
         } else {

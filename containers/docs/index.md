@@ -39,106 +39,106 @@ output.
 ## Authority
 - Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).
 - Immutable admitted images: [image inventory](../reports/image-inventory.md).
-- Planner registry labels: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); these labels describe planner compatibility, not production qualification.
+- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.
 - Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
 - Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
 
-## Planner compatibility surface
+## Container implementation surface
 
-This compatibility table is retained for workflow planning and build-matrix
-validation. Its `status` column is not a production or scientific claim; use the
-catalog and evidence reports above for those decisions.
+This table identifies retained and unsupported container implementations.
+Disposition is not production qualification; use the evidence reports above
+for scientific or release decisions.
 
-| tool_id | status | apptainer_source | docker_source |
+| tool_id | disposition | apptainer_source | docker_source |
 |---|---|---|---|
-| `adapterremoval` | `production` | `bijux` | `arm64` |
-| `addeam` | `production` | `bijux` | `arm64` |
-| `alientrimmer` | `production` | `bijux` | `arm64` |
-| `angsd` | `planned` | `bijux` | `arm64` |
-| `atropos` | `production` | `bijux` | `arm64` |
-| `authenticct` | `production` | `bijux` | `arm64` |
-| `bamtools` | `production` | `bijux` | `arm64` |
-| `bamutil` | `experimental` | `bijux` | `arm64` |
-| `bayeshammer` | `production` | `bijux` | `arm64` |
-| `bbduk` | `production` | `bijux` | `arm64` |
-| `bbmerge` | `production` | `bijux` | `arm64` |
-| `bcftools` | `production` | `non-bijux` | `arm64` |
-| `beagle` | `experimental` | `non-bijux` | `arm64` |
-| `bedtools` | `production` | `bijux` | `arm64` |
-| `bijux_dna` | `production` | `bijux` | `arm64` |
-| `bowtie2` | `production` | `bijux` | `arm64` |
-| `bowtie2_build` | `production` | `bijux` | `arm64` |
-| `bracken` | `experimental` | `bijux` | `arm64` |
-| `bwa` | `production` | `bijux` | `arm64` |
-| `centrifuge` | `production` | `bijux` | `arm64` |
-| `clumpify` | `production` | `bijux` | `arm64` |
-| `contammix` | `production` | `bijux` | `arm64` |
-| `cutadapt` | `production` | `bijux` | `arm64` |
-| `dada2` | `production` | `bijux` | `arm64` |
-| `damageprofiler` | `production` | `bijux` | `arm64` |
-| `diamond` | `experimental` | `bijux` | `arm64` |
-| `dustmasker` | `experimental` | `bijux` | `arm64` |
-| `eagle` | `experimental` | `non-bijux` | `arm64` |
-| `eigensoft` | `experimental` | `non-bijux` | `arm64` |
-| `fastp` | `production` | `bijux` | `arm64` |
-| `fastq_scan` | `production` | `bijux` | `arm64` |
-| `fastq_screen` | `experimental` | `bijux` | `arm64` |
-| `fastqc` | `production` | `bijux` | `arm64` |
-| `fastqvalidator` | `production` | `bijux` | `arm64` |
+| `adapterremoval` | `retained` | `bijux` | `arm64` |
+| `addeam` | `retained` | `bijux` | `arm64` |
+| `alientrimmer` | `retained` | `bijux` | `arm64` |
+| `angsd` | `retained` | `bijux` | `arm64` |
+| `atropos` | `retained` | `bijux` | `arm64` |
+| `authenticct` | `retained` | `bijux` | `arm64` |
+| `bamtools` | `retained` | `bijux` | `arm64` |
+| `bamutil` | `retained` | `bijux` | `arm64` |
+| `bayeshammer` | `retained` | `bijux` | `arm64` |
+| `bbduk` | `retained` | `bijux` | `arm64` |
+| `bbmerge` | `retained` | `bijux` | `arm64` |
+| `bcftools` | `retained` | `non-bijux` | `arm64` |
+| `beagle` | `retained` | `non-bijux` | `arm64` |
+| `bedtools` | `retained` | `bijux` | `arm64` |
+| `bijux_dna` | `retained` | `bijux` | `arm64` |
+| `bowtie2` | `retained` | `bijux` | `arm64` |
+| `bowtie2_build` | `retained` | `bijux` | `arm64` |
+| `bracken` | `retained` | `bijux` | `arm64` |
+| `bwa` | `retained` | `bijux` | `arm64` |
+| `centrifuge` | `retained` | `bijux` | `arm64` |
+| `clumpify` | `retained` | `bijux` | `arm64` |
+| `contammix` | `retained` | `bijux` | `arm64` |
+| `cutadapt` | `retained` | `bijux` | `arm64` |
+| `dada2` | `retained` | `bijux` | `arm64` |
+| `damageprofiler` | `retained` | `bijux` | `arm64` |
+| `diamond` | `retained` | `bijux` | `arm64` |
+| `dustmasker` | `retained` | `bijux` | `arm64` |
+| `eagle` | `retained` | `non-bijux` | `arm64` |
+| `eigensoft` | `retained` | `non-bijux` | `arm64` |
+| `fastp` | `retained` | `bijux` | `arm64` |
+| `fastq_scan` | `retained` | `bijux` | `arm64` |
+| `fastq_screen` | `retained` | `bijux` | `arm64` |
+| `fastqc` | `retained` | `bijux` | `arm64` |
+| `fastqvalidator` | `retained` | `bijux` | `arm64` |
 | `fastuniq` | `unsupported` | `none` | `none` |
-| `fastx_clipper` | `production` | `bijux` | `arm64` |
-| `flash2` | `production` | `bijux` | `arm64` |
-| `fqtools` | `production` | `bijux` | `arm64` |
-| `gatk` | `experimental` | `bijux` | `arm64` |
-| `germline` | `experimental` | `non-bijux` | `arm64` |
-| `glimpse` | `planned` | `non-bijux` | `arm64` |
-| `ibdhap` | `experimental` | `non-bijux` | `arm64` |
-| `ibdne` | `planned` | `non-bijux` | `arm64` |
-| `ibdseq` | `planned` | `bijux` | `arm64` |
+| `fastx_clipper` | `retained` | `bijux` | `arm64` |
+| `flash2` | `retained` | `bijux` | `arm64` |
+| `fqtools` | `retained` | `bijux` | `arm64` |
+| `gatk` | `retained` | `bijux` | `arm64` |
+| `germline` | `retained` | `non-bijux` | `arm64` |
+| `glimpse` | `retained` | `non-bijux` | `arm64` |
+| `ibdhap` | `retained` | `non-bijux` | `arm64` |
+| `ibdne` | `retained` | `non-bijux` | `arm64` |
+| `ibdseq` | `retained` | `bijux` | `arm64` |
 | `impute5` | `unsupported` | `none` | `none` |
-| `kaiju` | `production` | `bijux` | `arm64` |
-| `king` | `production` | `bijux` | `arm64` |
-| `kraken2` | `production` | `bijux` | `arm64` |
-| `krakenuniq` | `production` | `bijux` | `arm64` |
-| `leehom` | `production` | `bijux` | `arm64` |
-| `lighter` | `production` | `bijux` | `arm64` |
-| `mapdamage2` | `production` | `bijux` | `arm64` |
-| `metaphlan` | `experimental` | `bijux` | `arm64` |
-| `minimac4` | `planned` | `non-bijux` | `arm64` |
-| `mosdepth` | `production` | `bijux` | `none` |
-| `multiqc` | `production` | `bijux` | `arm64` |
-| `musket` | `production` | `bijux` | `arm64` |
-| `ngsbriggs` | `experimental` | `bijux` | `arm64` |
-| `pear` | `production` | `bijux` | `arm64` |
-| `picard` | `experimental` | `bijux` | `arm64` |
-| `plink` | `experimental` | `bijux` | `arm64` |
-| `plink2` | `experimental` | `bijux` | `arm64` |
-| `pmdtools` | `production` | `bijux` | `arm64` |
-| `preseq` | `experimental` | `bijux` | `arm64` |
-| `prinseq` | `production` | `bijux` | `arm64` |
-| `pydamage` | `production` | `bijux` | `arm64` |
-| `qualimap` | `experimental` | `bijux` | `arm64` |
-| `rcorrector` | `production` | `bijux` | `arm64` |
-| `rxy` | `production` | `bijux` | `arm64` |
-| `samtools` | `production` | `bijux` | `arm64` |
-| `schmutzi` | `production` | `bijux` | `arm64` |
-| `seqfu` | `production` | `bijux` | `arm64` |
-| `seqkit` | `production` | `bijux` | `arm64` |
-| `seqkit_stats` | `production` | `bijux` | `arm64` |
-| `seqprep` | `experimental` | `bijux` | `arm64` |
-| `seqpurge` | `experimental` | `bijux` | `arm64` |
-| `seqtk` | `production` | `bijux` | `arm64` |
-| `shapeit` | `planned` | `bijux` | `none` |
-| `shapeit5` | `production` | `non-bijux` | `none` |
-| `skewer` | `production` | `bijux` | `arm64` |
-| `sortmerna` | `production` | `bijux` | `arm64` |
-| `spades` | `experimental` | `bijux` | `arm64` |
-| `star` | `production` | `bijux` | `arm64` |
-| `trim_galore` | `production` | `bijux` | `arm64` |
-| `trimmomatic` | `production` | `bijux` | `arm64` |
-| `umi_tools` | `production` | `bijux` | `arm64` |
-| `verifybamid2` | `production` | `bijux` | `arm64` |
-| `vsearch` | `production` | `bijux` | `arm64` |
-| `yleaf` | `production` | `bijux` | `arm64` |
+| `kaiju` | `retained` | `bijux` | `arm64` |
+| `king` | `retained` | `bijux` | `arm64` |
+| `kraken2` | `retained` | `bijux` | `arm64` |
+| `krakenuniq` | `retained` | `bijux` | `arm64` |
+| `leehom` | `retained` | `bijux` | `arm64` |
+| `lighter` | `retained` | `bijux` | `arm64` |
+| `mapdamage2` | `retained` | `bijux` | `arm64` |
+| `metaphlan` | `retained` | `bijux` | `arm64` |
+| `minimac4` | `retained` | `non-bijux` | `arm64` |
+| `mosdepth` | `retained` | `bijux` | `none` |
+| `multiqc` | `retained` | `bijux` | `arm64` |
+| `musket` | `retained` | `bijux` | `arm64` |
+| `ngsbriggs` | `retained` | `bijux` | `arm64` |
+| `pear` | `retained` | `bijux` | `arm64` |
+| `picard` | `retained` | `bijux` | `arm64` |
+| `plink` | `retained` | `bijux` | `arm64` |
+| `plink2` | `retained` | `bijux` | `arm64` |
+| `pmdtools` | `retained` | `bijux` | `arm64` |
+| `preseq` | `retained` | `bijux` | `arm64` |
+| `prinseq` | `retained` | `bijux` | `arm64` |
+| `pydamage` | `retained` | `bijux` | `arm64` |
+| `qualimap` | `retained` | `bijux` | `arm64` |
+| `rcorrector` | `retained` | `bijux` | `arm64` |
+| `rxy` | `retained` | `bijux` | `arm64` |
+| `samtools` | `retained` | `bijux` | `arm64` |
+| `schmutzi` | `retained` | `bijux` | `arm64` |
+| `seqfu` | `retained` | `bijux` | `arm64` |
+| `seqkit` | `retained` | `bijux` | `arm64` |
+| `seqkit_stats` | `retained` | `bijux` | `arm64` |
+| `seqprep` | `retained` | `bijux` | `arm64` |
+| `seqpurge` | `retained` | `bijux` | `arm64` |
+| `seqtk` | `retained` | `bijux` | `arm64` |
+| `shapeit` | `retained` | `bijux` | `none` |
+| `shapeit5` | `retained` | `non-bijux` | `none` |
+| `skewer` | `retained` | `bijux` | `arm64` |
+| `sortmerna` | `retained` | `bijux` | `arm64` |
+| `spades` | `retained` | `bijux` | `arm64` |
+| `star` | `retained` | `bijux` | `arm64` |
+| `trim_galore` | `retained` | `bijux` | `arm64` |
+| `trimmomatic` | `retained` | `bijux` | `arm64` |
+| `umi_tools` | `retained` | `bijux` | `arm64` |
+| `verifybamid2` | `retained` | `bijux` | `arm64` |
+| `vsearch` | `retained` | `bijux` | `arm64` |
+| `yleaf` | `retained` | `bijux` | `arm64` |
