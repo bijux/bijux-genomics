@@ -573,6 +573,7 @@ pub(super) fn generate_ghcr_apptainer_publish_matrix(
 struct LicenseMetadataEntry {
     tool: String,
     kind: String,
+    support_disposition: String,
     spdx: String,
     upstream_url: String,
     upstream_version: String,
@@ -627,6 +628,11 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
                 (!license.is_empty()).then_some(license)
             })
             .unwrap_or_else(|| "NOASSERTION".to_string());
+        let redistribution_note = if status == "unsupported" {
+            "Bijux Genomics does not redistribute this unsupported tool; consult the canonical container catalog for the support rationale."
+        } else {
+            "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+        };
         let file_content = [
             "# schema_version = 1".to_string(),
             "# owner = bijux-genomics".to_string(),
@@ -637,7 +643,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             format!("upstream_url = \"{source}\""),
             format!("upstream_version = \"{version}\""),
             format!("upstream_checksum = \"{checksum}\""),
-            "redistribution_note = \"Redistribution follows upstream license obligations; verify notice/source requirements before release.\"".to_string(),
+            format!("redistribution_note = \"{redistribution_note}\""),
             format!("citation = \"upstream:{source}\""),
             format!("version = \"{version}\""),
             String::new(),
@@ -646,6 +652,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
         entries.push(LicenseMetadataEntry {
             tool,
             kind,
+            support_disposition: status,
             spdx,
             upstream_url: source,
             upstream_version: version,
@@ -677,13 +684,14 @@ fn generate_license_index_content(entries: &[LicenseMetadataEntry]) -> String {
         "- Every containerized tool in registry scope must have a corresponding license metadata row.".to_string(),
         "- Regenerated output is the sole authority for this index document.".to_string(),
         String::new(),
-        "| Tool | Kind | SPDX | Upstream | Version | Checksum |".to_string(),
-        "|---|---|---|---|---|---|".to_string(),
+        "| Tool | Support | Kind | SPDX | Upstream | Version | Checksum |".to_string(),
+        "|---|---|---|---|---|---|---|".to_string(),
     ];
     for entry in entries {
         lines.push(format!(
-            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
+            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
             entry.tool,
+            entry.support_disposition,
             entry.kind,
             entry.spdx,
             entry.upstream_url,
@@ -1036,6 +1044,27 @@ pub(super) fn check_network_disclosure(
 
 fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> {
     let versions = tool_versions(workspace)?;
+    let catalog = read_json(&workspace.path("containers/contracts/catalog.lock.json"))?;
+    let catalog_support = catalog
+        .get("tools")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|row| {
+            let tool = row.get("id")?.as_str()?.to_string();
+            let disposition = row
+                .get("support_disposition")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("unknown")
+                .to_string();
+            let reason = row
+                .get("support_reason")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .to_string();
+            Some((tool, (disposition, reason)))
+        })
+        .collect::<BTreeMap<_, _>>();
     let mut licenses = BTreeMap::new();
     for path in fs::read_dir(workspace.path("containers/licenses"))
         .with_context(|| format!("read {}", workspace.path("containers/licenses").display()))?
@@ -1139,8 +1168,11 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
     for (tool, version_row) in &versions {
         let license_row = licenses.get(tool).cloned().unwrap_or_default();
         let network_row = network.get(tool).cloned().unwrap_or_default();
-        let governed_status = table_string(version_row, "status");
-        let license_record = if license_row.is_empty() && governed_status == "unsupported" {
+        let (support_disposition, support_reason) = catalog_support
+            .get(tool)
+            .cloned()
+            .unwrap_or_else(|| (table_string(version_row, "status"), String::new()));
+        let license_record = if license_row.is_empty() && support_disposition == "unsupported" {
             "- Tool license record: not distributed because the tool is unsupported.".to_string()
         } else {
             format!(
@@ -1174,6 +1206,9 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         if runtimes.is_empty() {
             limitations.push("No runtime implementation currently present.".to_string());
         }
+        if !support_reason.is_empty() {
+            limitations.push(support_reason.clone());
+        }
         if limitations.is_empty() {
             limitations.push("No declared limitations.".to_string());
         }
@@ -1196,6 +1231,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             license_record,
             String::new(),
             format!("- Version: `{}`", table_string(version_row, "version")),
+            format!("- Support disposition: `{support_disposition}`"),
             format!("- License: `{license}`"),
             format!(
                 "- Runtime support: `{}`",
