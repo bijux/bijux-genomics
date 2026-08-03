@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+
+download_archive() {
+  local url="$1"
+  local expected_sha256="$2"
+  local destination="$3"
+  local archive="$work_dir/source.tar.gz"
+
+  curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error --output "$archive" "$url"
+  printf '%s  %s\n' "$expected_sha256" "$archive" | sha256sum --check --strict
+  mkdir -p "$destination"
+  tar --extract --gzip --file "$archive" --directory "$destination" --strip-components=1
+  rm -f "$archive"
+}
+
+case "$(uname -m)" in
+  x86_64)
+    download_archive \
+      'https://github.com/ablab/spades/releases/download/v4.2.0/SPAdes-4.2.0-Linux.tar.gz' \
+      'b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985' \
+      /opt/spades
+    ;;
+  aarch64|arm64)
+    download_archive \
+      'https://github.com/ablab/spades/archive/7fee3c1050a732faef8a0d93d70861015a96f44e.tar.gz' \
+      'face217bd6f47a659157801034ec9ac9203a8242163656c9c7448b233ffdcdf5' \
+      /opt/spades-source
+    (
+      cd /opt/spades-source
+      PREFIX=/opt/spades ./spades_compile.sh -j 2
+    )
+    rm -rf /opt/spades-source
+    ;;
+  *)
+    printf 'unsupported BayesHammer build architecture: %s\n' "$(uname -m)" >&2
+    exit 1
+    ;;
+esac
+
+chmod 0755 /usr/local/bin/bayeshammer
+/usr/local/bin/bayeshammer --version | grep -Fx 'BayesHammer 4.2.0'
+/usr/local/bin/bayeshammer --help >/dev/null

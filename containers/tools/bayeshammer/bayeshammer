@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version|-v|version)
+        echo 'BayesHammer 4.2.0'
+        ;;
+    --help|-h|help|"")
+        exec /opt/spades/bin/spades.py --only-error-correction --help
+        ;;
+    --governed-invalid-option)
+        echo 'bayeshammer: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/spades/bin/spades.py --only-error-correction "$@"
+        ;;
+esac
