@@ -5,6 +5,7 @@
 # VERSION_SOURCE: containers/contracts/catalog.toml
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=1.0.0
@@ -31,9 +32,8 @@ COPY containers/tools/addeam/profile-execution.patch /opt/addeam-build/profile-e
 COPY containers/tools/addeam/install /opt/addeam-build/install
 COPY containers/tools/addeam/addeam /usr/local/bin/addeam
 
-RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends ca-certificates && \
     apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y --no-install-recommends build-essential curl libbz2-dev libcurl4-openssl-dev libgsl-dev liblzma-dev libncurses-dev libssl-dev patch python3 python3-pip python3-venv zlib1g-dev && \
     chmod 0755 /opt/addeam-build/install /usr/local/bin/addeam && \

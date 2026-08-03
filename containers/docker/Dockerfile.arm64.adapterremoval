@@ -2,6 +2,7 @@
 # Copyright (C) 2026 Bijan Mousavi
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=2.3.4
@@ -16,9 +17,8 @@ LABEL org.opencontainers.image.source="https://github.com/MikkelSchubert/adapter
       org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 
 ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
-RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends ca-certificates && \
     apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y --no-install-recommends curl g++ make zlib1g-dev libbz2-dev && \
     curl --fail --location --silent --show-error \
