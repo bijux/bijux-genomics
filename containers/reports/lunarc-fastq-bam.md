@@ -21,6 +21,7 @@ root.
 | read-quality and adapter profiling | FastQC 0.12.1 | `run-1076` | `3458057` | 4s | HTML report plus machine-readable archive |
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read adapter trimming | Atropos 1.1.31 | `run-1098` | `3458119` | 7s | two digest-pinned trimmed FASTQ streams |
+| k-mer error correction | BayesHammer 4.2.0 | `run-1099` | `3458120` | 38s | corrected paired and unpaired FASTQ streams |
 | paired-read merging | FLASH2 2.2.00 | `run-1078` | `3458063` | 1s | 774,658-byte merged-read FASTQ |
 | adapter trimming | Skewer 0.2.2 | `run-1079` | `3458064` | 1s | 25,992,094-byte trimmed FASTQ stream |
 | adapter trimming | AlienTrimmer 3.2 | `run-1091` | `3458077` | 13s | paired trimmed FASTQ streams |
@@ -88,6 +89,16 @@ uses the native single-process default instead of disguising an invalid
 resource setting. This establishes the real paired-read trimming interface and
 records observed adapter counts. It does not establish trimming sensitivity,
 read-retention policy, or superiority over another trimmer.
+
+BayesHammer processed 200,000 reads from the governed pair and reported
+45,485 changed bases in 34,235 reads, while 25,427 bases could not be
+corrected. Its output contains 99,653 read pairs and 347 unpaired reads, so all
+100,000 input pairs are accounted for without pretending the outputs retain a
+strictly paired shape. The paired streams passed gzip integrity checks; the
+unpaired stream and native corrected-dataset description remain with the raw
+run evidence. These values establish real k-mer error-correction execution and
+observable output shape. With no known-truth corpus or independent comparison,
+they do not establish correction accuracy or a scientific acceptance threshold.
 
 BamTools applied its declared mapping-quality expression to the governed
 coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed
