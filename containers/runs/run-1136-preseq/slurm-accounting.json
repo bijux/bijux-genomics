@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T06:55:49.679337+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "pipeline_sha256": "79462932c274fb2760ca6cfa3f7b6c3a8f9c814f2f948c796c317ef7086086e7",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "1",
+      "Elapsed": "00:00:01",
+      "ElapsedRaw": "1",
+      "ExitCode": "0:0",
+      "JobID": "3458719",
+      "JobName": "bam-complexity-preseq-ERR2112767",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1136",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458719",
+  "submit_script_sha256": "f32d1acac6daba4718661998152765b74adb2bc4a8450225c9ebb5d6c7447535"
+}

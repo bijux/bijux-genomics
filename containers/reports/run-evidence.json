@@ -1451,6 +1451,17 @@
       "source_file_count": 130,
       "source_result": "results/container-validation/run-1135-spades",
       "tool": "spades"
+    },
+    {
+      "evidence_lock_sha256": "f314b80954b899ee686196202dfad8a9d07f45d16e8fccc211220b38499e9cb0",
+      "execution_status": "passed",
+      "repository_commit": "6a3f66c7ed49410bd60e3db901e09e73fb2d9a51",
+      "run_id": "run-1136",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458719",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/run-1136-preseq",
+      "tool": "preseq"
     }
   ],
   "schema_version": "bijux.container.run_evidence_index.v1",
@@ -1458,17 +1469,17 @@
     "execution_status": {
       "failed": 40,
       "incomplete": 1,
-      "passed": 91
+      "passed": 92
     },
     "missing_run_ids": [
       "run-1081",
       "run-1085",
       "run-1126"
     ],
-    "run_count": 132,
+    "run_count": 133,
     "scientific_status": {
-      "not_assessed": 132
+      "not_assessed": 133
     },
-    "tool_count": 67
+    "tool_count": 68
   }
 }
