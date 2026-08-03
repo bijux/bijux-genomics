@@ -1,28 +1,45 @@
 {
   "accuracy_claim": "candidate_site_recovery_not_genotype_truth",
+  "benchmark_profile_id": "bam-biological-inference",
   "comparison_scope": "candidate-site genotyping on one governed 10 Mb EquCab3 interval",
+  "cross_tool_comparison": {
+    "metrics": [],
+    "status": "not_applicable"
+  },
   "design": {
     "cache_policy": "warm",
     "container_only": true,
     "corpus_catalog_ids": [
       "ena-prjeb22390-err2112767-bam"
     ],
+    "corpus_ids": [
+      "ancient-horse-alignment-qualification"
+    ],
     "database_catalog_ids": [
       "ensembl-113-equcab3-refseq-known-sites-10mb",
       "ensembl-113-equcab3-refseq-genotyping-inputs-10mb"
+    ],
+    "input_size_keys": [
+      "bam_input_bytes",
+      "reference_input_bytes",
+      "database_input_bytes"
     ],
     "measured_repetitions": 3,
     "reference_catalog_ids": [
       "equcab3-gcf-002863925.1"
     ],
+    "result_artifact": "genotypes.tsv",
     "runtime": "apptainer",
     "scheduler": "slurm",
-    "threads": 4,
+    "threads_by_tool": {
+      "bcftools": 4
+    },
     "tool_closure": [
       "bcftools"
     ],
     "warmup_repetitions": 1
   },
+  "evidence_tier": "qualification",
   "interpretation": "This execution establishes reproducible candidate-site genotyping and resource use for the retained tool set. It does not establish genotype accuracy because no sample-level truth genotype is available.",
   "limitations": [
     "The Ensembl panel is independent candidate-site evidence but is not a sample-level genotype truth set.",
@@ -36,8 +53,9 @@
   "tools": [
     {
       "determinism": {
-        "genotype_table_sha256": "0f6907c7b606b91ad4ddf2cac410577f7a38aadfc2be16a5d88c0a285f234761",
-        "identical_across_repetitions": true
+        "artifact": "genotypes.tsv",
+        "identical_across_repetitions": true,
+        "sha256": "0f6907c7b606b91ad4ddf2cac410577f7a38aadfc2be16a5d88c0a285f234761"
       },
       "image": {
         "name": "bcftools-1.20-linux-amd64-408eeb428a48.sif",

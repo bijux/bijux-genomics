@@ -1,5 +1,6 @@
 {
   "accuracy_claim": "mapping_derived_fraction_not_endogenous_truth",
+  "benchmark_profile_id": "bam-observational-qc",
   "comparison_scope": "primary mapped-read fraction from one governed coordinate-sorted EquCab3 BAM",
   "cross_tool_comparison": {
     "metrics": [],
@@ -10,6 +11,9 @@
     "container_only": true,
     "corpus_catalog_ids": [
       "ena-prjeb22390-err2112767-bam"
+    ],
+    "corpus_ids": [
+      "ancient-horse-alignment-qualification"
     ],
     "database_catalog_ids": [],
     "input_size_keys": [
@@ -31,6 +35,7 @@
     ],
     "warmup_repetitions": 1
   },
+  "evidence_tier": "qualification",
   "interpretation": "This campaign measures a reproducible primary mapped-read fraction for one BAM and one reference. It is an operational endogenous-content proxy, not biological truth about the library's endogenous DNA fraction.",
   "limitations": [
     "The result depends on the EquCab3 reference, upstream alignment parameters, and the BAM flag semantics declared by this campaign.",

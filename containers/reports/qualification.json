@@ -9,16 +9,16 @@
   "sources": {
     "benchmarks": [
       {
-        "path": "containers/reports/run-2001-bam-genotyping.json",
-        "sha256": "03abeb198143289f31e0ffbe383c188baf9a2896b261920857b0211dbe1a25c8"
+        "path": "benchmarks/reports/run-2001-bam-genotyping.json",
+        "sha256": "722481988eccab1a83a9d747362b61f6482430931a2ade3c9aa7688185e46c8b"
       },
       {
-        "path": "containers/reports/run-2002-bam-coverage.json",
-        "sha256": "9d80d31cce856f0477568d7ee6416df9062d8add2c02428a57b0512260402f47"
+        "path": "benchmarks/reports/run-2002-bam-coverage.json",
+        "sha256": "26418608f8fa0e8e3f45a2671cd79afa42487a9c49e139c7740c3e6b954eb696"
       },
       {
-        "path": "containers/reports/run-2003-bam-endogenous-content.json",
-        "sha256": "823ae72fdf3175feb4de4719abf0be17f89da6b29786445d88bf6c3709a86f22"
+        "path": "benchmarks/reports/run-2003-bam-endogenous-content.json",
+        "sha256": "434ac6e5069ce2e322126167faf77d0a1f65aed7641511157d1c4225a967d617"
       }
     ],
     "catalog": {
@@ -41,9 +41,9 @@
   "summary": {
     "dimension_passes": {
       "benchmark": 4,
-      "build": 85,
+      "build": 83,
       "catalog": 85,
-      "freshness": 85,
+      "freshness": 83,
       "real_data": 47,
       "release": 0,
       "runtime": 85,
@@ -577,9 +577,9 @@
       "declared_real_test_stage": "fastq.detect_duplicates_premerge",
       "dimensions": {
         "benchmark": "missing",
-        "build": "passed",
+        "build": "missing",
         "catalog": "passed",
-        "freshness": "passed",
+        "freshness": "missing",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -588,16 +588,20 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [],
+      "evidence_mismatches": [
+        "inventory_recipe_identity"
+      ],
       "id": "bijux_dna",
       "mismatched_passing_stages": [],
       "missing_dimensions": [
+        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release"
+        "release",
+        "freshness"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],
@@ -2195,9 +2199,9 @@
       "declared_real_test_stage": "bam.duplication_metrics",
       "dimensions": {
         "benchmark": "missing",
-        "build": "passed",
+        "build": "missing",
         "catalog": "passed",
-        "freshness": "passed",
+        "freshness": "missing",
         "real_data": "missing",
         "release": "missing",
         "runtime": "passed",
@@ -2206,18 +2210,22 @@
         "source": "passed",
         "stage": "missing"
       },
-      "evidence_mismatches": [],
+      "evidence_mismatches": [
+        "inventory_recipe_identity"
+      ],
       "id": "picard",
       "mismatched_passing_stages": [
         "bam.mapping_summary"
       ],
       "missing_dimensions": [
+        "build",
         "stage",
         "real_data",
         "science",
         "benchmark",
         "security",
-        "release"
+        "release",
+        "freshness"
       ],
       "passing_benchmark_runs": [],
       "passing_real_test_runs": [],

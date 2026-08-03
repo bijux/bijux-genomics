@@ -34,7 +34,7 @@ repository commit. A stale source remains auditable but contributes no pass.
 |---|---:|
 | `catalog` | 85 |
 | `source` | 85 |
-| `build` | 85 |
+| `build` | 83 |
 | `runtime` | 85 |
 | `stage` | 47 |
 | `real_data` | 47 |
@@ -42,7 +42,7 @@ repository commit. A stale source remains auditable but contributes no pass.
 | `benchmark` | 4 |
 | `security` | 0 |
 | `release` | 0 |
-| `freshness` | 85 |
+| `freshness` | 83 |
 
 ## Tool matrix
 
@@ -67,7 +67,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `bcftools` | `1.20` | retained | pass | pass | missing | missing | pass | missing | missing | **unverified** |
 | `beagle` | `5.4` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `bedtools` | `2.31.1` | retained | pass | pass | pass | missing | pass | missing | missing | **unverified** |
-| `bijux_dna` | `0.1.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `bijux_dna` | `0.1.0` | retained | missing | pass | missing | missing | missing | missing | missing | **unverified** |
 | `bowtie2` | `2.5.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bowtie2_build` | `2.5.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `bracken` | `2.9` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
@@ -112,7 +112,7 @@ exactly matches the catalog's declared real-test stage. Unsupported tools use
 | `musket` | `1.1` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `ngsbriggs` | `0.01` | unsupported | n/a | n/a | n/a | n/a | n/a | n/a | n/a | **unsupported** |
 | `pear` | `0.9.6` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `picard` | `3.3.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `picard` | `3.3.0` | retained | missing | pass | missing | missing | missing | missing | missing | **unverified** |
 | `plink` | `1.90b7.2` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `plink2` | `2.00a6` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `pmdtools` | `0.60` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |

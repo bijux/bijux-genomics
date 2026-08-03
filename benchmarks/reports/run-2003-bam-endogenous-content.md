@@ -1,8 +1,10 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: containers/benchmarks/benchmark_evidence.py -->
-# bam.endogenous_content benchmark
+<!-- source: benchmarks/benchmark_evidence.py -->
+# bam.endogenous_content qualification
 
 **Verdict: passed.** This campaign measures a reproducible primary mapped-read fraction for one BAM and one reference. It is an operational endogenous-content proxy, not biological truth about the library's endogenous DNA fraction.
+
+This is qualification evidence. It proves the declared execution and metric contract on the named data, but it is not a comparative scientific benchmark and must not be used to rank tools.
 
 ## Scientific scope
 
@@ -15,12 +17,15 @@ Accuracy claim: `mapping_derived_fraction_not_endogenous_truth`.
 ## Design
 
 - Campaign: `run-2003`
+- Evidence tier: `qualification`
+- Scientific profile: `bam-observational-qc`
 - Tool closure: `samtools`
 - Execution: apptainer under slurm, container-only
 - Threads by tool: `samtools`=4
 - Cache policy: warm
 - Repetitions: 1 warmup and 3 measured
 - Corpus: `ena-prjeb22390-err2112767-bam`
+- Corpus portfolio: `ancient-horse-alignment-qualification`
 - Reference: `equcab3-gcf-002863925.1`
 - Databases: none
 - Repeated result artifact: `endogenous-content.tsv`

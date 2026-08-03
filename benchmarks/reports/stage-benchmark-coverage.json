@@ -53,7 +53,7 @@
     },
     {
       "campaign_run_id": "run-2002",
-      "definition_status": "defined",
+      "definition_status": "qualification",
       "execution_status": "admitted",
       "retained_tools": [
         "bedtools",
@@ -87,7 +87,7 @@
     },
     {
       "campaign_run_id": "run-2003",
-      "definition_status": "defined",
+      "definition_status": "qualification",
       "execution_status": "admitted",
       "retained_tools": [
         "samtools"
@@ -116,7 +116,7 @@
     },
     {
       "campaign_run_id": "run-2001",
-      "definition_status": "defined",
+      "definition_status": "qualification",
       "execution_status": "admitted",
       "retained_tools": [
         "bcftools"
@@ -162,7 +162,7 @@
     },
     {
       "campaign_run_id": "run-2004",
-      "definition_status": "defined",
+      "definition_status": "qualification",
       "execution_status": "not_admitted",
       "retained_tools": [
         "picard",
@@ -725,8 +725,10 @@
   ],
   "summary": {
     "admitted_stage_count": 3,
+    "comparative_stage_count": 0,
     "defined_stage_count": 4,
     "missing_stage_count": 67,
+    "qualification_stage_count": 4,
     "retained_stage_count": 71
   }
 }

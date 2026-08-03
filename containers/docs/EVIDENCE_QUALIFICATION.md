@@ -83,7 +83,7 @@ python3 -B containers/contracts/qualification_report.py \
   --inventory containers/reports/image-inventory.json \
   --runtime containers/reports/runtime-verification.json \
   --runs containers/reports/run-evidence.json \
-  --benchmark-report containers/reports/run-2001-bam-genotyping.json \
+  --benchmark-report benchmarks/reports/run-2001-bam-genotyping.json \
   --json-output containers/reports/qualification.json \
   --markdown-output containers/reports/qualification.md
 ```

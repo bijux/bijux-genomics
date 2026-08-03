@@ -1,5 +1,6 @@
 {
   "accuracy_claim": "cross_tool_coverage_summary_consistency_not_truth_accuracy",
+  "benchmark_profile_id": "bam-observational-qc",
   "comparison_scope": "whole-reference coverage summaries from one governed coordinate-sorted EquCab3 BAM",
   "cross_tool_comparison": {
     "metrics": [
@@ -72,6 +73,9 @@
     "corpus_catalog_ids": [
       "ena-prjeb22390-err2112767-bam"
     ],
+    "corpus_ids": [
+      "ancient-horse-alignment-qualification"
+    ],
     "database_catalog_ids": [],
     "input_size_keys": [
       "bam_input_bytes",
@@ -97,6 +101,7 @@
     ],
     "warmup_repetitions": 1
   },
+  "evidence_tier": "qualification",
   "interpretation": "This campaign compares resource use, repeatability, and agreement of coverage summaries over one real ancient horse BAM. Agreement is a consistency check, not an accuracy claim against an independent coverage truth set.",
   "limitations": [
     "The corpus is one low-coverage ancient horse library and does not represent high-depth, long-read, or cohort workloads.",

@@ -1,8 +1,10 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: containers/benchmarks/benchmark_evidence.py -->
-# bam.coverage benchmark
+<!-- source: benchmarks/benchmark_evidence.py -->
+# bam.coverage qualification
 
 **Verdict: passed.** This campaign compares resource use, repeatability, and agreement of coverage summaries over one real ancient horse BAM. Agreement is a consistency check, not an accuracy claim against an independent coverage truth set.
+
+This is qualification evidence. It proves the declared execution and metric contract on the named data, but it is not a comparative scientific benchmark and must not be used to rank tools.
 
 ## Scientific scope
 
@@ -15,12 +17,15 @@ Accuracy claim: `cross_tool_coverage_summary_consistency_not_truth_accuracy`.
 ## Design
 
 - Campaign: `run-2002`
+- Evidence tier: `qualification`
+- Scientific profile: `bam-observational-qc`
 - Tool closure: `bedtools`, `mosdepth`, `samtools`
 - Execution: apptainer under slurm, container-only
 - Threads by tool: `bedtools`=1, `mosdepth`=4, `samtools`=1
 - Cache policy: warm
 - Repetitions: 1 warmup and 3 measured
 - Corpus: `ena-prjeb22390-err2112767-bam`
+- Corpus portfolio: `ancient-horse-alignment-qualification`
 - Reference: `equcab3-gcf-002863925.1`
 - Databases: none
 - Repeated result artifact: `coverage-summary.tsv`

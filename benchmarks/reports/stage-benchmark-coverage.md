@@ -1,13 +1,16 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: containers/benchmarks/benchmark_registry.py -->
+<!-- source: benchmarks/benchmark_registry.py -->
 # Stage benchmark coverage
 
-A defined campaign has complete retained-tool closure and a reproducible
-measurement contract. It is not marked executed until Slurm evidence is
-admitted separately.
+A qualification campaign proves container execution, retained-tool closure,
+and a reproducible measurement contract. It is not a comparative scientific
+benchmark. Comparative readiness is governed separately by the corpus portfolio,
+truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
 - Defined campaigns: **4**
+- Qualification-only campaigns: **4**
+- Comparative campaigns: **0**
 - Admitted campaigns: **3**
 - Missing campaigns: **67**
 
@@ -18,18 +21,18 @@ admitted separately.
 | `bam.bias_mitigation` | `mapdamage2` | — | missing | not_defined |
 | `bam.complexity` | `preseq` | — | missing | not_defined |
 | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | — | missing | not_defined |
-| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | defined | admitted |
+| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | admitted |
 | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `pmdtools`, `pydamage` | — | missing | not_defined |
 | `bam.duplication_metrics` | `picard`, `samtools` | — | missing | not_defined |
-| `bam.endogenous_content` | `samtools` | `run-2003` | defined | admitted |
+| `bam.endogenous_content` | `samtools` | `run-2003` | qualification | admitted |
 | `bam.filter` | `bamtools`, `bedtools`, `samtools` | — | missing | not_defined |
 | `bam.gc_bias` | `picard` | — | missing | not_defined |
-| `bam.genotyping` | `bcftools` | `run-2001` | defined | admitted |
+| `bam.genotyping` | `bcftools` | `run-2001` | qualification | admitted |
 | `bam.haplogroups` | `yleaf` | — | missing | not_defined |
 | `bam.insert_size` | `picard` | — | missing | not_defined |
 | `bam.kinship` | `king` | — | missing | not_defined |
 | `bam.length_filter` | `picard`, `samtools` | — | missing | not_defined |
-| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | defined | not_admitted |
+| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | not_admitted |
 | `bam.mapq_filter` | `bamtools`, `samtools` | — | missing | not_defined |
 | `bam.markdup` | `picard`, `samtools` | — | missing | not_defined |
 | `bam.overlap_correction` | `bamutil` | — | missing | not_defined |
