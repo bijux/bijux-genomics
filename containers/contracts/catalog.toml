@@ -992,14 +992,14 @@ real_test_input_kind = "fastq"
 [[tools]]
 id = "flash2"
 display_name = "FLASH2"
-purpose = "Provides merger execution for governed genomics stages."
+purpose = "Merges overlapping paired-end Illumina reads into consensus sequences while retaining unmerged mates for governed downstream processing."
 version = "2.2.00"
 support_disposition = "retained"
 qualification = "unverified"
 upstream = "https://github.com/dstreett/FLASH2"
 documentation = "https://github.com/dstreett/FLASH2"
-license = "GPL-3.0"
-source_sha256 = ""
+license = "GPL-3.0-or-later"
+source_sha256 = "da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8"
 pinned_commit = "64826f4574b11b3c0ae7460826f30be16f49c3ea"
 domains = ["fastq"]
 stage_ids = ["fastq.merge_pairs"]
