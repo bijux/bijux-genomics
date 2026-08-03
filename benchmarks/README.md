@@ -63,6 +63,21 @@ The generated readiness report is deliberately strict. It is the work queue
 for corpus admission and stage campaign execution, not a promotional
 completion counter.
 
+Resolve the public ENA identities in `corpus-01` before downloading any bytes:
+
+```console
+python3 -B benchmarks/corpus_acquisition.py \
+  --spec configs/runtime/corpora/corpus-01.toml \
+  --output "$STUDY/data/evidence/acquisition-plans/corpus-01.json"
+```
+
+The resolver uses ENA's run file report and records the exact HTTPS location,
+source MD5, byte count, publication dates, layout, study accession, retrieval
+time, and source-spec SHA-256 for every file. It refuses layout, study, file
+count, size, or digest ambiguity. The resulting plan is acquisition authority,
+not admission: downloaded files still require digest verification and a
+governed data-catalog record before a comparative campaign can consume them.
+
 [`campaigns.toml`](campaigns.toml) assigns stable `run-2001+` campaign
 identities and labels each execution as `qualification` or `comparative`.
 The numeric identity never upgrades the evidence tier. Every campaign names
