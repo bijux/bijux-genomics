@@ -3,11 +3,10 @@ from __future__ import annotations
 import importlib.machinery
 import importlib.util
 import json
-from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-
+from pathlib import Path
 
 TOOLS = Path(__file__).parents[2] / "tools"
 

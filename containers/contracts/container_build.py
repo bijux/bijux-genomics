@@ -23,9 +23,13 @@ from container_validation import (
 )
 from recipe_identity import (
     RecipeIdentityError,
-    committed_build_context as resolve_committed_build_context,
-    definition_file_sources as resolve_definition_file_sources,
     git_bytes,
+)
+from recipe_identity import (
+    committed_build_context as resolve_committed_build_context,
+)
+from recipe_identity import (
+    definition_file_sources as resolve_definition_file_sources,
 )
 
 TOOL_PATTERN = re.compile(r"[a-z0-9_]+")

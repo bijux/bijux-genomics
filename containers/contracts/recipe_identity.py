@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Resolve the complete repository-owned input identity of an Apptainer recipe."""
 
 from __future__ import annotations

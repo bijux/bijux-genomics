@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Migrate governed container results to flat, recoverable run identities."""
 
 from __future__ import annotations
@@ -7,11 +6,10 @@ import argparse
 import datetime as dt
 import hashlib
 import json
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 from typing import Any
-
 
 PLAN_SCHEMA = "bijux.container.result_layout_plan.v1"
 RUN_ID = re.compile(r"run-[1-9][0-9]{3,}")
