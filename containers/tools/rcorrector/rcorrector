@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+set -eu
+
+driver=/usr/local/bin/run_rcorrector.pl
+
+native_version() {
+    set +e
+    native_output="$(perl "$driver" -version 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 0 ] || [ "$native_output" != 'Rcorrector v1.0.7' ]; then
+        printf 'error: unexpected Rcorrector version probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+native_help() {
+    set +e
+    native_output="$(perl "$driver" 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 255 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Usage: perl ./run_rcorrector.pl [OPTIONS]'; then
+        printf 'error: unexpected Rcorrector help probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+case "${1:-}" in
+    --version)
+        native_version
+        printf '%s\n' "$native_output"
+        ;;
+    --help|-h|"")
+        native_help
+        printf '%s\n' "$native_output"
+        ;;
+    *) exec perl "$driver" "$@" ;;
+esac
