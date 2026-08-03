@@ -35,6 +35,19 @@ class BenchmarkRegistryTests(unittest.TestCase):
         self.assertEqual(campaigns[0]["tool_ids"], ["bcftools"])
         self.assertEqual(campaigns[1]["stage_id"], "bam.coverage")
         self.assertEqual(campaigns[1]["tool_ids"], ["bedtools", "mosdepth", "samtools"])
+        self.assertEqual(
+            benchmark_registry.threads_by_tool(campaigns[1]),
+            {"bedtools": 1, "mosdepth": 4, "samtools": 1},
+        )
+
+    def test_per_tool_threads_must_cover_the_tool_closure(self) -> None:
+        self.registry["campaigns"][1]["threads_by_tool"].pop("samtools")
+
+        with self.assertRaisesRegex(
+            benchmark_registry.RegistryError,
+            "threads_by_tool must cover the exact tool closure",
+        ):
+            benchmark_registry.validate_registry(self.registry, self.catalog)
 
     def test_omitting_a_retained_tool_is_rejected(self) -> None:
         self.registry["campaigns"][0]["tool_ids"] = []

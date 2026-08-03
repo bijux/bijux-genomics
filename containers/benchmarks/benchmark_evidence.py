@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from benchmark_registry import load_toml, validate_registry
+from benchmark_registry import load_toml, threads_by_tool, validate_registry
 
 REPORT_SCHEMA = "bijux.container.stage_benchmark_report.v1"
 EVIDENCE_SCHEMA = "bijux.container.evidence.v2"
@@ -181,7 +181,7 @@ def tool_report(
         "warmup_repetitions": int(campaign["warmup_repetitions"]),
         "measured_repetitions": measured,
         "cache_policy": campaign["cache_policy"],
-        "threads": int(campaign["threads"]),
+        "threads": threads_by_tool(campaign)[tool],
     }
     for key, expected in expected_context.items():
         if context.get(key) != expected:
@@ -370,7 +370,7 @@ def create_report(
             "runtime": campaign["runtime"],
             "scheduler": campaign["scheduler"],
             "container_only": campaign["container_only"],
-            "threads": campaign["threads"],
+            "threads_by_tool": threads_by_tool(campaign),
             "cache_policy": campaign["cache_policy"],
             "warmup_repetitions": campaign["warmup_repetitions"],
             "measured_repetitions": campaign["measured_repetitions"],
@@ -410,7 +410,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Campaign: `{report['run_id']}`",
         f"- Tool closure: {', '.join(f'`{tool}`' for tool in design['tool_closure'])}",
         f"- Execution: {design['runtime']} under {design['scheduler']}, container-only",
-        f"- Resources: {design['threads']} threads, {design['cache_policy']} cache policy",
+        "- Threads by tool: "
+        + ", ".join(
+            f"`{tool}`={threads}"
+            for tool, threads in design["threads_by_tool"].items()
+        ),
+        f"- Cache policy: {design['cache_policy']}",
         f"- Repetitions: {design['warmup_repetitions']} warmup and {design['measured_repetitions']} measured",
         f"- Corpus: {', '.join(f'`{item}`' for item in design['corpus_catalog_ids'])}",
         f"- Reference: {', '.join(f'`{item}`' for item in design['reference_catalog_ids'])}",

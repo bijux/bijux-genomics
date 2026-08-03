@@ -86,7 +86,7 @@ class BenchmarkEvidenceTests(unittest.TestCase):
                 "tool_closure": ["bcftools"],
                 "runtime": "apptainer",
                 "scheduler": "slurm",
-                "threads": 4,
+                "threads_by_tool": {"bcftools": 4},
                 "cache_policy": "warm",
                 "warmup_repetitions": 1,
                 "measured_repetitions": 3,

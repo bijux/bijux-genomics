@@ -45,10 +45,13 @@ validated genotypes before making an accuracy or concordance claim.
 The BAM-coverage campaign applies the same repetition and cache policy to the
 complete retained closure: Bedtools, Mosdepth, and Samtools. Each tool receives
 the same coordinate-sorted BAM and immutable indexes and emits the same compact
-coverage-summary contract. Breadth and mean-depth agreement are integration
-checks; predeclared absolute and relative tolerances make disagreement visible
-instead of averaging it away. Without an independent truth surface they are
-not accuracy claims.
+coverage-summary contract. Thread counts are declared per tool: Bedtools and
+Samtools use their single-threaded coverage implementations, while Mosdepth
+uses four threads. The report therefore does not imply concurrency a tool did
+not consume. Breadth and mean-depth agreement are integration checks;
+predeclared absolute and relative tolerances make disagreement visible instead
+of averaging it away. Without an independent truth surface they are not
+accuracy claims.
 
 After accounting collection, validate every archived contract, output digest,
 input lock, resource row, repetition, and Slurm identity before publishing the

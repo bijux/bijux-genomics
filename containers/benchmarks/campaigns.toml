@@ -63,7 +63,7 @@ result_artifact = "coverage-summary.tsv"
 runtime = "apptainer"
 scheduler = "slurm"
 container_only = true
-threads = 4
+threads_by_tool = { bedtools = 1, mosdepth = 4, samtools = 1 }
 warmup_repetitions = 1
 measured_repetitions = 3
 cache_policy = "warm"

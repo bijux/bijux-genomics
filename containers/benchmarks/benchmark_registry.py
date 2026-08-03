@@ -72,6 +72,31 @@ def require_text_list(
     return value
 
 
+def threads_by_tool(campaign: dict[str, Any]) -> dict[str, int]:
+    """Return the declared execution width for every tool in a campaign."""
+    tool_ids = require_text_list(campaign, "tool_ids")
+    declared = campaign.get("threads_by_tool")
+    if declared is not None:
+        if campaign.get("threads") is not None:
+            raise RegistryError(
+                "benchmark campaign cannot mix threads and threads_by_tool"
+            )
+        if not isinstance(declared, dict) or set(declared) != set(tool_ids):
+            raise RegistryError(
+                "benchmark threads_by_tool must cover the exact tool closure"
+            )
+        if any(
+            not isinstance(value, int) or isinstance(value, bool) or value < 1
+            for value in declared.values()
+        ):
+            raise RegistryError("benchmark thread counts must be positive integers")
+        return {tool: int(declared[tool]) for tool in tool_ids}
+    threads = campaign.get("threads")
+    if not isinstance(threads, int) or isinstance(threads, bool) or threads < 1:
+        raise RegistryError("benchmark threads must be a positive integer")
+    return {tool: threads for tool in tool_ids}
+
+
 def validate_registry(
     registry: dict[str, Any], catalog: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -178,8 +203,7 @@ def validate_registry(
             raise RegistryError("stage benchmarks must execute container-only tools")
         if campaign.get("cache_policy") not in {"cold", "warm"}:
             raise RegistryError("benchmark cache policy must be cold or warm")
-        if not isinstance(campaign.get("threads"), int) or campaign["threads"] < 1:
-            raise RegistryError("benchmark threads must be positive")
+        threads_by_tool(campaign)
         if campaign.get("warmup_repetitions", 0) < 1:
             raise RegistryError("benchmark campaigns require a warmup repetition")
         if campaign.get("measured_repetitions", 0) < 3:
