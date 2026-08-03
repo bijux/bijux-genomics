@@ -5,6 +5,7 @@ import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 BENCHMARKS = Path(__file__).parents[1]
 SPEC = importlib.util.spec_from_file_location(
@@ -139,6 +140,46 @@ class BenchmarkPortfolioTests(unittest.TestCase):
             profile_reads["downstream_probe"]["consumer_stage_id"],
             "fastq.report_qc",
         )
+        self.assertEqual(profile_reads["operator_override_keys"], ["threads"])
+        self.assertEqual(profile_reads["input_derived_parameters"], ["paired_mode"])
+        self.assertEqual(
+            profile_reads["effective_parameters_artifact"],
+            "effective-parameters.json",
+        )
+
+    def test_input_derived_parameters_cannot_be_operator_overrides(self) -> None:
+        interfaces = copy.deepcopy(self.interfaces)
+        interfaces["interfaces"][0]["operator_override_keys"].append("paired_mode")
+
+        with self.assertRaisesRegex(
+            benchmark_portfolio.PortfolioError, "parameter ownership overlaps"
+        ):
+            benchmark_portfolio.validate_interfaces(
+                interfaces, self.validate()["stage_tools"], ROOT
+            )
+
+    def test_unknown_parameter_override_is_rejected(self) -> None:
+        interfaces = copy.deepcopy(self.interfaces)
+        original_loader = benchmark_portfolio.load_yaml
+
+        def load_with_unknown_override(path: Path) -> dict[str, object]:
+            value = original_loader(path)
+            value["stages"]["fastq.profile_reads"]["overrides"]["paired_mode"] = (
+                "single_end"
+            )
+            return value
+
+        with (
+            mock.patch.object(
+                benchmark_portfolio, "load_yaml", side_effect=load_with_unknown_override
+            ),
+            self.assertRaisesRegex(
+                benchmark_portfolio.PortfolioError, "unsupported overrides"
+            ),
+        ):
+            benchmark_portfolio.validate_interfaces(
+                interfaces, self.validate()["stage_tools"], ROOT
+            )
 
     def test_partial_tool_adapter_closure_is_rejected(self) -> None:
         interfaces = copy.deepcopy(self.interfaces)

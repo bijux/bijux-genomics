@@ -17,9 +17,11 @@ input contracts, canonical output, normalized benchmark result, complete tool
 adapter set, crate-owned default provider, and downstream substitution probe.
 A campaign without that interface remains blocked. The single
 `config-pipeline-parameters.yml` records only explicit operator overrides;
-empty overrides mean the named crate provider remains authoritative. Every run
-must archive the override file and the resolved effective parameters separately
-so replay does not depend on whichever defaults happen to exist later.
+fields such as input layout remain input-derived and schema identity remains
+immutable. The interface declares those ownership boundaries and rejects an
+override that crosses them. Every run must archive the override file and the
+resolved `effective-parameters.json` separately so replay does not depend on
+whichever defaults happen to exist later.
 
 Run specifications and raw evidence do not belong here. Specifications are
 published under the governed study result root, large execution evidence stays

@@ -5,7 +5,9 @@
     "fastq.profile_reads": {
       "parameter_schema_version": "bijux.fastq.params.stats.v1",
       "defaults_provider": "bijux_dna_domain_fastq::params::defaults::stats_defaults",
-      "overrides": {}
+      "overrides": {
+        "threads": 4
+      }
     }
   }
 }

@@ -339,6 +339,57 @@ def validate_interfaces(
             or not isinstance(parameter_entry.get("overrides"), dict)
         ):
             raise PortfolioError(f"{stage_id} parameter config disagrees with its interface")
+        override_keys = set(
+            text_list(
+                interface.get("operator_override_keys", []),
+                f"{stage_id} operator override keys",
+                allow_empty=True,
+            )
+        )
+        input_derived = set(
+            text_list(
+                interface.get("input_derived_parameters"),
+                f"{stage_id} input-derived parameters",
+            )
+        )
+        immutable = set(
+            text_list(
+                interface.get("immutable_parameters"),
+                f"{stage_id} immutable parameters",
+            )
+        )
+        overlapping = sorted(
+            (override_keys & input_derived)
+            | (override_keys & immutable)
+            | (input_derived & immutable)
+        )
+        if overlapping:
+            raise PortfolioError(
+                f"{stage_id} parameter ownership overlaps: {overlapping}"
+            )
+        overrides = parameter_entry["overrides"]
+        unsupported_overrides = sorted(set(overrides) - override_keys)
+        if unsupported_overrides:
+            raise PortfolioError(
+                f"{stage_id} parameter config contains unsupported overrides: "
+                f"{unsupported_overrides}"
+            )
+        if "threads" in overrides and (
+            not isinstance(overrides["threads"], int)
+            or isinstance(overrides["threads"], bool)
+            or overrides["threads"] < 1
+        ):
+            raise PortfolioError(f"{stage_id} threads override must be a positive integer")
+        artifact = Path(
+            text(
+                interface.get("effective_parameters_artifact"),
+                f"{stage_id} effective parameters artifact",
+            )
+        )
+        if artifact.is_absolute() or len(artifact.parts) != 1:
+            raise PortfolioError(
+                f"{stage_id} effective parameters artifact must be a file name"
+            )
         declared_tools = set(text_list(interface.get("tool_ids"), f"{stage_id} tools"))
         if declared_tools != stage_tools[stage_id]:
             raise PortfolioError(

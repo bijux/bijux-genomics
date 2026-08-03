@@ -12,6 +12,10 @@ normalized_result_contract = "benchmarks/contracts/schemas/fastq-profile-reads-r
 parameter_schema_version = "bijux.fastq.params.stats.v1"
 default_provider = "bijux_dna_domain_fastq::params::defaults::stats_defaults"
 parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = ["threads"]
+input_derived_parameters = ["paired_mode"]
+immutable_parameters = ["schema_version"]
+effective_parameters_artifact = "effective-parameters.json"
 tool_ids = ["seqfu", "seqkit", "seqkit_stats"]
 provenance_sources = [
   "crates/bijux-dna-domain-fastq/src/stages/contract/catalog.rs",
