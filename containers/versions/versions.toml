@@ -62,13 +62,13 @@ pinned_commit = "896694ce5c7a9050a6ffa9fccc950a4cd9f04363"
 version = "39.06"
 source = "https://sourceforge.net/projects/bbmap/"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e"
 
 [bbmerge]
 version = "39.06"
 source = "https://sourceforge.net/projects/bbmap/"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e"
 
 [bcftools]
 version = "1.20"
@@ -338,14 +338,12 @@ source_sha256 = "991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099c
 version = "1.1"
 source = "https://sourceforge.net/projects/musket/"
 date_pinned = "2026-08-02"
-pinned_commit = "0000000000000000000000000000000000000000"
 source_sha256 = "306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba"
 
 [pear]
 version = "0.9.6"
 source = "https://cme.h-its.org/exelixis/web/software/pear/"
 date_pinned = "2026-08-02"
-pinned_commit = "0000000000000000000000000000000000000000"
 source_sha256 = "f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b"
 
 [plink]
@@ -388,7 +386,6 @@ source_sha256 = "f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9
 version = "2.3"
 source = "https://bitbucket.org/kokonech/qualimap"
 date_pinned = "2026-08-02"
-pinned_commit = "0000000000000000000000000000000000000000"
 source_sha256 = "2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40"
 
 [rcorrector]
@@ -531,7 +528,7 @@ upstream_license = "GPL-3.0-or-later"
 version = "39.06"
 source = "https://sourceforge.net/projects/bbmap/"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e"
 
 [dada2]
 version = "1.30.0"

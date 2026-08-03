@@ -29,6 +29,8 @@ define the broader control surfaces this lock artifact must satisfy.
 - Support disposition belongs to the container catalog; qualification belongs
   to the generated evidence report. Neither is duplicated in the version lock.
 - Floating references are forbidden (`latest`, branch names, empty version fields).
+- Commit pins must be hexadecimal Git identities; all-zero placeholders are
+  forbidden even when an archive checksum is also present.
 - Any edit to `versions.toml` must regenerate and commit `lock.json`.
 
 ## Update Workflow

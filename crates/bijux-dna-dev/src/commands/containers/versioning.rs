@@ -310,8 +310,12 @@ pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerC
         if !pin.is_empty() {
             if matches!(pin.to_ascii_lowercase().as_str(), "pending" | "unknown") {
                 errors.push(format!("{tool}: pinned_commit must not be pending/unknown"));
+            } else if pin.chars().all(|ch| ch == '0') {
+                errors.push(format!("{tool}: pinned_commit must not be an all-zero placeholder"));
             } else if !matches!(pin.len(), 7 | 40) {
                 errors.push(format!("{tool}: pinned_commit must be short(7) or full(40) git hash"));
+            } else if !pin.chars().all(|ch| ch.is_ascii_hexdigit()) {
+                errors.push(format!("{tool}: pinned_commit must contain only hexadecimal digits"));
             }
         }
     }
