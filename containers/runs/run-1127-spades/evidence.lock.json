@@ -1,0 +1,582 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: assembly/contigs.fasta",
+    "required output is absent or empty: assembly/scaffolds.fasta",
+    "required output is absent or empty: metrics.json",
+    "metric contig_count cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json'",
+    "metric assembled_bases cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json'"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-12ec3751a5cc.sif",
+    "sha256": "12ec3751a5ccabc4225569f492434119c2d064f2df04a1433c31bed343469547",
+    "size_bytes": 226881536
+  },
+  "repository_commit": "a4c6da8cc4d48e11242c9cdfc8cff80fc5b7c07e",
+  "run_id": "run-1127",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458678",
+  "source_files": [
+    {
+      "path": "assembly/K21/configs/careful_mda_mode.info",
+      "sha256": "483f2c4aa4ae3802f2ded934aade83f9d04b3c5f6aa960ae3bc12010074c2c20",
+      "size_bytes": 564
+    },
+    {
+      "path": "assembly/K21/configs/careful_mode.info",
+      "sha256": "3cd0b587997f9fcdce311f6790f6fd4a77c51cf9e55cb530226275487c8df1c0",
+      "size_bytes": 633
+    },
+    {
+      "path": "assembly/K21/configs/config.info",
+      "sha256": "6aba11da2b7bc85f450e405d216da290037fcc45592087a4e9911772a677df53",
+      "size_bytes": 4935
+    },
+    {
+      "path": "assembly/K21/configs/construction.info",
+      "sha256": "69aa648ed2022af38e2164bdc84683b6d64ebcc2ff8ce5b4231adfa3b9e5a56b",
+      "size_bytes": 645
+    },
+    {
+      "path": "assembly/K21/configs/detail_info_printer.info",
+      "sha256": "57d7c4b6af003e8b7f344479e9cf2c45e46cd918ca2b4471a4f29f5fea7b13bd",
+      "size_bytes": 1019
+    },
+    {
+      "path": "assembly/K21/configs/distance_estimation.info",
+      "sha256": "33061954a588cb3f6305a636c10fd38ee230ac3701452281be959b0b193cfcbf",
+      "size_bytes": 1392
+    },
+    {
+      "path": "assembly/K21/configs/hmm_mode.info",
+      "sha256": "9701b8baa14340c9a2b13d6637862ca78254eda94600c13a0e243e97157d9aed",
+      "size_bytes": 110
+    },
+    {
+      "path": "assembly/K21/configs/isolate_mode.info",
+      "sha256": "38f1c362de9b29f7129cb35b751c078b4015a2d90669699815646a7a96ed3b6f",
+      "size_bytes": 44
+    },
+    {
+      "path": "assembly/K21/configs/large_genome_mode.info",
+      "sha256": "5178e680f7d6ad171f37264b5145dd4181d84d7e504261fbdf7f9c594fd8a780",
+      "size_bytes": 126
+    },
+    {
+      "path": "assembly/K21/configs/mda_mode.info",
+      "sha256": "b7f8e5f0b7b8bcdb52acfe550ec985dbf8d9a8aeaded91f4fc9ac1a733dec19b",
+      "size_bytes": 1978
+    },
+    {
+      "path": "assembly/K21/configs/meta_mode.info",
+      "sha256": "acabe1e1ef72f04b42314b103e3ef17fc1903eb55f69d7c22a39490afa02ec10",
+      "size_bytes": 4852
+    },
+    {
+      "path": "assembly/K21/configs/metaplasmid_mode.info",
+      "sha256": "e6de56fdb9c7914b5bf0101c4b1b8b4ce86c2cc02ecb7407fef3b4c83fd90504",
+      "size_bytes": 45
+    },
+    {
+      "path": "assembly/K21/configs/metaviral_mode.info",
+      "sha256": "44a1d60a7a13bdc857c32b458fc92ec73faa554c6acddb2f1d3581e9264bc88c",
+      "size_bytes": 1028
+    },
+    {
+      "path": "assembly/K21/configs/pe_params.info",
+      "sha256": "6e454d8cfa53f4c5e095cbb3f8c56383465dd4c650ed2d3b7c59af6a3f2f89e7",
+      "size_bytes": 4336
+    },
+    {
+      "path": "assembly/K21/configs/plasmid_mode.info",
+      "sha256": "34e73308a4099e7fa093c2f49460f680cdb4eecfd1b13284581d3261701803b1",
+      "size_bytes": 551
+    },
+    {
+      "path": "assembly/K21/configs/rna_mode.info",
+      "sha256": "21d5c5e8f14487d0b034137e9ddda0806899a43f6c4a28156e7c00c88db3fa44",
+      "size_bytes": 5063
+    },
+    {
+      "path": "assembly/K21/configs/rnaviral_mode.info",
+      "sha256": "f2d5067ce64d02e6e7a2e2a9ce3845a4538c6c2976f4652e0b2bb4d5e85c4587",
+      "size_bytes": 636
+    },
+    {
+      "path": "assembly/K21/configs/sewage_mode.info",
+      "sha256": "8eb926a28cabdeebc08c25ff9718803d35f32bb50e3cc59b7a80f925e3ad0eb2",
+      "size_bytes": 1343
+    },
+    {
+      "path": "assembly/K21/configs/simplification.info",
+      "sha256": "59891b05e1768584a59ffb6c7e30a4680fdfe953977662576355d6cdd7c89cc5",
+      "size_bytes": 7030
+    },
+    {
+      "path": "assembly/K21/configs/toy.info",
+      "sha256": "e30674b51b1f31f5873bed0973cde82b010c81ceab0287789be92d11cd847b67",
+      "size_bytes": 43
+    },
+    {
+      "path": "assembly/K33/configs/careful_mda_mode.info",
+      "sha256": "483f2c4aa4ae3802f2ded934aade83f9d04b3c5f6aa960ae3bc12010074c2c20",
+      "size_bytes": 564
+    },
+    {
+      "path": "assembly/K33/configs/careful_mode.info",
+      "sha256": "3cd0b587997f9fcdce311f6790f6fd4a77c51cf9e55cb530226275487c8df1c0",
+      "size_bytes": 633
+    },
+    {
+      "path": "assembly/K33/configs/config.info",
+      "sha256": "1cdbc9cb5cdfbb29afa8d81d7943e2b314cff4b293dc1fcd17b45392ce63625b",
+      "size_bytes": 4956
+    },
+    {
+      "path": "assembly/K33/configs/construction.info",
+      "sha256": "69aa648ed2022af38e2164bdc84683b6d64ebcc2ff8ce5b4231adfa3b9e5a56b",
+      "size_bytes": 645
+    },
+    {
+      "path": "assembly/K33/configs/detail_info_printer.info",
+      "sha256": "57d7c4b6af003e8b7f344479e9cf2c45e46cd918ca2b4471a4f29f5fea7b13bd",
+      "size_bytes": 1019
+    },
+    {
+      "path": "assembly/K33/configs/distance_estimation.info",
+      "sha256": "33061954a588cb3f6305a636c10fd38ee230ac3701452281be959b0b193cfcbf",
+      "size_bytes": 1392
+    },
+    {
+      "path": "assembly/K33/configs/hmm_mode.info",
+      "sha256": "9701b8baa14340c9a2b13d6637862ca78254eda94600c13a0e243e97157d9aed",
+      "size_bytes": 110
+    },
+    {
+      "path": "assembly/K33/configs/isolate_mode.info",
+      "sha256": "38f1c362de9b29f7129cb35b751c078b4015a2d90669699815646a7a96ed3b6f",
+      "size_bytes": 44
+    },
+    {
+      "path": "assembly/K33/configs/large_genome_mode.info",
+      "sha256": "5178e680f7d6ad171f37264b5145dd4181d84d7e504261fbdf7f9c594fd8a780",
+      "size_bytes": 126
+    },
+    {
+      "path": "assembly/K33/configs/mda_mode.info",
+      "sha256": "b7f8e5f0b7b8bcdb52acfe550ec985dbf8d9a8aeaded91f4fc9ac1a733dec19b",
+      "size_bytes": 1978
+    },
+    {
+      "path": "assembly/K33/configs/meta_mode.info",
+      "sha256": "acabe1e1ef72f04b42314b103e3ef17fc1903eb55f69d7c22a39490afa02ec10",
+      "size_bytes": 4852
+    },
+    {
+      "path": "assembly/K33/configs/metaplasmid_mode.info",
+      "sha256": "e6de56fdb9c7914b5bf0101c4b1b8b4ce86c2cc02ecb7407fef3b4c83fd90504",
+      "size_bytes": 45
+    },
+    {
+      "path": "assembly/K33/configs/metaviral_mode.info",
+      "sha256": "44a1d60a7a13bdc857c32b458fc92ec73faa554c6acddb2f1d3581e9264bc88c",
+      "size_bytes": 1028
+    },
+    {
+      "path": "assembly/K33/configs/pe_params.info",
+      "sha256": "6e454d8cfa53f4c5e095cbb3f8c56383465dd4c650ed2d3b7c59af6a3f2f89e7",
+      "size_bytes": 4336
+    },
+    {
+      "path": "assembly/K33/configs/plasmid_mode.info",
+      "sha256": "34e73308a4099e7fa093c2f49460f680cdb4eecfd1b13284581d3261701803b1",
+      "size_bytes": 551
+    },
+    {
+      "path": "assembly/K33/configs/rna_mode.info",
+      "sha256": "21d5c5e8f14487d0b034137e9ddda0806899a43f6c4a28156e7c00c88db3fa44",
+      "size_bytes": 5063
+    },
+    {
+      "path": "assembly/K33/configs/rnaviral_mode.info",
+      "sha256": "f2d5067ce64d02e6e7a2e2a9ce3845a4538c6c2976f4652e0b2bb4d5e85c4587",
+      "size_bytes": 636
+    },
+    {
+      "path": "assembly/K33/configs/sewage_mode.info",
+      "sha256": "8eb926a28cabdeebc08c25ff9718803d35f32bb50e3cc59b7a80f925e3ad0eb2",
+      "size_bytes": 1343
+    },
+    {
+      "path": "assembly/K33/configs/simplification.info",
+      "sha256": "59891b05e1768584a59ffb6c7e30a4680fdfe953977662576355d6cdd7c89cc5",
+      "size_bytes": 7030
+    },
+    {
+      "path": "assembly/K33/configs/toy.info",
+      "sha256": "e30674b51b1f31f5873bed0973cde82b010c81ceab0287789be92d11cd847b67",
+      "size_bytes": 43
+    },
+    {
+      "path": "assembly/K55/configs/careful_mda_mode.info",
+      "sha256": "483f2c4aa4ae3802f2ded934aade83f9d04b3c5f6aa960ae3bc12010074c2c20",
+      "size_bytes": 564
+    },
+    {
+      "path": "assembly/K55/configs/careful_mode.info",
+      "sha256": "3cd0b587997f9fcdce311f6790f6fd4a77c51cf9e55cb530226275487c8df1c0",
+      "size_bytes": 633
+    },
+    {
+      "path": "assembly/K55/configs/config.info",
+      "sha256": "aada7085533ee7361835591427ab02df0627db49b0e5cfc73ae6652bf1b10414",
+      "size_bytes": 4961
+    },
+    {
+      "path": "assembly/K55/configs/construction.info",
+      "sha256": "69aa648ed2022af38e2164bdc84683b6d64ebcc2ff8ce5b4231adfa3b9e5a56b",
+      "size_bytes": 645
+    },
+    {
+      "path": "assembly/K55/configs/detail_info_printer.info",
+      "sha256": "57d7c4b6af003e8b7f344479e9cf2c45e46cd918ca2b4471a4f29f5fea7b13bd",
+      "size_bytes": 1019
+    },
+    {
+      "path": "assembly/K55/configs/distance_estimation.info",
+      "sha256": "33061954a588cb3f6305a636c10fd38ee230ac3701452281be959b0b193cfcbf",
+      "size_bytes": 1392
+    },
+    {
+      "path": "assembly/K55/configs/hmm_mode.info",
+      "sha256": "9701b8baa14340c9a2b13d6637862ca78254eda94600c13a0e243e97157d9aed",
+      "size_bytes": 110
+    },
+    {
+      "path": "assembly/K55/configs/isolate_mode.info",
+      "sha256": "38f1c362de9b29f7129cb35b751c078b4015a2d90669699815646a7a96ed3b6f",
+      "size_bytes": 44
+    },
+    {
+      "path": "assembly/K55/configs/large_genome_mode.info",
+      "sha256": "5178e680f7d6ad171f37264b5145dd4181d84d7e504261fbdf7f9c594fd8a780",
+      "size_bytes": 126
+    },
+    {
+      "path": "assembly/K55/configs/mda_mode.info",
+      "sha256": "b7f8e5f0b7b8bcdb52acfe550ec985dbf8d9a8aeaded91f4fc9ac1a733dec19b",
+      "size_bytes": 1978
+    },
+    {
+      "path": "assembly/K55/configs/meta_mode.info",
+      "sha256": "acabe1e1ef72f04b42314b103e3ef17fc1903eb55f69d7c22a39490afa02ec10",
+      "size_bytes": 4852
+    },
+    {
+      "path": "assembly/K55/configs/metaplasmid_mode.info",
+      "sha256": "e6de56fdb9c7914b5bf0101c4b1b8b4ce86c2cc02ecb7407fef3b4c83fd90504",
+      "size_bytes": 45
+    },
+    {
+      "path": "assembly/K55/configs/metaviral_mode.info",
+      "sha256": "44a1d60a7a13bdc857c32b458fc92ec73faa554c6acddb2f1d3581e9264bc88c",
+      "size_bytes": 1028
+    },
+    {
+      "path": "assembly/K55/configs/pe_params.info",
+      "sha256": "6e454d8cfa53f4c5e095cbb3f8c56383465dd4c650ed2d3b7c59af6a3f2f89e7",
+      "size_bytes": 4336
+    },
+    {
+      "path": "assembly/K55/configs/plasmid_mode.info",
+      "sha256": "34e73308a4099e7fa093c2f49460f680cdb4eecfd1b13284581d3261701803b1",
+      "size_bytes": 551
+    },
+    {
+      "path": "assembly/K55/configs/rna_mode.info",
+      "sha256": "21d5c5e8f14487d0b034137e9ddda0806899a43f6c4a28156e7c00c88db3fa44",
+      "size_bytes": 5063
+    },
+    {
+      "path": "assembly/K55/configs/rnaviral_mode.info",
+      "sha256": "f2d5067ce64d02e6e7a2e2a9ce3845a4538c6c2976f4652e0b2bb4d5e85c4587",
+      "size_bytes": 636
+    },
+    {
+      "path": "assembly/K55/configs/sewage_mode.info",
+      "sha256": "8eb926a28cabdeebc08c25ff9718803d35f32bb50e3cc59b7a80f925e3ad0eb2",
+      "size_bytes": 1343
+    },
+    {
+      "path": "assembly/K55/configs/simplification.info",
+      "sha256": "59891b05e1768584a59ffb6c7e30a4680fdfe953977662576355d6cdd7c89cc5",
+      "size_bytes": 7030
+    },
+    {
+      "path": "assembly/K55/configs/toy.info",
+      "sha256": "e30674b51b1f31f5873bed0973cde82b010c81ceab0287789be92d11cd847b67",
+      "size_bytes": 43
+    },
+    {
+      "path": "assembly/configs/corrector/corrector.info",
+      "sha256": "51ae5b17217f4aee416a3cb371e8b58501c2d14c7e7b30999fc1296741e87838",
+      "size_bytes": 230
+    },
+    {
+      "path": "assembly/configs/debruijn/careful_mda_mode.info",
+      "sha256": "483f2c4aa4ae3802f2ded934aade83f9d04b3c5f6aa960ae3bc12010074c2c20",
+      "size_bytes": 564
+    },
+    {
+      "path": "assembly/configs/debruijn/careful_mode.info",
+      "sha256": "3cd0b587997f9fcdce311f6790f6fd4a77c51cf9e55cb530226275487c8df1c0",
+      "size_bytes": 633
+    },
+    {
+      "path": "assembly/configs/debruijn/config.info",
+      "sha256": "0c5bb72f9d7765a36921182da853fd7d1693414f7ec32ec8396f14914ed204b9",
+      "size_bytes": 4930
+    },
+    {
+      "path": "assembly/configs/debruijn/construction.info",
+      "sha256": "69aa648ed2022af38e2164bdc84683b6d64ebcc2ff8ce5b4231adfa3b9e5a56b",
+      "size_bytes": 645
+    },
+    {
+      "path": "assembly/configs/debruijn/detail_info_printer.info",
+      "sha256": "57d7c4b6af003e8b7f344479e9cf2c45e46cd918ca2b4471a4f29f5fea7b13bd",
+      "size_bytes": 1019
+    },
+    {
+      "path": "assembly/configs/debruijn/distance_estimation.info",
+      "sha256": "33061954a588cb3f6305a636c10fd38ee230ac3701452281be959b0b193cfcbf",
+      "size_bytes": 1392
+    },
+    {
+      "path": "assembly/configs/debruijn/hmm_mode.info",
+      "sha256": "9701b8baa14340c9a2b13d6637862ca78254eda94600c13a0e243e97157d9aed",
+      "size_bytes": 110
+    },
+    {
+      "path": "assembly/configs/debruijn/isolate_mode.info",
+      "sha256": "38f1c362de9b29f7129cb35b751c078b4015a2d90669699815646a7a96ed3b6f",
+      "size_bytes": 44
+    },
+    {
+      "path": "assembly/configs/debruijn/large_genome_mode.info",
+      "sha256": "5178e680f7d6ad171f37264b5145dd4181d84d7e504261fbdf7f9c594fd8a780",
+      "size_bytes": 126
+    },
+    {
+      "path": "assembly/configs/debruijn/mda_mode.info",
+      "sha256": "b7f8e5f0b7b8bcdb52acfe550ec985dbf8d9a8aeaded91f4fc9ac1a733dec19b",
+      "size_bytes": 1978
+    },
+    {
+      "path": "assembly/configs/debruijn/meta_mode.info",
+      "sha256": "acabe1e1ef72f04b42314b103e3ef17fc1903eb55f69d7c22a39490afa02ec10",
+      "size_bytes": 4852
+    },
+    {
+      "path": "assembly/configs/debruijn/metaplasmid_mode.info",
+      "sha256": "e6de56fdb9c7914b5bf0101c4b1b8b4ce86c2cc02ecb7407fef3b4c83fd90504",
+      "size_bytes": 45
+    },
+    {
+      "path": "assembly/configs/debruijn/metaviral_mode.info",
+      "sha256": "44a1d60a7a13bdc857c32b458fc92ec73faa554c6acddb2f1d3581e9264bc88c",
+      "size_bytes": 1028
+    },
+    {
+      "path": "assembly/configs/debruijn/pe_params.info",
+      "sha256": "6e454d8cfa53f4c5e095cbb3f8c56383465dd4c650ed2d3b7c59af6a3f2f89e7",
+      "size_bytes": 4336
+    },
+    {
+      "path": "assembly/configs/debruijn/plasmid_mode.info",
+      "sha256": "34e73308a4099e7fa093c2f49460f680cdb4eecfd1b13284581d3261701803b1",
+      "size_bytes": 551
+    },
+    {
+      "path": "assembly/configs/debruijn/rna_mode.info",
+      "sha256": "21d5c5e8f14487d0b034137e9ddda0806899a43f6c4a28156e7c00c88db3fa44",
+      "size_bytes": 5063
+    },
+    {
+      "path": "assembly/configs/debruijn/rnaviral_mode.info",
+      "sha256": "f2d5067ce64d02e6e7a2e2a9ce3845a4538c6c2976f4652e0b2bb4d5e85c4587",
+      "size_bytes": 636
+    },
+    {
+      "path": "assembly/configs/debruijn/sewage_mode.info",
+      "sha256": "8eb926a28cabdeebc08c25ff9718803d35f32bb50e3cc59b7a80f925e3ad0eb2",
+      "size_bytes": 1343
+    },
+    {
+      "path": "assembly/configs/debruijn/simplification.info",
+      "sha256": "59891b05e1768584a59ffb6c7e30a4680fdfe953977662576355d6cdd7c89cc5",
+      "size_bytes": 7030
+    },
+    {
+      "path": "assembly/configs/debruijn/toy.info",
+      "sha256": "e30674b51b1f31f5873bed0973cde82b010c81ceab0287789be92d11cd847b67",
+      "size_bytes": 43
+    },
+    {
+      "path": "assembly/configs/hammer/config.info",
+      "sha256": "b90e419bcdb8caf0e399d877a05c8483a825a20aa0b959adcfde55a894fa0197",
+      "size_bytes": 1387
+    },
+    {
+      "path": "assembly/configs/ionhammer/ionhammer.cfg",
+      "sha256": "49ef1b7ef890478a573e4445d9adb93dc19d63b6a80dc620f0103afde456a550",
+      "size_bytes": 381
+    },
+    {
+      "path": "assembly/corrected/configs/config.info",
+      "sha256": "ffc6efdaa4a9ba4b4d06fa652095c9f2459b83d75b350a79c710a2a75a889815",
+      "size_bytes": 1341
+    },
+    {
+      "path": "assembly/dataset.info",
+      "sha256": "5a73f41aee9c58e3e22d2cb30f37f0a6fade69930868553142db3ae1a935eb91",
+      "size_bytes": 48
+    },
+    {
+      "path": "assembly/input_dataset.yaml",
+      "sha256": "fe6674bd92ec983aea8002c39385ed4f141bdb3d7cfa214e18f80e52a3c113ce",
+      "size_bytes": 182
+    },
+    {
+      "path": "assembly/params.txt",
+      "sha256": "a4e48e1355846ca564d7d873adee5bd967661bdfaa759f1b3217b56b5eaf362e",
+      "size_bytes": 1176
+    },
+    {
+      "path": "assembly/pipeline_state/stage_0_before_start",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "assembly/pipeline_state/stage_1_ec_start",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "assembly/run_spades.sh",
+      "sha256": "91be68220dc699e4ccccf5f3435448586997025098ff57924f544fb84ecc1d82",
+      "size_bytes": 1952
+    },
+    {
+      "path": "assembly/run_spades.yaml",
+      "sha256": "37000d5f2846561bd6cae9c2ee813b13612bfe08e5d22a661edfa162220a6bbf",
+      "size_bytes": 4906
+    },
+    {
+      "path": "assembly/spades.log",
+      "sha256": "0911d7990ce886097654d325c356d9fa81c548d0e5014c3a095b462be67afa24",
+      "size_bytes": 2427
+    },
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "06c707ee3e145804672d73fee0ad10f2f90b0a6c563edb8c04add49271482961",
+      "size_bytes": 2756
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "4f82c50a747d7e9da2988bbfbff00cfc037169dd35d768a1861a3bbccf368bf0",
+      "size_bytes": 5146
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "035619d889e93becf56c999b7e8ac0384a25ef79a3458140203afe06fa04d9e3",
+      "size_bytes": 7299
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "210657eb808698361adc08540d36089c02bb40f84d7b3b8d0d0a151339a909bb",
+      "size_bytes": 192
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "0911d7990ce886097654d325c356d9fa81c548d0e5014c3a095b462be67afa24",
+      "size_bytes": 2427
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "8deeb433f123264f586f030c74cdffb5920d9eb0dfb6e9aabae704d526a6fa25",
+      "size_bytes": 911
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "89165939fb44b8744faaf841b202490e8e63acb57b92684a98fa4d21dd96c351",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "f410c259317ffae7f1f670a52e2294a712a586f13bf34cbf293bd49aeb6b3e5d",
+      "size_bytes": 1770
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "8d101f01ae2086fe5c4f09f0c7dd3ddb25be995728225d26763a36176a6e24a6",
+      "size_bytes": 31
+    }
+  ],
+  "source_result": "results/container-validation/run-1127-spades",
+  "tool": "spades",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    "config-pipeline.yml": {
+      "sha256": "06c707ee3e145804672d73fee0ad10f2f90b0a6c563edb8c04add49271482961",
+      "size_bytes": 2756
+    },
+    "evidence.json": {
+      "sha256": "4f82c50a747d7e9da2988bbfbff00cfc037169dd35d768a1861a3bbccf368bf0",
+      "size_bytes": 5146
+    },
+    "slurm-accounting.json": {
+      "sha256": "8deeb433f123264f586f030c74cdffb5920d9eb0dfb6e9aabae704d526a6fa25",
+      "size_bytes": 911
+    }
+  }
+}

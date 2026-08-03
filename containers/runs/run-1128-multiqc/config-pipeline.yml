@@ -1,0 +1,78 @@
+schema_version: bijux.container.pipeline.v2
+run:
+  id: run-1128
+  campaign: public-horse-fastq-quality-aggregation
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.report_qc
+  tool: multiqc
+  operator: bijan
+  submitted_at_utc: '2026-08-03T05:41:50Z'
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/07f6e82d85d9495bcb6089f6e8afefc1f061b796
+  commit: 07f6e82d85d9495bcb6089f6e8afefc1f061b796
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-72668c0158ad.sif
+  sha256: 72668c0158ad9355aad107338ac3de92fa2c53fa66190cea2d267e2f77c8132a
+data:
+  inputs:
+    - id: fastqc_archive
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1076-fastqc/ERR1021817.read-prefix-100000_1_fastqc.zip
+      mount_path: /input/ERR1021817.read-prefix-100000_1_fastqc.zip
+      sha256: dc3359da945e8171a0a921d6da6f220de3ea0176278554da2022be715d8acee4
+commands:
+  version: [multiqc, --version]
+  help: [multiqc, --help]
+  real:
+    - bash
+    - -c
+    - >-
+      set -euo pipefail;
+      multiqc --module fastqc --outdir /result --filename multiqc-report.html /input;
+      python3 -c 'import json; source=json.load(open("/result/multiqc_data/multiqc_data.json", encoding="utf-8")); count=sum(len(group) for group in source.get("report_general_stats_data", [])); json.dump({"reported_samples": count}, open("/result/metrics.json", "w", encoding="utf-8"))'
+  negative: [multiqc, --definitely-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1128-multiqc
+  mount_path: /result
+  required_files:
+    - multiqc-report.html
+    - multiqc_data/multiqc_data.json
+    - metrics.json
+  collection_rule: required_files_and_metrics
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 2048
+  walltime: '00:10:00'
+  scratch_mb: 1024
+  retry:
+    max_attempts: 1
+    backoff_seconds: 0
+    retryable_exit_codes: []
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+  threads: 1
+  random_seed: null
+  cache_policy: disabled
+  determinism: deterministic
+dependencies:
+  - run_id: run-1076
+    slurm_job_id: '3458057'
+    required_outputs:
+      - dc3359da945e8171a0a921d6da6f220de3ea0176278554da2022be715d8acee4
+acceptance:
+  version_regex: '^multiqc, version 1[.]24$'
+  negative_exit_nonzero: true
+  metrics:
+    - id: reported_samples
+      path: metrics.json
+      json_pointer: /reported_samples
+      operator: ge
+      expected: 1
+      unit: samples

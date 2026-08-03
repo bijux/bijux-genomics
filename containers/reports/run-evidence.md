@@ -8,11 +8,11 @@ recorded scientific status, and no tool is promoted by this report.
 
 ## Archive boundary
 
-- Governed runs: **123**
-- Tools represented: **64**
-- Execution status: **failed 34**, **incomplete 1**, **passed 88**
-- Scientific status: **not_assessed 123**
-- Unassigned historical identifiers: `run-1081`, `run-1085`
+- Governed runs: **126**
+- Tools represented: **66**
+- Execution status: **failed 36**, **incomplete 1**, **passed 89**
+- Scientific status: **not_assessed 126**
+- Unassigned historical identifiers: `run-1081`, `run-1085`, `run-1126`
 
 The gaps are not silently filled. Failed and incomplete attempts remain part of
 the audit history. Large results stay on the governed execution site; each run
@@ -66,6 +66,7 @@ directory records their paths, sizes, and SHA-256 digests.
 | `leehom` | 1 | 1 | 0 | [run-1016](../runs/run-1016-leehom/) | not_assessed |
 | `mapdamage2` | 4 | 2 | 2 | [run-1050](../runs/run-1050-mapdamage2/) | not_assessed |
 | `mosdepth` | 1 | 1 | 0 | [run-1088](../runs/run-1088-mosdepth/) | not_assessed |
+| `multiqc` | 2 | 1 | 1 | [run-1129](../runs/run-1129-multiqc/) | not_assessed |
 | `musket` | 1 | 1 | 0 | [run-1025](../runs/run-1025-musket/) | not_assessed |
 | `ngsbriggs` | 2 | 1 | 1 | [run-1046](../runs/run-1046-ngsbriggs/) | not_assessed |
 | `pear` | 2 | 1 | 1 | [run-1024](../runs/run-1024-pear/) | not_assessed |
@@ -83,6 +84,7 @@ directory records their paths, sizes, and SHA-256 digests.
 | `shapeit` | 1 | 1 | 0 | [run-1037](../runs/run-1037-shapeit/) | not_assessed |
 | `shapeit5` | 1 | 1 | 0 | [run-1033](../runs/run-1033-shapeit5/) | not_assessed |
 | `skewer` | 1 | 1 | 0 | [run-1079](../runs/run-1079-skewer/) | not_assessed |
+| `spades` | 1 | 0 | 1 | [run-1127](../runs/run-1127-spades/) | not_assessed |
 | `trim_galore` | 2 | 1 | 1 | [run-1124](../runs/run-1124-trim_galore/) | not_assessed |
 | `trimmomatic` | 2 | 1 | 1 | [run-1125](../runs/run-1125-trimmomatic/) | not_assessed |
 | `vsearch` | 1 | 1 | 0 | [run-1084](../runs/run-1084-vsearch/) | not_assessed |

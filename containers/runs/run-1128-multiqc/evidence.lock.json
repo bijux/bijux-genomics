@@ -1,0 +1,210 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: multiqc_data/multiqc_data.json",
+    "required output is absent or empty: metrics.json",
+    "metric reported_samples cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1128-multiqc/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1128-multiqc/metrics.json'"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-72668c0158ad.sif",
+    "sha256": "72668c0158ad9355aad107338ac3de92fa2c53fa66190cea2d267e2f77c8132a",
+    "size_bytes": 133935104
+  },
+  "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "run_id": "run-1128",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458677",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "203e308943ae32c082fd738c46174e848a842332d6eba46fbc62f01e9426c572",
+      "size_bytes": 2609
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "17b829af67aed9b257f0ec6d0ccec08fa07f784dbd576c4186dcdb4c2e0d5edc",
+      "size_bytes": 4777
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "4e8489847a9a7e1ed1404c9de6710e32973062e394149011a8864379cc52ba0b",
+      "size_bytes": 10720
+    },
+    {
+      "path": "multiqc-report.html",
+      "sha256": "8b5a3890cb6d9e56c82304b8aaaa9e314e9d414e6321dc697ed6a159f666189a",
+      "size_bytes": 4683304
+    },
+    {
+      "path": "multiqc-report_data/fastqc-status-check-heatmap.txt",
+      "sha256": "e73ab7916d55ab726f243d6df55eb10b41bdaffc0a94e7d232b144cfc42405c0",
+      "size_bytes": 325
+    },
+    {
+      "path": "multiqc-report_data/fastqc_adapter_content_plot.txt",
+      "sha256": "17cd5bfb57598b374bad4302354f6f01392b519c52e077ef5a45af3c444b3d6d",
+      "size_bytes": 1502
+    },
+    {
+      "path": "multiqc-report_data/fastqc_per_base_n_content_plot.txt",
+      "sha256": "08ecae259be408110f00a04586fd40ab30ff507cd97758d3c31eaa877b35427b",
+      "size_bytes": 2266
+    },
+    {
+      "path": "multiqc-report_data/fastqc_per_base_sequence_quality_plot.txt",
+      "sha256": "c6ff801399f32f6b7293d502626d27acd86d228933e2212b26d0a6eb465bfd20",
+      "size_bytes": 2658
+    },
+    {
+      "path": "multiqc-report_data/fastqc_per_sequence_gc_content_plot_Counts.txt",
+      "sha256": "c0dd5e02be05816da157a0ef92dbdc84f281986629dd9252f49e26f0f3348c7a",
+      "size_bytes": 1694
+    },
+    {
+      "path": "multiqc-report_data/fastqc_per_sequence_gc_content_plot_Percentages.txt",
+      "sha256": "4e0f5327f52a4cee451340a787f5df1b40e42db582fa26d28875cf642545e22d",
+      "size_bytes": 2902
+    },
+    {
+      "path": "multiqc-report_data/fastqc_per_sequence_quality_scores_plot.txt",
+      "sha256": "ac50ab1809a44513f36ae467229409f57172291ed330b7b127532478e0d56c07",
+      "size_bytes": 377
+    },
+    {
+      "path": "multiqc-report_data/fastqc_sequence_counts_plot.txt",
+      "sha256": "0056d60159cf2e12f5c0c5a4507f2f6af0cef5c16d17de3407406121b8c0b496",
+      "size_bytes": 78
+    },
+    {
+      "path": "multiqc-report_data/fastqc_sequence_duplication_levels_plot.txt",
+      "sha256": "d6eb5900357b19e35790b51ee5f80d7bb2fee54988989b723b8283e81d724311",
+      "size_bytes": 293
+    },
+    {
+      "path": "multiqc-report_data/fastqc_sequence_length_distribution_plot.txt",
+      "sha256": "b4ada42dd56878a74627e92591e7248720129179a1c6e3e2c9333060b00fb3d4",
+      "size_bytes": 1231
+    },
+    {
+      "path": "multiqc-report_data/fastqc_top_overrepresented_sequences_table.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "multiqc-report_data/multiqc_citations.txt",
+      "sha256": "01b7abc926d9e75aa87ee19b7c0674c7a3998af6438a8b5361cf8835770a0ccb",
+      "size_bytes": 62
+    },
+    {
+      "path": "multiqc-report_data/multiqc_data.json",
+      "sha256": "b607b834d300f5fa0282c298af5875f4426be4fb8792627972f1e12060181fa0",
+      "size_bytes": 229174
+    },
+    {
+      "path": "multiqc-report_data/multiqc_fastqc.txt",
+      "sha256": "12011dc19e270483f769d691e1270c73d928f2cde90659340c9fb8be2d6fc6ba",
+      "size_bytes": 693
+    },
+    {
+      "path": "multiqc-report_data/multiqc_general_stats.txt",
+      "sha256": "7e85f4a7e06f2a4e13de6104dbb906049bd13a82d9b8f13f5aba9d318264e36d",
+      "size_bytes": 390
+    },
+    {
+      "path": "multiqc-report_data/multiqc_software_versions.txt",
+      "sha256": "175c76d31784ed4f46e680e787c7447bed57c9e3be11a3ac5be8d793ad75eb0f",
+      "size_bytes": 28
+    },
+    {
+      "path": "multiqc-report_data/multiqc_sources.txt",
+      "sha256": "9216e3b432234cba6322d4fcc2ab1f3e2760389c4b12e1c298f50bdabb482f3d",
+      "size_bytes": 136
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "9c632f867d01a21e820396980335ea4a914d34299b33a3749046f4fb849e6575",
+      "size_bytes": 1201
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "4d3b1c5421f0767019ca1933a13dbdb77c8026b322ae79ac36de0c0573456f80",
+      "size_bytes": 529
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "ca31651365c3fb9fd62243297290db854d8dd87e3d85df525b72fec3d0bea92b",
+      "size_bytes": 922
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "4f59c0a3842a48127df899af33415cfbbcfc6590f072b5999cf99abafcddd1ce",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "650129b6e84509a02625e8617576d7f4c45cec64ac5d848efa44b055d31c129d",
+      "size_bytes": 1786
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "846d2ee233d32a10ec08ff8373c3f07027153d710a709e64d079c64ac3e0e54a",
+      "size_bytes": 22
+    }
+  ],
+  "source_result": "results/container-validation/run-1128-multiqc",
+  "tool": "multiqc",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    "config-pipeline.yml": {
+      "sha256": "203e308943ae32c082fd738c46174e848a842332d6eba46fbc62f01e9426c572",
+      "size_bytes": 2609
+    },
+    "evidence.json": {
+      "sha256": "17b829af67aed9b257f0ec6d0ccec08fa07f784dbd576c4186dcdb4c2e0d5edc",
+      "size_bytes": 4777
+    },
+    "slurm-accounting.json": {
+      "sha256": "ca31651365c3fb9fd62243297290db854d8dd87e3d85df525b72fec3d0bea92b",
+      "size_bytes": 922
+    }
+  }
+}

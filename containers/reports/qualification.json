@@ -11,7 +11,7 @@
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
-      "sha256": "36b5cbcac6c6a3e6613e8452436413a8674e9085cbd4e9dd34c568e7e468e4cd"
+      "sha256": "7666dd62b302ab808c6201f4063cb319f3b073100136976d0b77d9fcf4090e43"
     },
     "runtime": {
       "path": "containers/reports/runtime-verification.json",
@@ -24,13 +24,13 @@
       "build": 87,
       "catalog": 87,
       "freshness": 87,
-      "real_data": 63,
+      "real_data": 64,
       "release": 0,
       "runtime": 87,
       "science": 0,
       "security": 0,
       "source": 87,
-      "stage": 63
+      "stage": 64
     },
     "qualification": {
       "unsupported": 2,
@@ -1540,26 +1540,24 @@
         "build": "passed",
         "catalog": "passed",
         "freshness": "passed",
-        "real_data": "missing",
+        "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
-        "stage": "missing"
+        "stage": "passed"
       },
       "id": "multiqc",
       "missing_dimensions": [
-        "stage",
-        "real_data",
         "science",
         "benchmark",
         "security",
         "release"
       ],
       "qualification": "unverified",
-      "real_run_attempts": 0,
-      "real_run_passes": 0,
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
       "support_disposition": "retained",
       "version": "1.24"
     },
@@ -2278,7 +2276,7 @@
         "release"
       ],
       "qualification": "unverified",
-      "real_run_attempts": 0,
+      "real_run_attempts": 1,
       "real_run_passes": 0,
       "support_disposition": "retained",
       "version": "4.2.0"

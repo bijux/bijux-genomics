@@ -1352,23 +1352,57 @@
       "source_file_count": 20,
       "source_result": "results/container-validation/run-1125-trimmomatic",
       "tool": "trimmomatic"
+    },
+    {
+      "evidence_lock_sha256": "5fe2ecb51554f9038fbe8ecf7a0bd79ee390a7af875a05f22028d094b3d59d43",
+      "execution_status": "failed",
+      "repository_commit": "a4c6da8cc4d48e11242c9cdfc8cff80fc5b7c07e",
+      "run_id": "run-1127",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458678",
+      "source_file_count": 107,
+      "source_result": "results/container-validation/run-1127-spades",
+      "tool": "spades"
+    },
+    {
+      "evidence_lock_sha256": "c943e5836611589e84f7946f45a2ac4f6c9a38a42e944c106f78db6bd2222f4a",
+      "execution_status": "failed",
+      "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+      "run_id": "run-1128",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458677",
+      "source_file_count": 33,
+      "source_result": "results/container-validation/run-1128-multiqc",
+      "tool": "multiqc"
+    },
+    {
+      "evidence_lock_sha256": "6da803b0404bc97a552031359608c218c9d3355a07f88dead427e7288433e429",
+      "execution_status": "passed",
+      "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+      "run_id": "run-1129",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458680",
+      "source_file_count": 34,
+      "source_result": "results/container-validation/run-1129-multiqc",
+      "tool": "multiqc"
     }
   ],
   "schema_version": "bijux.container.run_evidence_index.v1",
   "summary": {
     "execution_status": {
-      "failed": 34,
+      "failed": 36,
       "incomplete": 1,
-      "passed": 88
+      "passed": 89
     },
     "missing_run_ids": [
       "run-1081",
-      "run-1085"
+      "run-1085",
+      "run-1126"
     ],
-    "run_count": 123,
+    "run_count": 126,
     "scientific_status": {
-      "not_assessed": 123
+      "not_assessed": 126
     },
-    "tool_count": 64
+    "tool_count": 66
   }
 }

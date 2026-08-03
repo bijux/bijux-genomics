@@ -22,8 +22,8 @@ or successful command does not become a scientific or release claim.
 | `source` | 87 |
 | `build` | 87 |
 | `runtime` | 87 |
-| `stage` | 63 |
-| `real_data` | 63 |
+| `stage` | 64 |
+| `real_data` | 64 |
 | `science` | 0 |
 | `benchmark` | 0 |
 | `security` | 0 |
@@ -92,7 +92,7 @@ permitted. Unsupported tools use `n/a`.
 | `metaphlan` | `4.1.1` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `minimac4` | `4.1.6` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `mosdepth` | `0.3.11` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `multiqc` | `1.24` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `multiqc` | `1.24` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `musket` | `1.1` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `ngsbriggs` | `0.01` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `pear` | `0.9.6` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
