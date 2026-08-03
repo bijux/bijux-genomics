@@ -5,28 +5,24 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG TOOL_VERSION=4.2.0
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-2.0-only" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="spades"
-LABEL org.opencontainers.image.title="spades"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-
-ARG  VERSION_SPADES=4.2.0
-ARG  SPADES_SOURCE_SHA256=96895bc2e86c2b597321072021d6e908da25c0ba5fc89016131cb4a0971768a4
-ENV  DEBIAN_FRONTEND=noninteractive \
-     TZ=UTC \
-     VERSION_SPADES=${VERSION_SPADES}
-
 LABEL org.opencontainers.image.source="https://github.com/ablab/spades" \
-      org.opencontainers.image.version="${VERSION_SPADES}"
-LABEL io.bijux.tool.version="4.2.0"
+      org.opencontainers.image.revision="7fee3c1050a732faef8a0d93d70861015a96f44e" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
+      org.opencontainers.image.licenses="GPL-2.0-only" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      io.bijux.tool.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="spades" \
+      org.opencontainers.image.title="SPAdes" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+
+ARG SPADES_SOURCE_SHA256=face217bd6f47a659157801034ec9ac9203a8242163656c9c7448b233ffdcdf5
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C \
+    LC_ALL=C \
+    TZ=UTC
 
 # ------------------------------------------------------------------
 # 1. Build and install SPAdes
@@ -37,17 +33,17 @@ RUN set -eux; \
     RUNTIME_DEPS="libgomp1 python3 python3-setuptools ca-certificates" && \
     \
     ### Install all dependencies
-    apt-get update && \
+    /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends \
         $BUILD_DEPS \
-        $RUNTIME_DEPS ; \
+        $RUNTIME_DEPS && \
     \
     ### source + compile
-    wget -q https://github.com/ablab/spades/archive/refs/tags/v${VERSION_SPADES}.tar.gz \
+    wget -q https://codeload.github.com/ablab/spades/tar.gz/7fee3c1050a732faef8a0d93d70861015a96f44e \
          -O /tmp/spades.tar.gz && \
     echo "${SPADES_SOURCE_SHA256}  /tmp/spades.tar.gz" | sha256sum -c - && \
     tar -xzf /tmp/spades.tar.gz -C /opt && \
-    cd /opt/spades-${VERSION_SPADES} && \
+    cd /opt/spades-7fee3c1050a732faef8a0d93d70861015a96f44e && \
     ./spades_compile.sh && \
     \
     ### install: copy **everything** from bin so helper modules stay together
@@ -56,11 +52,11 @@ RUN set -eux; \
     cp -r share/spades     /usr/local/share/ && \
     \
     ### sanity check – abort build if SPAdes can’t start
-    spades --version | grep -q "${VERSION_SPADES}" && \
+    spades --version | grep -q "${TOOL_VERSION}" && \
     spades --test >/dev/null ; \
     \
     ### tidy up: ONLY purge the build-time dependencies
-    cd / && rm -rf /opt/spades-${VERSION_SPADES} /tmp/spades.tar.gz && \
+    cd / && rm -rf /opt/spades-7fee3c1050a732faef8a0d93d70861015a96f44e /tmp/spades.tar.gz && \
     apt-get purge -y --auto-remove $BUILD_DEPS && \
     rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
