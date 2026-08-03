@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
 import json
-import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -15,9 +13,31 @@ from typing import Any
 import yaml
 
 try:
-    import tomllib
+    from benchmarks.runs.specification_support import (
+        SpecificationError,
+        current_commit,
+        governed_roots,
+        load_json,
+        load_toml,
+        load_yaml,
+        runtime_contracts,
+        selected_images,
+        sha256_file,
+        study_path,
+    )
 except ModuleNotFoundError:
-    import tomli as tomllib
+    from specification_support import (  # type: ignore[no-redef]
+        SpecificationError,
+        current_commit,
+        governed_roots,
+        load_json,
+        load_toml,
+        load_yaml,
+        runtime_contracts,
+        selected_images,
+        sha256_file,
+        study_path,
+    )
 
 RUN_ID = "run-2004"
 STAGE_ID = "bam.mapping_summary"
@@ -32,48 +52,6 @@ PARAMETER_SCHEMA = "bijux.bam.params.mapping_summary.v1"
 DEFAULTS_PROVIDER = (
     "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)"
 )
-
-
-class SpecificationError(RuntimeError):
-    """Raised when replay inputs cannot support an exact benchmark contract."""
-
-
-def load_json(path: Path) -> dict[str, Any]:
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise SpecificationError(f"cannot read JSON {path}: {exc}") from exc
-    if not isinstance(value, dict):
-        raise SpecificationError(f"JSON root must be an object: {path}")
-    return value
-
-
-def load_yaml(path: Path) -> dict[str, Any]:
-    try:
-        value = yaml.safe_load(path.read_text(encoding="utf-8"))
-    except (OSError, yaml.YAMLError) as exc:
-        raise SpecificationError(f"cannot read YAML {path}: {exc}") from exc
-    if not isinstance(value, dict):
-        raise SpecificationError(f"YAML root must be a mapping: {path}")
-    return value
-
-
-def load_toml(path: Path) -> dict[str, Any]:
-    try:
-        value = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, tomllib.TOMLDecodeError) as exc:
-        raise SpecificationError(f"cannot read TOML {path}: {exc}") from exc
-    if not isinstance(value, dict):
-        raise SpecificationError(f"TOML root must be a mapping: {path}")
-    return value
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def write_parameter_evidence(root: Path) -> dict[str, Any]:
@@ -118,124 +96,6 @@ def write_parameter_evidence(root: Path) -> dict[str, Any]:
         "effective_file": effective_path.name,
         "effective_sha256": sha256_file(effective_path),
     }
-
-
-def runtime_contracts(catalog: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    if catalog.get("schema_version") != CATALOG_SCHEMA:
-        raise SpecificationError("container catalog schema is unsupported")
-    contracts: dict[str, dict[str, Any]] = {}
-    for record in catalog.get("tools", []):
-        if not isinstance(record, dict) or record.get("id") not in TOOLS:
-            continue
-        if record.get("support_disposition") != "retained":
-            raise SpecificationError(f"{record.get('id')} is not retained")
-        tool = str(record["id"])
-        fields = ("version_command", "help_command", "expected_version_regex")
-        if any(
-            not isinstance(record.get(field), str) or not record[field]
-            for field in fields
-        ):
-            raise SpecificationError(f"{tool} runtime contract is incomplete")
-        contracts[tool] = {
-            "version": shlex.split(str(record["version_command"])),
-            "help": shlex.split(str(record["help_command"])),
-            "version_regex": str(record["expected_version_regex"]),
-        }
-    if set(contracts) != set(TOOLS):
-        raise SpecificationError("container catalog lacks the complete tool closure")
-    return contracts
-
-
-def study_path(uri: str, study_root: Path) -> Path:
-    prefix = "study://"
-    value = Path(uri)
-    if value.is_absolute():
-        path = value.resolve()
-    elif uri.startswith(prefix):
-        path = (study_root / uri.removeprefix(prefix)).resolve()
-    else:
-        raise SpecificationError(f"governed path is not study-relative: {uri}")
-    try:
-        path.relative_to(study_root.resolve())
-    except ValueError as exc:
-        raise SpecificationError(
-            f"governed path escapes the study root: {uri}"
-        ) from exc
-    return path
-
-
-def current_commit(repository: Path) -> str:
-    status = subprocess.run(
-        ["git", "-C", str(repository), "status", "--porcelain"],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
-    if status:
-        raise SpecificationError("active repository must be clean")
-    commit = subprocess.run(
-        ["git", "-C", str(repository), "rev-parse", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    if len(commit) != 40:
-        raise SpecificationError("repository HEAD is not a full commit identity")
-    return commit
-
-
-def governed_roots(governance: dict[str, Any]) -> dict[str, Path | str]:
-    if governance.get("schema_version") != GOVERNANCE_SCHEMA:
-        raise SpecificationError("governance schema is unsupported")
-    paths = governance.get("paths")
-    slurm = governance.get("slurm")
-    if not isinstance(paths, dict) or not isinstance(slurm, dict):
-        raise SpecificationError("governance paths and Slurm policy are required")
-    required = {
-        "study_root",
-        "containers_root",
-        "data_root",
-        "results_root",
-        "active_repository",
-        "frozen_repositories",
-    }
-    if not required.issubset(paths):
-        raise SpecificationError("governance paths are incomplete")
-    partitions = slurm.get("partitions")
-    if not isinstance(partitions, list) or not partitions:
-        raise SpecificationError("governance must provide a Slurm partition")
-    roots: dict[str, Path | str] = {key: Path(str(paths[key])) for key in required}
-    roots["account"] = str(slurm.get("account", ""))
-    roots["partition"] = str(partitions[0])
-    if not roots["account"]:
-        raise SpecificationError("governance must provide a Slurm account")
-    return roots
-
-
-def selected_images(
-    inventory: dict[str, Any], study_root: Path
-) -> dict[str, dict[str, str]]:
-    if inventory.get("schema_version") != IMAGE_SCHEMA:
-        raise SpecificationError("image inventory schema is unsupported")
-    selected: dict[str, dict[str, str]] = {}
-    for record in inventory.get("tools", []):
-        if not isinstance(record, dict) or record.get("tool") not in TOOLS:
-            continue
-        if (
-            record.get("support_disposition") != "retained"
-            or record.get("state") != "current"
-        ):
-            raise SpecificationError(
-                f"{record.get('tool')} lacks a current retained image"
-            )
-        tool = str(record["tool"])
-        selected[tool] = {
-            "path": str(study_path(str(record["selected_image"]), study_root)),
-            "sha256": str(record["selected_image_sha256"]),
-        }
-    if set(selected) != set(TOOLS):
-        raise SpecificationError("image inventory lacks the complete tool closure")
-    return selected
 
 
 def corpus_inputs(index: dict[str, Any], study_root: Path) -> list[dict[str, str]]:
@@ -496,9 +356,9 @@ def prepare(
         raise SpecificationError(
             "data index directory must identify the exact repository commit"
         )
-    images = selected_images(load_json(image_inventory_path), study_root)
+    images = selected_images(load_json(image_inventory_path), study_root, TOOLS)
     inputs = corpus_inputs(load_json(data_index_path), study_root)
-    contracts = runtime_contracts(load_toml(catalog_path))
+    contracts = runtime_contracts(load_toml(catalog_path), TOOLS)
     destination = output_root or (
         Path(str(roots["results_root"])) / "benchmark-specifications"
     )

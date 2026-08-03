@@ -222,7 +222,11 @@ expected_version_regex = "^samtools 1[.]20"
             self.assertEqual(parameter_files[tool], (True, True))
             self.assertEqual(
                 pipeline["outputs"]["result_root"],
-                str(study / "results/benchmarks/run-2004-bam-mapping-summary" / tool),
+                str(
+                    (
+                        study / "results/benchmarks/run-2004-bam-mapping-summary" / tool
+                    ).resolve()
+                ),
             )
 
     def test_commands_encode_one_warmup_and_three_measured_repetitions(self) -> None:
@@ -311,10 +315,10 @@ expected_version_regex = "^samtools 1[.]20"
                     "2026-08-03T00:00:00+00:00",
                 )
 
-            self.assertEqual(
-                destination,
-                study / "results" / "benchmark-specifications",
-            )
+        self.assertEqual(
+            destination,
+            (study / "results" / "benchmark-specifications").resolve(),
+        )
 
     def test_ineligible_corpus_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
