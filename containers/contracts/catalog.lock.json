@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "c06b5e090dc4b500599eacb537b09706caba13582472c7a2defd3abc2388370f",
+  "source_sha256": "908256f4cf62939f8dc2809fdbd8792facfa867cb234159f7e4f5227768b1e40",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -709,12 +709,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/fbreitwieser/krakenuniq",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "aa11c4d015516dcfdd58bc38234cfb4f0473833be49c2a6dc12da384540bead9",
       "pinned_commit": "d3305ac7d7fddbd3e62240ab62869aded869f133",
       "apptainer_definition": "containers/apptainer/krakenuniq.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.krakenuniq",
-      "contract_sha256": "b615c330285bd0adef79216bd76a0b8b6fc66ac4216ceec10924dd5b1f68d626"
+      "contract_sha256": "201bee391aa607bc6bb096b7043b14f779b0e32e4f5f5a072ef784fee491ed81"
     },
     {
       "id": "leehom",

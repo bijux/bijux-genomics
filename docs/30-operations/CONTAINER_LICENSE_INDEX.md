@@ -66,7 +66,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `kaiju` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/bioinformatics-centre/kaiju` | `1.10.0` | `sha256:b750e692e4ad8bab1dbde836e6e2813812cb2806865ef086f9bbf92b0e1b65a1` |
 | `king` | `retained` | `bijux` | `GPL-3.0` | `https://www.kingrelatedness.com/executables/Linux-king230.tar.gz` | `2.3.0` | `sha256:5a00cb504b56e3a05c8aa2b4531b1f85c9947e7c9aa89bfec7afd72b28663b39` |
 | `kraken2` | `retained` | `bijux` | `MIT` | `https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz` | `2.1.3` | `sha256:5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69` |
-| `krakenuniq` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/fbreitwieser/krakenuniq` | `1.0.4` | `sha256:d4cdfedb97cb74d26f21c2de00fccde980c33c6e79436ac05f7318aedc85112f` |
+| `krakenuniq` | `retained` | `bijux` | `GPL-3.0-or-later` | `https://github.com/fbreitwieser/krakenuniq` | `1.0.4` | `sha256:aa11c4d015516dcfdd58bc38234cfb4f0473833be49c2a6dc12da384540bead9` |
 | `leehom` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/grenaud/leeHom` | `1.2.18` | `sha256:87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca` |
 | `lighter` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/mourisl/Lighter` | `1.1.3` | `sha256:c8a251c410805f82dad77e40661f0faf14ec82dedb3ff717094ba8ff4ef94465` |
 | `mapdamage2` | `retained` | `bijux` | `MIT` | `https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz` | `2.2.2` | `sha256:a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54` |
