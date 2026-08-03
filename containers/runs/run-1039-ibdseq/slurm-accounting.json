@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T16:58:12.486801+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "pipeline_sha256": "6f412b84fae1ebfa8d9d199d9ea31531eb37efeb2004df8202055f80c28982d8",
+  "rows": [
+    {
+      "AllocCPUS": "8",
+      "AveRSS": "",
+      "CPUTimeRAW": "24",
+      "Elapsed": "00:00:03",
+      "ElapsedRaw": "3",
+      "ExitCode": "0:0",
+      "JobID": "3457774",
+      "JobName": "vcf-ibd-ibdseq-100-sample-cohort",
+      "MaxRSS": "",
+      "NodeList": "cn031",
+      "ReqMem": "16G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1039",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457774",
+  "submit_script_sha256": "c1172ef70981e7256d945fd7829d70060e2d8945ff7b51775ed1d5d9e47934ba"
+}

@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T17:01:45.980853+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "pipeline_sha256": "5a7d8953b012f952b3014413612faeda20c2a60803f289348bc2ed56b1ce1e1b",
+  "rows": [
+    {
+      "AllocCPUS": "8",
+      "AveRSS": "",
+      "CPUTimeRAW": "24",
+      "Elapsed": "00:00:03",
+      "ElapsedRaw": "3",
+      "ExitCode": "1:0",
+      "JobID": "3457787",
+      "JobName": "vcf-demography-ibdne-100-sample-cohort",
+      "MaxRSS": "",
+      "NodeList": "cn031",
+      "ReqMem": "16G",
+      "State": "FAILED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1041",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457787",
+  "submit_script_sha256": "db13c27fa17a1496c180080a1618a8ac219d5609847b14b1a54d57f33a7bdf40"
+}
