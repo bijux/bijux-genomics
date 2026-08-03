@@ -8,12 +8,12 @@ benchmark, security, or release qualification.
 
 ## Evidence boundary
 
-- Repository commit: `9f1fbb22d6a49a8fa40c755e15eb11db3c2d7c24`
+- Repository commit: `04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f`
 - Site: `lunarc` on `cosmos3.int.lunarc`
 - Overall status: **passed**
-- Tool results: **passed 87**, **failed 0**
-- Catalog SHA-256: `91c7ab8334edf43a730d721f8020377347b88cfe1cc1f3b6ff2114065bb26440`
-- Image inventory SHA-256: `4741130daad86a745745753adfe7652ebec3c0a54eb681325e4feb97578f2c1f`
+- Tool results: **passed 85**, **failed 0**
+- Catalog SHA-256: `39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8`
+- Image inventory SHA-256: `16dd9f16151f88886421feace80346376644751bceb6d7fa0d5b9d4db8d42f3e`
 - Per-command timeout: **30 seconds**
 - Runtime network: **disabled**
 
@@ -28,7 +28,6 @@ paths and SHA-256 digests are retained in the machine-readable companion
 | `adapterremoval` | `2.3.4` | passed | passed | **passed** |
 | `addeam` | `1.0.0` | passed | passed | **passed** |
 | `alientrimmer` | `3.2` | passed | passed | **passed** |
-| `angsd` | `0.941` | passed | passed | **passed** |
 | `atropos` | `1.1.31` | passed | passed | **passed** |
 | `authenticct` | `1.0.0` | passed | passed | **passed** |
 | `bamtools` | `2.5.2` | passed | passed | **passed** |
@@ -73,14 +72,13 @@ paths and SHA-256 digests are retained in the machine-readable companion
 | `kraken2` | `2.1.3` | passed | passed | **passed** |
 | `krakenuniq` | `1.0.4` | passed | passed | **passed** |
 | `leehom` | `1.2.18` | passed | passed | **passed** |
-| `lighter` | `1.1.2` | passed | passed | **passed** |
+| `lighter` | `1.1.3` | passed | passed | **passed** |
 | `mapdamage2` | `2.2.2` | passed | passed | **passed** |
 | `metaphlan` | `4.1.1` | passed | passed | **passed** |
 | `minimac4` | `4.1.6` | passed | passed | **passed** |
 | `mosdepth` | `0.3.11` | passed | passed | **passed** |
 | `multiqc` | `1.24` | passed | passed | **passed** |
 | `musket` | `1.1` | passed | passed | **passed** |
-| `ngsbriggs` | `0.01` | passed | passed | **passed** |
 | `pear` | `0.9.6` | passed | passed | **passed** |
 | `picard` | `3.3.0` | passed | passed | **passed** |
 | `plink` | `1.90b7.2` | passed | passed | **passed** |
