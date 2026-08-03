@@ -6,6 +6,7 @@
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+COPY --chmod=0555 containers/tools/picard/picard /usr/local/bin/picard
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=3.3.0
 LABEL org.opencontainers.image.source="https://github.com/broadinstitute/picard" \
@@ -28,14 +29,13 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends wget=1.21.4-1ubuntu4.4 openjdk-21-jre-headless=21.0.11+10-1~24.04.2 && \
     wget -q -O /opt/picard.jar "https://github.com/broadinstitute/picard/releases/download/${VERSION_PICARD}/picard.jar" && \
     echo '58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc  /opt/picard.jar' | sha256sum -c - && \
-    printf '#!/bin/sh\n' > /usr/local/bin/picard && \
-    printf 'if [ "$1" = "--version" ]; then echo "picard %s"; exit 0; fi\n' "$VERSION_PICARD" >> /usr/local/bin/picard && \
-    printf 'if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$#" -eq 0 ]; then echo "picard ${VERSION_PICARD}"; echo "usage: picard <Command> [options]"; exit 0; fi\n' >> /usr/local/bin/picard && \
-    printf 'exec java -jar /opt/picard.jar "$@"\n' >> /usr/local/bin/picard && \
-    chmod +x /usr/local/bin/picard && \
-    test "$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1 || true)" = 'Version:3.3.0' && \
+    picard --version > /tmp/picard.version && \
+    grep -Fx 'picard 3.3.0' /tmp/picard.version && \
+    picard --help > /tmp/picard.help && \
+    grep -F 'USAGE: MarkDuplicates' /tmp/picard.help && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux && \
     apt-get purge -y wget && apt-get autoremove -y && \
+    rm -f /tmp/picard.version /tmp/picard.help && \
     rm -rf /var/lib/apt/lists/*
 
 USER 65532:65532

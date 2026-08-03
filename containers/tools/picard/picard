@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+set -eu
+
+native_version() {
+    set +e
+    native_output="$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || [ "$native_output" != 'Version:3.3.0' ]; then
+        printf 'error: unexpected Picard version probe (status=%s): %s\n' \
+            "$native_status" "$native_output" >&2
+        exit 70
+    fi
+}
+
+native_help() {
+    set +e
+    native_output="$(java -jar /opt/picard.jar MarkDuplicates --help 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'USAGE: MarkDuplicates'; then
+        printf 'error: unexpected Picard help probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+case "${1:-}" in
+    --version)
+        native_version
+        printf 'picard %s\n' "${native_output#Version:}"
+        ;;
+    --help|-h|"")
+        native_help
+        printf '%s\n' "$native_output"
+        ;;
+    *) exec java -jar /opt/picard.jar "$@" ;;
+esac
