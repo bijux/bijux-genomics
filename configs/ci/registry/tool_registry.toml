@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: bcb76a453c737315d937ca7a75f116a217f3b1d0
+# source_commit: ec348cec5dc7c4054849f3a5e178dbba6bf9738a
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1656,8 +1656,8 @@ upstream = "https://github.com/grenaud/schmutzi"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-015-0776-0"
-pinned_commit = "git:a42e6a90b2cb6ee395f17c87ceeb76bde5127017"
-pin_strategy = "source_commit"
+pinned_commit = "sha256:653daf69b241d89647e5a6273fb97c4b9366a5252e4d955651514e800082b426"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/schmutzi:1.5.4"
 runtimes = ["docker", "apptainer"]
 container = true
@@ -1960,9 +1960,9 @@ version = "0.39"
 default_version = "0.39"
 upstream = "https://github.com/usadellab/Trimmomatic"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "GPL-3.0-only"
 citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4103590/"
-pinned_commit = "sha256:2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca"
+pinned_commit = "sha256:2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/trimmomatic:0.39"
 runtimes = ["docker", "apptainer"]

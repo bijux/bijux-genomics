@@ -88,7 +88,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `rcorrector` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/mourisl/Rcorrector` | `1.0.7` | `sha256:33274474f6215e3b78829a2b7f86b5a0f6f191d1da7a2da96cba67f1fb4605a8` |
 | `rxy` | `retained` | `bijux` | `Apache-2.0` | `https://github.com/bijux/bijux-genomics` | `2.0.0` | `sha256:b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8` |
 | `samtools` | `retained` | `bijux` | `MIT` | `https://github.com/samtools/samtools` | `1.20` | `sha256:c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10` |
-| `schmutzi` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/grenaud/schmutzi` | `1.5.4` | `sha256:46ed7c4f429836afdc96b2f7f1853eef2e1c2ebef679f847fcc443c447d84029` |
+| `schmutzi` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/grenaud/schmutzi` | `1.5.4` | `sha256:653daf69b241d89647e5a6273fb97c4b9366a5252e4d955651514e800082b426` |
 | `seqfu` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/telatin/seqfu2/archive/refs/tags/v1.26.0.tar.gz` | `1.26.0` | `sha256:2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff` |
 | `seqkit` | `retained` | `bijux` | `MIT` | `https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz` | `2.8.2` | `sha256:8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc` |
 | `seqkit_stats` | `retained` | `bijux` | `MIT` | `https://github.com/shenwei356/seqkit` | `2.8.2` | `sha256:a6515a64bf28ceba6922a3854d8ec898ca2ca637b4b00fc883c83076dfaf1ffa` |
@@ -102,7 +102,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `spades` | `retained` | `bijux` | `GPL-2.0-only` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
 | `star` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e` |
 | `trim_galore` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:8efa46f091785659e6cc36e8bf0d89c2beaead17f11ff793c64c57b93b9d33ec` |
-| `trimmomatic` | `retained` | `bijux` | `GPL-3.0` | `http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca` |
+| `trimmomatic` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/usadellab/Trimmomatic/releases/download/v${VERSION_TRIMMOMATIC}/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c` |
 | `umi_tools` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/CGATOxford/UMI-tools` | `1.1.6` | `sha256:52f5a89a629a746671fe7c7642e847d7a1e81e49cde6bf05b330c23eab817a0d` |
 | `verifybamid2` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/Griffan/VerifyBamID` | `2.0.1` | `sha256:af9a0621cf519a6e2d7f45dc99af81b64aeb419d960de2c6af1a806a37d91ab9` |
 | `vsearch` | `retained` | `bijux` | `BSD-2-Clause` | `https://github.com/torognes/vsearch` | `2.29.3` | `sha256:6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e` |

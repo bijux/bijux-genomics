@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T13:05:55+02:00",
+  "build_date_utc": "2026-08-03T13:12:27+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -1266,17 +1266,17 @@
       "version": "0.6.10"
     },
     {
-      "entry_sha256": "68d3ba9639eb935f14e5537b6bab0e7cf7fc034aa15539f3ce7d2fafd83878ad",
+      "entry_sha256": "f3d925a484dbd0ca80b2053597fa02a7c0839f62b659c85616188ee8f462e468",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "e77bb89c70f60cb139393a22e89af47c5c1c69e8",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip",
-      "source_sha256": "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca",
+      "source": "https://github.com/usadellab/Trimmomatic/releases/download/v${VERSION_TRIMMOMATIC}/Trimmomatic-${VERSION_TRIMMOMATIC}.zip",
+      "source_sha256": "2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c",
       "tool": "trimmomatic",
       "version": "0.39"
     },
@@ -1343,6 +1343,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v4",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "af9225ff1338aec780e99d284da499bd94e229eacc0155a279aebdd14627c33c",
+  "source_sha256": "7c0d8706c930017b43bc7cd0a562dfb0e0ec1388554d64834256ce514d4a4d4c",
   "version_map_source": "artifacts/containers/version_map.json"
 }

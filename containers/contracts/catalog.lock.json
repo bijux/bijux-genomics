@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "ed57f07561f19294bdd5794bf18ce8a5b98b7523f48f457817236b6a63367b40",
+  "source_sha256": "f242898f7d0abc4d199cacc929782accd0c85ce5bcc12f8afb22a2939857f5e1",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1213,12 +1213,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/usadellab/Trimmomatic",
-      "license": "GPL-3.0",
-      "source_sha256": "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca",
-      "pinned_commit": "",
+      "license": "GPL-3.0-only",
+      "source_sha256": "2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c",
+      "pinned_commit": "e77bb89c70f60cb139393a22e89af47c5c1c69e8",
       "apptainer_definition": "containers/apptainer/trimmomatic.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.trimmomatic",
-      "contract_sha256": "4338b6cf3cb3f75dd1d94904161ea382b73d258a60273d7528da13d7c900e5b7"
+      "contract_sha256": "4cb106e2d3c54afb51e25b248ba7e169ca8f33717fe76c28aa27024582b5adb8"
     },
     {
       "id": "umi_tools",

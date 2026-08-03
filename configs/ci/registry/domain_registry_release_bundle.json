@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "bcb76a453c737315d937ca7a75f116a217f3b1d0",
-  "bundle_checksum_sha256": "3014366ff5c251a903dec0bafc154a03b9e7f91f7c79cca21eed32a7df8b0c63",
+  "source_commit": "ec348cec5dc7c4054849f3a5e178dbba6bf9738a",
+  "bundle_checksum_sha256": "80d61488849bd5b8f702f4ef983bd6b2d4b33731c4584ca10c8b9b9c9d1e55d5",
   "domains": [
     {
       "domain_id": "bam",
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "95569bc8e73aabc0ff91a6bfda75e0eca1331fcb1673a65bcaf0335af6df9529"
+      "checksum_sha256": "6b8e157a34ff8dec2c4b6c6553454aea2a23e34a74b17448da58c15b006caeb7"
     },
     {
       "domain_id": "fastq",
@@ -11261,9 +11261,9 @@
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "0.39",
-          "upstream": "http://www.usadellab.org/cms/?page=trimmomatic",
+          "upstream": "https://github.com/usadellab/Trimmomatic",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "license": "GPL-3.0-only",
           "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4103590/",
           "version_cmd": "trimmomatic --version",
           "help_cmd": "trimmomatic --help",
@@ -13502,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "6318551c96e090cb98fcc3af38a568a508bd33017fde28396ebe36e41759a9a1"
+      "checksum_sha256": "eabf1f3221e583b770b99dc9e896d281c966d560770a31f0df486c001fab6dff"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "f64e2459820b7d4363e2697fe957e9430670057b046e9f776c8043d66ce8f938"
+      "checksum_sha256": "5d77c23982dc0d54f2fabf1830a61b0230b7ba91fb991435e27f43d0907b8ab3"
     }
   ]
 }

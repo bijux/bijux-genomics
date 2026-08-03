@@ -578,7 +578,7 @@
     {
       "apptainer_def": "containers/apptainer/schmutzi.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.schmutzi",
-      "pinned_commit": "git:a42e6a90b2cb6ee395f17c87ceeb76bde5127017",
+      "pinned_commit": "sha256:653daf69b241d89647e5a6273fb97c4b9366a5252e4d955651514e800082b426",
       "runtimes": [
         "docker",
         "apptainer"
@@ -686,7 +686,7 @@
     {
       "apptainer_def": "containers/apptainer/trimmomatic.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.trimmomatic",
-      "pinned_commit": "sha256:2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca",
+      "pinned_commit": "sha256:2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c",
       "runtimes": [
         "docker",
         "apptainer"
