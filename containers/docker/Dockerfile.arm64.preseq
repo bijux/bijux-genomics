@@ -1,24 +1,21 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=3.2.0
 LABEL org.opencontainers.image.source="https://github.com/smithlabcode/preseq" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.revision="3dc2a7b1a2d3fdadedaeffebdceb29ea88dbd8bb" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0-or-later" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="preseq"
-LABEL org.opencontainers.image.title="preseq"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      io.bijux.tool.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="preseq" \
+      org.opencontainers.image.title="Preseq" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION_PRESEQ=3.2.0
 ENV VERSION_PRESEQ=${VERSION_PRESEQ}
@@ -47,9 +44,11 @@ RUN cd "/tmp/preseq-${VERSION_PRESEQ}" && \
     install -m 0644 data/SRR1301329_1M_hist.txt /opt/preseq/test-data/counts.hist && \
     preseq c_curve -H -o /tmp/preseq-self-test.txt /opt/preseq/test-data/counts.hist && \
     test -s /tmp/preseq-self-test.txt && \
+    preseq 2>&1 | grep -F 'Version: 3.2.0' && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux && \
     rm -rf "/tmp/preseq-${VERSION_PRESEQ}" /tmp/preseq.tar.gz /tmp/preseq-self-test.txt /opt/preseq-gcc-cstdint.patch && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /data
-ENTRYPOINT ["preseq"]
-CMD []
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/preseq"]
