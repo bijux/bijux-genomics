@@ -1420,12 +1420,15 @@ def require_current_manifest_path(
     manifest_path: Path,
     active_repository: Path,
     containers_root: Path,
+    results_root: Path | None = None,
 ) -> None:
-    allowed_roots = (
+    allowed_roots = [
         active_repository / "containers" / "runs",
         containers_root / "runs",
         containers_root / "evidence" / "specifications",
-    )
+    ]
+    if results_root is not None:
+        allowed_roots.append(results_root / "benchmark-specifications")
     for root in allowed_roots:
         try:
             manifest_path.relative_to(root)
@@ -1487,6 +1490,7 @@ def submit_manifest(
             manifest_path,
             governance["active_repository"],
             governance["containers_root"],
+            governance["results_root"],
         )
         expected_name = f"{contract['run_id']}-{contract['pipeline']['run']['tool']}"
     if manifest_path.name != expected_name:

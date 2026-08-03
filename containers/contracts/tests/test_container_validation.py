@@ -686,6 +686,19 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 study / "containers",
             )
 
+    def test_current_manifest_accepts_benchmark_owned_specifications(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            active = root / "repository"
+            study = root / "study"
+
+            container_validation.require_current_manifest_path(
+                study / "results/benchmark-specifications/run-2004-picard",
+                active,
+                study / "containers",
+                study / "results",
+            )
+
     def test_current_manifest_rejects_operator_scratch_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
