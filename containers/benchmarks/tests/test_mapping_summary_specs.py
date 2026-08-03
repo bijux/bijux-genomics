@@ -65,7 +65,8 @@ class MappingSummarySpecificationTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        index = root / "data-index.json"
+        index = root / ("f" * 40) / "data-index.json"
+        index.parent.mkdir()
         index.write_text(
             json.dumps(
                 {
@@ -197,6 +198,24 @@ class MappingSummarySpecificationTests(unittest.TestCase):
                 ),
             ):
                 specifications.prepare(governance, index, inventory, root / "output")
+
+    def test_data_index_must_match_the_frozen_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, _ = self.fixtures(root)
+            mismatched = root / "data-index.json"
+            mismatched.write_bytes(index.read_bytes())
+
+            with (
+                patch.object(specifications, "current_commit", return_value="f" * 40),
+                self.assertRaisesRegex(
+                    specifications.SpecificationError,
+                    "exact repository commit",
+                ),
+            ):
+                specifications.prepare(
+                    governance, mismatched, inventory, root / "output"
+                )
 
 
 if __name__ == "__main__":

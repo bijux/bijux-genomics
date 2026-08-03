@@ -365,6 +365,10 @@ def prepare(
     study_root = Path(str(roots["study_root"]))
     repository = Path(str(roots["active_repository"]))
     commit = current_commit(repository)
+    if data_index_path.parent.name != commit:
+        raise SpecificationError(
+            "data index directory must identify the exact repository commit"
+        )
     images = selected_images(load_json(image_inventory_path), study_root)
     inputs = corpus_inputs(load_json(data_index_path), study_root)
     destination = output_root or (Path(str(roots["containers_root"])) / "runs")
