@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: dddde45ecd0b78e3dd987b79f05ead674908baa4
+# source_commit: 30956eea7138fdd3fa12628064c00684c7e6aae2
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1142,11 +1142,11 @@ bindings = ["fastq.screen_taxonomy"]
 tool_role = "screen"
 version = "2.1.3"
 default_version = "2.1.3"
-upstream = "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz"
+upstream = "https://github.com/DerrickWood/kraken2"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "MIT"
 citation = "paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0"
-pinned_commit = "sha256:5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69"
+pinned_commit = "sha256:8204c3d8450d3869372d1d87a2298d80b3d7dd4942b1e7477cde55ef55d69d42"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/kraken2:2.1.3"
 runtimes = ["docker", "apptainer"]

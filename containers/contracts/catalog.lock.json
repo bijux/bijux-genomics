@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "46353fa5a3a7d43dc068dc1f2233cb72c8b040358775c1580dfe04fffb1db060",
+  "source_sha256": "d5a613e88d9263dbae7f21b27a7a4ab64b5ca04af7bd4fbcc5271eb7b946574b",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -742,13 +742,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz",
-      "license": "GPL-3.0",
-      "source_sha256": "5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69",
-      "pinned_commit": "",
+      "upstream": "https://github.com/DerrickWood/kraken2",
+      "license": "MIT",
+      "source_sha256": "8204c3d8450d3869372d1d87a2298d80b3d7dd4942b1e7477cde55ef55d69d42",
+      "pinned_commit": "8f82a7ded7816c7ceed5086598b2979f80c970d8",
       "apptainer_definition": "containers/apptainer/kraken2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.kraken2",
-      "contract_sha256": "98ad44f6999a9ea99d8bcefefd305d3f9b89f8843ca5fabc42c19394f3e6f77f"
+      "contract_sha256": "a0479cb4766967a46681b6c97e5a7a6ff7a6403574a27c205ce9685dac79fdbf"
     },
     {
       "id": "krakenuniq",
