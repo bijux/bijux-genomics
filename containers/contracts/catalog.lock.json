@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "5c6b24ede72ef6c5d8f1dfe7d510f92ffa64ba06ce3b8c9662e3f8234b42850e",
+  "source_sha256": "5170780d0ded89bf7da046b839be54a1280382e557abcaeafaae75763b0f4354",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1059,11 +1059,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/bijux/bijux-genomics",
       "license": "Apache-2.0",
-      "source_sha256": "c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b",
+      "source_sha256": "1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/rxy.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.rxy",
-      "contract_sha256": "faba95b84c931c7d058d2e7b8320fc99b11dca8d38f14616efe1f02fcab811e8"
+      "contract_sha256": "50e7addd189e3a51990441d26d67bb5b731e0bb1dac070717fb6583ee82a1143"
     },
     {
       "id": "samtools",

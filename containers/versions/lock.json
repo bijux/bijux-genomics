@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T08:36:22+02:00",
+  "build_date_utc": "2026-08-03T09:05:56+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -1094,7 +1094,7 @@
       "version": "1.0.7"
     },
     {
-      "entry_sha256": "105bf175b94749137e6742c17e67f2e71a03013d0f9a26edaeede114bcadbe23",
+      "entry_sha256": "e9cfd3deaea2228d9418fff568ed3de15ce114184842999e42e8202b7b0d7f0c",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1104,7 +1104,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/bijux/bijux-genomics",
-      "source_sha256": "c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b",
+      "source_sha256": "1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38",
       "status": "production",
       "tool": "rxy",
       "version": "1.0.0"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "ada03a846d1badbfcbe6e1f7cabac2d796d9d59455e168871405d455ee3ef805",
+  "source_sha256": "8ff31221356dad1aceafbe88f8fa4369c0205b0f0192dfebc71e3d1fabe2fe72",
   "version_map_source": "artifacts/containers/version_map.json"
 }

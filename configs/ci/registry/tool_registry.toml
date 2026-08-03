@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 1acd337f365c6195dbf9de5d9baa949389fdaac3
+# source_commit: 178ad4438a6f4c3f82a01a7c68667d46115dba2a
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1656,7 +1656,7 @@ upstream = "https://github.com/bijux/bijux-genomics"
 version_rule = "pinned"
 license = "Apache-2.0"
 citation = "upstream:https://github.com/bijux/bijux-genomics"
-pinned_commit = "sha256:c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b"
+pinned_commit = "sha256:1331672e8a982637a83f060bc7c834501cf7e1ed86cad484d4f0a4777964ca38"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/rxy:1.0.0"
 runtimes = ["docker", "apptainer"]
