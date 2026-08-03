@@ -524,6 +524,58 @@ class CurrentPipelineContractTests(unittest.TestCase):
             ):
                 container_validation.validate_contracts(*paths)
 
+    def test_benchmark_contract_uses_a_stage_and_tool_result_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["run"]["domain"] = "bam"
+            pipeline["run"]["stage"] = "bam.genotyping"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-bam-genotyping/tool"
+            )
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                container_validation.socket,
+                "gethostname",
+                return_value="worker-7",
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(contract["evidence_kind"], "benchmark")
+        self.assertEqual(
+            contract["result_root"],
+            (
+                root / "study/results/benchmarks/run-2000-bam-genotyping/tool"
+            ).resolve(),
+        )
+
+    def test_benchmark_contract_rejects_qualification_result_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket,
+                    "gethostname",
+                    return_value="worker-7",
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "benchmark outputs.result_root must equal",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
     def test_current_contract_rejects_duplicate_container_mounts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             paths = self.make_contracts(Path(directory))
@@ -862,7 +914,10 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 "run_id": "run-2000",
                 "pipeline": {"run": {"tool": "tool"}},
                 "result_root": result,
-                "governance": {"containers_root": containers_root},
+                "governance": {
+                    "containers_root": containers_root,
+                    "results_root": root / "study/results",
+                },
             }
             with mock.patch.object(
                 container_validation,

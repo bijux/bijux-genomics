@@ -25,6 +25,14 @@ and terminal Slurm accounting. A run must execute from the commit-addressed
 worktree named in its pipeline contract, so later commits cannot change a
 queued job.
 
+Qualification runs use the flat
+`results/container-validation/run-<id>-<tool>` boundary. A benchmark pipeline
+sets `run.kind: benchmark` and writes to
+`results/benchmarks/run-<id>-<domain>-<stage>/<tool>`. This keeps each tool's
+raw evidence independent while giving one stage campaign a shared comparison
+root. The validator derives that path from the declared run, stage, and tool;
+changing a path alone cannot turn qualification output into benchmark evidence.
+
 Use the executor explicitly:
 
 ```console

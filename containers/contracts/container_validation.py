@@ -572,11 +572,17 @@ def validate_pipeline(
     }
     if is_current:
         run_fields.add("submitted_at_utc")
-    require_keys(
-        run,
-        run_fields,
-        "run",
-    )
+    missing_run_fields = run_fields.difference(run)
+    optional_run_fields = {"kind"} if is_current else set()
+    unknown_run_fields = set(run).difference(run_fields | optional_run_fields)
+    if missing_run_fields:
+        raise ContractError(
+            f"run is missing required fields: {sorted(missing_run_fields)}"
+        )
+    if unknown_run_fields:
+        raise ContractError(
+            f"run contains unknown fields: {sorted(unknown_run_fields)}"
+        )
     run_id = require_text(run, "id")
     if not RUN_ID_PATTERN.fullmatch(run_id):
         raise ContractError("run.id must use the run-1001 provenance sequence")
@@ -584,6 +590,11 @@ def validate_pipeline(
         require_text(run, key)
     if is_current:
         require_utc_timestamp(run, "submitted_at_utc", "run")
+    evidence_kind = (
+        run.get("kind", "qualification") if is_current else "qualification"
+    )
+    if evidence_kind not in {"qualification", "benchmark"}:
+        raise ContractError("run.kind must be qualification or benchmark")
 
     dependencies: list[dict[str, Any]] = []
     if is_current:
@@ -761,16 +772,29 @@ def validate_pipeline(
     if not declared_result_root.is_absolute():
         raise ContractError("outputs.result_root must be absolute")
     result_root = resolved(str(declared_result_root))
-    require_under(
-        result_root,
-        governance["results_root"] / "container-validation",
-        "outputs.result_root",
-    )
-    expected_result_name = f"{run_id}-{run['tool']}" if is_current else run_id
-    if result_root.name != expected_result_name:
-        raise ContractError(
-            f"outputs.result_root must end with {expected_result_name!r}"
+    if is_current and evidence_kind == "benchmark":
+        stage_slug = re.sub(
+            r"[^a-z0-9]+", "-", str(run["stage"]).lower()
+        ).strip("-")
+        expected_result_root = (
+            governance["results_root"]
+            / "benchmarks"
+            / f"{run_id}-{stage_slug}"
+            / str(run["tool"])
         )
+        if result_root != expected_result_root:
+            raise ContractError(
+                "benchmark outputs.result_root must equal "
+                f"{expected_result_root}"
+            )
+    else:
+        qualification_root = governance["results_root"] / "container-validation"
+        require_under(result_root, qualification_root, "outputs.result_root")
+        expected_result_name = f"{run_id}-{run['tool']}" if is_current else run_id
+        if result_root.name != expected_result_name:
+            raise ContractError(
+                f"outputs.result_root must end with {expected_result_name!r}"
+            )
     result_mount_path = declared_result_root
     if is_current:
         result_mount_path = Path(require_text(outputs, "mount_path"))
@@ -930,6 +954,7 @@ def validate_pipeline(
 
     return {
         "run_id": run_id,
+        "evidence_kind": evidence_kind,
         "repository_path": repository_path,
         "repository_commit": expected_commit,
         "image_path": image_path,
@@ -1211,6 +1236,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
         ),
         "pipeline_schema_version": contract["pipeline_schema"],
         "run_id": contract["run_id"],
+        "evidence_kind": contract["evidence_kind"],
         "status": "passed" if not failures else "failed",
         "failure_class": None if not failures else "container_validation",
         "failures": failures,
@@ -1631,6 +1657,7 @@ def collect_accounting(
             ),
             "pipeline_schema_version": contract["pipeline_schema"],
             "run_id": contract["run_id"],
+            "evidence_kind": contract["evidence_kind"],
             "status": "failed",
             "failure_class": failure_class,
             "failures": [failure],
@@ -1738,7 +1765,12 @@ def archive_failed_run(
     staging = failure_root / f".{bundle_name}.partial"
     if target.exists() or staging.exists():
         raise ContractError(f"refusing to replace failure evidence: {target}")
-    if len({submission_root.stat().st_dev, result_root.stat().st_dev, failure_root.stat().st_dev}) != 1:
+    involved_devices = {
+        submission_root.stat().st_dev,
+        result_root.stat().st_dev,
+        failure_root.stat().st_dev,
+    }
+    if len(involved_devices) != 1:
         raise ContractError("failure evidence must remain on one filesystem")
     files = [
         *archive_file_records(submission_root, "submission"),
@@ -1761,10 +1793,10 @@ def archive_failed_run(
                         f"study://containers/evidence/submissions/"
                         f"{contract['run_id']}-{tool_id}"
                     ),
-                    "result": (
-                        f"study://results/container-validation/"
-                        f"{contract['run_id']}-{tool_id}"
-                    ),
+                    "result": "study://results/"
+                    + result_root.relative_to(
+                        contract["governance"]["results_root"]
+                    ).as_posix(),
                 },
                 "evidence_sha256": sha256_file(staging / "result/evidence.json"),
                 "accounting_sha256": sha256_file(
