@@ -10,9 +10,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LIGHTER_VERSION=${TOOL_VERSION} \
     LIGHTER_SOURCE_SHA256=${LIGHTER_SOURCE_SHA256}
 COPY containers/tools/lighter/install /opt/lighter-build/install
-RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#http://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#http://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 && \
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
     apt-get -o Acquire::Check-Valid-Until=false update && \
-    apt-get install -y --no-install-recommends build-essential ca-certificates curl zlib1g-dev && \
+    apt-get install -y --no-install-recommends build-essential curl zlib1g-dev && \
     chmod 0755 /opt/lighter-build/install && \
     BIJUX_BUILD_JOBS=2 /opt/lighter-build/install
 
@@ -29,7 +31,9 @@ LABEL org.opencontainers.image.source="https://github.com/mourisl/Lighter" \
       org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
       org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV LANG=C LC_ALL=C TZ=UTC
-RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#http://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#http://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 && \
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
     apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y --no-install-recommends zlib1g && \
     rm -rf /var/lib/apt/lists/* && \
