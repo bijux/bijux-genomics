@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 69777be752a577d6edb2722658771b4d09eb7587
+# source_commit: 9ddf711e3126c8789921ab40b38eaa1eba517b13
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -158,9 +158,9 @@ version = "1.1.31"
 default_version = "1.1.31"
 upstream = "https://github.com/jdidion/atropos"
 version_rule = "pinned"
-license = "AGPL-3.0-or-later"
+license = "MIT AND CC0-1.0"
 citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5581536/"
-pinned_commit = "sha256:9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806"
+pinned_commit = "sha256:7f23fc141336f508d4198cd491cf223082811d83a0607999c22dc80ca4ed4874"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/atropos:1.1.31"
 runtimes = ["docker", "apptainer"]
@@ -290,15 +290,15 @@ status = "production"
 stage_ids = ["fastq.correct_errors"]
 bindings = ["fastq.correct_errors"]
 tool_role = "corrector"
-version = "3.15.5"
-default_version = "3.15.5"
+version = "4.2.0"
+default_version = "4.2.0"
 upstream = "https://github.com/ablab/spades"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "GPL-2.0-only"
 citation = "paper:https://link.springer.com/article/10.1186/1471-2164-14-S1-S7"
-pinned_commit = "git:896694ce5c7a9050a6ffa9fccc950a4cd9f04363"
-pin_strategy = "source_commit"
-container_ref = "bijuxdna/bayeshammer:3.15.5"
+pinned_commit = "sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985"
+pin_strategy = "source_sha256"
+container_ref = "bijuxdna/bayeshammer:4.2.0"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "bayeshammer --version"

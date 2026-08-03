@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "701e7a4aa62c11178c2bfa426f07cf0c708103fc7b76207cd0f497c8fb660292",
+  "source_sha256": "156077b8ceb840a5f9b689e5461f5f40be8088affe5e317a29c9dd75f8b48b0c",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -153,17 +153,17 @@
     {
       "id": "bayeshammer",
       "display_name": "BayesHammer",
-      "version": "3.15.5",
+      "version": "4.2.0",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/ablab/spades",
-      "license": "GPL-3.0",
-      "source_sha256": "",
-      "pinned_commit": "896694ce5c7a9050a6ffa9fccc950a4cd9f04363",
+      "license": "GPL-2.0-only",
+      "source_sha256": "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985",
+      "pinned_commit": "7fee3c1050a732faef8a0d93d70861015a96f44e",
       "apptainer_definition": "containers/apptainer/bayeshammer.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bayeshammer",
-      "contract_sha256": "02ea28a6cf8961622495100cde3dce1d0ecb58aa7259521d6e3a82e66bd1aa3a"
+      "contract_sha256": "0ce8112686916cb511e1cf4eebdd88dba1e8be452c81ea8abf98b1617939dc55"
     },
     {
       "id": "bbduk",
