@@ -69,3 +69,30 @@ remain in the study tree.
 The historical nested result layout (`<tool>/run-<id>`) is accepted for
 admission only. New results use the flat `run-<id>-<tool>` identity so a run is
 one independently movable and inspectable result directory.
+
+## Migrate historical result paths
+
+The layout migration verifies every result file against the tracked evidence
+lock before changing a path. It writes a durable journal after every atomic
+rename and supports verification and rollback. It never copies or deletes a
+result. On LUNARC:
+
+```console
+python3 containers/runs/result_layout.py plan \
+  --runs-root containers/runs \
+  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
+  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+
+python3 containers/runs/result_layout.py apply \
+  --runs-root containers/runs \
+  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
+  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+
+python3 containers/runs/result_layout.py verify \
+  --runs-root containers/runs \
+  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
+  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+```
+
+`rollback` accepts the same arguments and restores the recorded nested paths.
+The journal is execution-site evidence and remains outside Git.
