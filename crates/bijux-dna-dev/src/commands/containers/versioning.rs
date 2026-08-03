@@ -2,32 +2,33 @@
 
 use super::{
     all_registry_paths, anyhow, append_toml_table, container_version_deprecations_path,
-    env_or_empty, failure_lines, fs, git_is_shallow_repository, git_last_modified_timestamp,
-    governed_container_file_ids, load_toml, lock_items_by_tool, out_path_arg, parse_date,
-    production_registry_paths, read_lock_json, read_utf8, registry_deprecations_path, run_argv,
-    run_argv_with_env, set_registry_status, set_versions_status, sha256_hex, success_line,
-    table_string, tool_versions, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context,
-    Local, PathBuf, Result, Utc, VersionMapItem, Workspace,
+    env_or_empty, failure_lines, fs, git_last_modified_timestamp, governed_container_file_ids,
+    load_toml, lock_items_by_tool, out_path_arg, parse_date, production_registry_paths,
+    read_lock_json, read_utf8, registry_deprecations_path, run_argv, run_argv_with_env,
+    set_registry_status, set_versions_status, sha256_hex, success_line, table_string,
+    tool_versions, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Local,
+    PathBuf, Result, Utc, VersionMapItem, Workspace,
 };
 
 fn choose_lock_build_date_utc(
     git_timestamp: &str,
-    is_shallow_repository: bool,
     existing_lock: Option<&serde_json::Value>,
     current_source_sha256: &str,
 ) -> String {
-    if !is_shallow_repository {
-        return git_timestamp.to_string();
-    }
-    let Some(lock) = existing_lock else {
-        return git_timestamp.to_string();
-    };
-    let existing_source_sha256 =
-        lock.get("source_sha256").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
-    let existing_build_date_utc =
-        lock.get("build_date_utc").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
-    if existing_source_sha256 == current_source_sha256 && !existing_build_date_utc.is_empty() {
-        return existing_build_date_utc.to_string();
+    if let Some(lock) = existing_lock {
+        let existing_source_sha256 = lock
+            .get("source_sha256")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim();
+        let existing_build_date_utc = lock
+            .get("build_date_utc")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim();
+        if existing_source_sha256 == current_source_sha256 && !existing_build_date_utc.is_empty() {
+            return existing_build_date_utc.to_string();
+        }
     }
     git_timestamp.to_string()
 }
@@ -41,7 +42,6 @@ fn lock_build_date_utc(workspace: &Workspace, versions_path: &std::path::Path) -
         .and_then(|payload| serde_json::from_str::<serde_json::Value>(&payload).ok());
     Ok(choose_lock_build_date_utc(
         &git_last_modified_timestamp(workspace, "containers/versions/versions.toml"),
-        git_is_shallow_repository(workspace),
         existing_lock.as_ref(),
         &source_sha256,
     ))
@@ -1251,7 +1251,7 @@ mod tests {
     }
 
     #[test]
-    fn prefers_git_timestamp_when_repository_is_not_shallow() {
+    fn preserves_existing_lock_date_when_source_is_unchanged() {
         let current_source_sha256 = "abc123";
         let existing_lock = serde_json::json!({
             "source_sha256": current_source_sha256,
@@ -1260,25 +1260,6 @@ mod tests {
 
         let chosen = choose_lock_build_date_utc(
             "2026-04-29T15:35:57+02:00",
-            false,
-            Some(&existing_lock),
-            current_source_sha256,
-        );
-
-        assert_eq!(chosen, "2026-04-29T15:35:57+02:00");
-    }
-
-    #[test]
-    fn preserves_existing_lock_date_when_shallow_and_source_is_unchanged() {
-        let current_source_sha256 = "abc123";
-        let existing_lock = serde_json::json!({
-            "source_sha256": current_source_sha256,
-            "build_date_utc": "2026-04-25T23:10:27+02:00"
-        });
-
-        let chosen = choose_lock_build_date_utc(
-            "2026-04-29T15:35:57+02:00",
-            true,
             Some(&existing_lock),
             current_source_sha256,
         );
@@ -1287,7 +1268,7 @@ mod tests {
     }
 
     #[test]
-    fn falls_back_to_git_timestamp_when_shallow_lock_is_stale() {
+    fn falls_back_to_git_timestamp_when_lock_is_stale() {
         let existing_lock = serde_json::json!({
             "source_sha256": "old-source",
             "build_date_utc": "2026-04-25T23:10:27+02:00"
@@ -1295,7 +1276,6 @@ mod tests {
 
         let chosen = choose_lock_build_date_utc(
             "2026-04-29T15:35:57+02:00",
-            true,
             Some(&existing_lock),
             "new-source",
         );
