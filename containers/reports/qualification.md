@@ -22,8 +22,8 @@ or successful command does not become a scientific or release claim.
 | `source` | 87 |
 | `build` | 87 |
 | `runtime` | 87 |
-| `stage` | 68 |
-| `real_data` | 68 |
+| `stage` | 69 |
+| `real_data` | 69 |
 | `science` | 0 |
 | `benchmark` | 0 |
 | `security` | 0 |
@@ -96,7 +96,7 @@ permitted. Unsupported tools use `n/a`.
 | `musket` | `1.1` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `ngsbriggs` | `0.01` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `pear` | `0.9.6` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `picard` | `3.3.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `picard` | `3.3.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `plink` | `1.90b7.2` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `plink2` | `2.00a6` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `pmdtools` | `0.60` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |

@@ -1473,6 +1473,17 @@
       "source_file_count": 18,
       "source_result": "results/container-validation/run-1137-pmdtools",
       "tool": "pmdtools"
+    },
+    {
+      "evidence_lock_sha256": "1c663eb21df974d28b7a3e8459054a32f294fa60d1bb10748173468e9aec80da",
+      "execution_status": "passed",
+      "repository_commit": "0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1",
+      "run_id": "run-1138",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458734",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/run-1138-picard",
+      "tool": "picard"
     }
   ],
   "schema_version": "bijux.container.run_evidence_index.v1",
@@ -1480,17 +1491,17 @@
     "execution_status": {
       "failed": 40,
       "incomplete": 1,
-      "passed": 93
+      "passed": 94
     },
     "missing_run_ids": [
       "run-1081",
       "run-1085",
       "run-1126"
     ],
-    "run_count": 134,
+    "run_count": 135,
     "scientific_status": {
-      "not_assessed": 134
+      "not_assessed": 135
     },
-    "tool_count": 69
+    "tool_count": 70
   }
 }

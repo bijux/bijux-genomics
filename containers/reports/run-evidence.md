@@ -8,10 +8,10 @@ recorded scientific status, and no tool is promoted by this report.
 
 ## Archive boundary
 
-- Governed runs: **134**
-- Tools represented: **69**
-- Execution status: **failed 40**, **incomplete 1**, **passed 93**
-- Scientific status: **not_assessed 134**
+- Governed runs: **135**
+- Tools represented: **70**
+- Execution status: **failed 40**, **incomplete 1**, **passed 94**
+- Scientific status: **not_assessed 135**
 - Unassigned historical identifiers: `run-1081`, `run-1085`, `run-1126`
 
 The gaps are not silently filled. Failed and incomplete attempts remain part of
@@ -70,6 +70,7 @@ directory records their paths, sizes, and SHA-256 digests.
 | `musket` | 1 | 1 | 0 | [run-1025](../runs/run-1025-musket/) | not_assessed |
 | `ngsbriggs` | 2 | 1 | 1 | [run-1046](../runs/run-1046-ngsbriggs/) | not_assessed |
 | `pear` | 2 | 1 | 1 | [run-1024](../runs/run-1024-pear/) | not_assessed |
+| `picard` | 1 | 1 | 0 | [run-1138](../runs/run-1138-picard/) | not_assessed |
 | `plink` | 1 | 1 | 0 | [run-1066](../runs/run-1066-plink/) | not_assessed |
 | `plink2` | 2 | 2 | 0 | [run-1064](../runs/run-1064-plink2/) | not_assessed |
 | `pmdtools` | 1 | 1 | 0 | [run-1137](../runs/run-1137-pmdtools/) | not_assessed |

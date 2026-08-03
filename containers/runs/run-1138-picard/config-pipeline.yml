@@ -1,0 +1,92 @@
+schema_version: bijux.container.pipeline.v2
+run:
+  id: run-1138
+  campaign: public-ancient-horse-alignment-summary
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.mapping_summary
+  tool: picard
+  operator: bijan
+  submitted_at_utc: '2026-08-03T07:45:00Z'
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1
+  commit: 0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/picard-3.3.0-linux-amd64-25435fcde104.sif
+  sha256: 25435fcde1049d61aca61e59524268d1220dafa336d55c874cbef506cd811ce9
+data:
+  inputs:
+    - id: err2112767_alignment
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+      mount_path: /input/ERR2112767.sorted.bam
+      sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87
+    - id: err2112767_alignment_index
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai
+      mount_path: /input/ERR2112767.sorted.bam.bai
+      sha256: ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3
+commands:
+  version: [picard, --version]
+  help: [picard, --help]
+  real:
+    - sh
+    - -c
+    - >-
+      set -eu;
+      mkdir -p /result/work;
+      picard CollectAlignmentSummaryMetrics I=/input/ERR2112767.sorted.bam O=/result/alignment-summary.txt VALIDATION_STRINGENCY=SILENT TMP_DIR=/result/work;
+      awk 'BEGIN {FS="\t"} /^CATEGORY\t/ {for (column=1; column<=NF; column++) field[$column]=column; next} $1=="UNPAIRED" || $1=="PAIR" {printf "{\"category\":\"%s\",\"total_reads\":%d,\"pf_reads\":%d,\"pf_reads_aligned\":%d,\"pct_pf_reads_aligned\":%.12f,\"mean_read_length\":%.6f}\n", $1, $field["TOTAL_READS"], $field["PF_READS"], $field["PF_READS_ALIGNED"], $field["PCT_PF_READS_ALIGNED"], $field["MEAN_READ_LENGTH"]; found=1; exit} END {if (!found) exit 2}' /result/alignment-summary.txt > /result/metrics.json;
+      rm -rf /result/work
+  negative: [picard, DefinitelyNotAPicardCommand]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1138-picard
+  mount_path: /result
+  required_files:
+    - alignment-summary.txt
+    - metrics.json
+  collection_rule: required_files_and_metrics
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 4096
+  walltime: '00:30:00'
+  scratch_mb: 2048
+  retry:
+    max_attempts: 1
+    backoff_seconds: 0
+    retryable_exit_codes: []
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+  threads: 2
+  random_seed: null
+  cache_policy: cold
+  determinism: deterministic
+dependencies: []
+acceptance:
+  version_regex: '^picard 3[.]3[.]0$'
+  negative_exit_nonzero: true
+  metrics:
+    - id: total_reads
+      path: metrics.json
+      json_pointer: /total_reads
+      operator: ge
+      expected: 1000
+      unit: reads
+    - id: aligned_fraction_lower_bound
+      path: metrics.json
+      json_pointer: /pct_pf_reads_aligned
+      operator: ge
+      expected: 0
+      unit: fraction
+    - id: aligned_fraction_upper_bound
+      path: metrics.json
+      json_pointer: /pct_pf_reads_aligned
+      operator: le
+      expected: 1
+      unit: fraction

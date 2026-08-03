@@ -3,19 +3,19 @@
   "sources": {
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "5c6b24ede72ef6c5d8f1dfe7d510f92ffa64ba06ce3b8c9662e3f8234b42850e"
+      "sha256": "20082b58f1b55e0bff85077823b4bdf449876704850f975a9a5d5a7f579849e1"
     },
     "inventory": {
-      "path": "artifacts/report-render/55330776660ad96c8ae21349fb7beeb06a9015df/image-inventory.json",
-      "sha256": "4d9560ca422ddcd9f74a7975d32ab5565cdce567832094939c004ab0f0d88700"
+      "path": "containers/reports/image-inventory.json",
+      "sha256": "8c1a4b423ed066c43378f39cc41669861bc38d86a167fbd719bf676177508441"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
-      "sha256": "6d1188455320bba0ee85856776ba50ad2c5f6f99f87ff537ccf9c94d67abbf10"
+      "sha256": "53b2312f91f1bb0726ab93edd472160bb1789eed8e90893a57b140e16023f704"
     },
     "runtime": {
-      "path": "artifacts/report-render/55330776660ad96c8ae21349fb7beeb06a9015df/runtime-verification.json",
-      "sha256": "4e17acedf87c42327145d7d7d4ce9ab67597f8761c9911f1d104d3dee9cb00e8"
+      "path": "containers/reports/runtime-verification.json",
+      "sha256": "c2a301849e09f0b6db089369c52a283a7a51260e17ae3106674b470656f2630f"
     }
   },
   "summary": {
@@ -24,13 +24,13 @@
       "build": 87,
       "catalog": 87,
       "freshness": 87,
-      "real_data": 68,
+      "real_data": 69,
       "release": 0,
       "runtime": 87,
       "science": 0,
       "security": 0,
       "source": 87,
-      "stage": 68
+      "stage": 69
     },
     "qualification": {
       "unsupported": 2,
@@ -1648,26 +1648,24 @@
         "build": "passed",
         "catalog": "passed",
         "freshness": "passed",
-        "real_data": "missing",
+        "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
-        "stage": "missing"
+        "stage": "passed"
       },
       "id": "picard",
       "missing_dimensions": [
-        "stage",
-        "real_data",
         "science",
         "benchmark",
         "security",
         "release"
       ],
       "qualification": "unverified",
-      "real_run_attempts": 0,
-      "real_run_passes": 0,
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
       "support_disposition": "retained",
       "version": "3.3.0"
     },
