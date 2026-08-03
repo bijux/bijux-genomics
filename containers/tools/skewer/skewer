@@ -2,12 +2,36 @@
 # SPDX-License-Identifier: MIT
 set -eu
 
+native_version() {
+    set +e
+    native_output="$(/opt/skewer/bin/skewer-native --version 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 0 ] || ! printf '%s\n' "$native_output" | grep -Fq 'skewer version: 0.2.2'; then
+        printf 'error: unexpected Skewer version probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+native_help() {
+    set +e
+    native_output="$(/opt/skewer/bin/skewer-native --help 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'USAGE: skewer-native '; then
+        printf 'error: unexpected Skewer help probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
     --version)
-        echo 'skewer 0.2.2'
+        native_version
+        printf 'skewer 0.2.2\n'
         ;;
     --help|-h|"")
-        /opt/skewer/bin/skewer-native --help 2>&1 || true
+        native_help
+        printf '%s\n' "$native_output"
         ;;
     --governed-invalid-option)
         echo 'skewer: error: unsupported option --governed-invalid-option' >&2
