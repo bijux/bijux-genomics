@@ -515,7 +515,9 @@ def campaign_report(
     checks = {
         "campaign_passed": execution.get("status") == "passed",
         "all_selected_tools_passed": all(row["status"] == "passed" for row in rows),
-        "all_selected_images_current": states.get("current") == selected_count,
+        "all_selected_images_current": all(
+            row["inventory_state"] == "current" for row in rows
+        ),
         "all_selected_records_match_inventory": all(
             row["inventory_matches_execution"] for row in rows
         ),

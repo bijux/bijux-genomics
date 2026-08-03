@@ -266,7 +266,7 @@ class ImageCampaignTests(unittest.TestCase):
                         "schema_version": campaign.INVENTORY_SCHEMA,
                         "repository_commit": "a" * 40,
                         "summary": {
-                            "states": {"current": 1, "unsupported": 2},
+                            "states": {"current": 85, "unsupported": 4},
                             "staged_image_count": 0,
                             "unknown_image_count": 0,
                             "unreferenced_obsolete_count": 0,
