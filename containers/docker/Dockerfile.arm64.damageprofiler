@@ -24,7 +24,7 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends openjdk-17-jre-headless && \
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless libharfbuzz0b && \
     rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 COPY --from=builder /opt/damageprofiler.jar /opt/damageprofiler.jar
