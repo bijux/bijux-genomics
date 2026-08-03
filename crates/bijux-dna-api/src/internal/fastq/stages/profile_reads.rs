@@ -24,7 +24,6 @@ use serde::Serialize;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_dna_core::contract::validate_execution_outputs;
-use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_domain_fastq::{
     metrics::SeqkitToolMetricsV1, PairedMode, ProfileReadsHistogramBinV1,
     ProfileReadsMateSummaryV1, ProfileReadsReportV1, PROFILE_READS_REPORT_SCHEMA_VERSION,
@@ -35,7 +34,7 @@ use bijux_dna_planner_fastq::select_stats_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::profile_reads::plan_stats_with_threads;
 use bijux_dna_planner_fastq::stage_api::observer::{
-    input_fastq_stats, length_histogram_command, parse_length_histogram, parse_seqkit_stats,
+    length_histogram_command, parse_length_histogram,
 };
 use bijux_dna_planner_fastq::stage_api::StagePlanJson;
 use bijux_dna_planner_fastq::stage_api::{
@@ -404,8 +403,6 @@ struct StatsBenchInputs {
     r1: PathBuf,
     r2: Option<PathBuf>,
     input_hash: String,
-    input_stats: SeqkitMetrics,
-    input_stats_r2: Option<SeqkitMetrics>,
     length_hist: Vec<LengthHistogramBin>,
     length_hist_r2: Option<Vec<LengthHistogramBin>>,
     bench_dir: PathBuf,
@@ -546,9 +543,8 @@ fn observe_profile_reads(
         &bench_inputs.length_hist,
         bench_inputs.length_hist_r2.as_deref(),
     );
-    let backend_rows = parse_seqkit_stats_rows(&execution.result.stdout).unwrap_or_else(|_| {
-        fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
-    });
+    let backend_rows = parse_sequence_statistics_rows(&execution.result.stdout)
+        .with_context(|| format!("parse {} profile-reads output", tool_plan.tool))?;
     validate_profile_reads_observation_inputs(&backend_rows, &length_histogram)?;
     materialize_profile_reads_outputs(
         &tool_plan.plan,
@@ -795,30 +791,9 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     } else {
         hash_file_sha256(&r1)?
     };
-    let stats_spec = input_fastq_stats(&r1_dir, &r1)?;
-    let stats_output = execute_observer_command(
-        &tool_image.full_name,
-        stats_spec.mount_dir.as_path(),
-        &stats_spec.args,
-        runner,
-    )?;
-    if stats_output.exit_code != 0 {
-        return Err(anyhow!("seqkit stats failed: {}", stats_output.stderr));
-    }
-    let input_stats = parse_seqkit_stats(&stats_output.stdout)?;
-    let (r2, input_stats_r2, length_hist_r2) = if let Some(r2) = args.r2.as_deref() {
+    let (r2, length_hist_r2) = if let Some(r2) = args.r2.as_deref() {
         let r2 = r2.canonicalize().context("resolve r2 path")?;
         let r2_dir = r2.parent().ok_or_else(|| anyhow!("r2 has no parent"))?.to_path_buf();
-        let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
-        let stats_output = execute_observer_command(
-            &tool_image.full_name,
-            stats_spec.mount_dir.as_path(),
-            &stats_spec.args,
-            runner,
-        )?;
-        if stats_output.exit_code != 0 {
-            return Err(anyhow!("seqkit stats failed for r2: {}", stats_output.stderr));
-        }
         let hist_spec = length_histogram_command(&r2_dir, &r2)?;
         let hist_output = execute_observer_command(
             &tool_image.full_name,
@@ -831,7 +806,6 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
         }
         (
             Some(r2),
-            Some(parse_seqkit_stats(&stats_output.stdout)?),
             Some(
                 parse_length_histogram(&hist_output.stdout)?
                     .into_iter()
@@ -840,7 +814,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
             ),
         )
     } else {
-        (None, None, None)
+        (None, None)
     };
 
     let hist_spec = length_histogram_command(&r1_dir, &r1)?;
@@ -863,8 +837,6 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
         r1,
         r2,
         input_hash,
-        input_stats,
-        input_stats_r2,
         length_hist,
         length_hist_r2,
         bench_dir,
@@ -1010,23 +982,30 @@ fn stats_execution_metrics(execution: &StatsToolExecution) -> ExecutionMetrics {
     execution_metrics_from_stage_result(&execution.result)
 }
 
-fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1>> {
+fn parse_sequence_statistics_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1>> {
     let mut lines = stdout.lines();
     let header = lines.next().ok_or_else(|| anyhow!("empty seqkit stats stdout"))?;
     let header_fields: Vec<&str> = header.split('\t').collect();
-    let col_index = |name: &str| -> Result<usize> {
+    let canonical = |field: &str| {
+        field
+            .chars()
+            .filter(char::is_ascii_alphanumeric)
+            .flat_map(char::to_lowercase)
+            .collect::<String>()
+    };
+    let col_index = |names: &[&str]| -> Result<usize> {
         header_fields
             .iter()
-            .position(|field| field == &name)
-            .ok_or_else(|| anyhow!("seqkit stats header missing `{name}`"))
+            .position(|field| names.iter().any(|name| canonical(field) == canonical(name)))
+            .ok_or_else(|| anyhow!("sequence-statistics header missing `{}`", names.join("/")))
     };
-    let reads_idx = col_index("num_seqs")?;
-    let bases_idx = col_index("sum_len")?;
-    let mean_q_idx =
-        header_fields.iter().position(|field| field == &"avg_qual" || field == &"mean_qual");
-    let gc_idx =
-        header_fields.iter().position(|field| field.to_ascii_lowercase().starts_with("gc"));
-    let file_idx = header_fields.iter().position(|field| field == &"file").unwrap_or(0);
+    let reads_idx = col_index(&["num_seqs", "#Seq"])?;
+    let bases_idx = col_index(&["sum_len", "Total bp"])?;
+    let mean_q_idx = header_fields
+        .iter()
+        .position(|field| matches!(canonical(field).as_str(), "avgqual" | "meanqual"));
+    let gc_idx = header_fields.iter().position(|field| canonical(field).starts_with("gc"));
+    let file_idx = header_fields.iter().position(|field| canonical(field) == "file").unwrap_or(0);
 
     let mut rows = Vec::new();
     for line in lines {
@@ -1053,32 +1032,16 @@ fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1
         });
     }
     if rows.is_empty() {
-        return Err(anyhow!("seqkit stats stdout contained no data rows"));
+        return Err(anyhow!("sequence-statistics stdout contained no data rows"));
+    }
+    for row in &mut rows {
+        if let Some(value) = row.gc_percent.as_mut() {
+            if *value <= 1.0 {
+                *value *= 100.0;
+            }
+        }
     }
     Ok(rows)
-}
-
-fn fallback_seqkit_rows(
-    r1: &SeqkitMetrics,
-    r2: Option<&SeqkitMetrics>,
-) -> Vec<ProfileReadsMateSummaryV1> {
-    let mut rows = vec![ProfileReadsMateSummaryV1 {
-        label: "reads_r1".to_string(),
-        reads: r1.reads,
-        bases: r1.bases,
-        mean_q: Some(r1.mean_q),
-        gc_percent: Some(r1.gc_percent),
-    }];
-    if let Some(r2) = r2 {
-        rows.push(ProfileReadsMateSummaryV1 {
-            label: "reads_r2".to_string(),
-            reads: r2.reads,
-            bases: r2.bases,
-            mean_q: Some(r2.mean_q),
-            gc_percent: Some(r2.gc_percent),
-        });
-    }
-    rows
 }
 
 fn materialize_profile_reads_outputs(
@@ -1136,7 +1099,7 @@ fn materialize_profile_reads_outputs(
         qc_json: qc_json.display().to_string(),
         qc_tsv: qc_tsv.display().to_string(),
         qc_plots_dir: qc_plots_dir.as_ref().map(|path| path.display().to_string()),
-        length_histogram_source: "seqkit_fx2tab".to_string(),
+        length_histogram_source: "governed_input_scan".to_string(),
         reads_total,
         bases_total,
         mean_q,
@@ -1150,7 +1113,13 @@ fn materialize_profile_reads_outputs(
         memory_mb: Some(execution_metrics.memory_mb),
         exit_code: Some(execution_metrics.exit_code),
         raw_backend_report: Some(qc_tsv.display().to_string()),
-        raw_backend_report_format: Some("seqkit_stats_tsv".to_string()),
+        raw_backend_report_format: Some(
+            match plan.tool_id.as_str() {
+                "seqfu" => "seqfu_stats_tsv",
+                _ => "seqkit_stats_tsv",
+            }
+            .to_string(),
+        ),
         backend_metrics: Some(backend_metrics),
     };
 
@@ -1239,4 +1208,21 @@ fn combine_length_histograms(
 
 fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+#[cfg(test)]
+mod parser_tests {
+    use super::parse_sequence_statistics_rows;
+
+    #[test]
+    fn seqfu_rows_normalize_to_the_common_profile_contract() {
+        let output = "File\t#Seq\tTotal bp\tAvg\tN50\tN75\tN90\tauN\tMin\tMax\t%GC\nreads.fastq.gz\t33128\t7687151\t232.04\t300\t254\t149\t264.88\t35\t301\t0.58\n";
+        let rows = parse_sequence_statistics_rows(output).expect("parse SeqFu statistics");
+
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].reads, 33_128);
+        assert_eq!(rows[0].bases, 7_687_151);
+        assert!(rows[0].mean_q.is_none());
+        assert!((rows[0].gc_percent.expect("GC") - 58.0).abs() < f64::EPSILON * 100.0);
+    }
 }

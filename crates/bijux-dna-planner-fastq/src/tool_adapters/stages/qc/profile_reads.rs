@@ -153,10 +153,9 @@ fn profile_reads_command(
             let mut command = vec![
                 "seqfu".to_string(),
                 "stats".to_string(),
-                "-a".to_string(),
-                "-T".to_string(),
-                "-j".to_string(),
+                "--threads".to_string(),
                 threads.to_string(),
+                "--gc".to_string(),
                 r1.display().to_string(),
             ];
             if let Some(r2) = r2 {
@@ -285,7 +284,7 @@ mod tests {
         assert_eq!(plan.resources.threads, 5);
         assert_eq!(
             plan.command.template,
-            vec!["seqfu", "stats", "-a", "-T", "-j", "5", "reads_R1.fastq.gz",]
+            vec!["seqfu", "stats", "--threads", "5", "--gc", "reads_R1.fastq.gz",]
         );
         assert!(!plan.io.outputs.iter().any(|artifact| artifact.name.as_str() == "qc_plots_dir"));
     }
