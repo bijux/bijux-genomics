@@ -1462,6 +1462,17 @@
       "source_file_count": 17,
       "source_result": "results/container-validation/run-1136-preseq",
       "tool": "preseq"
+    },
+    {
+      "evidence_lock_sha256": "1a62588ec4035f12a95f6e5d7e2fbfde9508dd0f4aebbfd550a3c9796b256ce0",
+      "execution_status": "passed",
+      "repository_commit": "b78cd27c0109b3ab996122fd843662c5cb129ded",
+      "run_id": "run-1137",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3458721",
+      "source_file_count": 18,
+      "source_result": "results/container-validation/run-1137-pmdtools",
+      "tool": "pmdtools"
     }
   ],
   "schema_version": "bijux.container.run_evidence_index.v1",
@@ -1469,17 +1480,17 @@
     "execution_status": {
       "failed": 40,
       "incomplete": 1,
-      "passed": 92
+      "passed": 93
     },
     "missing_run_ids": [
       "run-1081",
       "run-1085",
       "run-1126"
     ],
-    "run_count": 133,
+    "run_count": 134,
     "scientific_status": {
-      "not_assessed": 133
+      "not_assessed": 134
     },
-    "tool_count": 68
+    "tool_count": 69
   }
 }

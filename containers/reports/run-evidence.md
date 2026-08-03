@@ -8,10 +8,10 @@ recorded scientific status, and no tool is promoted by this report.
 
 ## Archive boundary
 
-- Governed runs: **133**
-- Tools represented: **68**
-- Execution status: **failed 40**, **incomplete 1**, **passed 92**
-- Scientific status: **not_assessed 133**
+- Governed runs: **134**
+- Tools represented: **69**
+- Execution status: **failed 40**, **incomplete 1**, **passed 93**
+- Scientific status: **not_assessed 134**
 - Unassigned historical identifiers: `run-1081`, `run-1085`, `run-1126`
 
 The gaps are not silently filled. Failed and incomplete attempts remain part of
@@ -72,6 +72,7 @@ directory records their paths, sizes, and SHA-256 digests.
 | `pear` | 2 | 1 | 1 | [run-1024](../runs/run-1024-pear/) | not_assessed |
 | `plink` | 1 | 1 | 0 | [run-1066](../runs/run-1066-plink/) | not_assessed |
 | `plink2` | 2 | 2 | 0 | [run-1064](../runs/run-1064-plink2/) | not_assessed |
+| `pmdtools` | 1 | 1 | 0 | [run-1137](../runs/run-1137-pmdtools/) | not_assessed |
 | `preseq` | 1 | 1 | 0 | [run-1136](../runs/run-1136-preseq/) | not_assessed |
 | `prinseq` | 1 | 1 | 0 | [run-1018](../runs/run-1018-prinseq/) | not_assessed |
 | `pydamage` | 5 | 1 | 4 | [run-1134](../runs/run-1134-pydamage/) | not_assessed |
