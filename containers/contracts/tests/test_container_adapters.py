@@ -108,5 +108,44 @@ class GermlineAdapterTests(unittest.TestCase):
         self.assertIn("input PED does not exist", completed.stderr)
 
 
+class PicardAdapterTests(unittest.TestCase):
+    def run_version_probe(
+        self, native_version: str
+    ) -> subprocess.CompletedProcess[str]:
+        wrapper = TOOLS / "picard" / "picard"
+        with tempfile.TemporaryDirectory() as directory:
+            binary_root = Path(directory)
+            java = binary_root / "java"
+            java.write_text(
+                "#!/bin/sh\n"
+                "printf 'ERROR StatusConsoleListener Could not determine local host name\\n' >&2\n"
+                f"printf 'Version:{native_version}\\n' >&2\n"
+                "exit 1\n",
+                encoding="utf-8",
+            )
+            java.chmod(0o755)
+            completed = subprocess.run(
+                ["sh", str(wrapper), "--version"],
+                check=False,
+                capture_output=True,
+                text=True,
+                env={"PATH": f"{binary_root}:/usr/bin:/bin"},
+            )
+        return completed
+
+    def test_version_probe_tolerates_unrelated_jvm_diagnostics(self) -> None:
+        completed = self.run_version_probe("3.3.0")
+
+        self.assertEqual(completed.returncode, 0)
+        self.assertEqual(completed.stdout, "picard 3.3.0\n")
+        self.assertEqual(completed.stderr, "")
+
+    def test_version_probe_rejects_a_different_release(self) -> None:
+        completed = self.run_version_probe("3.2.0")
+
+        self.assertEqual(completed.returncode, 70)
+        self.assertIn("unexpected Picard version probe", completed.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -6,11 +6,16 @@ native_version() {
     native_output="$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1)"
     native_status=$?
     set -e
-    if [ "$native_status" -ne 1 ] || [ "$native_output" != 'Version:3.3.0' ]; then
+    native_version_line="$(
+        printf '%s\n' "$native_output" |
+            awk '$0 == "Version:3.3.0" {version = $0} END {print version}'
+    )"
+    if [ "$native_status" -ne 1 ] || [ "$native_version_line" != 'Version:3.3.0' ]; then
         printf 'error: unexpected Picard version probe (status=%s): %s\n' \
             "$native_status" "$native_output" >&2
         exit 70
     fi
+    native_output="$native_version_line"
 }
 
 native_help() {
