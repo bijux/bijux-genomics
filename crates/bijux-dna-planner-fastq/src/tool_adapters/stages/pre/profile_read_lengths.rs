@@ -5,9 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::{
-    params::{stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, PairedMode},
-    stages::ids::STAGE_PROFILE_READ_LENGTHS,
-    FastqReadLengthProfileParams,
+    params::defaults::read_length_profile_defaults, stages::ids::STAGE_PROFILE_READ_LENGTHS,
 };
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -42,14 +40,14 @@ pub fn plan_with_options(
     let dist_tsv = out_dir.join("length_distribution.tsv");
     let dist_json = out_dir.join("length_distribution.json");
     let report_json = out_dir.join("profile_read_lengths_report.json");
-    let threads = threads_override.unwrap_or(tool.resources.threads).max(1);
+    let defaults = read_length_profile_defaults(r2.is_some());
+    let threads = threads_override.unwrap_or(defaults.threads).max(1);
     let command_template = profile_lengths_command(tool, r1, r2, threads)?;
-    let histogram_bins = histogram_bins_override.unwrap_or(100).max(1);
-    let effective_params = FastqReadLengthProfileParams {
-        schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+    let histogram_bins = histogram_bins_override.unwrap_or(defaults.histogram_bins).max(1);
+    let effective_params = bijux_dna_domain_fastq::FastqReadLengthProfileParams {
         threads,
         histogram_bins,
+        ..defaults
     };
     let mut resources = tool.resources.clone();
     resources.threads = threads;
@@ -146,9 +144,7 @@ fn profile_lengths_command(
             let mut command = vec![
                 "seqfu".to_string(),
                 "stats".to_string(),
-                "-a".to_string(),
-                "-T".to_string(),
-                "-j".to_string(),
+                "--threads".to_string(),
                 threads.to_string(),
                 r1.display().to_string(),
             ];
@@ -312,7 +308,14 @@ mod tests {
         assert_eq!(plan.resources.threads, 5);
         assert_eq!(
             plan.command.template,
-            vec!["seqfu", "stats", "-a", "-T", "-j", "5", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+            vec![
+                "seqfu",
+                "stats",
+                "--threads",
+                "5",
+                "reads_R1.fastq.gz",
+                "reads_R2.fastq.gz",
+            ]
         );
     }
 
@@ -390,6 +393,28 @@ mod tests {
                 "-out_single2",
                 "/dev/null",
             ]
+        );
+    }
+
+    #[test]
+    fn profile_read_lengths_plan_uses_domain_defaults_for_every_backend() {
+        let plan = plan_with_options(
+            &stats_tool("fastp"),
+            Path::new("reads_R1.fastq.gz"),
+            None,
+            Path::new("out"),
+            None,
+            None,
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 2);
+        assert_eq!(plan.effective_params["threads"], 2);
+        assert_eq!(plan.effective_params["histogram_bins"], 100);
+        assert_eq!(plan.effective_params["paired_mode"], "single_end");
+        assert_eq!(
+            plan.effective_params["schema_version"],
+            "bijux.fastq.params.read_length_profile.v1"
         );
     }
 }

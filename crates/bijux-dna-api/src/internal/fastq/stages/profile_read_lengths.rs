@@ -687,8 +687,10 @@ fn render_read_lengths_report(
         runtime_s: execution_metrics.map(|metrics| metrics.runtime_s),
         memory_mb: execution_metrics.map(|metrics| metrics.memory_mb),
         exit_code: execution_metrics.map(|metrics| metrics.exit_code),
-        raw_backend_report: Some(artifacts.length_tsv.display().to_string()),
-        raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
+        // The governed histogram is computed by the shared observer from the admitted reads.
+        // It is not a backend-native report and must not be attributed to one.
+        raw_backend_report: None,
+        raw_backend_report_format: None,
     }
 }
 
