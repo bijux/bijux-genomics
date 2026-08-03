@@ -22,6 +22,9 @@ root.
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read adapter trimming | Atropos 1.1.31 | `run-1098` | `3458119` | 7s | two digest-pinned trimmed FASTQ streams |
 | k-mer error correction | BayesHammer 4.2.0 | `run-1099` | `3458120` | 38s | corrected paired and unpaired FASTQ streams |
+| low-complexity filtering | BBDuk 39.06 | `run-1006` | `3457600` | 3s | paired filtered FASTQ streams plus statistics |
+| paired-read merging | BBMerge 39.06 | `run-1007` | `3457601` | 5s | merged reads plus two unmerged-read streams |
+| duplicate removal | Clumpify 39.06 | `run-1008` | `3457602` | 4s | paired deduplicated FASTQ streams |
 | paired-read merging | FLASH2 2.2.00 | `run-1078` | `3458063` | 1s | 774,658-byte merged-read FASTQ |
 | adapter trimming | Skewer 0.2.2 | `run-1079` | `3458064` | 1s | 25,992,094-byte trimmed FASTQ stream |
 | adapter trimming | AlienTrimmer 3.2 | `run-1091` | `3458077` | 13s | paired trimmed FASTQ streams |
@@ -99,6 +102,16 @@ unpaired stream and native corrected-dataset description remain with the raw
 run evidence. These values establish real k-mer error-correction execution and
 observable output shape. With no known-truth corpus or independent comparison,
 they do not establish correction accuracy or a scientific acceptance threshold.
+
+The three BBTools surfaces used independently admitted images and the same
+digest-pinned read pair. BBDuk's declared entropy filter removed 396 of
+200,000 reads and retained 99,802 pairs. BBMerge joined 218 of 100,000 pairs
+and emitted the other 99,782 pairs through its unmerged outputs. Clumpify
+reported 58 duplicates and retained 99,971 pairs. These counts reconcile with
+the governed output files and establish the filter, merge, and deduplication
+interfaces. They are corpus observations, not evidence that entropy 0.5 is an
+appropriate biological threshold, that BBMerge recovered every true overlap,
+or that every Clumpify duplicate is a library duplicate.
 
 BamTools applied its declared mapping-quality expression to the governed
 coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed
