@@ -1001,6 +1001,72 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertTrue(submission_preserved)
         self.assertTrue(result_preserved)
 
+    def test_superseded_run_archive_preserves_reason_and_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study = root / "study"
+            containers_root = study / "containers"
+            submission = containers_root / "evidence/submissions/run-2001-tool"
+            result = study / "results/benchmarks/run-2001-stage/tool"
+            manifest = containers_root / "evidence/specifications/run-2001-tool"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3459727\n")
+            (submission / "submit.sh").write_text("#!/bin/bash\nexit 0\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2001",
+                    "status": "passed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2001",
+                    "slurm_job_id": "3459727",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2001",
+                "pipeline": {"run": {"tool": "tool"}},
+                "result_root": result,
+                "governance": {
+                    "containers_root": containers_root,
+                    "results_root": study / "results",
+                },
+            }
+            reason = (
+                "resource measurements used literal separators instead of TSV rows"
+            )
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                return_value=contract,
+            ):
+                archived = container_validation.archive_superseded_run(
+                    manifest,
+                    reason,
+                )
+
+            archive = json.loads((archived / "archive.json").read_text())
+
+            self.assertFalse(submission.exists())
+            self.assertFalse(result.exists())
+            self.assertTrue((archived / "submission/submit.sh").is_file())
+            self.assertTrue((archived / "result/evidence.json").is_file())
+
+        self.assertEqual(
+            archive["schema_version"],
+            "bijux.container.superseded_run_archive.v1",
+        )
+        self.assertEqual(archive["disposition"], "superseded")
+        self.assertEqual(archive["reason"], reason)
+
 
 class BuildAdmissionTests(unittest.TestCase):
     def inspection(

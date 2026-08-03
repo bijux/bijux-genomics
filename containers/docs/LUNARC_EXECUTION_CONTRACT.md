@@ -60,6 +60,20 @@ result paths for a corrected attempt with the same stable run identity. It
 requires failed terminal evidence and matching accounting, hashes the complete
 attempt, and performs same-filesystem moves into the governed failure root.
 
+A scheduler-passed attempt whose evidence is later found scientifically or
+structurally invalid must not be relabelled as failed or deleted. Archive it
+with a substantive reason before correcting and resubmitting the stable run:
+
+```console
+python3 containers/contracts/container_validation.py archive-superseded \
+  --manifest MANIFEST \
+  --reason "resource measurements did not satisfy the declared TSV evidence format"
+```
+
+This preserves the immutable submission and result trees under the governed
+superseded root, records their hashes and disposition, and frees only their
+canonical execution paths.
+
 Current pipeline contracts separate host storage from paths visible inside the
 contained runtime. Governed input files mount as unique, safe filenames beneath
 `/input`; the declared filename retains format and compression suffixes such as

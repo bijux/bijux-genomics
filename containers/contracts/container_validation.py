@@ -1704,7 +1704,7 @@ def archive_file_records(root: Path, scope: str) -> list[dict[str, Any]]:
     records = []
     for path in sorted(root.rglob("*")):
         if path.is_symlink():
-            raise ContractError(f"failure evidence must not contain symlinks: {path}")
+            raise ContractError(f"archived evidence must not contain symlinks: {path}")
         if not path.is_file():
             continue
         records.append(
@@ -1717,9 +1717,14 @@ def archive_file_records(root: Path, scope: str) -> list[dict[str, Any]]:
     return records
 
 
-def archive_failed_run(
+def archive_terminal_run(
     manifest_path: Path,
     governance_override: Path | None = None,
+    *,
+    expected_status: str,
+    archive_scope: str,
+    schema_version: str,
+    reason: str | None = None,
 ) -> Path:
     manifest_path = manifest_path.resolve()
     governance_path, pipeline_path, credential_path = manifest_contract_paths(
@@ -1730,15 +1735,15 @@ def archive_failed_run(
     result_root: Path = contract["result_root"]
     if not submission_root.is_dir() or not result_root.is_dir():
         raise ContractError(
-            "failure archival requires both submission and result evidence"
+            f"{archive_scope} archival requires both submission and result evidence"
         )
     job_id_path = submission_root / "slurm-job-id.txt"
     try:
         job_id = job_id_path.read_text(encoding="utf-8").strip()
     except OSError as exc:
-        raise ContractError(f"cannot read failed Slurm job identity: {exc}") from exc
+        raise ContractError(f"cannot read terminal Slurm job identity: {exc}") from exc
     if not job_id.isdigit():
-        raise ContractError("failed Slurm job identity must be numeric")
+        raise ContractError("terminal Slurm job identity must be numeric")
     evidence_path = result_root / "evidence.json"
     accounting_path = result_root / "slurm-accounting.json"
     evidence = load_json(evidence_path)
@@ -1746,32 +1751,35 @@ def archive_failed_run(
     if (
         evidence.get("schema_version") not in {EVIDENCE_SCHEMA_V1, EVIDENCE_SCHEMA_V2}
         or evidence.get("run_id") != contract["run_id"]
-        or evidence.get("status") != "failed"
+        or evidence.get("status") != expected_status
     ):
-        raise ContractError("only terminal failed run evidence can be archived")
+        raise ContractError(
+            f"only terminal {expected_status} run evidence can be archived as "
+            f"{archive_scope}"
+        )
     if (
         accounting.get("schema_version") != "bijux.slurm.accounting.v1"
         or accounting.get("run_id") != contract["run_id"]
         or accounting.get("slurm_job_id") != job_id
     ):
-        raise ContractError("Slurm accounting does not identify the failed run")
+        raise ContractError("Slurm accounting does not identify the terminal run")
     tool_id = str(contract["pipeline"]["run"]["tool"])
     bundle_name = f"{contract['run_id']}-{tool_id}-slurm-{job_id}"
-    failure_root = (
-        contract["governance"]["containers_root"] / "evidence" / "failures"
+    archive_root = (
+        contract["governance"]["containers_root"] / "evidence" / archive_scope
     )
-    failure_root.mkdir(parents=True, mode=0o750, exist_ok=True)
-    target = failure_root / bundle_name
-    staging = failure_root / f".{bundle_name}.partial"
+    archive_root.mkdir(parents=True, mode=0o750, exist_ok=True)
+    target = archive_root / bundle_name
+    staging = archive_root / f".{bundle_name}.partial"
     if target.exists() or staging.exists():
-        raise ContractError(f"refusing to replace failure evidence: {target}")
+        raise ContractError(f"refusing to replace {archive_scope} evidence: {target}")
     involved_devices = {
         submission_root.stat().st_dev,
         result_root.stat().st_dev,
-        failure_root.stat().st_dev,
+        archive_root.stat().st_dev,
     }
     if len(involved_devices) != 1:
-        raise ContractError("failure evidence must remain on one filesystem")
+        raise ContractError(f"{archive_scope} evidence must remain on one filesystem")
     files = [
         *archive_file_records(submission_root, "submission"),
         *archive_file_records(result_root, "result"),
@@ -1783,10 +1791,15 @@ def archive_failed_run(
         write_json(
             staging / "archive.json",
             {
-                "schema_version": "bijux.container.failed_run_archive.v1",
+                "schema_version": schema_version,
                 "run_id": contract["run_id"],
                 "tool": tool_id,
                 "slurm_job_id": job_id,
+                **(
+                    {"disposition": "superseded", "reason": reason}
+                    if reason is not None
+                    else {}
+                ),
                 "archived_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
                 "source_paths": {
                     "submission": (
@@ -1808,9 +1821,41 @@ def archive_failed_run(
         staging.rename(target)
     except OSError as exc:
         raise ContractError(
-            f"failure archival stopped; inspect the recoverable staging path {staging}: {exc}"
+            f"{archive_scope} archival stopped; inspect the recoverable staging path "
+            f"{staging}: {exc}"
         ) from exc
     return target
+
+
+def archive_failed_run(
+    manifest_path: Path,
+    governance_override: Path | None = None,
+) -> Path:
+    return archive_terminal_run(
+        manifest_path,
+        governance_override,
+        expected_status="failed",
+        archive_scope="failures",
+        schema_version="bijux.container.failed_run_archive.v1",
+    )
+
+
+def archive_superseded_run(
+    manifest_path: Path,
+    reason: str,
+    governance_override: Path | None = None,
+) -> Path:
+    reason = reason.strip()
+    if len(reason) < 20:
+        raise ContractError("superseded run archival requires a substantive reason")
+    return archive_terminal_run(
+        manifest_path,
+        governance_override,
+        expected_status="passed",
+        archive_scope="superseded",
+        schema_version="bijux.container.superseded_run_archive.v1",
+        reason=reason,
+    )
 
 
 def parser() -> argparse.ArgumentParser:
@@ -1835,6 +1880,10 @@ def parser() -> argparse.ArgumentParser:
     archive = commands.add_parser("archive-failure")
     archive.add_argument("--manifest", type=Path, required=True)
     archive.add_argument("--governance", type=Path)
+    supersede = commands.add_parser("archive-superseded")
+    supersede.add_argument("--manifest", type=Path, required=True)
+    supersede.add_argument("--governance", type=Path)
+    supersede.add_argument("--reason", required=True)
     submit = commands.add_parser("submit")
     submit.add_argument("--manifest", type=Path, required=True)
     submit.add_argument("--governance", type=Path)
@@ -1858,6 +1907,15 @@ def main() -> int:
             return 0
         if args.command == "archive-failure":
             print(archive_failed_run(args.manifest, args.governance))
+            return 0
+        if args.command == "archive-superseded":
+            print(
+                archive_superseded_run(
+                    args.manifest,
+                    args.reason,
+                    args.governance,
+                )
+            )
             return 0
         if args.command == "submit":
             print(submit_manifest(args.manifest, args.governance))
