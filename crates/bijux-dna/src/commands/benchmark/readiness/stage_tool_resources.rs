@@ -18,7 +18,7 @@ use super::bam_command_adapter_coverage::{
 use super::fastq_command_adapter_coverage::{
     collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
 };
-use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows;
+use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -141,7 +141,9 @@ pub(crate) fn render_stage_tool_resources(
 fn collect_stage_tool_resource_rows(repo_root: &Path) -> Result<Vec<StageToolResourceRow>> {
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
-    let vcf_rows = collect_vcf_expected_benchmark_result_rows(repo_root)?;
+    let vcf_rows = collect_vcf_tool_serving_map_rows()?
+        .into_iter()
+        .filter(|row| row.benchmark_status == "benchmark_ready");
     let bam_input_bytes = detect_tiny_bam_resource_input_bytes(repo_root)?;
 
     let mut rows = Vec::new();
@@ -346,8 +348,8 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     use super::{
-        render_stage_tool_resources, BAM_RESOURCE_ORIGIN, DEFAULT_STAGE_TOOL_RESOURCES_PATH,
-        FASTQ_RESOURCE_ORIGIN, VCF_RESOURCE_ORIGIN,
+        render_stage_tool_resources, BAM_RESOURCE_ORIGIN, FASTQ_RESOURCE_ORIGIN,
+        VCF_RESOURCE_ORIGIN,
     };
 
     fn repo_root() -> PathBuf {
@@ -361,12 +363,12 @@ mod tests {
     #[test]
     fn render_stage_tool_resources_keeps_representative_resource_bindings() {
         let root = repo_root();
-        let report =
-            render_stage_tool_resources(&root, PathBuf::from(DEFAULT_STAGE_TOOL_RESOURCES_PATH))
-                .expect("render stage-tool resources");
+        let output = tempfile::tempdir().expect("temporary output");
+        let report = render_stage_tool_resources(&root, output.path().join("resources.toml"))
+            .expect("render stage-tool resources");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
-        assert_eq!(report.config_path, "configs/bench/local/stage-tool-resources.toml");
+        assert_eq!(report.config_path, output.path().join("resources.toml").display().to_string());
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.nonzero_resource_row_count, report.row_count);
@@ -399,15 +401,14 @@ mod tests {
     fn render_stage_tool_resources_writes_governed_toml_contract() {
         use super::{
             render_stage_tool_resources, StageToolResourcesConfig,
-            DEFAULT_STAGE_TOOL_RESOURCES_PATH, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION,
-            STAGE_TOOL_RESOURCES_SCOPE,
+            LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION, STAGE_TOOL_RESOURCES_SCOPE,
         };
 
         let root = repo_root();
-        let output_path = root.join(DEFAULT_STAGE_TOOL_RESOURCES_PATH);
-        let _report =
-            render_stage_tool_resources(&root, PathBuf::from(DEFAULT_STAGE_TOOL_RESOURCES_PATH))
-                .expect("render stage-tool resources");
+        let output = tempfile::tempdir().expect("temporary output");
+        let output_path = output.path().join("resources.toml");
+        let _report = render_stage_tool_resources(&root, output_path.clone())
+            .expect("render stage-tool resources");
 
         let raw = std::fs::read_to_string(&output_path).expect("read rendered config");
         let config: StageToolResourcesConfig =
