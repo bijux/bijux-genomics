@@ -40,7 +40,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
     apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
-    apt-get install -y --no-install-recommends curl openjdk-17-jre-headless libharfbuzz0b
+    apt-get install -y --no-install-recommends curl openjdk-17-jre-headless libharfbuzz0b fontconfig fonts-dejavu-core
     /opt/damageprofiler-build/install
     apt-get purge -y curl
     apt-get autoremove -y
@@ -52,6 +52,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %test
     damageprofiler --version | grep -Fx 'DamageProfiler v1.1'
     damageprofiler --help >/dev/null
+    fc-match sans | grep -q 'DejaVuSans'
     if damageprofiler --governed-invalid-option >/dev/null 2>&1; then exit 1; fi
 
 %help
