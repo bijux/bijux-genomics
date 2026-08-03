@@ -18,6 +18,7 @@ LABEL org.opencontainers.image.source="https://github.com/StephanePeyregne/Authe
       org.opencontainers.image.title="AuthentiCT" \
       org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
       org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL io.bijux.tool.version="1.0.0"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/opt/authenticct-venv/bin:/usr/local/bin:/usr/bin:/bin \
