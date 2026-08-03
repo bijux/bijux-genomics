@@ -42,8 +42,10 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     rm -f /tmp/gatk.zip && \
     apt-get purge -y --auto-remove curl unzip && \
     apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/gatk"]
 CMD ["--help"]

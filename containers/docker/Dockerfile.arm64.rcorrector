@@ -72,9 +72,11 @@ RUN chmod +x /usr/local/bin/rcorrector-bin /usr/local/bin/run_rcorrector.pl \
  && grep -Fx 'Rcorrector v1.0.7' /tmp/rcorrector.version \
  && rcorrector --help > /tmp/rcorrector.help \
  && grep -F 'Usage: perl ./run_rcorrector.pl [OPTIONS]' /tmp/rcorrector.help \
- && rm -f /tmp/rcorrector.version /tmp/rcorrector.help
+ && rm -f /tmp/rcorrector.version /tmp/rcorrector.help \
+ && useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 
 HEALTHCHECK --interval=1h --timeout=10s \
   CMD [ "rcorrector", "--version" ]

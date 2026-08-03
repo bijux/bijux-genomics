@@ -45,8 +45,10 @@ RUN set -eux; \
     grep -F 'MetaPhlAn version 4.1.1' /tmp/metaphlan.version && \
     metaphlan --help > /tmp/metaphlan.help && \
     grep -F 'usage: metaphlan ' /tmp/metaphlan.help && \
-    rm -f /tmp/metaphlan.version /tmp/metaphlan.help
+    rm -f /tmp/metaphlan.version /tmp/metaphlan.help && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["metaphlan"]
 CMD ["--help"]

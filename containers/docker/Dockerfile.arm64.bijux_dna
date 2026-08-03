@@ -36,7 +36,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
 RUN mkdir -p /opt/bijux
 COPY --from=build /workspace/target/release/bijux-dna /usr/local/bin/bijux-dna
@@ -44,6 +45,7 @@ COPY --from=build /workspace/configs /opt/bijux/configs
 COPY --from=build /workspace/domain /opt/bijux/domain
 COPY --from=build /workspace/benchmarks /opt/bijux/benchmarks
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/bijux-dna"]
 CMD ["--help"]

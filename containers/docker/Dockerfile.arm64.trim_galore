@@ -36,8 +36,10 @@ RUN wget -q https://github.com/FelixKrueger/TrimGalore/archive/${VERSION_TRIM_GA
     chmod +x /usr/local/bin/trim_galore && \
     rm /tmp/trimgalore.tar.gz
 
-RUN pip3 install --no-cache-dir --break-system-packages cutadapt
+RUN pip3 install --no-cache-dir --break-system-packages cutadapt && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["trim_galore"]
-CMD []
+CMD ["--help"]

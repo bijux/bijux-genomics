@@ -38,10 +38,12 @@ RUN python3 -m venv /opt/venv && \
     grep -Fx 'UMI-tools version: 1.1.6' /tmp/umi-tools.version && \
     umi_tools --help > /tmp/umi-tools.help && \
     grep -F 'umi_tools.py - Tools for UMI analyses' /tmp/umi-tools.help && \
-    rm -f /tmp/umi-tools.version /tmp/umi-tools.help
+    rm -f /tmp/umi-tools.version /tmp/umi-tools.help && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
 ENV PATH="/opt/venv/bin:${PATH}"
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["umi_tools"]
 CMD ["--help"]

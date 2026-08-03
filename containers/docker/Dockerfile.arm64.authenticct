@@ -43,8 +43,10 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     /opt/authenticct-venv/bin/pip install --no-cache-dir --no-deps --no-build-isolation /opt/authenticct-source && \
     chmod 0755 /usr/local/bin/authenticct && \
     authenticct --version | grep -Fx 'AuthentiCT 1.0.0' && \
-    rm -rf /opt/authenticct-source /opt/authenticct-source.tar.gz /var/lib/apt/lists/*
+    rm -rf /opt/authenticct-source /opt/authenticct-source.tar.gz /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/authenticct"]
 CMD ["--help"]

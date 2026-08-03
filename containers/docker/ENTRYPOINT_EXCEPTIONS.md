@@ -1,6 +1,7 @@
-# Docker Entrypoint/CMD Exceptions
+# Docker Entrypoint and Default-Command Exceptions
 
-Purpose: Track images that are temporarily exempt from strict ENTRYPOINT/CMD normalization.
+Purpose: Record tool interfaces whose native help contract cannot use the standard
+JSON `ENTRYPOINT` plus `CMD ["--help"]` form.
 
 Policy:
 - Preferred contract: JSON `ENTRYPOINT` to tool binary and JSON `CMD` defaulting to `--help` (or `--version`).
@@ -10,4 +11,5 @@ Policy:
 
 | tool_id | rationale | owner |
 |---|---|---|
-| `*` | Transition period while legacy Dockerfiles are migrated away from shell-wrapper entrypoints and non-standard CMD defaults. | `bijux-genomics` |
+| `diamond` | Upstream DIAMOND exposes its command overview through the positional `help` subcommand rather than a `--help` option. | `bijux-genomics` |
+| `preseq` | Upstream Preseq prints its version, command list, and usage only when invoked without a subcommand; `--help` is parsed as an unknown subcommand. | `bijux-genomics` |

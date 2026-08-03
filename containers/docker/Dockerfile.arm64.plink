@@ -27,7 +27,10 @@ RUN curl -fsSL -o /tmp/plink.zip https://s3.amazonaws.com/plink1-assets/plink_li
     echo "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3  /tmp/plink.zip" | sha256sum -c - && \
     unzip -q /tmp/plink.zip -d /opt/plink && \
     install -m 0755 /opt/plink/plink /usr/local/bin/plink && \
-    rm -rf /tmp/plink.zip /opt/plink
+    rm -rf /tmp/plink.zip /opt/plink && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/plink"]
 CMD ["--help"]

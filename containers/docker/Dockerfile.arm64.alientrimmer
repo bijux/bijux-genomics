@@ -44,8 +44,10 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     grep -F 'AlienTrimmer v3.2' /tmp/alientrimmer.help && \
     ln -sf /usr/local/bin/alientrimmer /usr/local/bin/AlienTrimmer && \
     rm -f /tmp/alientrimmer.tar.gz /tmp/alientrimmer.version /tmp/alientrimmer.help && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/alientrimmer"]
 CMD ["--help"]

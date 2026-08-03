@@ -777,6 +777,18 @@ pub(in super::super) fn check_docker_hardening(
     let pipe_shell_re =
         Regex::new(r"curl\s+[^|\n]*\|\s*(bash|sh)\b|wget\s+[^|\n]*\|\s*(bash|sh)\b")?;
     let mut errors = Vec::new();
+    if allowed.contains("*") {
+        errors.push(
+            "containers/docker/NONROOT_EXCEPTIONS.md: wildcard exceptions are forbidden"
+                .to_string(),
+        );
+    }
+    if entrypoint_allowed.contains("*") {
+        errors.push(
+            "containers/docker/ENTRYPOINT_EXCEPTIONS.md: wildcard exceptions are forbidden"
+                .to_string(),
+        );
+    }
     for path in dockerfile_paths(workspace)? {
         let tool_id = path
             .file_name()
@@ -810,8 +822,7 @@ pub(in super::super) fn check_docker_hardening(
         }
         let has_entrypoint = text.lines().any(|line| entrypoint_re.is_match(line.trim()));
         let has_cmd = text.lines().any(|line| cmd_re.is_match(line.trim()));
-        let entrypoint_exempt =
-            entrypoint_allowed.contains(&tool_id) || entrypoint_allowed.contains("*");
+        let entrypoint_exempt = entrypoint_allowed.contains(&tool_id);
         if !has_cmd && !entrypoint_exempt {
             errors.push(format!("{rel}: missing JSON-form CMD"));
         } else if has_cmd {
@@ -828,10 +839,8 @@ pub(in super::super) fn check_docker_hardening(
                 errors.push(format!("{rel}: CMD should default to --help/-h/--version"));
             }
         }
-        if has_entrypoint && !entrypoint_exempt {
-            errors.push(format!(
-                "{rel}: ENTRYPOINT is forbidden unless listed in ENTRYPOINT_EXCEPTIONS.md"
-            ));
+        if !has_entrypoint && !entrypoint_exempt {
+            errors.push(format!("{rel}: missing JSON-form ENTRYPOINT"));
         }
         if sh_entrypoint_re.is_match(
             text.lines().find(|line| line.trim().starts_with("ENTRYPOINT")).unwrap_or_default(),
@@ -844,7 +853,7 @@ pub(in super::super) fn check_docker_hardening(
             .filter_map(|line| user_re.captures(line.trim()))
             .filter_map(|captures| captures.get(1).map(|value| value.as_str().trim().to_string()))
             .any(|user| user != "root" && user != "0");
-        if !nonroot && !allowed.contains(&tool_id) && !allowed.contains("*") {
+        if !nonroot && !allowed.contains(&tool_id) {
             errors.push(format!("{rel}: no non-root USER and not listed in NONROOT_EXCEPTIONS.md"));
         }
         if text.contains("HEALTHCHECK") {
