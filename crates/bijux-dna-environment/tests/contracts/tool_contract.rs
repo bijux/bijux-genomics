@@ -54,9 +54,10 @@ fn retained_contract_is_catalog_derived_and_installed_once() -> Result<()> {
     assert_eq!(rendered.matches("/usr/share/bijux/tool-contract.json").count(), 1);
     for (key, value) in tool_contract_labels(&prepared.contract) {
         assert!(
-            rendered.contains(&format!("{key} \"{value}\"")),
+            rendered.contains(&format!("    {key} {value}\n")),
             "rendered definition omits {key}"
         );
+        assert!(!rendered.contains(&format!("{key} \"{value}\"")));
     }
     Ok(())
 }
@@ -112,6 +113,11 @@ fn contract_admission_rejects_identity_and_label_tampering() -> Result<()> {
     assert!(
         validate_tool_contract(&stale).is_err_and(|error| error.to_string().contains("catalog"))
     );
+
+    let mut unsafe_label = prepared.contract.clone();
+    unsafe_label.version_command.push('\n');
+    assert!(validate_tool_contract(&unsafe_label)
+        .is_err_and(|error| error.to_string().contains("not safe for an Apptainer label")));
 
     let mut ambiguous = prepared.contract.clone();
     ambiguous.pinned_commit = Some("1234567890abcdef1234567890abcdef12345678".to_string());

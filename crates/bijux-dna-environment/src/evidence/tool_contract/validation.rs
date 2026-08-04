@@ -23,6 +23,9 @@ pub fn validate_tool_contract(contract: &ContainerToolContract) -> Result<()> {
         if value.trim().is_empty() {
             bail!("tool contract {label} is empty");
         }
+        if value != value.trim() || value.chars().any(char::is_control) {
+            bail!("tool contract {label} is not safe for an Apptainer label");
+        }
     }
     if contract.support_disposition != "retained" {
         bail!("tool contract support disposition must be retained");

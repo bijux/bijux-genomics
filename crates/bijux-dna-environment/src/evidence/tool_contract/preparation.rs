@@ -112,7 +112,7 @@ fn render_definition(
     }
     let mut labels = String::new();
     for (key, value) in tool_contract_labels(contract) {
-        writeln!(labels, "    {key} {}", quote_definition_value(&value))?;
+        writeln!(labels, "    {key} {value}")?;
     }
     let with_labels = insert_section_line(recipe, "labels", &labels)?;
     let file_line = format!("    {contract_source} {CONTAINER_TOOL_CONTRACT_PATH}\n");
@@ -155,10 +155,6 @@ fn insert_section_line(recipe: &str, section: &str, addition: &str) -> Result<St
     rendered.push_str(addition);
     rendered.push_str(&recipe[end..]);
     Ok(rendered)
-}
-
-fn quote_definition_value(value: &str) -> String {
-    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
 fn sha256_json<T: Serialize>(value: &T) -> Result<String> {
