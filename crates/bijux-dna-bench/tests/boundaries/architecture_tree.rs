@@ -82,6 +82,7 @@ fn bench_tree_matches_architecture_contract() {
             "options.rs",
             "report_load.rs",
             "run_suite/",
+            "stage_coverage.rs",
             "summary/",
             "suite_load.rs",
             "summary_fairness.rs",
@@ -175,6 +176,8 @@ fn commands_doc_lists_managed_benchmark_operations() {
         "apply-attempt-migration",
         "verify-attempt-migration",
         "rollback-attempt-migration",
+        "derive-stage-coverage",
+        "publish-checked-in-stage-coverage",
     ] {
         assert!(
             content.contains(command),

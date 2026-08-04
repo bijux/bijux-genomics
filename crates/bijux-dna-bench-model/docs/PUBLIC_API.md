@@ -15,6 +15,11 @@ Model contracts:
 - `BenchmarkDecision`
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
+- `BenchmarkStageCoverage`
+- `BenchmarkStageCoverageSummary`
+- `BenchmarkStageCoverageRow`
+- `BenchmarkStageDefinitionStatus`
+- `BenchmarkStageExecutionStatus`
 - `BenchmarkPortfolio`
 - `BenchmarkStageInterfaceCatalog`
 - `BenchmarkStageInterfaceSpec`
@@ -70,6 +75,7 @@ Policy and diagnostics:
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V2`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
+- `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`

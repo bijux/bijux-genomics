@@ -3,8 +3,10 @@
 
 use std::collections::BTreeMap;
 
-use schemars::JsonSchema;
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
+
+use crate::contract::BENCHMARK_STAGE_COVERAGE_SCHEMA_V1;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -159,4 +161,81 @@ pub struct BenchmarkPortfolio {
     pub corpora: Vec<BenchmarkCorpusContract>,
     pub profiles: Vec<BenchmarkScientificProfile>,
     pub assignments: Vec<BenchmarkProfileAssignment>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkStageDefinitionStatus {
+    Missing,
+    Qualification,
+    Comparative,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkStageExecutionStatus {
+    NotDefined,
+    NotAdmitted,
+    Stale,
+    Failed,
+    Admitted,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageCoverageSummary {
+    pub retained_stage_count: usize,
+    pub defined_stage_count: usize,
+    pub qualification_stage_count: usize,
+    pub comparative_stage_count: usize,
+    pub admitted_stage_count: usize,
+    pub stale_stage_count: usize,
+    pub failed_stage_count: usize,
+    pub missing_stage_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageCoverageRow {
+    pub stage_id: String,
+    pub retained_tools: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub campaign_run_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub report_repository_commit: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub report_sha256: Option<String>,
+    pub definition_status: BenchmarkStageDefinitionStatus,
+    pub execution_status: BenchmarkStageExecutionStatus,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageCoverage {
+    #[schemars(schema_with = "benchmark_stage_coverage_schema_version")]
+    pub schema_version: String,
+    pub summary: BenchmarkStageCoverageSummary,
+    pub stages: Vec<BenchmarkStageCoverageRow>,
+}
+
+impl BenchmarkStageCoverage {
+    #[must_use]
+    pub fn v1(
+        summary: BenchmarkStageCoverageSummary,
+        stages: Vec<BenchmarkStageCoverageRow>,
+    ) -> Self {
+        Self { schema_version: BENCHMARK_STAGE_COVERAGE_SCHEMA_V1.to_string(), summary, stages }
+    }
+}
+
+#[must_use]
+pub fn benchmark_stage_coverage_schema() -> Schema {
+    schemars::schema_for!(BenchmarkStageCoverage)
+}
+
+fn benchmark_stage_coverage_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    })
 }

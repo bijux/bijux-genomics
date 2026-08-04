@@ -7,6 +7,7 @@ mod evaluation;
 mod options;
 mod report_load;
 mod run_suite;
+mod stage_coverage;
 mod suite_load;
 mod summary;
 mod summary_fairness;
@@ -26,6 +27,10 @@ pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,
+};
+pub use stage_coverage::{
+    derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
+    BenchmarkCoverageWriteMode,
 };
 pub use suite_load::{
     load_benchmark_portfolio, load_bundle_catalog, load_bundle_manifest,

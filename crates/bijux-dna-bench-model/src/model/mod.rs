@@ -40,11 +40,13 @@ pub use lifecycle::{
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
 pub use planning::{
-    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
-    BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
+    benchmark_stage_coverage_schema, BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance,
+    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
     BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
     BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
-    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
+    BenchmarkStageExecutionStatus,
 };
 #[allow(unused_imports)]
 pub use report::{

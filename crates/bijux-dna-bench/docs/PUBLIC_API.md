@@ -53,6 +53,11 @@ including:
 - `BenchmarkDecision`
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
+- `BenchmarkStageCoverage`
+- `BenchmarkStageCoverageSummary`
+- `BenchmarkStageCoverageRow`
+- `BenchmarkStageDefinitionStatus`
+- `BenchmarkStageExecutionStatus`
 - `BenchmarkPortfolio`
 - `BenchmarkStageInterfaceCatalog`
 - `BenchmarkStageInterfaceSpec`

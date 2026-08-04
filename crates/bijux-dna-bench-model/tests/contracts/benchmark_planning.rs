@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_portfolio_campaign_alignment,
-    validate_stage_campaign_registry, BENCHMARK_PORTFOLIO_SCHEMA_V1,
+    validate_stage_campaign_registry, validate_stage_coverage, BENCHMARK_PORTFOLIO_SCHEMA_V1,
     BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
@@ -10,7 +10,9 @@ use bijux_dna_bench_model::{
     BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
     BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
     BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
-    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
+    BenchmarkStageExecutionStatus,
 };
 
 fn stage_campaign_registry() -> BenchmarkStageCampaignRegistry {
@@ -157,4 +159,65 @@ fn benchmark_planning_alignment_rejects_run_id_drift() {
         .err()
         .map(|error| error.to_string());
     assert!(error.as_deref().is_some_and(|message| message.contains("benchmark run id drift")));
+}
+
+fn stage_coverage() -> BenchmarkStageCoverage {
+    BenchmarkStageCoverage::v1(
+        BenchmarkStageCoverageSummary {
+            retained_stage_count: 2,
+            defined_stage_count: 1,
+            qualification_stage_count: 0,
+            comparative_stage_count: 1,
+            admitted_stage_count: 1,
+            stale_stage_count: 0,
+            failed_stage_count: 0,
+            missing_stage_count: 1,
+        },
+        vec![
+            BenchmarkStageCoverageRow {
+                stage_id: "fastq.profile_read_lengths".to_string(),
+                retained_tools: vec!["seqfu".to_string(), "seqkit".to_string()],
+                campaign_run_id: Some("run-2042".to_string()),
+                report_repository_commit: Some("a".repeat(40)),
+                report_sha256: Some("b".repeat(64)),
+                definition_status: BenchmarkStageDefinitionStatus::Comparative,
+                execution_status: BenchmarkStageExecutionStatus::Admitted,
+            },
+            BenchmarkStageCoverageRow {
+                stage_id: "vcf.stats".to_string(),
+                retained_tools: vec!["bcftools".to_string()],
+                campaign_run_id: None,
+                report_repository_commit: None,
+                report_sha256: None,
+                definition_status: BenchmarkStageDefinitionStatus::Missing,
+                execution_status: BenchmarkStageExecutionStatus::NotDefined,
+            },
+        ],
+    )
+}
+
+#[test]
+fn benchmark_stage_coverage_accepts_exact_sorted_closure() -> anyhow::Result<()> {
+    validate_stage_coverage(&stage_coverage())?;
+    Ok(())
+}
+
+#[test]
+fn benchmark_stage_coverage_rejects_summary_drift() {
+    let mut coverage = stage_coverage();
+    coverage.summary.admitted_stage_count = 0;
+
+    let error = validate_stage_coverage(&coverage).err().map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("summary disagrees")));
+}
+
+#[test]
+fn benchmark_stage_coverage_rejects_incoherent_missing_state() {
+    let mut coverage = stage_coverage();
+    coverage.stages[1].execution_status = BenchmarkStageExecutionStatus::NotAdmitted;
+
+    let error = validate_stage_coverage(&coverage).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("definition, execution, and run identity")));
 }

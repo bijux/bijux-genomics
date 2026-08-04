@@ -9,6 +9,8 @@ gating, and deterministic artifact persistence.
 
 - `BenchmarkSuiteSpec` from checked-in TOML files under `crates/bijux-dna-bench/bench/suites/`.
 - `BenchmarkObservation` records from runtime/analyze benchmark runs.
+- Typed retained-tool catalog, campaign registry, and admitted stage reports for
+  stage-coverage derivation.
 - Optional existing `observations.jsonl` when `BenchRunOptions.resume` is true.
 - Runtime manifests and metric payloads that have already been produced by other
   crates.
@@ -20,6 +22,7 @@ gating, and deterministic artifact persistence.
 - `CompareReport` for summary-to-summary comparisons.
 - Persisted artifacts documented in `docs/BENCH_FORMAT.md`.
 - Reconstructed `BenchmarkAttemptRecordV2` values from immutable event files.
+- Versioned stage-coverage JSON, Markdown, and generated JSON Schema publications.
 
 ## Required Invariants
 
@@ -33,6 +36,9 @@ gating, and deterministic artifact persistence.
   cannot be replaced.
 - Retry initialization must identify an existing terminal attempt with the same
   campaign, run, and tool identity.
+- Stage coverage must derive exact retained-tool closure from the environment
+  catalog and may mark a stage admitted only from a fully validated passing report
+  produced by the required repository commit. Historical reports remain visible as stale.
 
 ## Failure Modes
 

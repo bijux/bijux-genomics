@@ -32,6 +32,14 @@ policy, and options used for a run.
 4. Validate the reconstructed `BenchmarkAttemptRecordV2`; do not infer state
    from directory names or scheduler output alone.
 
+## Reproduce Stage Coverage
+
+1. Load the typed container catalog, campaign registry, and admitted reports.
+2. Select the required repository commit for the publication cycle.
+3. Call `derive_stage_coverage`; reports from any other commit remain `stale`.
+4. Use `publish_checked_in_stage_coverage` in check mode to verify JSON,
+   Markdown, and generated JSON Schema byte identity.
+
 ## Allowed Variation
 
 - Output directory paths may differ.
