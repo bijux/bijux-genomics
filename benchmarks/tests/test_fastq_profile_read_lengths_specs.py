@@ -157,6 +157,8 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
         self.assertEqual(pipeline["run"]["id"], "run-2042")
         self.assertEqual(pipeline["run"]["kind"], "benchmark")
         self.assertEqual(pipeline["measurement"]["measured_repetitions"], 3)
+        self.assertEqual(pipeline["resources"]["cpus"], 1)
+        self.assertEqual(pipeline["execution"]["threads"], 1)
         self.assertEqual(
             pipeline["interface"]["downstream_probe"]["stage_id"],
             "benchmark.fastq.profile_read_lengths.compare",

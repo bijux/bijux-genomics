@@ -47,6 +47,7 @@ STAGE_ID = "fastq.profile_read_lengths"
 STAGE_SLUG = "fastq-profile-read-lengths"
 CORPUS_ID = "human-short-read-diversity"
 TOOLS = ("seqfu", "seqkit")
+THREADS_BY_TOOL = {"seqfu": 1, "seqkit": 4}
 PARAMETER_SCHEMA = "bijux.fastq.params.read_length_profile.v1"
 DEFAULTS_PROVIDER = (
     "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults"
@@ -78,7 +79,7 @@ def campaign_contract(repository: Path) -> dict[str, Any]:
         "tool_ids": list(TOOLS),
         "corpus_ids": [CORPUS_ID],
         "container_only": True,
-        "threads_by_tool": {"seqfu": 1, "seqkit": 4},
+        "threads_by_tool": THREADS_BY_TOOL,
         "warmup_repetitions": 1,
         "measured_repetitions": 3,
     }
@@ -671,6 +672,7 @@ def pipeline(
         / tool
     )
     negative_command = tool_command(tool, ["/input/missing.fastq.gz"])
+    threads = THREADS_BY_TOOL[tool]
     return {
         "schema_version": "bijux.container.pipeline.v2",
         "run": {
@@ -719,7 +721,7 @@ def pipeline(
         "resources": {
             "account": roots["account"],
             "partition": roots["partition"],
-            "cpus": 4,
+            "cpus": threads,
             "memory_mb": 8192,
             "walltime": "01:00:00",
             "scratch_mb": 4096,
@@ -733,7 +735,7 @@ def pipeline(
             "locale": "C",
             "timezone": "UTC",
             "runtime_network": False,
-            "threads": 4,
+            "threads": threads,
             "random_seed": None,
             "cache_policy": "warm",
             "determinism": "deterministic",
