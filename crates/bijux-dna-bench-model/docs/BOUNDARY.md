@@ -7,7 +7,8 @@ Owner: benchmark model contracts and pure decision logic.
 - Benchmark model records: suites, observations, summaries, decisions, graph
   nodes, stages, datasets, parameter bindings, and support requirements.
 - Permanent benchmark run and attempt identities, append-only lifecycle
-  transitions, retry lineage, Slurm job references, and portable evidence URIs.
+  transitions, retry lineage, Slurm job references, terminal accounting, and
+  checksummed portable evidence references.
 - Schema ids and validation entrypoints for suite, observation, summary, and
   gate decision records.
 - Deterministic summary comparison reports.

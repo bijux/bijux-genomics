@@ -33,6 +33,9 @@ Model contracts:
 - `DecisionRationale`
 - `BenchmarkLifecycleStatus`
 - `BenchmarkJobReference`
+- `BenchmarkSchedulerTerminalState`
+- `BenchmarkSchedulerAccounting`
+- `BenchmarkEvidenceReference`
 - `BenchmarkRunIdentity`
 - `BenchmarkAttemptIdentity`
 - `BenchmarkAttemptTransition`
@@ -93,8 +96,9 @@ for operation names and entrypoints.
   breaking-change review under `docs/CHANGE_RULES.md`.
 - New public exports must be added through `src/public_api/stable_surface.rs` so
   schema tests can detect the change.
-- V2 attempt transitions are append-only. A retry receives a new permanent
-  attempt identity and records explicit same-run, same-tool supersession.
+- V2 attempt transitions are append-only and retain checksummed evidence plus
+  terminal scheduler accounting. A retry receives a new permanent attempt
+  identity and records explicit same-run, same-tool supersession.
 - Public validation behavior must be reflected in contract tests and the
   relevant docs.
 - Public ordering of lists, reports, and rationale traces must remain

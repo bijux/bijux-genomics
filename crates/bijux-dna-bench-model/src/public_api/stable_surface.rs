@@ -28,7 +28,8 @@ pub use crate::model::lifecycle::{
     BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
     BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
     BenchmarkAttemptTransition, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
-    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
 };
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::planning::{

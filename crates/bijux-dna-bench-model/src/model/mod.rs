@@ -34,7 +34,8 @@ pub use lifecycle::{
     BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
     BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
     BenchmarkAttemptTransition, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
-    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
 };
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]

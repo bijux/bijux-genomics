@@ -24,7 +24,7 @@ not own CLI commands or process execution.
 | `validate-report-admission` | `contract::validate_report_admission` | Validate exact source bytes, canonical parsed-report identity, and the nested stage-report contract. |
 | `benchmark-run-directory-name` | `contract::benchmark_run_directory_name` | Derive `run-<id>-<domain>-<stage>` only from a validated permanent run identity. |
 | `validate-attempt-identity` | `contract::validate_attempt_identity` | Validate permanent campaign, run, attempt, and tool identity before path derivation or persistence. |
-| `validate-attempt-record-v2` | `contract::validate_attempt_record_v2` | Validate permanent attempt identity, append-only transition order, Slurm jobs, evidence URIs, and terminal admission. |
+| `validate-attempt-record-v2` | `contract::validate_attempt_record_v2` | Validate permanent attempt identity, append-only transition order, Slurm jobs, terminal accounting, checksummed evidence, and terminal admission. |
 | `append-attempt-transition` | `contract::append_attempt_transition` | Append a legal transition without mutating the record when validation fails. |
 | `validate-cycle-status-v2` | `contract::validate_cycle_status_v2` | Validate cycle identity, retry lineage, and single-active-attempt ownership per run and tool. |
 | `validate-attempt-archive` | `contract::validate_attempt_archive` | Validate identity-complete retained evidence for a failed or superseded historical attempt. |

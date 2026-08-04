@@ -143,6 +143,44 @@ pub struct BenchmarkJobReference {
     pub job_id: String,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkSchedulerTerminalState {
+    Completed,
+    Failed,
+    Cancelled,
+    Timeout,
+    Preempted,
+    NodeFailure,
+    OutOfMemory,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkSchedulerAccounting {
+    pub scheduler: String,
+    pub job_id: String,
+    pub state: BenchmarkSchedulerTerminalState,
+    pub raw_state: String,
+    pub exit_code: i32,
+    pub signal: i32,
+    pub elapsed_seconds: u64,
+    pub total_cpu_seconds: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_rss_bytes: Option<u64>,
+    pub node_list: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkEvidenceReference {
+    #[schemars(schema_with = "study_uri_schema")]
+    pub uri: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub sha256: String,
+    pub size_bytes: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkRunIdentity {
@@ -173,7 +211,9 @@ pub struct BenchmarkAttemptTransition {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub jobs: Vec<BenchmarkJobReference>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub evidence_paths: Vec<String>,
+    pub accounting: Vec<BenchmarkSchedulerAccounting>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub evidence: Vec<BenchmarkEvidenceReference>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -284,7 +324,8 @@ impl BenchmarkAttemptRecordV2 {
                 observed_at_utc,
                 reason: None,
                 jobs: Vec::new(),
-                evidence_paths: Vec::new(),
+                accounting: Vec::new(),
+                evidence: Vec::new(),
             }],
         }
     }

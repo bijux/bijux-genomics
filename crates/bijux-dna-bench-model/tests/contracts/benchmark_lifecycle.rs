@@ -3,8 +3,9 @@ use bijux_dna_bench_model::{
     validate_attempt_record_v2, validate_cycle_status_v2, BenchmarkArchiveFileRecord,
     BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
     BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
-    BenchmarkCycleStatusV2, BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
-    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
+    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
+    BenchmarkSchedulerTerminalState, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
 };
 
 fn run_identity() -> BenchmarkRunIdentity {
@@ -40,7 +41,8 @@ fn transition(
         observed_at_utc: format!("2026-08-04T08:{minute:02}:00Z"),
         reason: None,
         jobs: Vec::new(),
-        evidence_paths: Vec::new(),
+        accounting: Vec::new(),
+        evidence: Vec::new(),
     }
 }
 
@@ -72,10 +74,24 @@ fn passed_attempt(attempt_id: &str, tool_id: &str) -> BenchmarkAttemptRecordV2 {
             3,
         ),
         BenchmarkAttemptTransition {
-            evidence_paths: vec![
-                "study://results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/evidence.json"
+            accounting: vec![BenchmarkSchedulerAccounting {
+                scheduler: "slurm".to_string(),
+                job_id: "3461001".to_string(),
+                state: BenchmarkSchedulerTerminalState::Completed,
+                raw_state: "COMPLETED".to_string(),
+                exit_code: 0,
+                signal: 0,
+                elapsed_seconds: 125,
+                total_cpu_seconds: 90,
+                max_rss_bytes: Some(2 * 1024 * 1024),
+                node_list: "n001".to_string(),
+            }],
+            evidence: vec![BenchmarkEvidenceReference {
+                uri: "study://results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/evidence.json"
                     .to_string(),
-            ],
+                sha256: "d".repeat(64),
+                size_bytes: 42,
+            }],
             ..transition(
                 5,
                 BenchmarkLifecycleStatus::Running,
@@ -209,12 +225,42 @@ fn passed_attempt_requires_slurm_and_portable_evidence() {
     assert!(validate_attempt_record_v2(&invalid_job).is_err());
 
     let mut no_evidence = valid.clone();
-    no_evidence.transitions[4].evidence_paths.clear();
+    no_evidence.transitions[4].evidence.clear();
     assert!(validate_attempt_record_v2(&no_evidence).is_err());
 
+    let mut no_accounting = valid.clone();
+    no_accounting.transitions[4].accounting.clear();
+    assert!(validate_attempt_record_v2(&no_accounting).is_err());
+
     let mut unsafe_evidence = valid.clone();
-    unsafe_evidence.transitions[4].evidence_paths[0] = "study://results/../secret".to_string();
+    unsafe_evidence.transitions[4].evidence[0].uri = "study://results/../secret".to_string();
     assert!(validate_attempt_record_v2(&unsafe_evidence).is_err());
+
+    let mut unchecksummed = valid.clone();
+    unchecksummed.transitions[4].evidence[0].sha256 = "unknown".to_string();
+    assert!(validate_attempt_record_v2(&unchecksummed).is_err());
+
+    let mut contradictory = valid.clone();
+    contradictory.transitions[4].accounting[0].state = BenchmarkSchedulerTerminalState::Timeout;
+    assert!(validate_attempt_record_v2(&contradictory).is_err());
+}
+
+#[test]
+fn failed_scheduler_attempt_retains_exact_terminal_accounting() {
+    let mut failed = passed_attempt("attempt-001", "seqkit");
+    failed.transitions.truncate(5);
+    let terminal = &mut failed.transitions[4];
+    terminal.to_status = BenchmarkLifecycleStatus::Failed;
+    terminal.reason = Some("scheduler wall-time limit was exceeded".to_string());
+    terminal.accounting[0].state = BenchmarkSchedulerTerminalState::Timeout;
+    terminal.accounting[0].raw_state = "TIMEOUT".to_string();
+    terminal.accounting[0].exit_code = 1;
+
+    assert!(validate_attempt_record_v2(&failed).is_ok());
+
+    let duplicate = failed.transitions[4].accounting[0].clone();
+    failed.transitions[4].accounting.push(duplicate);
+    assert!(validate_attempt_record_v2(&failed).is_err());
 }
 
 #[test]

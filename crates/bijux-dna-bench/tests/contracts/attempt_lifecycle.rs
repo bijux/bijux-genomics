@@ -29,7 +29,8 @@ fn ready_transition() -> BenchmarkAttemptTransition {
         observed_at_utc: "2026-08-04T08:01:00Z".to_string(),
         reason: None,
         jobs: Vec::new(),
-        evidence_paths: Vec::new(),
+        accounting: Vec::new(),
+        evidence: Vec::new(),
     }
 }
 
@@ -41,7 +42,8 @@ fn blocked_transition() -> BenchmarkAttemptTransition {
         observed_at_utc: "2026-08-04T08:02:00Z".to_string(),
         reason: Some("required reference panel is unavailable".to_string()),
         jobs: Vec::new(),
-        evidence_paths: Vec::new(),
+        accounting: Vec::new(),
+        evidence: Vec::new(),
     }
 }
 
