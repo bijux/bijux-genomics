@@ -1,0 +1,89 @@
+use super::model::{EvidenceDimension, QualificationClaim};
+
+pub const REQUIRED_EVIDENCE_DIMENSIONS: [EvidenceDimension; 11] = [
+    EvidenceDimension::Catalog,
+    EvidenceDimension::Source,
+    EvidenceDimension::Build,
+    EvidenceDimension::Runtime,
+    EvidenceDimension::Stage,
+    EvidenceDimension::RealData,
+    EvidenceDimension::Science,
+    EvidenceDimension::Benchmark,
+    EvidenceDimension::Security,
+    EvidenceDimension::Freshness,
+    EvidenceDimension::Release,
+];
+
+pub(super) const CLAIM_REQUIREMENTS: &[(QualificationClaim, &[EvidenceDimension])] = &[
+    (
+        QualificationClaim::Built,
+        &[EvidenceDimension::Catalog, EvidenceDimension::Source, EvidenceDimension::Build],
+    ),
+    (
+        QualificationClaim::RuntimeVerified,
+        &[
+            EvidenceDimension::Catalog,
+            EvidenceDimension::Source,
+            EvidenceDimension::Build,
+            EvidenceDimension::Runtime,
+        ],
+    ),
+    (
+        QualificationClaim::StageVerified,
+        &[
+            EvidenceDimension::Catalog,
+            EvidenceDimension::Source,
+            EvidenceDimension::Build,
+            EvidenceDimension::Runtime,
+            EvidenceDimension::Stage,
+        ],
+    ),
+    (
+        QualificationClaim::RealDataVerified,
+        &[
+            EvidenceDimension::Catalog,
+            EvidenceDimension::Source,
+            EvidenceDimension::Build,
+            EvidenceDimension::Runtime,
+            EvidenceDimension::Stage,
+            EvidenceDimension::RealData,
+        ],
+    ),
+    (
+        QualificationClaim::ScienceVerified,
+        &[
+            EvidenceDimension::Catalog,
+            EvidenceDimension::Source,
+            EvidenceDimension::Build,
+            EvidenceDimension::Runtime,
+            EvidenceDimension::Stage,
+            EvidenceDimension::RealData,
+            EvidenceDimension::Science,
+        ],
+    ),
+    (
+        QualificationClaim::BenchmarkVerified,
+        &[
+            EvidenceDimension::Catalog,
+            EvidenceDimension::Source,
+            EvidenceDimension::Build,
+            EvidenceDimension::Runtime,
+            EvidenceDimension::Stage,
+            EvidenceDimension::RealData,
+            EvidenceDimension::Science,
+            EvidenceDimension::Benchmark,
+        ],
+    ),
+    (
+        QualificationClaim::SecurityVerified,
+        &[
+            EvidenceDimension::Catalog,
+            EvidenceDimension::Source,
+            EvidenceDimension::Build,
+            EvidenceDimension::Runtime,
+            EvidenceDimension::Security,
+        ],
+    ),
+    (QualificationClaim::ReleaseVerified, &REQUIRED_EVIDENCE_DIMENSIONS),
+    (QualificationClaim::Qualified, &REQUIRED_EVIDENCE_DIMENSIONS),
+];

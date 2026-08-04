@@ -687,6 +687,7 @@ dependencies = [
  "cargo_metadata",
  "insta",
  "regex",
+ "schemars",
  "serde",
  "serde_json",
  "serde_yaml",
