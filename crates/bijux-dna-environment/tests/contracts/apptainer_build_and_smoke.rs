@@ -150,7 +150,7 @@ fn contract_regex_admits_real_non_semver_versions() -> anyhow::Result<()> {
         write_executable(
             &executable,
             &format!(
-                "#!/bin/sh\ncase \"$*\" in\n  *--version*) printf '%s\\n' '{output}' ;;\n  *--help*) printf '%s\\n' 'usage' ;;\n  *) exit 2 ;;\nesac\n"
+                "#!/bin/sh\ncase \"$*\" in\n  *--version*) printf '%s\\n' '{output}'; printf '%s\\n' 'runtime diagnostic' >&2 ;;\n  *--help*) printf '%s\\n' 'usage' ;;\n  *) exit 2 ;;\nesac\n"
             ),
         )?;
         let request = smoke_request(&temp, executable, expected_regex)?;

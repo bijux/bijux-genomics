@@ -113,8 +113,8 @@ pub fn run_apptainer_smoke(request: &ApptainerSmokeRequest) -> Result<ApptainerS
     }
 
     let all_probes_passed = probe_results.iter().all(|result| result.ok);
-    let version_match = version_regex.find(&version_output);
-    let version_matches_contract = version_match.is_some();
+    let version = contract_version_match(&version_regex, &version_output);
+    let version_matches_contract = version.is_some();
     let help_ok = !request.require_help
         || probe_results
             .iter()
@@ -143,7 +143,7 @@ pub fn run_apptainer_smoke(request: &ApptainerSmokeRequest) -> Result<ApptainerS
         expected_version_regex: request.expected_version_regex.clone(),
         version_matches_contract,
         help_cmd: request.help_command.clone(),
-        version: version_match.map_or_else(String::new, |matched| matched.as_str().to_string()),
+        version: version.unwrap_or_default(),
         version_output_first_line,
         help_ok,
         quick_smoke: true,
@@ -266,6 +266,14 @@ fn apply_heap_policy(tool_id: &str, command: &str, java_heap_mb: Option<u64>) ->
 
 fn first_line(output: &str) -> Option<String> {
     output.lines().next().map(str::trim).filter(|line| !line.is_empty()).map(ToOwned::to_owned)
+}
+
+fn contract_version_match(version_regex: &Regex, output: &str) -> Option<String> {
+    output
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .find_map(|line| version_regex.find(line).map(|matched| matched.as_str().to_string()))
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
