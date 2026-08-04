@@ -418,68 +418,6 @@ def audit_images(
     return inventory
 
 
-def render_report(inventory_path: Path, output: Path) -> int:
-    inventory = load_json(inventory_path)
-    if inventory.get("schema_version") not in {
-        INVENTORY_SCHEMA,
-        PUBLICATION_SCHEMA,
-    }:
-        raise ImageInventoryError("unsupported image inventory schema")
-    summary = inventory["summary"]
-    lines = [
-        "<!-- GENERATED FILE - DO NOT EDIT -->",
-        "<!-- source: containers/contracts/image_inventory.py render-report -->",
-        "# LUNARC Apptainer image inventory",
-        "",
-        "This is an integrity and provenance inventory, not a release certificate.",
-        "An image is current only when its SIF hash, immutable filename, build evidence,",
-        "recipe-at-commit hash, and active recipe hash agree. Scientific and security",
-        "qualification remain independent requirements.",
-        "",
-        "## Inventory summary",
-        "",
-        f"- Catalog tools: **{summary['tool_count']}**",
-        "- States: "
-        + ", ".join(
-            f"**{state} {count}**" for state, count in sorted(summary["states"].items())
-        ),
-        f"- Historical run dependencies: **{summary.get('historical_dependency_count', 0)}**",
-        f"- Unknown immutable images: **{summary['unknown_image_count']}**",
-        f"- Interrupted staged images: **{summary['staged_image_count']}**",
-        f"- Unreferenced obsolete images: **{summary['unreferenced_obsolete_count']}**",
-        "",
-        "## Catalog coverage",
-        "",
-        "| Tool | Version | Catalog disposition | Image state | Real-run references |",
-        "|---|---|---|---|---:|",
-    ]
-    for tool in inventory["tools"]:
-        references = sum(
-            int(candidate["real_run_references"]) for candidate in tool["candidates"]
-        )
-        lines.append(
-            f"| `{tool['tool']}` | `{tool['version']}` | "
-            f"{tool['support_disposition']} | **{tool['state']}** | {references} |"
-        )
-    lines.extend(
-        [
-            "",
-            "`missing` means no admitted SIF exists for the catalog version. `stale_recipe`",
-            "means an admitted historical image exists but does not represent the active",
-            "recipe. `unsupported` is an explicit catalog decision, not a failed build.",
-            "A historical run dependency is preserved because a final governed run records",
-            "its immutable path and digest; it is not current support or release evidence.",
-            "",
-            "The machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).",
-        ]
-    )
-    output.parent.mkdir(parents=True, exist_ok=True)
-    partial = output.with_suffix(output.suffix + ".partial")
-    partial.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    partial.replace(output)
-    return len(inventory["tools"])
-
-
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
@@ -495,9 +433,6 @@ def parser() -> argparse.ArgumentParser:
     publish.add_argument("--study-root", type=Path, required=True)
     publish.add_argument("--repository", type=Path, required=True)
     publish.add_argument("--output", type=Path, required=True)
-    report = commands.add_parser("render-report")
-    report.add_argument("--inventory", type=Path, required=True)
-    report.add_argument("--output", type=Path, required=True)
     return root
 
 
@@ -525,9 +460,6 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             print(f"published {len(inventory['tools'])} catalog tools")
-        else:
-            count = render_report(args.inventory, args.output)
-            print(f"reported {count} catalog tools")
         return 0
     except (ImageInventoryError, subprocess.CalledProcessError) as exc:
         print(f"container image inventory failed: {exc}", file=sys.stderr)

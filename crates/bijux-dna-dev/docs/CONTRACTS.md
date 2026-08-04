@@ -16,6 +16,9 @@ This crate owns developer automation contracts, not production pipeline contract
   replace either evidence document.
 - Image-inventory scan and publication schemas are generated and checked through native container
   commands backed by the persisted Rust environment types.
+- `containers run generate-image-inventory-report -- [<publication> <output>]` loads a validated
+  publication and atomically renders Markdown; `check-image-inventory-report` rejects governed
+  report drift.
 
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.

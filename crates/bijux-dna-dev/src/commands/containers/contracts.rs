@@ -1,5 +1,5 @@
 use super::{
-    failure_lines, out_path_arg, path_from_arg, read_utf8, sha256_hex, success_line, write_utf8,
+    failure_lines, out_path_arg, read_utf8, sha256_hex, success_line, write_utf8,
     ContainerCommandOutcome, Result, Serialize, Workspace,
 };
 use bijux_dna_environment::evidence::ContainerCatalog;
@@ -10,10 +10,6 @@ const QUALIFICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-assessment.v1.json";
 const QUALIFICATION_REPORT_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-report.v2.json";
-const IMAGE_INVENTORY_SCAN_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/image-inventory-scan.v1.json";
-const IMAGE_INVENTORY_PUBLICATION_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/image-inventory-publication.v1.json";
 
 #[derive(Serialize)]
 struct ContractLock<'a> {
@@ -191,108 +187,6 @@ pub(super) fn generate_evidence_qualification(
         "generated typed qualification for {} container tools",
         report.summary.tool_count
     ))
-}
-
-pub(super) fn generate_image_inventory(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <study-root> <scan-output> <publication-output>";
-    if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line(usage);
-    }
-    let [study_root, scan_output, publication_output] = args else {
-        anyhow::bail!(usage);
-    };
-    let study_root = path_from_arg(workspace, study_root);
-    let scan_output = path_from_arg(workspace, scan_output);
-    let publication_output = path_from_arg(workspace, publication_output);
-    if scan_output == publication_output {
-        anyhow::bail!("image-inventory scan and publication outputs must be distinct");
-    }
-    if scan_output.try_exists()? || publication_output.try_exists()? {
-        anyhow::bail!("refusing to replace existing image-inventory evidence output");
-    }
-    let request = bijux_dna_environment::evidence::ImageInventoryDerivationRequest {
-        repository_root: workspace.root.clone(),
-        image_root: study_root.join("containers/apptainer"),
-        build_evidence_root: study_root.join("containers/evidence"),
-        run_evidence_root: workspace.path("containers/runs"),
-        study_root,
-    };
-    let evidence = bijux_dna_environment::evidence::derive_image_inventory_evidence(&request)?;
-    bijux_dna_infra::atomic_create_json(&scan_output, &evidence.scan)?;
-    bijux_dna_infra::atomic_create_json(&publication_output, &evidence.publication)?;
-    success_line(format!(
-        "generated immutable image inventory for {} tools at {} and {}",
-        evidence.publication.tools.len(),
-        scan_output.display(),
-        publication_output.display()
-    ))
-}
-
-pub(super) fn generate_image_inventory_scan_schema(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory-scan-schema -- [<output-path>]";
-    if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line(usage);
-    }
-    let output = out_path_arg(workspace, args, IMAGE_INVENTORY_SCAN_SCHEMA_PATH, usage)?;
-    bijux_dna_environment::evidence::write_image_inventory_scan_schema(&output)?;
-    success_line(format!("generated {}", output.display()))
-}
-
-pub(super) fn generate_image_inventory_publication_schema(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory-publication-schema -- [<output-path>]";
-    if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line(usage);
-    }
-    let output = out_path_arg(workspace, args, IMAGE_INVENTORY_PUBLICATION_SCHEMA_PATH, usage)?;
-    bijux_dna_environment::evidence::write_image_inventory_publication_schema(&output)?;
-    success_line(format!("generated {}", output.display()))
-}
-
-pub(super) fn check_image_inventory_scan_schema(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
-    let path = workspace.path(IMAGE_INVENTORY_SCAN_SCHEMA_PATH);
-    if !path.is_file() {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "missing {IMAGE_INVENTORY_SCAN_SCHEMA_PATH}; generate it with the governed container command\n"
-        )));
-    }
-    let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
-    let generated = bijux_dna_environment::evidence::image_inventory_scan_schema();
-    if checked != generated {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "{IMAGE_INVENTORY_SCAN_SCHEMA_PATH} drifted from Rust environment types\n"
-        )));
-    }
-    success_line("image-inventory scan schema: OK")
-}
-
-pub(super) fn check_image_inventory_publication_schema(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
-    let path = workspace.path(IMAGE_INVENTORY_PUBLICATION_SCHEMA_PATH);
-    if !path.is_file() {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "missing {IMAGE_INVENTORY_PUBLICATION_SCHEMA_PATH}; generate it with the governed container command\n"
-        )));
-    }
-    let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
-    let generated = bijux_dna_environment::evidence::image_inventory_publication_schema();
-    if checked != generated {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "{IMAGE_INVENTORY_PUBLICATION_SCHEMA_PATH} drifted from Rust environment types\n"
-        )));
-    }
-    success_line("image-inventory publication schema: OK")
 }
 
 fn qualification_report(

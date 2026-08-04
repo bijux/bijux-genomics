@@ -201,43 +201,6 @@ class ImageInventoryTests(unittest.TestCase):
             stale_result["tools"][0]["candidates"][0]["current_recipe"]
         )
 
-    def test_report_does_not_claim_release_or_science_qualification(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            source = root / "inventory.json"
-            source.write_text(
-                json.dumps(
-                    {
-                        "schema_version": inventory.INVENTORY_SCHEMA,
-                        "summary": {
-                            "tool_count": 1,
-                            "states": {"missing": 1},
-                            "unknown_image_count": 0,
-                            "staged_image_count": 0,
-                            "unreferenced_obsolete_count": 0,
-                        },
-                        "tools": [
-                            {
-                                "tool": "samtools",
-                                "version": "1.20",
-                                "support_disposition": "retained",
-                                "state": "missing",
-                                "candidates": [],
-                            }
-                        ],
-                    }
-                ),
-                encoding="utf-8",
-            )
-            output = root / "report.md"
-
-            inventory.render_report(source, output)
-            report = output.read_text(encoding="utf-8")
-
-        self.assertIn("not a release certificate", report)
-        self.assertIn("Scientific and security", report)
-        self.assertIn("**missing**", report)
-
     def test_publication_replaces_governed_roots_with_stable_schemes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
