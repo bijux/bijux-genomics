@@ -133,9 +133,11 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
 #[test]
 fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let inventory = bijux_dna_environment::evidence::image_inventory_publication_schema();
+    let scan = bijux_dna_environment::evidence::image_inventory_scan_schema();
     let runtime = bijux_dna_environment::evidence::runtime_verification_publication_schema();
     let tool_contract = bijux_dna_environment::evidence::tool_contract::tool_contract_schema();
     assert_eq!(inventory["title"], "ContainerImageInventoryPublication");
+    assert_eq!(scan["title"], "ImageInventoryScan");
     assert_eq!(runtime["title"], "RuntimeVerificationPublication");
     assert_eq!(tool_contract["title"], "ContainerToolContract");
 }

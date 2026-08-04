@@ -185,6 +185,9 @@ pub(super) fn run_native_container_command(
             ensure_no_args("generate-evidence-qualification", args)?;
             contracts::generate_evidence_qualification(workspace)
         }
+        NativeContainerCommandKey::GenerateImageInventory => {
+            contracts::generate_image_inventory(workspace, args)
+        }
         NativeContainerCommandKey::CheckEvidenceQualification => {
             ensure_no_args("check-evidence-qualification", args)?;
             contracts::check_evidence_qualification(workspace)

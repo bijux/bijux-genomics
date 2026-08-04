@@ -245,6 +245,7 @@ env-smoke
 extract-version-map
 generate-contract-lock
 generate-evidence-qualification
+generate-image-inventory
 generate-ghcr-apptainer-publish-matrix
 generate-ghcr-publish-matrix
 generate-index

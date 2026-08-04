@@ -4,8 +4,9 @@ use std::process::Command;
 
 use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::{
-    apptainer_recipe_identity_at_commit, derive_image_inventory_publication,
-    repository_head_commit, ContainerImageState, ImageInventoryDerivationRequest,
+    apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
+    derive_image_inventory_publication, repository_head_commit, ContainerImageState,
+    ImageInventoryDerivationRequest,
 };
 use serde_json::json;
 use tempfile::TempDir;
@@ -27,7 +28,7 @@ impl Fixture {
         fs::create_dir_all(repository.join("containers/tools/example"))?;
         fs::create_dir_all(study.join("containers/apptainer"))?;
         fs::create_dir_all(study.join("containers/evidence"))?;
-        fs::create_dir_all(study.join("containers/runs"))?;
+        fs::create_dir_all(repository.join("containers/runs"))?;
         fs::write(repository.join("containers/contracts/catalog.toml"), catalog_toml())?;
         fs::write(
             repository.join("containers/apptainer/example.def"),
@@ -45,7 +46,7 @@ impl Fixture {
             study_root: study.clone(),
             image_root: study.join("containers/apptainer"),
             build_evidence_root: study.join("containers/evidence"),
-            run_evidence_root: study.join("containers/runs"),
+            run_evidence_root: repository.join("containers/runs"),
         };
         let fixture = Self { _temporary: temporary, repository, study, request };
         fixture.add_admitted_image(b"current immutable image")?;
@@ -86,12 +87,26 @@ impl Fixture {
         )?;
         Ok(digest)
     }
+
+    fn reference_image_from_run(&self, digest: &str) -> Result<()> {
+        let run_root = self.repository.join("containers/runs/run-2000-example");
+        fs::create_dir_all(&run_root)?;
+        fs::write(
+            run_root.join("evidence.lock.json"),
+            serde_json::to_vec_pretty(&json!({
+                "schema_version": "bijux.container.run_evidence_lock.v1",
+                "image": {"sha256": digest},
+            }))?,
+        )?;
+        Ok(())
+    }
 }
 
 #[test]
 fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
     let fixture = Fixture::current()?;
-    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let evidence = derive_image_inventory_evidence(&fixture.request)?;
+    let publication = evidence.publication;
     let tool = publication.tools.first().context("publication omits example")?;
     assert_eq!(tool.state, ContainerImageState::Current);
     assert_eq!(tool.candidates.len(), 1);
@@ -102,6 +117,14 @@ fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
         publication.publication.raw_schema_version,
         "bijux.container.image_inventory_scan.v1"
     );
+    assert_eq!(
+        publication.publication.raw_sha256,
+        bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec_pretty(&evidence.scan)?)
+    );
+    bijux_dna_environment::evidence::validate_image_inventory_evidence(
+        &evidence.scan,
+        &publication,
+    )?;
     Ok(())
 }
 
@@ -119,6 +142,34 @@ fn preserves_one_admitted_image_as_historical_after_recipe_change() -> Result<()
     let tool = publication.tools.first().context("publication omits example")?;
     assert_eq!(tool.state, ContainerImageState::Historical);
     assert!(!tool.candidates[0].current_recipe);
+    Ok(())
+}
+
+#[test]
+fn retains_repository_run_dependency_beside_new_current_image() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let historical_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fixture.reference_image_from_run(&historical_digest)?;
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n\n%files\n  containers/tools/example/example /usr/local/bin/example\n\n%post\n  true\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "change example recipe"])?;
+    let current_digest = fixture.add_admitted_image(b"image from the current recipe")?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(current_digest.as_str()));
+    assert_eq!(tool.candidates.len(), 2);
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == historical_digest
+            && matches!(
+                candidate.disposition,
+                bijux_dna_environment::evidence::ImageCandidateDisposition::HistoricalRunDependency
+            )
+    }));
     Ok(())
 }
 

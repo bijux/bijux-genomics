@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::evidence::{BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence};
@@ -18,25 +19,28 @@ pub struct ImageInventoryDerivationRequest {
     pub run_evidence_root: PathBuf,
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub(super) struct RawInventoryIdentity {
-    pub schema_version: &'static str,
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ImageInventoryScan {
+    pub schema_version: String,
     pub repository_commit: String,
     pub catalog_sha256: String,
-    pub images: Vec<RawImageIdentity>,
-    pub build_evidence: Vec<RawFileIdentity>,
+    pub images: Vec<ImageInventoryScannedImage>,
+    pub build_evidence: Vec<ImageInventorySourceFile>,
     pub run_references: BTreeMap<String, Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub(super) struct RawImageIdentity {
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ImageInventoryScannedImage {
     pub path: String,
     pub sha256: String,
     pub size_bytes: u64,
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub(super) struct RawFileIdentity {
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ImageInventorySourceFile {
     pub path: String,
     pub sha256: String,
 }
@@ -81,7 +85,7 @@ pub(super) struct IndexedBuildEvidence {
 
 pub(super) struct LoadedBuildEvidence {
     pub by_digest: BTreeMap<String, Vec<IndexedBuildEvidence>>,
-    pub identities: Vec<RawFileIdentity>,
+    pub identities: Vec<ImageInventorySourceFile>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -97,7 +101,7 @@ struct RunImageIdentity {
 
 pub(super) fn scan_images(
     request: &ImageInventoryDerivationRequest,
-) -> Result<Vec<(PathBuf, RawImageIdentity)>> {
+) -> Result<Vec<(PathBuf, ImageInventoryScannedImage)>> {
     let mut images = Vec::new();
     for path in regular_files_with_suffix(&request.image_root, ".sif")? {
         let metadata = fs::metadata(&path)
@@ -106,8 +110,8 @@ pub(super) fn scan_images(
             .with_context(|| format!("hash container image {}", path.display()))?;
         images.push((
             path.clone(),
-            RawImageIdentity {
-                path: portable_study_path(&path, &request.study_root)?,
+            ImageInventoryScannedImage {
+                path: portable_evidence_path(&path, request)?,
                 sha256,
                 size_bytes: metadata.len(),
             },
@@ -156,8 +160,8 @@ pub(super) fn load_build_evidence(
             },
         };
         by_digest.entry(document.image.sha256).or_default().push(indexed);
-        identities.push(RawFileIdentity {
-            path: portable_study_path(&path, &request.study_root)?,
+        identities.push(ImageInventorySourceFile {
+            path: portable_evidence_path(&path, request)?,
             sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
         });
     }
@@ -194,7 +198,7 @@ pub(super) fn load_run_references(
         references
             .entry(lock.image.sha256)
             .or_default()
-            .push(portable_study_path(&lock_path, &request.study_root)?);
+            .push(portable_evidence_path(&lock_path, request)?);
     }
     for paths in references.values_mut() {
         paths.sort();
@@ -203,15 +207,18 @@ pub(super) fn load_run_references(
     Ok(references)
 }
 
-pub(super) fn portable_study_path(path: &Path, study_root: &Path) -> Result<String> {
-    let relative = path.strip_prefix(study_root).with_context(|| {
-        format!(
-            "execution evidence path {} is outside study root {}",
-            path.display(),
-            study_root.display()
-        )
-    })?;
-    Ok(format!("study://{}", relative.to_string_lossy()))
+pub(super) fn portable_evidence_path(
+    path: &Path,
+    request: &ImageInventoryDerivationRequest,
+) -> Result<String> {
+    for (scheme, root) in
+        [("study", request.study_root.as_path()), ("repository", request.repository_root.as_path())]
+    {
+        if let Ok(relative) = path.strip_prefix(root) {
+            return Ok(format!("{scheme}://{}", relative.to_string_lossy()));
+        }
+    }
+    bail!("evidence path {} is outside governed study and repository roots", path.display())
 }
 
 fn regular_files_with_suffix(root: &Path, suffix: &str) -> Result<Vec<PathBuf>> {

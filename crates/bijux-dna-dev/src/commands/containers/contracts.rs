@@ -1,5 +1,5 @@
 use super::{
-    failure_lines, out_path_arg, read_utf8, sha256_hex, success_line, write_utf8,
+    failure_lines, out_path_arg, path_from_arg, read_utf8, sha256_hex, success_line, write_utf8,
     ContainerCommandOutcome, Result, Serialize, Workspace,
 };
 use bijux_dna_environment::evidence::ContainerCatalog;
@@ -186,6 +186,44 @@ pub(super) fn generate_evidence_qualification(
     success_line(format!(
         "generated typed qualification for {} container tools",
         report.summary.tool_count
+    ))
+}
+
+pub(super) fn generate_image_inventory(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <study-root> <scan-output> <publication-output>";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let [study_root, scan_output, publication_output] = args else {
+        anyhow::bail!(usage);
+    };
+    let study_root = path_from_arg(workspace, study_root);
+    let scan_output = path_from_arg(workspace, scan_output);
+    let publication_output = path_from_arg(workspace, publication_output);
+    if scan_output == publication_output {
+        anyhow::bail!("image-inventory scan and publication outputs must be distinct");
+    }
+    if scan_output.try_exists()? || publication_output.try_exists()? {
+        anyhow::bail!("refusing to replace existing image-inventory evidence output");
+    }
+    let request = bijux_dna_environment::evidence::ImageInventoryDerivationRequest {
+        repository_root: workspace.root.clone(),
+        image_root: study_root.join("containers/apptainer"),
+        build_evidence_root: study_root.join("containers/evidence"),
+        run_evidence_root: workspace.path("containers/runs"),
+        study_root,
+    };
+    let evidence = bijux_dna_environment::evidence::derive_image_inventory_evidence(&request)?;
+    bijux_dna_infra::atomic_create_json(&scan_output, &evidence.scan)?;
+    bijux_dna_infra::atomic_create_json(&publication_output, &evidence.publication)?;
+    success_line(format!(
+        "generated immutable image inventory for {} tools at {} and {}",
+        evidence.publication.tools.len(),
+        scan_output.display(),
+        publication_output.display()
     ))
 }
 

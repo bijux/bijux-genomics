@@ -13,8 +13,15 @@ pub use chain::{
     load_container_evidence_chain, validate_container_evidence_chain,
     validate_container_recipe_evidence_chain, ContainerEvidenceChain,
 };
-pub use inventory::{derive_image_inventory_publication, ImageInventoryDerivationRequest};
-pub use load::{load_image_inventory_publication, load_runtime_verification_publication};
+pub use inventory::{
+    derive_image_inventory_evidence, derive_image_inventory_publication, DerivedImageInventory,
+    ImageInventoryDerivationRequest, ImageInventoryScan, ImageInventoryScannedImage,
+    ImageInventorySourceFile,
+};
+pub use load::{
+    load_image_inventory_publication, load_image_inventory_scan,
+    load_runtime_verification_publication,
+};
 pub use model::{
     BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerImageCandidate,
     ContainerImageInventoryPublication, ContainerImageInventoryTool, ContainerImageState,
@@ -24,8 +31,9 @@ pub use model::{
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
 };
 pub use schema::{
-    image_inventory_publication_schema, runtime_verification_publication_schema,
-    write_image_inventory_publication_schema, write_runtime_verification_publication_schema,
+    image_inventory_publication_schema, image_inventory_scan_schema,
+    runtime_verification_publication_schema, write_image_inventory_publication_schema,
+    write_image_inventory_scan_schema, write_runtime_verification_publication_schema,
 };
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
@@ -33,5 +41,6 @@ pub use tool_contract::{
     ApptainerRecipeIdentity, ContainerCatalog, ContainerCatalogTool, ContainerCatalogValidation,
 };
 pub use validation::{
-    validate_image_inventory_publication, validate_runtime_verification_publication,
+    validate_image_inventory_evidence, validate_image_inventory_publication,
+    validate_image_inventory_scan, validate_runtime_verification_publication,
 };

@@ -1,13 +1,87 @@
 use std::collections::BTreeSet;
+use std::path::{Component, Path};
 
 use anyhow::{bail, Result};
 
+use super::inventory::{ImageInventoryScan, RAW_INVENTORY_SCHEMA_V1};
 use super::model::{
     ContainerImageInventoryPublication, ContainerImageState, ContainerSupportDisposition,
     ImageCandidateDisposition, RuntimeVerificationPublication,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
 };
+
+/// Validate complete scan identities before publication or replay.
+///
+/// # Errors
+/// Returns an error when schema, source, image, path, or run-reference identity is malformed.
+pub fn validate_image_inventory_scan(scan: &ImageInventoryScan) -> Result<()> {
+    if scan.schema_version != RAW_INVENTORY_SCHEMA_V1 {
+        bail!("unsupported image-inventory scan schema: {}", scan.schema_version);
+    }
+    validate_git_commit(&scan.repository_commit, "inventory scan repository")?;
+    validate_sha256(&scan.catalog_sha256, "inventory scan catalog")?;
+    if scan.images.is_empty() || scan.build_evidence.is_empty() {
+        bail!("image-inventory scan requires images and build-evidence sources");
+    }
+    let mut image_paths = BTreeSet::new();
+    let mut image_digests = BTreeSet::new();
+    for image in &scan.images {
+        validate_portable_path(&image.path, "inventory scan image")?;
+        validate_sha256(&image.sha256, "inventory scan image")?;
+        if image.size_bytes == 0
+            || !image_paths.insert(image.path.as_str())
+            || !image_digests.insert(image.sha256.as_str())
+        {
+            bail!("image-inventory scan contains empty or duplicate image identity");
+        }
+    }
+    let mut evidence_paths = BTreeSet::new();
+    for evidence in &scan.build_evidence {
+        validate_portable_path(&evidence.path, "inventory build evidence")?;
+        validate_sha256(&evidence.sha256, "inventory build evidence")?;
+        if !evidence_paths.insert(evidence.path.as_str()) {
+            bail!("image-inventory scan duplicates a build-evidence source");
+        }
+    }
+    for (digest, paths) in &scan.run_references {
+        validate_sha256(digest, "inventory run image")?;
+        if paths.is_empty() {
+            bail!("image-inventory scan has an empty run-reference set");
+        }
+        let mut unique = BTreeSet::new();
+        for path in paths {
+            validate_portable_path(path, "inventory run evidence")?;
+            if !unique.insert(path.as_str()) {
+                bail!("image-inventory scan duplicates a run-evidence reference");
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Validate exact identity closure between a complete scan and its admitted publication.
+///
+/// # Errors
+/// Returns an error when either document is invalid or their schema, commit, catalog, or serialized
+/// scan identities differ.
+pub fn validate_image_inventory_evidence(
+    scan: &ImageInventoryScan,
+    publication: &ContainerImageInventoryPublication,
+) -> Result<()> {
+    validate_image_inventory_scan(scan)?;
+    validate_image_inventory_publication(publication)?;
+    let scan_bytes =
+        serde_json::to_vec_pretty(scan).map_err(|error| anyhow::anyhow!(error.to_string()))?;
+    if publication.publication.raw_schema_version != scan.schema_version
+        || publication.publication.raw_sha256 != bijux_dna_infra::hash_bytes_sha256(&scan_bytes)
+        || publication.repository_commit != scan.repository_commit
+        || publication.catalog_sha256 != scan.catalog_sha256
+    {
+        bail!("image-inventory publication does not identify the exact admitted scan");
+    }
+    Ok(())
+}
 
 /// Validate immutable identities and selected-image closure in an inventory publication.
 ///
@@ -153,6 +227,22 @@ fn validate_git_commit(value: &str, label: &str) -> Result<()> {
         || value.bytes().all(|byte| byte == b'0')
     {
         bail!("{label} identity is not a full Git object: {value}");
+    }
+    Ok(())
+}
+
+fn validate_portable_path(value: &str, label: &str) -> Result<()> {
+    let relative = value.strip_prefix("study://").or_else(|| value.strip_prefix("repository://"));
+    let Some(relative) = relative else {
+        bail!("{label} path is not governed and portable: {value}");
+    };
+    if relative.is_empty()
+        || Path::new(relative).is_absolute()
+        || Path::new(relative).components().any(|component| {
+            matches!(component, Component::CurDir | Component::ParentDir | Component::RootDir)
+        })
+    {
+        bail!("{label} path escapes its governed root: {value}");
     }
     Ok(())
 }

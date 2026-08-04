@@ -11,6 +11,9 @@ This crate owns developer automation contracts, not production pipeline contract
 - Every executable command id must be registered under `src/catalog`.
 - Command execution must route through `src/application` and `src/commands`; `cli/` remains parsing and reporting only.
 - Command ids must be deterministic, unique within their command group, and stable unless a migration is documented.
+- `containers run generate-image-inventory -- <study-root> <scan-output> <publication-output>`
+  delegates all image admission and selection to `bijux-dna-environment` and atomically refuses to
+  replace either evidence document.
 
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.

@@ -292,6 +292,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateEvidenceQualification,
         ),
         native(
+            "generate-image-inventory",
+            "Derive an immutable image inventory from governed study evidence.",
+            NativeContainerCommandKey::GenerateImageInventory,
+        ),
+        native(
             "check-evidence-qualification",
             "Validate that container qualification is reproducibly derived from current evidence.",
             NativeContainerCommandKey::CheckEvidenceQualification,

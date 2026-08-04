@@ -12,12 +12,18 @@ use crate::evidence::{
 };
 
 use super::source::{
-    load_build_evidence, load_run_references, portable_study_path, referenced_digests, scan_images,
-    ImageInventoryDerivationRequest, IndexedBuildEvidence, RawImageIdentity, RawInventoryIdentity,
-    RAW_INVENTORY_SCHEMA_V1,
+    load_build_evidence, load_run_references, portable_evidence_path, referenced_digests,
+    scan_images, ImageInventoryDerivationRequest, ImageInventoryScan, ImageInventoryScannedImage,
+    IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V1,
 };
 
 type CandidateWithReference = (ContainerImageCandidate, bool);
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DerivedImageInventory {
+    pub scan: ImageInventoryScan,
+    pub publication: ContainerImageInventoryPublication,
+}
 
 /// Derive a portable inventory publication from immutable images, build evidence, and run locks.
 ///
@@ -27,6 +33,16 @@ type CandidateWithReference = (ContainerImageCandidate, bool);
 pub fn derive_image_inventory_publication(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<ContainerImageInventoryPublication> {
+    Ok(derive_image_inventory_evidence(request)?.publication)
+}
+
+/// Derive both the complete raw scan and its portable admitted publication.
+///
+/// # Errors
+/// Returns an error under the same fail-closed conditions as inventory publication derivation.
+pub fn derive_image_inventory_evidence(
+    request: &ImageInventoryDerivationRequest,
+) -> Result<DerivedImageInventory> {
     let repository_commit = repository_head_commit(&request.repository_root)?;
     let catalog_path = request.repository_root.join("containers/contracts/catalog.toml");
     let catalog_bytes = fs::read(&catalog_path)
@@ -59,15 +75,17 @@ pub fn derive_image_inventory_publication(
         })
         .collect::<Result<Vec<_>>>()?;
 
-    let raw_identity = RawInventoryIdentity {
-        schema_version: RAW_INVENTORY_SCHEMA_V1,
+    let scan = ImageInventoryScan {
+        schema_version: RAW_INVENTORY_SCHEMA_V1.to_string(),
         repository_commit: repository_commit.clone(),
         catalog_sha256: catalog_sha256.clone(),
         images: images.iter().map(|(_, identity)| identity.clone()).collect(),
         build_evidence: build_evidence.identities,
         run_references,
     };
-    let raw_bytes = serde_json::to_vec(&raw_identity).context("serialize raw image inventory")?;
+    let raw_bytes =
+        serde_json::to_vec_pretty(&scan).context("serialize raw image inventory scan")?;
+    crate::evidence::validate_image_inventory_scan(&scan)?;
     let publication = ContainerImageInventoryPublication {
         schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1.to_string(),
         catalog_sha256,
@@ -78,15 +96,15 @@ pub fn derive_image_inventory_publication(
         },
         tools,
     };
-    crate::evidence::validate_image_inventory_publication(&publication)?;
-    Ok(publication)
+    crate::evidence::validate_image_inventory_evidence(&scan, &publication)?;
+    Ok(DerivedImageInventory { scan, publication })
 }
 
 fn derive_tool(
     request: &ImageInventoryDerivationRequest,
     repository_commit: &str,
     tool: &crate::evidence::ContainerCatalogTool,
-    images: &[(std::path::PathBuf, RawImageIdentity)],
+    images: &[(std::path::PathBuf, ImageInventoryScannedImage)],
     evidence_by_digest: &BTreeMap<String, Vec<IndexedBuildEvidence>>,
     run_references: &BTreeMap<String, Vec<String>>,
 ) -> Result<ContainerImageInventoryTool> {
@@ -128,7 +146,7 @@ fn derive_candidates(
     request: &ImageInventoryDerivationRequest,
     tool: &crate::evidence::ContainerCatalogTool,
     recipe: &crate::evidence::ApptainerRecipeIdentity,
-    images: &[(std::path::PathBuf, RawImageIdentity)],
+    images: &[(std::path::PathBuf, ImageInventoryScannedImage)],
     evidence_by_digest: &BTreeMap<String, Vec<IndexedBuildEvidence>>,
     run_references: &BTreeMap<String, Vec<String>>,
 ) -> Result<Vec<CandidateWithReference>> {
@@ -166,7 +184,7 @@ fn derive_candidates(
                 admitted,
                 current_recipe,
                 disposition: ImageCandidateDisposition::HistoricalRunDependency,
-                path: portable_study_path(image_path, &request.study_root)?,
+                path: portable_evidence_path(image_path, request)?,
                 sha256: identity.sha256.clone(),
                 build_evidence: matching.into_iter().map(|item| item.evidence.clone()).collect(),
             },
@@ -242,7 +260,7 @@ fn evidence_matches_image(
     evidence: &IndexedBuildEvidence,
     tool: &crate::evidence::ContainerCatalogTool,
     filename: &str,
-    image: &RawImageIdentity,
+    image: &ImageInventoryScannedImage,
 ) -> bool {
     evidence.tool == tool.id
         && evidence.version == tool.version

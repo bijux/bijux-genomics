@@ -2,7 +2,13 @@ use schemars::schema_for;
 use serde_json::Value;
 use std::path::Path;
 
+use super::inventory::ImageInventoryScan;
 use super::model::{ContainerImageInventoryPublication, RuntimeVerificationPublication};
+
+#[must_use]
+pub fn image_inventory_scan_schema() -> Value {
+    serde_json::to_value(schema_for!(ImageInventoryScan)).unwrap_or_else(|_| serde_json::json!({}))
+}
 
 #[must_use]
 pub fn image_inventory_publication_schema() -> Value {
@@ -22,6 +28,15 @@ pub fn runtime_verification_publication_schema() -> Value {
 /// Returns an error when the destination cannot be written.
 pub fn write_image_inventory_publication_schema(path: &Path) -> anyhow::Result<()> {
     bijux_dna_infra::atomic_write_json(path, &image_inventory_publication_schema())?;
+    Ok(())
+}
+
+/// Write the complete image-inventory scan schema atomically.
+///
+/// # Errors
+/// Returns an error when the destination cannot be written.
+pub fn write_image_inventory_scan_schema(path: &Path) -> anyhow::Result<()> {
+    bijux_dna_infra::atomic_write_json(path, &image_inventory_scan_schema())?;
     Ok(())
 }
 

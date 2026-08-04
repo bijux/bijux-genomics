@@ -16,6 +16,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
 - `ImageInventoryDerivationRequest`: governed repository, study, image, build-evidence, and run-lock
   roots used to derive a portable publication without delegating selection to contract scripts.
+- `ImageInventoryScan`: complete typed identities for scanned SIFs, build-evidence sources, and
+  repository or study run references; the publication records the exact serialized scan digest.
 - `RuntimeVerificationPublication`: runtime evidence tied to catalog, inventory, repository, and
   image identities.
 - `ContainerToolContract`: the strict identity installed exactly once at
