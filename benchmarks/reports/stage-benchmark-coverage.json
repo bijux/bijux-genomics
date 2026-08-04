@@ -412,7 +412,7 @@
     {
       "campaign_run_id": "run-2042",
       "definition_status": "comparative",
-      "execution_status": "not_admitted",
+      "execution_status": "admitted",
       "retained_tools": [
         "seqfu",
         "seqkit"
@@ -722,7 +722,7 @@
     }
   ],
   "summary": {
-    "admitted_stage_count": 5,
+    "admitted_stage_count": 6,
     "comparative_stage_count": 2,
     "defined_stage_count": 6,
     "missing_stage_count": 65,

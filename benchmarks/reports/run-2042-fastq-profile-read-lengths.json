@@ -1,0 +1,408 @@
+{
+  "accuracy_claim": "exact_per_record_length_concordance_with_independent_fastq_decode",
+  "benchmark_profile_id": "fastq-observational-qc",
+  "comparability": {
+    "input_lock_sha256": "491ffd8e8df3857616d1d401d1a4ab729a58d5a9e4c18a0951f308d1bfb966ad",
+    "parameter_lock_sha256": "31cd719ef9b42cab2eb2fb36183ccc1cc18bc3d0ca9617e8465d29dd4132dd3d",
+    "repository_commit": "7c604e7c596ba446911de3a167840e97c8acbffc",
+    "stage_interface": {
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1",
+        "bijux.fastq.artifact.paired_end.v1"
+      ],
+      "downstream_probe": {
+        "artifact": "repetitions/repetition-1.report-qc.json",
+        "input_contract": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+        "source": "benchmarks/execution/fastq_read_lengths.awk",
+        "stage_id": "benchmark.fastq.profile_read_lengths.compare"
+      },
+      "normalized_result_contract": "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json",
+      "output_contract": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+    }
+  },
+  "comparison_scope": "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end libraries",
+  "cross_tool_comparison": {
+    "metrics": [
+      {
+        "absolute_range": 0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 30,
+        "metric": "file_count",
+        "minimum": 30,
+        "observations": {
+          "seqfu": 30,
+          "seqkit": 30
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 75175997,
+        "metric": "read_count",
+        "minimum": 75175997,
+        "observations": {
+          "seqfu": 75175997,
+          "seqkit": 75175997
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 15,
+        "metric": "minimum_read_length",
+        "minimum": 15,
+        "observations": {
+          "seqfu": 15,
+          "seqkit": 15
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0.0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 60.9798697581623,
+        "metric": "mean_read_length",
+        "minimum": 60.9798697581623,
+        "observations": {
+          "seqfu": 60.9798697581623,
+          "seqkit": 60.9798697581623
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0.0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 36.0,
+        "metric": "median_read_length",
+        "minimum": 36.0,
+        "observations": {
+          "seqfu": 36.0,
+          "seqkit": 36.0
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 301,
+        "metric": "maximum_read_length",
+        "minimum": 301,
+        "observations": {
+          "seqfu": 301,
+          "seqkit": 301
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      },
+      {
+        "absolute_range": 0,
+        "absolute_tolerance": 0.0,
+        "allowed_range": 0.0,
+        "maximum": 287,
+        "metric": "distinct_read_lengths",
+        "minimum": 287,
+        "observations": {
+          "seqfu": 287,
+          "seqkit": 287
+        },
+        "relative_tolerance": 0.0,
+        "within_tolerance": true
+      }
+    ],
+    "status": "within_tolerance"
+  },
+  "design": {
+    "cache_policy": "warm",
+    "container_only": true,
+    "corpus_catalog_ids": [
+      "human-short-read-diversity"
+    ],
+    "corpus_ids": [
+      "human-short-read-diversity"
+    ],
+    "database_catalog_ids": [],
+    "input_size_keys": [
+      "fastq_input_bytes"
+    ],
+    "measured_repetitions": 3,
+    "reference_catalog_ids": [],
+    "result_artifact": "read-lengths.json",
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "threads_by_tool": {
+      "seqfu": 1,
+      "seqkit": 4
+    },
+    "tool_closure": [
+      "seqfu",
+      "seqkit"
+    ],
+    "warmup_repetitions": 1
+  },
+  "evidence_tier": "comparative",
+  "interpretation": "Exact row agreement with an independent FASTQ decoder establishes record coverage and read-length correctness for this cohort. It does not assess read transformation, biological representativeness, or every valid FASTQ encoding.",
+  "limitations": [
+    "The cohort is curated for workload diversity and is not population-representative.",
+    "The independent truth surface validates lengths and record closure but not sequence identity beyond the preserved record identifiers.",
+    "Warm-cache repetitions characterize stable parsing after one warmup and do not measure cold shared-filesystem startup.",
+    "SeqFu tabulate is single-stream; its one-CPU allocation is intentional and recorded rather than falsely projecting the shared thread override into unsupported backend flags."
+  ],
+  "run_id": "run-2042",
+  "schema_version": "bijux.benchmark.stage_report.v1",
+  "scientific_question": "Do both exact read-length backends recover every independently decoded per-record length across the complete real human short-read diversity cohort, and what resources does each implementation consume?",
+  "stage_id": "fastq.profile_read_lengths",
+  "tools": [
+    {
+      "determinism": {
+        "artifact": "read-lengths.json",
+        "digest_basis": "canonical bundle content with repetition-local histogram paths normalized",
+        "identical_across_repetitions": true,
+        "sha256": "3bd8e09540754442bd0ac0cb8f8c79c54e66da519e2cc1c9fbd85d20ca24ad8c"
+      },
+      "image": {
+        "name": "seqfu-1.26.0-linux-amd64-ba6d5e5acd51.sif",
+        "sha256": "ba6d5e5acd51137d94fee735ae5a5ffcde3f1841d675ef5bc9c131bb673b47c4",
+        "size_bytes": 37445632
+      },
+      "input_bytes": {
+        "fastq": 3638085565,
+        "total": 3638085565
+      },
+      "performance": {
+        "cpu_seconds": {
+          "maximum": 595.111682,
+          "mean": 593.035101,
+          "minimum": 589.816183,
+          "sample_standard_deviation": 2.826531
+        },
+        "cpu_utilization_percent": {
+          "maximum": 99.307913,
+          "mean": 99.283717,
+          "minimum": 99.24719,
+          "sample_standard_deviation": 0.032185
+        },
+        "filesystem_input_operations": {
+          "maximum": 0.0,
+          "mean": 0.0,
+          "minimum": 0.0,
+          "sample_standard_deviation": 0.0
+        },
+        "filesystem_output_operations": {
+          "maximum": 0.0,
+          "mean": 0.0,
+          "minimum": 0.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "maximum": 1592964957.0,
+          "mean": 1592964957.0,
+          "minimum": 1592964957.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "maximum": 47348.0,
+          "mean": 45676.0,
+          "minimum": 44604.0,
+          "sample_standard_deviation": 1467.100542
+        },
+        "throughput_input_bytes_per_second": {
+          "maximum": 6124747.545431,
+          "mean": 6090840.246509,
+          "minimum": 6070972.810479,
+          "sample_standard_deviation": 29508.792627
+        },
+        "wall_seconds": {
+          "maximum": 599.259077,
+          "mean": 597.313703,
+          "minimum": 593.997636,
+          "sample_standard_deviation": 2.886137
+        }
+      },
+      "repository_commit": "7c604e7c596ba446911de3a167840e97c8acbffc",
+      "scientific_observations": {
+        "distinct_read_lengths": [
+          287,
+          287,
+          287
+        ],
+        "file_count": [
+          30,
+          30,
+          30
+        ],
+        "histogram_sha256": [
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5"
+        ],
+        "maximum_read_length": [
+          301,
+          301,
+          301
+        ],
+        "mean_read_length": [
+          60.9798697581623,
+          60.9798697581623,
+          60.9798697581623
+        ],
+        "median_read_length": [
+          36.0,
+          36.0,
+          36.0
+        ],
+        "minimum_read_length": [
+          15,
+          15,
+          15
+        ],
+        "read_count": [
+          75175997,
+          75175997,
+          75175997
+        ]
+      },
+      "slurm": {
+        "allocated_cpus": "1",
+        "elapsed": "00:38:50",
+        "host": "cn091",
+        "job_id": "3460317"
+      },
+      "source_evidence_sha256": "eb7d2c84aa6166bddf42259aa06f506d4aa909e139e891352bbde0c143226a54",
+      "tool": "seqfu",
+      "verdict": "passed"
+    },
+    {
+      "determinism": {
+        "artifact": "read-lengths.json",
+        "digest_basis": "canonical bundle content with repetition-local histogram paths normalized",
+        "identical_across_repetitions": true,
+        "sha256": "57d23e6d37afd82d77792258b7c4403a849385ae8b1cda1fae4abb49e6f6ab91"
+      },
+      "image": {
+        "name": "seqkit-2.8.2-linux-amd64-4646ad26f815.sif",
+        "sha256": "4646ad26f8152674cda466d229ba0a5a495b9176ee4f3fc77f4d50cdf7e9d3d5",
+        "size_bytes": 38809600
+      },
+      "input_bytes": {
+        "fastq": 3638085565,
+        "total": 3638085565
+      },
+      "performance": {
+        "cpu_seconds": {
+          "maximum": 151.58389,
+          "mean": 151.397171,
+          "minimum": 151.245054,
+          "sample_standard_deviation": 0.172048
+        },
+        "cpu_utilization_percent": {
+          "maximum": 127.826651,
+          "mean": 127.616348,
+          "minimum": 127.418125,
+          "sample_standard_deviation": 0.204531
+        },
+        "filesystem_input_operations": {
+          "maximum": 168.0,
+          "mean": 56.0,
+          "minimum": 0.0,
+          "sample_standard_deviation": 96.994845
+        },
+        "filesystem_output_operations": {
+          "maximum": 0.0,
+          "mean": 0.0,
+          "minimum": 0.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "maximum": 1592964958.0,
+          "mean": 1592964958.0,
+          "minimum": 1592964958.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "maximum": 58088.0,
+          "mean": 57802.666667,
+          "minimum": 57648.0,
+          "sample_standard_deviation": 247.397117
+        },
+        "throughput_input_bytes_per_second": {
+          "maximum": 30747735.6584,
+          "mean": 30666368.490339,
+          "minimum": 30580957.018671,
+          "sample_standard_deviation": 83462.841799
+        },
+        "wall_seconds": {
+          "maximum": 118.96572,
+          "mean": 118.634964,
+          "minimum": 118.320438,
+          "sample_standard_deviation": 0.322947
+        }
+      },
+      "repository_commit": "7c604e7c596ba446911de3a167840e97c8acbffc",
+      "scientific_observations": {
+        "distinct_read_lengths": [
+          287,
+          287,
+          287
+        ],
+        "file_count": [
+          30,
+          30,
+          30
+        ],
+        "histogram_sha256": [
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5"
+        ],
+        "maximum_read_length": [
+          301,
+          301,
+          301
+        ],
+        "mean_read_length": [
+          60.9798697581623,
+          60.9798697581623,
+          60.9798697581623
+        ],
+        "median_read_length": [
+          36.0,
+          36.0,
+          36.0
+        ],
+        "minimum_read_length": [
+          15,
+          15,
+          15
+        ],
+        "read_count": [
+          75175997,
+          75175997,
+          75175997
+        ]
+      },
+      "slurm": {
+        "allocated_cpus": "4",
+        "elapsed": "00:06:54",
+        "host": "cn162",
+        "job_id": "3460318"
+      },
+      "source_evidence_sha256": "4694ab9c88f03af8222fe62fccc18e2532d63d3bf3ac1825516beaac15c68fae",
+      "tool": "seqkit",
+      "verdict": "passed"
+    }
+  ],
+  "verdict": "passed"
+}
