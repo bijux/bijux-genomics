@@ -72,6 +72,12 @@
     "schema_version": {
       "const": "bijux.container.image_inventory_scan.v1",
       "type": "string"
+    },
+    "staged_images": {
+      "items": {
+        "$ref": "#/$defs/ImageInventoryScannedImage"
+      },
+      "type": "array"
     }
   },
   "required": [
@@ -79,6 +85,7 @@
     "repository_commit",
     "catalog_sha256",
     "images",
+    "staged_images",
     "build_evidence",
     "run_references"
   ],

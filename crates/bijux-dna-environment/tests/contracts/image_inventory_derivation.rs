@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::{
     apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
     derive_image_inventory_publication, repository_head_commit, ContainerImageState,
-    ImageInventoryDerivationRequest,
+    DetachedImageDisposition, ImageCandidateDisposition, ImageInventoryDerivationRequest,
 };
 use serde_json::json;
 use tempfile::TempDir;
@@ -181,6 +181,146 @@ fn rejects_mixed_build_evidence_identity_encodings() -> Result<()> {
         .err()
         .context("mixed identity encodings were admitted")?;
     assert!(format!("{error:#}").contains("exactly one complete nested or flattened identity"));
+    Ok(())
+}
+
+#[test]
+fn classifies_every_unmatched_active_image() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let bytes = b"unclassified image";
+    let digest = bijux_dna_infra::hash_bytes_sha256(bytes);
+    fs::write(
+        fixture
+            .study
+            .join("containers/apptainer")
+            .join(format!("rogue-linux-amd64-{digest:.12}.sif")),
+        bytes,
+    )?;
+
+    let evidence = derive_image_inventory_evidence(&fixture.request)?;
+    assert_eq!(evidence.publication.unknown_images.len(), 1);
+    assert_eq!(evidence.publication.unknown_images[0].sha256, digest);
+    assert_eq!(
+        evidence.publication.unknown_images[0].disposition,
+        DetachedImageDisposition::Unclassified
+    );
+    assert_eq!(evidence.publication.summary.unknown_image_count, 1);
+    bijux_dna_environment::evidence::validate_image_inventory_evidence(
+        &evidence.scan,
+        &evidence.publication,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn rejects_publication_that_omits_a_scanned_image() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let bytes = b"unclassified image";
+    let digest = bijux_dna_infra::hash_bytes_sha256(bytes);
+    fs::write(
+        fixture
+            .study
+            .join("containers/apptainer")
+            .join(format!("rogue-linux-amd64-{digest:.12}.sif")),
+        bytes,
+    )?;
+    let mut evidence = derive_image_inventory_evidence(&fixture.request)?;
+    evidence.publication.unknown_images.clear();
+    evidence.publication.summary.unknown_image_count = 0;
+
+    let error = bijux_dna_environment::evidence::validate_image_inventory_evidence(
+        &evidence.scan,
+        &evidence.publication,
+    )
+    .err()
+    .context("publication omitted a scanned image")?;
+    assert!(error.to_string().contains("classify every scanned active image"));
+    Ok(())
+}
+
+#[test]
+fn retains_referenced_historical_version_outside_active_catalog_prefix() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let bytes = b"historical version image";
+    let digest = bijux_dna_infra::hash_bytes_sha256(bytes);
+    fs::write(
+        fixture
+            .study
+            .join("containers/apptainer")
+            .join(format!("example-0.9.0-linux-amd64-{digest:.12}.sif")),
+        bytes,
+    )?;
+    fixture.reference_image_from_run(&digest)?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    assert_eq!(publication.historical_images.len(), 1);
+    let historical = &publication.historical_images[0];
+    assert_eq!(historical.catalog_tool.as_deref(), Some("example"));
+    assert_eq!(historical.real_run_references, 1);
+    assert_eq!(historical.run_references.len(), 1);
+    assert_eq!(publication.summary.historical_dependency_count, 1);
+    Ok(())
+}
+
+#[test]
+fn rejects_publication_that_omits_a_run_reference_identity() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let bytes = b"historical version image";
+    let digest = bijux_dna_infra::hash_bytes_sha256(bytes);
+    fs::write(
+        fixture
+            .study
+            .join("containers/apptainer")
+            .join(format!("example-0.9.0-linux-amd64-{digest:.12}.sif")),
+        bytes,
+    )?;
+    fixture.reference_image_from_run(&digest)?;
+    let mut evidence = derive_image_inventory_evidence(&fixture.request)?;
+    evidence.publication.historical_images[0].run_references.clear();
+
+    let error = bijux_dna_environment::evidence::validate_image_inventory_evidence(
+        &evidence.scan,
+        &evidence.publication,
+    )
+    .err()
+    .context("publication omitted a run-reference identity")?;
+    assert!(error.to_string().contains("exact run-reference closure"));
+    Ok(())
+}
+
+#[test]
+fn exposes_unreferenced_obsolete_catalog_candidate() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let obsolete_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "remove repository build context"])?;
+    fixture.add_admitted_image(b"replacement image")?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == obsolete_digest
+            && candidate.disposition == ImageCandidateDisposition::UnreferencedObsolete
+    }));
+    assert_eq!(publication.summary.unreferenced_obsolete_count, 1);
+    Ok(())
+}
+
+#[test]
+fn records_interrupted_staged_images_separately() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let staged_root = fixture.study.join("containers/apptainer/.building");
+    fs::create_dir_all(&staged_root)?;
+    fs::write(staged_root.join("example-staged.sif"), b"staged image")?;
+
+    let evidence = derive_image_inventory_evidence(&fixture.request)?;
+    assert_eq!(evidence.scan.staged_images.len(), 1);
+    assert_eq!(evidence.publication.staged_images.len(), 1);
+    assert_eq!(evidence.publication.summary.staged_image_count, 1);
     Ok(())
 }
 

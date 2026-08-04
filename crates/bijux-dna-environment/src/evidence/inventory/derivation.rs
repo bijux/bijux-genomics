@@ -1,20 +1,21 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
 use anyhow::{bail, Context, Result};
 
 use crate::evidence::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
-    load_container_catalog, repository_head_commit, BuildEvidenceStatus, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventoryTool, ContainerImageState,
-    ContainerSupportDisposition, ImageCandidateDisposition, ImageInventoryPublicationIdentity,
-    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    load_container_catalog, repository_head_commit, BuildEvidenceStatus, ContainerDetachedImage,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
+    ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
+    ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
 };
 
 use super::source::{
-    load_build_evidence, load_run_references, portable_evidence_path, referenced_digests,
-    scan_images, ImageInventoryDerivationRequest, ImageInventoryScan, ImageInventoryScannedImage,
-    IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V1,
+    load_build_evidence, load_run_references, portable_evidence_path, scan_images,
+    scan_staged_images, ImageInventoryDerivationRequest, ImageInventoryScan,
+    ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V1,
 };
 
 type CandidateWithReference = (ContainerImageCandidate, bool);
@@ -57,6 +58,7 @@ pub fn derive_image_inventory_evidence(
     }
     let catalog = load_container_catalog(&request.repository_root)?;
     let images = scan_images(request)?;
+    let staged_images = scan_staged_images(request)?;
     let build_evidence = load_build_evidence(request)?;
     let run_references = load_run_references(request)?;
 
@@ -74,12 +76,25 @@ pub fn derive_image_inventory_evidence(
             )
         })
         .collect::<Result<Vec<_>>>()?;
+    let (historical_images, unknown_images) =
+        classify_detached_images(&catalog.tools, &images, &tools, &run_references)?;
+    let staged_publication = staged_images
+        .iter()
+        .map(|image| ContainerStagedImage {
+            path: image.path.clone(),
+            sha256: image.sha256.clone(),
+            size_bytes: image.size_bytes,
+        })
+        .collect::<Vec<_>>();
+    let summary =
+        inventory_summary(&tools, &historical_images, &unknown_images, &staged_publication);
 
     let scan = ImageInventoryScan {
         schema_version: RAW_INVENTORY_SCHEMA_V1.to_string(),
         repository_commit: repository_commit.clone(),
         catalog_sha256: catalog_sha256.clone(),
         images: images.iter().map(|(_, identity)| identity.clone()).collect(),
+        staged_images,
         build_evidence: build_evidence.identities,
         run_references,
     };
@@ -94,7 +109,11 @@ pub fn derive_image_inventory_evidence(
             raw_schema_version: RAW_INVENTORY_SCHEMA_V1.to_string(),
             raw_sha256: bijux_dna_infra::hash_bytes_sha256(&raw_bytes),
         },
+        summary,
         tools,
+        historical_images,
+        unknown_images,
+        staged_images: staged_publication,
     };
     crate::evidence::validate_image_inventory_evidence(&scan, &publication)?;
     Ok(DerivedImageInventory { scan, publication })
@@ -130,7 +149,7 @@ fn derive_tool(
         derive_candidates(request, tool, &recipe, images, evidence_by_digest, run_references)?;
     let (state, selected, retained) =
         select_candidates(&tool.id, &support_disposition, candidates)?;
-    verify_historical_references(&retained, run_references)?;
+    verify_historical_references(&retained)?;
     Ok(ContainerImageInventoryTool {
         tool: tool.id.clone(),
         version: tool.version.clone(),
@@ -179,6 +198,7 @@ fn derive_candidates(
                 .iter()
                 .any(|evidence| evidence_matches_recipe_content(&evidence.evidence, recipe));
         let is_referenced = run_references.contains_key(&identity.sha256);
+        let references = run_references.get(&identity.sha256).cloned().unwrap_or_default();
         candidates.push((
             ContainerImageCandidate {
                 admitted,
@@ -186,6 +206,9 @@ fn derive_candidates(
                 disposition: ImageCandidateDisposition::HistoricalRunDependency,
                 path: portable_evidence_path(image_path, request)?,
                 sha256: identity.sha256.clone(),
+                size_bytes: identity.size_bytes,
+                real_run_references: references.len() as u64,
+                run_references: references,
                 build_evidence: matching.into_iter().map(|item| item.evidence.clone()).collect(),
             },
             is_referenced,
@@ -230,15 +253,11 @@ fn select_candidates(
     for (candidate, _) in &mut candidates {
         if Some(candidate.sha256.as_str()) == selected.as_deref() {
             candidate.disposition = ImageCandidateDisposition::Canonical;
+        } else if candidate.real_run_references == 0 {
+            candidate.disposition = ImageCandidateDisposition::UnreferencedObsolete;
         }
     }
-    let retained = candidates
-        .into_iter()
-        .filter(|(candidate, referenced)| {
-            Some(candidate.sha256.as_str()) == selected.as_deref() || *referenced
-        })
-        .map(|(candidate, _)| candidate)
-        .collect::<Vec<_>>();
+    let retained = candidates.into_iter().map(|(candidate, _)| candidate).collect::<Vec<_>>();
     let state = match selected.as_deref() {
         Some(digest)
             if retained
@@ -253,19 +272,114 @@ fn select_candidates(
     Ok((state, selected, retained))
 }
 
-fn verify_historical_references(
-    candidates: &[ContainerImageCandidate],
-    run_references: &BTreeMap<String, Vec<String>>,
-) -> Result<()> {
-    let referenced = referenced_digests(run_references);
+fn verify_historical_references(candidates: &[ContainerImageCandidate]) -> Result<()> {
     for candidate in candidates {
         if matches!(candidate.disposition, ImageCandidateDisposition::HistoricalRunDependency)
-            && !referenced.contains(candidate.sha256.as_str())
+            && candidate.run_references.is_empty()
         {
             bail!("unselected image {} has no immutable run reference", candidate.sha256);
         }
     }
     Ok(())
+}
+
+fn classify_detached_images(
+    catalog: &[crate::evidence::ContainerCatalogTool],
+    images: &[(std::path::PathBuf, ImageInventoryScannedImage)],
+    tools: &[ContainerImageInventoryTool],
+    run_references: &BTreeMap<String, Vec<String>>,
+) -> Result<(Vec<ContainerDetachedImage>, Vec<ContainerDetachedImage>)> {
+    let consumed = tools
+        .iter()
+        .flat_map(|tool| tool.candidates.iter().map(|candidate| candidate.sha256.as_str()))
+        .collect::<BTreeSet<_>>();
+    let mut catalog_ids = catalog.iter().map(|tool| tool.id.as_str()).collect::<Vec<_>>();
+    catalog_ids.sort_by_key(|tool_id| std::cmp::Reverse(tool_id.len()));
+    let mut historical = Vec::new();
+    let mut unknown = Vec::new();
+    for (path, image) in
+        images.iter().filter(|(_, image)| !consumed.contains(image.sha256.as_str()))
+    {
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .context("detached container image filename is not UTF-8")?;
+        let digest_suffix = format!("-linux-amd64-{:.12}.sif", image.sha256);
+        let catalog_tool = catalog_ids
+            .iter()
+            .find(|tool_id| {
+                name.starts_with(&format!("{tool_id}-")) && name.ends_with(&digest_suffix)
+            })
+            .map(|value| (*value).to_string());
+        let references = run_references.get(&image.sha256).cloned().unwrap_or_default();
+        let disposition = match (&catalog_tool, references.is_empty()) {
+            (Some(_), false) => DetachedImageDisposition::HistoricalRunDependency,
+            (Some(_), true) => DetachedImageDisposition::UnreferencedObsolete,
+            (None, _) => DetachedImageDisposition::Unclassified,
+        };
+        let record = ContainerDetachedImage {
+            catalog_tool,
+            disposition,
+            path: image.path.clone(),
+            sha256: image.sha256.clone(),
+            size_bytes: image.size_bytes,
+            real_run_references: references.len() as u64,
+            run_references: references,
+        };
+        if matches!(disposition, DetachedImageDisposition::HistoricalRunDependency) {
+            historical.push(record);
+        } else {
+            unknown.push(record);
+        }
+    }
+    Ok((historical, unknown))
+}
+
+fn inventory_summary(
+    tools: &[ContainerImageInventoryTool],
+    historical_images: &[ContainerDetachedImage],
+    unknown_images: &[ContainerDetachedImage],
+    staged_images: &[ContainerStagedImage],
+) -> ContainerImageInventorySummary {
+    let mut states = BTreeMap::new();
+    for tool in tools {
+        *states.entry(image_state_name(&tool.state).to_string()).or_insert(0) += 1;
+    }
+    let historical_candidates = tools
+        .iter()
+        .flat_map(|tool| &tool.candidates)
+        .filter(|candidate| {
+            matches!(candidate.disposition, ImageCandidateDisposition::HistoricalRunDependency)
+        })
+        .count();
+    let obsolete_candidates = tools
+        .iter()
+        .flat_map(|tool| &tool.candidates)
+        .filter(|candidate| {
+            matches!(candidate.disposition, ImageCandidateDisposition::UnreferencedObsolete)
+        })
+        .count();
+    let obsolete_detached = unknown_images
+        .iter()
+        .filter(|image| matches!(image.disposition, DetachedImageDisposition::UnreferencedObsolete))
+        .count();
+    ContainerImageInventorySummary {
+        tool_count: tools.len() as u64,
+        states,
+        historical_dependency_count: (historical_candidates + historical_images.len()) as u64,
+        unknown_image_count: unknown_images.len() as u64,
+        staged_image_count: staged_images.len() as u64,
+        unreferenced_obsolete_count: (obsolete_candidates + obsolete_detached) as u64,
+    }
+}
+
+fn image_state_name(state: &ContainerImageState) -> &'static str {
+    match state {
+        ContainerImageState::Current => "current",
+        ContainerImageState::Historical => "historical",
+        ContainerImageState::Missing => "missing",
+        ContainerImageState::Unsupported => "unsupported",
+    }
 }
 
 fn evidence_matches_image(

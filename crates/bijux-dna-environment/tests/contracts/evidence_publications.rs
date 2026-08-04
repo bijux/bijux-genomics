@@ -66,6 +66,7 @@ fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Resul
 
     let mut incomplete_inventory = inventory.clone();
     incomplete_inventory.tools.pop();
+    refresh_inventory_summary(&mut incomplete_inventory);
     assert!(bijux_dna_environment::evidence::validate_container_evidence_chain(
         &inventory.catalog_sha256,
         &catalog,
@@ -94,6 +95,7 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
     )?;
     inventory.repository_commit.clone_from(&commit);
     inventory.tools.retain(|inventory_tool| inventory_tool.tool == "ibdhap");
+    refresh_inventory_summary(&mut inventory);
     let inventory_tool = inventory.tools.first_mut().context("inventory omits ibdhap")?;
     let selected_sha256 = inventory_tool
         .selected_image_sha256
@@ -164,13 +166,14 @@ fn publication_admission_rejects_identity_drift() -> Result<()> {
         .selected_image_sha256
         .clone()
         .context("fixture has no selected image")?;
-    incoherent.tools[0]
+    let selected_candidate = incoherent.tools[0]
         .candidates
         .iter_mut()
         .find(|candidate| candidate.sha256 == selected)
-        .context("fixture omits selected candidate")?
-        .disposition =
+        .context("fixture omits selected candidate")?;
+    selected_candidate.disposition =
         bijux_dna_environment::evidence::ImageCandidateDisposition::HistoricalRunDependency;
+    selected_candidate.real_run_references = selected_candidate.real_run_references.max(1);
     assert!(bijux_dna_environment::evidence::validate_image_inventory_publication(&incoherent)
         .is_err_and(|error| error.to_string().contains("unique canonical candidate")));
 
@@ -186,6 +189,58 @@ fn publication_admission_rejects_identity_drift() -> Result<()> {
         .as_deref()
         .is_some_and(|message| message.contains("not a SHA-256 digest")));
     Ok(())
+}
+
+fn refresh_inventory_summary(
+    inventory: &mut bijux_dna_environment::evidence::ContainerImageInventoryPublication,
+) {
+    let mut states = std::collections::BTreeMap::new();
+    for tool in &inventory.tools {
+        let state = match tool.state {
+            bijux_dna_environment::evidence::ContainerImageState::Current => "current",
+            bijux_dna_environment::evidence::ContainerImageState::Historical => "historical",
+            bijux_dna_environment::evidence::ContainerImageState::Missing => "missing",
+            bijux_dna_environment::evidence::ContainerImageState::Unsupported => "unsupported",
+        };
+        *states.entry(state.to_string()).or_insert(0) += 1;
+    }
+    let candidate_historical = inventory
+        .tools
+        .iter()
+        .flat_map(|tool| &tool.candidates)
+        .filter(|candidate| {
+            candidate.disposition
+                == bijux_dna_environment::evidence::ImageCandidateDisposition::HistoricalRunDependency
+        })
+        .count() as u64;
+    let candidate_obsolete = inventory
+        .tools
+        .iter()
+        .flat_map(|tool| &tool.candidates)
+        .filter(|candidate| {
+            candidate.disposition
+                == bijux_dna_environment::evidence::ImageCandidateDisposition::UnreferencedObsolete
+        })
+        .count() as u64;
+    let detached_obsolete = inventory
+        .unknown_images
+        .iter()
+        .filter(|image| {
+            image.disposition
+                == bijux_dna_environment::evidence::DetachedImageDisposition::UnreferencedObsolete
+        })
+        .count() as u64;
+    inventory.summary.tool_count = inventory.tools.len() as u64;
+    inventory.summary.states = states;
+    inventory.summary.historical_dependency_count =
+        if inventory.publication.raw_schema_version == "bijux.container.image_inventory_scan.v1" {
+            candidate_historical + inventory.historical_images.len() as u64
+        } else {
+            inventory.historical_images.len() as u64
+        };
+    inventory.summary.unknown_image_count = inventory.unknown_images.len() as u64;
+    inventory.summary.staged_image_count = inventory.staged_images.len() as u64;
+    inventory.summary.unreferenced_obsolete_count = candidate_obsolete + detached_obsolete;
 }
 
 #[test]

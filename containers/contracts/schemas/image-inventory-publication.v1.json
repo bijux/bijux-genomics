@@ -51,6 +51,50 @@
       ],
       "type": "object"
     },
+    "ContainerDetachedImage": {
+      "properties": {
+        "catalog_tool": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disposition": {
+          "$ref": "#/$defs/DetachedImageDisposition"
+        },
+        "path": {
+          "type": "string"
+        },
+        "real_run_references": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "run_references": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
     "ContainerImageCandidate": {
       "properties": {
         "admitted": {
@@ -72,8 +116,26 @@
         "path": {
           "type": "string"
         },
+        "real_run_references": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "run_references": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "sha256": {
           "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         }
       },
       "required": [
@@ -81,7 +143,54 @@
         "current_recipe",
         "disposition",
         "path",
-        "sha256"
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "ContainerImageInventorySummary": {
+      "properties": {
+        "historical_dependency_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "staged_image_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "states": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "tool_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unknown_image_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unreferenced_obsolete_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tool_count",
+        "states",
+        "historical_dependency_count",
+        "unknown_image_count",
+        "staged_image_count",
+        "unreferenced_obsolete_count"
       ],
       "type": "object"
     },
@@ -134,6 +243,27 @@
       ],
       "type": "string"
     },
+    "ContainerStagedImage": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
     "ContainerSupportDisposition": {
       "enum": [
         "retained",
@@ -143,10 +273,19 @@
       ],
       "type": "string"
     },
+    "DetachedImageDisposition": {
+      "enum": [
+        "historical_run_dependency",
+        "unreferenced_obsolete",
+        "unclassified"
+      ],
+      "type": "string"
+    },
     "ImageCandidateDisposition": {
       "enum": [
         "canonical",
-        "historical_run_dependency"
+        "historical_run_dependency",
+        "unreferenced_obsolete"
       ],
       "type": "string"
     },
@@ -171,6 +310,13 @@
     "catalog_sha256": {
       "type": "string"
     },
+    "historical_images": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ContainerDetachedImage"
+      },
+      "type": "array"
+    },
     "publication": {
       "$ref": "#/$defs/ImageInventoryPublicationIdentity"
     },
@@ -181,9 +327,26 @@
       "const": "bijux.container.image_inventory_publication.v1",
       "type": "string"
     },
+    "staged_images": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ContainerStagedImage"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/ContainerImageInventorySummary"
+    },
     "tools": {
       "items": {
         "$ref": "#/$defs/ContainerImageInventoryTool"
+      },
+      "type": "array"
+    },
+    "unknown_images": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ContainerDetachedImage"
       },
       "type": "array"
     }
@@ -193,6 +356,7 @@
     "catalog_sha256",
     "repository_commit",
     "publication",
+    "summary",
     "tools"
   ],
   "title": "ContainerImageInventoryPublication",

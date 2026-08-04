@@ -23,11 +23,13 @@ pub use load::{
     load_runtime_verification_publication,
 };
 pub use model::{
-    BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventoryTool, ContainerImageState,
-    ContainerRuntimeEvidence, ContainerSupportDisposition, EvidenceSourceIdentity,
-    ImageCandidateDisposition, ImageInventoryPublicationIdentity, RuntimeEvidenceStatus,
-    RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerDetachedImage,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    ContainerImageInventoryTool, ContainerImageState, ContainerRuntimeEvidence,
+    ContainerStagedImage, ContainerSupportDisposition, DetachedImageDisposition,
+    EvidenceSourceIdentity, ImageCandidateDisposition, ImageInventoryPublicationIdentity,
+    RuntimeEvidenceStatus, RuntimeVerificationPublication,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
 };
 pub use schema::{

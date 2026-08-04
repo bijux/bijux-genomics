@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -27,6 +27,7 @@ pub struct ImageInventoryScan {
     pub repository_commit: String,
     pub catalog_sha256: String,
     pub images: Vec<ImageInventoryScannedImage>,
+    pub staged_images: Vec<ImageInventoryScannedImage>,
     pub build_evidence: Vec<ImageInventorySourceFile>,
     pub run_references: BTreeMap<String, Vec<String>>,
 }
@@ -173,6 +174,27 @@ pub(super) fn scan_images(
     Ok(images)
 }
 
+pub(super) fn scan_staged_images(
+    request: &ImageInventoryDerivationRequest,
+) -> Result<Vec<ImageInventoryScannedImage>> {
+    let root = request.image_root.join(".building");
+    if !root.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut images = Vec::new();
+    for path in regular_files_with_suffix(&root, ".sif")? {
+        let metadata = fs::metadata(&path)
+            .with_context(|| format!("inspect staged image {}", path.display()))?;
+        images.push(ImageInventoryScannedImage {
+            path: portable_evidence_path(&path, request)?,
+            sha256: bijux_dna_infra::hash_file_sha256(&path)
+                .with_context(|| format!("hash staged image {}", path.display()))?,
+            size_bytes: metadata.len(),
+        });
+    }
+    Ok(images)
+}
+
 pub(super) fn load_build_evidence(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<LoadedBuildEvidence> {
@@ -300,8 +322,4 @@ fn validate_sha256(value: &str, label: &str) -> Result<()> {
         bail!("{label} identity is not a SHA-256 digest: {value}");
     }
     Ok(())
-}
-
-pub(super) fn referenced_digests(references: &BTreeMap<String, Vec<String>>) -> BTreeSet<&str> {
-    references.keys().map(String::as_str).collect()
 }
