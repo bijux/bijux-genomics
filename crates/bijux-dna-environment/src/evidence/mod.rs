@@ -1,12 +1,16 @@
 //! Owner: bijux-dna-environment
 //! Typed admission for immutable container environment evidence.
 
+mod chain;
 mod load;
 mod model;
 mod schema;
 pub mod tool_contract;
 mod validation;
 
+pub use chain::{
+    load_container_evidence_chain, validate_container_evidence_chain, ContainerEvidenceChain,
+};
 pub use load::{load_image_inventory_publication, load_runtime_verification_publication};
 pub use model::{
     BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerImageCandidate,

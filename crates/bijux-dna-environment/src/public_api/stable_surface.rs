@@ -15,15 +15,17 @@ pub use crate::evidence::tool_contract::{
     CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
 };
 pub use crate::evidence::{
-    image_inventory_publication_schema, load_image_inventory_publication,
-    load_runtime_verification_publication, runtime_verification_publication_schema,
+    image_inventory_publication_schema, load_container_evidence_chain,
+    load_image_inventory_publication, load_runtime_verification_publication,
+    runtime_verification_publication_schema, validate_container_evidence_chain,
     validate_image_inventory_publication, validate_runtime_verification_publication,
     write_image_inventory_publication_schema, write_runtime_verification_publication_schema,
-    BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventoryTool, ContainerImageState,
-    ContainerRuntimeEvidence, ContainerSupportDisposition, EvidenceSourceIdentity,
-    ImageCandidateDisposition, ImageInventoryPublicationIdentity, RuntimeEvidenceStatus,
-    RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerEvidenceChain,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventoryTool,
+    ContainerImageState, ContainerRuntimeEvidence, ContainerSupportDisposition,
+    EvidenceSourceIdentity, ImageCandidateDisposition, ImageInventoryPublicationIdentity,
+    RuntimeEvidenceStatus, RuntimeVerificationPublication,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
 };
 pub use crate::resolve::*;

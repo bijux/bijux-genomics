@@ -41,6 +41,7 @@ fn source_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/evidence")),
         btree_set(&[
+            "chain.rs",
             "load.rs",
             "mod.rs",
             "model.rs",

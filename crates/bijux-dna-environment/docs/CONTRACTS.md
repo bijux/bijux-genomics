@@ -22,6 +22,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
   `containers/contracts/catalog.toml`; consumers must not define reduced or competing projections.
 - `ContainerCatalogValidation`: exact 89-tool/85-retained/four-unsupported roster and bidirectional
   catalog-to-Apptainer/Docker recipe closure.
+- `ContainerEvidenceChain`: admitted catalog, image-inventory, and runtime publications with exact
+  catalog, repository, raw-inventory, selected-image, and retained-tool closure.
 - `ApptainerBuildRequest` and `ApptainerBuildReport`: bounded build execution with immutable,
   monotonically numbered attempt logs.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
@@ -30,8 +32,10 @@ This crate owns the environment contracts consumed by API, runner, and environme
 ## Evidence Publications
 
 The image-inventory and runtime-verification loaders reject malformed identities, duplicate tools
-or candidates, and selected images that are not admitted candidates. Unknown descriptive fields
-remain forward-compatible; every identity and decision field consumed by qualification is typed.
+or candidates, and selected images that are not admitted candidates. The evidence-chain loader
+also rejects cross-publication identity, version, disposition, selected-image, and roster drift.
+Unknown descriptive fields remain forward-compatible; every identity and decision field consumed
+by qualification is typed.
 
 Embedded contracts reject unknown fields and identify the exact catalog, canonical recipe, source,
 repository commit, architecture, build evidence, expected binary, and version interface. The SIF

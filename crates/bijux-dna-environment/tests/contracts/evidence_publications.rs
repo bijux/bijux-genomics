@@ -38,6 +38,45 @@ fn checked_in_container_publications_are_admitted_by_environment_types() -> Resu
 }
 
 #[test]
+fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Result<()> {
+    let root = repository_root()?;
+    let catalog = bijux_dna_environment::evidence::load_container_catalog(&root)?;
+    let inventory = bijux_dna_environment::evidence::load_image_inventory_publication(
+        &root.join("containers/reports/image-inventory.json"),
+    )?;
+    let runtime = bijux_dna_environment::evidence::load_runtime_verification_publication(
+        &root.join("containers/reports/runtime-verification.json"),
+    )?;
+    bijux_dna_environment::evidence::validate_container_evidence_chain(
+        &inventory.catalog_sha256,
+        &catalog,
+        &inventory,
+        &runtime,
+    )?;
+
+    let mut stale_runtime = runtime.clone();
+    stale_runtime.inventory.sha256 = "d".repeat(64);
+    assert!(bijux_dna_environment::evidence::validate_container_evidence_chain(
+        &inventory.catalog_sha256,
+        &catalog,
+        &inventory,
+        &stale_runtime,
+    )
+    .is_err_and(|error| error.to_string().contains("admitted raw inventory")));
+
+    let mut incomplete_inventory = inventory.clone();
+    incomplete_inventory.tools.pop();
+    assert!(bijux_dna_environment::evidence::validate_container_evidence_chain(
+        &inventory.catalog_sha256,
+        &catalog,
+        &incomplete_inventory,
+        &runtime,
+    )
+    .is_err_and(|error| error.to_string().contains("tool set differs")));
+    Ok(())
+}
+
+#[test]
 fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let inventory = bijux_dna_environment::evidence::image_inventory_publication_schema();
     let runtime = bijux_dna_environment::evidence::runtime_verification_publication_schema();

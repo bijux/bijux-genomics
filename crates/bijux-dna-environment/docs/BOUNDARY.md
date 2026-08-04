@@ -7,6 +7,7 @@ Owner: environment facts and bounded host-environment inspection.
 - Runtime platform records and compatibility checks.
 - Tool image catalog loading, validation, digest hydration, and deterministic image names.
 - Exact catalog roster and repository recipe-closure validation.
+- Cross-publication catalog, inventory, runtime, selected-image, and retained-tool admission.
 - Cache root and SIF path derivation from declared environment variables.
 - Dockerfile version extraction for curated tool images.
 - Apptainer image build attempts, retry classification, and immutable build logs.
