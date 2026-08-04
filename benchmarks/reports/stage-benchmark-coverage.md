@@ -8,11 +8,11 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **5**
+- Defined campaigns: **6**
 - Qualification-only campaigns: **4**
-- Comparative campaigns: **1**
+- Comparative campaigns: **2**
 - Admitted campaigns: **5**
-- Missing campaigns: **66**
+- Missing campaigns: **65**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -57,7 +57,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `fastq.normalize_abundance` | `seqkit` | — | missing | not_defined |
 | `fastq.normalize_primers` | `cutadapt` | — | missing | not_defined |
 | `fastq.profile_overrepresented_sequences` | `fastq_scan`, `fastqc`, `seqkit` | — | missing | not_defined |
-| `fastq.profile_read_lengths` | `fastp`, `prinseq`, `seqfu`, `seqkit_stats` | — | missing | not_defined |
+| `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `run-2042` | comparative | not_admitted |
 | `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `run-2043` | comparative | admitted |
 | `fastq.remove_chimeras` | `vsearch` | — | missing | not_defined |
 | `fastq.remove_duplicates` | `clumpify` | — | missing | not_defined |

@@ -15,6 +15,13 @@ evidence validator. Reviewed small reports then belong in
 `bam_mapping_summary.py` defines the real Picard and Samtools qualification
 campaign for `bam.mapping_summary`.
 
+`fastq_profile_read_lengths.py` defines the exact SeqFu and SeqKit comparison
+for `fastq.profile_read_lengths`. It derives independent exact read-length
+evidence from the admitted 20-run human FASTQ cohort, emits one governed
+specification per retained backend, and refuses benchmark admission unless each
+sample's raw `record_id<TAB>length` surface and normalized histogram agree with
+the independently decoded expectation.
+
 `fastq_profile_reads.py` defines the complete SeqFu, SeqKit, and SeqKit Stats
 comparison for `fastq.profile_reads`. It admits all 20 runs and 30 files from
 the real human short-read diversity corpus, resolves the shared stage

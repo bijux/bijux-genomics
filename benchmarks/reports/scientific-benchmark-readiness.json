@@ -128,8 +128,8 @@
       "cpu_seconds",
       "cpu_utilization_percent",
       "peak_rss_kib",
-      "filesystem_read_bytes",
-      "filesystem_write_bytes",
+      "filesystem_input_operations",
+      "filesystem_output_operations",
       "input_bytes",
       "output_bytes",
       "throughput_input_bytes_per_second"
@@ -1002,21 +1002,18 @@
     {
       "available_comparative_samples": 20,
       "blockers": [
-        "no closed stage interface is defined",
-        "no execution campaign is defined"
+        "no admitted comparative execution evidence"
       ],
-      "campaign_run_id": null,
-      "campaign_tier": null,
+      "campaign_run_id": "run-2042",
+      "campaign_tier": "comparative",
       "domain": "fastq",
-      "interface_status": "missing",
+      "interface_status": "closed",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2042",
       "retained_tools": [
-        "fastp",
-        "prinseq",
         "seqfu",
-        "seqkit_stats"
+        "seqkit"
       ],
       "stage_id": "fastq.profile_read_lengths"
     },
@@ -1651,7 +1648,7 @@
   "summary": {
     "admitted_comparative_corpus_count": 1,
     "blocked_count": 70,
-    "comparative_campaign_count": 1,
+    "comparative_campaign_count": 2,
     "corpus_count": 9,
     "qualification_campaign_count": 4,
     "ready_count": 1,

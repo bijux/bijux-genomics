@@ -336,6 +336,14 @@ python3 -B benchmarks/benchmark_evidence.py \
 python3 -B benchmarks/benchmark_evidence.py \
   --registry benchmarks/contracts/stage-campaigns.toml \
   --catalog containers/contracts/catalog.toml \
+  --run-id run-2042 \
+  --stage-result-root "$STUDY/results/benchmarks/run-2042-fastq-profile-read-lengths" \
+  --json-output benchmarks/reports/run-2042-fastq-profile-read-lengths.json \
+  --markdown-output benchmarks/reports/run-2042-fastq-profile-read-lengths.md
+
+python3 -B benchmarks/benchmark_evidence.py \
+  --registry benchmarks/contracts/stage-campaigns.toml \
+  --catalog containers/contracts/catalog.toml \
   --run-id run-2043 \
   --stage-result-root "$STUDY/results/benchmarks/run-2043-fastq-profile-reads" \
   --json-output benchmarks/reports/run-2043-fastq-profile-reads.json \
@@ -348,6 +356,8 @@ report](reports/run-2002-bam-coverage.md) compares the complete retained
 tool closure under their honestly declared concurrency. The [endogenous-content
 report](reports/run-2003-bam-endogenous-content.md) publishes the mapping
 proxy with its biological claim boundary. All reports keep large run products
-on the governed study filesystem. The [FASTQ profile report](reports/run-2043-fastq-profile-reads.md)
+on the governed study filesystem. The [FASTQ read-length report](reports/run-2042-fastq-profile-read-lengths.md)
+records exact per-record length agreement for the two retained backends. The
+[FASTQ profile report](reports/run-2043-fastq-profile-reads.md)
 publishes the first real multi-tool comparison and its explicit operational
 substitution boundary.
