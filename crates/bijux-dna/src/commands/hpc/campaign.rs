@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -530,11 +531,19 @@ fn env_file_private(path: &Path) -> Option<bool> {
 }
 
 fn age_cli_available() -> bool {
-    let Some(paths) = std::env::var_os("PATH") else {
+    command_available("age")
+}
+
+fn command_available(command: &str) -> bool {
+    command_available_in_path(command, std::env::var_os("PATH").as_deref())
+}
+
+fn command_available_in_path(command: &str, paths: Option<&OsStr>) -> bool {
+    let Some(paths) = paths else {
         return false;
     };
-    for dir in std::env::split_paths(&paths) {
-        let candidate = dir.join("age");
+    for dir in std::env::split_paths(paths) {
+        let candidate = dir.join(command);
         if candidate.is_file() {
             return true;
         }
@@ -1710,6 +1719,13 @@ pub fn campaign_preflight(
         ok: env_file_private(&metadata.env_file_path).unwrap_or(true),
         detail: metadata.env_file_path.display().to_string(),
     });
+    for command in ["apptainer", "sbatch", "squeue", "sacct"] {
+        checks.push(CampaignCheck {
+            name: format!("command_available:{command}"),
+            ok: command_available(command),
+            detail: command.to_string(),
+        });
+    }
 
     for (name, path) in [
         ("corpora_root", &config.layout.corpora_root),
@@ -1951,15 +1967,44 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use super::{
-        campaign_dry_run, campaign_preflight, default_resource_template_map, parse_env_line,
-        validate_confidential_config, write_campaign_profiles, CampaignSecurity, ENV_DEFAULT_PATH,
+        campaign_dry_run, campaign_preflight, command_available_in_path,
+        default_resource_template_map, parse_env_line, validate_confidential_config,
+        write_campaign_profiles, CampaignSecurity, ENV_DEFAULT_PATH,
     };
+    use std::ffi::OsString;
+    use std::sync::{Mutex, OnceLock};
+
+    fn env_lock() -> &'static Mutex<()> {
+        static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        ENV_LOCK.get_or_init(|| Mutex::new(()))
+    }
 
     #[test]
     fn parse_env_line_supports_export_prefix() {
         let row = parse_env_line("export BIJUX_SLURM_ACCOUNT=proj-123").expect("parsed");
         assert_eq!(row.0, "BIJUX_SLURM_ACCOUNT");
         assert_eq!(row.1, "proj-123");
+    }
+
+    #[test]
+    fn command_available_in_path_detects_present_binary() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let tool_dir = root.path().join("bin");
+        bijux_dna_infra::ensure_dir(&tool_dir).expect("create bin dir");
+        let tool_path = tool_dir.join("apptainer");
+        bijux_dna_infra::write_bytes(&tool_path, b"#!/bin/sh\n").expect("write tool");
+        let path = OsString::from(tool_dir.as_os_str());
+        assert!(command_available_in_path("apptainer", Some(path.as_os_str())));
+    }
+
+    #[test]
+    fn command_available_in_path_rejects_missing_binary() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let tool_dir = root.path().join("bin");
+        bijux_dna_infra::ensure_dir(&tool_dir).expect("create bin dir");
+        let path = OsString::from(tool_dir.as_os_str());
+        assert!(!command_available_in_path("sbatch", Some(path.as_os_str())));
+        assert!(!command_available_in_path("sbatch", None));
     }
 
     #[test]
@@ -2561,9 +2606,11 @@ partition = "debug"
 
     #[test]
     fn campaign_preflight_passes_when_layout_roots_are_writable() {
+        let _guard = env_lock().lock().expect("env lock");
         let root = tempfile::tempdir().expect("tempdir");
         let config_path = root.path().join("campaign.toml");
         let env_file_path = root.path().join("campaign.env");
+        let tool_dir = root.path().join("bin");
         let corpora_root = root.path().join("corpora");
         let databases_root = root.path().join("databases");
         let images_root = root.path().join("images");
@@ -2574,6 +2621,7 @@ partition = "debug"
         let appraiser_imports_root = root.path().join("imports");
         let baselines_root = root.path().join("baselines");
         for dir in [
+            &tool_dir,
             &corpora_root,
             &databases_root,
             &images_root,
@@ -2585,6 +2633,10 @@ partition = "debug"
             &baselines_root,
         ] {
             bijux_dna_infra::ensure_dir(dir).expect("create dir");
+        }
+        for command in ["apptainer", "sbatch", "squeue", "sacct"] {
+            bijux_dna_infra::write_bytes(tool_dir.join(command), b"#!/bin/sh\n")
+                .expect("write tool");
         }
 
         let config = format!(
@@ -2638,9 +2690,15 @@ sample = "sample-1"
             perms.set_mode(0o600);
             std::fs::set_permissions(&env_file_path, perms).expect("set env mode");
         }
+        let original_path = std::env::var_os("PATH");
+        std::env::set_var("PATH", tool_dir.as_os_str());
 
         let report =
             campaign_preflight(&config_path, Some(&env_file_path), None).expect("preflight");
+        match original_path {
+            Some(value) => std::env::set_var("PATH", value),
+            None => std::env::remove_var("PATH"),
+        }
         assert!(report.ok);
     }
 
