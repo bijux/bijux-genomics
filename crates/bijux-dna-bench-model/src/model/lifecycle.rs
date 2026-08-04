@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 use crate::contract::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
 };
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -144,6 +145,60 @@ pub struct BenchmarkJobReference {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkRunIdentity {
+    pub run_id: String,
+    pub domain: String,
+    pub stage_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAttemptIdentity {
+    pub campaign_id: String,
+    pub run: BenchmarkRunIdentity,
+    pub attempt_id: String,
+    pub tool_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAttemptTransition {
+    pub sequence: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_status: Option<BenchmarkLifecycleStatus>,
+    pub to_status: BenchmarkLifecycleStatus,
+    pub observed_at_utc: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub jobs: Vec<BenchmarkJobReference>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub evidence_paths: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAttemptRecordV2 {
+    #[schemars(schema_with = "benchmark_attempt_v2_schema_version")]
+    pub schema_version: String,
+    pub identity: BenchmarkAttemptIdentity,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supersedes_attempt_id: Option<String>,
+    pub transitions: Vec<BenchmarkAttemptTransition>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCycleStatusV2 {
+    #[schemars(schema_with = "benchmark_cycle_status_v2_schema_version")]
+    pub schema_version: String,
+    pub campaign_id: String,
+    pub generated_at_utc: String,
+    pub attempts: Vec<BenchmarkAttemptRecordV2>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkAttemptRecord {
     #[schemars(schema_with = "benchmark_attempt_schema_version")]
     pub schema_version: String,
@@ -215,10 +270,58 @@ impl BenchmarkCycleStatus {
     }
 }
 
+impl BenchmarkAttemptRecordV2 {
+    #[must_use]
+    pub fn planned(identity: BenchmarkAttemptIdentity, observed_at_utc: String) -> Self {
+        Self {
+            schema_version: BENCHMARK_ATTEMPT_SCHEMA_V2.to_string(),
+            identity,
+            supersedes_attempt_id: None,
+            transitions: vec![BenchmarkAttemptTransition {
+                sequence: 1,
+                from_status: None,
+                to_status: BenchmarkLifecycleStatus::Planned,
+                observed_at_utc,
+                reason: None,
+                jobs: Vec::new(),
+                evidence_paths: Vec::new(),
+            }],
+        }
+    }
+
+    #[must_use]
+    pub fn current_status(&self) -> Option<BenchmarkLifecycleStatus> {
+        self.transitions.last().map(|transition| transition.to_status)
+    }
+}
+
+impl BenchmarkCycleStatusV2 {
+    #[must_use]
+    pub fn new(
+        campaign_id: String,
+        generated_at_utc: String,
+        attempts: Vec<BenchmarkAttemptRecordV2>,
+    ) -> Self {
+        Self {
+            schema_version: BENCHMARK_CYCLE_STATUS_SCHEMA_V2.to_string(),
+            campaign_id,
+            generated_at_utc,
+            attempts,
+        }
+    }
+}
+
 fn benchmark_attempt_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_ATTEMPT_SCHEMA_V1,
+    })
+}
+
+fn benchmark_attempt_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_ATTEMPT_SCHEMA_V2,
     })
 }
 
@@ -247,6 +350,13 @@ fn benchmark_cycle_status_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    })
+}
+
+fn benchmark_cycle_status_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
     })
 }
 

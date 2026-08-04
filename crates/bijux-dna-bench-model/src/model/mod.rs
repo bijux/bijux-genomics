@@ -29,11 +29,12 @@ pub use interfaces::{
 #[allow(unused_imports)]
 pub use lifecycle::{
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
-    BenchmarkAttemptDisposition, BenchmarkAttemptMigrationEntry,
+    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
     BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
     BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
-    BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkCycleStatus,
-    BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
+    BenchmarkAttemptTransition, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
 };
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]

@@ -33,6 +33,11 @@ Model contracts:
 - `DecisionRationale`
 - `BenchmarkLifecycleStatus`
 - `BenchmarkJobReference`
+- `BenchmarkRunIdentity`
+- `BenchmarkAttemptIdentity`
+- `BenchmarkAttemptTransition`
+- `BenchmarkAttemptRecordV2`
+- `BenchmarkCycleStatusV2`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
 - `BenchmarkGraphNode`
@@ -58,7 +63,9 @@ Policy and diagnostics:
 - `GateViolation`
 - `BenchError`
 - `BENCHMARK_ATTEMPT_SCHEMA_V1`
+- `BENCHMARK_ATTEMPT_SCHEMA_V2`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
+- `BENCHMARK_CYCLE_STATUS_SCHEMA_V2`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
@@ -86,6 +93,8 @@ for operation names and entrypoints.
   breaking-change review under `docs/CHANGE_RULES.md`.
 - New public exports must be added through `src/public_api/stable_surface.rs` so
   schema tests can detect the change.
+- V2 attempt transitions are append-only. A retry receives a new permanent
+  attempt identity and records explicit same-run, same-tool supersession.
 - Public validation behavior must be reflected in contract tests and the
   relevant docs.
 - Public ordering of lists, reports, and rationale traces must remain

@@ -13,6 +13,7 @@ repository.
 This crate owns:
 
 - Benchmark observation, suite, summary, decision, graph, and policy types.
+- Permanent benchmark run identities and append-only attempt lifecycle types.
 - Schema ids and validation entrypoints for benchmark model contracts.
 - Deterministic comparison reports for benchmark summaries.
 - Gate policy configuration, overrides, violations, and decision outcomes.
