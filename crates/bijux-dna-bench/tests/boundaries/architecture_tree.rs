@@ -77,6 +77,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow")),
         entries([
             "attempt_migration.rs",
+            "campaign_lifecycle/",
             "evaluation.rs",
             "mod.rs",
             "options.rs",
@@ -90,6 +91,12 @@ fn bench_tree_matches_architecture_contract() {
             "summary_statistics.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/campaign_lifecycle")),
+        entries(["mod.rs", "planning.rs"]),
+        "campaign lifecycle tree must separate its stable facade from planning logic"
     );
 
     assert_eq!(
@@ -176,6 +183,7 @@ fn commands_doc_lists_managed_benchmark_operations() {
         "apply-attempt-migration",
         "verify-attempt-migration",
         "rollback-attempt-migration",
+        "plan-stage-campaign-attempts",
         "derive-stage-coverage",
         "publish-checked-in-stage-coverage",
     ] {

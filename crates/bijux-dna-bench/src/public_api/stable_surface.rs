@@ -15,9 +15,9 @@ pub use crate::workflow::{
     load_checked_in_stage_reports, load_corpus_catalog, load_corpus_manifest,
     load_stage_campaign_registry, load_stage_interface_catalog,
     load_stage_interface_catalog_from_repo, load_stage_report, load_stage_reports_from_dir,
-    load_suite, plan_attempt_migration, publish_checked_in_stage_coverage,
-    render_stage_coverage_markdown, rollback_attempt_migration, summarize,
-    verify_attempt_migration, write_attempt_migration_plan, BenchRunOptions,
+    load_suite, plan_attempt_migration, plan_stage_campaign_attempts,
+    publish_checked_in_stage_coverage, render_stage_coverage_markdown, rollback_attempt_migration,
+    summarize, verify_attempt_migration, write_attempt_migration_plan, BenchRunOptions,
     BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
     BenchmarkCoverageWriteMode,
 };
