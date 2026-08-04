@@ -24,20 +24,74 @@ from container_validation import (
     ISOLATED_RUNTIME_HOSTNAME,
     ContractError,
     git_output,
+    load_json,
     load_governance,
     require_under,
-    write_json,
-)
-from image_inventory import (
-    INVENTORY_SCHEMA,
-    ImageInventoryError,
-    load_json,
     sha256_file,
-    stable_paths,
+    write_json,
 )
 
 EXECUTION_SCHEMA = "bijux.container.runtime_verification.v1"
 PUBLICATION_SCHEMA = "bijux.container.runtime_verification_publication.v1"
+INVENTORY_SCHEMA = "bijux.container.image_inventory_publication.v1"
+
+
+def stable_path(value: str, roots: dict[str, Path]) -> str:
+    if not value.startswith("/"):
+        return value
+    candidate = Path(value).resolve()
+    for scheme, root in roots.items():
+        try:
+            relative = candidate.relative_to(root.resolve())
+        except ValueError:
+            continue
+        return f"{scheme}://{relative.as_posix()}"
+    raise ContractError(
+        f"public evidence contains an absolute path outside governed roots: {value}"
+    )
+
+
+def stable_paths(value: Any, roots: dict[str, Path]) -> Any:
+    if isinstance(value, dict):
+        return {key: stable_paths(item, roots) for key, item in value.items()}
+    if isinstance(value, list):
+        return [stable_paths(item, roots) for item in value]
+    if isinstance(value, str):
+        return stable_path(value, roots)
+    return value
+
+
+def study_path(value: str, study_root: Path, label: str) -> Path:
+    prefix = "study://"
+    if not value.startswith(prefix):
+        raise ContractError(f"{label} must use a study:// identity")
+    relative = Path(value.removeprefix(prefix))
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ContractError(f"{label} contains an unsafe study:// identity")
+    path = (study_root / relative).resolve()
+    require_under(path, study_root, label)
+    return path
+
+
+def canonical_candidate(row: dict[str, Any], tool_id: str) -> dict[str, Any]:
+    image_sha256 = str(row.get("selected_image_sha256", ""))
+    if re.fullmatch(r"[0-9a-f]{64}", image_sha256) is None:
+        raise ContractError(f"selected image digest is invalid: {tool_id}")
+    candidates = row.get("candidates")
+    if not isinstance(candidates, list):
+        raise ContractError(f"image inventory candidates are invalid: {tool_id}")
+    selected = [
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, dict)
+        and candidate.get("sha256") == image_sha256
+        and candidate.get("disposition") == "canonical"
+    ]
+    if len(selected) != 1:
+        raise ContractError(
+            f"runtime verification requires one canonical candidate: {tool_id}"
+        )
+    return selected[0]
 
 
 def catalog_contracts(path: Path) -> dict[str, dict[str, Any]]:
@@ -123,13 +177,18 @@ def prepare_execution(
             raise ContractError(
                 f"runtime verification requires current image: {tool_id}"
             )
-        image = Path(str(row.get("selected_image", ""))).resolve()
+        image_sha256 = str(row.get("selected_image_sha256", ""))
+        selected = canonical_candidate(row, tool_id)
+        image = study_path(
+            str(selected.get("path", "")),
+            governance["study_root"],
+            f"{tool_id} image",
+        )
         require_under(
             image,
             governance["containers_root"] / "apptainer",
             f"{tool_id} image",
         )
-        image_sha256 = str(row.get("selected_image_sha256", ""))
         if not image.is_file() or sha256_file(image) != image_sha256:
             raise ContractError(f"admitted image changed for {tool_id}: {image}")
         tools[tool_id] = {
@@ -315,13 +374,10 @@ def publish_execution(
         raise ContractError("only raw runtime executions can be published")
     if execution.get("status") not in {"passed", "failed"}:
         raise ContractError("runtime execution must be terminal before publication")
-    try:
-        published = stable_paths(
-            execution,
-            {"study": study_root, "repository": repository},
-        )
-    except ImageInventoryError as exc:
-        raise ContractError(str(exc)) from exc
+    published = stable_paths(
+        execution,
+        {"study": study_root, "repository": repository},
+    )
     published["schema_version"] = PUBLICATION_SCHEMA
     published["publication"] = {
         "raw_schema_version": EXECUTION_SCHEMA,

@@ -77,6 +77,25 @@ Image construction runs on the approved frontend. Scientific tool execution
 remains a Slurm workload with separate pipeline, input, scheduler, runtime, and
 scientific evidence contracts.
 
+Derive scan evidence and its portable publication from a clean,
+commit-addressed checkout. Both outputs are immutable and the command refuses
+to replace either path:
+
+```console
+study_root="/home/bijan/lu2024-12-24/Dardel/STUDY"
+image_commit="$(git rev-parse HEAD)"
+frozen_repository="$(pwd)"
+attempt_id="${attempt_id:?set immutable attempt id}"
+inventory_root="${study_root}/containers/evidence/inventory/${image_commit}/${attempt_id}"
+mkdir -p "${inventory_root}"
+
+cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
+  "${study_root}" \
+  "${inventory_root}/scan.json" \
+  "${inventory_root}/image-inventory.json"
+canonical_inventory="${inventory_root}/image-inventory.json"
+```
+
 ## Verify version and help contracts
 
 Image admission proves that a recipe produced an inspectable SIF; it does not
@@ -123,12 +142,6 @@ reviewing or importing tracked reports:
 publication_root="${runtime_root}/publication"
 mkdir -p "${publication_root}"
 
-python3 -B containers/contracts/image_inventory.py publish \
-  --inventory "${canonical_inventory}" \
-  --study-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --repository "$(pwd)" \
-  --output "${publication_root}/image-inventory.json"
-
 python3 -B containers/contracts/runtime_verification.py publish \
   --execution "${runtime_root}/execution.json" \
   --study-root /home/bijan/lu2024-12-24/Dardel/STUDY \
@@ -136,11 +149,11 @@ python3 -B containers/contracts/runtime_verification.py publish \
   --output "${publication_root}/runtime-verification.json"
 ```
 
-Publication replaces governed absolute roots with `study://` and
-`repository://` identifiers and records the SHA-256 of the untouched raw JSON.
-It fails when any absolute path lies outside those roots. Qualification accepts
-only these portable publication schemas; execution and replay continue to use
-the raw site records.
+The inventory command publishes only governed `study://` and `repository://`
+identities. Runtime publication performs the same root replacement and records
+the SHA-256 of the untouched raw execution JSON. Publication fails when any
+absolute path lies outside those roots. Qualification accepts only portable
+publication schemas; execution and replay continue to use raw site records.
 
 ## Prepare governed input data
 

@@ -23,6 +23,24 @@ ROOT = Path(__file__).parents[3]
 
 
 class RuntimeVerificationTests(unittest.TestCase):
+    def test_canonical_candidate_rejects_ambiguous_identity(self) -> None:
+        digest = "a" * 64
+        candidate = {
+            "path": "study://containers/apptainer/tool.sif",
+            "sha256": digest,
+            "disposition": "canonical",
+        }
+        with self.assertRaisesRegex(
+            runtime_verification.ContractError, "one canonical candidate"
+        ):
+            runtime_verification.canonical_candidate(
+                {
+                    "selected_image_sha256": digest,
+                    "candidates": [candidate, candidate.copy()],
+                },
+                "tool",
+            )
+
     def test_runtime_check_uses_a_resolvable_isolated_hostname(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -124,10 +142,21 @@ class RuntimeVerificationTests(unittest.TestCase):
                             "tool": "tool",
                             "apptainer_supported": True,
                             "state": "current",
-                            "selected_image": str(image),
                             "selected_image_sha256": (
                                 runtime_verification.sha256_file(image)
                             ),
+                            "candidates": [
+                                {
+                                    "path": (
+                                        "study://containers/apptainer/"
+                                        "tool-1.0-linux-amd64-id.sif"
+                                    ),
+                                    "sha256": runtime_verification.sha256_file(
+                                        image
+                                    ),
+                                    "disposition": "canonical",
+                                }
+                            ],
                         }
                     ],
                 },

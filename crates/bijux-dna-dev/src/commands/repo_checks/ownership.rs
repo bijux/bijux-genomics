@@ -201,6 +201,7 @@ fn tracked_source_files(workspace: &Workspace) -> Result<Vec<SourceFile>> {
         .filter(|path| !path.is_empty())
         .filter_map(|bytes| std::str::from_utf8(bytes).ok())
         .filter(|path| is_relevant(path))
+        .filter(|path| workspace.path(path).is_file())
         .map(|path| {
             let content = std::fs::read_to_string(workspace.path(path))
                 .with_context(|| format!("read ownership source {path}"))?;
