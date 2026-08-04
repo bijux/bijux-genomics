@@ -100,6 +100,25 @@ impl Fixture {
         )?;
         Ok(())
     }
+
+    fn rewrite_build_evidence_as_flattened(&self, digest: &str) -> Result<()> {
+        let evidence_path =
+            self.study.join("containers/evidence").join(format!("{digest}.build.json"));
+        let nested: serde_json::Value = serde_json::from_slice(&fs::read(&evidence_path)?)?;
+        let flattened = json!({
+            "schema_version": nested["schema_version"],
+            "tool": nested["tool"],
+            "version": nested["version"],
+            "status": nested["status"],
+            "repository_commit": nested["repository_commit"],
+            "definition_sha256": nested["definition"]["sha256"],
+            "image_path": nested["image"]["path"],
+            "image_sha256": nested["image"]["sha256"],
+            "image_size_bytes": nested["image"]["size_bytes"],
+        });
+        fs::write(evidence_path, serde_json::to_vec_pretty(&flattened)?)?;
+        Ok(())
+    }
 }
 
 #[test]
@@ -125,6 +144,43 @@ fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
         &evidence.scan,
         &publication,
     )?;
+    Ok(())
+}
+
+#[test]
+fn admits_complete_flattened_build_evidence() -> Result<()> {
+    let fixture = Fixture::current()?;
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "remove repository build context"])?;
+    let digest = fixture.add_admitted_image(b"flattened-evidence image")?;
+    fixture.rewrite_build_evidence_as_flattened(&digest)?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(digest.as_str()));
+    Ok(())
+}
+
+#[test]
+fn rejects_mixed_build_evidence_identity_encodings() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
+        .next()
+        .context("fixture omits build evidence")??
+        .path();
+    let mut evidence: serde_json::Value = serde_json::from_slice(&fs::read(&evidence_path)?)?;
+    evidence["definition_sha256"] = evidence["definition"]["sha256"].clone();
+    fs::write(evidence_path, serde_json::to_vec_pretty(&evidence)?)?;
+
+    let error = derive_image_inventory_publication(&fixture.request)
+        .err()
+        .context("mixed identity encodings were admitted")?;
+    assert!(format!("{error:#}").contains("exactly one complete nested or flattened identity"));
     Ok(())
 }
 

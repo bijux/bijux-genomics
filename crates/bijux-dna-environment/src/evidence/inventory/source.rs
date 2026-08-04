@@ -60,10 +60,20 @@ struct BuildEvidenceDocument {
     version: String,
     status: BuildEvidenceStatus,
     repository_commit: String,
-    definition: BuildDefinitionIdentity,
+    #[serde(default)]
+    definition: Option<BuildDefinitionIdentity>,
+    #[serde(default)]
+    definition_sha256: Option<String>,
     #[serde(default)]
     build_context: Option<Vec<BuildContextIdentity>>,
-    image: BuildImageIdentity,
+    #[serde(default)]
+    image: Option<BuildImageIdentity>,
+    #[serde(default)]
+    image_path: Option<String>,
+    #[serde(default)]
+    image_sha256: Option<String>,
+    #[serde(default)]
+    image_size_bytes: Option<u64>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -79,6 +89,41 @@ struct BuildImageIdentity {
     path: Option<String>,
     sha256: String,
     size_bytes: u64,
+}
+
+struct NormalizedBuildIdentity {
+    definition: BuildDefinitionIdentity,
+    image: BuildImageIdentity,
+}
+
+impl BuildEvidenceDocument {
+    fn normalize_identity(&mut self) -> Result<NormalizedBuildIdentity> {
+        match (
+            self.definition.take(),
+            self.image.take(),
+            self.definition_sha256.take(),
+            self.image_path.take(),
+            self.image_sha256.take(),
+            self.image_size_bytes.take(),
+        ) {
+            (Some(definition), Some(image), None, None, None, None) => {
+                Ok(NormalizedBuildIdentity { definition, image })
+            }
+            (None, None, Some(definition_sha256), image_path, Some(image_sha256), Some(size)) => {
+                Ok(NormalizedBuildIdentity {
+                    definition: BuildDefinitionIdentity { path: None, sha256: definition_sha256 },
+                    image: BuildImageIdentity {
+                        path: image_path,
+                        sha256: image_sha256,
+                        size_bytes: size,
+                    },
+                })
+            }
+            _ => bail!(
+                "build evidence must contain exactly one complete nested or flattened identity"
+            ),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -136,13 +181,17 @@ pub(super) fn load_build_evidence(
     for path in regular_files_with_suffix(&request.build_evidence_root, ".build.json")? {
         let bytes = fs::read(&path)
             .with_context(|| format!("read container build evidence {}", path.display()))?;
-        let document: BuildEvidenceDocument = serde_json::from_slice(&bytes)
+        let mut document: BuildEvidenceDocument = serde_json::from_slice(&bytes)
             .with_context(|| format!("parse container build evidence {}", path.display()))?;
         if document.schema_version != "bijux.container.build_evidence.v1" {
             bail!("unsupported container build evidence schema in {}", path.display());
         }
-        validate_sha256(&document.image.sha256, "build-evidence image")?;
-        let image_name = document
+        let identity = document
+            .normalize_identity()
+            .with_context(|| format!("normalize container build evidence {}", path.display()))?;
+        validate_sha256(&identity.definition.sha256, "build-evidence definition")?;
+        validate_sha256(&identity.image.sha256, "build-evidence image")?;
+        let image_name = identity
             .image
             .path
             .as_deref()
@@ -157,17 +206,17 @@ pub(super) fn load_build_evidence(
         let indexed = IndexedBuildEvidence {
             tool: document.tool,
             version: document.version,
-            definition_path: document.definition.path,
+            definition_path: identity.definition.path,
             image_name,
-            image_size_bytes: document.image.size_bytes,
+            image_size_bytes: identity.image.size_bytes,
             evidence: ContainerBuildEvidence {
                 status: document.status,
-                definition_sha256: document.definition.sha256,
+                definition_sha256: identity.definition.sha256,
                 repository_commit: document.repository_commit,
                 build_context: document.build_context,
             },
         };
-        by_digest.entry(document.image.sha256).or_default().push(indexed);
+        by_digest.entry(identity.image.sha256).or_default().push(indexed);
         identities.push(ImageInventorySourceFile {
             path: portable_evidence_path(&path, request)?,
             sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
