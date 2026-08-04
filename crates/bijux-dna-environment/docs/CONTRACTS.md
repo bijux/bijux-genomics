@@ -20,6 +20,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
   `/usr/share/bijux/tool-contract.json` in each retained tool image.
 - `ContainerCatalog` and `ContainerCatalogTool`: the complete fail-closed model loaded from
   `containers/contracts/catalog.toml`; consumers must not define reduced or competing projections.
+- `ContainerCatalogValidation`: exact 89-tool/85-retained/four-unsupported roster and bidirectional
+  catalog-to-Apptainer/Docker recipe closure.
 - `ApptainerBuildRequest` and `ApptainerBuildReport`: bounded build execution with immutable,
   monotonically numbered attempt logs.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact

@@ -20,7 +20,10 @@ pub use schema::{
     image_inventory_publication_schema, runtime_verification_publication_schema,
     write_image_inventory_publication_schema, write_runtime_verification_publication_schema,
 };
-pub use tool_contract::{load_container_catalog, ContainerCatalog, ContainerCatalogTool};
+pub use tool_contract::{
+    load_container_catalog, validate_container_catalog, ContainerCatalog, ContainerCatalogTool,
+    ContainerCatalogValidation,
+};
 pub use validation::{
     validate_image_inventory_publication, validate_runtime_verification_publication,
 };

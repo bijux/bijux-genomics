@@ -6,8 +6,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::tool_contract::{
     catalog_identity_at_commit, load_container_catalog, prepare_apptainer_tool_contract,
-    retained_apptainer_tool_ids, tool_contract_labels, validate_tool_contract,
-    validate_tool_contract_labels, verify_apptainer_tool_contract, ToolContractBuildRequest,
+    retained_apptainer_tool_ids, tool_contract_labels, validate_container_catalog,
+    validate_tool_contract, validate_tool_contract_labels, verify_apptainer_tool_contract,
+    ToolContractBuildRequest,
 };
 
 #[test]
@@ -133,6 +134,32 @@ fn canonical_catalog_loader_preserves_the_complete_contract_and_rejects_unknown_
     source.push_str("\nunowned_contract_field = true\n");
     fs::write(contract_root.join("catalog.toml"), source)?;
     assert!(load_container_catalog(malformed_root.path()).is_err());
+    Ok(())
+}
+
+#[test]
+fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
+    let root = repository_root()?;
+    let validation = validate_container_catalog(&root)?;
+    assert!(validation.is_valid(), "{:?}", validation.errors);
+    assert_eq!(validation.tool_count, 89);
+    assert_eq!(validation.retained_count, 85);
+    assert_eq!(validation.unsupported_count, 4);
+
+    let malformed_root = bijux_dna_testkit::tempdir_for("container-catalog-roster-drift");
+    let contract_root = malformed_root.path().join("containers/contracts");
+    fs::create_dir_all(contract_root.join("sites"))?;
+    fs::create_dir_all(malformed_root.path().join("containers/apptainer"))?;
+    fs::create_dir_all(malformed_root.path().join("containers/docker"))?;
+    let source = fs::read_to_string(root.join("containers/contracts/catalog.toml"))?.replacen(
+        "support_disposition = \"retained\"",
+        "support_disposition = \"unsupported\"",
+        1,
+    );
+    fs::write(contract_root.join("catalog.toml"), source)?;
+    let invalid = validate_container_catalog(malformed_root.path())?;
+    assert!(!invalid.is_valid());
+    assert!(invalid.errors.iter().any(|error| error.contains("catalog roster must contain")));
     Ok(())
 }
 

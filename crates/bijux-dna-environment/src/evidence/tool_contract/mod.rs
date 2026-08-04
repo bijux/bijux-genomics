@@ -1,6 +1,7 @@
 //! Runtime-readable identity contracts for governed tool images.
 
 mod catalog;
+mod catalog_validation;
 mod inspection;
 mod labels;
 mod model;
@@ -13,6 +14,7 @@ pub use catalog::{
     catalog_identity_at_commit, load_container_catalog, retained_apptainer_tool_ids,
     ContainerCatalog, ContainerCatalogTool,
 };
+pub use catalog_validation::{validate_container_catalog, ContainerCatalogValidation};
 
 pub use inspection::{verify_apptainer_tool_contract, VerifiedToolImageIdentity};
 pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContractLabels};

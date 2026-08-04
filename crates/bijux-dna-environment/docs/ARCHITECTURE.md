@@ -9,7 +9,8 @@ CLI, runner, planner, stage, and domain crates.
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
 - `src/evidence/`: typed image-inventory and runtime-verification publication admission, plus
-  catalog-derived embedded tool identity contracts.
+  complete catalog and recipe-closure validation plus catalog-derived embedded tool identity
+  contracts.
 - `src/build/`: Docker metadata plus bounded Apptainer builds with immutable attempt logs.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
 - `src/resolve/catalog/`: TOML catalog loading, registry digest hydration, and image reference
