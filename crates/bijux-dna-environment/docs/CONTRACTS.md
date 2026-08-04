@@ -14,6 +14,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ReferenceRecord`: digest-addressed reference cache record.
 - `ReferenceBuildRequest`: explicit switches for optional reference indexes.
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
+- `ImageInventoryDerivationRequest`: governed repository, study, image, build-evidence, and run-lock
+  roots used to derive a portable publication without delegating selection to contract scripts.
 - `RuntimeVerificationPublication`: runtime evidence tied to catalog, inventory, repository, and
   image identities.
 - `ContainerToolContract`: the strict identity installed exactly once at
@@ -34,9 +36,14 @@ This crate owns the environment contracts consumed by API, runner, and environme
 
 ## Evidence Publications
 
+The image-inventory derivation hashes every scanned SIF and source evidence file, admits only
+immutable names backed by exact build evidence, retains non-canonical images only when immutable
+run locks reference them, and rejects ambiguous current or historical selections. Its raw digest
+commits to the complete scan even when obsolete images are omitted from the public candidate set.
 The image-inventory and runtime-verification loaders reject malformed identities, duplicate tools
-or candidates, and selected images that are not admitted candidates. The evidence-chain loader
-also rejects cross-publication identity, version, disposition, selected-image, and roster drift.
+or candidates, and selected images that are not the unique canonical admitted candidate. The
+evidence-chain loader also rejects cross-publication identity, version, disposition, selected-image,
+and roster drift.
 Unknown descriptive fields remain forward-compatible; every identity and decision field consumed
 by qualification is typed. The complete chain does not trust the inventory's `current_recipe`
 label: it recomputes the exact committed definition and `%files` identity and requires matching

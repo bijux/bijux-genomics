@@ -5,6 +5,8 @@ mod mod_contracts_apptainer_build_and_smoke_rs;
 mod mod_contracts_build_dockerfile_rs;
 #[path = "contracts/evidence_publications.rs"]
 mod mod_contracts_evidence_publications_rs;
+#[path = "contracts/image_inventory_derivation.rs"]
+mod mod_contracts_image_inventory_derivation_rs;
 #[path = "contracts/matrix.rs"]
 mod mod_contracts_matrix_rs;
 #[path = "contracts/resolve_runtime.rs"]

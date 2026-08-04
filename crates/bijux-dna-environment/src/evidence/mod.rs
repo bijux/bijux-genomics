@@ -2,6 +2,7 @@
 //! Typed admission for immutable container environment evidence.
 
 mod chain;
+mod inventory;
 mod load;
 mod model;
 mod schema;
@@ -12,6 +13,7 @@ pub use chain::{
     load_container_evidence_chain, validate_container_evidence_chain,
     validate_container_recipe_evidence_chain, ContainerEvidenceChain,
 };
+pub use inventory::{derive_image_inventory_publication, ImageInventoryDerivationRequest};
 pub use load::{load_image_inventory_publication, load_runtime_verification_publication};
 pub use model::{
     BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerImageCandidate,

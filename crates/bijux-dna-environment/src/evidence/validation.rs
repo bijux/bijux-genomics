@@ -3,8 +3,9 @@ use std::collections::BTreeSet;
 use anyhow::{bail, Result};
 
 use super::model::{
-    ContainerImageInventoryPublication, ContainerSupportDisposition,
-    RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    ContainerImageInventoryPublication, ContainerImageState, ContainerSupportDisposition,
+    ImageCandidateDisposition, RuntimeVerificationPublication,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
 };
 
@@ -34,6 +35,7 @@ pub fn validate_image_inventory_publication(
             bail!("image inventory contains an empty tool identity");
         }
         let mut candidate_digests = BTreeSet::new();
+        let mut canonical_candidates = 0;
         for candidate in &tool.candidates {
             validate_sha256(&candidate.sha256, "image candidate")?;
             if !candidate_digests.insert(candidate.sha256.as_str()) {
@@ -45,6 +47,12 @@ pub fn validate_image_inventory_publication(
             }
             if candidate.path.trim().is_empty() {
                 bail!("image candidate path is empty for {}", tool.tool);
+            }
+            if candidate.current_recipe && !candidate.admitted {
+                bail!("current recipe candidate is not admitted for {}", tool.tool);
+            }
+            if matches!(candidate.disposition, ImageCandidateDisposition::Canonical) {
+                canonical_candidates += 1;
             }
             for evidence in &candidate.build_evidence {
                 validate_sha256(&evidence.definition_sha256, "recipe definition")?;
@@ -61,12 +69,27 @@ pub fn validate_image_inventory_publication(
         match (&tool.support_disposition, &tool.selected_image_sha256) {
             (ContainerSupportDisposition::Retained, Some(selected)) => {
                 validate_sha256(selected, "selected image")?;
-                if !tool
+                let selected_candidate = tool
                     .candidates
                     .iter()
-                    .any(|candidate| candidate.admitted && candidate.sha256 == *selected)
-                {
+                    .find(|candidate| candidate.admitted && candidate.sha256 == *selected);
+                let Some(selected_candidate) = selected_candidate else {
                     bail!("selected image for {} is not an admitted candidate", tool.tool);
+                };
+                if !matches!(selected_candidate.disposition, ImageCandidateDisposition::Canonical)
+                    || canonical_candidates != 1
+                {
+                    bail!("selected image for {} is not the unique canonical candidate", tool.tool);
+                }
+                match tool.state {
+                    ContainerImageState::Current if !selected_candidate.current_recipe => {
+                        bail!("current image state lacks a current recipe for {}", tool.tool);
+                    }
+                    ContainerImageState::Historical if selected_candidate.current_recipe => {
+                        bail!("historical image state selects a current recipe for {}", tool.tool);
+                    }
+                    ContainerImageState::Current | ContainerImageState::Historical => {}
+                    _ => bail!("retained tool {} has an invalid image state", tool.tool),
                 }
             }
             (ContainerSupportDisposition::Retained, None) => {
@@ -74,6 +97,13 @@ pub fn validate_image_inventory_publication(
             }
             (_, Some(selected)) => validate_sha256(selected, "selected image")?,
             (_, None) => {}
+        }
+        if !matches!(tool.support_disposition, ContainerSupportDisposition::Retained)
+            && (tool.selected_image_sha256.is_some()
+                || canonical_candidates != 0
+                || !matches!(tool.state, ContainerImageState::Unsupported))
+        {
+            bail!("non-retained tool {} exposes a selected image lifecycle", tool.tool);
         }
     }
     Ok(())

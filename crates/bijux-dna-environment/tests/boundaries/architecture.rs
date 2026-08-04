@@ -39,20 +39,6 @@ fn source_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
-        dir_entries(&root.join("src/evidence")),
-        btree_set(&[
-            "chain.rs",
-            "load.rs",
-            "mod.rs",
-            "model.rs",
-            "schema.rs",
-            "tool_contract/",
-            "validation.rs",
-        ]),
-        "evidence tree must separate models, admission, validation, and schemas"
-    );
-
-    assert_eq!(
         dir_entries(&root.join("src/evidence/tool_contract")),
         btree_set(&[
             "catalog.rs",
@@ -140,6 +126,30 @@ fn source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/public_api")),
         btree_set(&["mod.rs", "stable_surface.rs"]),
         "public api tree must keep the stable surface explicit"
+    );
+}
+
+#[test]
+fn inventory_source_tree_matches_ownership_contract() {
+    let root = crate_root("bijux-dna-environment");
+    assert_eq!(
+        dir_entries(&root.join("src/evidence")),
+        btree_set(&[
+            "chain.rs",
+            "inventory/",
+            "load.rs",
+            "mod.rs",
+            "model.rs",
+            "schema.rs",
+            "tool_contract/",
+            "validation.rs",
+        ]),
+        "evidence tree must separate models, admission, validation, and schemas"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/inventory")),
+        btree_set(&["derivation.rs", "mod.rs", "source.rs"]),
+        "inventory derivation must separate execution-site inputs from admission decisions"
     );
 }
 

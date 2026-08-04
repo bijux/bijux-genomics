@@ -155,6 +155,23 @@ fn publication_admission_rejects_identity_drift() -> Result<()> {
         .as_deref()
         .is_some_and(|message| message.contains("not a SHA-256 digest")));
 
+    let mut incoherent = bijux_dna_environment::evidence::load_image_inventory_publication(
+        &root.join("containers/reports/image-inventory.json"),
+    )?;
+    let selected = incoherent.tools[0]
+        .selected_image_sha256
+        .clone()
+        .context("fixture has no selected image")?;
+    incoherent.tools[0]
+        .candidates
+        .iter_mut()
+        .find(|candidate| candidate.sha256 == selected)
+        .context("fixture omits selected candidate")?
+        .disposition =
+        bijux_dna_environment::evidence::ImageCandidateDisposition::HistoricalRunDependency;
+    assert!(bijux_dna_environment::evidence::validate_image_inventory_publication(&incoherent)
+        .is_err_and(|error| error.to_string().contains("unique canonical candidate")));
+
     let mut runtime = bijux_dna_environment::evidence::load_runtime_verification_publication(
         &root.join("containers/reports/runtime-verification.json"),
     )?;
