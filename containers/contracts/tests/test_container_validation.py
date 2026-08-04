@@ -1595,6 +1595,21 @@ class BuildAdmissionTests(unittest.TestCase):
             }
         }
 
+    def test_python_image_admission_fails_closed(self) -> None:
+        with self.assertRaisesRegex(
+            container_build.ContractError,
+            "Python image admission is retired",
+        ):
+            container_build.finalize_image(
+                Path("missing.yml"),
+                "samtools",
+                "1.20",
+                "a" * 40,
+                Path("samtools.def"),
+                Path("samtools.sif"),
+                Path("samtools.log"),
+            )
+
     def test_image_identity_uses_tool_version_instead_of_base_version(self) -> None:
         container_build.validate_inspection_identity(
             self.inspection(),

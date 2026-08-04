@@ -9,7 +9,6 @@ const PIPELINE_SCHEMA_PATH: &str = "containers/contracts/config-pipeline.schema.
 const CREDENTIAL_SCHEMA_PATH: &str = "containers/contracts/config-credential.schema.json";
 const GOVERNANCE_SCHEMA_PATH: &str = "containers/contracts/config-governance.schema.json";
 const LUNARC_GOVERNANCE_PATH: &str = "containers/contracts/sites/lunarc.yml";
-const BUILD_ADMISSION_PATH: &str = "containers/contracts/container_build.py";
 const VALIDATION_EXECUTOR_PATH: &str = "containers/contracts/container_validation.py";
 const QUALIFICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-assessment.v1.json";
@@ -244,9 +243,6 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
     }
     if !workspace.path(VALIDATION_EXECUTOR_PATH).is_file() {
         errors.push(format!("missing {VALIDATION_EXECUTOR_PATH}"));
-    }
-    if !workspace.path(BUILD_ADMISSION_PATH).is_file() {
-        errors.push(format!("missing {BUILD_ADMISSION_PATH}"));
     }
     if !workspace.path(LUNARC_GOVERNANCE_PATH).is_file() {
         errors.push(format!("missing {LUNARC_GOVERNANCE_PATH}"));

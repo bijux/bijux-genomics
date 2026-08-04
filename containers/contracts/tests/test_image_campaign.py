@@ -18,6 +18,22 @@ SPEC.loader.exec_module(campaign)
 
 
 class ImageCampaignTests(unittest.TestCase):
+    def test_operator_docs_do_not_advertise_retired_build_commands(self) -> None:
+        repository = CONTRACTS.parents[1]
+        for relative_path in (
+            "containers/README.md",
+            "containers/docs/LUNARC_EXECUTION_CONTRACT.md",
+        ):
+            content = (repository / relative_path).read_text(encoding="utf-8")
+            self.assertNotIn(
+                "python3 -B containers/contracts/image_campaign.py",
+                content,
+            )
+            self.assertNotIn(
+                "python3 containers/contracts/container_build.py",
+                content,
+            )
+
     def test_image_source_roots_follow_definition_file_inputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             repository = Path(directory)
@@ -54,7 +70,7 @@ class ImageCampaignTests(unittest.TestCase):
             with self.assertRaisesRegex(campaign.ContractError, "source is absent"):
                 campaign.image_source_roots(repository, ["samtools"])
 
-    def test_build_runs_from_frozen_repository(self) -> None:
+    def test_python_image_build_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             repository = root / "repository"
@@ -68,19 +84,46 @@ class ImageCampaignTests(unittest.TestCase):
                 "run",
                 return_value=mock.Mock(returncode=1),
             ) as run:
-                result = campaign.build_one(
-                    "samtools",
-                    "1.20",
-                    "a" * 40,
-                    root / "governance.yml",
-                    repository,
-                    image_root,
-                    evidence_root,
-                    1,
-                )
+                with self.assertRaisesRegex(
+                    campaign.ContractError,
+                    "Python image campaign execution is retired",
+                ):
+                    campaign.build_one(
+                        "samtools",
+                        "1.20",
+                        "a" * 40,
+                        root / "governance.yml",
+                        repository,
+                        image_root,
+                        evidence_root,
+                        1,
+                    )
 
-        self.assertEqual(result["status"], "failed")
-        self.assertEqual(run.call_args.kwargs["cwd"], repository)
+        run.assert_not_called()
+
+    def test_python_campaign_execution_fails_before_state_mutation(self) -> None:
+        with self.assertRaisesRegex(
+            campaign.ContractError,
+            "Python image campaign execution is retired",
+        ):
+            campaign.execute_campaign(Path("missing.json"), Path("missing.yml"), 2)
+
+    def test_python_campaign_preparation_fails_before_state_creation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "execution.json"
+            with self.assertRaisesRegex(
+                campaign.ContractError,
+                "Python image campaign execution is retired",
+            ):
+                campaign.create_execution(
+                    Path("campaign.json"),
+                    Path("inventory.json"),
+                    Path("catalog.toml"),
+                    Path("governance.yml"),
+                    None,
+                    output,
+                )
+            self.assertFalse(output.exists())
 
     def test_selection_contains_only_supported_noncurrent_images(self) -> None:
         selected = campaign.selected_tools(
@@ -209,7 +252,7 @@ class ImageCampaignTests(unittest.TestCase):
             with self.assertRaisesRegex(campaign.ContractError, "run-1000"):
                 campaign.load_campaign(path)
 
-    def test_failed_tool_retry_preserves_prior_attempt(self) -> None:
+    def test_python_campaign_retry_cannot_mutate_attempts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             execution_path = Path(directory) / "execution.json"
             execution_path.write_text(
@@ -241,27 +284,16 @@ class ImageCampaignTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            queued = campaign.queue_failed_tools(execution_path, ["addeam"])
+            before = execution_path.read_bytes()
+            with self.assertRaisesRegex(
+                campaign.ContractError,
+                "Python image campaign execution is retired",
+            ):
+                campaign.queue_failed_tools(execution_path, ["addeam"])
 
-        self.assertEqual(queued["status"], "prepared")
-        self.assertEqual(queued["retry_tools"], ["addeam"])
-        self.assertEqual(queued["tools"]["addeam"]["status"], "pending")
-        self.assertEqual(
-            queued["tools"]["addeam"]["attempts"],
-            [
-                {
-                    "attempt": 1,
-                    "status": "failed",
-                    "exit_code": 255,
-                    "build_log": "/evidence/addeam.log",
-                    "build_log_sha256": "a" * 64,
-                }
-            ],
-        )
-        self.assertNotIn("summary", queued)
-        self.assertNotIn("finished_at_utc", queued)
+            self.assertEqual(execution_path.read_bytes(), before)
 
-    def test_retry_rejects_tools_without_failed_state(self) -> None:
+    def test_python_campaign_retry_fails_before_reading_record(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             execution_path = Path(directory) / "execution.json"
             execution_path.write_text(
@@ -276,7 +308,10 @@ class ImageCampaignTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with self.assertRaisesRegex(campaign.ContractError, "did not fail"):
+            with self.assertRaisesRegex(
+                campaign.ContractError,
+                "Python image campaign execution is retired",
+            ):
                 campaign.queue_failed_tools(execution_path, ["fastp"])
 
     def test_campaign_without_pending_work_still_fails_if_a_tool_failed(self) -> None:

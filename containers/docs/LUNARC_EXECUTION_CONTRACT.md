@@ -101,20 +101,21 @@ node, creates a job-unique child, verifies the requested capacity, binds it at
 fixed absolute `slurm.scratch_root`; declaring both authorities is invalid.
 See the official [LUNARC local-disk guidance](https://lunarc-documentation.readthedocs.io/en/latest/manual/submitting_jobs/manual_local_disk/).
 
-Frontend builds remain in `containers/apptainer/.building` until the admission
-command verifies the recipe at the declared Git commit, the completed build
-log, and machine-readable Apptainer inspection. It then moves the SIF to an
-immutable architecture-and-content-addressed name and writes build evidence:
+Frontend image builds use the Rust environment service. It derives a build
+identity from the clean repository commit, catalog, recipe, source pin,
+architecture, and interface; installs one embedded tool contract with matching
+labels; and verifies that identity before the SIF can be reused:
 
 ```console
-python3 containers/contracts/container_build.py \
-  --governance containers/contracts/sites/lunarc.yml \
-  --tool TOOL --version VERSION --repository-commit COMMIT_SHA \
-  --definition containers/apptainer/TOOL.def \
-  --staged-image STAGED_SIF --build-log BUILD_LOG
+cargo run -p bijux-dna -- env ensure-images \
+  --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
+  --domain bam \
+  --stage bam.endogenous_content \
+  --force-smoke \
+  --json
 ```
 
-For an immutable image built before admission automation was available, use
-`--immutable-image` instead. Admission then verifies that the existing name
-matches its content identity and that any recorded inspection is identical;
-it never renames or overwrites the image.
+An identity mismatch fails closed. Use `--repair-mismatch` only when the
+invalid cached image should be moved to the governed quarantine root before a
+rebuild. The retired Python image campaign and admission commands must not
+create current image state.

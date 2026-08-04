@@ -27,159 +27,38 @@ The reviewed LUNARC authority is
 submitted run archives its resolved copy alongside the pipeline and redacted
 credential-reference contracts.
 
-## Reproduce the LUNARC image roster
+## Build identity-governed LUNARC images
 
-`run-1000` is the governed frontend campaign that rebuilds every supported
-Apptainer image. It is intentionally complete: a successful execution against
-an empty admission root proves that the whole roster can be recovered from the
-catalog, recipes, and pinned sources. The operational execution record resolves
-the exact clean repository commit, catalog hash, inventory hash, admission
-root, recipe hashes, logs, and admitted image hashes; the source campaign
-cannot contain its own Git commit because a Git object cannot self-identify.
+Build or reuse Apptainer images only through the Rust environment service. It
+derives each build identity from the clean repository commit, catalog, recipe,
+source pin, architecture, and declared interface. The generated definition
+installs exactly one `/usr/share/bijux/tool-contract.json` and matching labels;
+the resulting SIF is rejected before reuse when its digest, embedded contract,
+or labels differ.
 
-Inventory and campaign records are immutable and commit-addressed. Preparation
-creates a clean, complete build worktree beneath the configured
-`paths.frozen_repositories/image-builds/` root. The campaign reads recipes and
-all `%files` inputs from that worktree, so later movement of the active checkout
-cannot change an in-flight build. A routine proof uses an isolated root below
-the configured `containers_root`; it never deletes or overwrites admitted
-images. The same commands repopulate the canonical `apptainer/` directory after
-an explicitly reviewed storage migration by setting `rebuild_root` to the
-configured containers root.
-
-Image freshness covers the complete recipe input identity: the definition and
-the Git object for every repository-owned `%files` source. Changing a wrapper,
-patch, installer, or bundled data tree therefore marks the prior image stale
-even when the `.def` file itself is unchanged.
+Run from a clean checkout at the commit being qualified. `--hpc-root` is the
+exact root that will own the generated `containers`, corpus, and result paths.
+Select one stage or a comma-separated set of stages from the same domain:
 
 ```console
-image_commit="$(git rev-parse HEAD)"
-containers_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers"
-rebuild_root="${containers_root}/rebuild-verification/${image_commit}"
-inventory_root="${rebuild_root}/inventory"
-campaign_root="${rebuild_root}/campaign"
-mkdir -p "${rebuild_root}/apptainer" "${rebuild_root}/evidence" \
-  "${inventory_root}" "${campaign_root}"
-
-python3 -B containers/contracts/image_inventory.py audit \
-  --catalog containers/contracts/catalog.toml \
-  --image-root "${rebuild_root}/apptainer" \
-  --evidence-root "${rebuild_root}/evidence" \
-  --runs-root containers/runs \
-  --repository . \
-  --output "${inventory_root}/before-build.json"
-
-python3 -B containers/contracts/image_campaign.py prepare \
-  --campaign containers/runs/run-1000-images/config-campaign.json \
-  --inventory "${inventory_root}/before-build.json" \
-  --catalog containers/contracts/catalog.toml \
-  --governance containers/contracts/sites/lunarc.yml \
-  --image-root "${rebuild_root}/apptainer" \
-  --output "${campaign_root}/execution.json"
-
-python3 -B containers/contracts/image_campaign.py execute \
-  --execution "${campaign_root}/execution.json" \
-  --governance containers/contracts/sites/lunarc.yml \
-  --jobs 2
-
-# A transient build failure is retained as an attempt before only that tool is
-# queued and executed again. Omit --tool to queue every failed tool.
-python3 -B containers/contracts/image_campaign.py retry-failed \
-  --execution "${campaign_root}/execution.json" \
-  --tool addeam
-python3 -B containers/contracts/image_campaign.py execute \
-  --execution "${campaign_root}/execution.json" \
-  --governance containers/contracts/sites/lunarc.yml \
-  --jobs 1
-
-frozen_repository="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["frozen_repository"])' "${campaign_root}/execution.json")"
-
-python3 -B containers/contracts/image_inventory.py audit \
-  --catalog "${frozen_repository}/containers/contracts/catalog.toml" \
-  --image-root "${rebuild_root}/apptainer" \
-  --evidence-root "${rebuild_root}/evidence" \
-  --runs-root "${frozen_repository}/containers/runs" \
-  --repository "${frozen_repository}" \
-  --output "${inventory_root}/after-build.json"
-
-python3 -B containers/contracts/image_campaign.py report \
-  --execution "${campaign_root}/execution.json" \
-  --inventory "${inventory_root}/after-build.json" \
-  --json-output containers/reports/lunarc-image-rebuild.json \
-  --markdown-output containers/reports/lunarc-image-rebuild.md
+cargo run -p bijux-dna -- env ensure-images \
+  --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
+  --domain bam \
+  --stage bam.endogenous_content \
+  --force-smoke \
+  --json
 ```
 
-`config-campaign.json` deliberately selects the complete supported roster for
-a full reproducibility proof. After that proof exists, use
-`config-refresh.json` with a fresh canonical inventory to select only recipes
-whose definition or repository-owned `%files` inputs are missing or stale.
-The selection remains evidence-derived; operators do not hand-maintain a tool
-list or declare an old image current.
+Cached images are verified against the current expected contract before use.
+An invalid cached image fails closed; `--repair-mismatch` moves it into the
+governed quarantine root before rebuilding. Do not invoke the retired Python
+image campaign or admission commands to create or admit images. Reports from
+those retired build paths are historical records, not current qualification
+evidence.
 
-The tracked [complete-roster rebuild report](reports/lunarc-image-rebuild.md)
-is the reviewed source/build/freshness summary for this campaign.
-The later [current-image refresh report](reports/lunarc-image-refresh.md)
-records the governed rebuild of only the images made stale by complete recipe
-input fingerprinting; it complements rather than replaces the full-roster
-proof.
-
-The before-build inventory must report every catalog-supported image as missing
-and preserve each unsupported disposition. The execution and after-build
-inventory must report every selected image as passed/current with no staged or
-unknown images. A retry preserves each failed attempt, its immutable build log,
-and the successful final attempt in the same execution record; a campaign with
-any failed tool remains failed even when there is nothing pending. Image
-construction runs on the approved frontend. Real
-scientific tool runs remain Slurm jobs with separate pipeline and
-credential-reference contracts.
-
-Superseded images and interrupted builds are never deleted from an ad hoc
-shell command. After the image campaign is idle, create and inspect a
-checksummed quarantine plan, then apply and verify its same-filesystem moves:
-
-```console
-canonical_inventory="${containers_root}/evidence/inventory/${image_commit}/image-inventory.json"
-
-python3 -B containers/contracts/image_storage.py plan \
-  --inventory "${canonical_inventory}" \
-  --image-root "${containers_root}/apptainer" \
-  --quarantine-root "${containers_root}/apptainer/.quarantine/${image_commit}" \
-  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json"
-
-python3 -B containers/contracts/image_storage.py apply \
-  --image-root "${containers_root}/apptainer" \
-  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json"
-
-python3 -B containers/contracts/image_storage.py verify \
-  --image-root "${containers_root}/apptainer" \
-  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json"
-
-after_storage="${containers_root}/evidence/inventory/${image_commit}/after-storage.json"
-
-python3 -B containers/contracts/image_inventory.py audit \
-  --catalog containers/contracts/catalog.toml \
-  --image-root "${containers_root}/apptainer" \
-  --evidence-root "${containers_root}/evidence" \
-  --runs-root containers/runs \
-  --repository . \
-  --output "${after_storage}"
-
-python3 -B containers/contracts/image_storage.py report \
-  --plan "${containers_root}/evidence/inventory/${image_commit}/image-storage-plan.json" \
-  --after-inventory "${after_storage}" \
-  --json-output "${containers_root}/evidence/inventory/${image_commit}/image-storage-report.json" \
-  --markdown-output "${containers_root}/evidence/inventory/${image_commit}/image-storage-report.md"
-```
-
-`rollback` restores every file only after rechecking its size and SHA-256.
-Unclassified images and images referenced by historical runs are excluded from
-the quarantine plan. Catalog-recognized obsolete images with no run references
-are eligible only through the checksummed, reversible plan above.
-The tracked [canonical storage report](reports/image-storage.md) records the
-reviewed move set, post-storage inventory, raw evidence digests, and recovery
-contract without publishing user-specific absolute paths. Import those reviewed
-report files into `containers/reports/` from a clean local checkout; do not
-generate tracked outputs in the LUNARC checkout.
+Image construction runs on the approved frontend. Scientific tool execution
+remains a Slurm workload with separate pipeline, input, scheduler, runtime, and
+scientific evidence contracts.
 
 ## Verify version and help contracts
 
