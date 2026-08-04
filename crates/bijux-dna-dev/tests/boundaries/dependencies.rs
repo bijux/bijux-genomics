@@ -21,6 +21,7 @@ fn dependency_graph_matches_dev_boundary() {
         "clap",
         "regex",
         "reqwest",
+        "schemars",
         "serde",
         "serde_json",
         "sha2",

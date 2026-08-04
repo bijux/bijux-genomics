@@ -106,6 +106,7 @@ check-no-raw-cargo-in-makes
 check-no-target-paths-in-tests
 check-no-user-path-literals
 check-output-roots
+check-ownership-audit
 check-panel-license-policy
 check-panel-locks
 check-param-registry-completeness
@@ -159,6 +160,8 @@ check-apptainer-version-label-sync
 check-bijux-apptainer-built
 check-bijux-template-markers
 check-build-provenance
+check-contract-catalog
+check-contract-lock
 check-cross-runtime-representative
 check-cross-runtime-smoke
 check-digest-changes-on-version-change
@@ -193,6 +196,7 @@ check-no-secrets
 check-upstream-provenance
 check-owners
 check-qa-matrix-generated
+check-qualification-schema
 check-rebuild-repro
 check-registry-vs-defs
 check-release-checklist
@@ -235,6 +239,7 @@ ensure-images
 env-prep
 env-smoke
 extract-version-map
+generate-contract-lock
 generate-ghcr-apptainer-publish-matrix
 generate-ghcr-publish-matrix
 generate-index
@@ -242,6 +247,7 @@ generate-license-metadata
 generate-local-apptainer-digests
 generate-network-usage
 generate-qa-matrix
+generate-qualification-schema
 generate-tool-docs
 generate-tool-ids
 generate-tool-name-map
