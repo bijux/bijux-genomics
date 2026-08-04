@@ -160,7 +160,10 @@ def selected_images(
     inventory: dict[str, Any], study_root: Path, tool_ids: Iterable[str]
 ) -> dict[str, dict[str, str]]:
     wanted = set(tool_ids)
-    if inventory.get("schema_version") != "bijux.container.image_inventory.v1":
+    if inventory.get("schema_version") not in {
+        "bijux.container.image_inventory.v1",
+        "bijux.container.image_inventory_publication.v1",
+    }:
         raise SpecificationError("image inventory schema is unsupported")
     selected: dict[str, dict[str, str]] = {}
     for record in inventory.get("tools", []):

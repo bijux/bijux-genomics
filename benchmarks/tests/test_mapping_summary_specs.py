@@ -150,6 +150,27 @@ expected_version_regex = "^samtools 1[.]20"
                 str((study / "containers" / "picard.sif").resolve()),
             )
 
+    def test_publication_inventory_schema_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, _ = self.fixtures(root)
+            data = json.loads(inventory.read_text())
+            data["schema_version"] = "bijux.container.image_inventory_publication.v1"
+            inventory.write_text(json.dumps(data), encoding="utf-8")
+
+            with patch.object(specifications, "current_commit", return_value="f" * 40):
+                destination = specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    root / "specifications",
+                    "2026-08-03T00:00:00+00:00",
+                )
+
+            self.assertTrue((destination / "run-2004-picard").is_dir())
+            self.assertTrue((destination / "run-2004-samtools").is_dir())
+
     def test_absolute_inventory_path_cannot_escape_the_study(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
