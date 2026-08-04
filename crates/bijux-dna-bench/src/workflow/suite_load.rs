@@ -9,14 +9,18 @@ use anyhow::{Context, Result};
 use crate::repo::RunRepository;
 use crate::repo::{
     bench_bundles_dir, bench_corpora_dir, bench_portfolio_path, bench_stage_campaigns_path,
+    bench_stage_interfaces_path,
 };
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_bundle_manifest, validate_corpus_manifest,
-    validate_defined_campaign_portfolio_alignment, validate_stage_campaign_registry,
+    validate_defined_campaign_portfolio_alignment, validate_defined_interface_campaign_alignment,
+    validate_interface_parameter_alignment, validate_pipeline_parameter_config,
+    validate_stage_campaign_registry, validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
-    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkObservation, BenchmarkPortfolio,
-    BenchmarkStageCampaignRegistry,
+    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkObservation,
+    BenchmarkPipelineParameterConfig, BenchmarkPortfolio, BenchmarkStageCampaignRegistry,
+    BenchmarkStageInterfaceCatalog,
 };
 
 /// Load observations for a suite from a repository.
@@ -130,17 +134,87 @@ pub fn load_benchmark_portfolio(path: &Path) -> Result<BenchmarkPortfolio> {
     Ok(portfolio)
 }
 
-/// Load the checked-in benchmark planning contracts and validate their alignment.
+/// Load and validate the benchmark stage-interface catalog.
+///
+/// # Errors
+/// Returns an error if the catalog cannot be read, parsed, or validated.
+pub fn load_stage_interface_catalog(path: &Path) -> Result<BenchmarkStageInterfaceCatalog> {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("read stage interface catalog {}", path.display()))?;
+    let catalog: BenchmarkStageInterfaceCatalog = toml::from_str(&raw)
+        .with_context(|| format!("parse stage interface catalog {}", path.display()))?;
+    validate_stage_interface_catalog(&catalog)
+        .with_context(|| format!("validate stage interface catalog {}", path.display()))?;
+    validate_stage_interface_repository_contracts(&catalog)
+        .with_context(|| format!("validate stage interface repository paths {}", path.display()))?;
+    Ok(catalog)
+}
+
+/// Load the checked-in campaign and portfolio contracts and validate all planning inputs.
 ///
 /// # Errors
 /// Returns an error if the checked-in contracts cannot be loaded or drift from each other.
 pub fn load_checked_in_benchmark_contracts(
 ) -> Result<(BenchmarkStageCampaignRegistry, BenchmarkPortfolio)> {
+    let (registry, portfolio, _) = load_checked_in_benchmark_planning_contracts()?;
+    Ok((registry, portfolio))
+}
+
+/// Load the complete checked-in benchmark planning contract set and validate its alignment.
+///
+/// # Errors
+/// Returns an error if the checked-in contracts cannot be loaded or drift from each other.
+pub fn load_checked_in_benchmark_planning_contracts(
+) -> Result<(BenchmarkStageCampaignRegistry, BenchmarkPortfolio, BenchmarkStageInterfaceCatalog)> {
     let registry = load_stage_campaign_registry(&bench_stage_campaigns_path())?;
     let portfolio = load_benchmark_portfolio(&bench_portfolio_path())?;
+    let interfaces = load_stage_interface_catalog(&bench_stage_interfaces_path())?;
     validate_defined_campaign_portfolio_alignment(&registry, &portfolio)
         .context("validate defined benchmark campaigns against portfolio reservations")?;
-    Ok((registry, portfolio))
+    validate_defined_interface_campaign_alignment(&interfaces, &registry)
+        .context("validate benchmark interfaces against defined campaigns")?;
+    Ok((registry, portfolio, interfaces))
+}
+
+fn validate_stage_interface_repository_contracts(
+    catalog: &BenchmarkStageInterfaceCatalog,
+) -> Result<()> {
+    let repo_root = crate::repo::resolve_repo_root().context("resolve repository root")?;
+    let mut parameter_configs = std::collections::BTreeMap::new();
+    for interface in &catalog.interfaces {
+        for relative in std::iter::once(interface.normalized_result_contract.as_str())
+            .chain(interface.planner_contract.as_deref())
+            .chain(std::iter::once(interface.downstream_probe.source.as_str()))
+            .chain(interface.provenance_sources.iter().map(String::as_str))
+        {
+            let path = repo_root.join(relative);
+            if !path.is_file() {
+                anyhow::bail!(
+                    "benchmark stage interface source is absent for {}: {}",
+                    interface.stage_id,
+                    path.display()
+                );
+            }
+        }
+
+        if !parameter_configs.contains_key(&interface.parameter_config) {
+            let path = repo_root.join(&interface.parameter_config);
+            let raw = fs::read_to_string(&path)
+                .with_context(|| format!("read pipeline parameter config {}", path.display()))?;
+            let config: BenchmarkPipelineParameterConfig = serde_yaml::from_str(&raw)
+                .with_context(|| format!("parse pipeline parameter config {}", path.display()))?;
+            validate_pipeline_parameter_config(&config).with_context(|| {
+                format!("validate pipeline parameter config {}", path.display())
+            })?;
+            parameter_configs.insert(interface.parameter_config.clone(), config);
+        }
+        let config = parameter_configs
+            .get(&interface.parameter_config)
+            .context("loaded pipeline parameter config is absent from cache")?;
+        validate_interface_parameter_alignment(interface, config)
+            .with_context(|| format!("validate parameter ownership for {}", interface.stage_id))?;
+    }
+    Ok(())
 }
 
 fn validate_portfolio_repository_paths(portfolio: &BenchmarkPortfolio) -> Result<()> {
@@ -162,9 +236,12 @@ fn validate_portfolio_repository_paths(portfolio: &BenchmarkPortfolio) -> Result
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Context;
     use bijux_dna_bench_model::{BenchmarkEvidenceTier, CorpusDomain, CorpusScale};
 
-    use super::{load_bundle_catalog, load_checked_in_benchmark_contracts, load_corpus_catalog};
+    use super::{
+        load_bundle_catalog, load_checked_in_benchmark_planning_contracts, load_corpus_catalog,
+    };
 
     #[test]
     fn corpus_catalog_contains_fastq_ci_small_fixture_matrix() -> anyhow::Result<()> {
@@ -194,7 +271,7 @@ mod tests {
     #[test]
     fn checked_in_benchmark_contracts_include_run_2042_and_71_stage_reservations(
     ) -> anyhow::Result<()> {
-        let (registry, portfolio) = load_checked_in_benchmark_contracts()?;
+        let (registry, portfolio, interfaces) = load_checked_in_benchmark_planning_contracts()?;
         assert_eq!(
             portfolio.stage_runs.len(),
             71,
@@ -212,6 +289,7 @@ mod tests {
         assert_eq!(run_2042.stage_id, "fastq.profile_read_lengths");
         assert!(matches!(run_2042.evidence_tier, BenchmarkEvidenceTier::Comparative));
         assert_eq!(run_2042.tool_ids, vec!["seqfu".to_string(), "seqkit".to_string()]);
+        assert_eq!(interfaces.interfaces.len(), 2);
         Ok(())
     }
 }

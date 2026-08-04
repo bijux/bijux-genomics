@@ -16,6 +16,12 @@ Model contracts:
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
 - `BenchmarkPortfolio`
+- `BenchmarkStageInterfaceCatalog`
+- `BenchmarkStageInterfaceSpec`
+- `BenchmarkStageDownstreamProbe`
+- `BenchmarkPipelineParameterConfig`
+- `BenchmarkStageParameterConfig`
+- `BenchmarkParameterValue`
 - `BenchmarkMeasurementContract`
 - `BenchmarkCorpusContract`
 - `BenchmarkScientificProfile`
@@ -52,6 +58,8 @@ Policy and diagnostics:
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
+- `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
+- `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 
 Statistics:
 

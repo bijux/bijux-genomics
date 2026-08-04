@@ -11,7 +11,9 @@ pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
     BenchmarkAttemptRecord, BenchmarkCycleStatus, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BenchmarkPipelineParameterConfig, BenchmarkStageInterfaceCatalog, BENCHMARK_ATTEMPT_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
+    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
 };
 
 pub use crate::internal::public_surface::handlers::bam::BamBenchOutcome;
@@ -65,6 +67,38 @@ pub fn render_benchmark_cycle_status_schema() -> serde_json::Value {
 /// Returns an error if the schema cannot be written to `path`.
 pub fn write_benchmark_cycle_status_schema(path: &Path) -> Result<()> {
     let schema = render_benchmark_cycle_status_schema();
+    bijux_dna_infra::atomic_write_json(path, &schema)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+/// Render the governed benchmark stage-interface catalog schema.
+#[must_use]
+pub fn render_benchmark_stage_interfaces_schema() -> serde_json::Value {
+    render_json_schema::<BenchmarkStageInterfaceCatalog>()
+}
+
+/// Write the governed benchmark stage-interface catalog schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
+pub fn write_benchmark_stage_interfaces_schema(path: &Path) -> Result<()> {
+    let schema = render_benchmark_stage_interfaces_schema();
+    bijux_dna_infra::atomic_write_json(path, &schema)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+/// Render the governed benchmark pipeline-parameter schema.
+#[must_use]
+pub fn render_benchmark_pipeline_parameters_schema() -> serde_json::Value {
+    render_json_schema::<BenchmarkPipelineParameterConfig>()
+}
+
+/// Write the governed benchmark pipeline-parameter schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
+pub fn write_benchmark_pipeline_parameters_schema(path: &Path) -> Result<()> {
+    let schema = render_benchmark_pipeline_parameters_schema();
     bijux_dna_infra::atomic_write_json(path, &schema)
         .with_context(|| format!("write {}", path.display()))
 }

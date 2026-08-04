@@ -52,6 +52,11 @@ pub fn bench_portfolio_path() -> PathBuf {
 }
 
 #[must_use]
+pub fn bench_stage_interfaces_path() -> PathBuf {
+    bench_contracts_dir().join("stage-interfaces.toml")
+}
+
+#[must_use]
 pub fn bench_fastq_local_stage_matrix_path() -> PathBuf {
     bench_local_config_dir().join("fastq-stage-matrix.toml")
 }
@@ -68,7 +73,7 @@ mod tests {
     use super::{
         bench_bam_local_stage_matrix_path, bench_contracts_dir,
         bench_fastq_local_stage_matrix_path, bench_local_config_dir, bench_portfolio_path,
-        bench_stage_campaigns_path,
+        bench_stage_campaigns_path, bench_stage_interfaces_path,
     };
 
     struct RepoRootOverrideGuard {
@@ -114,6 +119,10 @@ mod tests {
         assert_eq!(
             bench_portfolio_path(),
             temp.path().join("benchmarks").join("contracts").join("portfolio.toml"),
+        );
+        assert_eq!(
+            bench_stage_interfaces_path(),
+            temp.path().join("benchmarks").join("contracts").join("stage-interfaces.toml"),
         );
         assert_eq!(
             bench_fastq_local_stage_matrix_path(),

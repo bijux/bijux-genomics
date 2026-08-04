@@ -8,3 +8,8 @@ The committed normalized-metrics surfaces live here:
 - `bam-normalized-metrics.v1.json`
 - `vcf-normalized-metrics.v1.json`
 - `vcf-normalized-metrics/*.v1.json`
+
+The committed benchmark planning contract schemas generated from Rust types are:
+
+- `stage-interfaces.v1.json`
+- `pipeline-parameters.v1.json`

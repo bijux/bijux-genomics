@@ -15,7 +15,8 @@ pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
 pub use suite_load::{
     load_benchmark_portfolio, load_bundle_catalog, load_bundle_manifest,
-    load_checked_in_benchmark_contracts, load_corpus_catalog, load_corpus_manifest,
-    load_stage_campaign_registry, load_suite,
+    load_checked_in_benchmark_contracts, load_checked_in_benchmark_planning_contracts,
+    load_corpus_catalog, load_corpus_manifest, load_stage_campaign_registry,
+    load_stage_interface_catalog, load_suite,
 };
 pub use summary::summarize;

@@ -33,6 +33,9 @@ The public front door also exposes curated v1 namespaces:
   Benchmark lifecycle schema operations now include `render_benchmark_attempt_schema`,
   `write_benchmark_attempt_schema`, `render_benchmark_cycle_status_schema`, and
   `write_benchmark_cycle_status_schema`.
+  Benchmark planning schema operations include `render_benchmark_stage_interfaces_schema`,
+  `write_benchmark_stage_interfaces_schema`, `render_benchmark_pipeline_parameters_schema`,
+  and `write_benchmark_pipeline_parameters_schema`.
 - `api::plan` for planning helper exports.
 - `api::run` for run orchestration helper exports.
 - `api::report` for report helper exports.

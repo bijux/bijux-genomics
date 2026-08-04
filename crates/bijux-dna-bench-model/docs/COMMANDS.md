@@ -15,6 +15,10 @@ not own CLI commands or process execution.
 | `validate-benchmark-portfolio` | `contract::validate_benchmark_portfolio` | Validate `BenchmarkPortfolio` declarations, corpora, profiles, and stage assignments. |
 | `validate-defined-campaign-portfolio-alignment` | `contract::validate_defined_campaign_portfolio_alignment` | Validate that every defined stage campaign matches its reserved portfolio run, profile, and corpus identities. |
 | `validate-portfolio-campaign-alignment` | `contract::validate_portfolio_campaign_alignment` | Validate full 1:1 closure between all reserved portfolio stages and the stage campaign registry. |
+| `validate-stage-interface-catalog` | `contract::validate_stage_interface_catalog` | Validate stage interfaces, adapters, parameter ownership, downstream probes, and repository-relative contract paths. |
+| `validate-pipeline-parameter-config` | `contract::validate_pipeline_parameter_config` | Validate the governed per-stage pipeline parameter configuration. |
+| `validate-defined-interface-campaign-alignment` | `contract::validate_defined_interface_campaign_alignment` | Validate that every defined stage interface matches a campaign and its exact tool set. |
+| `validate-interface-parameter-alignment` | `contract::validate_interface_parameter_alignment` | Validate parameter schema, defaults provider, and allowed overrides for one stage interface. |
 | `validate-observation` | `contract::validate_observation` | Validate one `BenchmarkObservation` before summarization. |
 | `validate-summary` | `contract::validate_summary` | Validate a `BenchmarkSummary` before persistence or comparison. |
 | `validate-decision` | `contract::validate_decision` | Validate a `GateDecision` before persistence. |

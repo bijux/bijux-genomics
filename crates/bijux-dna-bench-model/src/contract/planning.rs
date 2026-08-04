@@ -217,8 +217,7 @@ fn validate_campaign_portfolio_alignment_impl(
         for corpus_id in &campaign.corpus_ids {
             if !corpora.contains_key(corpus_id.as_str()) {
                 return Err(BenchError::InvalidPolicy(format!(
-                    "benchmark campaign references unknown corpus: {}",
-                    corpus_id
+                    "benchmark campaign references unknown corpus: {corpus_id}"
                 )));
             }
         }
@@ -227,6 +226,15 @@ fn validate_campaign_portfolio_alignment_impl(
 }
 
 fn validate_stage_campaign(campaign: &BenchmarkStageCampaignSpec) -> Result<(), BenchError> {
+    validate_stage_campaign_identity(campaign)?;
+    validate_stage_campaign_execution(campaign)?;
+    validate_stage_campaign_metrics(campaign)?;
+    validate_thread_configuration(campaign)
+}
+
+fn validate_stage_campaign_identity(
+    campaign: &BenchmarkStageCampaignSpec,
+) -> Result<(), BenchError> {
     require_text(&campaign.run_id, "campaign run_id")?;
     require_text(&campaign.slug, "campaign slug")?;
     require_text(&campaign.domain, "campaign domain")?;
@@ -260,7 +268,12 @@ fn validate_stage_campaign(campaign: &BenchmarkStageCampaignSpec) -> Result<(), 
     validate_text_list(&campaign.performance_metrics, "campaign performance_metrics", false)?;
     validate_text_list(&campaign.scientific_metrics, "campaign scientific_metrics", false)?;
     validate_text_list(&campaign.limitations, "campaign limitations", false)?;
+    Ok(())
+}
 
+fn validate_stage_campaign_execution(
+    campaign: &BenchmarkStageCampaignSpec,
+) -> Result<(), BenchError> {
     if campaign.input_size_keys.iter().any(|value| !is_input_size_key(value)) {
         return Err(BenchError::InvalidPolicy(
             "campaign input_size_keys must name governed byte-count fields".to_string(),
@@ -291,7 +304,12 @@ fn validate_stage_campaign(campaign: &BenchmarkStageCampaignSpec) -> Result<(), 
             "stage campaign result root template is not canonical".to_string(),
         ));
     }
+    Ok(())
+}
 
+fn validate_stage_campaign_metrics(
+    campaign: &BenchmarkStageCampaignSpec,
+) -> Result<(), BenchError> {
     let performance_metrics =
         campaign.performance_metrics.iter().map(String::as_str).collect::<BTreeSet<_>>();
     let missing_required = REQUIRED_PERFORMANCE_METRICS
@@ -355,7 +373,6 @@ fn validate_stage_campaign(campaign: &BenchmarkStageCampaignSpec) -> Result<(), 
         }
     }
 
-    validate_thread_configuration(campaign)?;
     Ok(())
 }
 
@@ -541,8 +558,7 @@ fn validate_assignments(
         for stage_id in &assignment.stage_ids {
             if assigned_stages.insert(stage_id.as_str(), assignment.profile_id.as_str()).is_some() {
                 return Err(BenchError::InvalidPolicy(format!(
-                    "benchmark stage has multiple profile assignments: {}",
-                    stage_id
+                    "benchmark stage has multiple profile assignments: {stage_id}"
                 )));
             }
         }

@@ -15,5 +15,6 @@ pub use run_metadata::RunMetadata;
 pub use workspace_paths::{
     bench_bam_local_stage_matrix_path, bench_bundles_dir, bench_contracts_dir, bench_corpora_dir,
     bench_data_dir, bench_fastq_local_stage_matrix_path, bench_local_config_dir,
-    bench_portfolio_path, bench_stage_campaigns_path, bench_suites_dir,
+    bench_portfolio_path, bench_stage_campaigns_path, bench_stage_interfaces_path,
+    bench_suites_dir,
 };

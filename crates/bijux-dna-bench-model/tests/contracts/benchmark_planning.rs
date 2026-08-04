@@ -143,10 +143,8 @@ fn benchmark_stage_campaign_registry_rejects_slug_drift() {
     let mut registry = stage_campaign_registry();
     registry.campaigns[0].slug = "wrong-slug".to_string();
 
-    let error = validate_stage_campaign_registry(&registry)
-        .expect_err("slug drift should fail benchmark campaign validation");
-
-    assert!(error.to_string().contains("must derive from stage"));
+    let error = validate_stage_campaign_registry(&registry).err().map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("must derive from stage")));
 }
 
 #[test]
@@ -156,7 +154,7 @@ fn benchmark_planning_alignment_rejects_run_id_drift() {
     portfolio.stage_runs.insert("fastq.profile_read_lengths".to_string(), "run-2043".to_string());
 
     let error = validate_portfolio_campaign_alignment(&registry, &portfolio)
-        .expect_err("run-id drift should fail planning alignment");
-
-    assert!(error.to_string().contains("benchmark run id drift"));
+        .err()
+        .map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("benchmark run id drift")));
 }

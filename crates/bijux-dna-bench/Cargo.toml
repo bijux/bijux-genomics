@@ -14,6 +14,7 @@ bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model" }
 toml = { workspace = true }
+serde_yaml = { workspace = true }
 
 [dev-dependencies]
 bijux-dna-analyze = { path = "../bijux-dna-analyze" }

@@ -3,13 +3,48 @@ use std::fs;
 
 use bijux_dna_api::v1::api::bench::{
     render_benchmark_attempt_schema, render_benchmark_cycle_status_schema,
+    render_benchmark_pipeline_parameters_schema, render_benchmark_stage_interfaces_schema,
     BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
 };
 
 fn load_fixture(path: &std::path::Path) -> Value {
     let raw = fs::read_to_string(path)
         .unwrap_or_else(|err| panic!("read fixture {}: {err}", path.display()));
     serde_json::from_str(&raw).unwrap_or_else(|err| panic!("parse fixture json: {err}"))
+}
+
+#[test]
+fn benchmark_planning_schemas_are_owned_by_rust_types() {
+    let interfaces = render_benchmark_stage_interfaces_schema();
+    let parameters = render_benchmark_pipeline_parameters_schema();
+
+    assert_eq!(
+        interfaces.pointer("/properties/schema_version/const").and_then(serde_json::Value::as_str),
+        Some(BENCHMARK_STAGE_INTERFACES_SCHEMA_V1)
+    );
+    assert_eq!(
+        parameters.pointer("/properties/schema_version/const").and_then(serde_json::Value::as_str),
+        Some(BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1)
+    );
+}
+
+#[test]
+fn checked_benchmark_planning_schemas_match_rust_types() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
+    let schema_root = repository_root.join("benchmarks").join("schemas");
+    let interfaces: Value =
+        serde_json::from_str(&fs::read_to_string(schema_root.join("stage-interfaces.v1.json"))?)?;
+    let parameters: Value = serde_json::from_str(&fs::read_to_string(
+        schema_root.join("pipeline-parameters.v1.json"),
+    )?)?;
+
+    assert_eq!(interfaces, render_benchmark_stage_interfaces_schema());
+    assert_eq!(parameters, render_benchmark_pipeline_parameters_schema());
+    Ok(())
 }
 
 #[test]

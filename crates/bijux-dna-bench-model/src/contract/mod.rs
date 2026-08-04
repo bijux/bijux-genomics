@@ -4,10 +4,15 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod interfaces;
 mod planning;
 mod records;
 mod schema_versions;
 mod suite;
+pub use interfaces::{
+    validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
+    validate_pipeline_parameter_config, validate_stage_interface_catalog,
+};
 pub use planning::{
     validate_benchmark_portfolio, validate_defined_campaign_portfolio_alignment,
     validate_portfolio_campaign_alignment, validate_stage_campaign_registry,
@@ -17,8 +22,10 @@ pub use records::{
     validate_summary,
 };
 pub use schema_versions::{
-    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
-    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BUNDLE_SCHEMA_V1,
+    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1,
 };
 pub use suite::validate_suite;
