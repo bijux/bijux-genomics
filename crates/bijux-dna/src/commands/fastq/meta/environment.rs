@@ -38,6 +38,7 @@ pub(crate) fn handle_environment_command(
             }
         }
         EnvCommand::EnsureImages(args) => {
+            let exact_root = args.hpc_root.is_some();
             let hpc_root = args.hpc_root.clone().map_or_else(
                 || crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
@@ -51,14 +52,25 @@ pub(crate) fn handle_environment_command(
                     ));
                 }
             };
-            let report = crate::commands::cli::env::ensure_apptainer_images(
-                &registry_path,
-                &hpc_root,
-                &args.domain,
-                &stages,
-                args.force_smoke,
-                args.repair_mismatch,
-            )?;
+            let report = if exact_root {
+                crate::commands::cli::env::ensure_apptainer_images_at_root(
+                    &registry_path,
+                    &hpc_root,
+                    &args.domain,
+                    &stages,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            } else {
+                crate::commands::cli::env::ensure_apptainer_images(
+                    &registry_path,
+                    &hpc_root,
+                    &args.domain,
+                    &stages,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            };
             if args.json {
                 render::json::print_pretty(&report)?;
             } else {
@@ -75,11 +87,16 @@ pub(crate) fn handle_environment_command(
             crate::commands::cli::env::lint_apptainer_defs(&cwd)?;
         }
         EnvCommand::SifInventory { hpc_root, json } => {
+            let exact_root = hpc_root.is_some();
             let root = hpc_root.clone().map_or_else(
                 || crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
             )?;
-            let report = crate::commands::cli::env::sif_inventory(&root)?;
+            let report = if exact_root {
+                crate::commands::cli::env::sif_inventory_at_root(&root)?
+            } else {
+                crate::commands::cli::env::sif_inventory(&root)?
+            };
             if *json {
                 render::json::print_pretty(&report)?;
             } else {
@@ -89,18 +106,30 @@ pub(crate) fn handle_environment_command(
         }
         EnvCommand::Ensure(args) => {
             let domain = crate::commands::cli::env::parse_stage_domain(&args.stage)?;
+            let exact_root = args.hpc_root.is_some();
             let hpc_root = args.hpc_root.clone().map_or_else(
                 || crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
             )?;
-            let report = crate::commands::cli::env::ensure_apptainer_images(
-                &registry_path,
-                &hpc_root,
-                &domain,
-                &args.stage,
-                args.force_smoke,
-                args.repair_mismatch,
-            )?;
+            let report = if exact_root {
+                crate::commands::cli::env::ensure_apptainer_images_at_root(
+                    &registry_path,
+                    &hpc_root,
+                    &domain,
+                    &args.stage,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            } else {
+                crate::commands::cli::env::ensure_apptainer_images(
+                    &registry_path,
+                    &hpc_root,
+                    &domain,
+                    &args.stage,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            };
             if args.json {
                 render::json::print_pretty(&report)?;
             } else {

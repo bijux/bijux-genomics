@@ -46,14 +46,18 @@ pub(super) fn benchmark_env_roots(cwd: &Path, hpc_root: &Path) -> Result<Benchma
             }
         }
     }
+    Ok(benchmark_env_roots_at_hpc_root(hpc_root))
+}
+
+pub(super) fn benchmark_env_roots_at_hpc_root(hpc_root: &Path) -> BenchmarkEnvRoots {
     let cache_root = shared_cache_root(hpc_root);
     let corpus_dir_name = benchmark_fallback_corpus_dir_name();
-    Ok(BenchmarkEnvRoots {
+    BenchmarkEnvRoots {
         containers_root: cache_root.join("bijux-dna-container"),
         corpus_root: cache_root.join(corpus_dir_name),
         results_root: cache_root.join("results"),
         cache_root,
-    })
+    }
 }
 
 fn benchmark_fallback_corpus_dir_name() -> String {

@@ -1,6 +1,6 @@
 mod env_benchmark_roots;
 
-use self::env_benchmark_roots::benchmark_env_roots;
+use self::env_benchmark_roots::{benchmark_env_roots, benchmark_env_roots_at_hpc_root};
 #[cfg(test)]
 use self::env_benchmark_roots::{shared_cache_root, BenchmarkEnvRoots};
 
@@ -117,6 +117,49 @@ pub fn ensure_apptainer_images(
     force_smoke: bool,
     repair_mismatch: bool,
 ) -> Result<EnsureImagesReport> {
+    ensure_apptainer_images_with_root_policy(
+        registry_path,
+        hpc_root,
+        domain,
+        stages_csv,
+        force_smoke,
+        repair_mismatch,
+        false,
+    )
+}
+
+/// Build or verify selected images under the exact operator-supplied HPC root.
+///
+/// # Errors
+/// Returns an error if registry parsing, Apptainer build/smoke, or manifest writes fail.
+pub fn ensure_apptainer_images_at_root(
+    registry_path: &Path,
+    hpc_root: &Path,
+    domain: &str,
+    stages_csv: &str,
+    force_smoke: bool,
+    repair_mismatch: bool,
+) -> Result<EnsureImagesReport> {
+    ensure_apptainer_images_with_root_policy(
+        registry_path,
+        hpc_root,
+        domain,
+        stages_csv,
+        force_smoke,
+        repair_mismatch,
+        true,
+    )
+}
+
+fn ensure_apptainer_images_with_root_policy(
+    registry_path: &Path,
+    hpc_root: &Path,
+    domain: &str,
+    stages_csv: &str,
+    force_smoke: bool,
+    repair_mismatch: bool,
+    exact_hpc_root: bool,
+) -> Result<EnsureImagesReport> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
@@ -131,7 +174,11 @@ pub fn ensure_apptainer_images(
     let stage_ids = normalize_stage_ids(domain, stages_csv);
     let repository_commit = current_clean_repository_commit(&cwd)?;
 
-    let roots = benchmark_env_roots(&cwd, hpc_root)?;
+    let roots = if exact_hpc_root {
+        benchmark_env_roots_at_hpc_root(hpc_root)
+    } else {
+        benchmark_env_roots(&cwd, hpc_root)?
+    };
     let containers_root = roots.containers_root;
     let data_root = roots.corpus_root;
     let results_root = roots.results_root;
@@ -505,8 +552,27 @@ pub fn parse_stage_domain(stage: &str) -> Result<String> {
 /// # Errors
 /// Returns an error if the containers inventory cannot be read.
 pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
+    sif_inventory_with_root_policy(root, false)
+}
+
+/// Inventory images under the exact operator-supplied HPC root.
+///
+/// # Errors
+/// Returns an error if the containers inventory cannot be read.
+pub fn sif_inventory_at_root(root: &Path) -> Result<SifInventoryReport> {
+    sif_inventory_with_root_policy(root, true)
+}
+
+fn sif_inventory_with_root_policy(
+    root: &Path,
+    exact_hpc_root: bool,
+) -> Result<SifInventoryReport> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
-    let containers_dir = benchmark_env_roots(&cwd, root)?.containers_root;
+    let containers_dir = if exact_hpc_root {
+        benchmark_env_roots_at_hpc_root(root).containers_root
+    } else {
+        benchmark_env_roots(&cwd, root)?.containers_root
+    };
     let mut entries = Vec::new();
     let mut stack = vec![containers_dir.clone()];
     while let Some(dir) = stack.pop() {
@@ -609,8 +675,8 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 #[allow(clippy::expect_used)]
 mod env_registry_command_tests {
     use super::{
-        benchmark_env_roots, current_clean_repository_commit, requires_governed_oci_metadata,
-        shared_cache_root, BenchmarkEnvRoots,
+        benchmark_env_roots, benchmark_env_roots_at_hpc_root, current_clean_repository_commit,
+        requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots,
     };
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
@@ -662,6 +728,20 @@ containers_root = "/remote/.cache/bijux-dna-container"
                 corpus_root: PathBuf::from("/remote/.cache/benchmark_corpus"),
                 results_root: PathBuf::from("/remote/.cache/results"),
             }
+        );
+    }
+
+    #[test]
+    fn explicit_hpc_root_bypasses_workspace_contract() {
+        let temp = TempDir::new().expect("tempdir");
+        write_workspace_contract(&temp);
+
+        let roots = benchmark_env_roots_at_hpc_root(Path::new("/isolated/image-campaign"));
+
+        assert_eq!(roots.cache_root, PathBuf::from("/isolated/image-campaign/.cache"));
+        assert_eq!(
+            roots.containers_root,
+            PathBuf::from("/isolated/image-campaign/.cache/bijux-dna-container")
         );
     }
 

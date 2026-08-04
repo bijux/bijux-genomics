@@ -122,10 +122,10 @@ pub(crate) fn handle_environment_root(
     platform_name: Option<&str>,
 ) -> Result<()> {
     use crate::commands::cli::env::{
-        current_registry_path, ensure_apptainer_images, env_doctor,
-        generate_apptainer_qa_matrix_markdown, lint_apptainer_defs, parse_stage_domain,
+        current_registry_path, ensure_apptainer_images, ensure_apptainer_images_at_root,
+        env_doctor, generate_apptainer_qa_matrix_markdown, lint_apptainer_defs, parse_stage_domain,
         print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
-        run_env_prep, run_env_smoke, run_env_smoke_for_stage, sif_inventory,
+        run_env_prep, run_env_smoke, run_env_smoke_for_stage, sif_inventory, sif_inventory_at_root,
     };
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     let registry_path = current_registry_path()?;
@@ -154,10 +154,12 @@ pub(crate) fn handle_environment_root(
             }
         }
         cli::EnvCommand::SifInventory { hpc_root, json } => {
+            let exact_root = hpc_root.is_some();
             let root = hpc_root
                 .clone()
                 .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
-            let report = sif_inventory(&root)?;
+            let report =
+                if exact_root { sif_inventory_at_root(&root)? } else { sif_inventory(&root)? };
             if *json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -167,18 +169,30 @@ pub(crate) fn handle_environment_root(
         }
         cli::EnvCommand::Ensure(args) => {
             let domain = parse_stage_domain(&args.stage)?;
+            let exact_root = args.hpc_root.is_some();
             let hpc_root = args
                 .hpc_root
                 .clone()
                 .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
-            let report = ensure_apptainer_images(
-                &registry_path,
-                &hpc_root,
-                &domain,
-                &args.stage,
-                args.force_smoke,
-                args.repair_mismatch,
-            )?;
+            let report = if exact_root {
+                ensure_apptainer_images_at_root(
+                    &registry_path,
+                    &hpc_root,
+                    &domain,
+                    &args.stage,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            } else {
+                ensure_apptainer_images(
+                    &registry_path,
+                    &hpc_root,
+                    &domain,
+                    &args.stage,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            };
             if args.json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -202,6 +216,7 @@ pub(crate) fn handle_environment_root(
             println!("qa_matrix={}", out.display());
         }
         cli::EnvCommand::EnsureImages(args) => {
+            let exact_root = args.hpc_root.is_some();
             let hpc_root = args
                 .hpc_root
                 .clone()
@@ -215,14 +230,25 @@ pub(crate) fn handle_environment_root(
                     ));
                 }
             };
-            let report = ensure_apptainer_images(
-                &registry_path,
-                &hpc_root,
-                &args.domain,
-                &stages,
-                args.force_smoke,
-                args.repair_mismatch,
-            )?;
+            let report = if exact_root {
+                ensure_apptainer_images_at_root(
+                    &registry_path,
+                    &hpc_root,
+                    &args.domain,
+                    &stages,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            } else {
+                ensure_apptainer_images(
+                    &registry_path,
+                    &hpc_root,
+                    &args.domain,
+                    &stages,
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?
+            };
             if args.json {
                 cli::render::json::print_pretty(&report)?;
             } else {
