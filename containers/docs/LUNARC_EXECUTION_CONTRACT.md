@@ -77,6 +77,12 @@ execution paths. Qualification attempts remain under
 isolated under `$STUDY/results/benchmark-attempts/{failed,superseded}` and use
 the benchmark-owned attempt archive contract.
 
+Historical owner correction must use `hpc run benchmark-attempt-migration`.
+Direct `mv`, copy-and-delete, and path-name classification are not admissible:
+the governed workflow derives ownership from the retained pipeline contract,
+binds its plan to a SHA-256 ledger, verifies every source and target file, and
+retains an exact rollback path.
+
 Current pipeline contracts separate host storage from paths visible inside the
 contained runtime. Governed input files mount as unique, safe filenames beneath
 `/input`; the declared filename retains format and compression suffixes such as

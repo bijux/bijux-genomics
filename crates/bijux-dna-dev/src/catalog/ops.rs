@@ -132,6 +132,11 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             "Push the governed repository context for the benchmark environment.",
             NativeOpsCommandKey::HpcBenchmarkSyncPush,
         ),
+        native(
+            "benchmark-attempt-migration",
+            "Plan, apply, verify, or roll back benchmark attempt ownership migration.",
+            NativeOpsCommandKey::HpcBenchmarkAttemptMigration,
+        ),
     ]
 }
 

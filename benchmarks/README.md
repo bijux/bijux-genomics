@@ -309,6 +309,41 @@ attempt, tool, and Slurm identities, original STUDY URIs, and a size/SHA-256
 inventory. Container qualification attempts remain under
 `$STUDY/containers/evidence/` and must not be mixed into these roots.
 
+Historical benchmark bundles below container evidence are moved only through
+the Rust-owned reversible migration workflow. The plan classifies ownership
+from each retained pipeline's `run.kind`, inventories every byte, and records
+qualification or incomplete material as explicit exclusions. Apply writes an
+interruption-safe ledger before moving anything; verify recomputes every size
+and SHA-256; rollback verifies each target before restoring its exact source
+path. The same plan normalizes the historical benchmark-owned `failures/` root
+to the governed singular `failed/` disposition without rewriting any bundle.
+
+```console
+migration_root="$STUDY/evidence/migrations/benchmark-attempt-owner-routing"
+mkdir -p "$migration_root"
+
+cargo run -p bijux-dna-dev -- hpc run benchmark-attempt-migration -- \
+  plan --study-root "$STUDY" \
+  --plan "$migration_root/migration-plan.json"
+
+cargo run -p bijux-dna-dev -- hpc run benchmark-attempt-migration -- \
+  apply --study-root "$STUDY" \
+  --plan "$migration_root/migration-plan.json" \
+  --ledger "$migration_root/migration-ledger.json"
+
+cargo run -p bijux-dna-dev -- hpc run benchmark-attempt-migration -- \
+  verify --study-root "$STUDY" \
+  --plan "$migration_root/migration-plan.json" \
+  --ledger "$migration_root/migration-ledger.json" \
+  --inventory "$migration_root/after-inventory.json"
+
+# Rollback is available until the migration is accepted.
+cargo run -p bijux-dna-dev -- hpc run benchmark-attempt-migration -- \
+  rollback --study-root "$STUDY" \
+  --plan "$migration_root/migration-plan.json" \
+  --ledger "$migration_root/migration-ledger.json"
+```
+
 ```console
 python3 -B benchmarks/benchmark_evidence.py \
   --registry benchmarks/contracts/stage-campaigns.toml \
