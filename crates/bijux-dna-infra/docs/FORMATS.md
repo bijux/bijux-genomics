@@ -8,6 +8,7 @@ ownership belong outside this crate.
 - `formats::parse_json` parses non-contract JSON payloads.
 - `formats::to_json_pretty` renders deterministic pretty JSON for config-like payloads.
 - `atomic_write_json` writes JSON atomically for callers that already own the output contract.
+- `atomic_create_json` publishes immutable JSON atomically and rejects an existing destination.
 
 ## TOML
 

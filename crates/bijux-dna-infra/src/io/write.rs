@@ -31,6 +31,14 @@ pub fn atomic_write_bytes(path: &Path, bytes: &[u8]) -> Result<(), IoError> {
     atomic_write_with(path, |file| file.write_all(bytes))
 }
 
+/// Atomically create a new file without replacing an existing destination.
+///
+/// # Errors
+/// Returns an IO error if writing fails or the destination already exists.
+pub fn atomic_create_bytes(path: &Path, bytes: &[u8]) -> Result<(), IoError> {
+    atomic_create_with(path, |file| file.write_all(bytes))
+}
+
 /// Write bytes to a path with the standard atomic write policy.
 ///
 /// # Errors
@@ -133,6 +141,35 @@ pub fn atomic_write_json<T: serde::Serialize>(path: &Path, value: &T) -> Result<
     let payload = serde_json::to_vec_pretty(value)
         .map_err(|err| IoError::new(IoErrorKind::Other, format!("serialize json: {err}")))?;
     atomic_write_bytes(path, &payload)
+}
+
+/// Atomically create a new JSON file without replacing an existing destination.
+///
+/// # Errors
+/// Returns an IO error if serialization or writing fails, or the destination already exists.
+pub fn atomic_create_json<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), IoError> {
+    let payload = serde_json::to_vec_pretty(value)
+        .map_err(|err| IoError::new(IoErrorKind::Other, format!("serialize json: {err}")))?;
+    atomic_create_bytes(path, &payload)
+}
+
+/// Atomically create a new file using a custom writer without replacing existing data.
+///
+/// # Errors
+/// Returns an IO error if the write fails or the destination already exists.
+pub fn atomic_create_with<F>(path: &Path, writer: F) -> Result<(), IoError>
+where
+    F: FnOnce(&mut File) -> std::io::Result<()>,
+{
+    let parent = non_empty_parent(path).unwrap_or_else(|| Path::new("."));
+    ensure_dir(parent)?;
+
+    let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(IoError::from_io)?;
+    writer(temp.as_file_mut()).map_err(IoError::from_io)?;
+    temp.as_file_mut().sync_all().map_err(IoError::from_io)?;
+    apply_target_permissions(path, &mut temp)?;
+    temp.persist_noclobber(path).map_err(|err| IoError::from_io(err.error))?;
+    Ok(())
 }
 
 /// Atomically write using a custom writer function.

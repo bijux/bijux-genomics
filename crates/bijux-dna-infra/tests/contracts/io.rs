@@ -41,6 +41,49 @@ fn atomic_write_failure_does_not_clobber() -> anyhow::Result<()> {
 }
 
 #[test]
+fn atomic_create_refuses_to_replace_existing_data() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let target = dir.path().join("immutable.json");
+    bijux_dna_infra::atomic_create_bytes(&target, b"first")?;
+
+    let error = bijux_dna_infra::atomic_create_bytes(&target, b"second")
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("expected immutable destination collision"))?;
+
+    assert_eq!(error.kind, bijux_dna_infra::IoErrorKind::Corruption);
+    assert_eq!(std::fs::read(&target)?, b"first");
+    Ok(())
+}
+
+#[test]
+fn atomic_create_failure_does_not_publish_partial_data() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let target = dir.path().join("immutable.json");
+
+    let result = bijux_dna_infra::atomic_create_with(&target, |file| {
+        file.write_all(b"partial")?;
+        Err(std::io::Error::other("boom"))
+    });
+
+    assert!(result.is_err());
+    assert!(!target.exists());
+    Ok(())
+}
+
+#[test]
+fn atomic_create_json_publishes_complete_payload() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let target = dir.path().join("immutable.json");
+    let payload = BTreeMap::from([("state", "planned")]);
+
+    bijux_dna_infra::atomic_create_json(&target, &payload)?;
+
+    let observed: BTreeMap<String, String> = serde_json::from_slice(&std::fs::read(target)?)?;
+    assert_eq!(observed.get("state").map(String::as_str), Some("planned"));
+    Ok(())
+}
+
+#[test]
 fn leaf_relative_paths_write_in_current_directory() -> anyhow::Result<()> {
     let _cwd = cwd_lock();
     let dir = bijux_dna_infra::temp_dir("bijux")?;
