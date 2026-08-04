@@ -8,6 +8,8 @@ const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const LOCK_PATH: &str = "containers/contracts/catalog.lock.json";
 const QUALIFICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-assessment.v1.json";
+const QUALIFICATION_REPORT_SCHEMA_PATH: &str =
+    "containers/contracts/schemas/qualification-report.v2.json";
 
 #[derive(Serialize)]
 struct ContractLock<'a> {
@@ -244,4 +246,36 @@ pub(super) fn check_qualification_schema(workspace: &Workspace) -> Result<Contai
         )));
     }
     success_line("qualification assessment schema: OK")
+}
+
+pub(super) fn generate_qualification_report_schema(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-qualification-report-schema -- [<output-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let output = out_path_arg(workspace, args, QUALIFICATION_REPORT_SCHEMA_PATH, usage)?;
+    bijux_dna_api::v1::api::qualification::write_qualification_report_schema(&output)?;
+    success_line(format!("generated {}", output.display()))
+}
+
+pub(super) fn check_qualification_report_schema(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
+    let path = workspace.path(QUALIFICATION_REPORT_SCHEMA_PATH);
+    if !path.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "missing {QUALIFICATION_REPORT_SCHEMA_PATH}; generate it with the governed container command\n"
+        )));
+    }
+    let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
+    let generated = bijux_dna_api::v1::api::qualification::render_qualification_report_schema();
+    if checked != generated {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "{QUALIFICATION_REPORT_SCHEMA_PATH} drifted from Rust policy types\n"
+        )));
+    }
+    success_line("qualification report schema: OK")
 }

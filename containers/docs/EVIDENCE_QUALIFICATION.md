@@ -85,6 +85,13 @@ The generator fails before writing when catalog, recipe, image, runtime, run, or
 cannot be admitted by its owning Rust crate. It never refreshes stale evidence or converts a failed
 campaign into a passing claim.
 
+The report contract is generated from the policy type and checked independently:
+
+```console
+cargo run -q -p bijux-dna-dev -- containers run generate-qualification-report-schema
+cargo run -q -p bijux-dna-dev -- containers run check-qualification-report-schema
+```
+
 The fast drift gate recomputes the same report without writing:
 
 ```console

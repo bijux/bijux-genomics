@@ -198,6 +198,7 @@ check-no-secrets
 check-upstream-provenance
 check-owners
 check-qa-matrix-generated
+check-qualification-report-schema
 check-qualification-schema
 check-rebuild-repro
 check-registry-drift
@@ -251,6 +252,7 @@ generate-license-metadata
 generate-local-apptainer-digests
 generate-network-usage
 generate-qa-matrix
+generate-qualification-report-schema
 generate-qualification-schema
 generate-tool-docs
 generate-tool-ids

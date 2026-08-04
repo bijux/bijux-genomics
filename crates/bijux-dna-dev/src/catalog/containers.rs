@@ -307,6 +307,16 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckQualificationSchema,
         ),
         native(
+            "generate-qualification-report-schema",
+            "Generate the qualification-report schema from Rust policy types.",
+            NativeContainerCommandKey::GenerateQualificationReportSchema,
+        ),
+        native(
+            "check-qualification-report-schema",
+            "Validate the checked qualification-report schema against Rust policy types.",
+            NativeContainerCommandKey::CheckQualificationReportSchema,
+        ),
+        native(
             "deprecate-version",
             "Append a container version deprecation entry and regenerate governed metadata.",
             NativeContainerCommandKey::DeprecateVersion,

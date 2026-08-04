@@ -196,6 +196,13 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-qualification-schema", args)?;
             contracts::check_qualification_schema(workspace)
         }
+        NativeContainerCommandKey::GenerateQualificationReportSchema => {
+            contracts::generate_qualification_report_schema(workspace, args)
+        }
+        NativeContainerCommandKey::CheckQualificationReportSchema => {
+            ensure_no_args("check-qualification-report-schema", args)?;
+            contracts::check_qualification_report_schema(workspace)
+        }
         NativeContainerCommandKey::DeprecateVersion => {
             versioning::deprecate_version(workspace, args)
         }
