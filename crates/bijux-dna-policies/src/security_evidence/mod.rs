@@ -1,8 +1,10 @@
+mod gitleaks;
 mod grype;
 mod model;
 mod schema;
 mod validation;
 
+pub use gitleaks::{parse_gitleaks_report, ParsedSecretScanReport};
 pub use grype::{parse_grype_vulnerability_report, ParsedVulnerabilityReport};
 pub use model::{
     ContainerSecurityEvidencePublication, ImageSignatureDisposition, RuntimeAccessPolicy,

@@ -16,10 +16,10 @@ pub use qualification::{
     QUALIFICATION_ASSESSMENT_SCHEMA_V1,
 };
 pub use security_evidence::{
-    parse_grype_vulnerability_report, security_evidence_schema,
+    parse_gitleaks_report, parse_grype_vulnerability_report, security_evidence_schema,
     validate_security_evidence_publication, ContainerSecurityEvidencePublication,
-    ImageSignatureDisposition, ParsedVulnerabilityReport, RuntimeAccessPolicy,
-    RuntimeSecurityEvidence, SbomEvidence, SbomFormat, SecretScanEvidence,
+    ImageSignatureDisposition, ParsedSecretScanReport, ParsedVulnerabilityReport,
+    RuntimeAccessPolicy, RuntimeSecurityEvidence, SbomEvidence, SbomFormat, SecretScanEvidence,
     SecurityArtifactIdentity, SecuritySourceIdentity, StructuralSecurityEvidence,
     ToolSecurityEvidence, VulnerabilityDatabaseIdentity, VulnerabilityDatabaseStatus,
     VulnerabilityEvidence, VulnerabilityFinding, VulnerabilityScannerIdentity,
