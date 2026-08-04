@@ -88,7 +88,6 @@ fn materialize_apptainer_build(
     prepared: &bijux_dna_api::v1::api::env::PreparedToolContractBuild,
     repair_mismatch: bool,
     containers_root: &Path,
-    build_log_path: Option<&Path>,
 ) -> Result<(String, bool)> {
     if sif_path.is_file() {
         match verify_apptainer_build(sif_path, prepared) {
@@ -106,8 +105,58 @@ fn materialize_apptainer_build(
             )?,
         }
     }
-    build_apptainer_image(&prepared.rendered_definition_path, sif_path, build_log_path)?;
+    bijux_dna_api::v1::api::env::build_apptainer_image(
+        &bijux_dna_api::v1::api::env::ApptainerBuildRequest::retained(
+            prepared.rendered_definition_path.clone(),
+            sif_path.to_path_buf(),
+            containers_root,
+            prepared.contract.tool_id.clone(),
+            prepared.contract.build_evidence_id.clone(),
+        ),
+    )?;
     Ok((verify_apptainer_build(sif_path, prepared)?, true))
+}
+
+#[allow(clippy::too_many_arguments)]
+fn execute_contract_smoke(
+    sif_path: &Path,
+    tool_id: &str,
+    stage_id: &str,
+    build_evidence_id: &str,
+    repository_commit: &str,
+    registry_digest: &str,
+    sif_sha256: &str,
+    version_command: &str,
+    expected_version_regex: &str,
+    help_command: &str,
+    require_help: bool,
+    probe_commands: &[String],
+    java_heap_mb: Option<u64>,
+    upstream: &str,
+    data_root: &Path,
+    results_root: &Path,
+) -> Result<bijux_dna_api::v1::api::env::ApptainerSmokeManifest> {
+    bijux_dna_api::v1::api::env::run_apptainer_smoke(
+        &bijux_dna_api::v1::api::env::ApptainerSmokeRequest {
+            executable: PathBuf::from("apptainer"),
+            image_path: sif_path.to_path_buf(),
+            data_root: data_root.to_path_buf(),
+            results_root: results_root.to_path_buf(),
+            tool_id: tool_id.to_string(),
+            stage_id: stage_id.to_string(),
+            build_evidence_id: build_evidence_id.to_string(),
+            repository_commit: repository_commit.to_string(),
+            registry_digest: registry_digest.to_string(),
+            image_sha256: sif_sha256.to_string(),
+            version_command: version_command.to_string(),
+            expected_version_regex: expected_version_regex.to_string(),
+            help_command: help_command.to_string(),
+            require_help,
+            probe_commands: probe_commands.to_vec(),
+            java_heap_mb,
+            upstream: upstream.to_string(),
+        },
+    )
 }
 
 /// # Errors
@@ -245,7 +294,6 @@ fn ensure_apptainer_images_with_root_policy(
                 &prepared,
                 repair_mismatch,
                 &containers_root,
-                None,
             )?;
             if built_this {
                 built += 1;
@@ -277,7 +325,7 @@ fn ensure_apptainer_images_with_root_policy(
             let mut status = "ok".to_string();
             if do_quick_smoke {
                 quick_smoked += 1;
-                let smoke = run_smoke_with_manifest(
+                let smoke = execute_contract_smoke(
                     &sif_path,
                     &tool_id,
                     stage_id,
@@ -286,6 +334,7 @@ fn ensure_apptainer_images_with_root_policy(
                     &registry_digest,
                     &sif_sha256,
                     &version_cmd,
+                    &prepared.contract.expected_version_regex,
                     &help_cmd,
                     require_help,
                     &probe_commands,
@@ -293,7 +342,7 @@ fn ensure_apptainer_images_with_root_policy(
                     declared_registry_text(tool.upstream.as_deref(), "not_declared"),
                     &data_root,
                     &results_root,
-                );
+                )?;
                 if smoke.status != "ok" {
                     status = "wrapper_failed_auto_demoted".to_string();
                     failed += 1;
@@ -466,24 +515,18 @@ fn ensure_retained_apptainer_tool(
     let smoke_manifest_path = tool_dir.join(format!("{build_identity}.smoke_manifest.json"));
     let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
     quarantine_unexpected_sifs(&tool_dir, &build_identity, repair_mismatch, containers_root)?;
-    let (_, build_log_path) =
-        next_retained_build_log(containers_root, tool_id, &build_identity)?;
-    if let Some(parent) = build_log_path.parent() {
-        bijux_dna_api::v1::api::run::ensure_dir(parent)?;
-    }
     let (sif_sha256, built) = materialize_apptainer_build(
         &sif_path,
         &prepared,
         repair_mismatch,
         containers_root,
-        Some(&build_log_path),
     )?;
     let quick_smoked = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
     let mut status = "passed".to_string();
     let mut error = None;
     if quick_smoked {
         let help_command = format!("{} --help", prepared.contract.expected_binary);
-        let smoke = run_smoke_with_manifest(
+        let smoke = execute_contract_smoke(
             &sif_path,
             tool_id,
             "catalog.retained",
@@ -492,6 +535,7 @@ fn ensure_retained_apptainer_tool(
             &prepared.contract.catalog_sha256,
             &sif_sha256,
             &prepared.contract.version_command,
+            &prepared.contract.expected_version_regex,
             &help_command,
             false,
             &[],
@@ -499,7 +543,7 @@ fn ensure_retained_apptainer_tool(
             "catalog-declared",
             data_root,
             results_root,
-        );
+        )?;
         if smoke.status != "ok" {
             status = "failed".to_string();
             error = Some(format!(
@@ -533,43 +577,16 @@ fn ensure_retained_apptainer_tool(
     })
 }
 
-fn retained_build_log_path(
-    containers_root: &Path,
-    tool_id: &str,
-    build_identity: &str,
-    attempt: u32,
-) -> PathBuf {
-    containers_root
-        .join("evidence/build-logs")
-        .join(format!("{tool_id}-{build_identity}-attempt-{attempt:03}.log"))
-}
-
-fn next_retained_build_log(
-    containers_root: &Path,
-    tool_id: &str,
-    build_identity: &str,
-) -> Result<(u32, PathBuf)> {
-    let next_attempt = latest_retained_build_log(containers_root, tool_id, build_identity)
-        .map_or(1, |(attempt, _)| attempt + 1);
-    if next_attempt > 999 {
-        return Err(anyhow!("retained image build exceeds 999 attempts for {tool_id}"));
-    }
-    Ok((
-        next_attempt,
-        retained_build_log_path(containers_root, tool_id, build_identity, next_attempt),
-    ))
-}
-
 fn latest_retained_build_log(
     containers_root: &Path,
     tool_id: &str,
     build_identity: &str,
 ) -> Option<(u32, PathBuf)> {
-    (1..=999)
-        .map(|attempt| {
-            (attempt, retained_build_log_path(containers_root, tool_id, build_identity, attempt))
-        })
-        .rfind(|(_, path)| path.is_file())
+    bijux_dna_api::v1::api::env::latest_apptainer_build_attempt(
+        &containers_root.join("evidence/build-logs"),
+        tool_id,
+        build_identity,
+    )
 }
 
 /// # Errors
@@ -640,7 +657,6 @@ pub fn ensure_apptainer_tools(
             &prepared,
             repair_mismatch,
             &containers_root,
-            None,
         )?;
         let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
         if !do_quick_smoke {
@@ -659,7 +675,7 @@ pub fn ensure_apptainer_tools(
             .or(tool.help_cmd.clone())
             .filter(|value| !value.trim().is_empty())
             .unwrap_or_else(|| format!("{tool_id} --help"));
-        let smoke = run_smoke_with_manifest(
+        let smoke = execute_contract_smoke(
             &sif_path,
             tool_id,
             tool.stage_ids
@@ -670,6 +686,7 @@ pub fn ensure_apptainer_tools(
             &registry_digest,
             &sif_sha256,
             &version_cmd,
+            &prepared.contract.expected_version_regex,
             &help_cmd,
             tool.smoke_require_help.unwrap_or(true),
             &tool.smoke_probes,
@@ -677,7 +694,7 @@ pub fn ensure_apptainer_tools(
             declared_registry_text(tool.upstream.as_deref(), "not_declared"),
             &data_root,
             &results_root,
-        );
+        )?;
         if smoke.status != "ok" {
             auto_demoted.push(tool_id.to_string());
         }
@@ -919,8 +936,7 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 mod env_registry_command_tests {
     use super::{
         benchmark_env_roots, benchmark_env_roots_at_hpc_root, current_clean_repository_commit,
-        latest_retained_build_log, next_retained_build_log, requires_governed_oci_metadata,
-        retained_build_log_path, shared_cache_root, BenchmarkEnvRoots,
+        requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots,
     };
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
@@ -987,55 +1003,6 @@ containers_root = "/remote/.cache/bijux-dna-container"
             roots.containers_root,
             PathBuf::from("/isolated/image-campaign/.cache/bijux-dna-container")
         );
-    }
-
-    #[test]
-    fn retained_build_log_is_bound_to_tool_and_build_identity() {
-        let path = retained_build_log_path(
-            Path::new("/study/.cache/bijux-dna-container"),
-            "samtools",
-            &"a".repeat(64),
-            1,
-        );
-        assert_eq!(
-            path,
-            Path::new("/study/.cache/bijux-dna-container/evidence/build-logs")
-                .join(format!("samtools-{}-attempt-001.log", "a".repeat(64)))
-        );
-    }
-
-    #[test]
-    fn retained_build_logs_are_append_only_attempts() {
-        let temp = TempDir::new().expect("tempdir");
-        let identity = "a".repeat(64);
-        let (first_attempt, first) =
-            next_retained_build_log(temp.path(), "samtools", &identity).expect("first log");
-        assert_eq!(first_attempt, 1);
-        std::fs::create_dir_all(first.parent().expect("log parent")).expect("create log root");
-        std::fs::write(&first, "failed attempt").expect("write first log");
-
-        let (second_attempt, second) =
-            next_retained_build_log(temp.path(), "samtools", &identity).expect("second log");
-        assert_eq!(second_attempt, 2);
-        assert_ne!(first, second);
-        assert_eq!(
-            latest_retained_build_log(temp.path(), "samtools", &identity),
-            Some((1, first))
-        );
-    }
-
-    #[test]
-    fn retained_build_logs_advance_past_gaps() {
-        let temp = TempDir::new().expect("tempdir");
-        let identity = "a".repeat(64);
-        let third = retained_build_log_path(temp.path(), "samtools", &identity, 3);
-        std::fs::create_dir_all(third.parent().expect("log parent")).expect("create log root");
-        std::fs::write(&third, "retained attempt").expect("write retained log");
-
-        let (next_attempt, next) =
-            next_retained_build_log(temp.path(), "samtools", &identity).expect("next log");
-        assert_eq!(next_attempt, 4);
-        assert_eq!(next, retained_build_log_path(temp.path(), "samtools", &identity, 4));
     }
 
     #[test]
@@ -1251,13 +1218,13 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
     }
 
     let env_src = std::fs::read_to_string(
-        cwd.join("crates/bijux-dna/src/commands/cli/env/env_runtime_support.rs"),
+        cwd.join("crates/bijux-dna-environment/src/evidence/tool_contract/smoke.rs"),
     )
-    .context("read env_runtime_support.rs for apptainer runtime policy")?;
+    .context("read environment-owned Apptainer smoke policy")?;
     for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {
         if !env_src.contains(required) {
             offenders.push(format!(
-                "runtime policy missing required apptainer flag marker `{required}` in env_runtime_support.rs"
+                "environment smoke policy is missing required Apptainer flag marker `{required}`"
             ));
         }
     }

@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/apptainer_build_and_smoke.rs"]
+mod mod_contracts_apptainer_build_and_smoke_rs;
 #[path = "contracts/build_dockerfile.rs"]
 mod mod_contracts_build_dockerfile_rs;
 #[path = "contracts/evidence_publications.rs"]

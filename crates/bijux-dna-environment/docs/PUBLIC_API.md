@@ -10,11 +10,11 @@
 
 ## Major Export Groups
 
-- `build`: `DockerToolSpec`, `EnvironmentBuilder`, `default_docker_tools`, and
-  `extract_version_from_dockerfile`.
+- `build`: Docker metadata helpers plus Apptainer build requests, reports, append-only attempt paths,
+  failure classification, and bounded build execution.
 - `evidence`: typed container image-inventory and runtime-verification publications; strict embedded
-  tool contracts; catalog-derived Apptainer build preparation; runtime inspection; validation,
-  loading, JSON Schema rendering, and atomic schema writing.
+  tool contracts; catalog-derived Apptainer build preparation; offline contract smoke execution;
+  runtime inspection; validation, loading, JSON Schema rendering, and atomic schema writing.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.

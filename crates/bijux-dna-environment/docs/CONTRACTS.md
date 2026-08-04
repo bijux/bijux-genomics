@@ -18,6 +18,10 @@ This crate owns the environment contracts consumed by API, runner, and environme
   image identities.
 - `ContainerToolContract`: the strict identity installed exactly once at
   `/usr/share/bijux/tool-contract.json` in each retained tool image.
+- `ApptainerBuildRequest` and `ApptainerBuildReport`: bounded build execution with immutable,
+  monotonically numbered attempt logs.
+- `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
+  `ContainerToolContract.expected_version_regex` contract.
 
 ## Evidence Publications
 
@@ -29,6 +33,10 @@ Embedded contracts reject unknown fields and identify the exact catalog, canonic
 repository commit, architecture, build evidence, expected binary, and version interface. The SIF
 digest is deliberately computed outside the SIF because embedding its own digest would be circular;
 `VerifiedToolImageIdentity` binds that digest to the validated internal contract and matching labels.
+Build retries are permitted only for the environment-owned transient transport taxonomy. Permanent
+recipe, source, and command failures stop after the first invocation. Smoke admission does not
+assume semantic-version punctuation; valid contract formats such as `r1206` and `2026_06` are
+accepted when the exact catalog regex matches.
 
 ## Resolution Precedence
 

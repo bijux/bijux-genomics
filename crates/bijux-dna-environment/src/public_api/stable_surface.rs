@@ -1,9 +1,16 @@
+pub use crate::build::{
+    apptainer_build_log_path, build_apptainer_image, classify_apptainer_build_failure,
+    latest_apptainer_build_attempt, next_apptainer_build_attempt, ApptainerBuildAttempt,
+    ApptainerBuildFailureClass, ApptainerBuildReport, ApptainerBuildRequest,
+};
 pub use crate::evidence::tool_contract::{
-    prepare_apptainer_tool_contract, retained_apptainer_tool_ids, tool_contract_labels,
-    tool_contract_schema, validate_tool_contract, validate_tool_contract_labels,
-    verify_apptainer_tool_contract, write_tool_contract_schema, ContainerToolContract,
-    PreparedToolContractBuild, ToolContractBuildRequest, ToolContractLabels,
-    VerifiedToolImageIdentity, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
+    prepare_apptainer_tool_contract, retained_apptainer_tool_ids, run_apptainer_smoke,
+    tool_contract_labels, tool_contract_schema, validate_tool_contract,
+    validate_tool_contract_labels, verify_apptainer_tool_contract, write_tool_contract_schema,
+    ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
+    ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest, ToolContractLabels,
+    VerifiedToolImageIdentity, APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, CONTAINER_TOOL_CONTRACT_PATH,
+    CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
 };
 pub use crate::evidence::{
     image_inventory_publication_schema, load_image_inventory_publication,

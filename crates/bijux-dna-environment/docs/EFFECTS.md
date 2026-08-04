@@ -23,6 +23,7 @@ ask for host-environment inspection or reference preparation.
 - Test fixtures and temporary files under artifact-aware test roots.
 - Generated embedded contracts and rendered definitions under a caller-provided repository
   `artifacts/` root.
+- Apptainer SIF targets and append-only build attempt logs under caller-provided container roots.
 
 ## Allowed Processes
 
@@ -43,3 +44,5 @@ that inventory and its boundary test.
 - The same Dockerfile and tool selector produce the same parsed version.
 - The same FASTA content produces the same reference digest.
 - Host probes are intentionally not deterministic and must not be used as schema truth.
+- Build retry classification and smoke admission are deterministic for the same diagnostics,
+  contract regex, and probe outputs.

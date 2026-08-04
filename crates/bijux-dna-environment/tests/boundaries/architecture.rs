@@ -61,6 +61,7 @@ fn source_tree_matches_architecture_contract() {
             "model.rs",
             "preparation.rs",
             "schema.rs",
+            "smoke.rs",
             "validation.rs",
         ]),
         "tool contracts must separate source, rendering, inspection, and admission concerns"
@@ -75,6 +76,7 @@ fn source_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/build")),
         btree_set(&[
+            "apptainer.rs",
             "builder.rs",
             "defaults.rs",
             "entrypoints.rs",

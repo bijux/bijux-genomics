@@ -781,44 +781,6 @@ pub struct SifInventoryEntry {
     pub smoke_status: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-struct SmokeProbeResult {
-    command: String,
-    applied_command: String,
-    ok: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    output_sha256: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    output_first_line: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    error: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct SmokeManifest {
-    schema_version: &'static str,
-    tool_id: String,
-    stage_id: String,
-    status: String,
-    build_evidence_id: String,
-    repository_commit: String,
-    registry_digest: String,
-    sif_sha256: String,
-    version_cmd: String,
-    help_cmd: String,
-    version: String,
-    version_output_first_line: String,
-    help_ok: bool,
-    quick_smoke: bool,
-    probe_commands: Vec<String>,
-    #[serde(default)]
-    probe_results: Vec<SmokeProbeResult>,
-    java_heap_mb: Option<u64>,
-    upstream: String,
-    image_build_timestamp_unix_s: u64,
-    checked_at_unix_s: u64,
-}
-
 fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
     let mut rows = Vec::new();
     let mut current: Option<RegistryRow> = None;

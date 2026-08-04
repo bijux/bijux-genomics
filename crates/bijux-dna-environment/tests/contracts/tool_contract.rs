@@ -84,8 +84,9 @@ fn every_retained_apptainer_recipe_renders_one_contract() -> Result<()> {
 
 #[test]
 fn retained_roster_rejects_non_catalog_architecture() -> Result<()> {
-    let error = retained_apptainer_tool_ids(&repository_root()?, "linux/arm64")
-        .expect_err("non-catalog architecture must fail");
+    let Err(error) = retained_apptainer_tool_ids(&repository_root()?, "linux/arm64") else {
+        panic!("non-catalog architecture must fail");
+    };
     assert!(error.to_string().contains("differs from catalog architecture"));
     Ok(())
 }
