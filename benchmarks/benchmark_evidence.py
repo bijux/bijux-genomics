@@ -63,6 +63,145 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
+def read_fastq_histogram(path: Path, sample_id: str) -> dict[int, int]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0] != "sample_id\tread_length\tcount":
+        raise BenchmarkEvidenceError(f"invalid histogram TSV header: {path}")
+    histogram: dict[int, int] = {}
+    for line in lines[1:]:
+        fields = line.split("\t")
+        if len(fields) != 3 or fields[0] != sample_id:
+            raise BenchmarkEvidenceError(f"invalid histogram TSV row: {path}")
+        try:
+            length_value = int(fields[1])
+            count_value = int(fields[2])
+        except ValueError as exc:
+            raise BenchmarkEvidenceError(
+                f"non-integer histogram TSV value: {path}"
+            ) from exc
+        if (
+            length_value < 1
+            or count_value < 1
+            or length_value in histogram
+        ):
+            raise BenchmarkEvidenceError(f"invalid histogram TSV row: {path}")
+        histogram[length_value] = count_value
+    if not histogram:
+        raise BenchmarkEvidenceError(f"histogram TSV is empty: {path}")
+    return histogram
+
+
+def histogram_summary(histogram: dict[int, int]) -> dict[str, Any]:
+    ordered_lengths = sorted(histogram)
+    total_reads = sum(histogram.values())
+    total_bases = sum(length * count for length, count in histogram.items())
+    lower_rank = (total_reads + 1) // 2
+    upper_rank = (total_reads + 2) // 2
+    cumulative = 0
+    lower_value = ordered_lengths[0]
+    upper_value = ordered_lengths[-1]
+    lower_seen = False
+    for length_value in ordered_lengths:
+        cumulative += histogram[length_value]
+        if not lower_seen and cumulative >= lower_rank:
+            lower_value = length_value
+            lower_seen = True
+        if cumulative >= upper_rank:
+            upper_value = length_value
+            break
+    return {
+        "read_count": total_reads,
+        "minimum_read_length": ordered_lengths[0],
+        "mean_read_length": total_bases / total_reads,
+        "median_read_length": (lower_value + upper_value) / 2,
+        "maximum_read_length": ordered_lengths[-1],
+        "distinct_read_lengths": len(histogram),
+    }
+
+
+def scientific_metrics_from_result_artifact(path: Path) -> dict[str, Any]:
+    artifact = load_json(path)
+    if (
+        artifact.get("schema_version")
+        != "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+        or artifact.get("stage_id") != "fastq.profile_read_lengths"
+    ):
+        return {}
+    results = artifact.get("results")
+    if not isinstance(results, list) or not results:
+        raise BenchmarkEvidenceError(f"benchmark bundle omits sample results: {path}")
+    aggregate_histogram: dict[int, int] = {}
+    histogram_digest = hashlib.sha256()
+    total_files = 0
+    seen_samples: set[str] = set()
+    outputs_root = path.parent.parent if path.parent.name == "repetitions" else path.parent
+    for row in results:
+        if not isinstance(row, dict):
+            raise BenchmarkEvidenceError(f"benchmark bundle row must be an object: {path}")
+        sample_id = str(row.get("sample_id", ""))
+        if not sample_id or sample_id in seen_samples:
+            raise BenchmarkEvidenceError(f"benchmark bundle sample id is invalid: {path}")
+        seen_samples.add(sample_id)
+        histogram_relative = Path(str(row.get("histogram_artifact", "")))
+        if (
+            histogram_relative.is_absolute()
+            or ".." in histogram_relative.parts
+            or histogram_relative.parts[:1] != ("repetitions",)
+        ):
+            raise BenchmarkEvidenceError(f"benchmark histogram path is unsafe: {path}")
+        histogram_path = outputs_root / histogram_relative
+        recorded_digest = str(row.get("histogram_sha256", ""))
+        actual_digest = sha256_file(histogram_path)
+        if recorded_digest != actual_digest or SHA256.fullmatch(actual_digest) is None:
+            raise BenchmarkEvidenceError(
+                f"benchmark histogram digest drifted: {histogram_relative}"
+            )
+        histogram_digest.update(f"{sample_id}\t{actual_digest}\n".encode("utf-8"))
+        histogram = read_fastq_histogram(histogram_path, sample_id)
+        summary = histogram_summary(histogram)
+        for key in (
+            "read_count",
+            "minimum_read_length",
+            "maximum_read_length",
+            "distinct_read_lengths",
+        ):
+            if row.get(key) != summary[key]:
+                raise BenchmarkEvidenceError(
+                    f"benchmark bundle {sample_id} disagrees on {key}"
+                )
+        for key in ("mean_read_length", "median_read_length"):
+            if abs(float(row.get(key, -1)) - float(summary[key])) > 1e-12:
+                raise BenchmarkEvidenceError(
+                    f"benchmark bundle {sample_id} disagrees on {key}"
+                )
+        total_files += int(row.get("file_count", 0))
+        for length_value, count_value in histogram.items():
+            aggregate_histogram[length_value] = (
+                aggregate_histogram.get(length_value, 0) + count_value
+            )
+    aggregate = histogram_summary(aggregate_histogram)
+    aggregate["file_count"] = total_files
+    aggregate["histogram_sha256"] = histogram_digest.hexdigest()
+    return aggregate
+
+
+def repetition_science_metrics(
+    repetition_prefix: Path,
+    campaign: dict[str, Any],
+) -> dict[str, Any]:
+    metrics = load_json(repetition_prefix.with_suffix(".metrics.json"))
+    artifact_metrics = scientific_metrics_from_result_artifact(
+        repetition_prefix.with_name(
+            f"{repetition_prefix.name}.{campaign['result_artifact']}"
+        )
+    )
+    merged = dict(metrics)
+    for key in campaign["scientific_metrics"]:
+        if key in artifact_metrics:
+            merged[key] = artifact_metrics[key]
+    return merged
+
+
 def verify_recorded_outputs(result_root: Path, evidence: dict[str, Any]) -> None:
     records = evidence.get("outputs")
     if not isinstance(records, list) or not records:
@@ -260,22 +399,38 @@ def tool_report(
     for repetition in range(1, measured + 1):
         root = result_root / "outputs/repetitions"
         resources.append(read_resources(root / f"repetition-{repetition}.resource.tsv"))
-        metrics = load_json(root / f"repetition-{repetition}.metrics.json")
+        metrics = repetition_science_metrics(
+            root / f"repetition-{repetition}", campaign
+        )
         missing_metrics = sorted(set(campaign["scientific_metrics"]) - set(metrics))
         if missing_metrics:
             raise BenchmarkEvidenceError(
                 f"{tool} repetition {repetition} lacks science metrics: {missing_metrics}"
             )
-        measured_metrics = [
-            metrics[key] for key in [*campaign["scientific_metrics"], "output_bytes"]
-        ]
-        if any(
-            not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0
-            for value in measured_metrics
+        if (
+            not isinstance(metrics.get("output_bytes"), (int, float))
+            or isinstance(metrics["output_bytes"], bool)
+            or metrics["output_bytes"] < 0
         ):
             raise BenchmarkEvidenceError(
-                f"{tool} repetition {repetition} contains invalid science metrics"
+                f"{tool} repetition {repetition} contains invalid output_bytes"
             )
+        for key in campaign["scientific_metrics"]:
+            value = metrics[key]
+            if key.endswith("_sha256"):
+                if not isinstance(value, str) or SHA256.fullmatch(value) is None:
+                    raise BenchmarkEvidenceError(
+                        f"{tool} repetition {repetition} contains invalid science metrics"
+                    )
+                continue
+            if (
+                not isinstance(value, (int, float))
+                or isinstance(value, bool)
+                or value < 0
+            ):
+                raise BenchmarkEvidenceError(
+                    f"{tool} repetition {repetition} contains invalid science metrics"
+                )
         science.append(metrics)
         result_digests.append(
             sha256_file(root / f"repetition-{repetition}.{campaign['result_artifact']}")

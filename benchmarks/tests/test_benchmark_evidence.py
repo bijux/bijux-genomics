@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 import sys
 import tempfile
 import unittest
@@ -18,6 +19,93 @@ SPEC.loader.exec_module(benchmark_evidence)
 
 
 class BenchmarkEvidenceTests(unittest.TestCase):
+    def test_repetition_science_metrics_supports_fastq_bundle_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repetitions = Path(directory) / "outputs/repetitions"
+            repetitions.mkdir(parents=True)
+            histogram = repetitions / "repetition-1.sample-a.histogram.tsv"
+            histogram.write_text(
+                "sample_id\tread_length\tcount\n"
+                "sample-a\t4\t1\n"
+                "sample-a\t6\t1\n",
+                encoding="utf-8",
+            )
+            artifact = repetitions / "repetition-1.read-lengths.json"
+            artifact.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+                        "stage_id": "fastq.profile_read_lengths",
+                        "tool_id": "seqfu",
+                        "results": [
+                            {
+                                "sample_id": "sample-a",
+                                "input_layout": "single_end",
+                                "file_count": 1,
+                                "read_count": 2,
+                                "minimum_read_length": 4,
+                                "mean_read_length": 5.0,
+                                "median_read_length": 5.0,
+                                "maximum_read_length": 6,
+                                "distinct_read_lengths": 2,
+                                "histogram_artifact": "repetitions/repetition-1.sample-a.histogram.tsv",
+                                "histogram_sha256": hashlib.sha256(
+                                    histogram.read_bytes()
+                                ).hexdigest(),
+                            }
+                        ],
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (repetitions / "repetition-1.metrics.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "bijux.benchmark.fastq.profile_read_lengths.metrics.v1",
+                        "sample_count": 1,
+                        "file_count": 1,
+                        "read_count": 2,
+                        "minimum_read_length": 4,
+                        "maximum_read_length": 6,
+                        "exact_observation_mismatch_count": 0,
+                        "histogram_mismatch_count": 0,
+                        "input_bytes": 12,
+                        "output_bytes": 34,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            metrics = benchmark_evidence.repetition_science_metrics(
+                repetitions / "repetition-1",
+                {
+                    "result_artifact": "read-lengths.json",
+                    "scientific_metrics": [
+                        "file_count",
+                        "read_count",
+                        "minimum_read_length",
+                        "mean_read_length",
+                        "median_read_length",
+                        "maximum_read_length",
+                        "distinct_read_lengths",
+                        "histogram_sha256",
+                    ],
+                },
+            )
+
+        self.assertEqual(metrics["file_count"], 1)
+        self.assertEqual(metrics["read_count"], 2)
+        self.assertEqual(metrics["mean_read_length"], 5.0)
+        self.assertEqual(metrics["median_read_length"], 5.0)
+        self.assertEqual(metrics["distinct_read_lengths"], 2)
+        self.assertEqual(len(metrics["histogram_sha256"]), 64)
+
     def test_resource_tsv_requires_real_columns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "resource.tsv"
