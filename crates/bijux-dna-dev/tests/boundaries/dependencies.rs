@@ -24,6 +24,7 @@ fn dependency_graph_matches_dev_boundary() {
         "schemars",
         "serde",
         "serde_json",
+        "serde_yaml",
         "sha2",
         "toml",
         "walkdir",

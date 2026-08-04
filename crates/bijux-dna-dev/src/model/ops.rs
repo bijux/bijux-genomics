@@ -31,6 +31,7 @@ pub enum NativeOpsCommandKey {
     ExamplesRun,
     ExamplesCheckDrift,
     HpcValidateFrontendConstraints,
+    HpcSiteCyclePreflight,
     HpcRunFrontendMiniE2e,
     HpcBenchmarkSyncPull,
     HpcBenchmarkSyncPush,

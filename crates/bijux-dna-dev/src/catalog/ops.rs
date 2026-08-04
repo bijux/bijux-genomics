@@ -113,6 +113,11 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::HpcValidateFrontendConstraints,
         ),
         native(
+            "site-cycle-preflight",
+            "Validate source, site, scheduler, storage, and authority identities before submission.",
+            NativeOpsCommandKey::HpcSiteCyclePreflight,
+        ),
+        native(
             "run-frontend-mini-e2e",
             "Run the governed frontend mini end-to-end flow.",
             NativeOpsCommandKey::HpcRunFrontendMiniE2e,

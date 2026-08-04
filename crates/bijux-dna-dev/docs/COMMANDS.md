@@ -333,6 +333,7 @@ run
 benchmark-sync-pull
 benchmark-sync-push
 run-frontend-mini-e2e
+site-cycle-preflight
 validate-frontend-constraints
 ```
 
