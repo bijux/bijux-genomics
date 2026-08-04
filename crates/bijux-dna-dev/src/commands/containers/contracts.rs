@@ -100,6 +100,86 @@ fn load_catalog(workspace: &Workspace) -> Result<ContainerCatalog> {
     Ok(toml::from_str(&read_utf8(&workspace.path(CATALOG_PATH))?)?)
 }
 
+fn validate_environment_evidence_chain(
+    workspace: &Workspace,
+    catalog: &ContainerCatalog,
+) -> Result<()> {
+    use bijux_dna_environment::evidence::{ContainerSupportDisposition, RuntimeEvidenceStatus};
+
+    let catalog_sha256 = sha256_hex(read_utf8(&workspace.path(CATALOG_PATH))?.as_bytes());
+    let inventory = bijux_dna_environment::evidence::load_image_inventory_publication(
+        &workspace.path("containers/reports/image-inventory.json"),
+    )?;
+    let runtime = bijux_dna_environment::evidence::load_runtime_verification_publication(
+        &workspace.path("containers/reports/runtime-verification.json"),
+    )?;
+    if inventory.catalog_sha256 != catalog_sha256 {
+        anyhow::bail!(
+            "image inventory catalog digest is stale: expected {catalog_sha256}, observed {}",
+            inventory.catalog_sha256
+        );
+    }
+    if runtime.catalog.sha256 != catalog_sha256 {
+        anyhow::bail!(
+            "runtime publication catalog digest is stale: expected {catalog_sha256}, observed {}",
+            runtime.catalog.sha256
+        );
+    }
+    if runtime.inventory.sha256 != inventory.publication.raw_sha256 {
+        anyhow::bail!("runtime publication does not identify the admitted raw inventory");
+    }
+    if runtime.repository_commit != inventory.repository_commit {
+        anyhow::bail!("inventory and runtime publications identify different repository commits");
+    }
+
+    let inventory_tools = inventory
+        .tools
+        .iter()
+        .map(|tool| (tool.tool.as_str(), tool))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let catalog_ids = catalog.tools.iter().map(|tool| tool.id.as_str()).collect::<BTreeSet<_>>();
+    let inventory_ids = inventory_tools.keys().copied().collect::<BTreeSet<_>>();
+    if catalog_ids != inventory_ids {
+        anyhow::bail!("image inventory tool set differs from the container catalog");
+    }
+
+    let mut retained_ids = BTreeSet::new();
+    for tool in &catalog.tools {
+        let evidence = inventory_tools
+            .get(tool.id.as_str())
+            .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
+        let expected_disposition = match tool.support_disposition.as_str() {
+            "retained" => ContainerSupportDisposition::Retained,
+            "unsupported" => ContainerSupportDisposition::Unsupported,
+            "retired" => ContainerSupportDisposition::Retired,
+            "excluded" => ContainerSupportDisposition::Excluded,
+            other => anyhow::bail!("unsupported catalog disposition for {}: {other}", tool.id),
+        };
+        if evidence.version != tool.version || evidence.support_disposition != expected_disposition
+        {
+            anyhow::bail!("image inventory identity differs from catalog for {}", tool.id);
+        }
+        if tool.support_disposition != "retained" {
+            continue;
+        }
+        retained_ids.insert(tool.id.as_str());
+        let runtime_evidence = runtime.tools.get(&tool.id).ok_or_else(|| {
+            anyhow::anyhow!("runtime publication omits retained tool {}", tool.id)
+        })?;
+        if runtime_evidence.version != tool.version
+            || Some(runtime_evidence.image_sha256.as_str())
+                != evidence.selected_image_sha256.as_deref()
+            || runtime_evidence.status != RuntimeEvidenceStatus::Passed
+        {
+            anyhow::bail!("runtime publication identity or verdict differs for {}", tool.id);
+        }
+    }
+    if runtime.tools.keys().map(String::as_str).collect::<BTreeSet<_>>() != retained_ids {
+        anyhow::bail!("runtime publication tool set differs from retained catalog tools");
+    }
+    Ok(())
+}
+
 fn is_zero_digest(value: &str) -> bool {
     !value.is_empty() && value.bytes().all(|byte| byte == b'0')
 }
@@ -459,6 +539,8 @@ pub(super) fn check_contract_lock(workspace: &Workspace) -> Result<ContainerComm
 pub(super) fn check_evidence_qualification(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
+    let catalog = load_catalog(workspace)?;
+    validate_environment_evidence_chain(workspace, &catalog)?;
     let registry = bijux_dna_bench::load_stage_campaign_registry(
         &workspace.path("benchmarks/contracts/stage-campaigns.toml"),
     )?;

@@ -426,6 +426,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",
+ "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "chrono",
