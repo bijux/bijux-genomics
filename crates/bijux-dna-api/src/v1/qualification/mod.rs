@@ -5,8 +5,10 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 pub use bijux_dna_policies::{
-    EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
-    QualificationAssessment, QualificationClaim, SupportDisposition,
+    evaluate_publication_freshness, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
+    ImmutablePublicationIdentity, PublicationArtifactIdentity, PublicationAuthority,
+    PublicationDisposition, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
+    PublicationIdentityMismatch, QualificationAssessment, QualificationClaim, SupportDisposition,
     QUALIFICATION_ASSESSMENT_SCHEMA_V1,
 };
 

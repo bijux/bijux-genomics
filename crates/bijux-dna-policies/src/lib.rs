@@ -11,8 +11,10 @@ mod source_scan;
 
 pub use public_api::{check, GuardrailConfig};
 pub use qualification::{
-    EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
-    QualificationAssessment, QualificationClaim, SupportDisposition,
+    evaluate_publication_freshness, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
+    ImmutablePublicationIdentity, PublicationArtifactIdentity, PublicationAuthority,
+    PublicationDisposition, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
+    PublicationIdentityMismatch, QualificationAssessment, QualificationClaim, SupportDisposition,
     QUALIFICATION_ASSESSMENT_SCHEMA_V1,
 };
 pub use security_evidence::{
