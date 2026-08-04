@@ -13,6 +13,14 @@ Model contracts:
 - `BenchmarkObservation`
 - `BenchmarkSummary`
 - `BenchmarkDecision`
+- `BenchmarkStageCampaignRegistry`
+- `BenchmarkStageCampaignSpec`
+- `BenchmarkPortfolio`
+- `BenchmarkMeasurementContract`
+- `BenchmarkCorpusContract`
+- `BenchmarkScientificProfile`
+- `BenchmarkProfileAssignment`
+- `BenchmarkComparisonMetricTolerance`
 - `DecisionRationale`
 - `BenchmarkLifecycleStatus`
 - `BenchmarkJobReference`
@@ -42,6 +50,8 @@ Policy and diagnostics:
 - `BenchError`
 - `BENCHMARK_ATTEMPT_SCHEMA_V1`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
+- `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
+- `BENCHMARK_PORTFOLIO_SCHEMA_V1`
 
 Statistics:
 

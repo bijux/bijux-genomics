@@ -14,6 +14,9 @@ These operations are exported through the crate root and `public_api`.
 | `load-corpus-catalog` | `load_corpus_catalog()` | Load and validate all checked-in benchmark corpus manifests. |
 | `load-bundle-manifest` | `load_bundle_manifest(path)` | Load and validate one benchmark bundle TOML manifest. |
 | `load-bundle-catalog` | `load_bundle_catalog()` | Load and validate all checked-in benchmark bundle manifests. |
+| `load-stage-campaign-registry` | `load_stage_campaign_registry(path)` | Load and validate one benchmark stage-campaign registry TOML file. |
+| `load-benchmark-portfolio` | `load_benchmark_portfolio(path)` | Load and validate one benchmark portfolio TOML file. |
+| `load-checked-in-benchmark-contracts` | `load_checked_in_benchmark_contracts()` | Load the checked-in stage-campaign registry and benchmark portfolio and validate defined campaign consistency against reserved portfolio identities. |
 | `summarize` | `summarize(suite, observations, options)` | Build deterministic benchmark summaries from observations. |
 | `compare` | `compare(summary_a, summary_b)` | Compare two completed benchmark summaries. |
 | `gate` | `gate(policy, summary)` | Evaluate benchmark rows against a gate policy. |
@@ -21,6 +24,9 @@ These operations are exported through the crate root and `public_api`.
 | `bench-suites-dir` | `bench_suites_dir()` | Resolve the crate-owned checked-in suite catalog directory. |
 | `bench-corpora-dir` | `bench_corpora_dir()` | Resolve the crate-owned checked-in corpus catalog directory. |
 | `bench-bundles-dir` | `bench_bundles_dir()` | Resolve the crate-owned checked-in bundle catalog directory. |
+| `bench-contracts-dir` | `bench_contracts_dir()` | Resolve the repository-owned benchmark contract directory. |
+| `bench-stage-campaigns-path` | `bench_stage_campaigns_path()` | Resolve the repository-owned stage-campaign registry path. |
+| `bench-portfolio-path` | `bench_portfolio_path()` | Resolve the repository-owned benchmark portfolio path. |
 
 ## Suite Artifacts
 

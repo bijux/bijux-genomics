@@ -7,6 +7,7 @@ pub mod decision;
 pub mod graph;
 pub mod lifecycle;
 pub mod observation;
+pub mod planning;
 pub mod suite;
 pub mod summary;
 
@@ -23,6 +24,14 @@ pub use lifecycle::{
     BenchmarkAttemptRecord, BenchmarkCycleStatus, BenchmarkJobReference, BenchmarkLifecycleStatus,
 };
 pub use observation::BenchmarkObservation;
+#[allow(unused_imports)]
+pub use planning::{
+    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
+    BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
+    BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
+    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+};
 #[allow(unused_imports)]
 pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};
 #[allow(unused_imports)]

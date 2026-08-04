@@ -9,3 +9,5 @@ pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
 pub const DECISION_SCHEMA_V1: &str = "bijux.bench.gate.v1";
 pub const BENCHMARK_ATTEMPT_SCHEMA_V1: &str = "bijux.benchmark.attempt.v1";
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V1: &str = "bijux.benchmark.cycle_status.v1";
+pub const BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1: &str = "bijux.benchmark.stage_campaigns.v1";
+pub const BENCHMARK_PORTFOLIO_SCHEMA_V1: &str = "bijux.benchmark.portfolio.v1";
