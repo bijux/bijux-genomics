@@ -174,13 +174,37 @@ fn retains_repository_run_dependency_beside_new_current_image() -> Result<()> {
 }
 
 #[test]
+fn selects_unique_unreferenced_rebuild_beside_current_run_dependency() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let historical_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fixture.reference_image_from_run(&historical_digest)?;
+    let rebuild_digest = fixture.add_admitted_image(b"unreferenced current rebuild")?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(rebuild_digest.as_str()));
+    assert_eq!(tool.candidates.len(), 2);
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == historical_digest
+            && matches!(
+                candidate.disposition,
+                bijux_dna_environment::evidence::ImageCandidateDisposition::HistoricalRunDependency
+            )
+    }));
+    Ok(())
+}
+
+#[test]
 fn rejects_multiple_images_admitted_for_the_current_recipe() -> Result<()> {
     let fixture = Fixture::current()?;
     fixture.add_admitted_image(b"another image from the same recipe")?;
     let error = derive_image_inventory_publication(&fixture.request)
         .err()
         .context("ambiguous current images were admitted")?;
-    assert!(error.to_string().contains("2 admitted images for the current recipe"));
+    assert!(error
+        .to_string()
+        .contains("2 admitted images for the current recipe and no unique unreferenced rebuild"));
     Ok(())
 }
 

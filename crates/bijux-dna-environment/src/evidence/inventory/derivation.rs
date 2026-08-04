@@ -199,19 +199,31 @@ fn select_candidates(
     support_disposition: &ContainerSupportDisposition,
     mut candidates: Vec<CandidateWithReference>,
 ) -> Result<(ContainerImageState, Option<String>, Vec<ContainerImageCandidate>)> {
-    let current = candidates.iter().filter(|(candidate, _)| candidate.current_recipe).count();
-    if current > 1 {
-        bail!("tool {tool_id} has {current} admitted images for the current recipe");
-    }
-    let admitted = candidates.iter().filter(|(candidate, _)| candidate.admitted).count();
-    if current == 0 && admitted > 1 {
-        bail!("tool {tool_id} has {admitted} admitted historical images and no unique selection");
-    }
-    let selected = candidates
-        .iter()
-        .find(|(candidate, _)| candidate.current_recipe)
-        .or_else(|| candidates.iter().find(|(candidate, _)| candidate.admitted))
-        .map(|(candidate, _)| candidate.sha256.clone());
+    let current =
+        candidates.iter().filter(|(candidate, _)| candidate.current_recipe).collect::<Vec<_>>();
+    let admitted =
+        candidates.iter().filter(|(candidate, _)| candidate.admitted).collect::<Vec<_>>();
+    let selection_pool = if current.is_empty() { &admitted } else { &current };
+    let unreferenced =
+        selection_pool.iter().copied().filter(|(_, referenced)| !referenced).collect::<Vec<_>>();
+    let selected_candidate = if selection_pool.len() == 1 {
+        selection_pool.first().copied()
+    } else if unreferenced.len() == 1 {
+        unreferenced.first().copied()
+    } else if selection_pool.is_empty() {
+        None
+    } else if current.is_empty() {
+        bail!(
+            "tool {tool_id} has {} admitted historical images and no unique selection",
+            admitted.len()
+        );
+    } else {
+        bail!(
+            "tool {tool_id} has {} admitted images for the current recipe and no unique unreferenced rebuild",
+            current.len()
+        );
+    };
+    let selected = selected_candidate.map(|(candidate, _)| candidate.sha256.clone());
     if matches!(support_disposition, ContainerSupportDisposition::Retained) && selected.is_none() {
         bail!("retained tool {tool_id} has no admitted immutable image");
     }
