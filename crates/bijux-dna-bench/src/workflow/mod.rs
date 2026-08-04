@@ -2,6 +2,7 @@
 //! Benchmark workflow facade over summary, evaluation, suite loading, and suite persistence.
 #![allow(dead_code)]
 
+mod attempt_lifecycle;
 mod attempt_migration;
 mod evaluation;
 mod options;
@@ -13,6 +14,10 @@ mod summary_fairness;
 mod summary_scope;
 mod summary_statistics;
 
+pub use attempt_lifecycle::{
+    append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
+    load_attempt_lifecycle,
+};
 pub use attempt_migration::{
     apply_attempt_migration, plan_attempt_migration, rollback_attempt_migration,
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,

@@ -76,6 +76,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
+            "attempt_lifecycle.rs",
             "attempt_migration.rs",
             "evaluation.rs",
             "mod.rs",

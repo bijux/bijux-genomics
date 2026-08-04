@@ -25,6 +25,19 @@ pub fn benchmark_run_directory_name(identity: &BenchmarkRunIdentity) -> Result<S
     Ok(format!("{}-{}", identity.run_id, slug(&identity.stage_id)))
 }
 
+/// Validate the complete permanent identity of one benchmark attempt.
+///
+/// # Errors
+/// Returns an error when campaign, run, attempt, or tool identity is malformed.
+pub fn validate_attempt_identity(
+    identity: &crate::model::BenchmarkAttemptIdentity,
+) -> Result<(), BenchError> {
+    validate_component(&identity.campaign_id, "campaign_id")?;
+    validate_run_identity(&identity.run)?;
+    validate_attempt_id(&identity.attempt_id)?;
+    validate_component(&identity.tool_id, "tool_id")
+}
+
 /// Append one validated lifecycle event without rewriting prior transitions.
 ///
 /// # Errors
@@ -51,10 +64,7 @@ pub fn validate_attempt_record_v2(record: &BenchmarkAttemptRecordV2) -> Result<(
     if record.schema_version != BENCHMARK_ATTEMPT_SCHEMA_V2 {
         return Err(invalid("benchmark attempt v2 schema mismatch"));
     }
-    validate_component(&record.identity.campaign_id, "campaign_id")?;
-    validate_run_identity(&record.identity.run)?;
-    validate_attempt_id(&record.identity.attempt_id)?;
-    validate_component(&record.identity.tool_id, "tool_id")?;
+    validate_attempt_identity(&record.identity)?;
     if record
         .supersedes_attempt_id
         .as_deref()

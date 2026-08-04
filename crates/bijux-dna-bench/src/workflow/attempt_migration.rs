@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Reversible migration of benchmark attempts retained below container-owned evidence roots.
 
 use std::collections::BTreeSet;

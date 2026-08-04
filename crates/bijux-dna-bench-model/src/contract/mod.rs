@@ -17,7 +17,8 @@ pub use interfaces::{
 };
 pub use lifecycle::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
-    validate_attempt_record_v2, validate_attempt_transition, validate_cycle_status_v2,
+    validate_attempt_identity, validate_attempt_record_v2, validate_attempt_transition,
+    validate_cycle_status_v2,
 };
 pub use planning::{
     validate_benchmark_portfolio, validate_defined_campaign_portfolio_alignment,

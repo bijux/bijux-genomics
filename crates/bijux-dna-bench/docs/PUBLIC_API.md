@@ -21,6 +21,10 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.
 - `load_stage_reports_from_dir(path, registry, interfaces)` admits checksummed reports against supplied authorities; raw report values are never returned to aggregation callers.
 - `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
+- `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.
+- `initialize_attempt_lifecycle(root, record)` publishes one immutable planned attempt.
+- `append_attempt_lifecycle_transition(root, identity, transition)` publishes one no-clobber lifecycle event.
+- `load_attempt_lifecycle(root, identity)` reconstructs and validates the complete event chain.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.
 - `compare(summary_a, summary_b)` compares completed summaries.
@@ -55,6 +59,11 @@ including:
 - `BenchmarkPipelineParameterConfig`
 - `BenchmarkStageReport`
 - `BenchmarkToolReport`
+- `BenchmarkRunIdentity`
+- `BenchmarkAttemptIdentity`
+- `BenchmarkAttemptRecordV2`
+- `BenchmarkAttemptTransition`
+- `BenchmarkCycleStatusV2`
 - `GatePolicy`
 - `GatePolicyOverrides`
 - `GateDecision`

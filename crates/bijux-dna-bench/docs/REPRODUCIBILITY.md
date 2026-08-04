@@ -24,6 +24,14 @@ policy, and options used for a run.
 2. Call `compare(summary_a, summary_b)`.
 3. Compare the deterministic report against the stored compare snapshot.
 
+## Reproduce Attempt State
+
+1. Locate the permanent run, tool, campaign, and attempt directory.
+2. Validate `attempt.json` as the immutable planned record.
+3. Apply transition files in numeric sequence order.
+4. Validate the reconstructed `BenchmarkAttemptRecordV2`; do not infer state
+   from directory names or scheduler output alone.
+
 ## Allowed Variation
 
 - Output directory paths may differ.
