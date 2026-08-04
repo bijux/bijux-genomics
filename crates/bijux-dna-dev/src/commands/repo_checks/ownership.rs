@@ -1,9 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::{ensure, Context, Result};
 use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, ensure_dir};
 use regex::Regex;
+use schemars::JsonSchema;
 use serde::Serialize;
 
 use crate::commands::command_support::{pass, run_command};
@@ -12,6 +13,8 @@ use crate::runtime::workspace::Workspace;
 
 const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-audit.json";
 const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
+const OUTPUT_SCHEMA: &str =
+    "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
 const LEGACY_AUTHORITIES: [&str; 5] = [
     "benchmarks/benchmark_evidence.py",
     "benchmarks/benchmark_portfolio.py",
@@ -39,14 +42,14 @@ struct SourceFile {
     content: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, JsonSchema, Serialize)]
 struct OwnershipAudit {
     schema_version: &'static str,
     summary: AuditSummary,
     files: Vec<OwnershipRow>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, JsonSchema, Serialize)]
 struct AuditSummary {
     generated_from_commit: String,
     total_files: usize,
@@ -57,7 +60,7 @@ struct AuditSummary {
     legacy_authority_callers: BTreeMap<String, Vec<String>>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, JsonSchema, Serialize)]
 struct OwnershipRow {
     path: String,
     scope: String,
@@ -78,23 +81,86 @@ pub(crate) fn check_ownership_audit(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let audit = build_audit(workspace)?;
+    validate_audit(&audit)?;
     let markdown = render_markdown(&audit);
+    let schema = schemars::schema_for!(OwnershipAudit);
     let output_dir = workspace.path("artifacts/architecture");
     ensure_dir(&output_dir).context("create architecture artifact root")?;
     atomic_write_json(&workspace.path(OUTPUT_JSON), &audit)
         .context("write ownership audit JSON")?;
     atomic_write_bytes(&workspace.path(OUTPUT_MARKDOWN), markdown.as_bytes())
         .context("write ownership audit Markdown")?;
+    atomic_write_json(&workspace.path(OUTPUT_SCHEMA), &schema)
+        .context("write ownership audit schema")?;
     pass(
         check,
         format!(
-            "classified {} files at {} with zero unclassified files; wrote {} and {}",
+            "classified {} files at {} with zero unclassified files; wrote {}, {}, and {}",
             audit.summary.total_files,
             audit.summary.generated_from_commit,
             OUTPUT_JSON,
-            OUTPUT_MARKDOWN
+            OUTPUT_MARKDOWN,
+            OUTPUT_SCHEMA
         ),
     )
+}
+
+fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
+    ensure!(
+        audit.schema_version == "bijux.architecture.ownership_audit.v1",
+        "unexpected ownership audit schema version"
+    );
+    ensure!(
+        audit.summary.generated_from_commit.len() == 40
+            && audit.summary.generated_from_commit.chars().all(|value| value.is_ascii_hexdigit()),
+        "ownership audit source commit must be a full Git SHA"
+    );
+    ensure!(!audit.files.is_empty(), "ownership audit contains no files");
+    ensure!(
+        audit.summary.total_files == audit.files.len(),
+        "ownership audit total does not match file rows"
+    );
+    ensure!(audit.summary.unclassified_files == 0, "ownership audit contains unclassified files");
+    ensure!(
+        audit.summary.classification_counts.values().sum::<usize>() == audit.files.len(),
+        "ownership classification counts do not match file rows"
+    );
+    ensure!(
+        audit.summary.scope_counts.values().sum::<usize>() == audit.files.len(),
+        "ownership scope counts do not match file rows"
+    );
+    let mut paths = BTreeSet::new();
+    for row in &audit.files {
+        ensure!(!row.path.is_empty(), "ownership row has an empty path");
+        ensure!(paths.insert(&row.path), "duplicate ownership row for {}", row.path);
+        ensure!(!row.scope.is_empty(), "{} has no scope", row.path);
+        ensure!(!row.classification.is_empty(), "{} is unclassified", row.path);
+        ensure!(!row.current_owner.is_empty(), "{} has no current owner", row.path);
+        ensure!(!row.target_owner.is_empty(), "{} has no target owner", row.path);
+        ensure!(!row.replacement.is_empty(), "{} has no replacement contract", row.path);
+        ensure!(!row.removal_gate.is_empty(), "{} has no removal gate", row.path);
+        ensure!(!row.reasons.is_empty(), "{} has no classification reason", row.path);
+    }
+    for authority in LEGACY_AUTHORITIES {
+        ensure!(
+            audit.summary.legacy_authority_callers.contains_key(authority),
+            "legacy authority caller inventory missing {authority}"
+        );
+        ensure!(
+            audit.files.iter().any(|row| row.path == authority),
+            "legacy authority row missing {authority}"
+        );
+    }
+    let bench_consumers = audit
+        .summary
+        .dependency_consumers
+        .get("bijux-dna-bench")
+        .context("missing bijux-dna-bench dependency inventory")?;
+    ensure!(
+        bench_consumers == &["bijux-dna-api".to_string(), "bijux-dna-dev".to_string()],
+        "unexpected bijux-dna-bench consumers: {bench_consumers:?}"
+    );
+    Ok(())
 }
 
 fn build_audit(workspace: &Workspace) -> Result<OwnershipAudit> {
@@ -466,7 +532,9 @@ mod tests {
 
     use regex::Regex;
 
-    use super::{classify, render_markdown, AuditSummary, OwnershipAudit, SourceFile};
+    use super::{
+        classify, render_markdown, validate_audit, AuditSummary, OwnershipAudit, SourceFile,
+    };
 
     #[test]
     fn authoritative_crate_logic_remains_canonical() -> anyhow::Result<()> {
@@ -515,5 +583,23 @@ mod tests {
             files: Vec::new(),
         };
         assert_eq!(render_markdown(&audit), render_markdown(&audit));
+    }
+
+    #[test]
+    fn semantic_validation_rejects_an_empty_audit() {
+        let audit = OwnershipAudit {
+            schema_version: "bijux.architecture.ownership_audit.v1",
+            summary: AuditSummary {
+                generated_from_commit: "a".repeat(40),
+                total_files: 0,
+                unclassified_files: 0,
+                classification_counts: BTreeMap::new(),
+                scope_counts: BTreeMap::new(),
+                dependency_consumers: BTreeMap::new(),
+                legacy_authority_callers: BTreeMap::new(),
+            },
+            files: Vec::new(),
+        };
+        assert!(validate_audit(&audit).is_err());
     }
 }
