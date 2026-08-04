@@ -5,11 +5,13 @@ This crate is allowed to depend on stable workspace primitives and developer-pol
 ## Current dependency shape
 - `bijux-dna-core` is used for shared identifiers and catalog helpers needed by developer automation.
 - `bijux-dna-infra` is used for governed filesystem primitives such as directory creation and file writes.
+- `bijux-dna-runtime` is used to read runtime-owned immutable run evidence when developer automation composes qualification reports. This dependency does not transfer runtime state, runner, or execution ownership into this crate.
 - `bijux-dna-policies` is a dev-dependency for policy contract checks.
 - `clap`, `anyhow`, `serde`, `serde_json`, `toml`, `regex`, `sha2`, `chrono`, `walkdir`, and `reqwest` support CLI parsing, error context, structured data, checksums, deterministic traversal, and explicit automation workflows.
 
 ## Allowed direction
 - `bijux-dna-dev` may depend on low-level shared crates that do not depend back on it.
+- `bijux-dna-dev` may consume stable runtime evidence contracts, but must not implement runtime transitions or backend execution.
 - Production runtime, planner, engine, and domain crates must not depend on `bijux-dna-dev`.
 - Developer-policy tests may call the `bijux-dna-dev` binary surface, but production command execution must remain outside this crate.
 
