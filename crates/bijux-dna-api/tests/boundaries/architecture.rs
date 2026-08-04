@@ -32,8 +32,9 @@ fn manifest_dependency_graph_has_no_duplicate_edges() {
         "normal and dev dependencies must not duplicate edges: {duplicates:?}",
     );
     assert!(
-        !dependencies.contains("bijux-dna-bench"),
-        "bijux-dna-api must not depend on bijux-dna-bench unless source code imports its API",
+        !dependencies.contains("bijux-dna-bench")
+            || file_contains(&root.join("src/v1/bench/exports.rs"), "bijux_dna_bench::"),
+        "bijux-dna-api may depend on bijux-dna-bench only when the stable v1 bench surface imports it",
     );
 }
 
@@ -239,6 +240,12 @@ fn assert_test_tree(root: &std::path::Path) {
         "api test support must keep shared helpers out of suite roots",
     );
     assert_contracts_tree(root);
+}
+
+fn file_contains(path: &std::path::Path, needle: &str) -> bool {
+    std::fs::read_to_string(path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
+        .contains(needle)
 }
 
 fn assert_contracts_tree(root: &std::path::Path) {

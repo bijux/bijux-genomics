@@ -9,6 +9,10 @@ use serde::{Deserialize, Serialize};
 
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
+pub use bijux_dna_bench::{
+    BenchmarkAttemptRecord, BenchmarkCycleStatus, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+};
 
 pub use crate::internal::public_surface::handlers::bam::BamBenchOutcome;
 pub use crate::internal::public_surface::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
@@ -25,6 +29,45 @@ pub use bijux_dna_planner_fastq::stage_api::*;
 /// Alias for `BenchOutcome<M: StageMetricSchema>` from the fastq handlers.
 pub type BenchOutcome<M> = crate::internal::public_surface::handlers::fastq::BenchOutcome<M>;
 pub use crate::internal::public_surface::handlers::fastq::*;
+
+fn render_json_schema<T: schemars::JsonSchema>() -> serde_json::Value {
+    match serde_json::to_value(schemars::schema_for!(T)) {
+        Ok(value) => value,
+        Err(error) => panic!("serialize JSON schema: {error}"),
+    }
+}
+
+/// Render the governed benchmark attempt schema.
+#[must_use]
+pub fn render_benchmark_attempt_schema() -> serde_json::Value {
+    render_json_schema::<BenchmarkAttemptRecord>()
+}
+
+/// Write the governed benchmark attempt schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
+pub fn write_benchmark_attempt_schema(path: &Path) -> Result<()> {
+    let schema = render_benchmark_attempt_schema();
+    bijux_dna_infra::atomic_write_json(path, &schema)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+/// Render the governed benchmark cycle status schema.
+#[must_use]
+pub fn render_benchmark_cycle_status_schema() -> serde_json::Value {
+    render_json_schema::<BenchmarkCycleStatus>()
+}
+
+/// Write the governed benchmark cycle status schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
+pub fn write_benchmark_cycle_status_schema(path: &Path) -> Result<()> {
+    let schema = render_benchmark_cycle_status_schema();
+    bijux_dna_infra::atomic_write_json(path, &schema)
+        .with_context(|| format!("write {}", path.display()))
+}
 
 /// Render the governed FASTQ normalized metrics schema.
 #[must_use]

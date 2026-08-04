@@ -5,6 +5,7 @@
 pub mod corpus;
 pub mod decision;
 pub mod graph;
+pub mod lifecycle;
 pub mod observation;
 pub mod suite;
 pub mod summary;
@@ -17,6 +18,10 @@ pub use corpus::{
 pub use decision::BenchmarkDecision;
 #[allow(unused_imports)]
 pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
+#[allow(unused_imports)]
+pub use lifecycle::{
+    BenchmarkAttemptRecord, BenchmarkCycleStatus, BenchmarkJobReference, BenchmarkLifecycleStatus,
+};
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
 pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};

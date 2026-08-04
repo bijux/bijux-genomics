@@ -30,6 +30,9 @@ These v1 operations are exported through `bijux_dna_api::v1::api`.
 The public front door also exposes curated v1 namespaces:
 
 - `api::bench` for benchmark helper exports.
+  Benchmark lifecycle schema operations now include `render_benchmark_attempt_schema`,
+  `write_benchmark_attempt_schema`, `render_benchmark_cycle_status_schema`, and
+  `write_benchmark_cycle_status_schema`.
 - `api::plan` for planning helper exports.
 - `api::run` for run orchestration helper exports.
 - `api::report` for report helper exports.

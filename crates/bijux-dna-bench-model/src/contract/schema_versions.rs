@@ -7,3 +7,5 @@ pub const BUNDLE_SCHEMA_V1: &str = "bijux.bench.bundle.v1";
 pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
 pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
 pub const DECISION_SCHEMA_V1: &str = "bijux.bench.gate.v1";
+pub const BENCHMARK_ATTEMPT_SCHEMA_V1: &str = "bijux.benchmark.attempt.v1";
+pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V1: &str = "bijux.benchmark.cycle_status.v1";

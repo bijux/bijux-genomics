@@ -10,10 +10,12 @@ pub use crate::workflow::{
     load_corpus_manifest, load_suite, summarize, BenchRunOptions,
 };
 pub use bijux_dna_bench_model::{
-    AnalysisRequirements, BackendComparisonSpec, BenchError, BenchmarkBundleManifest,
-    BenchmarkCorpusManifest, BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec,
+    AnalysisRequirements, BackendComparisonSpec, BenchError, BenchmarkAttemptRecord,
+    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkCycleStatus, BenchmarkDecision,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkObservation, BenchmarkSuiteSpec,
     BenchmarkSummary, CorpusDatasetSpec, CorpusDomain, CorpusScale, DatasetSpec, DecisionRationale,
     DiversityRequirements, DriftScenarioSpec, GateDecision, GatePolicy, GatePolicyOverrides,
     GateViolation, MetricSummary, MetricsEnvelope, ReplicatePolicy, StratificationRequirement,
-    SummaryRow, TruthSetHook, TruthSetStatus,
+    SummaryRow, TruthSetHook, TruthSetStatus, BENCHMARK_ATTEMPT_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
 };

@@ -14,6 +14,10 @@ Model contracts:
 - `BenchmarkSummary`
 - `BenchmarkDecision`
 - `DecisionRationale`
+- `BenchmarkLifecycleStatus`
+- `BenchmarkJobReference`
+- `BenchmarkAttemptRecord`
+- `BenchmarkCycleStatus`
 - `BenchmarkGraphNode`
 - `BenchmarkGraphNodeKind`
 - `BenchmarkStageEdge`
@@ -36,6 +40,8 @@ Policy and diagnostics:
 - `GateDecision`
 - `GateViolation`
 - `BenchError`
+- `BENCHMARK_ATTEMPT_SCHEMA_V1`
+- `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
 
 Statistics:
 

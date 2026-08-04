@@ -4,6 +4,7 @@ use std::path::PathBuf;
 const NORMAL_DEPS: &[&str] = &[
     "anyhow",
     "bijux-dna-analyze",
+    "bijux-dna-bench",
     "bijux-dna-core",
     "bijux-dna-domain-bam",
     "bijux-dna-domain-fastq",
@@ -22,6 +23,7 @@ const NORMAL_DEPS: &[&str] = &[
     "chrono",
     "flate2",
     "regex",
+    "schemars",
     "serde",
     "serde_json",
     "sha2",
