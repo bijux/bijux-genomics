@@ -1,0 +1,586 @@
+{
+  "$defs": {
+    "EvidenceVerdict": {
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "missing",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "ImageSignatureDisposition": {
+      "enum": [
+        "signed_verified",
+        "unsigned_policy_accepted",
+        "invalid",
+        "missing_policy"
+      ],
+      "type": "string"
+    },
+    "RuntimeAccessPolicy": {
+      "enum": [
+        "denied",
+        "allowed",
+        "unverified"
+      ],
+      "type": "string"
+    },
+    "RuntimeSecurityEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "network_policy": {
+          "$ref": "#/$defs/RuntimeAccessPolicy"
+        },
+        "non_root_execution_passed": {
+          "type": "boolean"
+        },
+        "non_root_uid": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "probe_sha256": {
+          "type": "string"
+        },
+        "writable_mount_policy": {
+          "$ref": "#/$defs/RuntimeAccessPolicy"
+        }
+      },
+      "required": [
+        "network_policy",
+        "writable_mount_policy",
+        "non_root_uid",
+        "non_root_execution_passed",
+        "probe_sha256"
+      ],
+      "type": "object"
+    },
+    "SbomEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "$ref": "#/$defs/SbomFormat"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "generator_version": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "source_image_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "format",
+        "sha256",
+        "generator",
+        "generator_version",
+        "source_image_sha256"
+      ],
+      "type": "object"
+    },
+    "SbomFormat": {
+      "enum": [
+        "cyclone_dx_json",
+        "spdx_json"
+      ],
+      "type": "string"
+    },
+    "SecretScanEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "finding_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "report_sha256": {
+          "type": "string"
+        },
+        "scanner": {
+          "type": "string"
+        },
+        "scanner_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scanner",
+        "scanner_version",
+        "report_sha256",
+        "finding_count"
+      ],
+      "type": "object"
+    },
+    "SecurityArtifactIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "SecuritySourceIdentity": {
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "source_sha256",
+              "type": "string"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "pinned_commit",
+              "type": "string"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "StructuralSecurityEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "inspection_sha256": {
+          "type": "string"
+        },
+        "signature": {
+          "$ref": "#/$defs/ImageSignatureDisposition"
+        },
+        "signature_evidence_sha256": {
+          "type": "string"
+        },
+        "suid_sgid_paths": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "world_writable_paths": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "inspection_sha256",
+        "signature",
+        "signature_evidence_sha256"
+      ],
+      "type": "object"
+    },
+    "SupportDisposition": {
+      "enum": [
+        "retained",
+        "unsupported"
+      ],
+      "type": "string"
+    },
+    "ToolSecurityEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "build_evidence_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "runtime_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSecurityEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sbom": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SbomEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "secret_scan": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecretScanEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_identity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecuritySourceIdentity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "structural": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructuralSecurityEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "support_disposition": {
+          "$ref": "#/$defs/SupportDisposition"
+        },
+        "tool_contract_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "verdict": {
+          "$ref": "#/$defs/EvidenceVerdict"
+        },
+        "version": {
+          "type": "string"
+        },
+        "vulnerabilities": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VulnerabilityEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "waivers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VulnerabilityWaiver"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_id",
+        "version",
+        "support_disposition",
+        "verdict"
+      ],
+      "type": "object"
+    },
+    "VulnerabilityDatabaseIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_age_days": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/VulnerabilityDatabaseStatus"
+        },
+        "updated_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "maximum_age_days"
+      ],
+      "type": "object"
+    },
+    "VulnerabilityDatabaseStatus": {
+      "enum": [
+        "current",
+        "stale",
+        "missing"
+      ],
+      "type": "string"
+    },
+    "VulnerabilityEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "database_sha256": {
+          "type": "string"
+        },
+        "findings": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VulnerabilityFinding"
+          },
+          "type": "array"
+        },
+        "report_sha256": {
+          "type": "string"
+        },
+        "scanner": {
+          "type": "string"
+        },
+        "scanner_version": {
+          "type": "string"
+        },
+        "severity_counts": {
+          "$ref": "#/$defs/VulnerabilitySeverityCounts"
+        }
+      },
+      "required": [
+        "scanner",
+        "scanner_version",
+        "database_sha256",
+        "report_sha256",
+        "severity_counts"
+      ],
+      "type": "object"
+    },
+    "VulnerabilityFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "fixed_versions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "installed_version": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/VulnerabilitySeverity"
+        },
+        "waiver_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "severity",
+        "package",
+        "installed_version"
+      ],
+      "type": "object"
+    },
+    "VulnerabilityScannerIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "database": {
+          "$ref": "#/$defs/VulnerabilityDatabaseIdentity"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "database"
+      ],
+      "type": "object"
+    },
+    "VulnerabilitySeverity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "unknown"
+      ],
+      "type": "string"
+    },
+    "VulnerabilitySeverityCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "critical": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "high": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "low": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "medium": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unknown": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "unknown"
+      ],
+      "type": "object"
+    },
+    "VulnerabilityWaiver": {
+      "additionalProperties": false,
+      "properties": {
+        "approval_sha256": {
+          "type": "string"
+        },
+        "expires_on": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "vulnerability_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "vulnerability_id",
+        "rationale",
+        "expires_on",
+        "approval_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "evaluated_at_utc": {
+      "type": "string"
+    },
+    "inventory_sha256": {
+      "type": "string"
+    },
+    "policy_sha256": {
+      "type": "string"
+    },
+    "raw_evidence": {
+      "$ref": "#/$defs/SecurityArtifactIdentity"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "scanner": {
+      "$ref": "#/$defs/VulnerabilityScannerIdentity"
+    },
+    "schema_version": {
+      "const": "bijux.container.security_evidence.v1",
+      "type": "string"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ToolSecurityEvidence"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "evaluated_at_utc",
+    "repository_commit",
+    "catalog_sha256",
+    "inventory_sha256",
+    "policy_sha256",
+    "raw_evidence",
+    "scanner",
+    "tools"
+  ],
+  "title": "ContainerSecurityEvidencePublication",
+  "type": "object"
+}

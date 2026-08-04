@@ -5,3 +5,13 @@ pub use crate::qualification::{
     QualificationAssessment, QualificationClaim, SupportDisposition,
     QUALIFICATION_ASSESSMENT_SCHEMA_V1,
 };
+pub use crate::security_evidence::{
+    security_evidence_schema, validate_security_evidence_publication,
+    ContainerSecurityEvidencePublication, ImageSignatureDisposition, RuntimeAccessPolicy,
+    RuntimeSecurityEvidence, SbomEvidence, SbomFormat, SecretScanEvidence,
+    SecurityArtifactIdentity, SecuritySourceIdentity, StructuralSecurityEvidence,
+    ToolSecurityEvidence, VulnerabilityDatabaseIdentity, VulnerabilityDatabaseStatus,
+    VulnerabilityEvidence, VulnerabilityFinding, VulnerabilityScannerIdentity,
+    VulnerabilitySeverity, VulnerabilitySeverityCounts, VulnerabilityWaiver,
+    CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
+};

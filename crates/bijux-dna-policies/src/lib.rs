@@ -6,6 +6,7 @@ mod guardrails;
 pub mod policy_diagnostics;
 pub mod public_api;
 pub mod qualification;
+pub mod security_evidence;
 mod source_scan;
 
 pub use public_api::{check, GuardrailConfig};
@@ -13,4 +14,14 @@ pub use qualification::{
     EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
     QualificationAssessment, QualificationClaim, SupportDisposition,
     QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+};
+pub use security_evidence::{
+    security_evidence_schema, validate_security_evidence_publication,
+    ContainerSecurityEvidencePublication, ImageSignatureDisposition, RuntimeAccessPolicy,
+    RuntimeSecurityEvidence, SbomEvidence, SbomFormat, SecretScanEvidence,
+    SecurityArtifactIdentity, SecuritySourceIdentity, StructuralSecurityEvidence,
+    ToolSecurityEvidence, VulnerabilityDatabaseIdentity, VulnerabilityDatabaseStatus,
+    VulnerabilityEvidence, VulnerabilityFinding, VulnerabilityScannerIdentity,
+    VulnerabilitySeverity, VulnerabilitySeverityCounts, VulnerabilityWaiver,
+    CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
 };
