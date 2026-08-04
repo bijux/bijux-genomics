@@ -1,7 +1,10 @@
-use bijux_dna_bench::{
+use bijux_dna_bench_model::{
+    BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
+    BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+};
+use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
-    load_attempt_lifecycle, BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    load_attempt_lifecycle,
 };
 
 fn identity(attempt_id: &str) -> BenchmarkAttemptIdentity {
@@ -49,7 +52,7 @@ fn blocked_transition() -> BenchmarkAttemptTransition {
 
 #[test]
 fn lifecycle_store_uses_permanent_run_tool_campaign_and_attempt_identity() -> anyhow::Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-identity");
     let record = planned("attempt-001");
 
     let directory = initialize_attempt_lifecycle(temporary.path(), &record)?;
@@ -66,7 +69,7 @@ fn lifecycle_store_uses_permanent_run_tool_campaign_and_attempt_identity() -> an
 
 #[test]
 fn lifecycle_store_appends_sequence_addressed_immutable_events() -> anyhow::Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-append");
     let initial = planned("attempt-001");
     let directory = initialize_attempt_lifecycle(temporary.path(), &initial)?;
 
@@ -84,7 +87,7 @@ fn lifecycle_store_appends_sequence_addressed_immutable_events() -> anyhow::Resu
 
 #[test]
 fn lifecycle_store_refuses_identity_reuse_and_illegal_events() -> anyhow::Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-refusal");
     let initial = planned("attempt-001");
     let directory = initialize_attempt_lifecycle(temporary.path(), &initial)?;
     let initial_bytes = std::fs::read(directory.join("attempt.json"))?;
@@ -104,7 +107,7 @@ fn lifecycle_store_refuses_identity_reuse_and_illegal_events() -> anyhow::Result
 
 #[test]
 fn lifecycle_store_retains_multiple_attempt_ids_for_one_tool() -> anyhow::Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-multiple");
     let first = planned("attempt-001");
     let second = planned("attempt-002");
 
@@ -122,7 +125,7 @@ fn lifecycle_store_retains_multiple_attempt_ids_for_one_tool() -> anyhow::Result
 
 #[test]
 fn lifecycle_store_requires_existing_terminal_retry_lineage() -> anyhow::Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-lineage");
     let prior = planned("attempt-001");
     initialize_attempt_lifecycle(temporary.path(), &prior)?;
     append_attempt_lifecycle_transition(temporary.path(), &prior.identity, ready_transition())?;
@@ -142,7 +145,7 @@ fn lifecycle_store_requires_existing_terminal_retry_lineage() -> anyhow::Result<
 
 #[test]
 fn lifecycle_store_rejects_unmanaged_or_malformed_evidence() -> anyhow::Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-malformed");
     let initial = planned("attempt-001");
     let directory = initialize_attempt_lifecycle(temporary.path(), &initial)?;
     std::fs::write(directory.join("unexpected.txt"), b"not governed")?;
@@ -157,7 +160,7 @@ fn lifecycle_store_rejects_unmanaged_or_malformed_evidence() -> anyhow::Result<(
 
 #[test]
 fn lifecycle_store_serializes_concurrent_transition_publication() -> anyhow::Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-concurrent");
     let initial = planned("attempt-001");
     initialize_attempt_lifecycle(temporary.path(), &initial)?;
     let root = std::sync::Arc::new(temporary.path().to_path_buf());

@@ -23,13 +23,17 @@ These are library functions, not shell commands:
 - `write_run_manifest`
 - `write_canonical_json`
 - `prepare_tool_run_dirs`
+- `initialize_attempt_lifecycle`
+- `append_attempt_lifecycle_transition`
+- `load_attempt_lifecycle`
+- `benchmark_attempt_directory`
 - `build_telemetry_adapter`
 
 ## Ownership Rules
 - CLI parsing belongs outside this crate.
 - Tool selection and stage planning belong outside this crate.
 - Backend process execution belongs to runner crates.
-- Runtime may write declared run-layout artifacts through typed APIs only.
+- Runtime may write declared run-layout and benchmark attempt artifacts through typed APIs only.
 
 ## Local Verification Commands
 

@@ -1,10 +1,10 @@
 # bijux-dna-runtime
 
 ## What this crate does
-`bijux-dna-runtime` owns runtime contracts and recording helpers: run layout, manifests, records, provenance, observability contracts, telemetry events, and runner handoff types.
+`bijux-dna-runtime` owns runtime contracts and recording helpers: run layout, manifests, records, provenance, observability contracts, telemetry events, runner handoff types, and append-only benchmark attempt transitions.
 
 ## What it must not do (boundaries)
-It must not plan stages, choose tools, parse CLI/API requests, execute tools, invoke Docker/Apptainer, own analyzer/report behavior, or write outside declared run-layout roots.
+It must not plan stages, choose tools, parse CLI/API requests, execute tools, invoke Docker/Apptainer, own analyzer/report behavior, or write outside declared runtime and benchmark attempt roots.
 
 ## Role in the stack
 Upstream callers provide execution plans, runner responses, runtime profiles, and declared run roots. Downstream consumers read schema-stable runtime artifacts for analysis, benchmarking, reproducibility, and reporting.
@@ -40,7 +40,7 @@ Telemetry outputs (schema-stable fields; timestamps are unstable by design):
 - `errors.json`
 
 ## Key contracts it owns/consumes
-Owns runtime artifact schemas, run-layout contracts, runner handoff contracts, telemetry contracts, provenance contracts, and canonical runtime writers.
+Owns runtime artifact schemas, run-layout contracts, runner handoff contracts, telemetry contracts, provenance contracts, canonical runtime writers, and evidence-derived attempt transition persistence.
 
 ## Artifacts / Contracts
 See `docs/RUNTIME_CONTRACT.md`, `docs/ARTIFACTS.md`, and schema fixtures under `tests/fixtures/runtime_schema/`.

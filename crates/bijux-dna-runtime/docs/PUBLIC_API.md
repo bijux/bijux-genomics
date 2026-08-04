@@ -15,7 +15,7 @@
 
 ## Root Exports
 - Observability contracts: `RunProvenanceV1`, `RunContextV1`, `TelemetryEventV1`, report types, telemetry event names, failure codes, attribute redaction, and telemetry validation helpers.
-- Recording entrypoints: `load_run_evidence_index`, `validate_run_evidence_index`, typed attempt records, `prepare_tool_run_dirs`, `write_canonical_json`, `write_profile_and_lock_manifests`, `write_run_manifest`.
+- Recording entrypoints: `initialize_attempt_lifecycle`, `append_attempt_lifecycle_transition`, `load_attempt_lifecycle`, `benchmark_attempt_directory`, `load_run_evidence_index`, `validate_run_evidence_index`, typed attempt records, `prepare_tool_run_dirs`, `write_canonical_json`, `write_profile_and_lock_manifests`, `write_run_manifest`.
 - Run layout entrypoints: `create_run_layout`, `write_manifest`, `write_run_state`, `write_runtime_policy`, `write_executor_descriptor`, `write_checkpoint`, `write_failure_record`, `RunManifest`, `RunStageEntry`.
 - Runner entrypoints: `ensure_stage_supported_by_runner`, `Artifact`, `Invocation`, `Runner`, `RunnerContractKind`, `RunnerResult`.
 - Telemetry adapter entrypoints: `build_telemetry_adapter`, `TelemetryAdapter`, `TelemetrySpan`.

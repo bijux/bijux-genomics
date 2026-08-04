@@ -11,6 +11,7 @@ fn effects_doc_matches_runtime_effect_boundary() {
     for allowed in [
         "Create directories under declared run/layout roots",
         "Write canonical JSON runtime artifacts",
+        "Atomically create immutable benchmark attempt identities",
         "Append runtime-owned JSONL event files",
         "Acquire file locks",
         "Record explicit timestamps",
@@ -27,7 +28,7 @@ fn effects_doc_matches_runtime_effect_boundary() {
         "No Docker or Apptainer invocation",
         "No network access",
         "No CLI parsing",
-        "No writes outside declared run-layout or tool-run roots",
+        "No writes outside declared run-layout, tool-run, or benchmark attempt roots",
     ] {
         assert!(
             effects_doc.contains(forbidden),

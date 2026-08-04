@@ -2,6 +2,10 @@ pub use super::attempts::{
     load_run_evidence_index, validate_run_evidence_index, AttemptExecutionStatus, RunEvidenceIndex,
     RunEvidenceRecord, ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
 };
+pub use super::benchmark_attempts::{
+    append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
+    load_attempt_lifecycle,
+};
 pub use super::envelope::{write_run_artifact_envelope, RunArtifactEnvelopeV1, StageResultStatus};
 pub use super::io::{
     append_jsonl_line, hash_file_sha256, write_artifact_checksums_json, write_atomic_bytes,

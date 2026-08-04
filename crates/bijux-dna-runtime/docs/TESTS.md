@@ -16,6 +16,7 @@ This file maps runtime tests to their contract purpose. Directory-local README f
 - `tests/boundaries/guardrails.rs` checks policy guardrails.
 
 ## Contracts Suite
+- `tests/contracts/benchmark_attempt_lifecycle.rs` checks permanent attempt identity, immutable transition publication, retry lineage, malformed evidence refusal, and concurrent writers.
 - `tests/contracts/canonical_writer.rs` checks canonical JSON writer usage.
 - `tests/contracts/docs_layout.rs` checks README, test docs, and public API docs.
 - `tests/contracts/experimental_registry_alias.rs` checks governed registry aliases.

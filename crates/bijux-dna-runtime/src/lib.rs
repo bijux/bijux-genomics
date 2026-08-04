@@ -33,10 +33,11 @@ pub use observability::{
 
 // Recording entrypoints
 pub use recording::{
-    load_run_evidence_index, prepare_tool_run_dirs, validate_run_evidence_index,
-    write_canonical_json, write_profile_and_lock_manifests, write_run_manifest,
-    AttemptExecutionStatus, RunEvidenceIndex, RunEvidenceRecord, ScientificAcceptanceStatus,
-    CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
+    append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
+    load_attempt_lifecycle, load_run_evidence_index, prepare_tool_run_dirs,
+    validate_run_evidence_index, write_canonical_json, write_profile_and_lock_manifests,
+    write_run_manifest, AttemptExecutionStatus, RunEvidenceIndex, RunEvidenceRecord,
+    ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
 };
 
 // Run layout entrypoints

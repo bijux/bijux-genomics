@@ -5,6 +5,7 @@
 //! - No heavy dependencies; keep this module lightweight and stable.
 
 mod attempts;
+mod benchmark_attempts;
 mod envelope;
 mod io;
 mod manifests;

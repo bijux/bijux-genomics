@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-runtime
 //! Persistent append-only benchmark attempt lifecycle storage.
 
 use std::fs;

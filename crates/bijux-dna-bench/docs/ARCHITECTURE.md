@@ -23,7 +23,7 @@ belong under `docs/`.
 - `src/lib.rs` keeps the crate root thin and re-exports `public_api`.
 - `src/public_api/` owns the curated stable surface and stable-surface owner.
 - `src/workflow/` owns suite loading, summarization, comparison, gate evaluation,
-  suite persistence, append-only attempt lifecycle storage, fairness checks,
+  suite persistence, runtime attempt-lifecycle composition, fairness checks,
   scope grouping, and summary statistics.
 - `src/workflow/run_suite/` separates suite orchestration from artifact
   persistence.

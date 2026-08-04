@@ -24,9 +24,9 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
 | `benchmark-attempt-directory` | `benchmark_attempt_directory(root, identity)` | Derive the permanent `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>` storage path from validated identity. |
-| `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Atomically publish an immutable planned attempt record without reusing an existing identity. |
-| `append-attempt-lifecycle-transition` | `append_attempt_lifecycle_transition(root, identity, transition)` | Validate and atomically publish one no-clobber sequence-addressed transition event. |
-| `load-attempt-lifecycle` | `load_attempt_lifecycle(root, identity)` | Reconstruct and validate an attempt exclusively from immutable lifecycle evidence. |
+| `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Delegate atomic publication of an immutable planned attempt record to `bijux-dna-runtime`. |
+| `append-attempt-lifecycle-transition` | `append_attempt_lifecycle_transition(root, identity, transition)` | Delegate validation and no-clobber publication of one sequence-addressed transition to `bijux-dna-runtime`. |
+| `load-attempt-lifecycle` | `load_attempt_lifecycle(root, identity)` | Delegate reconstruction and validation of immutable lifecycle evidence to `bijux-dna-runtime`. |
 | `plan-attempt-migration` | `plan_attempt_migration(study_root, created_at_utc)` | Classify historical attempts by retained `run.kind` and produce a byte inventory bound plan. |
 | `apply-attempt-migration` | `apply_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Move planned attempts by same-filesystem rename while maintaining an interruption-safe ledger. |
 | `verify-attempt-migration` | `verify_attempt_migration(study_root, plan_path, ledger_path)` | Recompute every current source or target file size and SHA-256 against the exact plan. |
@@ -58,8 +58,9 @@ Managed benchmark artifacts are:
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/attempt.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/transitions/<sequence>.json`
 
-`bijux-dna-bench` writes and reads benchmark artifacts only under declared
-benchmark output roots.
+`bijux-dna-bench` writes suite, summary, decision, and migration artifacts only
+under declared benchmark output roots. Attempt lifecycle files are persisted and
+loaded by `bijux-dna-runtime` through the compatibility exports above.
 
 ## Local Verification Commands
 
