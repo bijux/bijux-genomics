@@ -16,8 +16,9 @@ pub use qualification::{
     QUALIFICATION_ASSESSMENT_SCHEMA_V1,
 };
 pub use security_evidence::{
-    security_evidence_schema, validate_security_evidence_publication,
-    ContainerSecurityEvidencePublication, ImageSignatureDisposition, RuntimeAccessPolicy,
+    parse_grype_vulnerability_report, security_evidence_schema,
+    validate_security_evidence_publication, ContainerSecurityEvidencePublication,
+    ImageSignatureDisposition, ParsedVulnerabilityReport, RuntimeAccessPolicy,
     RuntimeSecurityEvidence, SbomEvidence, SbomFormat, SecretScanEvidence,
     SecurityArtifactIdentity, SecuritySourceIdentity, StructuralSecurityEvidence,
     ToolSecurityEvidence, VulnerabilityDatabaseIdentity, VulnerabilityDatabaseStatus,

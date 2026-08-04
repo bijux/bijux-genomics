@@ -1,7 +1,9 @@
+mod grype;
 mod model;
 mod schema;
 mod validation;
 
+pub use grype::{parse_grype_vulnerability_report, ParsedVulnerabilityReport};
 pub use model::{
     ContainerSecurityEvidencePublication, ImageSignatureDisposition, RuntimeAccessPolicy,
     RuntimeSecurityEvidence, SbomEvidence, SbomFormat, SecretScanEvidence,
