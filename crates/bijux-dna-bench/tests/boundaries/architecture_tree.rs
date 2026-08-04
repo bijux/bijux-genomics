@@ -79,6 +79,7 @@ fn bench_tree_matches_architecture_contract() {
             "evaluation.rs",
             "mod.rs",
             "options.rs",
+            "report_load.rs",
             "run_suite/",
             "summary/",
             "suite_load.rs",

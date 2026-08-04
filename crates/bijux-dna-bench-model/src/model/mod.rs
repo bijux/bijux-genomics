@@ -9,6 +9,7 @@ pub mod interfaces;
 pub mod lifecycle;
 pub mod observation;
 pub mod planning;
+pub mod report;
 pub mod suite;
 pub mod summary;
 
@@ -37,6 +38,15 @@ pub use planning::{
     BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
     BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+};
+#[allow(unused_imports)]
+pub use report::{
+    BenchmarkComparisonMetric, BenchmarkComparisonStatus, BenchmarkCrossToolComparison,
+    BenchmarkMetricDistribution, BenchmarkReportComparability, BenchmarkReportDeterminism,
+    BenchmarkReportDownstreamProbe, BenchmarkReportImage, BenchmarkReportInputLock,
+    BenchmarkReportSlurmJob, BenchmarkReportStageInterface, BenchmarkReportVerdict,
+    BenchmarkScientificValue, BenchmarkStageReport, BenchmarkStageReportDesign,
+    BenchmarkToolReport,
 };
 #[allow(unused_imports)]
 pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};

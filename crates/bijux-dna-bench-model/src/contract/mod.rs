@@ -7,6 +7,7 @@
 mod interfaces;
 mod planning;
 mod records;
+mod report;
 mod schema_versions;
 mod suite;
 pub use interfaces::{
@@ -21,11 +22,12 @@ pub use records::{
     validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_observation,
     validate_summary,
 };
+pub use report::{validate_stage_report, validate_stage_report_alignment};
 pub use schema_versions::{
     BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
     BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
-    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BUNDLE_SCHEMA_V1,
-    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1,
-    SUMMARY_SCHEMA_V1,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
+    BENCHMARK_STAGE_REPORT_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use suite::validate_suite;

@@ -22,6 +22,9 @@ Model contracts:
 - `BenchmarkPipelineParameterConfig`
 - `BenchmarkStageParameterConfig`
 - `BenchmarkParameterValue`
+- `BenchmarkStageReport`
+- `BenchmarkStageReportDesign`
+- `BenchmarkToolReport`
 - `BenchmarkMeasurementContract`
 - `BenchmarkCorpusContract`
 - `BenchmarkScientificProfile`
@@ -60,6 +63,7 @@ Policy and diagnostics:
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
+- `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
 
 Statistics:
 

@@ -4,6 +4,7 @@
 
 mod evaluation;
 mod options;
+mod report_load;
 mod run_suite;
 mod suite_load;
 mod summary;
@@ -13,6 +14,7 @@ mod summary_statistics;
 
 pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
+pub use report_load::{load_checked_in_stage_reports, load_stage_report};
 pub use suite_load::{
     load_benchmark_portfolio, load_bundle_catalog, load_bundle_manifest,
     load_checked_in_benchmark_contracts, load_checked_in_benchmark_planning_contracts,

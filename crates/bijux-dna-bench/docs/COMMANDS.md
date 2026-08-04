@@ -19,6 +19,8 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-interface-catalog` | `load_stage_interface_catalog(path)` | Load and validate one stage-interface TOML catalog and its repository-owned parameter and source contracts. |
 | `load-checked-in-benchmark-contracts` | `load_checked_in_benchmark_contracts()` | Load the checked-in stage-campaign registry and benchmark portfolio while validating all checked-in planning inputs. |
 | `load-checked-in-benchmark-planning-contracts` | `load_checked_in_benchmark_planning_contracts()` | Load the checked-in stage-campaign registry, benchmark portfolio, and stage-interface catalog and validate their defined identities. |
+| `load-stage-report` | `load_stage_report(path)` | Load and structurally admit one benchmark stage-report JSON file. |
+| `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
 | `summarize` | `summarize(suite, observations, options)` | Build deterministic benchmark summaries from observations. |
 | `compare` | `compare(summary_a, summary_b)` | Compare two completed benchmark summaries. |
 | `gate` | `gate(policy, summary)` | Evaluate benchmark rows against a gate policy. |
@@ -30,6 +32,7 @@ These operations are exported through the crate root and `public_api`.
 | `bench-stage-campaigns-path` | `bench_stage_campaigns_path()` | Resolve the repository-owned stage-campaign registry path. |
 | `bench-portfolio-path` | `bench_portfolio_path()` | Resolve the repository-owned benchmark portfolio path. |
 | `bench-stage-interfaces-path` | `bench_stage_interfaces_path()` | Resolve the repository-owned stage-interface catalog path. |
+| `bench-reports-dir` | `bench_reports_dir()` | Resolve the repository-owned benchmark report directory. |
 
 ## Suite Artifacts
 

@@ -17,6 +17,8 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_interface_catalog(path)` loads and validates the stage-interface catalog, parameter configuration, and referenced repository contracts.
 - `load_checked_in_benchmark_contracts()` preserves the campaign/portfolio return contract while validating every checked-in planning input.
 - `load_checked_in_benchmark_planning_contracts()` returns the campaign registry, portfolio, and stage-interface catalog after validating defined identity consistency.
+- `load_stage_report(path)` loads and structurally admits a typed stage report.
+- `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.
 - `compare(summary_a, summary_b)` compares completed summaries.
@@ -27,6 +29,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `bench_stage_campaigns_path()` resolves the repository-owned stage-campaign registry path.
 - `bench_portfolio_path()` resolves the repository-owned benchmark portfolio path.
 - `bench_stage_interfaces_path()` resolves the repository-owned stage-interface catalog path.
+- `bench_reports_dir()` resolves the repository-owned benchmark report directory.
 - `bench_local_config_dir()` resolves the repository-owned local benchmark config directory.
 - `bench_fastq_local_stage_matrix_path()` resolves the governed FASTQ local stage matrix path.
 - `bench_bam_local_stage_matrix_path()` resolves the governed BAM local stage matrix path.
@@ -48,6 +51,8 @@ including:
 - `BenchmarkStageInterfaceCatalog`
 - `BenchmarkStageInterfaceSpec`
 - `BenchmarkPipelineParameterConfig`
+- `BenchmarkStageReport`
+- `BenchmarkToolReport`
 - `GatePolicy`
 - `GatePolicyOverrides`
 - `GateDecision`

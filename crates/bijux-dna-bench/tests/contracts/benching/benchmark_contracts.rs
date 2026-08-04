@@ -38,3 +38,42 @@ fn checked_in_benchmark_contracts_keep_run_2042_reserved_and_assigned() -> Resul
     assert_eq!(interface.tool_ids, run_2042.tool_ids);
     Ok(())
 }
+
+#[test]
+fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
+    let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
+    assert_eq!(reports.len(), 6);
+    assert!(reports.iter().any(|report| report.run_id == "run-2042"));
+    assert!(reports.iter().all(|report| {
+        report.schema_version == bijux_dna_bench::BENCHMARK_STAGE_REPORT_SCHEMA_V1
+    }));
+    Ok(())
+}
+
+#[test]
+fn stage_report_admission_rejects_incomplete_tool_closure() -> Result<()> {
+    let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
+    let mut report =
+        reports.pop().ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?;
+    report.tools.pop();
+
+    let error = bijux_dna_bench_model::contract::validate_stage_report(&report)
+        .err()
+        .map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("exact tool closure")));
+    Ok(())
+}
+
+#[test]
+fn stage_report_admission_rejects_verdict_drift() -> Result<()> {
+    let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
+    let mut report =
+        reports.pop().ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?;
+    report.verdict = bijux_dna_bench::BenchmarkReportVerdict::Failed;
+
+    let error = bijux_dna_bench_model::contract::validate_stage_report(&report)
+        .err()
+        .map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("verdict disagrees")));
+    Ok(())
+}

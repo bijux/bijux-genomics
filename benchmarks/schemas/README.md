@@ -13,3 +13,4 @@ The committed benchmark planning contract schemas generated from Rust types are:
 
 - `stage-interfaces.v1.json`
 - `pipeline-parameters.v1.json`
+- `stage-report.v1.json`
