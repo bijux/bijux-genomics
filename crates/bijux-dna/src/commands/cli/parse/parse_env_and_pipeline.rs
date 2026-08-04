@@ -46,23 +46,33 @@ pub enum EnvCommand {
 pub struct EnsureImagesArgs {
     #[arg(long)]
     pub hpc_root: Option<PathBuf>,
-    #[arg(long, conflicts_with = "all_retained")]
+    #[arg(long, conflicts_with_all = ["all_retained", "tool"])]
     pub domain: Option<String>,
     #[arg(
         long,
         help = "Single stage id like fastq.trim_reads",
-        conflicts_with_all = ["stages", "all_retained"]
+        conflicts_with_all = ["stages", "all_retained", "tool"]
     )]
     pub stage: Option<String>,
-    #[arg(long, help = "Comma-separated stage ids or short stage names", conflicts_with = "all_retained")]
+    #[arg(
+        long,
+        help = "Comma-separated stage ids or short stage names",
+        conflicts_with_all = ["all_retained", "tool"]
+    )]
     pub stages: Option<String>,
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, conflicts_with = "tool")]
     pub all_retained: bool,
-    #[arg(long, conflicts_with_all = ["domain", "stage", "stages"])]
+    #[arg(long, conflicts_with_all = ["domain", "stage", "stages", "tool"])]
     pub jobs: Option<usize>,
-    #[arg(long, default_value_t = false)]
+    #[arg(
+        long,
+        help = "Build and publish one retained tool into the canonical study container root",
+        conflicts_with_all = ["domain", "stage", "stages", "all_retained", "jobs", "force_smoke", "repair_mismatch"]
+    )]
+    pub tool: Option<String>,
+    #[arg(long, default_value_t = false, conflicts_with = "tool")]
     pub force_smoke: bool,
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, conflicts_with = "tool")]
     pub repair_mismatch: bool,
     #[arg(long, default_value_t = false)]
     pub json: bool,
@@ -82,6 +92,63 @@ pub struct EnsureStageArgs {
     pub repair_mismatch: bool,
     #[arg(long, default_value_t = false)]
     pub json: bool,
+}
+
+#[cfg(test)]
+mod ensure_images_parse_tests {
+    use clap::Parser as _;
+
+    use super::{Cli, DnaCommand, EnvCommand};
+
+    #[test]
+    fn direct_tool_publication_parses_as_exclusive_selection() {
+        let cli = Cli::try_parse_from([
+            "bijux-dna",
+            "env",
+            "ensure-images",
+            "--hpc-root",
+            "/study",
+            "--tool",
+            "bijux_dna",
+            "--json",
+        ])
+        .unwrap_or_else(|error| panic!("parse canonical tool publication: {error}"));
+        let DnaCommand::Environment(root) = cli.command else {
+            panic!("expected environment command");
+        };
+        let EnvCommand::EnsureImages(args) = root.command else {
+            panic!("expected ensure-images command");
+        };
+        assert_eq!(args.tool.as_deref(), Some("bijux_dna"));
+        assert_eq!(args.hpc_root.as_deref(), Some(std::path::Path::new("/study")));
+        assert!(args.json);
+    }
+
+    #[test]
+    fn direct_tool_publication_rejects_competing_selectors_and_legacy_controls() {
+        for competing in ["--domain", "--stage", "--stages", "--all-retained", "--jobs"] {
+            let mut arguments = vec!["bijux-dna", "env", "ensure-images", "--tool", "samtools"];
+            arguments.push(competing);
+            if !matches!(competing, "--all-retained") {
+                arguments.push(if competing == "--jobs" { "2" } else { "fixture" });
+            }
+            assert!(
+                Cli::try_parse_from(arguments).is_err(),
+                "{competing} must conflict with --tool"
+            );
+        }
+        for competing in ["--force-smoke", "--repair-mismatch"] {
+            assert!(Cli::try_parse_from([
+                "bijux-dna",
+                "env",
+                "ensure-images",
+                "--tool",
+                "samtools",
+                competing,
+            ])
+            .is_err());
+        }
+    }
 }
 
 #[derive(Debug, Subcommand)]

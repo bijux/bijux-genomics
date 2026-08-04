@@ -222,6 +222,28 @@ pub(crate) fn handle_environment_root(
                 .hpc_root
                 .clone()
                 .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
+            if let Some(tool_id) = args.tool.as_deref() {
+                let publication = bijux_dna_api::v1::api::env::publish_canonical_apptainer_image(
+                    &bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained(
+                        cwd.to_path_buf(),
+                        hpc_root.clone(),
+                        tool_id.to_string(),
+                    ),
+                )?;
+                if let Some(output) = &args.output {
+                    bijux_dna_infra::atomic_write_json(output, &publication)?;
+                }
+                if args.json {
+                    cli::render::json::print_pretty(&publication)?;
+                } else {
+                    println!("schema_version={}", publication.schema_version);
+                    println!("tool={}", publication.tool);
+                    println!("image={}", publication.image.path);
+                    println!("image_sha256={}", publication.image.sha256);
+                    println!("evidence={}", publication.evidence_path);
+                }
+                return Ok(());
+            }
             if args.all_retained {
                 let report = ensure_retained_apptainer_roster_at_root(
                     &hpc_root,
@@ -252,7 +274,7 @@ pub(crate) fn handle_environment_root(
             }
             let domain = args.domain.as_deref().ok_or_else(|| {
                 anyhow::anyhow!(
-                    "environment ensure-images requires --domain unless --all-retained is used"
+                    "environment ensure-images requires --domain unless --tool or --all-retained is used"
                 )
             })?;
             let stages = match (&args.stage, &args.stages) {

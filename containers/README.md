@@ -37,41 +37,25 @@ the resulting SIF is rejected before reuse when its digest, embedded contract,
 or labels differ.
 
 Run from a clean checkout at the commit being qualified. `--hpc-root` is the
-exact root that will own the generated `containers`, corpus, and result paths.
-Build the complete retained roster with bounded frontend concurrency:
+exact study root that owns canonical images and evidence. Publish one retained
+tool per transaction:
 
 ```console
 cargo run -p bijux-dna -- env ensure-images \
   --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --all-retained \
-  --jobs 4 \
-  --force-smoke \
-  --repair-mismatch \
-  --output /home/bijan/lu2024-12-24/Dardel/STUDY/evidence/image-roster.json \
+  --tool bijux_dna \
   --json
 ```
 
-The command is resumable: an interrupted rerun verifies and reuses every
-identity-correct SIF before building missing tools. It emits one report row for
-all 85 retained catalog entries and exits nonzero if any row fails. For a
-narrow stage-scoped operation, select one stage or a comma-separated set of
-stages from the same domain:
-
-```console
-cargo run -p bijux-dna -- env ensure-images \
-  --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --domain bam \
-  --stage bam.endogenous_content \
-  --force-smoke \
-  --json
-```
-
-Cached images are verified against the current expected contract before use.
-An invalid cached image fails closed; `--repair-mismatch` moves it into the
-governed quarantine root before rebuilding. Do not invoke the retired Python
-image campaign or admission commands to create or admit images. Reports from
-those retired build paths are historical records, not current qualification
-evidence.
+The command stages the SIF under `STUDY/containers/apptainer/.building`,
+verifies the embedded contract and labels, publishes the final digest-named
+image under `STUDY/containers/apptainer`, and creates immutable build evidence
+under `STUDY/containers/evidence`. An abandoned staging path, digest-prefix
+collision, dirty source tree, changed source commit, or conflicting evidence
+fails closed for explicit reconciliation. Do not invoke the retired Python
+image campaign or cache-oriented compatibility commands to create canonical
+image state. Reports from those paths are historical records, not current
+qualification evidence.
 
 Image construction runs on the approved frontend. Scientific tool execution
 remains a Slurm workload with separate pipeline, input, scheduler, runtime, and

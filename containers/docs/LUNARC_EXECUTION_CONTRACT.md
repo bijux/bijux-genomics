@@ -109,13 +109,12 @@ labels; and verifies that identity before the SIF can be reused:
 ```console
 cargo run -p bijux-dna -- env ensure-images \
   --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --domain bam \
-  --stage bam.endogenous_content \
-  --force-smoke \
+  --tool bijux_dna \
   --json
 ```
 
-An identity mismatch fails closed. Use `--repair-mismatch` only when the
-invalid cached image should be moved to the governed quarantine root before a
-rebuild. The retired Python image campaign and admission commands must not
-create current image state.
+The transaction publishes only after exact-commit source revalidation,
+embedded-contract inspection, and digest verification. An identity mismatch,
+occupied staging path, or immutable destination conflict fails closed. The
+retired Python image campaign and cache-oriented compatibility commands must
+not create current image state.
