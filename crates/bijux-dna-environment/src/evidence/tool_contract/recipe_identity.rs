@@ -19,6 +19,31 @@ pub struct ApptainerRecipeIdentity {
     pub build_context: Vec<BuildContextIdentity>,
 }
 
+/// Resolve the repository's current commit to a full immutable identity.
+///
+/// # Errors
+/// Returns an error when Git cannot resolve `HEAD` to a full commit identity.
+pub fn repository_head_commit(repository_root: &Path) -> Result<String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository_root)
+        .args(["rev-parse", "--verify", "HEAD^{commit}"])
+        .output()
+        .context("resolve repository HEAD commit")?;
+    let commit = String::from_utf8(output.stdout)
+        .context("repository HEAD commit is not UTF-8")?
+        .trim()
+        .to_string();
+    if !output.status.success() {
+        bail!(
+            "cannot resolve repository HEAD commit: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        );
+    }
+    validate_commit_identity(&commit)?;
+    Ok(commit)
+}
+
 /// Resolve an Apptainer definition and every repository-owned `%files` input at one exact commit.
 ///
 /// # Errors

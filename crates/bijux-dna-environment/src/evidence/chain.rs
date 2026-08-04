@@ -5,8 +5,9 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 
 use super::{
+    apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
     load_container_catalog, load_image_inventory_publication,
-    load_runtime_verification_publication, validate_container_catalog,
+    load_runtime_verification_publication, repository_head_commit, validate_container_catalog,
     validate_image_inventory_publication, validate_runtime_verification_publication,
     ContainerCatalog, ContainerImageInventoryPublication, ContainerSupportDisposition,
     RuntimeEvidenceStatus, RuntimeVerificationPublication,
@@ -18,6 +19,7 @@ const RUNTIME_PATH: &str = "containers/reports/runtime-verification.json";
 
 #[derive(Debug, Clone)]
 pub struct ContainerEvidenceChain {
+    pub repository_commit: String,
     pub catalog_sha256: String,
     pub catalog: ContainerCatalog,
     pub inventory: ContainerImageInventoryPublication,
@@ -41,7 +43,65 @@ pub fn load_container_evidence_chain(repository_root: &Path) -> Result<Container
     let inventory = load_image_inventory_publication(&repository_root.join(INVENTORY_PATH))?;
     let runtime = load_runtime_verification_publication(&repository_root.join(RUNTIME_PATH))?;
     validate_container_evidence_chain(&catalog_sha256, &catalog, &inventory, &runtime)?;
-    Ok(ContainerEvidenceChain { catalog_sha256, catalog, inventory, runtime })
+    let repository_commit = repository_head_commit(repository_root)?;
+    validate_container_recipe_evidence_chain(
+        repository_root,
+        &repository_commit,
+        &catalog,
+        &inventory,
+    )?;
+    Ok(ContainerEvidenceChain { repository_commit, catalog_sha256, catalog, inventory, runtime })
+}
+
+/// Validate that selected retained images were built from every current committed recipe input.
+///
+/// # Errors
+/// Returns an error when inventory provenance is stale, a retained image is missing, or no
+/// built/passed evidence matches the exact definition and ordered `%files` context.
+pub fn validate_container_recipe_evidence_chain(
+    repository_root: &Path,
+    repository_commit: &str,
+    catalog: &ContainerCatalog,
+    inventory: &ContainerImageInventoryPublication,
+) -> Result<()> {
+    validate_image_inventory_publication(inventory)?;
+    if inventory.repository_commit != repository_commit {
+        bail!(
+            "image inventory repository commit is stale: expected {repository_commit}, observed {}",
+            inventory.repository_commit
+        );
+    }
+    let inventory_tools =
+        inventory.tools.iter().map(|tool| (tool.tool.as_str(), tool)).collect::<BTreeMap<_, _>>();
+    for tool in catalog.tools.iter().filter(|tool| tool.support_disposition == "retained") {
+        let inventory_tool = inventory_tools
+            .get(tool.id.as_str())
+            .ok_or_else(|| anyhow::anyhow!("image inventory omits retained tool {}", tool.id))?;
+        let selected_sha256 = inventory_tool
+            .selected_image_sha256
+            .as_deref()
+            .ok_or_else(|| anyhow::anyhow!("retained tool {} has no selected image", tool.id))?;
+        let selected = inventory_tool
+            .candidates
+            .iter()
+            .find(|candidate| candidate.admitted && candidate.sha256 == selected_sha256)
+            .ok_or_else(|| {
+                anyhow::anyhow!("retained tool {} has no admitted selected image", tool.id)
+            })?;
+        let recipe = apptainer_recipe_identity_at_commit(
+            repository_root,
+            repository_commit,
+            &tool.apptainer_definition,
+        )?;
+        let recipe_matches = selected
+            .build_evidence
+            .iter()
+            .any(|evidence| container_build_evidence_matches_recipe(evidence, &recipe));
+        if !recipe_matches || !selected.current_recipe {
+            bail!("selected image for {} lacks exact current recipe build evidence", tool.id);
+        }
+    }
+    Ok(())
 }
 
 /// Validate cross-publication identities and complete catalog tool closure.

@@ -9,7 +9,8 @@ pub mod tool_contract;
 mod validation;
 
 pub use chain::{
-    load_container_evidence_chain, validate_container_evidence_chain, ContainerEvidenceChain,
+    load_container_evidence_chain, validate_container_evidence_chain,
+    validate_container_recipe_evidence_chain, ContainerEvidenceChain,
 };
 pub use load::{load_image_inventory_publication, load_runtime_verification_publication};
 pub use model::{
@@ -26,8 +27,8 @@ pub use schema::{
 };
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
-    load_container_catalog, validate_container_catalog, ApptainerRecipeIdentity, ContainerCatalog,
-    ContainerCatalogTool, ContainerCatalogValidation,
+    load_container_catalog, repository_head_commit, validate_container_catalog,
+    ApptainerRecipeIdentity, ContainerCatalog, ContainerCatalogTool, ContainerCatalogValidation,
 };
 pub use validation::{
     validate_image_inventory_publication, validate_runtime_verification_publication,

@@ -77,6 +77,60 @@ fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Resul
 }
 
 #[test]
+fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
+    let root = repository_root()?;
+    let commit = bijux_dna_environment::evidence::repository_head_commit(&root)?;
+    let mut catalog = bijux_dna_environment::evidence::load_container_catalog(&root)?;
+    catalog.tools.retain(|tool| tool.id == "ibdhap");
+    let tool = catalog.tools.first().context("catalog omits ibdhap")?;
+    let recipe = bijux_dna_environment::evidence::apptainer_recipe_identity_at_commit(
+        &root,
+        &commit,
+        &tool.apptainer_definition,
+    )?;
+
+    let mut inventory = bijux_dna_environment::evidence::load_image_inventory_publication(
+        &root.join("containers/reports/image-inventory.json"),
+    )?;
+    inventory.repository_commit.clone_from(&commit);
+    inventory.tools.retain(|inventory_tool| inventory_tool.tool == "ibdhap");
+    let inventory_tool = inventory.tools.first_mut().context("inventory omits ibdhap")?;
+    let selected_sha256 = inventory_tool
+        .selected_image_sha256
+        .clone()
+        .context("ibdhap inventory has no selected image")?;
+    let selected = inventory_tool
+        .candidates
+        .iter_mut()
+        .find(|candidate| candidate.sha256 == selected_sha256)
+        .context("ibdhap inventory omits selected candidate")?;
+    selected.admitted = true;
+    selected.current_recipe = true;
+    selected.build_evidence = vec![bijux_dna_environment::evidence::ContainerBuildEvidence {
+        status: bijux_dna_environment::evidence::BuildEvidenceStatus::Passed,
+        definition_sha256: recipe.definition_sha256,
+        repository_commit: commit.clone(),
+        build_context: Some(recipe.build_context),
+    }];
+    bijux_dna_environment::evidence::validate_container_recipe_evidence_chain(
+        &root, &commit, &catalog, &inventory,
+    )?;
+
+    inventory.tools[0]
+        .candidates
+        .iter_mut()
+        .find(|candidate| candidate.sha256 == selected_sha256)
+        .context("ibdhap inventory omits selected candidate")?
+        .build_evidence[0]
+        .definition_sha256 = "e".repeat(64);
+    assert!(bijux_dna_environment::evidence::validate_container_recipe_evidence_chain(
+        &root, &commit, &catalog, &inventory,
+    )
+    .is_err_and(|error| error.to_string().contains("lacks exact current recipe")));
+    Ok(())
+}
+
+#[test]
 fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let inventory = bijux_dna_environment::evidence::image_inventory_publication_schema();
     let runtime = bijux_dna_environment::evidence::runtime_verification_publication_schema();
