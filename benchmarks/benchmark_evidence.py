@@ -52,6 +52,10 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def sha256_bytes(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
+
+
 def load_json(path: Path) -> dict[str, Any]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -204,6 +208,55 @@ def repetition_science_metrics(
         if key in artifact_metrics:
             merged[key] = artifact_metrics[key]
     return merged
+
+
+def result_artifact_digest(path: Path) -> tuple[str, str]:
+    artifact = load_json(path)
+    if (
+        artifact.get("schema_version")
+        == "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+        and artifact.get("stage_id") == "fastq.profile_read_lengths"
+    ):
+        results = artifact.get("results")
+        if not isinstance(results, list) or not results:
+            raise BenchmarkEvidenceError(f"benchmark bundle omits sample results: {path}")
+        normalized_rows = []
+        seen_samples: set[str] = set()
+        for row in results:
+            if not isinstance(row, dict):
+                raise BenchmarkEvidenceError(
+                    f"benchmark bundle row must be an object: {path}"
+                )
+            sample_id = str(row.get("sample_id", ""))
+            histogram_digest = str(row.get("histogram_sha256", ""))
+            if (
+                not sample_id
+                or sample_id in seen_samples
+                or SHA256.fullmatch(histogram_digest) is None
+            ):
+                raise BenchmarkEvidenceError(
+                    f"benchmark bundle sample id is invalid: {path}"
+                )
+            seen_samples.add(sample_id)
+            normalized = dict(row)
+            normalized["histogram_artifact"] = (
+                f"repetitions/sample-{sample_id}.histogram.tsv"
+            )
+            normalized_rows.append(normalized)
+        normalized_artifact = dict(artifact)
+        normalized_artifact["results"] = sorted(
+            normalized_rows, key=lambda row: str(row["sample_id"])
+        )
+        payload = json.dumps(
+            normalized_artifact,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return (
+            sha256_bytes(payload),
+            "canonical bundle content with repetition-local histogram paths normalized",
+        )
+    return sha256_file(path), "raw artifact bytes"
 
 
 def verify_recorded_outputs(result_root: Path, evidence: dict[str, Any]) -> None:
@@ -400,6 +453,7 @@ def tool_report(
     resources: list[dict[str, float]] = []
     science: list[dict[str, Any]] = []
     result_digests: list[str] = []
+    result_digest_basis: str | None = None
     for repetition in range(1, measured + 1):
         root = result_root / "outputs/repetitions"
         resources.append(read_resources(root / f"repetition-{repetition}.resource.tsv"))
@@ -436,9 +490,16 @@ def tool_report(
                     f"{tool} repetition {repetition} contains invalid science metrics"
                 )
         science.append(metrics)
-        result_digests.append(
-            sha256_file(root / f"repetition-{repetition}.{campaign['result_artifact']}")
+        result_digest, digest_basis = result_artifact_digest(
+            root / f"repetition-{repetition}.{campaign['result_artifact']}"
         )
+        if result_digest_basis is None:
+            result_digest_basis = digest_basis
+        elif result_digest_basis != digest_basis:
+            raise BenchmarkEvidenceError(
+                f"{tool} result artifact digest basis is inconsistent"
+            )
+        result_digests.append(result_digest)
     if len(set(result_digests)) != 1:
         raise BenchmarkEvidenceError(
             f"{tool} result artifacts differ across repetitions"
@@ -525,6 +586,7 @@ def tool_report(
         "determinism": {
             "artifact": campaign["result_artifact"],
             "sha256": result_digests[0],
+            "digest_basis": result_digest_basis,
             "identical_across_repetitions": True,
         },
     }
@@ -848,7 +910,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.extend(
             [
                 "",
-                f"The `{tool['determinism']['artifact']}` result was byte-identical across all repetitions: `{tool['determinism']['sha256']}`.",
+                f"The `{tool['determinism']['artifact']}` result was stable across repetitions by {tool['determinism'].get('digest_basis', 'raw artifact bytes')}: `{tool['determinism']['sha256']}`.",
                 "",
                 f"Evidence: Slurm job `{tool['slurm']['job_id']}`, repository `{tool['repository_commit']}`, image `{tool['image']['sha256']}`.",
                 "",

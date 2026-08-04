@@ -106,6 +106,62 @@ class BenchmarkEvidenceTests(unittest.TestCase):
         self.assertEqual(metrics["distinct_read_lengths"], 2)
         self.assertEqual(len(metrics["histogram_sha256"]), 64)
 
+    def test_result_artifact_digest_normalizes_repetition_local_histogram_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repetitions = Path(directory) / "outputs/repetitions"
+            repetitions.mkdir(parents=True)
+            histogram_body = (
+                "sample_id\tread_length\tcount\n"
+                "sample-a\t4\t1\n"
+                "sample-a\t6\t1\n"
+            )
+            histogram_sha256 = hashlib.sha256(histogram_body.encode("utf-8")).hexdigest()
+            for rep in (1, 2):
+                (repetitions / f"repetition-{rep}.sample-a.histogram.tsv").write_text(
+                    histogram_body,
+                    encoding="utf-8",
+                )
+                (repetitions / f"repetition-{rep}.read-lengths.json").write_text(
+                    json.dumps(
+                        {
+                            "schema_version": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+                            "stage_id": "fastq.profile_read_lengths",
+                            "tool_id": "seqfu",
+                            "results": [
+                                {
+                                    "sample_id": "sample-a",
+                                    "input_layout": "single_end",
+                                    "file_count": 1,
+                                    "read_count": 2,
+                                    "minimum_read_length": 4,
+                                    "mean_read_length": 5.0,
+                                    "median_read_length": 5.0,
+                                    "maximum_read_length": 6,
+                                    "distinct_read_lengths": 2,
+                                    "histogram_artifact": (
+                                        f"repetitions/repetition-{rep}.sample-a.histogram.tsv"
+                                    ),
+                                    "histogram_sha256": histogram_sha256,
+                                }
+                            ],
+                        },
+                        indent=2,
+                        sort_keys=True,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+            first = benchmark_evidence.result_artifact_digest(
+                repetitions / "repetition-1.read-lengths.json"
+            )
+            second = benchmark_evidence.result_artifact_digest(
+                repetitions / "repetition-2.read-lengths.json"
+            )
+
+        self.assertEqual(first, second)
+        self.assertIn("canonical bundle content", first[1])
+
     def test_resource_tsv_requires_real_columns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "resource.tsv"
