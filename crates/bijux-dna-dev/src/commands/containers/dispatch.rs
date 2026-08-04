@@ -188,12 +188,19 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::GenerateImageInventory => {
             contracts::generate_image_inventory(workspace, args)
         }
+        NativeContainerCommandKey::GenerateImageInventoryPublicationSchema => {
+            contracts::generate_image_inventory_publication_schema(workspace, args)
+        }
         NativeContainerCommandKey::GenerateImageInventoryScanSchema => {
             contracts::generate_image_inventory_scan_schema(workspace, args)
         }
         NativeContainerCommandKey::CheckEvidenceQualification => {
             ensure_no_args("check-evidence-qualification", args)?;
             contracts::check_evidence_qualification(workspace)
+        }
+        NativeContainerCommandKey::CheckImageInventoryPublicationSchema => {
+            ensure_no_args("check-image-inventory-publication-schema", args)?;
+            contracts::check_image_inventory_publication_schema(workspace)
         }
         NativeContainerCommandKey::CheckImageInventoryScanSchema => {
             ensure_no_args("check-image-inventory-scan-schema", args)?;

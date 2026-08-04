@@ -14,6 +14,8 @@ This crate owns developer automation contracts, not production pipeline contract
 - `containers run generate-image-inventory -- <study-root> <scan-output> <publication-output>`
   delegates all image admission and selection to `bijux-dna-environment` and atomically refuses to
   replace either evidence document.
+- Image-inventory scan and publication schemas are generated and checked through native container
+  commands backed by the persisted Rust environment types.
 
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.

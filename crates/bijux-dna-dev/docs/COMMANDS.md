@@ -175,6 +175,7 @@ check-docker-unpinned-apt
 check-docker-version-sync
 check-dockerfiles-built
 check-evidence-qualification
+check-image-inventory-publication-schema
 check-image-inventory-scan-schema
 check-ghcr-apptainer-publish-matrix
 check-ghcr-publish-matrix
@@ -247,6 +248,7 @@ extract-version-map
 generate-contract-lock
 generate-evidence-qualification
 generate-image-inventory
+generate-image-inventory-publication-schema
 generate-image-inventory-scan-schema
 generate-ghcr-apptainer-publish-matrix
 generate-ghcr-publish-matrix
