@@ -36,7 +36,11 @@ pub fn load_checked_in_stage_reports() -> Result<Vec<BenchmarkStageReport>> {
     load_stage_reports_from_dir(&bench_reports_dir(), &registry, &interfaces)
 }
 
-fn load_stage_reports_from_dir(
+/// Load and align benchmark stage reports from a declared publication directory.
+///
+/// # Errors
+/// Returns an error if a report is duplicated or drifts from campaign/interface authority.
+pub fn load_stage_reports_from_dir(
     reports_dir: &Path,
     registry: &BenchmarkStageCampaignRegistry,
     interfaces: &BenchmarkStageInterfaceCatalog,

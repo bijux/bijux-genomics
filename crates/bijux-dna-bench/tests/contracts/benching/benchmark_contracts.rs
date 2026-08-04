@@ -40,6 +40,27 @@ fn checked_in_benchmark_contracts_keep_run_2042_reserved_and_assigned() -> Resul
 }
 
 #[test]
+fn stage_interface_admission_uses_the_declared_repository_root() -> Result<()> {
+    let path = bijux_dna_bench::bench_stage_interfaces_path();
+    let repo_root = path
+        .ancestors()
+        .nth(3)
+        .ok_or_else(|| anyhow::anyhow!("stage-interface path is outside a repository"))?;
+    bijux_dna_bench::load_stage_interface_catalog_from_repo(&path, repo_root)?;
+
+    let error = bijux_dna_bench::load_stage_interface_catalog_from_repo(
+        &path,
+        &repo_root.join("artifacts/nonexistent-repository-root"),
+    )
+    .err()
+    .map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| { message.contains("validate stage interface repository paths") }));
+    Ok(())
+}
+
+#[test]
 fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
     assert_eq!(reports.len(), 6);

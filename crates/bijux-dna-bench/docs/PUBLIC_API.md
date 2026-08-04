@@ -15,9 +15,11 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_campaign_registry(path)` loads and validates a benchmark stage-campaign registry TOML file.
 - `load_benchmark_portfolio(path)` loads and validates a benchmark portfolio TOML file.
 - `load_stage_interface_catalog(path)` loads and validates the stage-interface catalog, parameter configuration, and referenced repository contracts.
+- `load_stage_interface_catalog_from_repo(path, repository_root)` performs the same admission against an explicit workspace root for production callers.
 - `load_checked_in_benchmark_contracts()` preserves the campaign/portfolio return contract while validating every checked-in planning input.
 - `load_checked_in_benchmark_planning_contracts()` returns the campaign registry, portfolio, and stage-interface catalog after validating defined identity consistency.
 - `load_stage_report(path)` loads and structurally admits a typed stage report.
+- `load_stage_reports_from_dir(path, registry, interfaces)` admits a root-explicit report publication against supplied authorities.
 - `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.

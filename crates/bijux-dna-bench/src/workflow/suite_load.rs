@@ -139,13 +139,25 @@ pub fn load_benchmark_portfolio(path: &Path) -> Result<BenchmarkPortfolio> {
 /// # Errors
 /// Returns an error if the catalog cannot be read, parsed, or validated.
 pub fn load_stage_interface_catalog(path: &Path) -> Result<BenchmarkStageInterfaceCatalog> {
+    let repo_root = crate::repo::resolve_repo_root().context("resolve repository root")?;
+    load_stage_interface_catalog_from_repo(path, &repo_root)
+}
+
+/// Load and validate the benchmark stage-interface catalog against an explicit repository root.
+///
+/// # Errors
+/// Returns an error if the catalog or any repository-owned contract cannot be validated.
+pub fn load_stage_interface_catalog_from_repo(
+    path: &Path,
+    repo_root: &Path,
+) -> Result<BenchmarkStageInterfaceCatalog> {
     let raw = fs::read_to_string(path)
         .with_context(|| format!("read stage interface catalog {}", path.display()))?;
     let catalog: BenchmarkStageInterfaceCatalog = toml::from_str(&raw)
         .with_context(|| format!("parse stage interface catalog {}", path.display()))?;
     validate_stage_interface_catalog(&catalog)
         .with_context(|| format!("validate stage interface catalog {}", path.display()))?;
-    validate_stage_interface_repository_contracts(&catalog)
+    validate_stage_interface_repository_contracts(&catalog, repo_root)
         .with_context(|| format!("validate stage interface repository paths {}", path.display()))?;
     Ok(catalog)
 }
@@ -178,8 +190,8 @@ pub fn load_checked_in_benchmark_planning_contracts(
 
 fn validate_stage_interface_repository_contracts(
     catalog: &BenchmarkStageInterfaceCatalog,
+    repo_root: &Path,
 ) -> Result<()> {
-    let repo_root = crate::repo::resolve_repo_root().context("resolve repository root")?;
     let mut parameter_configs = std::collections::BTreeMap::new();
     for interface in &catalog.interfaces {
         for relative in std::iter::once(interface.normalized_result_contract.as_str())

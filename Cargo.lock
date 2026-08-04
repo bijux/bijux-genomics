@@ -422,6 +422,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-api",
+ "bijux-dna-bench",
  "bijux-dna-core",
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",

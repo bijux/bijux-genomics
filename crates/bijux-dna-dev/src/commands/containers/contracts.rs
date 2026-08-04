@@ -459,6 +459,23 @@ pub(super) fn check_contract_lock(workspace: &Workspace) -> Result<ContainerComm
 pub(super) fn check_evidence_qualification(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
+    let registry = bijux_dna_bench::load_stage_campaign_registry(
+        &workspace.path("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let interfaces = bijux_dna_bench::load_stage_interface_catalog_from_repo(
+        &workspace.path("benchmarks/contracts/stage-interfaces.toml"),
+        &workspace.root,
+    )?;
+    let admitted_reports = bijux_dna_bench::load_stage_reports_from_dir(
+        &workspace.path("benchmarks/reports"),
+        &registry,
+        &interfaces,
+    )?;
+    if admitted_reports.is_empty() {
+        return Ok(ContainerCommandOutcome::failure(
+            "container qualification requires at least one Rust-admitted benchmark report\n",
+        ));
+    }
     let args = [
         "python3",
         "-B",

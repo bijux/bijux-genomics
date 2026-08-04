@@ -8,6 +8,7 @@ rust-version.workspace = true
 [dependencies]
 anyhow.workspace = true
 bijux-dna-api.workspace = true
+bijux-dna-bench.workspace = true
 bijux-dna-core.workspace = true
 bijux-dna-db-ena.workspace = true
 bijux-dna-db-ref.workspace = true
