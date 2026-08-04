@@ -90,6 +90,6 @@ mod tests {
         let workspace = Workspace::resolve().expect("workspace");
         let expression = governed_fast_expression(&workspace).expect("fast expression");
         assert!(expression.starts_with("not (test(/::slow__/)"));
-        assert!(expression.contains(" or test(/^(?:"));
+        assert!(expression.contains(" or test(/(?:^|::)(?:"));
     }
 }
