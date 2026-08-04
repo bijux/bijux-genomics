@@ -142,6 +142,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckToolNameMapGenerated,
         ),
         native(
+            "check-registry-drift",
+            "Validate every registry packaging projection against the canonical catalog.",
+            NativeContainerCommandKey::CheckRegistryDrift,
+        ),
+        native(
             "generate-index",
             "Generate the container docs index from registry and file coverage.",
             NativeContainerCommandKey::GenerateContainerIndex,
@@ -160,6 +165,16 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             "generate-ghcr-apptainer-publish-matrix",
             "Generate the GHCR publication matrix for governed Apptainer SIF packages.",
             NativeContainerCommandKey::GenerateGhcrApptainerPublishMatrix,
+        ),
+        native(
+            "check-ghcr-publish-matrix",
+            "Validate the Docker arm64 GHCR publication matrix without writing output.",
+            NativeContainerCommandKey::CheckGhcrPublishMatrix,
+        ),
+        native(
+            "check-ghcr-apptainer-publish-matrix",
+            "Validate the Apptainer GHCR publication matrix without writing output.",
+            NativeContainerCommandKey::CheckGhcrApptainerPublishMatrix,
         ),
         native(
             "generate-license-metadata",

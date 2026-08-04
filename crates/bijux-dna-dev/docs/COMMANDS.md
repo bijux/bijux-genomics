@@ -175,6 +175,8 @@ check-docker-unpinned-apt
 check-docker-version-sync
 check-dockerfiles-built
 check-evidence-qualification
+check-ghcr-apptainer-publish-matrix
+check-ghcr-publish-matrix
 check-hpc-frontend-policy-enforcement
 check-hpc-image-naming
 check-image-size-regression
@@ -198,6 +200,7 @@ check-owners
 check-qa-matrix-generated
 check-qualification-schema
 check-rebuild-repro
+check-registry-drift
 check-registry-vs-defs
 check-release-checklist
 check-runtime-downloads
