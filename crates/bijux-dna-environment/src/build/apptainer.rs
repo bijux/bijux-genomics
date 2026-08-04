@@ -143,6 +143,7 @@ pub fn classify_apptainer_build_failure(diagnostics: &str) -> ApptainerBuildFail
         "tls handshake timeout",
         "temporary failure in name resolution",
         "network is unreachable",
+        "toomanyrequests",
         "too many requests",
         "service unavailable",
     ];

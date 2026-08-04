@@ -130,10 +130,15 @@ fn permanent_build_failure_is_not_retried() -> anyhow::Result<()> {
 
 #[test]
 fn transport_classifier_is_explicit_and_fail_closed() {
-    assert_eq!(
-        classify_apptainer_build_failure("unexpected end of JSON input"),
-        ApptainerBuildFailureClass::TransientTransport
-    );
+    for diagnostics in [
+        "unexpected end of JSON input",
+        "TOOMANYREQUESTS: You have reached your unauthenticated pull rate limit",
+    ] {
+        assert_eq!(
+            classify_apptainer_build_failure(diagnostics),
+            ApptainerBuildFailureClass::TransientTransport
+        );
+    }
     assert_eq!(
         classify_apptainer_build_failure("definition parse error"),
         ApptainerBuildFailureClass::Permanent
