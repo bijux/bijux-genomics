@@ -37,6 +37,7 @@ fn public_api_doc_matches_runtime_root_surface() {
         "TelemetryEventV1",
         "prepare_tool_run_dirs",
         "initialize_attempt_lifecycle",
+        "ensure_attempt_lifecycle",
         "append_attempt_lifecycle_transition",
         "load_attempt_lifecycle",
         "benchmark_attempt_directory",

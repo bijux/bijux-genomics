@@ -4,10 +4,10 @@ use bijux_dna_bench_model::{
     BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
 };
 use bijux_dna_runtime::{
-    append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
-    load_attempt_lifecycle, record_attempt_acceptance, record_attempt_accounting,
-    record_attempt_blocked_external, record_attempt_ready, record_attempt_running,
-    record_attempt_submission, record_attempt_superseded,
+    append_attempt_lifecycle_transition, benchmark_attempt_directory, ensure_attempt_lifecycle,
+    initialize_attempt_lifecycle, load_attempt_lifecycle, record_attempt_acceptance,
+    record_attempt_accounting, record_attempt_blocked_external, record_attempt_ready,
+    record_attempt_running, record_attempt_submission, record_attempt_superseded,
 };
 
 fn identity(attempt_id: &str) -> BenchmarkAttemptIdentity {
@@ -139,6 +139,24 @@ fn lifecycle_store_refuses_identity_reuse_and_illegal_events() -> anyhow::Result
     );
     assert!(!directory.join("transitions").exists());
     assert_eq!(std::fs::read(directory.join("attempt.json"))?, initial_bytes);
+    Ok(())
+}
+
+#[test]
+fn lifecycle_store_recovers_only_an_identical_planned_initialization() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-recovery");
+    let initial = planned("attempt-001");
+    let first_directory = ensure_attempt_lifecycle(temporary.path(), &initial)?;
+    let initial_bytes = std::fs::read(first_directory.join("attempt.json"))?;
+
+    let recovered_directory = ensure_attempt_lifecycle(temporary.path(), &initial)?;
+    assert_eq!(first_directory, recovered_directory);
+    assert_eq!(std::fs::read(recovered_directory.join("attempt.json"))?, initial_bytes);
+
+    let mut conflicting = initial.clone();
+    conflicting.transitions[0].observed_at_utc = "2026-08-04T08:00:01Z".to_string();
+    assert!(ensure_attempt_lifecycle(temporary.path(), &conflicting).is_err());
+    assert_eq!(std::fs::read(first_directory.join("attempt.json"))?, initial_bytes);
     Ok(())
 }
 

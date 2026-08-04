@@ -3,10 +3,10 @@ pub use super::attempts::{
     RunEvidenceRecord, ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
 };
 pub use super::benchmark_attempts::{
-    append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
-    load_attempt_lifecycle, record_attempt_acceptance, record_attempt_accounting,
-    record_attempt_blocked_external, record_attempt_ready, record_attempt_running,
-    record_attempt_submission, record_attempt_superseded,
+    append_attempt_lifecycle_transition, benchmark_attempt_directory, ensure_attempt_lifecycle,
+    initialize_attempt_lifecycle, load_attempt_lifecycle, record_attempt_acceptance,
+    record_attempt_accounting, record_attempt_blocked_external, record_attempt_ready,
+    record_attempt_running, record_attempt_submission, record_attempt_superseded,
 };
 pub use super::envelope::{write_run_artifact_envelope, RunArtifactEnvelopeV1, StageResultStatus};
 pub use super::io::{

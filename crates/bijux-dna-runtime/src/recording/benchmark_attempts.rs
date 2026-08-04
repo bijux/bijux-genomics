@@ -63,6 +63,43 @@ pub fn initialize_attempt_lifecycle(
     Ok(attempt_directory)
 }
 
+/// Initialize a planned attempt or recover an identical immutable initialization.
+///
+/// Unlike [`initialize_attempt_lifecycle`], this operation is idempotent for crash recovery. An
+/// existing lifecycle is accepted only when its reconstructed record is structurally identical to
+/// the requested planned record. Identity reuse with different content fails closed.
+///
+/// # Errors
+/// Returns an error when the planned record is invalid, an existing lifecycle differs, or the
+/// attempt cannot be created atomically.
+pub fn ensure_attempt_lifecycle(
+    benchmark_root: &Path,
+    record: &BenchmarkAttemptRecordV2,
+) -> Result<PathBuf> {
+    validate_attempt_record_v2(record).context("validate ensured benchmark attempt")?;
+    if record.transitions.len() != 1
+        || record.current_status() != Some(BenchmarkLifecycleStatus::Planned)
+    {
+        bail!("benchmark attempt recovery requires exactly one planned transition");
+    }
+    validate_supersession_target(benchmark_root, record)?;
+    let _lock = acquire_attempt_lock(benchmark_root, &record.identity)?;
+    let attempt_directory = benchmark_attempt_directory(benchmark_root, &record.identity)?;
+    if attempt_directory.exists() {
+        let existing = load_attempt_lifecycle_unlocked(benchmark_root, &record.identity)?;
+        if existing != *record {
+            bail!(
+                "benchmark attempt identity is already bound to different lifecycle evidence: {}",
+                attempt_directory.display()
+            );
+        }
+        return Ok(attempt_directory);
+    }
+    bijux_dna_infra::atomic_create_json(&attempt_directory.join(ATTEMPT_FILE), record)
+        .with_context(|| format!("create benchmark attempt {}", attempt_directory.display()))?;
+    Ok(attempt_directory)
+}
+
 /// Reconstruct and validate an attempt from its immutable initial record and transition events.
 ///
 /// # Errors
