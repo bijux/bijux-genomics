@@ -320,3 +320,37 @@ fn cycle_preserves_multiple_attempts_with_same_run_and_tool_lineage() {
     );
     assert!(validate_cycle_status_v2(&invalid_lineage).is_err());
 }
+
+#[test]
+fn cycle_scopes_attempt_ids_by_run_and_tool_identity() {
+    let seqkit = attempt("attempt-001", "seqkit");
+    let seqfu = attempt("attempt-001", "seqfu");
+    let cycle = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![seqkit.clone(), seqfu],
+    );
+    assert!(validate_cycle_status_v2(&cycle).is_ok());
+
+    let duplicate = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![seqkit.clone(), seqkit],
+    );
+    assert!(validate_cycle_status_v2(&duplicate).is_err());
+}
+
+#[test]
+fn cycle_resolves_supersession_within_the_same_run_and_tool() {
+    let seqkit_prior = passed_attempt("attempt-001", "seqkit");
+    let seqfu_prior = passed_attempt("attempt-001", "seqfu");
+    let mut seqfu_retry = attempt("attempt-002", "seqfu");
+    seqfu_retry.supersedes_attempt_id = Some("attempt-001".to_string());
+    let cycle = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![seqkit_prior, seqfu_prior, seqfu_retry],
+    );
+
+    assert!(validate_cycle_status_v2(&cycle).is_ok());
+}

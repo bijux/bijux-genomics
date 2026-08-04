@@ -170,14 +170,20 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
         return Err(invalid("benchmark cycle contains no attempts"));
     }
 
-    let mut attempt_ids = BTreeSet::new();
+    let mut attempt_identities = BTreeSet::new();
     let mut active = BTreeSet::new();
     for attempt in &cycle.attempts {
         validate_attempt_record_v2(attempt)?;
         if attempt.identity.campaign_id != cycle.campaign_id {
             return Err(invalid("benchmark attempt campaign differs from cycle campaign"));
         }
-        if !attempt_ids.insert(attempt.identity.attempt_id.as_str()) {
+        if !attempt_identities.insert((
+            attempt.identity.run.run_id.as_str(),
+            attempt.identity.run.domain.as_str(),
+            attempt.identity.run.stage_id.as_str(),
+            attempt.identity.tool_id.as_str(),
+            attempt.identity.attempt_id.as_str(),
+        )) {
             return Err(invalid("benchmark cycle duplicates an attempt identity"));
         }
         let last = attempt
@@ -204,13 +210,12 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
         let superseded = cycle
             .attempts
             .iter()
-            .find(|candidate| candidate.identity.attempt_id == superseded_id)
+            .find(|candidate| {
+                candidate.identity.attempt_id == superseded_id
+                    && candidate.identity.run == attempt.identity.run
+                    && candidate.identity.tool_id == attempt.identity.tool_id
+            })
             .ok_or_else(|| invalid("benchmark attempt supersedes an unknown attempt"))?;
-        if superseded.identity.run != attempt.identity.run
-            || superseded.identity.tool_id != attempt.identity.tool_id
-        {
-            return Err(invalid("benchmark attempt supersession crosses run or tool identity"));
-        }
         if !superseded.current_status().is_some_and(is_terminal) {
             return Err(invalid("benchmark attempt supersedes a nonterminal attempt"));
         }
