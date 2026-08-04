@@ -1,7 +1,8 @@
 use super::{
     failure_lines, out_path_arg, read_utf8, run_argv, sha256_hex, success_line, write_utf8,
-    BTreeSet, ContainerCommandOutcome, Deserialize, Result, Serialize, Workspace,
+    BTreeSet, ContainerCommandOutcome, Result, Serialize, Workspace,
 };
+use bijux_dna_environment::evidence::ContainerCatalog;
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const LOCK_PATH: &str = "containers/contracts/catalog.lock.json";
@@ -14,55 +15,6 @@ const QUALIFICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-assessment.v1.json";
 const CATALOG_SCHEMA: &str = "bijux.container.catalog.v1";
 const EVIDENCE_SCHEMA: &str = "bijux.container.evidence.v1";
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct ContainerCatalog {
-    schema_version: String,
-    owner: String,
-    contact: String,
-    repository: String,
-    apptainer_architecture: String,
-    docker_architecture: String,
-    evidence_schema: String,
-    recipe_license: String,
-    required_checks: Vec<String>,
-    evidence_dimensions: Vec<String>,
-    tools: Vec<ContainerContract>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct ContainerContract {
-    id: String,
-    display_name: String,
-    purpose: String,
-    version: String,
-    support_disposition: String,
-    #[serde(default)]
-    support_reason: String,
-    upstream: String,
-    documentation: String,
-    license: String,
-    source_sha256: String,
-    pinned_commit: String,
-    domains: Vec<String>,
-    stage_ids: Vec<String>,
-    expected_bin: String,
-    version_command: String,
-    help_command: String,
-    expected_version_regex: String,
-    apptainer_definition: String,
-    apptainer_supported: bool,
-    dockerfile: String,
-    docker_arm64_supported: bool,
-    #[serde(default)]
-    docker_arm64_reason: String,
-    build_network: bool,
-    runtime_network: bool,
-    real_test_stage: String,
-    real_test_input_kind: String,
-}
 
 #[derive(Serialize)]
 struct ContractLock<'a> {
@@ -98,7 +50,7 @@ struct ContractLockTool<'a> {
 }
 
 fn load_catalog(workspace: &Workspace) -> Result<ContainerCatalog> {
-    Ok(toml::from_str(&read_utf8(&workspace.path(CATALOG_PATH))?)?)
+    bijux_dna_environment::evidence::load_container_catalog(&workspace.root)
 }
 
 fn validate_environment_evidence_chain(

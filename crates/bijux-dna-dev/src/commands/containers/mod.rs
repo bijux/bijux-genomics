@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use chrono::{Local, NaiveDate, Utc};
 use regex::Regex;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 

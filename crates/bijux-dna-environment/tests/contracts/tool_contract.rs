@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::tool_contract::{
-    catalog_identity_at_commit, prepare_apptainer_tool_contract, retained_apptainer_tool_ids,
-    tool_contract_labels, validate_tool_contract, validate_tool_contract_labels,
-    verify_apptainer_tool_contract, ToolContractBuildRequest,
+    catalog_identity_at_commit, load_container_catalog, prepare_apptainer_tool_contract,
+    retained_apptainer_tool_ids, tool_contract_labels, validate_tool_contract,
+    validate_tool_contract_labels, verify_apptainer_tool_contract, ToolContractBuildRequest,
 };
 
 #[test]
@@ -101,6 +101,38 @@ fn retained_roster_rejects_non_catalog_architecture() -> Result<()> {
         panic!("non-catalog architecture must fail");
     };
     assert!(error.to_string().contains("differs from catalog architecture"));
+    Ok(())
+}
+
+#[test]
+fn canonical_catalog_loader_preserves_the_complete_contract_and_rejects_unknown_fields(
+) -> Result<()> {
+    let root = repository_root()?;
+    let catalog = load_container_catalog(&root)?;
+    assert_eq!(catalog.tools.len(), 89);
+    assert_eq!(
+        catalog.tools.iter().filter(|tool| tool.support_disposition == "retained").count(),
+        85
+    );
+    let samtools = catalog
+        .tools
+        .iter()
+        .find(|tool| tool.id == "samtools")
+        .context("catalog omits samtools")?;
+    assert_eq!(samtools.version, "1.20");
+    assert_eq!(samtools.domains, ["bam"]);
+    assert_eq!(samtools.apptainer_definition, "containers/apptainer/samtools.def");
+    assert!(!samtools.version_command.is_empty());
+    assert!(!samtools.help_command.is_empty());
+    assert!(!samtools.expected_version_regex.is_empty());
+
+    let malformed_root = bijux_dna_testkit::tempdir_for("container-catalog-unknown-field");
+    let contract_root = malformed_root.path().join("containers/contracts");
+    fs::create_dir_all(&contract_root)?;
+    let mut source = fs::read_to_string(root.join("containers/contracts/catalog.toml"))?;
+    source.push_str("\nunowned_contract_field = true\n");
+    fs::write(contract_root.join("catalog.toml"), source)?;
+    assert!(load_container_catalog(malformed_root.path()).is_err());
     Ok(())
 }
 

@@ -9,7 +9,10 @@ mod schema;
 mod smoke;
 mod validation;
 
-pub use catalog::{catalog_identity_at_commit, retained_apptainer_tool_ids};
+pub use catalog::{
+    catalog_identity_at_commit, load_container_catalog, retained_apptainer_tool_ids,
+    ContainerCatalog, ContainerCatalogTool,
+};
 
 pub use inspection::{verify_apptainer_tool_contract, VerifiedToolImageIdentity};
 pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContractLabels};

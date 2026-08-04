@@ -18,6 +18,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
   image identities.
 - `ContainerToolContract`: the strict identity installed exactly once at
   `/usr/share/bijux/tool-contract.json` in each retained tool image.
+- `ContainerCatalog` and `ContainerCatalogTool`: the complete fail-closed model loaded from
+  `containers/contracts/catalog.toml`; consumers must not define reduced or competing projections.
 - `ApptainerBuildRequest` and `ApptainerBuildReport`: bounded build execution with immutable,
   monotonically numbered attempt logs.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
