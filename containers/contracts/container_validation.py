@@ -37,6 +37,7 @@ EFFECTIVE_PARAMETERS_SCHEMA = "bijux.benchmark.effective_parameters.v1"
 STAGE_INTERFACE_EVIDENCE_SCHEMA = "bijux.benchmark.stage_interface_evidence.v1"
 STAGE_INTERFACE_CATALOG_SCHEMA = "bijux.benchmark.stage_interfaces.v1"
 REPEATED_MEASUREMENT_SCHEMA = "bijux.benchmark.repeated_measurement.v1"
+BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA = "bijux.benchmark.attempt_archive.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 ACTIVE_SLURM_STATES = {
@@ -2197,8 +2198,7 @@ def archive_terminal_run(
     governance_override: Path | None = None,
     *,
     expected_status: str,
-    archive_scope: str,
-    schema_version: str,
+    disposition: str,
     reason: str | None = None,
 ) -> Path:
     manifest_path = manifest_path.resolve()
@@ -2206,6 +2206,10 @@ def archive_terminal_run(
         manifest_path, governance_override
     )
     contract = validate_contracts(governance_path, pipeline_path, credential_path)
+    run_kind = str(contract["pipeline"]["run"].get("kind", "qualification"))
+    archive_scope = disposition if run_kind == "benchmark" else (
+        "failures" if disposition == "failed" else disposition
+    )
     submission_root = operational_submission_root(manifest_path, contract)
     result_root: Path = contract["result_root"]
     if not submission_root.is_dir() or not result_root.is_dir():
@@ -2239,7 +2243,6 @@ def archive_terminal_run(
     ):
         raise ContractError("Slurm accounting does not identify the terminal run")
     tool_id = str(contract["pipeline"]["run"]["tool"])
-    run_kind = str(contract["pipeline"]["run"].get("kind", "qualification"))
     bundle_name = f"{contract['run_id']}-{tool_id}-slurm-{job_id}"
     if run_kind == "benchmark":
         archive_root = (
@@ -2267,6 +2270,21 @@ def archive_terminal_run(
         *archive_file_records(submission_root, "submission"),
         *archive_file_records(result_root, "result"),
     ]
+    study_root: Path = contract["governance"]["study_root"]
+    try:
+        submission_source = submission_root.relative_to(study_root)
+        result_source = result_root.relative_to(study_root)
+    except ValueError as exc:
+        raise ContractError("attempt evidence paths must remain below STUDY") from exc
+    schema_version = (
+        BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA
+        if run_kind == "benchmark"
+        else (
+            "bijux.container.failed_run_archive.v1"
+            if disposition == "failed"
+            else "bijux.container.superseded_run_archive.v1"
+        )
+    )
     staging.mkdir(mode=0o750)
     try:
         submission_root.rename(staging / "submission")
@@ -2276,23 +2294,32 @@ def archive_terminal_run(
             {
                 "schema_version": schema_version,
                 "run_id": contract["run_id"],
-                "tool": tool_id,
+                **(
+                    {
+                        "attempt_id": f"slurm-{job_id}",
+                        "tool_id": tool_id,
+                        "disposition": disposition,
+                    }
+                    if run_kind == "benchmark"
+                    else {"tool": tool_id}
+                ),
                 "slurm_job_id": job_id,
                 **(
-                    {"disposition": "superseded", "reason": reason}
+                    {
+                        **(
+                            {"disposition": "superseded"}
+                            if run_kind != "benchmark"
+                            else {}
+                        ),
+                        "reason": reason,
+                    }
                     if reason is not None
                     else {}
                 ),
                 "archived_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
                 "source_paths": {
-                    "submission": (
-                        f"study://containers/evidence/submissions/"
-                        f"{contract['run_id']}-{tool_id}"
-                    ),
-                    "result": "study://results/"
-                    + result_root.relative_to(
-                        contract["governance"]["results_root"]
-                    ).as_posix(),
+                    "submission": f"study://{submission_source.as_posix()}",
+                    "result": f"study://{result_source.as_posix()}",
                 },
                 "evidence_sha256": sha256_file(staging / "result/evidence.json"),
                 "accounting_sha256": sha256_file(
@@ -2318,8 +2345,7 @@ def archive_failed_run(
         manifest_path,
         governance_override,
         expected_status="failed",
-        archive_scope="failures",
-        schema_version="bijux.container.failed_run_archive.v1",
+        disposition="failed",
     )
 
 
@@ -2335,8 +2361,7 @@ def archive_superseded_run(
         manifest_path,
         governance_override,
         expected_status="passed",
-        archive_scope="superseded",
-        schema_version="bijux.container.superseded_run_archive.v1",
+        disposition="superseded",
         reason=reason,
     )
 

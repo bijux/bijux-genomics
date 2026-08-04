@@ -344,11 +344,13 @@ python3 -B containers/contracts/container_validation.py archive-failure \
 
 Archival accepts only failed terminal evidence with matching Slurm accounting.
 It hashes every submission and result file, verifies that both trees and the
-failure root share one filesystem, then moves them through a recoverable
-partial directory into
-`containers/evidence/failures/RUN-TOOL-slurm-JOB/`. This frees the canonical
-submission and result paths without deleting the failed attempt or allowing it
-into the final run index. A passed result cannot be archived by this command.
+owner-specific archive root share one filesystem, then moves them through a
+recoverable partial directory. Qualification failures remain under
+`containers/evidence/failures/RUN-TOOL-slurm-JOB/`; benchmark failures use
+`results/benchmark-attempts/failed/RUN-TOOL-slurm-JOB/` and the governed
+`bijux.benchmark.attempt_archive.v1` record. This frees the canonical submission
+and result paths without deleting the failed attempt or allowing it into the
+final run index. A passed result cannot be archived by this command.
 
 If a passed attempt later proves scientifically or structurally invalid,
 preserve it with an explicit disposition rather than deleting or relabelling
@@ -363,8 +365,9 @@ python3 -B containers/contracts/container_validation.py archive-superseded \
 
 This command requires passed terminal evidence, matching accounting, and a
 substantive reason. It applies the same atomic, same-filesystem preservation
-rules under `containers/evidence/superseded/`, then frees only the canonical
-paths for a corrected submission.
+rules under `containers/evidence/superseded/` for qualification attempts and
+`results/benchmark-attempts/superseded/` for benchmark attempts, then frees only
+the canonical paths for a corrected submission.
 
 Import one completed run by bounding the identifier. For a full replay, use an
 empty artifact directory so existing tracked evidence is never overwritten:

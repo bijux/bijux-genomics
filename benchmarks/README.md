@@ -300,6 +300,15 @@ After accounting collection, validate every archived contract, output digest,
 input lock, resource row, repetition, and Slurm identity before publishing the
 small report:
 
+Terminal benchmark attempts are owned by the benchmark result tree. Failed
+attempts are retained under
+`$STUDY/results/benchmark-attempts/failed/RUN-TOOL-slurm-JOB/`; reviewed but
+invalid attempts are retained under the adjacent `superseded/` root. Each
+bundle carries a `bijux.benchmark.attempt_archive.v1` record with the stable run,
+attempt, tool, and Slurm identities, original STUDY URIs, and a size/SHA-256
+inventory. Container qualification attempts remain under
+`$STUDY/containers/evidence/` and must not be mixed into these roots.
+
 ```console
 python3 -B benchmarks/benchmark_evidence.py \
   --registry benchmarks/contracts/stage-campaigns.toml \

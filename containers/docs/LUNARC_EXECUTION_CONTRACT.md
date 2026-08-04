@@ -71,8 +71,11 @@ python3 containers/contracts/container_validation.py archive-superseded \
 ```
 
 This preserves the immutable submission and result trees under the governed
-superseded root, records their hashes and disposition, and frees only their
-canonical execution paths.
+owner root, records their hashes and disposition, and frees only their canonical
+execution paths. Qualification attempts remain under
+`$STUDY/containers/evidence/{failures,superseded}`. Benchmark attempts are
+isolated under `$STUDY/results/benchmark-attempts/{failed,superseded}` and use
+the benchmark-owned attempt archive contract.
 
 Current pipeline contracts separate host storage from paths visible inside the
 contained runtime. Governed input files mount as unique, safe filenames beneath

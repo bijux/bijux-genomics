@@ -1269,6 +1269,7 @@ assertions = ["the report consumer accepts the normalized result"]
                 "pipeline": {"run": {"tool": "tool"}},
                 "result_root": result,
                 "governance": {
+                    "study_root": study,
                     "containers_root": containers_root,
                     "results_root": root / "study/results",
                 },
@@ -1334,7 +1335,10 @@ assertions = ["the report consumer accepts the normalized result"]
                 "run_id": "run-2000",
                 "pipeline": {"run": {"tool": "tool"}},
                 "result_root": result,
-                "governance": {"containers_root": containers_root},
+                "governance": {
+                    "study_root": root / "study",
+                    "containers_root": containers_root,
+                },
             }
             with (
                 mock.patch.object(
@@ -1388,6 +1392,7 @@ assertions = ["the report consumer accepts the normalized result"]
                 "pipeline": {"run": {"tool": "tool", "kind": "benchmark"}},
                 "result_root": result,
                 "governance": {
+                    "study_root": study,
                     "containers_root": containers_root,
                     "results_root": study / "results",
                 },
@@ -1419,10 +1424,76 @@ assertions = ["the report consumer accepts the normalized result"]
 
         self.assertEqual(
             archive["schema_version"],
-            "bijux.container.superseded_run_archive.v1",
+            "bijux.benchmark.attempt_archive.v1",
         )
+        self.assertEqual(archive["attempt_id"], "slurm-3459727")
+        self.assertEqual(archive["tool_id"], "tool")
         self.assertEqual(archive["disposition"], "superseded")
         self.assertEqual(archive["reason"], reason)
+
+    def test_failed_benchmark_attempt_uses_benchmark_owned_archive(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study = root / "study"
+            containers_root = study / "containers"
+            submission = containers_root / "evidence/submissions/run-2043-seqfu"
+            result = study / "results/benchmarks/run-2043-fastq-profile-reads/seqfu"
+            manifest = study / "results/benchmark-specifications/run-2043-seqfu"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3459974\n")
+            (submission / "submit.sh").write_text("#!/bin/bash\nexit 1\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2043",
+                    "status": "failed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2043",
+                    "slurm_job_id": "3459974",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2043",
+                "pipeline": {"run": {"tool": "seqfu", "kind": "benchmark"}},
+                "result_root": result,
+                "governance": {
+                    "study_root": study,
+                    "containers_root": containers_root,
+                    "results_root": study / "results",
+                },
+            }
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                return_value=contract,
+            ):
+                archived = container_validation.archive_failed_run(manifest)
+
+            archive = json.loads((archived / "archive.json").read_text())
+
+            self.assertEqual(
+                archived,
+                study
+                / "results/benchmark-attempts/failed/run-2043-seqfu-slurm-3459974",
+            )
+            self.assertFalse((containers_root / "evidence/failed").exists())
+            self.assertFalse((containers_root / "evidence/failures").exists())
+            self.assertEqual(
+                archive["schema_version"],
+                "bijux.benchmark.attempt_archive.v1",
+            )
+            self.assertEqual(archive["disposition"], "failed")
+            self.assertEqual(archive["attempt_id"], "slurm-3459974")
+            self.assertNotIn("reason", archive)
 
     def test_apptainer_execution_uses_a_resolvable_isolated_hostname(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

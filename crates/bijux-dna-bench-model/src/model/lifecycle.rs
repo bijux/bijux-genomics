@@ -6,7 +6,10 @@
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::{BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1};
+use crate::contract::{
+    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -20,6 +23,53 @@ pub enum BenchmarkLifecycleStatus {
     Failed,
     Superseded,
     BlockedExternal,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkAttemptDisposition {
+    Failed,
+    Superseded,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkArchiveSourcePaths {
+    #[schemars(schema_with = "study_uri_schema")]
+    pub submission: String,
+    #[schemars(schema_with = "study_uri_schema")]
+    pub result: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkArchiveFileRecord {
+    #[schemars(schema_with = "archive_relative_path_schema")]
+    pub path: String,
+    pub size_bytes: u64,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAttemptArchive {
+    #[schemars(schema_with = "benchmark_attempt_archive_schema_version")]
+    pub schema_version: String,
+    pub run_id: String,
+    pub attempt_id: String,
+    pub tool_id: String,
+    pub slurm_job_id: String,
+    pub disposition: BenchmarkAttemptDisposition,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+    pub archived_at_utc: String,
+    pub source_paths: BenchmarkArchiveSourcePaths,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub evidence_sha256: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub accounting_sha256: String,
+    pub files: Vec<BenchmarkArchiveFileRecord>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -109,9 +159,37 @@ fn benchmark_attempt_schema_version(_: &mut SchemaGenerator) -> Schema {
     })
 }
 
+fn benchmark_attempt_archive_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    })
+}
+
 fn benchmark_cycle_status_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    })
+}
+
+fn sha256_identity_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+    })
+}
+
+fn study_uri_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^study://[^/].+$",
+    })
+}
+
+fn archive_relative_path_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^(submission|result)/[^/].+$",
     })
 }

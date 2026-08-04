@@ -2,9 +2,10 @@ use serde_json::Value;
 use std::fs;
 
 use bijux_dna_api::v1::api::bench::{
-    render_benchmark_attempt_schema, render_benchmark_cycle_status_schema,
-    render_benchmark_pipeline_parameters_schema, render_benchmark_report_admission_schema,
-    render_benchmark_stage_interfaces_schema, render_benchmark_stage_report_schema,
+    render_benchmark_attempt_archive_schema, render_benchmark_attempt_schema,
+    render_benchmark_cycle_status_schema, render_benchmark_pipeline_parameters_schema,
+    render_benchmark_report_admission_schema, render_benchmark_stage_interfaces_schema,
+    render_benchmark_stage_report_schema, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
     BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
@@ -126,6 +127,24 @@ fn benchmark_cycle_schemas_are_governed_by_rust_types() {
             .and_then(serde_json::Value::as_str),
         Some(BENCHMARK_CYCLE_STATUS_SCHEMA_V1),
     );
+}
+
+#[test]
+fn checked_benchmark_attempt_archive_schema_matches_rust_type() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
+    let checked: Value = serde_json::from_str(&fs::read_to_string(
+        repository_root.join("benchmarks/schemas/attempt-archive.v1.json"),
+    )?)?;
+    let generated = render_benchmark_attempt_archive_schema();
+    assert_eq!(
+        generated.pointer("/properties/schema_version/const").and_then(Value::as_str),
+        Some(BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1)
+    );
+    assert_eq!(checked, generated);
+    Ok(())
 }
 
 #[test]

@@ -4,10 +4,11 @@
 pub use crate::compare;
 pub use crate::contract;
 pub use crate::contract::{
-    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
-    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
-    BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
-    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    validate_attempt_archive, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
+    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
+    BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
 pub use crate::diagnostics::BenchError;
 pub use crate::model::decision::DecisionRationale;
@@ -17,7 +18,9 @@ pub use crate::model::interfaces::{
     BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 pub use crate::model::lifecycle::{
-    BenchmarkAttemptRecord, BenchmarkCycleStatus, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
+    BenchmarkAttemptDisposition, BenchmarkAttemptRecord, BenchmarkCycleStatus,
+    BenchmarkJobReference, BenchmarkLifecycleStatus,
 };
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::planning::{
