@@ -68,8 +68,8 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
             '-v artifact="repetitions/repetition-{repetition}.ERR1.histogram.tsv"',
             command[2],
         )
-        self.assertIn("awk '{print \\$1}'", command[2])
-        self.assertIn("awk 'END {print \\$1}'", command[2])
+        self.assertIn("awk '{print $1}'", command[2])
+        self.assertIn("awk 'END {print $1}'", command[2])
 
     def test_independent_sample_evidence_derives_exact_summary_and_digest(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
