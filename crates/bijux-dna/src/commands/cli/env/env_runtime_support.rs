@@ -80,6 +80,8 @@ fn run_smoke_with_manifest(
     sif_path: &Path,
     tool_id: &str,
     stage_id: &str,
+    build_evidence_id: &str,
+    repository_commit: &str,
     registry_digest: &str,
     sif_sha256: &str,
     version_cmd: &str,
@@ -159,10 +161,12 @@ fn run_smoke_with_manifest(
         .and_then(|ts| ts.duration_since(SystemTime::UNIX_EPOCH).ok())
         .map_or(0, |dur| dur.as_secs());
     SmokeManifest {
-        schema_version: "bijux.apptainer.smoke_manifest.v3",
+        schema_version: "bijux.apptainer.smoke_manifest.v4",
         tool_id: tool_id.to_string(),
         stage_id: stage_id.to_string(),
         status: status.to_string(),
+        build_evidence_id: build_evidence_id.to_string(),
+        repository_commit: repository_commit.to_string(),
         registry_digest: registry_digest.to_string(),
         sif_sha256: sif_sha256.to_string(),
         version_cmd: version_cmd.to_string(),
