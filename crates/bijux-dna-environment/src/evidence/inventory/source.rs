@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use schemars::JsonSchema;
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 use crate::evidence::{BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence};
@@ -22,12 +22,20 @@ pub struct ImageInventoryDerivationRequest {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ImageInventoryScan {
+    #[schemars(schema_with = "image_inventory_scan_schema_version")]
     pub schema_version: String,
     pub repository_commit: String,
     pub catalog_sha256: String,
     pub images: Vec<ImageInventoryScannedImage>,
     pub build_evidence: Vec<ImageInventorySourceFile>,
     pub run_references: BTreeMap<String, Vec<String>>,
+}
+
+fn image_inventory_scan_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": RAW_INVENTORY_SCHEMA_V1,
+    })
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

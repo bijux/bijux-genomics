@@ -10,6 +10,8 @@ const QUALIFICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-assessment.v1.json";
 const QUALIFICATION_REPORT_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-report.v2.json";
+const IMAGE_INVENTORY_SCAN_SCHEMA_PATH: &str =
+    "containers/contracts/schemas/image-inventory-scan.v1.json";
 
 #[derive(Serialize)]
 struct ContractLock<'a> {
@@ -225,6 +227,38 @@ pub(super) fn generate_image_inventory(
         scan_output.display(),
         publication_output.display()
     ))
+}
+
+pub(super) fn generate_image_inventory_scan_schema(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory-scan-schema -- [<output-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let output = out_path_arg(workspace, args, IMAGE_INVENTORY_SCAN_SCHEMA_PATH, usage)?;
+    bijux_dna_environment::evidence::write_image_inventory_scan_schema(&output)?;
+    success_line(format!("generated {}", output.display()))
+}
+
+pub(super) fn check_image_inventory_scan_schema(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
+    let path = workspace.path(IMAGE_INVENTORY_SCAN_SCHEMA_PATH);
+    if !path.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "missing {IMAGE_INVENTORY_SCAN_SCHEMA_PATH}; generate it with the governed container command\n"
+        )));
+    }
+    let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
+    let generated = bijux_dna_environment::evidence::image_inventory_scan_schema();
+    if checked != generated {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "{IMAGE_INVENTORY_SCAN_SCHEMA_PATH} drifted from Rust environment types\n"
+        )));
+    }
+    success_line("image-inventory scan schema: OK")
 }
 
 fn qualification_report(

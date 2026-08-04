@@ -297,9 +297,19 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateImageInventory,
         ),
         native(
+            "generate-image-inventory-scan-schema",
+            "Generate the complete image-inventory scan schema from Rust types.",
+            NativeContainerCommandKey::GenerateImageInventoryScanSchema,
+        ),
+        native(
             "check-evidence-qualification",
             "Validate that container qualification is reproducibly derived from current evidence.",
             NativeContainerCommandKey::CheckEvidenceQualification,
+        ),
+        native(
+            "check-image-inventory-scan-schema",
+            "Validate the checked image-inventory scan schema against Rust types.",
+            NativeContainerCommandKey::CheckImageInventoryScanSchema,
         ),
         native(
             "generate-qualification-schema",

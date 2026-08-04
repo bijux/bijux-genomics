@@ -75,6 +75,12 @@ Schema fixtures live under `tests/fixtures/env_schema/default/` and are checked 
 - `tests/schemas/schema/schema_snapshots.rs`
 - `tests/contracts/matrix/reference_matrix.rs`
 
+Container evidence schemas live under `containers/contracts/schemas/`. Generate and check the
+complete inventory scan schema with these developer-control-plane command IDs:
+
+- `generate-image-inventory-scan-schema`
+- `check-image-inventory-scan-schema`
+
 ## Change Rules
 
 - Adding an optional serialized field is compatible when defaulted and documented.

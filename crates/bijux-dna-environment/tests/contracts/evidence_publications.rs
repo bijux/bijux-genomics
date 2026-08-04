@@ -193,11 +193,13 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let root = repository_root()?;
     let inventory_path =
         root.join("containers/contracts/schemas/image-inventory-publication.v1.json");
+    let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v1.json");
     let runtime_path =
         root.join("containers/contracts/schemas/runtime-verification-publication.v1.json");
     let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v1.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_environment::evidence::write_image_inventory_publication_schema(&inventory_path)?;
+        bijux_dna_environment::evidence::write_image_inventory_scan_schema(&scan_path)?;
         bijux_dna_environment::evidence::write_runtime_verification_publication_schema(
             &runtime_path,
         )?;
@@ -207,10 +209,12 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     }
     let inventory: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(inventory_path)?)?;
+    let scan: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(scan_path)?)?;
     let runtime: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(runtime_path)?)?;
     let tool_contract: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(tool_contract_path)?)?;
     assert_eq!(inventory, bijux_dna_environment::evidence::image_inventory_publication_schema());
+    assert_eq!(scan, bijux_dna_environment::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_environment::evidence::runtime_verification_publication_schema());
     assert_eq!(
         tool_contract,
