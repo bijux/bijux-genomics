@@ -243,6 +243,7 @@ env-prep
 env-smoke
 extract-version-map
 generate-contract-lock
+generate-evidence-qualification
 generate-ghcr-apptainer-publish-matrix
 generate-ghcr-publish-matrix
 generate-index
@@ -333,6 +334,7 @@ run
 
 ### `hpc run <id>`
 ```text
+benchmark-attempt-migration
 benchmark-sync-pull
 benchmark-sync-push
 run-frontend-mini-e2e

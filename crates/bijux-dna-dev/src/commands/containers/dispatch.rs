@@ -181,6 +181,10 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-version-deprecations", args)?;
             versioning::check_version_deprecations(workspace)
         }
+        NativeContainerCommandKey::GenerateEvidenceQualification => {
+            ensure_no_args("generate-evidence-qualification", args)?;
+            contracts::generate_evidence_qualification(workspace)
+        }
         NativeContainerCommandKey::CheckEvidenceQualification => {
             ensure_no_args("check-evidence-qualification", args)?;
             contracts::check_evidence_qualification(workspace)

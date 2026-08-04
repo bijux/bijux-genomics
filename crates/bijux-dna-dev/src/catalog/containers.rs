@@ -287,6 +287,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckVersionDeprecations,
         ),
         native(
+            "generate-evidence-qualification",
+            "Generate typed container qualification reports from admitted evidence.",
+            NativeContainerCommandKey::GenerateEvidenceQualification,
+        ),
+        native(
             "check-evidence-qualification",
             "Validate that container qualification is reproducibly derived from current evidence.",
             NativeContainerCommandKey::CheckEvidenceQualification,

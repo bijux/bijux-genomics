@@ -1,5 +1,5 @@
 use super::{
-    failure_lines, out_path_arg, read_utf8, run_argv, sha256_hex, success_line, write_utf8,
+    failure_lines, out_path_arg, read_utf8, sha256_hex, success_line, write_utf8,
     ContainerCommandOutcome, Result, Serialize, Workspace,
 };
 use bijux_dna_environment::evidence::ContainerCatalog;
@@ -152,7 +152,46 @@ pub(super) fn check_contract_lock(workspace: &Workspace) -> Result<ContainerComm
 pub(super) fn check_evidence_qualification(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
-    bijux_dna_environment::evidence::load_container_evidence_chain(&workspace.root)?;
+    let report = qualification_report(workspace)?;
+    let expected_json = super::qualification::qualification_json(&report)?;
+    let expected_markdown = super::qualification::qualification_markdown(&report)?;
+    let mut errors = Vec::new();
+    for (path, expected) in [
+        ("containers/reports/qualification.json", expected_json.as_str()),
+        ("containers/reports/qualification.md", expected_markdown.as_str()),
+    ] {
+        if !super::qualification::checked_report_matches(workspace, path, expected)? {
+            errors.push(format!("generated qualification report is stale: {path}"));
+        }
+    }
+    if errors.is_empty() {
+        success_line("container evidence qualification: OK")
+    } else {
+        failure_lines("container evidence qualification: failed", &errors)
+    }
+}
+
+pub(super) fn generate_evidence_qualification(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
+    let report = qualification_report(workspace)?;
+    let json_path = workspace.path("containers/reports/qualification.json");
+    let markdown_path = workspace.path("containers/reports/qualification.md");
+    let json = super::qualification::qualification_json(&report)?;
+    let markdown = super::qualification::qualification_markdown(&report)?;
+    bijux_dna_infra::atomic_write_bytes(&json_path, json.as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&markdown_path, markdown.as_bytes())?;
+    success_line(format!(
+        "generated typed qualification for {} container tools",
+        report.summary.tool_count
+    ))
+}
+
+fn qualification_report(
+    workspace: &Workspace,
+) -> Result<bijux_dna_api::v1::api::qualification::QualificationReport> {
+    let environment_evidence =
+        bijux_dna_environment::evidence::load_container_evidence_chain(&workspace.root)?;
     let registry = bijux_dna_bench::load_stage_campaign_registry(
         &workspace.path("benchmarks/contracts/stage-campaigns.toml"),
     )?;
@@ -166,54 +205,15 @@ pub(super) fn check_evidence_qualification(
         &interfaces,
     )?;
     if admitted_reports.is_empty() {
-        return Ok(ContainerCommandOutcome::failure(
-            "container qualification requires at least one Rust-admitted benchmark report\n",
-        ));
-    }
-    let mut args = [
-        "python3",
-        "-B",
-        "containers/contracts/qualification_report.py",
-        "--catalog",
-        "containers/contracts/catalog.toml",
-        "--inventory",
-        "containers/reports/image-inventory.json",
-        "--runtime",
-        "containers/reports/runtime-verification.json",
-        "--runs",
-        "containers/reports/run-evidence.json",
-        "--repository",
-    ]
-    .into_iter()
-    .map(ToOwned::to_owned)
-    .collect::<Vec<_>>();
-    args.push(workspace.root.to_string_lossy().into_owned());
-    for admission in admitted_reports {
-        args.push("--benchmark-report".to_string());
-        args.push(
-            workspace
-                .path("benchmarks/reports")
-                .join(admission.report_file_name)
-                .to_string_lossy()
-                .into_owned(),
+        anyhow::bail!(
+            "container qualification requires at least one Rust-admitted benchmark report"
         );
     }
-    args.extend(
-        [
-            "--json-output",
-            "containers/reports/qualification.json",
-            "--markdown-output",
-            "containers/reports/qualification.md",
-            "--check",
-        ]
-        .into_iter()
-        .map(ToOwned::to_owned),
-    );
-    let outcome = run_argv(workspace, &args)?;
-    if outcome.is_success() {
-        return success_line("container evidence qualification: OK");
-    }
-    Ok(outcome)
+    super::qualification::derive_qualification_report(
+        workspace,
+        &environment_evidence,
+        &admitted_reports,
+    )
 }
 
 pub(super) fn generate_qualification_schema(
@@ -244,29 +244,4 @@ pub(super) fn check_qualification_schema(workspace: &Workspace) -> Result<Contai
         )));
     }
     success_line("qualification assessment schema: OK")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{has_explicit_upstream_license, is_hex, is_placeholder_digest, is_zero_digest};
-
-    #[test]
-    fn digest_helpers_distinguish_resolved_and_placeholder_identities() {
-        assert!(is_zero_digest(&"0".repeat(40)));
-        assert!(!is_zero_digest("0123456789abcdef"));
-        assert!(is_placeholder_digest(&"5".repeat(64)));
-        assert!(!is_placeholder_digest(
-            "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
-        ));
-        assert!(is_hex(&"a".repeat(64), 64));
-        assert!(!is_hex("not-a-digest", 64));
-    }
-
-    #[test]
-    fn redistribution_requires_an_explicit_upstream_license() {
-        assert!(has_explicit_upstream_license("MIT"));
-        assert!(has_explicit_upstream_license("GPL-3.0-only"));
-        assert!(!has_explicit_upstream_license("NOASSERTION"));
-        assert!(!has_explicit_upstream_license(""));
-    }
 }

@@ -433,6 +433,7 @@ dependencies = [
  "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-runtime",
  "chrono",
  "clap",
  "regex",

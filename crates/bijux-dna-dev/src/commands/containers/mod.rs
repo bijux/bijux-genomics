@@ -18,6 +18,7 @@ mod content_support;
 mod contracts;
 mod dispatch;
 mod metadata;
+mod qualification;
 mod registry_catalog;
 mod runtime;
 mod validation;

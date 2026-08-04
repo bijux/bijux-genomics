@@ -107,17 +107,7 @@ _containers-doctor: ## Run container doctor status report (missing images, lock 
 	@cargo run -q -p bijux-dna-dev -- containers run container-doctor
 
 _containers-release-gate: ## Run mandatory container release gate checks.
-	@PYTHONDONTWRITEBYTECODE=1 python3 containers/contracts/qualification_report.py \
-		--catalog containers/contracts/catalog.toml \
-		--inventory containers/reports/image-inventory.json \
-		--runtime containers/reports/runtime-verification.json \
-		--runs containers/reports/run-evidence.json \
-		--benchmark-report benchmarks/reports/run-2001-bam-genotyping.json \
-		--benchmark-report benchmarks/reports/run-2002-bam-coverage.json \
-		--benchmark-report benchmarks/reports/run-2003-bam-endogenous-content.json \
-		--json-output containers/reports/qualification.json \
-		--markdown-output containers/reports/qualification.md \
-		--check
+	@cargo run -q -p bijux-dna-dev -- containers run check-evidence-qualification
 	@cargo run -q -p bijux-dna-dev -- containers run release-gate
 
 _ghcr-apptainer-publish-matrix: ## Generate GHCR Apptainer publish matrix.

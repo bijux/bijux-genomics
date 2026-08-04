@@ -113,6 +113,7 @@ fn dev_tree_matches_architecture_contract() {
         "dispatch.rs",
         "metadata.rs",
         "mod.rs",
+        "qualification/",
         "registry_catalog.rs",
         "runtime/",
         "validation/",
@@ -125,6 +126,14 @@ fn dev_tree_matches_architecture_contract() {
     assert_eq!(
         containers_entries, expected_containers,
         "container commands must stay explicit about runtime and validation ownership"
+    );
+
+    let qualification_entries = dir_entries(&root.join("src/commands/containers/qualification"));
+    let expected_qualification: BTreeSet<_> =
+        ["derivation.rs", "mod.rs", "render.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        qualification_entries, expected_qualification,
+        "container qualification must separate evidence derivation from presentation"
     );
 
     let container_runtime_entries = dir_entries(&root.join("src/commands/containers/runtime"));

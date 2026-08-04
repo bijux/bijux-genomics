@@ -78,15 +78,12 @@ but it contributes no build, runtime, benchmark, or freshness pass. Benchmark
 evidence does not imply scientific acceptance.
 
 ```console
-python3 -B containers/contracts/qualification_report.py \
-  --catalog containers/contracts/catalog.toml \
-  --inventory containers/reports/image-inventory.json \
-  --runtime containers/reports/runtime-verification.json \
-  --runs containers/reports/run-evidence.json \
-  --benchmark-report benchmarks/reports/run-2001-bam-genotyping.json \
-  --json-output containers/reports/qualification.json \
-  --markdown-output containers/reports/qualification.md
+cargo run -q -p bijux-dna-dev -- containers run generate-evidence-qualification
 ```
+
+The generator fails before writing when catalog, recipe, image, runtime, run, or benchmark evidence
+cannot be admitted by its owning Rust crate. It never refreshes stale evidence or converts a failed
+campaign into a passing claim.
 
 The fast drift gate recomputes the same report without writing:
 

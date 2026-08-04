@@ -11,6 +11,7 @@ pub use bijux_dna_policies::{
     PublicationIdentityMismatch, QualificationAssessment, QualificationClaim,
     QualificationEvidenceSource, QualificationReport, QualificationReportSummary,
     SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V1, QUALIFICATION_REPORT_SCHEMA_V2,
+    REQUIRED_EVIDENCE_DIMENSIONS,
 };
 
 /// Render the governed qualification-assessment schema.

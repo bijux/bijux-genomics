@@ -65,6 +65,7 @@ pub enum NativeContainerCommandKey {
     CheckVersionHashPin,
     CheckVersionImmutability,
     CheckVersionDeprecations,
+    GenerateEvidenceQualification,
     CheckEvidenceQualification,
     GenerateQualificationSchema,
     CheckQualificationSchema,
