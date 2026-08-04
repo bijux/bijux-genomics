@@ -174,6 +174,13 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-evidence-qualification", args)?;
             contracts::check_evidence_qualification(workspace)
         }
+        NativeContainerCommandKey::GenerateQualificationSchema => {
+            contracts::generate_qualification_schema(workspace, args)
+        }
+        NativeContainerCommandKey::CheckQualificationSchema => {
+            ensure_no_args("check-qualification-schema", args)?;
+            contracts::check_qualification_schema(workspace)
+        }
         NativeContainerCommandKey::DeprecateVersion => {
             versioning::deprecate_version(workspace, args)
         }

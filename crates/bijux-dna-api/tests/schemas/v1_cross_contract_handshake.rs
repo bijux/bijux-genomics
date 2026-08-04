@@ -8,6 +8,9 @@ use bijux_dna_api::v1::api::bench::{
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
+use bijux_dna_api::v1::api::qualification::{
+    render_qualification_assessment_schema, QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+};
 
 fn load_fixture(path: &std::path::Path) -> Value {
     let raw = fs::read_to_string(path)
@@ -104,4 +107,41 @@ fn benchmark_cycle_schemas_are_governed_by_rust_types() {
             .and_then(serde_json::Value::as_str),
         Some(BENCHMARK_CYCLE_STATUS_SCHEMA_V1),
     );
+}
+
+#[test]
+fn checked_qualification_schema_matches_rust_type() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
+    let checked: Value = serde_json::from_str(&fs::read_to_string(
+        repository_root.join("containers/contracts/schemas/qualification-assessment.v1.json"),
+    )?)?;
+    let generated = render_qualification_assessment_schema();
+    assert_eq!(
+        generated.pointer("/properties/schema_version/const").and_then(Value::as_str),
+        Some(QUALIFICATION_ASSESSMENT_SCHEMA_V1)
+    );
+    assert_eq!(
+        generated.pointer("/$defs/QualificationClaim/enum"),
+        Some(&serde_json::json!([
+            "unsupported",
+            "planned",
+            "built",
+            "runtime_verified",
+            "stage_verified",
+            "real_data_verified",
+            "science_verified",
+            "benchmark_verified",
+            "security_verified",
+            "release_verified",
+            "qualified",
+            "failed",
+            "superseded",
+            "blocked"
+        ]))
+    );
+    assert_eq!(checked, generated);
+    Ok(())
 }

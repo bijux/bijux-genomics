@@ -33,6 +33,7 @@ bijux-dna-planner-fastq.workspace = true
 bijux-dna-planner-bam.workspace = true
 bijux-dna-runner.workspace = true
 bijux-dna-pipelines.workspace = true
+bijux-dna-policies.workspace = true
 bijux-dna-infra = { workspace = true, features = ["tracing"] }
 bijux-dna-runtime.workspace = true
 
@@ -48,7 +49,6 @@ default = []
 insta = { workspace = true, features = ["json"] }
 tempfile = { workspace = true }
 bijux-dna-testkit.workspace = true
-bijux-dna-policies.workspace = true
 nix.workspace = true
 
 [lints]

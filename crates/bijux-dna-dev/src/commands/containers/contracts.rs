@@ -11,6 +11,8 @@ const GOVERNANCE_SCHEMA_PATH: &str = "containers/contracts/config-governance.sch
 const LUNARC_GOVERNANCE_PATH: &str = "containers/contracts/sites/lunarc.yml";
 const BUILD_ADMISSION_PATH: &str = "containers/contracts/container_build.py";
 const VALIDATION_EXECUTOR_PATH: &str = "containers/contracts/container_validation.py";
+const QUALIFICATION_SCHEMA_PATH: &str =
+    "containers/contracts/schemas/qualification-assessment.v1.json";
 const CATALOG_SCHEMA: &str = "bijux.container.catalog.v1";
 const EVIDENCE_SCHEMA: &str = "bijux.container.evidence.v1";
 
@@ -584,6 +586,36 @@ pub(super) fn check_evidence_qualification(
         return success_line("container evidence qualification: OK");
     }
     Ok(outcome)
+}
+
+pub(super) fn generate_qualification_schema(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-qualification-schema -- [<output-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let output = out_path_arg(workspace, args, QUALIFICATION_SCHEMA_PATH, usage)?;
+    bijux_dna_api::v1::api::qualification::write_qualification_assessment_schema(&output)?;
+    success_line(format!("generated {}", output.display()))
+}
+
+pub(super) fn check_qualification_schema(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let path = workspace.path(QUALIFICATION_SCHEMA_PATH);
+    if !path.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "missing {QUALIFICATION_SCHEMA_PATH}; generate it with the governed container command\n"
+        )));
+    }
+    let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
+    let generated = bijux_dna_api::v1::api::qualification::render_qualification_assessment_schema();
+    if checked != generated {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "{QUALIFICATION_SCHEMA_PATH} drifted from Rust policy types\n"
+        )));
+    }
+    success_line("qualification assessment schema: OK")
 }
 
 #[cfg(test)]

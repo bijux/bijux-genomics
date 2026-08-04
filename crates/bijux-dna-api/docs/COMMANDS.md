@@ -39,6 +39,7 @@ The public front door also exposes curated v1 namespaces:
   Benchmark report schema operations include `render_benchmark_stage_report_schema` and
   `write_benchmark_stage_report_schema`.
 - `api::plan` for planning helper exports.
+- `api::qualification` for fail-closed evidence qualification types and schema operations.
 - `api::run` for run orchestration helper exports.
 - `api::report` for report helper exports.
 - `api::bam` for BAM helper exports.

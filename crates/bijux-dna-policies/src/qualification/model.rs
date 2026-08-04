@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::{bail, ensure, Result};
-use schemars::JsonSchema;
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 use super::evaluation::{CLAIM_REQUIREMENTS, REQUIRED_EVIDENCE_DIMENSIONS};
@@ -84,20 +84,61 @@ pub struct EvidenceDecision {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct QualificationAssessment {
+    #[schemars(schema_with = "qualification_assessment_schema_version")]
     pub schema_version: String,
     pub subject_id: String,
     pub support_disposition: SupportDisposition,
     pub publication_disposition: PublicationDisposition,
     pub dimensions: BTreeMap<EvidenceDimension, EvidenceDecision>,
+    pub claims: BTreeSet<QualificationClaim>,
+}
+
+fn qualification_assessment_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+    })
 }
 
 impl QualificationAssessment {
+    /// Build a v1 assessment and derive its public claims from the supplied evidence.
+    ///
+    /// # Errors
+    /// Returns an error when the evidence dimensions or decisions are invalid.
+    pub fn v1(
+        subject_id: String,
+        support_disposition: SupportDisposition,
+        publication_disposition: PublicationDisposition,
+        dimensions: BTreeMap<EvidenceDimension, EvidenceDecision>,
+    ) -> Result<Self> {
+        let mut assessment = Self {
+            schema_version: QUALIFICATION_ASSESSMENT_SCHEMA_V1.to_string(),
+            subject_id,
+            support_disposition,
+            publication_disposition,
+            dimensions,
+            claims: BTreeSet::new(),
+        };
+        assessment.validate_evidence()?;
+        assessment.claims = assessment.derive_claims();
+        Ok(assessment)
+    }
+
     /// Validate that the assessment is complete and every verdict carries admissible evidence.
     ///
     /// # Errors
     /// Returns an error for an unsupported schema, missing dimension, malformed identity, or
     /// verdict that contradicts the subject's support disposition.
     pub fn validate(&self) -> Result<()> {
+        self.validate_evidence()?;
+        ensure!(
+            self.claims == self.derive_claims(),
+            "qualification claims do not match evidence-derived claims"
+        );
+        Ok(())
+    }
+
+    fn validate_evidence(&self) -> Result<()> {
         ensure!(
             self.schema_version == QUALIFICATION_ASSESSMENT_SCHEMA_V1,
             "unsupported qualification assessment schema: {}",
@@ -132,11 +173,15 @@ impl QualificationAssessment {
     /// Returns an error when the assessment is invalid.
     pub fn supported_claims(&self) -> Result<BTreeSet<QualificationClaim>> {
         self.validate()?;
+        Ok(self.claims.clone())
+    }
+
+    fn derive_claims(&self) -> BTreeSet<QualificationClaim> {
         if self.publication_disposition == PublicationDisposition::Superseded {
-            return Ok(BTreeSet::from([QualificationClaim::Superseded]));
+            return BTreeSet::from([QualificationClaim::Superseded]);
         }
         if self.support_disposition == SupportDisposition::Unsupported {
-            return Ok(BTreeSet::from([QualificationClaim::Unsupported]));
+            return BTreeSet::from([QualificationClaim::Unsupported]);
         }
 
         let mut claims = BTreeSet::from([QualificationClaim::Planned]);
@@ -157,7 +202,7 @@ impl QualificationAssessment {
         }) {
             claims.insert(QualificationClaim::Blocked);
         }
-        Ok(claims)
+        claims
     }
 
     /// Return whether the complete production qualification claim is supported.
@@ -209,7 +254,7 @@ mod tests {
     };
     use crate::qualification::REQUIRED_EVIDENCE_DIMENSIONS;
 
-    fn retained(verdict: EvidenceVerdict) -> QualificationAssessment {
+    fn retained(verdict: EvidenceVerdict) -> anyhow::Result<QualificationAssessment> {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
             .map(|dimension| {
@@ -225,18 +270,17 @@ mod tests {
                 (dimension, EvidenceDecision { verdict, evidence_sha256, reasons })
             })
             .collect();
-        QualificationAssessment {
-            schema_version: QUALIFICATION_ASSESSMENT_SCHEMA_V1.to_string(),
-            subject_id: "samtools".to_string(),
-            support_disposition: SupportDisposition::Retained,
-            publication_disposition: PublicationDisposition::Current,
+        QualificationAssessment::v1(
+            "samtools".to_string(),
+            SupportDisposition::Retained,
+            PublicationDisposition::Current,
             dimensions,
-        }
+        )
     }
 
     #[test]
     fn qualified_requires_every_dimension_to_pass() -> anyhow::Result<()> {
-        let mut assessment = retained(EvidenceVerdict::Passed);
+        let mut assessment = retained(EvidenceVerdict::Passed)?;
         assert!(assessment.is_qualified()?);
         assessment.dimensions.insert(
             EvidenceDimension::Security,
@@ -246,6 +290,13 @@ mod tests {
                 reasons: vec!["security campaign not collected".to_string()],
             },
         );
+        assert!(assessment.validate().is_err());
+        let assessment = QualificationAssessment::v1(
+            assessment.subject_id,
+            assessment.support_disposition,
+            assessment.publication_disposition,
+            assessment.dimensions,
+        )?;
         let claims = assessment.supported_claims()?;
         assert!(!claims.contains(&QualificationClaim::Qualified));
         assert!(claims.contains(&QualificationClaim::Blocked));
@@ -255,7 +306,7 @@ mod tests {
 
     #[test]
     fn built_and_runtime_verified_are_distinct_claims() -> anyhow::Result<()> {
-        let mut assessment = retained(EvidenceVerdict::Missing);
+        let mut assessment = retained(EvidenceVerdict::Missing)?;
         for dimension in
             [EvidenceDimension::Catalog, EvidenceDimension::Source, EvidenceDimension::Build]
         {
@@ -268,6 +319,12 @@ mod tests {
                 },
             );
         }
+        let assessment = QualificationAssessment::v1(
+            assessment.subject_id,
+            assessment.support_disposition,
+            assessment.publication_disposition,
+            assessment.dimensions,
+        )?;
         let claims = assessment.supported_claims()?;
         assert!(claims.contains(&QualificationClaim::Built));
         assert!(!claims.contains(&QualificationClaim::RuntimeVerified));
@@ -276,8 +333,25 @@ mod tests {
 
     #[test]
     fn unsupported_subject_supports_only_the_unsupported_claim() -> anyhow::Result<()> {
-        let mut assessment = retained(EvidenceVerdict::NotApplicable);
-        assessment.support_disposition = SupportDisposition::Unsupported;
+        let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
+            .into_iter()
+            .map(|dimension| {
+                (
+                    dimension,
+                    EvidenceDecision {
+                        verdict: EvidenceVerdict::NotApplicable,
+                        evidence_sha256: None,
+                        reasons: Vec::new(),
+                    },
+                )
+            })
+            .collect();
+        let mut assessment = QualificationAssessment::v1(
+            "angsd".to_string(),
+            SupportDisposition::Unsupported,
+            PublicationDisposition::Current,
+            dimensions,
+        )?;
         assert_eq!(
             assessment.supported_claims()?,
             BTreeSet::from([QualificationClaim::Unsupported])

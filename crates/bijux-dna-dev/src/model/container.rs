@@ -63,6 +63,8 @@ pub enum NativeContainerCommandKey {
     CheckVersionImmutability,
     CheckVersionDeprecations,
     CheckEvidenceQualification,
+    GenerateQualificationSchema,
+    CheckQualificationSchema,
     DeprecateVersion,
     CheckApptainerCachePolicy,
     CheckApptainerFrontendReproducibility,
