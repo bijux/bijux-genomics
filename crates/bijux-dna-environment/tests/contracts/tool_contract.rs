@@ -5,8 +5,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::tool_contract::{
-    prepare_apptainer_tool_contract, tool_contract_labels, validate_tool_contract,
-    validate_tool_contract_labels, verify_apptainer_tool_contract, ToolContractBuildRequest,
+    prepare_apptainer_tool_contract, retained_apptainer_tool_ids, tool_contract_labels,
+    validate_tool_contract, validate_tool_contract_labels, verify_apptainer_tool_contract,
+    ToolContractBuildRequest,
 };
 use sha2::{Digest, Sha256};
 
@@ -65,25 +66,11 @@ fn retained_contract_is_catalog_derived_and_installed_once() -> Result<()> {
 #[test]
 fn every_retained_apptainer_recipe_renders_one_contract() -> Result<()> {
     let root = repository_root()?;
-    let catalog: toml::Value =
-        toml::from_str(&fs::read_to_string(root.join("containers/contracts/catalog.toml"))?)?;
-    let retained = catalog
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .context("catalog lacks tools")?
-        .iter()
-        .filter(|tool| {
-            tool.get("support_disposition").and_then(toml::Value::as_str) == Some("retained")
-                && tool.get("apptainer_supported").and_then(toml::Value::as_bool) == Some(true)
-        })
-        .map(|tool| {
-            tool.get("id").and_then(toml::Value::as_str).context("retained catalog tool lacks id")
-        })
-        .collect::<Result<Vec<_>>>()?;
+    let retained = retained_apptainer_tool_ids(&root, "linux/amd64")?;
     assert_eq!(retained.len(), 85);
 
     for tool_id in retained {
-        let (_output, prepared) = prepare(tool_id)?;
+        let (_output, prepared) = prepare(&tool_id)?;
         let rendered = fs::read_to_string(prepared.rendered_definition_path)?;
         assert_eq!(
             rendered.matches("/usr/share/bijux/tool-contract.json").count(),
@@ -92,6 +79,14 @@ fn every_retained_apptainer_recipe_renders_one_contract() -> Result<()> {
         );
         assert_eq!(prepared.contract.tool_id, tool_id);
     }
+    Ok(())
+}
+
+#[test]
+fn retained_roster_rejects_non_catalog_architecture() -> Result<()> {
+    let error = retained_apptainer_tool_ids(&repository_root()?, "linux/arm64")
+        .expect_err("non-catalog architecture must fail");
+    assert!(error.to_string().contains("differs from catalog architecture"));
     Ok(())
 }
 

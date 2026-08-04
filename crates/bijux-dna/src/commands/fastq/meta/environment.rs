@@ -43,6 +43,37 @@ pub(crate) fn handle_environment_command(
                 || crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
             )?;
+            if args.all_retained {
+                let report = crate::commands::cli::env::ensure_retained_apptainer_roster_at_root(
+                    &hpc_root,
+                    args.jobs.unwrap_or(2),
+                    args.force_smoke,
+                    args.repair_mismatch,
+                )?;
+                if let Some(output) = &args.output {
+                    bijux_dna_infra::atomic_write_json(output, &report)?;
+                }
+                if args.json {
+                    render::json::print_pretty(&report)?;
+                } else {
+                    println!("schema_version={}", report.schema_version);
+                    println!("requested_tools={}", report.tools.len());
+                    println!("built={}", report.built);
+                    println!("reused={}", report.reused);
+                    println!("quick_smoked={}", report.quick_smoked);
+                    println!("failed={}", report.failed);
+                }
+                if report.failed != 0 {
+                    return Err(anyhow!(
+                        "retained image roster has {} failed tools",
+                        report.failed
+                    ));
+                }
+                return Ok(true);
+            }
+            let domain = args.domain.as_deref().ok_or_else(|| {
+                anyhow!("environment ensure-images requires --domain unless --all-retained is used")
+            })?;
             let stages = match (&args.stage, &args.stages) {
                 (Some(stage), None) => stage.clone(),
                 (None, Some(stages)) => stages.clone(),
@@ -56,7 +87,7 @@ pub(crate) fn handle_environment_command(
                 crate::commands::cli::env::ensure_apptainer_images_at_root(
                     &registry_path,
                     &hpc_root,
-                    &args.domain,
+                    domain,
                     &stages,
                     args.force_smoke,
                     args.repair_mismatch,
@@ -65,12 +96,15 @@ pub(crate) fn handle_environment_command(
                 crate::commands::cli::env::ensure_apptainer_images(
                     &registry_path,
                     &hpc_root,
-                    &args.domain,
+                    domain,
                     &stages,
                     args.force_smoke,
                     args.repair_mismatch,
                 )?
             };
+            if let Some(output) = &args.output {
+                bijux_dna_infra::atomic_write_json(output, &report)?;
+            }
             if args.json {
                 render::json::print_pretty(&report)?;
             } else {

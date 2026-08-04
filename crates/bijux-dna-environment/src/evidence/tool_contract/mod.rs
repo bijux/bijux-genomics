@@ -8,6 +8,8 @@ mod preparation;
 mod schema;
 mod validation;
 
+pub use catalog::retained_apptainer_tool_ids;
+
 pub use inspection::{verify_apptainer_tool_contract, VerifiedToolImageIdentity};
 pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContractLabels};
 pub use model::{

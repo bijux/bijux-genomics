@@ -252,6 +252,7 @@ dependencies = [
  "noodles-bam",
  "noodles-sam",
  "predicates",
+ "rayon",
  "regex",
  "reqwest",
  "schemars",

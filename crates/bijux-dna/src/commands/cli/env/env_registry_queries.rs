@@ -737,6 +737,35 @@ pub struct EnsureToolReport {
 }
 
 #[derive(Debug, Serialize)]
+pub struct EnsureRetainedRosterReport {
+    pub schema_version: &'static str,
+    pub repository_commit: String,
+    pub architecture: String,
+    pub catalog_sha256: String,
+    pub requested_tool_count: usize,
+    pub tools: Vec<EnsureRetainedToolReport>,
+    pub built: usize,
+    pub reused: usize,
+    pub quick_smoked: usize,
+    pub failed: usize,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EnsureRetainedToolReport {
+    pub tool_id: String,
+    pub contract: Option<bijux_dna_api::v1::api::env::ContainerToolContract>,
+    pub sif_path: Option<String>,
+    pub sif_sha256: Option<String>,
+    pub build_log_path: Option<String>,
+    pub build_log_sha256: Option<String>,
+    pub build_log_attempt: Option<u32>,
+    pub built: bool,
+    pub quick_smoked: bool,
+    pub status: String,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
 pub struct SifInventoryReport {
     pub schema_version: &'static str,
     pub containers_dir: String,

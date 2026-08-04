@@ -38,7 +38,24 @@ or labels differ.
 
 Run from a clean checkout at the commit being qualified. `--hpc-root` is the
 exact root that will own the generated `containers`, corpus, and result paths.
-Select one stage or a comma-separated set of stages from the same domain:
+Build the complete retained roster with bounded frontend concurrency:
+
+```console
+cargo run -p bijux-dna -- env ensure-images \
+  --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
+  --all-retained \
+  --jobs 4 \
+  --force-smoke \
+  --repair-mismatch \
+  --output /home/bijan/lu2024-12-24/Dardel/STUDY/evidence/image-roster.json \
+  --json
+```
+
+The command is resumable: an interrupted rerun verifies and reuses every
+identity-correct SIF before building missing tools. It emits one report row for
+all 85 retained catalog entries and exits nonzero if any row fails. For a
+narrow stage-scoped operation, select one stage or a comma-separated set of
+stages from the same domain:
 
 ```console
 cargo run -p bijux-dna -- env ensure-images \

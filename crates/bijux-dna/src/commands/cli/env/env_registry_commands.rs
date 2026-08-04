@@ -1,5 +1,7 @@
 mod env_benchmark_roots;
 
+use rayon::prelude::*;
+
 use self::env_benchmark_roots::{benchmark_env_roots, benchmark_env_roots_at_hpc_root};
 #[cfg(test)]
 use self::env_benchmark_roots::{shared_cache_root, BenchmarkEnvRoots};
@@ -86,6 +88,7 @@ fn materialize_apptainer_build(
     prepared: &bijux_dna_api::v1::api::env::PreparedToolContractBuild,
     repair_mismatch: bool,
     containers_root: &Path,
+    build_log_path: Option<&Path>,
 ) -> Result<(String, bool)> {
     if sif_path.is_file() {
         match verify_apptainer_build(sif_path, prepared) {
@@ -103,7 +106,7 @@ fn materialize_apptainer_build(
             )?,
         }
     }
-    build_apptainer_image(&prepared.rendered_definition_path, sif_path)?;
+    build_apptainer_image(&prepared.rendered_definition_path, sif_path, build_log_path)?;
     Ok((verify_apptainer_build(sif_path, prepared)?, true))
 }
 
@@ -242,6 +245,7 @@ fn ensure_apptainer_images_with_root_policy(
                 &prepared,
                 repair_mismatch,
                 &containers_root,
+                None,
             )?;
             if built_this {
                 built += 1;
@@ -330,6 +334,244 @@ fn ensure_apptainer_images_with_root_policy(
     })
 }
 
+/// Build or verify the complete retained Apptainer roster from the canonical catalog.
+///
+/// # Errors
+/// Returns an error when repository, catalog, root, or worker-pool contracts are invalid.
+pub fn ensure_retained_apptainer_roster_at_root(
+    hpc_root: &Path,
+    jobs: usize,
+    force_smoke: bool,
+    repair_mismatch: bool,
+) -> Result<EnsureRetainedRosterReport> {
+    if !(1..=4).contains(&jobs) {
+        return Err(anyhow!("retained image roster concurrency must be between 1 and 4"));
+    }
+    let repository_root = std::env::current_dir().context("resolve current working directory")?;
+    let repository_commit = current_clean_repository_commit(&repository_root)?;
+    let architecture = "linux/amd64";
+    let catalog_sha256 =
+        hash_file_sha256_hex(&repository_root.join("containers/contracts/catalog.toml"))?;
+    let tool_ids = bijux_dna_api::v1::api::env::retained_apptainer_tool_ids(
+        &repository_root,
+        architecture,
+    )?;
+    let roots = benchmark_env_roots_at_hpc_root(hpc_root);
+    bijux_dna_api::v1::api::run::ensure_dir(&roots.containers_root)?;
+    bijux_dna_api::v1::api::run::ensure_dir(&roots.corpus_root)?;
+    bijux_dna_api::v1::api::run::ensure_dir(&roots.results_root)?;
+    let _roster_lock = bijux_dna_infra::FileLock::acquire(
+        &roots.containers_root.join("evidence/.retained-roster.lock"),
+        std::time::Duration::from_secs(1),
+    )
+    .context("acquire retained image roster lock")?;
+
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(jobs)
+        .thread_name(|index| format!("bijux-image-build-{index}"))
+        .build()
+        .context("create retained image build worker pool")?;
+    let reports = pool.install(|| {
+        tool_ids
+            .par_iter()
+            .map(|tool_id| {
+                match ensure_retained_apptainer_tool(
+                    &repository_root,
+                    &repository_commit,
+                    tool_id,
+                    &roots.containers_root,
+                    &roots.corpus_root,
+                    &roots.results_root,
+                    force_smoke,
+                    repair_mismatch,
+                ) {
+                    Ok(report) => report,
+                    Err(error) => {
+                        let prepared =
+                            prepare_apptainer_build(&repository_root, &repository_commit, tool_id)
+                                .ok();
+                        let build_log = prepared.as_ref().and_then(|build| {
+                            latest_retained_build_log(
+                                &roots.containers_root,
+                                tool_id,
+                                &build.contract.build_evidence_id,
+                            )
+                        });
+                        let build_log_sha256 = build_log
+                            .as_ref()
+                            .and_then(|(_, path)| hash_file_sha256_hex(path).ok());
+                        EnsureRetainedToolReport {
+                            tool_id: tool_id.clone(),
+                            contract: prepared.map(|build| build.contract),
+                            sif_path: None,
+                            sif_sha256: None,
+                            build_log_path: build_log
+                                .as_ref()
+                                .map(|(_, path)| path.display().to_string()),
+                            build_log_sha256,
+                            build_log_attempt: build_log.map(|(attempt, _)| attempt),
+                            built: false,
+                            quick_smoked: false,
+                            status: "failed".to_string(),
+                            error: Some(format!("{error:#}")),
+                        }
+                    }
+                }
+            })
+            .collect::<Vec<_>>()
+    });
+    let auto_demoted = reports
+        .iter()
+        .filter(|report| report.status != "passed")
+        .map(|report| report.tool_id.clone())
+        .collect::<Vec<_>>();
+    write_auto_demote_state(&roots.containers_root, &auto_demoted)?;
+    let built = reports.iter().filter(|report| report.built).count();
+    let reused = reports
+        .iter()
+        .filter(|report| !report.built && report.sif_path.is_some())
+        .count();
+    let quick_smoked = reports.iter().filter(|report| report.quick_smoked).count();
+    let failed = reports.iter().filter(|report| report.status != "passed").count();
+    Ok(EnsureRetainedRosterReport {
+        schema_version: "bijux.apptainer.retained_roster.v1",
+        repository_commit,
+        architecture: architecture.to_string(),
+        catalog_sha256,
+        requested_tool_count: tool_ids.len(),
+        tools: reports,
+        built,
+        reused,
+        quick_smoked,
+        failed,
+    })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn ensure_retained_apptainer_tool(
+    repository_root: &Path,
+    repository_commit: &str,
+    tool_id: &str,
+    containers_root: &Path,
+    data_root: &Path,
+    results_root: &Path,
+    force_smoke: bool,
+    repair_mismatch: bool,
+) -> Result<EnsureRetainedToolReport> {
+    let prepared = prepare_apptainer_build(repository_root, repository_commit, tool_id)?;
+    let build_identity = prepared.contract.build_evidence_id.clone();
+    let tool_dir = containers_root.join(tool_id);
+    bijux_dna_api::v1::api::run::ensure_dir(&tool_dir)?;
+    let sif_path = tool_dir.join(format!("{build_identity}.sif"));
+    let smoke_manifest_path = tool_dir.join(format!("{build_identity}.smoke_manifest.json"));
+    let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
+    quarantine_unexpected_sifs(&tool_dir, &build_identity, repair_mismatch, containers_root)?;
+    let (_, build_log_path) =
+        next_retained_build_log(containers_root, tool_id, &build_identity)?;
+    if let Some(parent) = build_log_path.parent() {
+        bijux_dna_api::v1::api::run::ensure_dir(parent)?;
+    }
+    let (sif_sha256, built) = materialize_apptainer_build(
+        &sif_path,
+        &prepared,
+        repair_mismatch,
+        containers_root,
+        Some(&build_log_path),
+    )?;
+    let quick_smoked = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
+    let mut status = "passed".to_string();
+    let mut error = None;
+    if quick_smoked {
+        let help_command = format!("{} --help", prepared.contract.expected_binary);
+        let smoke = run_smoke_with_manifest(
+            &sif_path,
+            tool_id,
+            "catalog.retained",
+            &build_identity,
+            repository_commit,
+            &prepared.contract.catalog_sha256,
+            &sif_sha256,
+            &prepared.contract.version_command,
+            &help_command,
+            false,
+            &[],
+            None,
+            "catalog-declared",
+            data_root,
+            results_root,
+        );
+        if smoke.status != "ok" {
+            status = "failed".to_string();
+            error = Some(format!(
+                "quick smoke failed; inspect {}",
+                smoke_manifest_path.display()
+            ));
+        }
+        bijux_dna_infra::atomic_write_json(&smoke_manifest_path, &smoke)
+            .with_context(|| format!("write {}", smoke_manifest_path.display()))?;
+        bijux_dna_infra::atomic_write_json(&compat_smoke_manifest_path, &smoke)
+            .with_context(|| format!("write {}", compat_smoke_manifest_path.display()))?;
+    }
+    let latest_build_log = latest_retained_build_log(containers_root, tool_id, &build_identity);
+    Ok(EnsureRetainedToolReport {
+        tool_id: tool_id.to_string(),
+        contract: Some(prepared.contract),
+        sif_path: Some(sif_path.display().to_string()),
+        sif_sha256: Some(sif_sha256),
+        build_log_path: latest_build_log
+            .as_ref()
+            .map(|(_, path)| path.display().to_string()),
+        build_log_sha256: latest_build_log
+            .as_ref()
+            .map(|(_, path)| hash_file_sha256_hex(path))
+            .transpose()?,
+        build_log_attempt: latest_build_log.map(|(attempt, _)| attempt),
+        built,
+        quick_smoked,
+        status,
+        error,
+    })
+}
+
+fn retained_build_log_path(
+    containers_root: &Path,
+    tool_id: &str,
+    build_identity: &str,
+    attempt: u32,
+) -> PathBuf {
+    containers_root
+        .join("evidence/build-logs")
+        .join(format!("{tool_id}-{build_identity}-attempt-{attempt:03}.log"))
+}
+
+fn next_retained_build_log(
+    containers_root: &Path,
+    tool_id: &str,
+    build_identity: &str,
+) -> Result<(u32, PathBuf)> {
+    let next_attempt = latest_retained_build_log(containers_root, tool_id, build_identity)
+        .map_or(1, |(attempt, _)| attempt + 1);
+    if next_attempt > 999 {
+        return Err(anyhow!("retained image build exceeds 999 attempts for {tool_id}"));
+    }
+    Ok((
+        next_attempt,
+        retained_build_log_path(containers_root, tool_id, build_identity, next_attempt),
+    ))
+}
+
+fn latest_retained_build_log(
+    containers_root: &Path,
+    tool_id: &str,
+    build_identity: &str,
+) -> Option<(u32, PathBuf)> {
+    (1..=999)
+        .map(|attempt| {
+            (attempt, retained_build_log_path(containers_root, tool_id, build_identity, attempt))
+        })
+        .rfind(|(_, path)| path.is_file())
+}
+
 /// # Errors
 /// Returns an error if registry parsing, Apptainer build/smoke, or manifest writes fail.
 pub fn ensure_apptainer_tools(
@@ -398,6 +640,7 @@ pub fn ensure_apptainer_tools(
             &prepared,
             repair_mismatch,
             &containers_root,
+            None,
         )?;
         let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
         if !do_quick_smoke {
@@ -676,7 +919,8 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 mod env_registry_command_tests {
     use super::{
         benchmark_env_roots, benchmark_env_roots_at_hpc_root, current_clean_repository_commit,
-        requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots,
+        latest_retained_build_log, next_retained_build_log, requires_governed_oci_metadata,
+        retained_build_log_path, shared_cache_root, BenchmarkEnvRoots,
     };
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
@@ -743,6 +987,55 @@ containers_root = "/remote/.cache/bijux-dna-container"
             roots.containers_root,
             PathBuf::from("/isolated/image-campaign/.cache/bijux-dna-container")
         );
+    }
+
+    #[test]
+    fn retained_build_log_is_bound_to_tool_and_build_identity() {
+        let path = retained_build_log_path(
+            Path::new("/study/.cache/bijux-dna-container"),
+            "samtools",
+            &"a".repeat(64),
+            1,
+        );
+        assert_eq!(
+            path,
+            Path::new("/study/.cache/bijux-dna-container/evidence/build-logs")
+                .join(format!("samtools-{}-attempt-001.log", "a".repeat(64)))
+        );
+    }
+
+    #[test]
+    fn retained_build_logs_are_append_only_attempts() {
+        let temp = TempDir::new().expect("tempdir");
+        let identity = "a".repeat(64);
+        let (first_attempt, first) =
+            next_retained_build_log(temp.path(), "samtools", &identity).expect("first log");
+        assert_eq!(first_attempt, 1);
+        std::fs::create_dir_all(first.parent().expect("log parent")).expect("create log root");
+        std::fs::write(&first, "failed attempt").expect("write first log");
+
+        let (second_attempt, second) =
+            next_retained_build_log(temp.path(), "samtools", &identity).expect("second log");
+        assert_eq!(second_attempt, 2);
+        assert_ne!(first, second);
+        assert_eq!(
+            latest_retained_build_log(temp.path(), "samtools", &identity),
+            Some((1, first))
+        );
+    }
+
+    #[test]
+    fn retained_build_logs_advance_past_gaps() {
+        let temp = TempDir::new().expect("tempdir");
+        let identity = "a".repeat(64);
+        let third = retained_build_log_path(temp.path(), "samtools", &identity, 3);
+        std::fs::create_dir_all(third.parent().expect("log parent")).expect("create log root");
+        std::fs::write(&third, "retained attempt").expect("write retained log");
+
+        let (next_attempt, next) =
+            next_retained_build_log(temp.path(), "samtools", &identity).expect("next log");
+        assert_eq!(next_attempt, 4);
+        assert_eq!(next, retained_build_log_path(temp.path(), "samtools", &identity, 4));
     }
 
     #[test]

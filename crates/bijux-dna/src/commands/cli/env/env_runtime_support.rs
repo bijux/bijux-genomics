@@ -65,13 +65,50 @@ fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
     )
 }
 
-fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
+fn build_apptainer_image(
+    def_path: &Path,
+    sif_path: &Path,
+    build_log_path: Option<&Path>,
+) -> Result<()> {
     if let Some(parent) = sif_path.parent() {
         bijux_dna_api::v1::api::run::ensure_dir(parent)?;
     }
     let cmd = format!("apptainer build --force '{}' '{}'", sif_path.display(), def_path.display());
-    if let Err(err) = bijux_dna_api::v1::api::env::run_shell_capture(&cmd) {
-        return Err(anyhow!("apptainer build failed for {}: {}", def_path.display(), err));
+    if let Some(path) = build_log_path {
+        use std::io::Write as _;
+
+        let mut log = std::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(path)
+            .with_context(|| format!("create immutable build log {}", path.display()))?;
+        writeln!(log, "command={cmd}")?;
+        let stdout = log
+            .try_clone()
+            .with_context(|| format!("clone build log {}", path.display()))?;
+        let status = std::process::Command::new("apptainer")
+            .args(["build", "--force"])
+            .arg(sif_path)
+            .arg(def_path)
+            .stdout(std::process::Stdio::from(stdout))
+            .stderr(std::process::Stdio::from(log))
+            .status()
+            .with_context(|| format!("execute Apptainer build for {}", def_path.display()))?;
+        if !status.success() {
+            return Err(anyhow!(
+                "apptainer build failed for {} with status {status}; inspect {}",
+                def_path.display(),
+                path.display()
+            ));
+        }
+        return Ok(());
+    }
+    if let Err(error) = bijux_dna_api::v1::api::env::run_shell_capture(&cmd) {
+        return Err(anyhow!(
+            "apptainer build failed for {}: {}",
+            def_path.display(),
+            error
+        ));
     }
     Ok(())
 }

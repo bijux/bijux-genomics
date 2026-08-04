@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -34,6 +35,36 @@ pub(super) struct CatalogToolSource {
     pub recipe_bytes: Vec<u8>,
 }
 
+/// Return every retained Apptainer tool ID in canonical catalog order.
+///
+/// # Errors
+/// Returns an error when the catalog cannot be read, parsed, or matched to the architecture.
+pub fn retained_apptainer_tool_ids(
+    repository_root: &Path,
+    architecture: &str,
+) -> Result<Vec<String>> {
+    let catalog_path = repository_root.join("containers/contracts/catalog.toml");
+    let catalog_bytes = fs::read(&catalog_path)
+        .with_context(|| format!("read container catalog {}", catalog_path.display()))?;
+    let catalog: Catalog = toml::from_slice(&catalog_bytes)
+        .with_context(|| format!("parse container catalog {}", catalog_path.display()))?;
+    validate_catalog_header(&catalog, architecture)?;
+    let tools = catalog
+        .tools
+        .into_iter()
+        .filter(|tool| tool.support_disposition == "retained" && tool.apptainer_supported)
+        .map(|tool| tool.id)
+        .collect::<Vec<_>>();
+    if tools.is_empty() {
+        bail!("container catalog has no retained Apptainer tools");
+    }
+    let unique = tools.iter().collect::<BTreeSet<_>>();
+    if unique.len() != tools.len() {
+        bail!("container catalog has duplicate retained Apptainer tool IDs");
+    }
+    Ok(tools)
+}
+
 pub(super) fn load_retained_tool(
     repository_root: &Path,
     tool_id: &str,
@@ -44,15 +75,7 @@ pub(super) fn load_retained_tool(
         .with_context(|| format!("read container catalog {}", catalog_path.display()))?;
     let catalog: Catalog = toml::from_slice(&catalog_bytes)
         .with_context(|| format!("parse container catalog {}", catalog_path.display()))?;
-    if catalog.schema_version != "bijux.container.catalog.v1" {
-        bail!("unsupported container catalog schema: {}", catalog.schema_version);
-    }
-    if architecture != catalog.apptainer_architecture {
-        bail!(
-            "requested architecture {architecture} differs from catalog architecture {}",
-            catalog.apptainer_architecture
-        );
-    }
+    validate_catalog_header(&catalog, architecture)?;
     let tool = catalog
         .tools
         .into_iter()
@@ -68,4 +91,17 @@ pub(super) fn load_retained_tool(
     let recipe_bytes = fs::read(&recipe_path)
         .with_context(|| format!("read Apptainer definition {}", recipe_path.display()))?;
     Ok(CatalogToolSource { tool, catalog_bytes, recipe_path, recipe_bytes })
+}
+
+fn validate_catalog_header(catalog: &Catalog, architecture: &str) -> Result<()> {
+    if catalog.schema_version != "bijux.container.catalog.v1" {
+        bail!("unsupported container catalog schema: {}", catalog.schema_version);
+    }
+    if architecture != catalog.apptainer_architecture {
+        bail!(
+            "requested architecture {architecture} differs from catalog architecture {}",
+            catalog.apptainer_architecture
+        );
+    }
+    Ok(())
 }
