@@ -29,7 +29,10 @@ pub use interfaces::{
 #[allow(unused_imports)]
 pub use lifecycle::{
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
-    BenchmarkAttemptDisposition, BenchmarkAttemptRecord, BenchmarkCycleStatus,
+    BenchmarkAttemptDisposition, BenchmarkAttemptMigrationEntry,
+    BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
+    BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
+    BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkCycleStatus,
     BenchmarkJobReference, BenchmarkLifecycleStatus,
 };
 pub use observation::BenchmarkObservation;

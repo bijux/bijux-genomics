@@ -195,6 +195,29 @@ pub fn rename(src: &Path, dst: &Path) -> Result<(), IoError> {
     std::fs::rename(src, dst).map_err(IoError::from_io)
 }
 
+/// Return whether two existing paths are hosted by the same filesystem.
+///
+/// # Errors
+/// Returns an IO error if either path metadata cannot be read or the platform does not expose a
+/// filesystem device identity.
+pub fn same_filesystem(left: &Path, right: &Path) -> Result<bool, IoError> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt as _;
+        let left_device = std::fs::metadata(left).map_err(IoError::from_io)?.dev();
+        let right_device = std::fs::metadata(right).map_err(IoError::from_io)?.dev();
+        Ok(left_device == right_device)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = (left, right);
+        Err(IoError::new(
+            IoErrorKind::Other,
+            "filesystem device identity is unavailable on this platform",
+        ))
+    }
+}
+
 fn non_empty_parent(path: &Path) -> Option<&Path> {
     path.parent().filter(|parent| !parent.as_os_str().is_empty())
 }

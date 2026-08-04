@@ -5,5 +5,5 @@ pub use super::remove::{
 };
 pub use super::write::{
     append_line, atomic_write_bytes, atomic_write_json, atomic_write_with, copy_file, create_file,
-    ensure_dir, rename, write_bytes, write_string,
+    ensure_dir, rename, same_filesystem, write_bytes, write_string,
 };
