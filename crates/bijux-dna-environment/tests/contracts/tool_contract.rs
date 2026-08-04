@@ -5,10 +5,23 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::tool_contract::{
-    prepare_apptainer_tool_contract, retained_apptainer_tool_ids, tool_contract_labels,
-    validate_tool_contract, validate_tool_contract_labels, verify_apptainer_tool_contract,
-    ToolContractBuildRequest,
+    catalog_identity_at_commit, prepare_apptainer_tool_contract, retained_apptainer_tool_ids,
+    tool_contract_labels, validate_tool_contract, validate_tool_contract_labels,
+    verify_apptainer_tool_contract, ToolContractBuildRequest,
 };
+
+#[test]
+fn historical_catalog_identity_rejects_untrusted_commit_names() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("environment crate must be below the repository root"));
+
+    for commit in ["HEAD", "../../catalog", &"0".repeat(40), &"g".repeat(40)] {
+        assert!(catalog_identity_at_commit(root, commit)
+            .is_err_and(|error| error.to_string().contains("invalid repository commit identity")));
+    }
+}
 use sha2::{Digest, Sha256};
 
 fn repository_root() -> Result<PathBuf> {

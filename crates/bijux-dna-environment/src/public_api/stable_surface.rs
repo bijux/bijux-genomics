@@ -4,8 +4,8 @@ pub use crate::build::{
     ApptainerBuildFailureClass, ApptainerBuildReport, ApptainerBuildRequest,
 };
 pub use crate::evidence::tool_contract::{
-    prepare_apptainer_tool_contract, retained_apptainer_tool_ids, run_apptainer_smoke,
-    tool_contract_labels, tool_contract_schema, validate_tool_contract,
+    catalog_identity_at_commit, prepare_apptainer_tool_contract, retained_apptainer_tool_ids,
+    run_apptainer_smoke, tool_contract_labels, tool_contract_schema, validate_tool_contract,
     validate_tool_contract_labels, verify_apptainer_tool_contract, write_tool_contract_schema,
     ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest, ToolContractLabels,

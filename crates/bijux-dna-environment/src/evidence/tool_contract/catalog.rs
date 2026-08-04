@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::{bail, Context, Result};
 use serde::Deserialize;
@@ -65,6 +66,29 @@ pub fn retained_apptainer_tool_ids(
     Ok(tools)
 }
 
+/// Hash the canonical container catalog exactly as stored at a repository commit.
+///
+/// # Errors
+/// Returns an error when the commit identity is malformed, Git cannot read the catalog blob, or
+/// the repository does not contain the canonical catalog at that commit.
+pub fn catalog_identity_at_commit(repository_root: &Path, commit: &str) -> Result<String> {
+    validate_commit_identity(commit)?;
+    let object = format!("{commit}:containers/contracts/catalog.toml");
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository_root)
+        .args(["show", "--no-ext-diff", &object])
+        .output()
+        .with_context(|| format!("read container catalog at repository commit {commit}"))?;
+    if !output.status.success() {
+        bail!(
+            "cannot read container catalog at repository commit {commit}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        );
+    }
+    Ok(bijux_dna_infra::hash_bytes_sha256(&output.stdout))
+}
+
 pub(super) fn load_retained_tool(
     repository_root: &Path,
     tool_id: &str,
@@ -102,6 +126,16 @@ fn validate_catalog_header(catalog: &Catalog, architecture: &str) -> Result<()> 
             "requested architecture {architecture} differs from catalog architecture {}",
             catalog.apptainer_architecture
         );
+    }
+    Ok(())
+}
+
+fn validate_commit_identity(commit: &str) -> Result<()> {
+    if commit.len() != 40
+        || !commit.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || commit.bytes().all(|byte| byte == b'0')
+    {
+        bail!("invalid repository commit identity");
     }
     Ok(())
 }

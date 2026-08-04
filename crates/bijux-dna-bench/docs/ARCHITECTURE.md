@@ -56,10 +56,11 @@ allowed below `tests/`.
 
 ## Dependency Direction
 
-Allowed normal dependencies are lower-level model, core, analyze, infra, and
-runtime contracts required to load finished artifacts and write deterministic
-benchmark outputs. `bijux-dna-bench` must not depend on API, planner, runner, or
-domain execution crates for production behavior.
+Allowed normal dependencies are lower-level model, core, environment, infra,
+and runtime contracts required to load finished artifacts, validate container
+catalog identity, and write deterministic benchmark outputs. `bijux-dna-bench`
+must not depend on API, planner, runner, or domain execution crates for
+production behavior.
 
 ## Guardrails
 

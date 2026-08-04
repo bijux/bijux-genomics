@@ -14,7 +14,8 @@
   failure classification, and bounded build execution.
 - `evidence`: typed container image-inventory and runtime-verification publications; strict embedded
   tool contracts; catalog-derived Apptainer build preparation; offline contract smoke execution;
-  runtime inspection; validation, loading, JSON Schema rendering, and atomic schema writing.
+  exact-commit catalog identity; runtime inspection; validation, loading, JSON Schema rendering,
+  and atomic schema writing.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.

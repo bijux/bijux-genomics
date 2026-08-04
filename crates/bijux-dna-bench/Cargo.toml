@@ -11,6 +11,7 @@ serde_json = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
+bijux-dna-environment = { path = "../bijux-dna-environment" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model" }
 toml = { workspace = true }

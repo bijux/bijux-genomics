@@ -44,6 +44,7 @@ Allowed normal dependency families:
   statistics.
 - `bijux-dna-core` for canonical JSON and run artifact contracts.
 - `bijux-dna-infra` for repository path and directory helpers.
+- `bijux-dna-environment` for exact-commit container catalog evidence identity.
 - `bijux-dna-runtime` for atomic artifact writes and runtime report contracts.
 
 Analyze, policy, domain, and testkit crates belong in dev-dependencies unless

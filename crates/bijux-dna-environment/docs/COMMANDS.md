@@ -24,6 +24,8 @@ library can manage when callers invoke the matching API.
   retries only failures classified as transient OCI transport failures.
 - `run_apptainer_smoke()`: runs offline `apptainer exec --containall --cleanenv --net --network
   none` probes and admits version output against the catalog contract regex.
+- `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
+  after strict commit validation and hashes the exact historical catalog bytes.
 
 ## Non-Commands
 
@@ -45,6 +47,7 @@ library can manage when callers invoke the matching API.
 - `src/resolve/shell.rs`: explicit shell capture for caller-provided diagnostics.
 - `src/resolve/smoke.rs`: environment smoke handoff through the developer control plane.
 - `src/evidence/tool_contract/inspection.rs`: embedded Apptainer contract and label inspection.
+- `src/evidence/tool_contract/catalog.rs`: exact-commit catalog materialization for evidence identity.
 - `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 
