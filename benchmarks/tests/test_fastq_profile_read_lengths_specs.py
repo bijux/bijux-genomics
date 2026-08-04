@@ -20,6 +20,10 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
         )
         self.assertTrue(specifications.tool_command("seqfu", paths).startswith("( "))
         self.assertIn(
+            "test -s /input/sample_1.fastq.gz && seqfu tab /input/sample_1.fastq.gz",
+            specifications.tool_command("seqfu", paths),
+        )
+        self.assertIn(
             "seqfu tab /input/sample_2.fastq.gz",
             specifications.tool_command("seqfu", paths),
         )
@@ -62,6 +66,8 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
             '-v artifact="repetitions/repetition-${repetition}.ERR1.histogram.tsv"',
             command[2],
         )
+        self.assertIn("awk '{print \\$1}'", command[2])
+        self.assertIn("awk 'END {print \\$1}'", command[2])
 
     def test_independent_sample_evidence_derives_exact_summary_and_digest(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

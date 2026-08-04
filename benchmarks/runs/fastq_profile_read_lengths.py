@@ -473,7 +473,7 @@ def tool_command(tool: str, mounted_fastq: list[str]) -> str:
         commands = [
             "test -s "
             + shlex.quote(path)
-            + "; seqfu tab "
+            + " && seqfu tab "
             + shlex.quote(path)
             + " | awk -F '\\t' '{print $1 \"\\t\" length($3)}'"
             for path in mounted_fastq
@@ -521,7 +521,7 @@ def shell_command(
         lines.extend(
             [
                 f"  {tool_command(tool, sample['mounted_fastq'])} > {raw}",
-                f"  observed_exact_sha=$(sha256sum {raw} | awk '{{print $1}}')",
+                f"  observed_exact_sha=$(sha256sum {raw} | awk '{{print \\$1}}')",
                 f"  [ \"$observed_exact_sha\" = \"{sample['expected_exact_sha256']}\" ]",
                 "  "
                 + " ".join(
@@ -559,7 +559,7 @@ def shell_command(
                     ]
                 ),
                 f"  diff -u {shlex.quote(sample['expected_histogram_mount'])} {histogram}",
-                f"  observed_histogram_sha=$(sha256sum {histogram} | awk '{{print $1}}')",
+                f"  observed_histogram_sha=$(sha256sum {histogram} | awk '{{print \\$1}}')",
                 f'  tail -n +2 {summary} | awk -v OFS=\'\\t\' -v artifact="{artifact}" -v sha="$observed_histogram_sha" \'{{print $0, artifact, sha}}\' >> "$manifest"',
             ]
         )
@@ -594,7 +594,7 @@ def shell_command(
                     '"${prefix}.report-qc.json"',
                 ]
             ),
-            f"  output_bytes=$(wc -c {' '.join(output_paths)} \"${{prefix}}.read-lengths.json\" \"${{prefix}}.report-qc.json\" | awk 'END {{print $1}}')",
+            f"  output_bytes=$(wc -c {' '.join(output_paths)} \"${{prefix}}.read-lengths.json\" \"${{prefix}}.report-qc.json\" | awk 'END {{print \\$1}}')",
             "  "
             + " ".join(
                 [
