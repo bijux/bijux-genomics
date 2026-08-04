@@ -5,10 +5,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::tool_contract::{
-    catalog_identity_at_commit, load_container_catalog, prepare_apptainer_tool_contract,
-    retained_apptainer_tool_ids, tool_contract_labels, validate_container_catalog,
-    validate_tool_contract, validate_tool_contract_labels, verify_apptainer_tool_contract,
-    ToolContractBuildRequest,
+    apptainer_recipe_identity_at_commit, catalog_identity_at_commit,
+    container_build_evidence_matches_recipe, load_container_catalog,
+    prepare_apptainer_tool_contract, retained_apptainer_tool_ids, tool_contract_labels,
+    validate_container_catalog, validate_tool_contract, validate_tool_contract_labels,
+    verify_apptainer_tool_contract, ToolContractBuildRequest,
 };
 
 #[test]
@@ -201,6 +202,35 @@ fn contract_admission_rejects_identity_and_label_tampering() -> Result<()> {
     labels.insert("io.bijux.tool-contract.unowned".to_string(), "value".to_string());
     assert!(validate_tool_contract_labels(&prepared.contract, &labels)
         .is_err_and(|error| error.to_string().contains("unexpected tool-contract label")));
+    Ok(())
+}
+
+#[test]
+fn committed_recipe_identity_owns_definition_and_files_context() -> Result<()> {
+    let root = repository_root()?;
+    let head = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["rev-parse", "HEAD"])
+        .output()?;
+    let commit = String::from_utf8(head.stdout)?.trim().to_string();
+    let identity =
+        apptainer_recipe_identity_at_commit(&root, &commit, "containers/apptainer/ibdhap.def")?;
+    assert_eq!(identity.repository_commit, commit);
+    assert_eq!(identity.definition_sha256.len(), 64);
+    assert_eq!(identity.build_context.len(), 2);
+    assert_eq!(identity.build_context[1].path, "containers/tools/ibdhap/ibdhap");
+
+    let evidence = bijux_dna_environment::evidence::ContainerBuildEvidence {
+        status: bijux_dna_environment::evidence::BuildEvidenceStatus::Passed,
+        definition_sha256: identity.definition_sha256.clone(),
+        repository_commit: identity.repository_commit.clone(),
+        build_context: Some(identity.build_context.clone()),
+    };
+    assert!(container_build_evidence_matches_recipe(&evidence, &identity));
+    let mut stale = evidence;
+    stale.build_context.as_mut().context("build context fixture")?[0].git_object = "f".repeat(40);
+    assert!(!container_build_evidence_matches_recipe(&stale, &identity));
     Ok(())
 }
 

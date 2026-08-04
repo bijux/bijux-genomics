@@ -172,7 +172,7 @@ fn validate_catalog_header(catalog: &ContainerCatalog, architecture: &str) -> Re
     Ok(())
 }
 
-fn validate_commit_identity(commit: &str) -> Result<()> {
+pub(super) fn validate_commit_identity(commit: &str) -> Result<()> {
     if commit.len() != 40
         || !commit.bytes().all(|byte| byte.is_ascii_hexdigit())
         || commit.bytes().all(|byte| byte == b'0')

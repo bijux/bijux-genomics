@@ -26,6 +26,8 @@ library can manage when callers invoke the matching API.
   none` probes and admits version output against the catalog contract regex.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
+- `apptainer_recipe_identity_at_commit()`: runs `git show --no-ext-diff` for one definition and
+  `git rev-parse --verify` for each repository-owned `%files` source at an exact commit.
 
 ## Non-Commands
 
@@ -48,6 +50,7 @@ library can manage when callers invoke the matching API.
 - `src/resolve/smoke.rs`: environment smoke handoff through the developer control plane.
 - `src/evidence/tool_contract/inspection.rs`: embedded Apptainer contract and label inspection.
 - `src/evidence/tool_contract/catalog.rs`: exact-commit catalog materialization for evidence identity.
+- `src/evidence/tool_contract/recipe_identity.rs`: exact-commit definition and `%files` identity.
 - `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 

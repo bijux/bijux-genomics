@@ -25,8 +25,9 @@ pub use schema::{
     write_image_inventory_publication_schema, write_runtime_verification_publication_schema,
 };
 pub use tool_contract::{
-    load_container_catalog, validate_container_catalog, ContainerCatalog, ContainerCatalogTool,
-    ContainerCatalogValidation,
+    apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
+    load_container_catalog, validate_container_catalog, ApptainerRecipeIdentity, ContainerCatalog,
+    ContainerCatalogTool, ContainerCatalogValidation,
 };
 pub use validation::{
     validate_image_inventory_publication, validate_runtime_verification_publication,

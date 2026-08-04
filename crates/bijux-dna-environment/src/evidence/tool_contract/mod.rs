@@ -6,6 +6,7 @@ mod inspection;
 mod labels;
 mod model;
 mod preparation;
+mod recipe_identity;
 mod schema;
 mod smoke;
 mod validation;
@@ -23,6 +24,10 @@ pub use model::{
     CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
 };
 pub use preparation::prepare_apptainer_tool_contract;
+pub use recipe_identity::{
+    apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
+    ApptainerRecipeIdentity,
+};
 pub use schema::{tool_contract_schema, write_tool_contract_schema};
 pub use smoke::{
     run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,

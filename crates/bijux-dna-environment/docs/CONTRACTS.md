@@ -18,6 +18,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
   image identities.
 - `ContainerToolContract`: the strict identity installed exactly once at
   `/usr/share/bijux/tool-contract.json` in each retained tool image.
+- `ApptainerRecipeIdentity`: exact committed definition digest plus ordered `%files` Git objects;
+  build evidence matches only when status, commit, definition, and complete context agree.
 - `ContainerCatalog` and `ContainerCatalogTool`: the complete fail-closed model loaded from
   `containers/contracts/catalog.toml`; consumers must not define reduced or competing projections.
 - `ContainerCatalogValidation`: exact 89-tool/85-retained/four-unsupported roster and bidirectional
