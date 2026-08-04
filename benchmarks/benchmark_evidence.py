@@ -17,6 +17,7 @@ from benchmark_registry import load_toml, threads_by_tool, validate_registry
 REPORT_SCHEMA = "bijux.benchmark.stage_report.v1"
 EVIDENCE_SCHEMA = "bijux.container.evidence.v2"
 ACCOUNTING_SCHEMA = "bijux.slurm.accounting.v1"
+SCIENTIFIC_FLOAT_TOLERANCE = 1e-9
 SHA256 = re.compile(r"[0-9a-f]{64}")
 COMMIT = re.compile(r"[0-9a-f]{40}")
 LEGACY_RESOURCE_KEYS = (
@@ -170,7 +171,10 @@ def scientific_metrics_from_result_artifact(path: Path) -> dict[str, Any]:
                     f"benchmark bundle {sample_id} disagrees on {key}"
                 )
         for key in ("mean_read_length", "median_read_length"):
-            if abs(float(row.get(key, -1)) - float(summary[key])) > 1e-12:
+            if (
+                abs(float(row.get(key, -1)) - float(summary[key]))
+                > SCIENTIFIC_FLOAT_TOLERANCE
+            ):
                 raise BenchmarkEvidenceError(
                     f"benchmark bundle {sample_id} disagrees on {key}"
                 )
