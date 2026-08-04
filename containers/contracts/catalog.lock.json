@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
+  "source_sha256": "d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -448,7 +448,7 @@
       "pinned_commit": "1ffcaed6892832c09c4b4094c201cd4eff8fa622",
       "apptainer_definition": "containers/apptainer/fastp.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastp",
-      "contract_sha256": "35a3efd3afb0df1213972e3110e39a262633112660c1d42c14cac73453f4f41e"
+      "contract_sha256": "bc235272f2893cbb6e8b4cb3a5d5c79ee0e58a036ce494a476764e9661d55b34"
     },
     {
       "id": "fastq_scan",
@@ -938,7 +938,7 @@
       "pinned_commit": "3dde89b381c9df27792478f68e7e4f3bca4d45ff",
       "apptainer_definition": "containers/apptainer/prinseq.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.prinseq",
-      "contract_sha256": "662c28cdf80a12d2b00d2a1be9699b30f49a6842896bc0d5d11aa5decfa37d5e"
+      "contract_sha256": "339c9fd2df1e849214570c66d4afab64e9a8cde857b49ab3dc3d24d6b6f70958"
     },
     {
       "id": "pydamage",
@@ -1050,7 +1050,7 @@
       "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit",
-      "contract_sha256": "27d33b7804ed9ac4285ebb19b219349083adf8c1804faa1f45a6a47ce17adb41"
+      "contract_sha256": "12fb4f0c343f7e9b488051f4b21db505c9fe9737823d1381b5d19e261a3b7aa2"
     },
     {
       "id": "seqkit_stats",
@@ -1064,7 +1064,7 @@
       "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit_stats.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit_stats",
-      "contract_sha256": "3373750f535800443b2ae7eec2adeab2ba53e5696234dca1630e5e47bc6caef4"
+      "contract_sha256": "d57fd01b62ff9e96ef271613ca40d24220c755e0057ed6264fe14a21fd1e166a"
     },
     {
       "id": "seqprep",
