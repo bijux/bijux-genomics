@@ -505,10 +505,9 @@ def shell_command(
     lines.extend(
         [
             "mkdir -p /result/repetitions",
-            "for repetition in 1 2 3; do",
-            '  prefix="/result/repetitions/repetition-${repetition}"',
-            '  manifest="${prefix}.manifest.tsv"',
-            f"  printf '%s\\n' {shlex.quote(MANIFEST_HEADER)} > \"$manifest\"",
+            'prefix="/result/repetitions/repetition-{repetition}"',
+            'manifest="${prefix}.manifest.tsv"',
+            f"printf '%s\\n' {shlex.quote(MANIFEST_HEADER)} > \"$manifest\"",
         ]
     )
     output_paths = ['"$manifest"']
@@ -517,14 +516,13 @@ def shell_command(
         raw = f'"${{prefix}}.{sample_id}.raw.tsv"'
         summary = f'"${{prefix}}.{sample_id}.summary.tsv"'
         histogram = f'"${{prefix}}.{sample_id}.histogram.tsv"'
-        artifact = f"repetitions/repetition-${{repetition}}.{sample_id}.histogram.tsv"
+        artifact = f"repetitions/repetition-{{repetition}}.{sample_id}.histogram.tsv"
         lines.extend(
             [
-                f"  {tool_command(tool, sample['mounted_fastq'])} > {raw}",
-                f"  observed_exact_sha=$(sha256sum {raw} | awk '{{print \\$1}}')",
-                f"  [ \"$observed_exact_sha\" = \"{sample['expected_exact_sha256']}\" ]",
-                "  "
-                + " ".join(
+                f"{tool_command(tool, sample['mounted_fastq'])} > {raw}",
+                f"observed_exact_sha=$(sha256sum {raw} | awk '{{print \\$1}}')",
+                f"[ \"$observed_exact_sha\" = \"{sample['expected_exact_sha256']}\" ]",
+                " ".join(
                     [
                         "awk",
                         "-v",
@@ -540,9 +538,8 @@ def shell_command(
                         summary,
                     ]
                 ),
-                f"  diff -u {shlex.quote(sample['expected_summary_mount'])} {summary}",
-                "  "
-                + " ".join(
+                f"diff -u {shlex.quote(sample['expected_summary_mount'])} {summary}",
+                " ".join(
                     [
                         "awk",
                         "-v",
@@ -558,16 +555,15 @@ def shell_command(
                         histogram,
                     ]
                 ),
-                f"  diff -u {shlex.quote(sample['expected_histogram_mount'])} {histogram}",
-                f"  observed_histogram_sha=$(sha256sum {histogram} | awk '{{print \\$1}}')",
-                f'  tail -n +2 {summary} | awk -v OFS=\'\\t\' -v artifact="{artifact}" -v sha="$observed_histogram_sha" \'{{print $0, artifact, sha}}\' >> "$manifest"',
+                f"diff -u {shlex.quote(sample['expected_histogram_mount'])} {histogram}",
+                f"observed_histogram_sha=$(sha256sum {histogram} | awk '{{print \\$1}}')",
+                f'tail -n +2 {summary} | awk -v OFS=\'\\t\' -v artifact="{artifact}" -v sha="$observed_histogram_sha" \'{{print $0, artifact, sha}}\' >> "$manifest"',
             ]
         )
         output_paths.extend([raw, summary, histogram])
     lines.extend(
         [
-            "  "
-            + " ".join(
+            " ".join(
                 [
                     "awk",
                     "-v",
@@ -581,8 +577,7 @@ def shell_command(
                     '"${prefix}.read-lengths.json"',
                 ]
             ),
-            "  "
-            + " ".join(
+            " ".join(
                 [
                     "awk",
                     "-v",
@@ -594,9 +589,8 @@ def shell_command(
                     '"${prefix}.report-qc.json"',
                 ]
             ),
-            f"  output_bytes=$(wc -c {' '.join(output_paths)} \"${{prefix}}.read-lengths.json\" \"${{prefix}}.report-qc.json\" | awk 'END {{print \\$1}}')",
-            "  "
-            + " ".join(
+            f"output_bytes=$(wc -c {' '.join(output_paths)} \"${{prefix}}.read-lengths.json\" \"${{prefix}}.report-qc.json\" | awk 'END {{print \\$1}}')",
+            " ".join(
                 [
                     "awk",
                     "-v",
@@ -612,7 +606,6 @@ def shell_command(
                     '"${prefix}.metrics.json"',
                 ]
             ),
-            "done",
         ]
     )
     return ["sh", "-c", "\n".join(lines)]

@@ -61,9 +61,11 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
             "diff -u /input/ERR1.summary.tsv", command[2]
         )
         self.assertIn("diff -u /input/ERR1.histogram.tsv", command[2])
-        self.assertNotIn("do;", command[2])
+        self.assertNotIn("for repetition in 1 2 3", command[2])
+        self.assertNotIn("${repetition}", command[2])
+        self.assertIn('prefix="/result/repetitions/repetition-{repetition}"', command[2])
         self.assertIn(
-            '-v artifact="repetitions/repetition-${repetition}.ERR1.histogram.tsv"',
+            '-v artifact="repetitions/repetition-{repetition}.ERR1.histogram.tsv"',
             command[2],
         )
         self.assertIn("awk '{print \\$1}'", command[2])
