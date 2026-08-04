@@ -1,7 +1,7 @@
 # Boundary
 
 Owner: Policies
-Scope: deterministic repository policy checks over source, docs, manifests, fixtures, and snapshots
+Scope: pure policy decisions plus deterministic repository policy checks
 Allowed inputs: repository files, policy fixtures, documentation, Cargo manifests, and governed config files
 Forbidden dependencies: product execution crates as runtime dependencies, runner backends, domain-specific orchestration ownership
 Forbidden effects: source mutation, generated config rewrites, snapshot rewrites, network access, process execution from production source
@@ -15,6 +15,8 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 - Render policy diagnostics through a stable WHAT/WHY/HOW/MORE format.
 - Scan Rust source and static repository files deterministically.
 - Provide stable guardrail configuration data.
+- Derive typed qualification claims and portable report summaries from admitted evidence facts.
+- Validate publication freshness and typed container security evidence without executing scanners.
 
 ## Allowed Test Responsibilities
 - Inspect workspace dependency graphs and manifests.

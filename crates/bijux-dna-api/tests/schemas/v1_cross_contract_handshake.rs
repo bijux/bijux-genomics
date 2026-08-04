@@ -11,7 +11,8 @@ use bijux_dna_api::v1::api::bench::{
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
 use bijux_dna_api::v1::api::qualification::{
-    render_qualification_assessment_schema, QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+    render_qualification_assessment_schema, render_qualification_report_schema,
+    QUALIFICATION_ASSESSMENT_SCHEMA_V1, QUALIFICATION_REPORT_SCHEMA_V2,
 };
 
 fn load_fixture(path: &std::path::Path) -> Value {
@@ -182,4 +183,14 @@ fn checked_qualification_schema_matches_rust_type() -> anyhow::Result<()> {
     );
     assert_eq!(checked, generated);
     Ok(())
+}
+
+#[test]
+fn qualification_report_schema_is_owned_by_rust_types() {
+    let generated = render_qualification_report_schema();
+    assert_eq!(
+        generated.pointer("/properties/schema_version/const").and_then(Value::as_str),
+        Some(QUALIFICATION_REPORT_SCHEMA_V2)
+    );
+    assert_eq!(generated.pointer("/additionalProperties"), Some(&Value::Bool(false)));
 }
