@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import tempfile
 import sys
 import unittest
 from pathlib import Path
@@ -239,6 +240,29 @@ class BenchmarkPortfolioTests(unittest.TestCase):
             "campaign corpus portfolio omits roles ['bam_diversity']",
             row["blockers"],
         )
+
+    def test_write_report_check_rejects_drift(self) -> None:
+        report = benchmark_portfolio.readiness_report(
+            self.validate(), self.registry, self.validated_interfaces()
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            json_path = root / "scientific-benchmark-readiness.json"
+            markdown_path = root / "scientific-benchmark-readiness.md"
+
+            benchmark_portfolio.write_report(report, json_path, markdown_path)
+            benchmark_portfolio.write_report(
+                report, json_path, markdown_path, check=True
+            )
+            markdown_path.write_text("drift\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                benchmark_portfolio.PortfolioError,
+                "scientific benchmark readiness Markdown drifted",
+            ):
+                benchmark_portfolio.write_report(
+                    report, json_path, markdown_path, check=True
+                )
 
 
 if __name__ == "__main__":

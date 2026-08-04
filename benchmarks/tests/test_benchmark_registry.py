@@ -131,6 +131,28 @@ class BenchmarkRegistryTests(unittest.TestCase):
         self.assertEqual(report["summary"]["admitted_stage_count"], 1)
         self.assertEqual(row["execution_status"], "admitted")
 
+    def test_write_report_check_rejects_drift(self) -> None:
+        campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
+        report = benchmark_registry.coverage_report(campaigns, self.catalog)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            json_path = root / "stage-benchmark-coverage.json"
+            markdown_path = root / "stage-benchmark-coverage.md"
+
+            benchmark_registry.write_report(report, json_path, markdown_path)
+            benchmark_registry.write_report(
+                report, json_path, markdown_path, check=True
+            )
+            json_path.write_text("{}\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                benchmark_registry.RegistryError,
+                "stage benchmark coverage JSON drifted",
+            ):
+                benchmark_registry.write_report(
+                    report, json_path, markdown_path, check=True
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

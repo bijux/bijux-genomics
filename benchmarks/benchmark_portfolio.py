@@ -610,9 +610,10 @@ def readiness_report(
     }
 
 
-def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -> None:
-    json_path.parent.mkdir(parents=True, exist_ok=True)
-    json_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+def write_report(
+    report: dict[str, Any], json_path: Path, markdown_path: Path, check: bool = False
+) -> None:
+    expected_json = json.dumps(report, indent=2, sort_keys=True) + "\n"
     summary = report["summary"]
     lines = [
         "<!-- GENERATED FILE - DO NOT EDIT -->",
@@ -675,7 +676,26 @@ def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -
             f"| `{row['stage_id']}` | {tools} | `{row['profile_id']}` | "
             f"{campaign} | {row['readiness']} | {blockers} |"
         )
-    markdown_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    expected_markdown = "\n".join(lines) + "\n"
+    if check:
+        if (
+            not json_path.is_file()
+            or json_path.read_text(encoding="utf-8") != expected_json
+        ):
+            raise PortfolioError(
+                f"scientific benchmark readiness JSON drifted: {json_path}"
+            )
+        if (
+            not markdown_path.is_file()
+            or markdown_path.read_text(encoding="utf-8") != expected_markdown
+        ):
+            raise PortfolioError(
+                f"scientific benchmark readiness Markdown drifted: {markdown_path}"
+            )
+        return
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(expected_json, encoding="utf-8")
+    markdown_path.write_text(expected_markdown, encoding="utf-8")
 
 
 def parser() -> argparse.ArgumentParser:
@@ -688,6 +708,7 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument("--json-output", type=Path, required=True)
     value.add_argument("--markdown-output", type=Path, required=True)
     value.add_argument("--evidence-root", type=Path)
+    value.add_argument("--check", action="store_true")
     return value
 
 
@@ -708,7 +729,12 @@ def main() -> int:
             interfaces,
             args.evidence_root,
         )
-        write_report(report, args.json_output, args.markdown_output)
+        write_report(
+            report,
+            args.json_output,
+            args.markdown_output,
+            check=args.check,
+        )
         print(
             "scientific benchmark readiness: "
             f"{report['summary']['ready_count']} ready, "

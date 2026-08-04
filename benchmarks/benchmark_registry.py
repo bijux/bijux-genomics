@@ -311,9 +311,10 @@ def coverage_report(
     }
 
 
-def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -> None:
-    json_path.parent.mkdir(parents=True, exist_ok=True)
-    json_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+def write_report(
+    report: dict[str, Any], json_path: Path, markdown_path: Path, check: bool = False
+) -> None:
+    expected_json = json.dumps(report, indent=2, sort_keys=True) + "\n"
     summary = report["summary"]
     lines = [
         "<!-- GENERATED FILE - DO NOT EDIT -->",
@@ -342,7 +343,24 @@ def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -
             f"| `{row['stage_id']}` | {tools} | {run_id} | "
             f"{row['definition_status']} | {row['execution_status']} |"
         )
-    markdown_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    expected_markdown = "\n".join(lines) + "\n"
+    if check:
+        if (
+            not json_path.is_file()
+            or json_path.read_text(encoding="utf-8") != expected_json
+        ):
+            raise RegistryError(f"stage benchmark coverage JSON drifted: {json_path}")
+        if (
+            not markdown_path.is_file()
+            or markdown_path.read_text(encoding="utf-8") != expected_markdown
+        ):
+            raise RegistryError(
+                f"stage benchmark coverage Markdown drifted: {markdown_path}"
+            )
+        return
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(expected_json, encoding="utf-8")
+    markdown_path.write_text(expected_markdown, encoding="utf-8")
 
 
 def parser() -> argparse.ArgumentParser:
@@ -352,6 +370,7 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--json-output", type=Path)
     root.add_argument("--markdown-output", type=Path)
     root.add_argument("--evidence-root", type=Path)
+    root.add_argument("--check", action="store_true")
     return root
 
 
@@ -366,8 +385,15 @@ def main() -> int:
             raise RegistryError(
                 "JSON and Markdown report paths must be supplied together"
             )
+        if args.check and not (args.json_output and args.markdown_output):
+            raise RegistryError("--check requires JSON and Markdown report paths")
         if args.json_output and args.markdown_output:
-            write_report(report, args.json_output, args.markdown_output)
+            write_report(
+                report,
+                args.json_output,
+                args.markdown_output,
+                check=args.check,
+            )
         print(
             f"stage benchmark campaigns: {len(campaigns)} defined, "
             f"{report['summary']['missing_stage_count']} missing"
