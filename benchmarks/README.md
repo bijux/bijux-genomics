@@ -174,13 +174,12 @@ campaign invalid.
 Validate the execution definitions and render their coverage report:
 
 ```console
-python3 -B benchmarks/benchmark_registry.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --evidence-root benchmarks/reports \
-  --json-output benchmarks/reports/stage-benchmark-coverage.json \
-  --markdown-output benchmarks/reports/stage-benchmark-coverage.md
+cargo run -q -p bijux-dna-dev -- tooling run benchmark-stage-coverage
 ```
+
+Use the same command with `-- --check` in gates. Coverage retains the source
+commit and checksum of every historical stage report and marks it `stale`
+instead of counting it as a current admission.
 
 ## Scientific comparison contract
 

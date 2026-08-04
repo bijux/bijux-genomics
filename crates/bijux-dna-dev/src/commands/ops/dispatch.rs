@@ -129,6 +129,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingArchitectureReport => {
             tooling::tooling_architecture_report(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkStageCoverage => {
+            tooling::tooling_benchmark_stage_coverage(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkSmokeLevel1 => {
             tooling::tooling_benchmark_smoke_level1(workspace, args)
         }

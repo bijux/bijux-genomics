@@ -314,13 +314,7 @@ _release-readiness: ## Block merges on experimental tools, unknown metrics schem
 bench-active-fast: ## Validate active benchmark matrices, adapters, parsers, outputs, expected results, and report maps.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-active-fast
-	@PYTHONDONTWRITEBYTECODE=1 python3 benchmarks/benchmark_registry.py \
-		--registry benchmarks/contracts/stage-campaigns.toml \
-		--catalog containers/contracts/catalog.toml \
-		--evidence-root benchmarks/reports \
-		--json-output benchmarks/reports/stage-benchmark-coverage.json \
-		--markdown-output benchmarks/reports/stage-benchmark-coverage.md \
-		--check
+	@cargo run -q -p bijux-dna-dev -- tooling run benchmark-stage-coverage -- --check
 	@PYTHONDONTWRITEBYTECODE=1 python3 benchmarks/benchmark_portfolio.py \
 		--portfolio benchmarks/contracts/portfolio.toml \
 		--registry benchmarks/contracts/stage-campaigns.toml \

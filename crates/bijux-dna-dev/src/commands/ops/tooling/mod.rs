@@ -21,6 +21,7 @@ use super::{
 };
 
 mod acquisition;
+mod benchmark_stage_coverage;
 mod cargo_targets;
 mod certification;
 mod ci;
@@ -34,6 +35,7 @@ pub(super) use self::acquisition::{
     tooling_acquire_maps, tooling_acquire_panels, tooling_acquire_reference,
     tooling_benchmark_integrity_mini, tooling_validate_frontend_mini_domain_stacks,
 };
+pub(super) use self::benchmark_stage_coverage::tooling_benchmark_stage_coverage;
 pub(super) use self::cargo_targets::tooling_cargo_targets;
 pub(super) use self::certification::{
     tooling_benchmark_smoke_level1, tooling_certification_gate, tooling_certify_all,
