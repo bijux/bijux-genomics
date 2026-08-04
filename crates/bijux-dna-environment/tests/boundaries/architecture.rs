@@ -71,6 +71,7 @@ fn source_tree_matches_architecture_contract() {
             "entrypoints.rs",
             "mod.rs",
             "models.rs",
+            "publication.rs",
             "stable_surface.rs",
             "version_parser.rs",
         ]),

@@ -11,7 +11,8 @@ CLI, runner, planner, stage, and domain crates.
 - `src/evidence/`: typed image-inventory and runtime-verification publication admission,
   cross-publication evidence-chain validation, complete catalog and recipe-closure validation,
   and catalog-derived embedded tool identity contracts.
-- `src/build/`: Docker metadata plus bounded Apptainer builds with immutable attempt logs.
+- `src/build/`: Docker metadata, bounded Apptainer attempts, and canonical no-clobber image and
+  build-evidence publication under governed study roots.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
 - `src/resolve/catalog/`: TOML catalog loading, registry digest hydration, and image reference
   synthesis.
@@ -26,7 +27,8 @@ CLI, runner, planner, stage, and domain crates.
 
 ## Data Flow
 
-1. Build services supply Docker metadata or execute an identity-bound Apptainer image attempt.
+1. Build services supply Docker metadata or publish an identity-bound Apptainer image from clean,
+   committed inputs through staging, contract inspection, digest naming, and immutable evidence.
 2. Platform TOML selects runner, architecture, image prefix, and container directory rules.
 3. Image catalog TOML provides tool versions and optional digests.
 4. Registry pins can hydrate missing digests from the local registry file.

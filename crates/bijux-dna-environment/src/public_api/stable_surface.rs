@@ -1,10 +1,13 @@
 pub use crate::build::{
     apptainer_build_log_path, build_apptainer_image, classify_apptainer_build_failure,
-    latest_apptainer_build_attempt, next_apptainer_build_attempt, ApptainerBuildAttempt,
-    ApptainerBuildFailureClass, ApptainerBuildReport, ApptainerBuildRequest,
+    latest_apptainer_build_attempt, next_apptainer_build_attempt,
+    publish_canonical_apptainer_image, ApptainerBuildAttempt, ApptainerBuildFailureClass,
+    ApptainerBuildReport, ApptainerBuildRequest, CanonicalApptainerImagePublication,
+    CanonicalApptainerImagePublicationRequest, CanonicalBuildLogIdentity,
+    CanonicalDefinitionIdentity, CanonicalImageIdentity, CONTAINER_BUILD_EVIDENCE_SCHEMA_V1,
 };
 pub use crate::evidence::tool_contract::{
-    apptainer_recipe_identity_at_commit, catalog_identity_at_commit,
+    apptainer_recipe_identity_at_commit, catalog_identity_at_commit, clean_repository_head_commit,
     container_build_evidence_matches_recipe, load_container_catalog,
     prepare_apptainer_tool_contract, repository_head_commit, retained_apptainer_tool_ids,
     run_apptainer_smoke, tool_contract_labels, tool_contract_schema, validate_container_catalog,

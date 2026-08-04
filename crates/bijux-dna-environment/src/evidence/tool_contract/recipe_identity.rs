@@ -44,6 +44,32 @@ pub fn repository_head_commit(repository_root: &Path) -> Result<String> {
     Ok(commit)
 }
 
+/// Resolve the repository's exact commit after proving that tracked and untracked inputs are clean.
+///
+/// # Errors
+/// Returns an error when Git cannot inspect the repository, the worktree contains changes, or
+/// `HEAD` is not a full immutable commit identity.
+pub fn clean_repository_head_commit(repository_root: &Path) -> Result<String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository_root)
+        .args(["status", "--porcelain=v1", "--untracked-files=normal"])
+        .output()
+        .context("inspect repository worktree state")?;
+    if !output.status.success() {
+        bail!(
+            "cannot inspect repository worktree state: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        );
+    }
+    if !output.stdout.is_empty() {
+        bail!(
+            "refusing container build from repository changes; commit every catalog, recipe, and build input first"
+        );
+    }
+    repository_head_commit(repository_root)
+}
+
 /// Resolve an Apptainer definition and every repository-owned `%files` input at one exact commit.
 ///
 /// # Errors

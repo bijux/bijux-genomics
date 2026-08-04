@@ -1,0 +1,293 @@
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::time::Duration;
+
+use anyhow::{bail, Context, Result};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+use crate::evidence::tool_contract::{
+    apptainer_recipe_identity_at_commit, clean_repository_head_commit,
+    prepare_apptainer_tool_contract, verify_apptainer_tool_contract, ToolContractBuildRequest,
+};
+use crate::evidence::BuildContextIdentity;
+
+use super::{build_apptainer_image, ApptainerBuildRequest};
+
+pub const CONTAINER_BUILD_EVIDENCE_SCHEMA_V1: &str = "bijux.container.build_evidence.v1";
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CanonicalApptainerImagePublicationRequest {
+    pub repository_root: PathBuf,
+    pub study_root: PathBuf,
+    pub tool_id: String,
+    pub architecture: String,
+    pub apptainer_executable: PathBuf,
+    pub maximum_build_invocations: u32,
+    pub retry_delay: Duration,
+    pub lock_timeout: Duration,
+}
+
+impl CanonicalApptainerImagePublicationRequest {
+    #[must_use]
+    pub fn retained(repository_root: PathBuf, study_root: PathBuf, tool_id: String) -> Self {
+        Self {
+            repository_root,
+            study_root,
+            tool_id,
+            architecture: "linux/amd64".to_string(),
+            apptainer_executable: PathBuf::from("apptainer"),
+            maximum_build_invocations: 3,
+            retry_delay: Duration::from_secs(2),
+            lock_timeout: Duration::from_secs(30),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct CanonicalDefinitionIdentity {
+    pub path: String,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct CanonicalImageIdentity {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct CanonicalBuildLogIdentity {
+    pub path: String,
+    pub sha256: String,
+    pub attempt: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct CanonicalApptainerImagePublication {
+    pub schema_version: String,
+    pub tool: String,
+    pub version: String,
+    pub status: String,
+    pub repository_commit: String,
+    pub architecture: String,
+    pub build_evidence_id: String,
+    pub catalog_sha256: String,
+    pub definition: CanonicalDefinitionIdentity,
+    pub build_context: Vec<BuildContextIdentity>,
+    pub image: CanonicalImageIdentity,
+    pub build_log: CanonicalBuildLogIdentity,
+    pub evidence_path: String,
+}
+
+struct CanonicalContainerRoots {
+    image: PathBuf,
+    evidence: PathBuf,
+    staging: PathBuf,
+    build_logs: PathBuf,
+}
+
+/// Build, inspect, and publish one retained image into the governed study container roots.
+///
+/// # Errors
+/// Returns an error when source state is dirty, the catalog identity is invalid, a build or
+/// inspection fails, staging is occupied, or immutable image/evidence publication conflicts.
+pub fn publish_canonical_apptainer_image(
+    request: &CanonicalApptainerImagePublicationRequest,
+) -> Result<CanonicalApptainerImagePublication> {
+    validate_request(request)?;
+    let repository_commit = clean_repository_head_commit(&request.repository_root)?;
+    let roots = canonical_container_roots(&request.study_root)?;
+    let build_input_root =
+        request.repository_root.join("artifacts/containers/tool-contract-build-inputs");
+    let lock_path = roots.evidence.join(".build-locks").join(format!("{}.lock", request.tool_id));
+    let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, request.lock_timeout)
+        .with_context(|| format!("acquire canonical image lock for {}", request.tool_id))?;
+
+    let prepared = prepare_apptainer_tool_contract(&ToolContractBuildRequest {
+        repository_root: request.repository_root.clone(),
+        tool_id: request.tool_id.clone(),
+        repository_commit: repository_commit.clone(),
+        architecture: request.architecture.clone(),
+        output_root: build_input_root,
+    })?;
+    let recipe = apptainer_recipe_identity_at_commit(
+        &request.repository_root,
+        &repository_commit,
+        &prepared.contract.recipe_path,
+    )?;
+    let staging_path = roots
+        .staging
+        .join(format!("{}-{}.sif", request.tool_id, prepared.contract.build_evidence_id));
+    if staging_path.exists() {
+        bail!(
+            "canonical image staging path already exists and requires reconciliation: {}",
+            staging_path.display()
+        );
+    }
+
+    let build = build_apptainer_image(&ApptainerBuildRequest {
+        executable: request.apptainer_executable.clone(),
+        definition_path: prepared.rendered_definition_path.clone(),
+        image_path: staging_path.clone(),
+        evidence_root: roots.build_logs.clone(),
+        tool_id: request.tool_id.clone(),
+        build_evidence_id: prepared.contract.build_evidence_id.clone(),
+        maximum_invocations: request.maximum_build_invocations,
+        retry_delay: request.retry_delay,
+    })?;
+    let final_attempt = build.attempts.last().context("successful build has no attempt record")?;
+    if final_attempt.failure_class.is_some() {
+        bail!("successful build report ends in a failed attempt");
+    }
+    let image_sha256 = bijux_dna_infra::hash_file_sha256(&staging_path)
+        .with_context(|| format!("hash staged image {}", staging_path.display()))?;
+    verify_apptainer_tool_contract(
+        &request.apptainer_executable,
+        &staging_path,
+        &image_sha256,
+        &prepared.contract,
+    )?;
+    let final_repository_commit = clean_repository_head_commit(&request.repository_root)?;
+    if final_repository_commit != repository_commit {
+        bail!("repository commit changed during canonical image build");
+    }
+    validate_filename_component(&prepared.contract.version, "catalog tool version")?;
+    let final_path = roots.image.join(format!(
+        "{}-{}-linux-amd64-{:.12}.sif",
+        request.tool_id, prepared.contract.version, image_sha256
+    ));
+    publish_image_noclobber(&staging_path, &final_path, &image_sha256)?;
+
+    let image_size_bytes = fs::metadata(&final_path)
+        .with_context(|| format!("inspect canonical image {}", final_path.display()))?
+        .len();
+    let build_log_sha256 = bijux_dna_infra::hash_file_sha256(&final_attempt.log_path)
+        .with_context(|| format!("hash build log {}", final_attempt.log_path.display()))?;
+    let evidence_path = roots.evidence.join(format!(
+        "{}-{}-{:.12}.build.json",
+        request.tool_id, prepared.contract.build_evidence_id, image_sha256
+    ));
+    let publication = CanonicalApptainerImagePublication {
+        schema_version: CONTAINER_BUILD_EVIDENCE_SCHEMA_V1.to_string(),
+        tool: request.tool_id.clone(),
+        version: prepared.contract.version,
+        status: "passed".to_string(),
+        repository_commit,
+        architecture: request.architecture.clone(),
+        build_evidence_id: prepared.contract.build_evidence_id,
+        catalog_sha256: prepared.contract.catalog_sha256,
+        definition: CanonicalDefinitionIdentity {
+            path: recipe.definition_path,
+            sha256: recipe.definition_sha256,
+        },
+        build_context: recipe.build_context,
+        image: CanonicalImageIdentity {
+            path: portable_study_path(&final_path, &request.study_root)?,
+            sha256: image_sha256,
+            size_bytes: image_size_bytes,
+        },
+        build_log: CanonicalBuildLogIdentity {
+            path: portable_study_path(&final_attempt.log_path, &request.study_root)?,
+            sha256: build_log_sha256,
+            attempt: final_attempt.attempt,
+        },
+        evidence_path: portable_study_path(&evidence_path, &request.study_root)?,
+    };
+    publish_evidence_noclobber(&evidence_path, &publication)?;
+    Ok(publication)
+}
+
+fn canonical_container_roots(study_root: &Path) -> Result<CanonicalContainerRoots> {
+    let containers = study_root.join("containers");
+    let image = containers.join("apptainer");
+    let evidence = containers.join("evidence");
+    let staging = image.join(".building");
+    let build_logs = evidence.join("build-logs");
+    for root in [&image, &evidence, &staging, &build_logs] {
+        bijux_dna_infra::ensure_dir(root)
+            .with_context(|| format!("create canonical container root {}", root.display()))?;
+    }
+    Ok(CanonicalContainerRoots { image, evidence, staging, build_logs })
+}
+
+fn validate_request(request: &CanonicalApptainerImagePublicationRequest) -> Result<()> {
+    if request.architecture != "linux/amd64" {
+        bail!("canonical Apptainer publication currently requires linux/amd64 architecture");
+    }
+    if request.repository_root == request.study_root {
+        bail!("repository and study roots must be distinct");
+    }
+    validate_filename_component(&request.tool_id, "canonical image tool ID")
+}
+
+fn validate_filename_component(value: &str, label: &str) -> Result<()> {
+    if value.is_empty()
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-'))
+    {
+        bail!("{label} is not a safe filename component");
+    }
+    Ok(())
+}
+
+fn publish_image_noclobber(staging: &Path, destination: &Path, digest: &str) -> Result<()> {
+    match fs::hard_link(staging, destination) {
+        Ok(()) => {
+            fs::remove_file(staging)
+                .with_context(|| format!("remove published staging image {}", staging.display()))?;
+            Ok(())
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+            let existing = bijux_dna_infra::hash_file_sha256(destination).with_context(|| {
+                format!("hash existing canonical image {}", destination.display())
+            })?;
+            if existing != digest {
+                bail!("canonical image digest-prefix collision at {}", destination.display());
+            }
+            fs::remove_file(staging)
+                .with_context(|| format!("remove duplicate staging image {}", staging.display()))?;
+            Ok(())
+        }
+        Err(error) => {
+            Err(error).with_context(|| format!("publish canonical image {}", destination.display()))
+        }
+    }
+}
+
+fn publish_evidence_noclobber(
+    path: &Path,
+    publication: &CanonicalApptainerImagePublication,
+) -> Result<()> {
+    match bijux_dna_infra::atomic_create_json(path, publication) {
+        Ok(()) => Ok(()),
+        Err(error) if path.is_file() => {
+            let existing: CanonicalApptainerImagePublication = serde_json::from_slice(
+                &fs::read(path)
+                    .with_context(|| format!("read existing evidence {}", path.display()))?,
+            )
+            .with_context(|| format!("parse existing evidence {}", path.display()))?;
+            if &existing == publication {
+                Ok(())
+            } else {
+                bail!("immutable build evidence conflicts at {}: {error}", path.display())
+            }
+        }
+        Err(error) => {
+            Err(error).with_context(|| format!("publish build evidence {}", path.display()))
+        }
+    }
+}
+
+fn portable_study_path(path: &Path, study_root: &Path) -> Result<String> {
+    let relative = path
+        .strip_prefix(study_root)
+        .with_context(|| format!("evidence path is outside study root: {}", path.display()))?;
+    Ok(format!("study://{}", relative.to_string_lossy().replace('\\', "/")))
+}

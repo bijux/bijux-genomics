@@ -25,8 +25,8 @@ pub use model::{
 };
 pub use preparation::prepare_apptainer_tool_contract;
 pub use recipe_identity::{
-    apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
-    repository_head_commit, ApptainerRecipeIdentity,
+    apptainer_recipe_identity_at_commit, clean_repository_head_commit,
+    container_build_evidence_matches_recipe, repository_head_commit, ApptainerRecipeIdentity,
 };
 pub use schema::{tool_contract_schema, write_tool_contract_schema};
 pub use smoke::{

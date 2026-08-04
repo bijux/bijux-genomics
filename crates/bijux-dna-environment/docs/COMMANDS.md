@@ -22,6 +22,9 @@ library can manage when callers invoke the matching API.
   embedded contract and `apptainer inspect --json` to compare its immutable labels.
 - `build_apptainer_image()`: runs `apptainer build --force` with append-only attempt logs and
   retries only failures classified as transient OCI transport failures.
+- `publish_canonical_apptainer_image()`: owns the complete retained-image transaction: requires a
+  clean Git commit, builds under `<study>/containers/apptainer/.building`, verifies the embedded
+  contract and labels, and no-clobber publishes a digest-named SIF plus build evidence.
 - `run_apptainer_smoke()`: runs offline `apptainer exec --containall --cleanenv --net --network
   none` probes and admits version output against the catalog contract regex.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
@@ -30,6 +33,8 @@ library can manage when callers invoke the matching API.
   `git rev-parse --verify` for each repository-owned `%files` source at an exact commit.
 - `repository_head_commit()`: runs `git rev-parse --verify HEAD^{commit}` and rejects abbreviated or
   malformed identities.
+- `clean_repository_head_commit()`: runs `git status --porcelain=v1 --untracked-files=normal`
+  before resolving `HEAD` and rejects uncommitted build inputs.
 
 ## Non-Commands
 

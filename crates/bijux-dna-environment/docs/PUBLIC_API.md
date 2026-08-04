@@ -11,7 +11,7 @@
 ## Major Export Groups
 
 - `build`: Docker metadata helpers plus Apptainer build requests, reports, append-only attempt paths,
-  failure classification, and bounded build execution.
+  failure classification, bounded build execution, and canonical study image/evidence publication.
 - `evidence`: typed container image-inventory and runtime-verification publications; strict embedded
   tool contracts; the complete canonical `ContainerCatalog` and `ContainerCatalogTool` model;
   `validate_container_catalog` roster and recipe closure; catalog-derived Apptainer build
