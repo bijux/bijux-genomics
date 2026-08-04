@@ -10,10 +10,11 @@ use serde::{Deserialize, Serialize};
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
-    BenchmarkAttemptRecord, BenchmarkCycleStatus, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BenchmarkPipelineParameterConfig, BenchmarkStageInterfaceCatalog, BenchmarkStageReport,
-    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
-    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
+    AdmittedBenchmarkStageReport, BenchmarkAttemptRecord, BenchmarkCycleStatus,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkPipelineParameterConfig,
+    BenchmarkStageInterfaceCatalog, BenchmarkStageReport, BENCHMARK_ATTEMPT_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
+    BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
     BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
 
@@ -116,6 +117,22 @@ pub fn render_benchmark_stage_report_schema() -> serde_json::Value {
 /// Returns an error if the schema cannot be written to `path`.
 pub fn write_benchmark_stage_report_schema(path: &Path) -> Result<()> {
     let schema = render_benchmark_stage_report_schema();
+    bijux_dna_infra::atomic_write_json(path, &schema)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+/// Render the governed benchmark report-admission schema.
+#[must_use]
+pub fn render_benchmark_report_admission_schema() -> serde_json::Value {
+    render_json_schema::<AdmittedBenchmarkStageReport>()
+}
+
+/// Write the governed benchmark report-admission schema to disk.
+///
+/// # Errors
+/// Returns an error if the schema cannot be written to `path`.
+pub fn write_benchmark_report_admission_schema(path: &Path) -> Result<()> {
+    let schema = render_benchmark_report_admission_schema();
     bijux_dna_infra::atomic_write_json(path, &schema)
         .with_context(|| format!("write {}", path.display()))
 }

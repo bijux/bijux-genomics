@@ -1,0 +1,619 @@
+{
+  "$defs": {
+    "BenchmarkCachePolicy": {
+      "enum": [
+        "cold",
+        "warm"
+      ],
+      "type": "string"
+    },
+    "BenchmarkComparisonMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "absolute_range": {
+          "format": "double",
+          "type": "number"
+        },
+        "absolute_tolerance": {
+          "format": "double",
+          "type": "number"
+        },
+        "allowed_range": {
+          "format": "double",
+          "type": "number"
+        },
+        "maximum": {
+          "format": "double",
+          "type": "number"
+        },
+        "metric": {
+          "type": "string"
+        },
+        "minimum": {
+          "format": "double",
+          "type": "number"
+        },
+        "observations": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "object"
+        },
+        "relative_tolerance": {
+          "format": "double",
+          "type": "number"
+        },
+        "within_tolerance": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "metric",
+        "observations",
+        "minimum",
+        "maximum",
+        "absolute_range",
+        "allowed_range",
+        "within_tolerance",
+        "absolute_tolerance",
+        "relative_tolerance"
+      ],
+      "type": "object"
+    },
+    "BenchmarkComparisonStatus": {
+      "enum": [
+        "not_applicable",
+        "within_tolerance",
+        "outside_tolerance"
+      ],
+      "type": "string"
+    },
+    "BenchmarkCrossToolComparison": {
+      "additionalProperties": false,
+      "properties": {
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkComparisonMetric"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkComparisonStatus"
+        }
+      },
+      "required": [
+        "status",
+        "metrics"
+      ],
+      "type": "object"
+    },
+    "BenchmarkEvidenceTier": {
+      "enum": [
+        "qualification",
+        "comparative"
+      ],
+      "type": "string"
+    },
+    "BenchmarkExecutionRuntime": {
+      "enum": [
+        "apptainer"
+      ],
+      "type": "string"
+    },
+    "BenchmarkExecutionScheduler": {
+      "enum": [
+        "slurm"
+      ],
+      "type": "string"
+    },
+    "BenchmarkMetricDistribution": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "format": "double",
+          "type": "number"
+        },
+        "mean": {
+          "format": "double",
+          "type": "number"
+        },
+        "minimum": {
+          "format": "double",
+          "type": "number"
+        },
+        "sample_standard_deviation": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum",
+        "mean",
+        "sample_standard_deviation"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportComparability": {
+      "additionalProperties": false,
+      "properties": {
+        "input_lock_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "parameter_lock_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "repository_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "stage_interface": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkReportStageInterface"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "repository_commit",
+        "input_lock_sha256",
+        "parameter_lock_sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportDeterminism": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "type": "string"
+        },
+        "digest_basis": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "identical_across_repetitions": {
+          "type": "boolean"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact",
+        "sha256",
+        "identical_across_repetitions"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportDownstreamProbe": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "type": "string"
+        },
+        "input_contract": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "input_contract",
+        "source",
+        "artifact"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportImage": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportInputLock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "mount_path": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "mount_path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportSlurmJob": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_cpus": {
+          "type": "string"
+        },
+        "elapsed": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "job_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "host",
+        "elapsed",
+        "allocated_cpus"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportStageInterface": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_input_contracts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "downstream_probe": {
+          "$ref": "#/$defs/BenchmarkReportDownstreamProbe"
+        },
+        "normalized_result_contract": {
+          "type": "string"
+        },
+        "output_contract": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "accepted_input_contracts",
+        "output_contract",
+        "normalized_result_contract",
+        "downstream_probe"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportVerdict": {
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "BenchmarkScientificValue": {
+      "anyOf": [
+        {
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "BenchmarkStageReport": {
+      "additionalProperties": false,
+      "properties": {
+        "accuracy_claim": {
+          "type": "string"
+        },
+        "benchmark_profile_id": {
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "comparability": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkReportComparability"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comparison_scope": {
+          "type": "string"
+        },
+        "cross_tool_comparison": {
+          "$ref": "#/$defs/BenchmarkCrossToolComparison"
+        },
+        "design": {
+          "$ref": "#/$defs/BenchmarkStageReportDesign"
+        },
+        "evidence_tier": {
+          "$ref": "#/$defs/BenchmarkEvidenceTier"
+        },
+        "interpretation": {
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.benchmark.stage_report.v1",
+          "type": "string"
+        },
+        "scientific_question": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkToolReport"
+          },
+          "type": "array"
+        },
+        "verdict": {
+          "$ref": "#/$defs/BenchmarkReportVerdict"
+        }
+      },
+      "required": [
+        "schema_version",
+        "verdict",
+        "run_id",
+        "stage_id",
+        "catalog_sha256",
+        "evidence_tier",
+        "benchmark_profile_id",
+        "scientific_question",
+        "comparison_scope",
+        "accuracy_claim",
+        "design",
+        "tools",
+        "cross_tool_comparison",
+        "limitations",
+        "interpretation"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageReportDesign": {
+      "additionalProperties": false,
+      "properties": {
+        "cache_policy": {
+          "$ref": "#/$defs/BenchmarkCachePolicy"
+        },
+        "container_only": {
+          "type": "boolean"
+        },
+        "corpus_catalog_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "corpus_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "database_catalog_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "input_size_keys": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "measured_repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reference_catalog_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "result_artifact": {
+          "type": "string"
+        },
+        "runtime": {
+          "$ref": "#/$defs/BenchmarkExecutionRuntime"
+        },
+        "scheduler": {
+          "$ref": "#/$defs/BenchmarkExecutionScheduler"
+        },
+        "threads_by_tool": {
+          "additionalProperties": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "tool_closure": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "warmup_repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "runtime",
+        "scheduler",
+        "container_only",
+        "threads_by_tool",
+        "cache_policy",
+        "warmup_repetitions",
+        "measured_repetitions",
+        "tool_closure",
+        "corpus_ids",
+        "corpus_catalog_ids",
+        "reference_catalog_ids",
+        "database_catalog_ids",
+        "input_size_keys",
+        "result_artifact"
+      ],
+      "type": "object"
+    },
+    "BenchmarkToolReport": {
+      "additionalProperties": false,
+      "properties": {
+        "determinism": {
+          "$ref": "#/$defs/BenchmarkReportDeterminism"
+        },
+        "image": {
+          "$ref": "#/$defs/BenchmarkReportImage"
+        },
+        "input_bytes": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "input_locks": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkReportInputLock"
+          },
+          "type": "array"
+        },
+        "performance": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BenchmarkMetricDistribution"
+          },
+          "type": "object"
+        },
+        "repository_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "scientific_observations": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/BenchmarkScientificValue"
+            },
+            "type": "array"
+          },
+          "type": "object"
+        },
+        "slurm": {
+          "$ref": "#/$defs/BenchmarkReportSlurmJob"
+        },
+        "source_evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "verdict": {
+          "$ref": "#/$defs/BenchmarkReportVerdict"
+        }
+      },
+      "required": [
+        "tool",
+        "verdict",
+        "repository_commit",
+        "image",
+        "slurm",
+        "source_evidence_sha256",
+        "input_bytes",
+        "performance",
+        "scientific_observations",
+        "determinism"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "report": {
+      "$ref": "#/$defs/BenchmarkStageReport"
+    },
+    "report_file_name": {
+      "pattern": "^[^/\\\\]+\\.json$",
+      "type": "string"
+    },
+    "report_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.report_admission.v1",
+      "type": "string"
+    },
+    "source_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "report_file_name",
+    "source_sha256",
+    "report_sha256",
+    "report"
+  ],
+  "title": "AdmittedBenchmarkStageReport",
+  "type": "object"
+}

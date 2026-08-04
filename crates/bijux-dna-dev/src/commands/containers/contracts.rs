@@ -560,7 +560,7 @@ pub(super) fn check_evidence_qualification(
             "container qualification requires at least one Rust-admitted benchmark report\n",
         ));
     }
-    let args = [
+    let mut args = [
         "python3",
         "-B",
         "containers/contracts/qualification_report.py",
@@ -572,15 +572,33 @@ pub(super) fn check_evidence_qualification(
         "containers/reports/runtime-verification.json",
         "--runs",
         "containers/reports/run-evidence.json",
-        "--json-output",
-        "containers/reports/qualification.json",
-        "--markdown-output",
-        "containers/reports/qualification.md",
-        "--check",
+        "--repository",
     ]
     .into_iter()
     .map(ToOwned::to_owned)
     .collect::<Vec<_>>();
+    args.push(workspace.root.to_string_lossy().into_owned());
+    for admission in admitted_reports {
+        args.push("--benchmark-report".to_string());
+        args.push(
+            workspace
+                .path("benchmarks/reports")
+                .join(admission.report_file_name)
+                .to_string_lossy()
+                .into_owned(),
+        );
+    }
+    args.extend(
+        [
+            "--json-output",
+            "containers/reports/qualification.json",
+            "--markdown-output",
+            "containers/reports/qualification.md",
+            "--check",
+        ]
+        .into_iter()
+        .map(ToOwned::to_owned),
+    );
     let outcome = run_argv(workspace, &args)?;
     if outcome.is_success() {
         return success_line("container evidence qualification: OK");

@@ -746,6 +746,7 @@ def create_report(
         "verdict": comparison_verdict(comparison),
         "run_id": run_id,
         "stage_id": campaign["stage_id"],
+        "catalog_sha256": sha256_file(catalog_path),
         "evidence_tier": campaign["evidence_tier"],
         "benchmark_profile_id": campaign["profile_id"],
         "scientific_question": campaign["scientific_question"],

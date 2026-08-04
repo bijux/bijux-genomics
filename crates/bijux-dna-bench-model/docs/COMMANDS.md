@@ -21,6 +21,7 @@ not own CLI commands or process execution.
 | `validate-interface-parameter-alignment` | `contract::validate_interface_parameter_alignment` | Validate parameter schema, defaults provider, and allowed overrides for one stage interface. |
 | `validate-stage-report` | `contract::validate_stage_report` | Validate benchmark stage-report identity, execution design, tool evidence, comparability, metrics, and verdict. |
 | `validate-stage-report-alignment` | `contract::validate_stage_report_alignment` | Validate a stage report against its campaign and optional stage-interface authority. |
+| `validate-report-admission` | `contract::validate_report_admission` | Validate exact source bytes, canonical parsed-report identity, and the nested stage-report contract. |
 | `validate-observation` | `contract::validate_observation` | Validate one `BenchmarkObservation` before summarization. |
 | `validate-summary` | `contract::validate_summary` | Validate a `BenchmarkSummary` before persistence or comparison. |
 | `validate-decision` | `contract::validate_decision` | Validate a `GateDecision` before persistence. |

@@ -1,6 +1,7 @@
 {
   "accuracy_claim": "mapping_derived_fraction_not_endogenous_truth",
   "benchmark_profile_id": "bam-observational-qc",
+  "catalog_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
   "comparison_scope": "primary mapped-read fraction from one governed coordinate-sorted EquCab3 BAM",
   "cross_tool_comparison": {
     "metrics": [],

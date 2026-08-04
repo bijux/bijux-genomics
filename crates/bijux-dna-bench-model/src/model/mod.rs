@@ -41,12 +41,12 @@ pub use planning::{
 };
 #[allow(unused_imports)]
 pub use report::{
-    BenchmarkComparisonMetric, BenchmarkComparisonStatus, BenchmarkCrossToolComparison,
-    BenchmarkMetricDistribution, BenchmarkReportComparability, BenchmarkReportDeterminism,
-    BenchmarkReportDownstreamProbe, BenchmarkReportImage, BenchmarkReportInputLock,
-    BenchmarkReportSlurmJob, BenchmarkReportStageInterface, BenchmarkReportVerdict,
-    BenchmarkScientificValue, BenchmarkStageReport, BenchmarkStageReportDesign,
-    BenchmarkToolReport,
+    AdmittedBenchmarkStageReport, BenchmarkComparisonMetric, BenchmarkComparisonStatus,
+    BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
+    BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
+    BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
+    BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
+    BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 #[allow(unused_imports)]
 pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};

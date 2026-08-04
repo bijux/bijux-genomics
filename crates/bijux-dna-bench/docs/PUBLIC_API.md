@@ -18,8 +18,8 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_interface_catalog_from_repo(path, repository_root)` performs the same admission against an explicit workspace root for production callers.
 - `load_checked_in_benchmark_contracts()` preserves the campaign/portfolio return contract while validating every checked-in planning input.
 - `load_checked_in_benchmark_planning_contracts()` returns the campaign registry, portfolio, and stage-interface catalog after validating defined identity consistency.
-- `load_stage_report(path)` loads and structurally admits a typed stage report.
-- `load_stage_reports_from_dir(path, registry, interfaces)` admits a root-explicit report publication against supplied authorities.
+- `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.
+- `load_stage_reports_from_dir(path, registry, interfaces)` admits checksummed reports against supplied authorities; raw report values are never returned to aggregation callers.
 - `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.

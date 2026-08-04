@@ -3,14 +3,47 @@
 
 use std::collections::BTreeSet;
 
+use sha2::{Digest, Sha256};
+
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkComparisonStatus, BenchmarkReportVerdict, BenchmarkScientificValue,
-    BenchmarkStageCampaignSpec, BenchmarkStageInterfaceSpec, BenchmarkStageReport,
-    BenchmarkToolReport,
+    AdmittedBenchmarkStageReport, BenchmarkComparisonStatus, BenchmarkReportVerdict,
+    BenchmarkScientificValue, BenchmarkStageCampaignSpec, BenchmarkStageInterfaceSpec,
+    BenchmarkStageReport, BenchmarkToolReport,
 };
 
-use super::BENCHMARK_STAGE_REPORT_SCHEMA_V1;
+use super::{BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1};
+
+/// Validate a checksummed report admission envelope.
+///
+/// # Errors
+/// Returns an error if the envelope or its report is incomplete or malformed.
+pub fn validate_report_admission(
+    admission: &AdmittedBenchmarkStageReport,
+) -> Result<(), BenchError> {
+    if admission.schema_version != BENCHMARK_REPORT_ADMISSION_SCHEMA_V1 {
+        return Err(invalid(format!(
+            "benchmark report admission schema mismatch: {}",
+            admission.schema_version
+        )));
+    }
+    if admission.report_file_name.trim().is_empty()
+        || admission.report_file_name.contains('/')
+        || admission.report_file_name.contains('\\')
+        || std::path::Path::new(&admission.report_file_name).extension()
+            != Some(std::ffi::OsStr::new("json"))
+    {
+        return Err(invalid("benchmark report admission file name is invalid"));
+    }
+    validate_digest_identity(&admission.source_sha256)?;
+    validate_digest_identity(&admission.report_sha256)?;
+    let report_bytes = serde_json::to_vec(&admission.report)
+        .map_err(|error| invalid(format!("cannot serialize admitted benchmark report: {error}")))?;
+    if admission.report_sha256 != sha256_hex(&report_bytes) {
+        return Err(invalid("benchmark report admission digest does not match parsed report"));
+    }
+    validate_stage_report(&admission.report)
+}
 
 /// # Errors
 /// Returns an error if a benchmark stage report is not structurally admissible.
@@ -33,6 +66,7 @@ pub fn validate_stage_report(report: &BenchmarkStageReport) -> Result<(), BenchE
         require_text(value, field)?;
     }
     validate_text_list(&report.limitations, "report limitations", false)?;
+    validate_digest_identity(&report.catalog_sha256)?;
     validate_report_design(report)?;
     validate_report_tools(report)?;
     validate_report_comparability(report)?;
@@ -133,13 +167,13 @@ fn validate_tool_report(tool: &BenchmarkToolReport, repetitions: u32) -> Result<
     ] {
         require_text(value, field)?;
     }
+    validate_commit_identity(&tool.repository_commit)?;
     for digest in [
-        tool.repository_commit.as_str(),
         tool.image.sha256.as_str(),
         tool.source_evidence_sha256.as_str(),
         tool.determinism.sha256.as_str(),
     ] {
-        validate_hex_identity(digest)?;
+        validate_digest_identity(digest)?;
     }
     if tool.image.size_bytes == 0 || !tool.determinism.identical_across_repetitions {
         return Err(invalid(format!("benchmark tool evidence is incomplete: {}", tool.tool)));
@@ -179,7 +213,7 @@ fn validate_tool_report(tool: &BenchmarkToolReport, repetitions: u32) -> Result<
         require_text(&lock.id, "benchmark input lock id")?;
         require_text(&lock.kind, "benchmark input lock kind")?;
         require_text(&lock.mount_path, "benchmark input lock mount path")?;
-        validate_hex_identity(&lock.sha256)?;
+        validate_digest_identity(&lock.sha256)?;
     }
     Ok(())
 }
@@ -191,12 +225,14 @@ fn validate_report_comparability(report: &BenchmarkStageReport) -> Result<(), Be
         return Err(invalid("benchmark report tools do not share one repository commit"));
     }
     if let Some(comparability) = &report.comparability {
-        validate_hex_identity(&comparability.repository_commit)?;
-        validate_hex_identity(&comparability.input_lock_sha256)?;
-        validate_hex_identity(&comparability.parameter_lock_sha256)?;
+        validate_commit_identity(&comparability.repository_commit)?;
+        validate_digest_identity(&comparability.input_lock_sha256)?;
+        validate_digest_identity(&comparability.parameter_lock_sha256)?;
         if !commits.contains(comparability.repository_commit.as_str()) {
             return Err(invalid("benchmark comparability commit differs from tool evidence"));
         }
+    } else if report.tools.iter().any(|tool| tool.input_locks.is_empty()) {
+        return Err(invalid("benchmark report lacks comparative or per-tool input locks"));
     }
     Ok(())
 }
@@ -285,11 +321,32 @@ fn validate_text_list(values: &[String], field: &str, allow_empty: bool) -> Resu
     Ok(())
 }
 
-fn validate_hex_identity(value: &str) -> Result<(), BenchError> {
-    if value.len() < 7 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+fn validate_commit_identity(value: &str) -> Result<(), BenchError> {
+    if value.len() != 40
+        || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        return Err(invalid(format!("benchmark report contains invalid commit identity: {value}")));
+    }
+    Ok(())
+}
+
+fn validate_digest_identity(value: &str) -> Result<(), BenchError> {
+    if value.len() != 64
+        || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
         return Err(invalid(format!("benchmark report contains invalid digest identity: {value}")));
     }
     Ok(())
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        use std::fmt::Write as _;
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }
 
 fn require_text(value: &str, field: &str) -> Result<(), BenchError> {

@@ -50,6 +50,14 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def is_hex_identity(value: object, length: int) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == length
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
 def load_json(path: Path) -> dict[str, Any]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -139,6 +147,7 @@ def admitted_benchmark_records(
     paths: tuple[Path, ...],
     catalog: dict[str, Any],
     inventory_tools: dict[str, dict[str, Any]],
+    catalog_sha256: str,
 ) -> dict[str, list[dict[str, Any]]]:
     """Admit complete benchmark reports tied to current-recipe images."""
     catalog_tools = {str(tool["id"]): tool for tool in catalog["tools"]}
@@ -173,6 +182,21 @@ def admitted_benchmark_records(
         tool_rows = report.get("tools")
         if not isinstance(design, dict) or not isinstance(tool_rows, list):
             raise QualificationError(f"benchmark report structure is invalid: {path}")
+        if report.get("catalog_sha256") != catalog_sha256:
+            raise QualificationError(f"benchmark report catalog identity is stale: {path}")
+        limitations = report.get("limitations")
+        if not isinstance(limitations, list) or any(
+            not isinstance(limitation, str) or not limitation.strip()
+            for limitation in limitations
+        ):
+            raise QualificationError(f"benchmark report limitations are invalid: {path}")
+        comparability = report.get("comparability")
+        has_comparability_locks = (
+            isinstance(comparability, dict)
+            and is_hex_identity(comparability.get("repository_commit"), 40)
+            and is_hex_identity(comparability.get("input_lock_sha256"), 64)
+            and is_hex_identity(comparability.get("parameter_lock_sha256"), 64)
+        )
         closure = design.get("tool_closure")
         observed = [
             str(row.get("tool", "")) for row in tool_rows if isinstance(row, dict)
@@ -192,6 +216,8 @@ def admitted_benchmark_records(
             or design["warmup_repetitions"] < 1
             or not isinstance(design.get("measured_repetitions"), int)
             or design["measured_repetitions"] < 3
+            or not isinstance(design.get("corpus_ids"), list)
+            or not design["corpus_ids"]
         ):
             raise QualificationError(
                 f"benchmark report lacks complete retained-tool closure: {path}"
@@ -199,6 +225,8 @@ def admitted_benchmark_records(
         for row in tool_rows:
             tool_id = str(row["tool"])
             image = row.get("image")
+            repository_commit = row.get("repository_commit")
+            input_locks = row.get("input_locks") or []
             inventory_image = inventory_tools.get(tool_id, {})
             image_sha256 = image.get("sha256") if isinstance(image, dict) else None
             candidates = inventory_image.get("candidates", [])
@@ -213,9 +241,26 @@ def admitted_benchmark_records(
             )
             if (
                 row.get("verdict") != "passed"
+                or not is_hex_identity(repository_commit, 40)
+                or not is_hex_identity(image_sha256, 64)
+                or not is_hex_identity(row.get("source_evidence_sha256"), 64)
+                or not isinstance(input_locks, list)
+                or (not input_locks and not has_comparability_locks)
+                or any(
+                    not isinstance(lock, dict)
+                    or not str(lock.get("id", "")).strip()
+                    or not str(lock.get("kind", "")).strip()
+                    or not is_hex_identity(lock.get("sha256"), 64)
+                    for lock in input_locks
+                )
                 or not isinstance(row.get("performance"), dict)
                 or not isinstance(row.get("scientific_observations"), dict)
                 or not row["scientific_observations"]
+                or any(
+                    not isinstance(values, list)
+                    or len(values) != design["measured_repetitions"]
+                    for values in row["scientific_observations"].values()
+                )
             ):
                 raise QualificationError(
                     f"benchmark tool evidence is incomplete for {tool_id}: {path}"
@@ -225,7 +270,8 @@ def admitted_benchmark_records(
                     "run_id": run_id,
                     "stage_id": stage_id,
                     "path": str(path),
-                    "sha256": sha256_file(path),
+                    "report_sha256": sha256_file(path),
+                    "repository_commit": repository_commit,
                     "admitted_image": admitted_image,
                 }
             )
@@ -258,10 +304,10 @@ def derive_report(
     runtime_tools = runtime.get("tools", {})
     if not isinstance(runtime_tools, dict):
         raise QualificationError("runtime evidence lacks a tool mapping")
-    benchmark_records = admitted_benchmark_records(
-        benchmark_paths, catalog, inventory_tools
-    )
     catalog_sha256 = sha256_file(catalog_path)
+    benchmark_records = admitted_benchmark_records(
+        benchmark_paths, catalog, inventory_tools, catalog_sha256
+    )
     inventory_publication = inventory.get("publication", {})
     runtime_catalog = runtime.get("catalog", {})
     runtime_inventory = runtime.get("inventory", {})

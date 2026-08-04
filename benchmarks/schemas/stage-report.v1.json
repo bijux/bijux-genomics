@@ -139,12 +139,15 @@
       "additionalProperties": false,
       "properties": {
         "input_lock_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
           "type": "string"
         },
         "parameter_lock_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
           "type": "string"
         },
         "repository_commit": {
+          "pattern": "^[0-9a-f]{40}$",
           "type": "string"
         },
         "stage_interface": {
@@ -181,6 +184,7 @@
           "type": "boolean"
         },
         "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
           "type": "string"
         }
       },
@@ -222,6 +226,7 @@
           "type": "string"
         },
         "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
           "type": "string"
         },
         "size_bytes": {
@@ -250,6 +255,7 @@
           "type": "string"
         },
         "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
           "type": "string"
         }
       },
@@ -451,6 +457,7 @@
           "type": "object"
         },
         "repository_commit": {
+          "pattern": "^[0-9a-f]{40}$",
           "type": "string"
         },
         "scientific_observations": {
@@ -466,6 +473,7 @@
           "$ref": "#/$defs/BenchmarkReportSlurmJob"
         },
         "source_evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
           "type": "string"
         },
         "tool": {
@@ -497,6 +505,10 @@
       "type": "string"
     },
     "benchmark_profile_id": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
       "type": "string"
     },
     "comparability": {
@@ -558,6 +570,7 @@
     "verdict",
     "run_id",
     "stage_id",
+    "catalog_sha256",
     "evidence_tier",
     "benchmark_profile_id",
     "scientific_question",

@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "qualification_report.py"
+REPOSITORY = SCRIPT.parents[2]
 sys.path.insert(0, str(SCRIPT.parent))
 SPEC = importlib.util.spec_from_file_location("container_qualification", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
@@ -54,17 +55,21 @@ def write_compatible_evidence(
 def write_benchmark_report(
     path: Path,
     *,
+    catalog_sha256: str,
     image_sha256: str,
     tool_closure: list[str] | None = None,
+    verdict: str = "passed",
 ) -> None:
     closure = ["tool"] if tool_closure is None else tool_closure
     path.write_text(
         json.dumps(
             {
                 "schema_version": qualification.BENCHMARK_REPORT_SCHEMA,
-                "verdict": "passed",
+                "verdict": verdict,
                 "run_id": "run-2001",
                 "stage_id": "fastq.trim_reads",
+                "catalog_sha256": catalog_sha256,
+                "limitations": [],
                 "design": {
                     "runtime": "apptainer",
                     "scheduler": "slurm",
@@ -72,12 +77,22 @@ def write_benchmark_report(
                     "warmup_repetitions": 1,
                     "measured_repetitions": 3,
                     "tool_closure": closure,
+                    "corpus_ids": ["public-corpus"],
                 },
                 "tools": [
                     {
                         "tool": "tool",
                         "verdict": "passed",
+                        "repository_commit": "a" * 40,
                         "image": {"sha256": image_sha256},
+                        "source_evidence_sha256": "b" * 64,
+                        "input_locks": [
+                            {
+                                "id": "public-corpus",
+                                "kind": "fastq",
+                                "sha256": "e" * 64,
+                            }
+                        ],
                         "performance": {"wall_seconds": {"mean": 1.0}},
                         "scientific_observations": {"retained_reads": [10, 10, 10]},
                     }
@@ -302,7 +317,11 @@ class QualificationReportTests(unittest.TestCase):
             runs = root / "runs.json"
             runs.write_text('{"runs": []}\n', encoding="utf-8")
             benchmark = root / "benchmark.json"
-            write_benchmark_report(benchmark, image_sha256="c" * 64)
+            write_benchmark_report(
+                benchmark,
+                catalog_sha256=qualification.sha256_file(catalog),
+                image_sha256="c" * 64,
+            )
 
             report = qualification.derive_report(
                 catalog, inventory, runtime, runs, (benchmark,)
@@ -314,6 +333,97 @@ class QualificationReportTests(unittest.TestCase):
         self.assertEqual(tool["passing_benchmark_runs"], ["run-2001"])
         self.assertEqual(tool["benchmark_stages"], ["fastq.trim_reads"])
         self.assertEqual(tool["unadmitted_image_benchmark_runs"], [])
+
+    def test_reviewed_benchmark_outputs_cross_the_qualification_boundary(self) -> None:
+        report_paths = sorted((REPOSITORY / "benchmarks/reports").glob("run-*.json"))
+        self.assertGreaterEqual(len(report_paths), 6)
+        for report_path in report_paths:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            commits = {row["repository_commit"] for row in report["tools"]}
+            self.assertEqual(len(commits), 1)
+            commit = commits.pop()
+            catalog_at_commit = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(REPOSITORY),
+                    "show",
+                    f"{commit}:containers/contracts/catalog.toml",
+                ],
+                check=True,
+                capture_output=True,
+            ).stdout
+            with tempfile.TemporaryDirectory() as directory:
+                catalog_path = Path(directory) / "catalog.toml"
+                catalog_path.write_bytes(catalog_at_commit)
+                catalog = qualification.load_catalog(catalog_path)
+                inventory_tools = {
+                    row["tool"]: {
+                        "selected_image_sha256": row["image"]["sha256"],
+                        "candidates": [],
+                    }
+                    for row in report["tools"]
+                }
+                records = qualification.admitted_benchmark_records(
+                    (report_path,),
+                    catalog,
+                    inventory_tools,
+                    qualification.sha256_file(catalog_path),
+                )
+            self.assertEqual(set(records), set(inventory_tools))
+
+    def test_benchmark_rejects_stale_catalog_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            report_path = Path(directory) / "benchmark.json"
+            write_benchmark_report(
+                report_path,
+                catalog_sha256="a" * 64,
+                image_sha256="c" * 64,
+            )
+            with self.assertRaisesRegex(
+                qualification.QualificationError, "catalog identity is stale"
+            ):
+                qualification.admitted_benchmark_records(
+                    (report_path,),
+                    {
+                        "tools": [
+                            {
+                                "id": "tool",
+                                "support_disposition": "retained",
+                                "stage_ids": ["fastq.trim_reads"],
+                            }
+                        ]
+                    },
+                    {"tool": {"selected_image_sha256": "c" * 64}},
+                    "b" * 64,
+                )
+
+    def test_benchmark_rejects_failed_acceptance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            report_path = Path(directory) / "benchmark.json"
+            write_benchmark_report(
+                report_path,
+                catalog_sha256="a" * 64,
+                image_sha256="c" * 64,
+                verdict="failed",
+            )
+            with self.assertRaisesRegex(
+                qualification.QualificationError, "identity is invalid"
+            ):
+                qualification.admitted_benchmark_records(
+                    (report_path,),
+                    {
+                        "tools": [
+                            {
+                                "id": "tool",
+                                "support_disposition": "retained",
+                                "stage_ids": ["fastq.trim_reads"],
+                            }
+                        ]
+                    },
+                    {"tool": {"selected_image_sha256": "c" * 64}},
+                    "a" * 64,
+                )
 
     def test_benchmark_requires_complete_stage_tool_closure(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -338,7 +448,10 @@ class QualificationReportTests(unittest.TestCase):
             runs.write_text('{"runs": []}\n', encoding="utf-8")
             benchmark = root / "benchmark.json"
             write_benchmark_report(
-                benchmark, image_sha256="c" * 64, tool_closure=["another-tool"]
+                benchmark,
+                catalog_sha256=qualification.sha256_file(catalog),
+                image_sha256="c" * 64,
+                tool_closure=["another-tool"],
             )
 
             with self.assertRaisesRegex(

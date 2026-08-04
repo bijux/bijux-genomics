@@ -9,7 +9,6 @@ mod stable_surface;
 mod temp;
 
 pub mod formats;
-pub use stable_surface::hash_file_sha256;
 pub use stable_surface::init_logging;
 pub use stable_surface::FileLock;
 pub use stable_surface::{
@@ -22,6 +21,7 @@ pub use stable_surface::{backoff_delay, retry_with, Clock, RetryPolicy, SystemCl
 pub use stable_surface::{
     bench_base_dir, bench_data_dir, bench_suites_dir, bench_tools_dir, configs_dir, configs_file,
 };
+pub use stable_surface::{hash_bytes_sha256, hash_file_sha256};
 pub use stable_surface::{
     lock_run, normalize_run_base_dir, pipeline_run_dir, publish_run, run_layout_paths,
     run_stage_dir, RunLayoutContract, RunLayoutPaths, PIPELINE_RUN_DIR_TEMPLATE,

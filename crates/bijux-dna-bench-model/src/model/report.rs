@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::BENCHMARK_STAGE_REPORT_SCHEMA_V1;
+use crate::contract::{BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1};
 
 use super::planning::{
     BenchmarkCachePolicy, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
@@ -48,6 +48,7 @@ pub struct BenchmarkMetricDistribution {
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkReportImage {
     pub name: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
     pub sha256: String,
     pub size_bytes: u64,
 }
@@ -65,6 +66,7 @@ pub struct BenchmarkReportSlurmJob {
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkReportDeterminism {
     pub artifact: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
     pub sha256: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub digest_basis: Option<String>,
@@ -77,6 +79,7 @@ pub struct BenchmarkReportInputLock {
     pub id: String,
     pub kind: String,
     pub mount_path: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
     pub sha256: String,
 }
 
@@ -85,9 +88,11 @@ pub struct BenchmarkReportInputLock {
 pub struct BenchmarkToolReport {
     pub tool: String,
     pub verdict: BenchmarkReportVerdict,
+    #[schemars(schema_with = "git_commit_identity_schema")]
     pub repository_commit: String,
     pub image: BenchmarkReportImage,
     pub slurm: BenchmarkReportSlurmJob,
+    #[schemars(schema_with = "sha256_identity_schema")]
     pub source_evidence_sha256: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub input_locks: Vec<BenchmarkReportInputLock>,
@@ -137,8 +142,11 @@ pub struct BenchmarkReportStageInterface {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkReportComparability {
+    #[schemars(schema_with = "git_commit_identity_schema")]
     pub repository_commit: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
     pub input_lock_sha256: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
     pub parameter_lock_sha256: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stage_interface: Option<BenchmarkReportStageInterface>,
@@ -173,6 +181,8 @@ pub struct BenchmarkStageReport {
     pub verdict: BenchmarkReportVerdict,
     pub run_id: String,
     pub stage_id: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub catalog_sha256: String,
     pub evidence_tier: BenchmarkEvidenceTier,
     pub benchmark_profile_id: String,
     pub scientific_question: String,
@@ -187,9 +197,51 @@ pub struct BenchmarkStageReport {
     pub interpretation: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedBenchmarkStageReport {
+    #[schemars(schema_with = "benchmark_report_admission_schema_version")]
+    pub schema_version: String,
+    #[schemars(schema_with = "report_file_name_schema")]
+    pub report_file_name: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub source_sha256: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub report_sha256: String,
+    pub report: BenchmarkStageReport,
+}
+
 fn benchmark_stage_report_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    })
+}
+
+fn benchmark_report_admission_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    })
+}
+
+fn sha256_identity_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+    })
+}
+
+fn git_commit_identity_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^[0-9a-f]{40}$",
+    })
+}
+
+fn report_file_name_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^[^/\\\\]+\\.json$",
     })
 }

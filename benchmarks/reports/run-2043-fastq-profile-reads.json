@@ -1,6 +1,7 @@
 {
   "accuracy_claim": "read_and_base_count_concordance_with_independent_admission_counts",
   "benchmark_profile_id": "fastq-observational-qc",
+  "catalog_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
   "comparability": {
     "input_lock_sha256": "6d1028d3a54e91f569129dfa735c0c94960dbcd19999279979643cb4ec9f44a7",
     "parameter_lock_sha256": "bf06cbbab584742bc846c1474503d6760dbe690f80e4d6960199e052fea24534",

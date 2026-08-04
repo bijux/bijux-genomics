@@ -1,6 +1,7 @@
 {
   "accuracy_claim": "exact_per_record_length_concordance_with_independent_fastq_decode",
   "benchmark_profile_id": "fastq-observational-qc",
+  "catalog_sha256": "d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250",
   "comparability": {
     "input_lock_sha256": "491ffd8e8df3857616d1d401d1a4ab729a58d5a9e4c18a0951f308d1bfb966ad",
     "parameter_lock_sha256": "31cd719ef9b42cab2eb2fb36183ccc1cc18bc3d0ca9617e8465d29dd4132dd3d",
