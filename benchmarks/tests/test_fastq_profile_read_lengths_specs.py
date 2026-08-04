@@ -35,8 +35,8 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
                     "sample_id": "ERR1",
                     "input_layout": "paired_end",
                     "mounted_fastq": ["/input/ERR1_1.fastq.gz", "/input/ERR1_2.fastq.gz"],
-                    "expected_summary_mount": "/input/expected/summaries/ERR1.summary.tsv",
-                    "expected_histogram_mount": "/input/expected/histograms/ERR1.histogram.tsv",
+                    "expected_summary_mount": "/input/ERR1.summary.tsv",
+                    "expected_histogram_mount": "/input/ERR1.histogram.tsv",
                     "expected_exact_sha256": "a" * 64,
                 }
             ],
@@ -53,8 +53,9 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
         self.assertIn("mode=probe", command[2])
         self.assertIn("mode=metrics", command[2])
         self.assertIn(
-            "diff -u /input/expected/summaries/ERR1.summary.tsv", command[2]
+            "diff -u /input/ERR1.summary.tsv", command[2]
         )
+        self.assertIn("diff -u /input/ERR1.histogram.tsv", command[2])
 
     def test_independent_sample_evidence_derives_exact_summary_and_digest(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -123,8 +124,8 @@ class FastqProfileReadLengthsSpecificationTests(unittest.TestCase):
                     "sample_id": "ERR1",
                     "input_layout": "single_end",
                     "mounted_fastq": ["/input/sample.fastq.gz"],
-                    "expected_summary_mount": "/input/expected/summaries/ERR1.summary.tsv",
-                    "expected_histogram_mount": "/input/expected/histograms/ERR1.histogram.tsv",
+                    "expected_summary_mount": "/input/ERR1.summary.tsv",
+                    "expected_histogram_mount": "/input/ERR1.histogram.tsv",
                     "expected_exact_sha256": "c" * 64,
                 }
             ],

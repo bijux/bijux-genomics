@@ -388,10 +388,8 @@ def data_inputs(
         )
     samples = []
     for row in manifest_rows:
-        summary_mount = f"/input/expected/summaries/{row['sample_id']}.summary.tsv"
-        histogram_mount = (
-            f"/input/expected/histograms/{row['sample_id']}.histogram.tsv"
-        )
+        summary_mount = f"/input/{row['sample_id']}.summary.tsv"
+        histogram_mount = f"/input/{row['sample_id']}.histogram.tsv"
         for source, mount_path, label in (
             (Path(row["summary_path"]), summary_mount, "summary"),
             (Path(row["histogram_path"]), histogram_mount, "histogram"),
