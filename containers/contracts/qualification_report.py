@@ -22,7 +22,7 @@ except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
 REPORT_SCHEMA = "bijux.container.qualification_report.v1"
 INVENTORY_PUBLICATION_SCHEMA = "bijux.container.image_inventory_publication.v1"
 RUNTIME_PUBLICATION_SCHEMA = "bijux.container.runtime_verification_publication.v1"
-BENCHMARK_REPORT_SCHEMA = "bijux.container.stage_benchmark_report.v1"
+BENCHMARK_REPORT_SCHEMA = "bijux.benchmark.stage_report.v1"
 DIMENSIONS = (
     "catalog",
     "source",

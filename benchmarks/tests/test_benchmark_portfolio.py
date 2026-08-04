@@ -108,7 +108,7 @@ class BenchmarkPortfolioTests(unittest.TestCase):
         self.assertEqual(report["summary"]["stage_count"], 71)
         self.assertEqual(report["summary"]["ready_count"], 0)
         self.assertEqual(report["summary"]["qualification_campaign_count"], 4)
-        self.assertEqual(report["summary"]["comparative_campaign_count"], 1)
+        self.assertEqual(report["summary"]["comparative_campaign_count"], 2)
         row = next(row for row in report["stages"] if row["stage_id"] == "bam.coverage")
         self.assertEqual(row["campaign_tier"], "qualification")
         self.assertIn("active campaign is qualification-only", row["blockers"])

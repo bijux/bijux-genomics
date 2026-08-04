@@ -1385,7 +1385,7 @@ assertions = ["the report consumer accepts the normalized result"]
             contract = {
                 "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
                 "run_id": "run-2001",
-                "pipeline": {"run": {"tool": "tool"}},
+                "pipeline": {"run": {"tool": "tool", "kind": "benchmark"}},
                 "result_root": result,
                 "governance": {
                     "containers_root": containers_root,
@@ -1409,6 +1409,13 @@ assertions = ["the report consumer accepts the normalized result"]
             self.assertFalse(result.exists())
             self.assertTrue((archived / "submission/submit.sh").is_file())
             self.assertTrue((archived / "result/evidence.json").is_file())
+            self.assertEqual(
+                archived.resolve(),
+                (
+                    study
+                    / "results/benchmark-attempts/superseded/run-2001-tool-slurm-3459727"
+                ).resolve(),
+            )
 
         self.assertEqual(
             archive["schema_version"],

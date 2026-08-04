@@ -2239,10 +2239,18 @@ def archive_terminal_run(
     ):
         raise ContractError("Slurm accounting does not identify the terminal run")
     tool_id = str(contract["pipeline"]["run"]["tool"])
+    run_kind = str(contract["pipeline"]["run"].get("kind", "qualification"))
     bundle_name = f"{contract['run_id']}-{tool_id}-slurm-{job_id}"
-    archive_root = (
-        contract["governance"]["containers_root"] / "evidence" / archive_scope
-    )
+    if run_kind == "benchmark":
+        archive_root = (
+            contract["governance"]["results_root"]
+            / "benchmark-attempts"
+            / archive_scope
+        )
+    else:
+        archive_root = (
+            contract["governance"]["containers_root"] / "evidence" / archive_scope
+        )
     archive_root.mkdir(parents=True, mode=0o750, exist_ok=True)
     target = archive_root / bundle_name
     staging = archive_root / f".{bundle_name}.partial"

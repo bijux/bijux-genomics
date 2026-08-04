@@ -48,9 +48,12 @@ class BenchmarkRegistryTests(unittest.TestCase):
             benchmark_registry.threads_by_tool(campaigns[3]),
             {"picard": 1, "samtools": 1},
         )
-        self.assertEqual(campaigns[4]["stage_id"], "fastq.profile_reads")
+        self.assertEqual(campaigns[4]["stage_id"], "fastq.profile_read_lengths")
         self.assertEqual(campaigns[4]["evidence_tier"], "comparative")
-        self.assertEqual(campaigns[4]["tool_ids"], ["seqfu", "seqkit", "seqkit_stats"])
+        self.assertEqual(campaigns[4]["tool_ids"], ["seqfu", "seqkit"])
+        self.assertEqual(campaigns[5]["stage_id"], "fastq.profile_reads")
+        self.assertEqual(campaigns[5]["evidence_tier"], "comparative")
+        self.assertEqual(campaigns[5]["tool_ids"], ["seqfu", "seqkit", "seqkit_stats"])
 
     def test_per_tool_threads_must_cover_the_tool_closure(self) -> None:
         self.registry["campaigns"][1]["threads_by_tool"].pop("samtools")
@@ -97,11 +100,11 @@ class BenchmarkRegistryTests(unittest.TestCase):
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
 
-        self.assertEqual(report["summary"]["defined_stage_count"], 5)
+        self.assertEqual(report["summary"]["defined_stage_count"], 6)
         self.assertEqual(report["summary"]["qualification_stage_count"], 4)
-        self.assertEqual(report["summary"]["comparative_stage_count"], 1)
+        self.assertEqual(report["summary"]["comparative_stage_count"], 2)
         self.assertEqual(report["summary"]["admitted_stage_count"], 0)
-        self.assertEqual(report["summary"]["missing_stage_count"], 66)
+        self.assertEqual(report["summary"]["missing_stage_count"], 65)
 
     def test_coverage_admits_matching_complete_tool_evidence(self) -> None:
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
