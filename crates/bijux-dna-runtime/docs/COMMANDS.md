@@ -27,6 +27,13 @@ These are library functions, not shell commands:
 - `append_attempt_lifecycle_transition`
 - `load_attempt_lifecycle`
 - `benchmark_attempt_directory`
+- `record_attempt_ready`
+- `record_attempt_submission`
+- `record_attempt_running`
+- `record_attempt_accounting`
+- `record_attempt_acceptance`
+- `record_attempt_blocked_external`
+- `record_attempt_superseded`
 - `build_telemetry_adapter`
 
 ## Ownership Rules

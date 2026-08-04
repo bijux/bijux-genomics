@@ -354,6 +354,7 @@ fn allowed_transition(from: BenchmarkLifecycleStatus, to: BenchmarkLifecycleStat
         ) | (
             BenchmarkLifecycleStatus::Submitted,
             BenchmarkLifecycleStatus::Running
+                | BenchmarkLifecycleStatus::Collecting
                 | BenchmarkLifecycleStatus::Failed
                 | BenchmarkLifecycleStatus::BlockedExternal
                 | BenchmarkLifecycleStatus::Superseded
@@ -398,6 +399,10 @@ fn validate_scheduler_accounting(
         || accounting.node_list != accounting.node_list.trim()
         || accounting.exit_code < 0
         || accounting.signal < 0
+        || accounting
+            .reason
+            .as_deref()
+            .is_some_and(|reason| reason.trim().is_empty() || reason != reason.trim())
     {
         return Err(invalid("benchmark scheduler accounting is malformed"));
     }

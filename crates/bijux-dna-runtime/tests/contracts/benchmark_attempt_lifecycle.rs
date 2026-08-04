@@ -1,10 +1,13 @@
 use bijux_dna_bench_model::{
     BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
-    BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
 };
 use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
-    load_attempt_lifecycle,
+    load_attempt_lifecycle, record_attempt_acceptance, record_attempt_accounting,
+    record_attempt_blocked_external, record_attempt_ready, record_attempt_running,
+    record_attempt_submission, record_attempt_superseded,
 };
 
 fn identity(attempt_id: &str) -> BenchmarkAttemptIdentity {
@@ -47,6 +50,40 @@ fn blocked_transition() -> BenchmarkAttemptTransition {
         jobs: Vec::new(),
         accounting: Vec::new(),
         evidence: Vec::new(),
+    }
+}
+
+fn job() -> BenchmarkJobReference {
+    BenchmarkJobReference { scheduler: "slurm".to_string(), job_id: "3461001".to_string() }
+}
+
+fn accounting(state: BenchmarkSchedulerTerminalState) -> BenchmarkSchedulerAccounting {
+    BenchmarkSchedulerAccounting {
+        scheduler: "slurm".to_string(),
+        job_id: "3461001".to_string(),
+        state,
+        raw_state: if state == BenchmarkSchedulerTerminalState::Completed {
+            "COMPLETED".to_string()
+        } else {
+            "TIMEOUT".to_string()
+        },
+        exit_code: i32::from(state != BenchmarkSchedulerTerminalState::Completed),
+        signal: 0,
+        elapsed_seconds: 125,
+        total_cpu_seconds: 90,
+        max_rss_bytes: Some(2 * 1024 * 1024),
+        node_list: "n001".to_string(),
+        reason: (state != BenchmarkSchedulerTerminalState::Completed)
+            .then(|| "scheduler wall-time limit was exceeded".to_string()),
+    }
+}
+
+fn evidence() -> BenchmarkEvidenceReference {
+    BenchmarkEvidenceReference {
+        uri: "study://results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/evidence.json"
+            .to_string(),
+        sha256: "d".repeat(64),
+        size_bytes: 42,
     }
 }
 
@@ -182,5 +219,112 @@ fn lifecycle_store_serializes_concurrent_transition_publication() -> anyhow::Res
         load_attempt_lifecycle(temporary.path(), &initial.identity)?.current_status(),
         Some(BenchmarkLifecycleStatus::Ready)
     );
+    Ok(())
+}
+
+#[test]
+fn evidence_operations_admit_a_fast_completed_scheduler_job_idempotently() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-evidence-success");
+    let initial = planned("attempt-001");
+    initialize_attempt_lifecycle(temporary.path(), &initial)?;
+    record_attempt_ready(temporary.path(), &initial.identity, "2026-08-04T08:01:00Z")?;
+    record_attempt_submission(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:02:00Z",
+        vec![job()],
+    )?;
+
+    let terminal = accounting(BenchmarkSchedulerTerminalState::Completed);
+    let collecting = record_attempt_accounting(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:03:00Z",
+        terminal.clone(),
+    )?;
+    let repeated = record_attempt_accounting(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:04:00Z",
+        terminal,
+    )?;
+    assert_eq!(collecting, repeated);
+    assert_eq!(collecting.current_status(), Some(BenchmarkLifecycleStatus::Collecting));
+
+    let passed = record_attempt_acceptance(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:05:00Z",
+        vec![evidence()],
+    )?;
+    let repeated = record_attempt_acceptance(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:06:00Z",
+        vec![evidence()],
+    )?;
+    assert_eq!(passed, repeated);
+    assert_eq!(passed.current_status(), Some(BenchmarkLifecycleStatus::Passed));
+    Ok(())
+}
+
+#[test]
+fn evidence_operations_retain_running_and_failed_scheduler_evidence() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-evidence-failure");
+    let initial = planned("attempt-001");
+    initialize_attempt_lifecycle(temporary.path(), &initial)?;
+    record_attempt_ready(temporary.path(), &initial.identity, "2026-08-04T08:01:00Z")?;
+    record_attempt_submission(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:02:00Z",
+        vec![job()],
+    )?;
+    record_attempt_running(temporary.path(), &initial.identity, "2026-08-04T08:03:00Z", &job())?;
+
+    let failed = record_attempt_accounting(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:04:00Z",
+        accounting(BenchmarkSchedulerTerminalState::Timeout),
+    )?;
+    assert_eq!(failed.current_status(), Some(BenchmarkLifecycleStatus::Failed));
+    assert_eq!(
+        failed.transitions.last().and_then(|event| event.reason.as_deref()),
+        Some("scheduler wall-time limit was exceeded")
+    );
+    assert_eq!(failed.transitions.last().map(|event| event.accounting.len()), Some(1));
+    Ok(())
+}
+
+#[test]
+fn evidence_operations_record_external_and_supersession_decisions_idempotently(
+) -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-evidence-decisions");
+    let blocked = planned("attempt-001");
+    initialize_attempt_lifecycle(temporary.path(), &blocked)?;
+    let first = record_attempt_blocked_external(
+        temporary.path(),
+        &blocked.identity,
+        "2026-08-04T08:01:00Z",
+        "required reference panel is unavailable",
+    )?;
+    let repeated = record_attempt_blocked_external(
+        temporary.path(),
+        &blocked.identity,
+        "2026-08-04T08:02:00Z",
+        "required reference panel is unavailable",
+    )?;
+    assert_eq!(first, repeated);
+
+    let superseded = planned("attempt-002");
+    initialize_attempt_lifecycle(temporary.path(), &superseded)?;
+    let record = record_attempt_superseded(
+        temporary.path(),
+        &superseded.identity,
+        "2026-08-04T08:01:00Z",
+        "campaign contract was replaced before submission",
+    )?;
+    assert_eq!(record.current_status(), Some(BenchmarkLifecycleStatus::Superseded));
     Ok(())
 }

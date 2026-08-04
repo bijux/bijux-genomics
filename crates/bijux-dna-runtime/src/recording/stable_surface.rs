@@ -4,7 +4,9 @@ pub use super::attempts::{
 };
 pub use super::benchmark_attempts::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
-    load_attempt_lifecycle,
+    load_attempt_lifecycle, record_attempt_acceptance, record_attempt_accounting,
+    record_attempt_blocked_external, record_attempt_ready, record_attempt_running,
+    record_attempt_submission, record_attempt_superseded,
 };
 pub use super::envelope::{write_run_artifact_envelope, RunArtifactEnvelopeV1, StageResultStatus};
 pub use super::io::{

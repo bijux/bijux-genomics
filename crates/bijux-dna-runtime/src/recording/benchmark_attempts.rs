@@ -9,7 +9,8 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_identity,
     validate_attempt_record_v2, BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkLifecycleStatus,
+    BenchmarkAttemptTransition, BenchmarkEvidenceReference, BenchmarkJobReference,
+    BenchmarkLifecycleStatus, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
 };
 
 const ATTEMPT_FILE: &str = "attempt.json";
@@ -122,6 +123,14 @@ pub fn append_attempt_lifecycle_transition(
     transition: BenchmarkAttemptTransition,
 ) -> Result<BenchmarkAttemptRecordV2> {
     let _lock = acquire_attempt_lock(benchmark_root, identity)?;
+    append_attempt_lifecycle_transition_unlocked(benchmark_root, identity, transition)
+}
+
+fn append_attempt_lifecycle_transition_unlocked(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    transition: BenchmarkAttemptTransition,
+) -> Result<BenchmarkAttemptRecordV2> {
     let mut candidate = load_attempt_lifecycle_unlocked(benchmark_root, identity)?;
     append_attempt_transition(&mut candidate, transition.clone())
         .context("validate appended benchmark transition")?;
@@ -136,6 +145,265 @@ pub fn append_attempt_lifecycle_transition(
         bail!("persisted benchmark attempt differs from the validated transition candidate");
     }
     Ok(reconstructed)
+}
+
+/// Record that planning and admission have made an attempt ready for scheduler submission.
+///
+/// Repeating the operation after the same ready event was recorded is idempotent.
+///
+/// # Errors
+/// Returns an error when the stored lifecycle or derived transition is invalid.
+pub fn record_attempt_ready(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+) -> Result<BenchmarkAttemptRecordV2> {
+    apply_derived_transition(benchmark_root, identity, |record| {
+        if has_status(record, BenchmarkLifecycleStatus::Ready) {
+            return Ok(None);
+        }
+        Ok(Some(next_transition(record, BenchmarkLifecycleStatus::Ready, observed_at_utc)?))
+    })
+}
+
+/// Retain the exact job identities returned by scheduler submission.
+///
+/// Repeating the operation with the same identities is idempotent. A different identity set is
+/// refused instead of replacing prior scheduler evidence.
+///
+/// # Errors
+/// Returns an error when jobs are empty, conflict with stored evidence, or produce an invalid
+/// lifecycle transition.
+pub fn record_attempt_submission(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+    jobs: Vec<BenchmarkJobReference>,
+) -> Result<BenchmarkAttemptRecordV2> {
+    apply_derived_transition(benchmark_root, identity, |record| {
+        if jobs.is_empty() {
+            bail!("benchmark submission requires at least one scheduler job");
+        }
+        let retained = retained_jobs(record);
+        if !retained.is_empty() {
+            if retained == jobs {
+                return Ok(None);
+            }
+            bail!("benchmark submission conflicts with retained scheduler jobs");
+        }
+        let mut transition =
+            next_transition(record, BenchmarkLifecycleStatus::Submitted, observed_at_utc)?;
+        transition.jobs = jobs;
+        Ok(Some(transition))
+    })
+}
+
+/// Record one observed running state for an already retained scheduler job.
+///
+/// # Errors
+/// Returns an error when the job does not belong to the attempt or the transition is invalid.
+pub fn record_attempt_running(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+    job: &BenchmarkJobReference,
+) -> Result<BenchmarkAttemptRecordV2> {
+    apply_derived_transition(benchmark_root, identity, |record| {
+        if has_status(record, BenchmarkLifecycleStatus::Running) {
+            return Ok(None);
+        }
+        if !retained_jobs(record).contains(job) {
+            bail!("benchmark running observation has no retained scheduler job");
+        }
+        Ok(Some(next_transition(record, BenchmarkLifecycleStatus::Running, observed_at_utc)?))
+    })
+}
+
+/// Derive collecting or failed state from terminal scheduler accounting.
+///
+/// Completed accounting enters collection. Every other terminal state fails the attempt while
+/// preserving raw state, exit data, resource accounting, node identity, and scheduler reason.
+/// Repeating collection with byte-equivalent accounting is idempotent.
+///
+/// # Errors
+/// Returns an error when accounting conflicts with retained evidence or the lifecycle transition is
+/// invalid.
+pub fn record_attempt_accounting(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+    accounting: BenchmarkSchedulerAccounting,
+) -> Result<BenchmarkAttemptRecordV2> {
+    apply_derived_transition(benchmark_root, identity, |record| {
+        for retained in retained_accounting(record) {
+            if retained.scheduler == accounting.scheduler && retained.job_id == accounting.job_id {
+                if retained == &accounting {
+                    return Ok(None);
+                }
+                bail!("benchmark scheduler accounting conflicts with retained evidence");
+            }
+        }
+        if !retained_jobs(record)
+            .iter()
+            .any(|job| job.scheduler == accounting.scheduler && job.job_id == accounting.job_id)
+        {
+            bail!("benchmark scheduler accounting has no retained job identity");
+        }
+        let status = if accounting.state == BenchmarkSchedulerTerminalState::Completed {
+            BenchmarkLifecycleStatus::Collecting
+        } else {
+            BenchmarkLifecycleStatus::Failed
+        };
+        let mut transition = next_transition(record, status, observed_at_utc)?;
+        if status == BenchmarkLifecycleStatus::Failed {
+            transition.reason = Some(accounting.reason.clone().unwrap_or_else(|| {
+                format!("scheduler reported terminal state {}", accounting.raw_state)
+            }));
+        }
+        transition.accounting.push(accounting);
+        Ok(Some(transition))
+    })
+}
+
+/// Record checksummed scientific and downstream evidence that admits a collected attempt.
+///
+/// Repeating acceptance with the same evidence is idempotent.
+///
+/// # Errors
+/// Returns an error when evidence is empty, conflicts with a passed attempt, or is invalid.
+pub fn record_attempt_acceptance(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+    evidence: Vec<BenchmarkEvidenceReference>,
+) -> Result<BenchmarkAttemptRecordV2> {
+    apply_derived_transition(benchmark_root, identity, |record| {
+        if evidence.is_empty() {
+            bail!("benchmark acceptance requires checksummed evidence");
+        }
+        if record.current_status() == Some(BenchmarkLifecycleStatus::Passed) {
+            if retained_evidence(record) == evidence {
+                return Ok(None);
+            }
+            bail!("benchmark acceptance conflicts with retained evidence");
+        }
+        let mut transition =
+            next_transition(record, BenchmarkLifecycleStatus::Passed, observed_at_utc)?;
+        transition.evidence = evidence;
+        Ok(Some(transition))
+    })
+}
+
+/// Record an external dependency block without rewriting prior attempt evidence.
+///
+/// # Errors
+/// Returns an error when the reason or transition is invalid.
+pub fn record_attempt_blocked_external(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+    reason: &str,
+) -> Result<BenchmarkAttemptRecordV2> {
+    record_reasoned_terminal(
+        benchmark_root,
+        identity,
+        observed_at_utc,
+        reason,
+        BenchmarkLifecycleStatus::BlockedExternal,
+    )
+}
+
+/// Record that an immutable attempt has been superseded by operator decision.
+///
+/// # Errors
+/// Returns an error when the reason or transition is invalid.
+pub fn record_attempt_superseded(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+    reason: &str,
+) -> Result<BenchmarkAttemptRecordV2> {
+    record_reasoned_terminal(
+        benchmark_root,
+        identity,
+        observed_at_utc,
+        reason,
+        BenchmarkLifecycleStatus::Superseded,
+    )
+}
+
+fn record_reasoned_terminal(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observed_at_utc: &str,
+    reason: &str,
+    status: BenchmarkLifecycleStatus,
+) -> Result<BenchmarkAttemptRecordV2> {
+    apply_derived_transition(benchmark_root, identity, |record| {
+        if record.current_status() == Some(status) {
+            let retained_reason =
+                record.transitions.last().and_then(|event| event.reason.as_deref());
+            if retained_reason == Some(reason) {
+                return Ok(None);
+            }
+            bail!("benchmark terminal decision conflicts with retained reason");
+        }
+        let mut transition = next_transition(record, status, observed_at_utc)?;
+        transition.reason = Some(reason.to_string());
+        Ok(Some(transition))
+    })
+}
+
+fn apply_derived_transition(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    derive: impl FnOnce(&BenchmarkAttemptRecordV2) -> Result<Option<BenchmarkAttemptTransition>>,
+) -> Result<BenchmarkAttemptRecordV2> {
+    let _lock = acquire_attempt_lock(benchmark_root, identity)?;
+    let record = load_attempt_lifecycle_unlocked(benchmark_root, identity)?;
+    let Some(transition) = derive(&record)? else {
+        return Ok(record);
+    };
+    append_attempt_lifecycle_transition_unlocked(benchmark_root, identity, transition)
+}
+
+fn next_transition(
+    record: &BenchmarkAttemptRecordV2,
+    to_status: BenchmarkLifecycleStatus,
+    observed_at_utc: &str,
+) -> Result<BenchmarkAttemptTransition> {
+    let sequence = u32::try_from(record.transitions.len())
+        .ok()
+        .and_then(|value| value.checked_add(1))
+        .context("benchmark transition sequence overflow")?;
+    Ok(BenchmarkAttemptTransition {
+        sequence,
+        from_status: record.current_status(),
+        to_status,
+        observed_at_utc: observed_at_utc.to_string(),
+        reason: None,
+        jobs: Vec::new(),
+        accounting: Vec::new(),
+        evidence: Vec::new(),
+    })
+}
+
+fn has_status(record: &BenchmarkAttemptRecordV2, status: BenchmarkLifecycleStatus) -> bool {
+    record.transitions.iter().any(|transition| transition.to_status == status)
+}
+
+fn retained_jobs(record: &BenchmarkAttemptRecordV2) -> Vec<BenchmarkJobReference> {
+    record.transitions.iter().flat_map(|transition| transition.jobs.clone()).collect()
+}
+
+fn retained_accounting(
+    record: &BenchmarkAttemptRecordV2,
+) -> impl Iterator<Item = &BenchmarkSchedulerAccounting> {
+    record.transitions.iter().flat_map(|transition| &transition.accounting)
+}
+
+fn retained_evidence(record: &BenchmarkAttemptRecordV2) -> Vec<BenchmarkEvidenceReference> {
+    record.transitions.iter().flat_map(|transition| transition.evidence.clone()).collect()
 }
 
 fn validate_supersession_target(

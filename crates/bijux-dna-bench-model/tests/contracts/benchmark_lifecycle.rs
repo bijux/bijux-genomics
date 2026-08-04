@@ -85,6 +85,7 @@ fn passed_attempt(attempt_id: &str, tool_id: &str) -> BenchmarkAttemptRecordV2 {
                 total_cpu_seconds: 90,
                 max_rss_bytes: Some(2 * 1024 * 1024),
                 node_list: "n001".to_string(),
+                reason: None,
             }],
             evidence: vec![BenchmarkEvidenceReference {
                 uri: "study://results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/evidence.json"
@@ -255,12 +256,24 @@ fn failed_scheduler_attempt_retains_exact_terminal_accounting() {
     terminal.accounting[0].state = BenchmarkSchedulerTerminalState::Timeout;
     terminal.accounting[0].raw_state = "TIMEOUT".to_string();
     terminal.accounting[0].exit_code = 1;
+    terminal.accounting[0].reason = Some("scheduler wall-time limit was exceeded".to_string());
 
     assert!(validate_attempt_record_v2(&failed).is_ok());
 
     let duplicate = failed.transitions[4].accounting[0].clone();
     failed.transitions[4].accounting.push(duplicate);
     assert!(validate_attempt_record_v2(&failed).is_err());
+}
+
+#[test]
+fn completed_accounting_can_follow_submission_when_running_was_not_observed() {
+    let mut completed = passed_attempt("attempt-001", "seqkit");
+    completed.transitions.remove(3);
+    completed.transitions[3].sequence = 4;
+    completed.transitions[3].from_status = Some(BenchmarkLifecycleStatus::Submitted);
+    completed.transitions[4].sequence = 5;
+
+    assert!(validate_attempt_record_v2(&completed).is_ok());
 }
 
 #[test]

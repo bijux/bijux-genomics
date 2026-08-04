@@ -169,6 +169,8 @@ pub struct BenchmarkSchedulerAccounting {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_rss_bytes: Option<u64>,
     pub node_list: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

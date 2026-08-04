@@ -40,6 +40,8 @@ fn public_api_doc_matches_runtime_root_surface() {
         "append_attempt_lifecycle_transition",
         "load_attempt_lifecycle",
         "benchmark_attempt_directory",
+        "record_attempt_accounting",
+        "record_attempt_acceptance",
         "write_canonical_json",
         "write_profile_and_lock_manifests",
         "write_run_manifest",
