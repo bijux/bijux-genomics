@@ -698,6 +698,20 @@ def write_report(
     markdown_path.write_text(expected_markdown, encoding="utf-8")
 
 
+def resolve_evidence_root(
+    evidence_root: Path | None,
+    json_output: Path,
+    markdown_output: Path,
+) -> Path | None:
+    if evidence_root is not None:
+        return evidence_root
+    return (
+        json_output.parent
+        if json_output.parent == markdown_output.parent
+        else None
+    )
+
+
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(description=__doc__)
     value.add_argument("--portfolio", type=Path, required=True)
@@ -723,11 +737,16 @@ def main() -> int:
         interfaces = validate_interfaces(
             load_toml(args.interfaces), validated["stage_tools"], args.repository_root.resolve()
         )
+        evidence_root = resolve_evidence_root(
+            args.evidence_root,
+            args.json_output,
+            args.markdown_output,
+        )
         report = readiness_report(
             validated,
             load_toml(args.registry),
             interfaces,
-            args.evidence_root,
+            evidence_root,
         )
         write_report(
             report,

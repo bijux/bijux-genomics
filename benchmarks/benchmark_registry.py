@@ -363,6 +363,22 @@ def write_report(
     markdown_path.write_text(expected_markdown, encoding="utf-8")
 
 
+def resolve_evidence_root(
+    evidence_root: Path | None,
+    json_output: Path | None,
+    markdown_output: Path | None,
+) -> Path | None:
+    if evidence_root is not None:
+        return evidence_root
+    if json_output is None or markdown_output is None:
+        return None
+    return (
+        json_output.parent
+        if json_output.parent == markdown_output.parent
+        else None
+    )
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     root.add_argument("--registry", type=Path, required=True)
@@ -380,13 +396,18 @@ def main() -> int:
         registry = load_toml(args.registry)
         catalog = load_toml(args.catalog)
         campaigns = validate_registry(registry, catalog)
-        report = coverage_report(campaigns, catalog, args.evidence_root)
         if bool(args.json_output) != bool(args.markdown_output):
             raise RegistryError(
                 "JSON and Markdown report paths must be supplied together"
             )
         if args.check and not (args.json_output and args.markdown_output):
             raise RegistryError("--check requires JSON and Markdown report paths")
+        evidence_root = resolve_evidence_root(
+            args.evidence_root,
+            args.json_output,
+            args.markdown_output,
+        )
+        report = coverage_report(campaigns, catalog, evidence_root)
         if args.json_output and args.markdown_output:
             write_report(
                 report,

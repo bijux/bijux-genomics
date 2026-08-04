@@ -264,6 +264,20 @@ class BenchmarkPortfolioTests(unittest.TestCase):
                     report, json_path, markdown_path, check=True
                 )
 
+    def test_resolve_evidence_root_defaults_to_report_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            json_path = root / "benchmarks/reports/scientific-benchmark-readiness.json"
+            markdown_path = root / "benchmarks/reports/scientific-benchmark-readiness.md"
+
+            resolved = benchmark_portfolio.resolve_evidence_root(
+                None,
+                json_path,
+                markdown_path,
+            )
+
+        self.assertEqual(resolved, json_path.parent)
+
 
 if __name__ == "__main__":
     unittest.main()
