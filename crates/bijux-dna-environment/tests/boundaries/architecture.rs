@@ -34,8 +34,14 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src")),
-        btree_set(&["build/", "lib.rs", "public_api/", "resolve/", "runtime_spec/",]),
+        btree_set(&["build/", "evidence/", "lib.rs", "public_api/", "resolve/", "runtime_spec/",]),
         "src tree must match the documented environment layout"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/evidence")),
+        btree_set(&["load.rs", "mod.rs", "model.rs", "schema.rs", "validation.rs"]),
+        "evidence tree must separate models, admission, validation, and schemas"
     );
 
     assert_eq!(

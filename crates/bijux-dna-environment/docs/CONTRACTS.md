@@ -13,6 +13,15 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ImageRef`: deterministic tag formatting helper.
 - `ReferenceRecord`: digest-addressed reference cache record.
 - `ReferenceBuildRequest`: explicit switches for optional reference indexes.
+- `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
+- `RuntimeVerificationPublication`: runtime evidence tied to catalog, inventory, repository, and
+  image identities.
+
+## Evidence Publications
+
+The image-inventory and runtime-verification loaders reject malformed identities, duplicate tools
+or candidates, and selected images that are not admitted candidates. Unknown descriptive fields
+remain forward-compatible; every identity and decision field consumed by qualification is typed.
 
 ## Resolution Precedence
 

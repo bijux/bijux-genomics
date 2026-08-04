@@ -3,6 +3,7 @@
 ## Public Modules
 
 - `build`
+- `evidence`
 - `public_api`
 - `resolve`
 - `runtime_spec`
@@ -11,6 +12,8 @@
 
 - `build`: `DockerToolSpec`, `EnvironmentBuilder`, `default_docker_tools`, and
   `extract_version_from_dockerfile`.
+- `evidence`: typed container image-inventory and runtime-verification publications, validation,
+  loading, JSON Schema rendering, and atomic schema writing.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.

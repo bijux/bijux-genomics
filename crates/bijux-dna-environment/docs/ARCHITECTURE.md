@@ -8,6 +8,7 @@ CLI, runner, planner, stage, and domain crates.
 
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
+- `src/evidence/`: typed image-inventory and runtime-verification publication admission.
 - `src/build/`: curated Docker tool defaults and Dockerfile version parsing.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
 - `src/resolve/catalog/`: TOML catalog loading, registry digest hydration, and image reference
@@ -28,6 +29,8 @@ CLI, runner, planner, stage, and domain crates.
 3. Image catalog TOML provides tool versions and optional digests.
 4. Registry pins can hydrate missing digests from the local registry file.
 5. Resolver functions return `ResolvedImage`, `PlatformSpec`, `RuntimeSpec`, or reference records.
+6. Evidence loaders admit immutable image and runtime publications before qualification consumers
+   compose higher-level policy decisions.
 
 ## Boundaries
 

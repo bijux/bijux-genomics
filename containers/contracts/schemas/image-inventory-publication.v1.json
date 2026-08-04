@@ -1,0 +1,200 @@
+{
+  "$defs": {
+    "BuildContextIdentity": {
+      "properties": {
+        "git_object": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "git_object"
+      ],
+      "type": "object"
+    },
+    "BuildEvidenceStatus": {
+      "enum": [
+        "built",
+        "passed",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "ContainerBuildEvidence": {
+      "properties": {
+        "build_context": {
+          "items": {
+            "$ref": "#/$defs/BuildContextIdentity"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "definition_sha256": {
+          "type": "string"
+        },
+        "repository_commit": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BuildEvidenceStatus"
+        }
+      },
+      "required": [
+        "status",
+        "definition_sha256",
+        "repository_commit"
+      ],
+      "type": "object"
+    },
+    "ContainerImageCandidate": {
+      "properties": {
+        "admitted": {
+          "type": "boolean"
+        },
+        "build_evidence": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ContainerBuildEvidence"
+          },
+          "type": "array"
+        },
+        "current_recipe": {
+          "type": "boolean"
+        },
+        "disposition": {
+          "$ref": "#/$defs/ImageCandidateDisposition"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "admitted",
+        "current_recipe",
+        "disposition",
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "ContainerImageInventoryTool": {
+      "properties": {
+        "apptainer_supported": {
+          "type": "boolean"
+        },
+        "candidates": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ContainerImageCandidate"
+          },
+          "type": "array"
+        },
+        "selected_image_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/ContainerImageState"
+        },
+        "support_disposition": {
+          "$ref": "#/$defs/ContainerSupportDisposition"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "version",
+        "support_disposition",
+        "apptainer_supported",
+        "state"
+      ],
+      "type": "object"
+    },
+    "ContainerImageState": {
+      "enum": [
+        "current",
+        "historical",
+        "missing",
+        "unsupported"
+      ],
+      "type": "string"
+    },
+    "ContainerSupportDisposition": {
+      "enum": [
+        "retained",
+        "unsupported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
+    },
+    "ImageCandidateDisposition": {
+      "enum": [
+        "canonical",
+        "historical_run_dependency"
+      ],
+      "type": "string"
+    },
+    "ImageInventoryPublicationIdentity": {
+      "properties": {
+        "raw_schema_version": {
+          "type": "string"
+        },
+        "raw_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "raw_schema_version",
+        "raw_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "publication": {
+      "$ref": "#/$defs/ImageInventoryPublicationIdentity"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.container.image_inventory_publication.v1",
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/ContainerImageInventoryTool"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "catalog_sha256",
+    "repository_commit",
+    "publication",
+    "tools"
+  ],
+  "title": "ContainerImageInventoryPublication",
+  "type": "object"
+}

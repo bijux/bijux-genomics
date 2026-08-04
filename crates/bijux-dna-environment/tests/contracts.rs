@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/build_dockerfile.rs"]
 mod mod_contracts_build_dockerfile_rs;
+#[path = "contracts/evidence_publications.rs"]
+mod mod_contracts_evidence_publications_rs;
 #[path = "contracts/matrix.rs"]
 mod mod_contracts_matrix_rs;
 #[path = "contracts/resolve_runtime.rs"]
