@@ -6,6 +6,7 @@
 - Spawn `docker run` and `apptainer exec` through typed execution specs.
 - Spawn declared observer commands through `execute_observer_command`.
 - Spawn declared low-level commands through `run_command` and `run_command_with_context`.
+- Spawn `sbatch`, `squeue`, `sacct`, and `scancel` only through typed Slurm contracts.
 - Read declared inputs and execution manifests.
 - Write runner-owned records, stdout/stderr captures, and artifacts under declared run/output roots.
 - Create temporary paths through `bijux-dna-infra` helpers.

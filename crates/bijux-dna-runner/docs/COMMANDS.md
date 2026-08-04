@@ -15,9 +15,16 @@ This crate may construct and execute only these backend command families from ty
 - declared local commands through `LocalRunner`
 - declared observer commands through `execute_observer_command`
 - declared low-level commands through `run_command` and `run_command_with_context`
+- non-waiting Slurm submission through `sbatch`
+- one-shot Slurm queue observation through `squeue`
+- terminal scheduler accounting through `sacct`
+- explicit cancellation through `scancel`
 
 ### Non-Executing Operations
 Replay never executes a backend command. `replay_run` reads an execution manifest and verifies artifacts on disk.
+
+Slurm operations never loop or wait for job completion. Callers persist the returned
+job identity and invoke observation or collection in a later cycle.
 
 ## Ownership Rules
 - CLI parsing stays in CLI/API crates.

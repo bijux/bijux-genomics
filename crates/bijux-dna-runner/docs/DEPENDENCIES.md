@@ -14,6 +14,8 @@
 - `bijux-dna-environment` for runtime kind, image catalog, image resolution, and platform contracts.
 - `bijux-dna-infra` for governed filesystem writes, temp dirs, path helpers, and hashing.
 
+The Slurm backend introduces no scheduler library or async runtime dependency. It invokes the configured `sbatch`, `squeue`, `sacct`, and `scancel` executables through the standard process boundary.
+
 ## Dev Dependencies
 - `bijux-dna-policies` for guardrail checks.
 - `cargo_metadata` for dependency boundary tests.
