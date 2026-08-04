@@ -23,6 +23,10 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
+| `plan-attempt-migration` | `plan_attempt_migration(study_root, created_at_utc)` | Classify historical attempts by retained `run.kind` and produce a byte inventory bound plan. |
+| `apply-attempt-migration` | `apply_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Move planned attempts by same-filesystem rename while maintaining an interruption-safe ledger. |
+| `verify-attempt-migration` | `verify_attempt_migration(study_root, plan_path, ledger_path)` | Recompute every current source or target file size and SHA-256 against the exact plan. |
+| `rollback-attempt-migration` | `rollback_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Verify and restore every applied attempt to its exact historical source path. |
 | `summarize` | `summarize(suite, observations, options)` | Build deterministic benchmark summaries from observations. |
 | `compare` | `compare(summary_a, summary_b)` | Compare two completed benchmark summaries. |
 | `gate` | `gate(policy, summary)` | Evaluate benchmark rows against a gate policy. |
@@ -44,6 +48,9 @@ Managed benchmark artifacts are:
 - `summary.json`
 - `decision.json`
 - `decisions.json`
+- `migration-plan.json`
+- `migration-ledger.json`
+- `after-inventory.json`
 
 `bijux-dna-bench` writes and reads benchmark artifacts only under declared
 benchmark output roots.
