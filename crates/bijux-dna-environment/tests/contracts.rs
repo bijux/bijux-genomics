@@ -9,3 +9,5 @@ mod mod_contracts_matrix_rs;
 mod mod_contracts_resolve_runtime_rs;
 #[path = "contracts/run_shell_capture.rs"]
 mod mod_contracts_run_shell_capture_rs;
+#[path = "contracts/tool_contract.rs"]
+mod mod_contracts_tool_contract_rs;

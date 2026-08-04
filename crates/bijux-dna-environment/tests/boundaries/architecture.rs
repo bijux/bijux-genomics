@@ -40,8 +40,30 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/evidence")),
-        btree_set(&["load.rs", "mod.rs", "model.rs", "schema.rs", "validation.rs"]),
+        btree_set(&[
+            "load.rs",
+            "mod.rs",
+            "model.rs",
+            "schema.rs",
+            "tool_contract/",
+            "validation.rs",
+        ]),
         "evidence tree must separate models, admission, validation, and schemas"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/tool_contract")),
+        btree_set(&[
+            "catalog.rs",
+            "inspection.rs",
+            "labels.rs",
+            "mod.rs",
+            "model.rs",
+            "preparation.rs",
+            "schema.rs",
+            "validation.rs",
+        ]),
+        "tool contracts must separate source, rendering, inspection, and admission concerns"
     );
 
     assert_eq!(

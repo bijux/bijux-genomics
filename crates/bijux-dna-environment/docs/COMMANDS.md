@@ -18,6 +18,8 @@ library can manage when callers invoke the matching API.
 - `ReferenceRegistry::prepare_reference()`: when requested, runs `samtools faidx`, `gatk
   CreateSequenceDictionary`, `bwa index`, and `bowtie2-build` to materialize missing reference
   indexes.
+- `verify_apptainer_tool_contract()`: runs `apptainer exec --cleanenv --containall` to read the
+  embedded contract and `apptainer inspect --json` to compare its immutable labels.
 
 ## Non-Commands
 
@@ -38,6 +40,7 @@ library can manage when callers invoke the matching API.
   execution helper.
 - `src/resolve/shell.rs`: explicit shell capture for caller-provided diagnostics.
 - `src/resolve/smoke.rs`: environment smoke handoff through the developer control plane.
+- `src/evidence/tool_contract/inspection.rs`: embedded Apptainer contract and label inspection.
 
 ## Verification
 

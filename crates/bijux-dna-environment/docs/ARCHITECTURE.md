@@ -8,7 +8,8 @@ CLI, runner, planner, stage, and domain crates.
 
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
-- `src/evidence/`: typed image-inventory and runtime-verification publication admission.
+- `src/evidence/`: typed image-inventory and runtime-verification publication admission, plus
+  catalog-derived embedded tool identity contracts.
 - `src/build/`: curated Docker tool defaults and Dockerfile version parsing.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
 - `src/resolve/catalog/`: TOML catalog loading, registry digest hydration, and image reference
@@ -31,6 +32,9 @@ CLI, runner, planner, stage, and domain crates.
 5. Resolver functions return `ResolvedImage`, `PlatformSpec`, `RuntimeSpec`, or reference records.
 6. Evidence loaders admit immutable image and runtime publications before qualification consumers
    compose higher-level policy decisions.
+7. Tool-contract preparation hashes canonical catalog, recipe, source, interface, repository, and
+   architecture inputs into a rendered definition; runtime inspection binds that non-circular
+   identity to the externally computed immutable SIF digest.
 
 ## Boundaries
 

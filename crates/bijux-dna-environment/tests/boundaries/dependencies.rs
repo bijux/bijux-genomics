@@ -17,6 +17,7 @@ fn dependency_graph_matches_environment_boundary() {
         "serde_json",
         "sha2",
         "thiserror",
+        "toml",
     ]
     .into_iter()
     .map(str::to_string)
@@ -25,7 +26,7 @@ fn dependency_graph_matches_environment_boundary() {
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
     let expected_dev_dependencies: BTreeSet<_> =
-        ["bijux-dna-core", "bijux-dna-policies", "bijux-dna-testkit", "walkdir"]
+        ["bijux-dna-core", "bijux-dna-policies", "bijux-dna-testkit", "tempfile", "walkdir"]
             .into_iter()
             .map(str::to_string)
             .collect();

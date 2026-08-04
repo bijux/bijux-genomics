@@ -1,0 +1,188 @@
+use std::collections::BTreeMap;
+use std::fmt::Write as _;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result};
+use bijux_dna_environment::evidence::tool_contract::{
+    prepare_apptainer_tool_contract, tool_contract_labels, validate_tool_contract,
+    validate_tool_contract_labels, verify_apptainer_tool_contract, ToolContractBuildRequest,
+};
+use sha2::{Digest, Sha256};
+
+fn repository_root() -> Result<PathBuf> {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .map(Path::to_path_buf)
+        .context("environment crate is outside the repository workspace")
+}
+
+fn prepare(
+    tool_id: &str,
+) -> Result<(
+    tempfile::TempDir,
+    bijux_dna_environment::evidence::tool_contract::PreparedToolContractBuild,
+)> {
+    let root = repository_root()?;
+    let test_root = root.join("artifacts/tests/tool-contract");
+    bijux_dna_infra::ensure_dir(&test_root)?;
+    let output = bijux_dna_infra::temp_dir_in(&test_root, "build-inputs-")?;
+    let prepared = prepare_apptainer_tool_contract(&ToolContractBuildRequest {
+        repository_root: root,
+        tool_id: tool_id.to_string(),
+        repository_commit: "1234567890abcdef1234567890abcdef12345678".to_string(),
+        architecture: "linux/amd64".to_string(),
+        output_root: output.path().to_path_buf(),
+    })?;
+    Ok((output, prepared))
+}
+
+#[test]
+fn retained_contract_is_catalog_derived_and_installed_once() -> Result<()> {
+    let (_output, prepared) = prepare("samtools")?;
+    validate_tool_contract(&prepared.contract)?;
+    assert_eq!(prepared.contract.tool_id, "samtools");
+    assert_eq!(prepared.contract.version, "1.20");
+    assert_eq!(prepared.contract.support_disposition, "retained");
+    assert_eq!(prepared.contract.recipe_path, "containers/apptainer/samtools.def");
+    assert_eq!(prepared.contract.build_evidence_id.len(), 64);
+    assert!(prepared.contract.source_sha256.is_some());
+    assert!(prepared.contract.pinned_commit.is_none());
+
+    let rendered = fs::read_to_string(&prepared.rendered_definition_path)?;
+    assert_eq!(rendered.matches("/usr/share/bijux/tool-contract.json").count(), 1);
+    for (key, value) in tool_contract_labels(&prepared.contract) {
+        assert!(
+            rendered.contains(&format!("{key} \"{value}\"")),
+            "rendered definition omits {key}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn every_retained_apptainer_recipe_renders_one_contract() -> Result<()> {
+    let root = repository_root()?;
+    let catalog: toml::Value =
+        toml::from_str(&fs::read_to_string(root.join("containers/contracts/catalog.toml"))?)?;
+    let retained = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .context("catalog lacks tools")?
+        .iter()
+        .filter(|tool| {
+            tool.get("support_disposition").and_then(toml::Value::as_str) == Some("retained")
+                && tool.get("apptainer_supported").and_then(toml::Value::as_bool) == Some(true)
+        })
+        .map(|tool| {
+            tool.get("id").and_then(toml::Value::as_str).context("retained catalog tool lacks id")
+        })
+        .collect::<Result<Vec<_>>>()?;
+    assert_eq!(retained.len(), 85);
+
+    for tool_id in retained {
+        let (_output, prepared) = prepare(tool_id)?;
+        let rendered = fs::read_to_string(prepared.rendered_definition_path)?;
+        assert_eq!(
+            rendered.matches("/usr/share/bijux/tool-contract.json").count(),
+            1,
+            "{tool_id} must install exactly one contract"
+        );
+        assert_eq!(prepared.contract.tool_id, tool_id);
+    }
+    Ok(())
+}
+
+#[test]
+fn contract_admission_rejects_identity_and_label_tampering() -> Result<()> {
+    let (_output, prepared) = prepare("samtools")?;
+    let mut malformed = serde_json::to_value(&prepared.contract)?;
+    malformed
+        .as_object_mut()
+        .context("serialized contract is not an object")?
+        .insert("unexpected".to_string(), serde_json::json!(true));
+    assert!(serde_json::from_value::<
+        bijux_dna_environment::evidence::tool_contract::ContainerToolContract,
+    >(malformed)
+    .is_err());
+
+    let mut stale = prepared.contract.clone();
+    stale.catalog_sha256 = "0".repeat(64);
+    assert!(
+        validate_tool_contract(&stale).is_err_and(|error| error.to_string().contains("catalog"))
+    );
+
+    let mut ambiguous = prepared.contract.clone();
+    ambiguous.pinned_commit = Some("1234567890abcdef1234567890abcdef12345678".to_string());
+    assert!(validate_tool_contract(&ambiguous)
+        .is_err_and(|error| error.to_string().contains("only one source identity")));
+
+    let mut labels = tool_contract_labels(&prepared.contract);
+    labels.insert("io.bijux.tool-contract.version".to_string(), "stale".to_string());
+    assert!(validate_tool_contract_labels(&prepared.contract, &labels)
+        .is_err_and(|error| error.to_string().contains("mismatches embedded contract")));
+
+    labels = tool_contract_labels(&prepared.contract);
+    labels.insert("io.bijux.tool-contract.unowned".to_string(), "value".to_string());
+    assert!(validate_tool_contract_labels(&prepared.contract, &labels)
+        .is_err_and(|error| error.to_string().contains("unexpected tool-contract label")));
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn runtime_verification_binds_contract_labels_and_image_digest() -> Result<()> {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let (output, prepared) = prepare("samtools")?;
+    let image = output.path().join("samtools.sif");
+    fs::write(&image, b"immutable-sif-fixture")?;
+    let image_sha256 = hex_digest(&Sha256::digest(fs::read(&image)?));
+    let labels_path = output.path().join("labels.json");
+    let labels = tool_contract_labels(&prepared.contract).into_iter().collect::<BTreeMap<_, _>>();
+    bijux_dna_infra::atomic_write_json(
+        &labels_path,
+        &serde_json::json!({"data": {"attributes": {"labels": labels}}}),
+    )?;
+    let fake_apptainer = output.path().join("apptainer");
+    let script = format!(
+        "#!/bin/sh\ncase \"$1\" in\n  exec) cat '{}' ;;\n  inspect) cat '{}' ;;\n  *) exit 64 ;;\nesac\n",
+        prepared.contract_path.display(),
+        labels_path.display()
+    );
+    fs::write(&fake_apptainer, script)?;
+    fs::set_permissions(&fake_apptainer, fs::Permissions::from_mode(0o755))?;
+
+    let verified =
+        verify_apptainer_tool_contract(&fake_apptainer, &image, &image_sha256, &prepared.contract)?;
+    assert_eq!(verified.contract, prepared.contract);
+    assert_eq!(verified.image_sha256, image_sha256);
+
+    assert!(verify_apptainer_tool_contract(
+        &fake_apptainer,
+        &image,
+        &"f".repeat(64),
+        &prepared.contract,
+    )
+    .is_err_and(|error| error.to_string().contains("image digest mismatch")));
+
+    let mut tampered = prepared.contract.clone();
+    tampered.version = "9.9.9".to_string();
+    bijux_dna_infra::atomic_write_json(&prepared.contract_path, &tampered)?;
+    assert!(verify_apptainer_tool_contract(
+        &fake_apptainer,
+        &image,
+        &image_sha256,
+        &prepared.contract,
+    )
+    .is_err_and(|error| error.to_string().contains("differs from expected")));
+    Ok(())
+}
+
+fn hex_digest(bytes: &[u8]) -> String {
+    bytes.iter().fold(String::with_capacity(bytes.len() * 2), |mut output, byte| {
+        let _ = write!(output, "{byte:02x}");
+        output
+    })
+}

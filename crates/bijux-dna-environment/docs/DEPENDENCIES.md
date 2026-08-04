@@ -9,15 +9,19 @@ stay small and must not point at higher orchestration layers.
 - `bijux-dna-infra`: repository config lookup, atomic file operations, directory creation, and TOML
   parsing with the `yaml` feature already used elsewhere in the crate family.
 - `regex`: Dockerfile version ARG parsing.
+- `schemars`: JSON Schema generation for evidence and embedded image contracts.
 - `serde`: serialized environment model contracts.
+- `serde_json`: typed evidence loading, label inspection, and schema rendering.
 - `sha2`: reference content digests.
 - `thiserror`: typed `EnvError`.
+- `toml`: strict loading of the canonical container catalog during build preparation.
 
 ## Allowed Test Dependencies
 
 - `bijux-dna-core`: canonical JSON helpers used by schema snapshots.
 - `bijux-dna-policies`: workspace guardrails.
 - `bijux-dna-testkit`: fixture, stable JSON, and artifact-aware temp helpers.
+- `tempfile`: lifecycle ownership for contract-build test artifacts.
 - `walkdir`: boundary source scans.
 
 ## Forbidden Dependencies

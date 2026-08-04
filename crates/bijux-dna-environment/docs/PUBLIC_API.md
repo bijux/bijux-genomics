@@ -12,7 +12,8 @@
 
 - `build`: `DockerToolSpec`, `EnvironmentBuilder`, `default_docker_tools`, and
   `extract_version_from_dockerfile`.
-- `evidence`: typed container image-inventory and runtime-verification publications, validation,
+- `evidence`: typed container image-inventory and runtime-verification publications; strict embedded
+  tool contracts; catalog-derived Apptainer build preparation; runtime inspection; validation,
   loading, JSON Schema rendering, and atomic schema writing.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.

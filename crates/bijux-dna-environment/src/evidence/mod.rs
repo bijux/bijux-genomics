@@ -4,6 +4,7 @@
 mod load;
 mod model;
 mod schema;
+pub mod tool_contract;
 mod validation;
 
 pub use load::{load_image_inventory_publication, load_runtime_verification_publication};

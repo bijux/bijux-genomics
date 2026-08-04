@@ -16,12 +16,19 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
 - `RuntimeVerificationPublication`: runtime evidence tied to catalog, inventory, repository, and
   image identities.
+- `ContainerToolContract`: the strict identity installed exactly once at
+  `/usr/share/bijux/tool-contract.json` in each retained tool image.
 
 ## Evidence Publications
 
 The image-inventory and runtime-verification loaders reject malformed identities, duplicate tools
 or candidates, and selected images that are not admitted candidates. Unknown descriptive fields
 remain forward-compatible; every identity and decision field consumed by qualification is typed.
+
+Embedded contracts reject unknown fields and identify the exact catalog, canonical recipe, source,
+repository commit, architecture, build evidence, expected binary, and version interface. The SIF
+digest is deliberately computed outside the SIF because embedding its own digest would be circular;
+`VerifiedToolImageIdentity` binds that digest to the validated internal contract and matching labels.
 
 ## Resolution Precedence
 
