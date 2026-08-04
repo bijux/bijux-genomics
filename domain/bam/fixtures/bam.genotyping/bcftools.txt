@@ -1,9 +1,9 @@
-tool=prinseq
+tool=bcftools
 tool_version=pinned
-stage=fastq.profile_read_lengths
-domain=fastq
+stage=bam.genotyping
+domain=bam
 fixture_kind=synthetic_truth
-command=prinseq
+command=bcftools
 args=
 expected_outputs=contract_artifacts
 expected_stdout_patterns=contract_ok

@@ -79,7 +79,6 @@ governed_stage_ids:
   - bam.validate
 governed_tool_ids:
   - addeam
-  - angsd
   - authenticct
   - bamtools
   - bamutil
@@ -94,7 +93,6 @@ governed_tool_ids:
   - mapdamage2
   - mosdepth
   - multiqc
-  - ngsbriggs
   - picard
   - pmdtools
   - preseq

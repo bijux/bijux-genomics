@@ -54,10 +54,13 @@ pub(super) fn write_vcf_generated_views(
     domain_dir: &Path,
     ci_registry_dir: &Path,
     ci_stages_dir: &Path,
+    ci_tools_dir: &Path,
     container_catalog: &BTreeMap<String, ContainerToolContract>,
     source_commit: &str,
 ) -> Result<()> {
     let tool_registry_vcf_path = ci_registry_dir.join("tool_registry_vcf.toml");
+    let downstream_registry_path = ci_registry_dir.join("tool_registry_vcf_downstream.toml");
+    let downstream_required_tools_path = ci_tools_dir.join("required_tools_vcf_downstream.toml");
     let stages_vcf_path = ci_stages_dir.join("stages_vcf.toml");
     let vcf_header =
         generated_header("domain/vcf/** + containers/contracts/catalog.toml", source_commit);
@@ -121,7 +124,9 @@ pub(super) fn write_vcf_generated_views(
         registry_stage_toml.push_str("requires_reporting = false\n\n");
     }
 
-    let mut tools_vcf_toml = vcf_header;
+    let mut tools_vcf_toml = vcf_header.clone();
+    let mut downstream_vcf_toml = vcf_header;
+    let mut downstream_tool_ids = Vec::new();
     let vcf_tool_dir = domain_dir.join("vcf").join("tools");
     for path in collect_yaml_files(&vcf_tool_dir)? {
         let tool: DomainToolLoose = read_yaml(&path)?;
@@ -189,16 +194,41 @@ pub(super) fn write_vcf_generated_views(
         let _ = writeln!(tools_vcf_toml, "dockerfile = \"{}\"", contract.dockerfile);
         let _ = writeln!(tools_vcf_toml, "apptainer_def = \"{}\"", contract.apptainer_definition);
         let _ = writeln!(tools_vcf_toml, "require_labels = {}\n", !runtimes.is_empty());
+
+        if tool.tool_id != "bcftools" {
+            let Some(row_start) = tools_vcf_toml.rfind("[[tools]]") else {
+                bail!("VCF tool row rendering lost the current tool boundary");
+            };
+            downstream_vcf_toml.push_str(&tools_vcf_toml[row_start..]);
+            if vcf_status == "planned" {
+                let _ = writeln!(
+                    downstream_vcf_toml,
+                    "smoke_minimal_rationale = \"No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks.\"\n"
+                );
+            }
+            downstream_tool_ids.push(tool.tool_id.clone());
+        }
     }
     tools_vcf_toml.push_str(&registry_stage_toml);
 
     let tools_vcf_toml = normalize_generated_text(&tools_vcf_toml);
+    let downstream_vcf_toml = normalize_generated_text(&downstream_vcf_toml);
     let stages_vcf_toml = normalize_generated_text(&stages_vcf_toml);
     write_string(&tool_registry_vcf_path, &tools_vcf_toml)
         .with_context(|| format!("write {}", tool_registry_vcf_path.display()))?;
     write_string(&stages_vcf_path, &stages_vcf_toml)
         .with_context(|| format!("write {}", stages_vcf_path.display()))?;
+    write_string(&downstream_registry_path, &downstream_vcf_toml)
+        .with_context(|| format!("write {}", downstream_registry_path.display()))?;
+    downstream_tool_ids.sort();
+    let mut required_tools = generated_header("domain/vcf/**", source_commit);
+    required_tools.push_str("schema_version = \"bijux.required_tools.v1\"\n");
+    let _ = writeln!(required_tools, "required_tools = {}", toml_array(&downstream_tool_ids));
+    write_string(&downstream_required_tools_path, &normalize_generated_text(&required_tools))
+        .with_context(|| format!("write {}", downstream_required_tools_path.display()))?;
     println!("generated: {}", tool_registry_vcf_path.display());
+    println!("generated: {}", downstream_registry_path.display());
+    println!("generated: {}", downstream_required_tools_path.display());
     println!("generated: {}", stages_vcf_path.display());
     Ok(())
 }

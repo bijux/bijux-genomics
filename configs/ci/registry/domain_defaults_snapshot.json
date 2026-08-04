@@ -512,7 +512,7 @@
         "stage_id": "vcf.phasing",
         "tool_id": "shapeit5",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-        "rationale": "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative.",
+        "rationale": "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle, Eagle, and SHAPEIT4 stay comparative.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },

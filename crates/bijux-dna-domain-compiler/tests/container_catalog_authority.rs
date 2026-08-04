@@ -22,7 +22,9 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
     for relative in [
         "ci/registry/tool_registry.toml",
         "ci/registry/tool_registry_experimental.toml",
+        "ci/registry/tool_registry_container_experimental.toml",
         "ci/registry/tool_registry_vcf.toml",
+        "ci/registry/tool_registry_vcf_downstream.toml",
     ] {
         let registry = read_toml(&out_dir.path().join(relative))?;
         for row in registry.get("tools").and_then(toml::Value::as_array).into_iter().flatten() {
@@ -86,45 +88,50 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
             }
         }
         if relative == "ci/registry/tool_registry.toml" {
-            let tool_stage_ids = registry
-                .get("tools")
+            assert_production_stage_bindings(&registry)?;
+        }
+    }
+    Ok(())
+}
+
+fn assert_production_stage_bindings(registry: &toml::Value) -> Result<()> {
+    let tool_stage_ids = registry
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .context("production registry has no tools")?
+        .iter()
+        .map(|row| {
+            let id = text(row, "id")?;
+            let stages = row
+                .get("stage_ids")
                 .and_then(toml::Value::as_array)
-                .context("production registry has no tools")?
+                .context("production tool has no stage_ids")?
                 .iter()
-                .map(|row| {
-                    let id = text(row, "id")?;
-                    let stages = row
-                        .get("stage_ids")
-                        .and_then(toml::Value::as_array)
-                        .context("production tool has no stage_ids")?
-                        .iter()
-                        .map(|value| value.as_str().context("stage id is not text"))
-                        .collect::<Result<Vec<_>>>()?;
-                    Ok((id, stages))
-                })
-                .collect::<Result<BTreeMap<_, _>>>()?;
-            for stage in registry
-                .get("stages")
+                .map(|value| value.as_str().context("stage id is not text"))
+                .collect::<Result<Vec<_>>>()?;
+            Ok((id, stages))
+        })
+        .collect::<Result<BTreeMap<_, _>>>()?;
+    for stage in registry
+        .get("stages")
+        .and_then(toml::Value::as_array)
+        .context("production registry has no stages")?
+    {
+        let stage_id = text(stage, "id")?;
+        for field in ["primary_tools", "optional_alternatives"] {
+            for tool_id in stage
+                .get(field)
                 .and_then(toml::Value::as_array)
-                .context("production registry has no stages")?
+                .context("production stage has no tool binding array")?
+                .iter()
+                .map(|value| value.as_str().context("tool id is not text"))
             {
-                let stage_id = text(stage, "id")?;
-                for field in ["primary_tools", "optional_alternatives"] {
-                    for tool_id in stage
-                        .get(field)
-                        .and_then(toml::Value::as_array)
-                        .context("production stage has no tool binding array")?
-                        .iter()
-                        .map(|value| value.as_str().context("tool id is not text"))
-                    {
-                        assert!(
-                            tool_stage_ids
-                                .get(tool_id?)
-                                .is_some_and(|stage_ids| stage_ids.contains(&stage_id)),
-                            "{stage_id}: {field} contains a tool without an authored stage binding"
-                        );
-                    }
-                }
+                assert!(
+                    tool_stage_ids
+                        .get(tool_id?)
+                        .is_some_and(|stage_ids| stage_ids.contains(&stage_id)),
+                    "{stage_id}: {field} contains a tool without an authored stage binding"
+                );
             }
         }
     }

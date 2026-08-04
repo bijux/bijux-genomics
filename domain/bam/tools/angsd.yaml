@@ -2,12 +2,12 @@ schema_version: "bijux.tool.v2"
 tool_id: "angsd"
 upstream: "https://github.com/ANGSD/angsd"
 versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "0.940"
-install_kind: "container"
+pin_strategy: "external_tool"
+default_version: "0.941"
+install_kind: "external"
 container:
-  image: "bijuxdna/angsd"
-license: "GPL-3.0"
+  image: "external"
+license: "NOASSERTION"
 citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 outputs:
   - name: "sex_report"
@@ -38,7 +38,7 @@ execution_contract:
   forbid_unexpected_outputs: true
 stage_ids: ["bam.sex","bam.kinship"]
 planned_stage_ids: []
-status: "supported"
+status: "planned"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.sex:
@@ -74,4 +74,4 @@ io_contract:
   required_inputs:
     - bam
 
-notes: "Domain SSOT tool contract entry."
+notes: "Operator-provided scientific integration only; the catalog forbids container redistribution because upstream publishes no license grant."

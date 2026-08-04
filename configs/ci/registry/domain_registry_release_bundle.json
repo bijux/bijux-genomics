@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "b9e8a26e0f9ffe81778279c8f5f9e7c57ee80303",
-  "bundle_checksum_sha256": "4068a667860ad037240da8e26627bd27c3f441f69145fba694b125fa9c7871be",
+  "source_commit": "0f32606f205853ada671738a307a52b8877ee89f",
+  "bundle_checksum_sha256": "17c551240f57bf188debaec039da17dd6347d4766a544ea0f3b515a2b2215ffb",
   "domains": [
     {
       "domain_id": "bam",
@@ -2592,13 +2592,13 @@
         },
         {
           "tool_id": "angsd",
-          "status": "supported",
+          "status": "planned",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "0.940",
+          "default_version": "0.941",
           "upstream": "https://github.com/ANGSD/angsd",
-          "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "pin_strategy": "external_tool",
+          "license": "NOASSERTION",
           "citation": "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4",
           "version_cmd": "angsd --version",
           "help_cmd": "angsd --help",
@@ -2616,7 +2616,7 @@
           "metrics_schema_id": "bijux.bam.population.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "bijuxdna/angsd",
+            "image": "external",
             "digest": ""
           }
         },
@@ -3070,13 +3070,13 @@
         },
         {
           "tool_id": "ngsbriggs",
-          "status": "supported",
+          "status": "planned",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "0.1.3",
+          "default_version": "0.01",
           "upstream": "https://github.com/RAHenriksen/ngsBriggs",
-          "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "pin_strategy": "external_tool",
+          "license": "NOASSERTION",
           "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/",
           "version_cmd": "ngsbriggs --version",
           "help_cmd": "ngsbriggs --help",
@@ -3095,7 +3095,7 @@
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "bijuxdna/ngsbriggs:0.1.3",
+            "image": "external",
             "digest": ""
           }
         },
@@ -4343,6 +4343,11 @@
           "fixture_path": "domain/bam/fixtures/bam.filter/samtools.txt"
         },
         {
+          "stage_id": "bam.genotyping",
+          "tool_id": "bcftools",
+          "fixture_path": "domain/bam/fixtures/bam.genotyping/bcftools.txt"
+        },
+        {
           "stage_id": "bam.haplogroups",
           "tool_id": "yleaf",
           "fixture_path": "domain/bam/fixtures/bam.haplogroups/yleaf.txt"
@@ -4439,7 +4444,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "8fac7459b99a69cbef0aacc63b1f55bda8c36f2462bff53fd36200de51e6a9b8"
+      "checksum_sha256": "632d74801a8e4074df1f10cdf17ac02b7c3dce1fc5eefb4f90f6b5c4d694072a"
     },
     {
       "domain_id": "fastq",
@@ -13389,6 +13394,11 @@
           "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqfu.txt"
         },
         {
+          "stage_id": "fastq.profile_read_lengths",
+          "tool_id": "seqkit",
+          "fixture_path": "domain/fastq/fixtures/fastq.profile_read_lengths/seqkit.txt"
+        },
+        {
           "stage_id": "fastq.profile_reads",
           "tool_id": "seqfu",
           "fixture_path": "domain/fastq/fixtures/fastq.profile_reads/seqfu.txt"
@@ -13555,7 +13565,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "651b8baf8f625ae9387a9c8ebd4530174b59aeb23d06315b21f4cd8ac53dd6fa"
+      "checksum_sha256": "6c74f10bd6e28a5cf938a3d55e479beb78c7ec116d1e136df9e5ff66383f19ff"
     },
     {
       "domain_id": "vcf",
@@ -13603,6 +13613,7 @@
         "minimac4",
         "plink",
         "plink2",
+        "shapeit",
         "shapeit5"
       ],
       "governed_stage_ids": [
@@ -14667,6 +14678,7 @@
           "compatible_tools": [
             "beagle",
             "eagle",
+            "shapeit",
             "shapeit5"
           ],
           "assumptions": [
@@ -15169,10 +15181,10 @@
           "status": "planned",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "0.940",
+          "default_version": "0.941",
           "upstream": "https://github.com/ANGSD/angsd",
-          "pin_strategy": "container_digest",
-          "license": "GPL-3.0",
+          "pin_strategy": "external_tool",
+          "license": "NOASSERTION",
           "citation": "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4",
           "version_cmd": "angsd 2>&1 | head -n 1",
           "help_cmd": "angsd -h",
@@ -15509,10 +15521,10 @@
           "status": "planned",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
+          "default_version": "1.2.0",
           "upstream": "https://jmarchini.org/software/#impute-5",
           "pin_strategy": "external_tool",
-          "license": "research_only_or_restricted",
+          "license": "LicenseRef-Oxford-Academic-Use",
           "citation": "paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049",
           "version_cmd": "impute5 --version",
           "help_cmd": "impute5 --help",
@@ -15638,6 +15650,36 @@
           "container": {
             "image": "containers/docker/Dockerfile.arm64.plink2",
             "digest": "sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
+          }
+        },
+        {
+          "tool_id": "shapeit",
+          "status": "planned",
+          "scope": "post_vcf",
+          "role": "analysis",
+          "default_version": "4.2.2",
+          "upstream": "https://github.com/odelaneau/shapeit4",
+          "pin_strategy": "container_digest",
+          "license": "MIT",
+          "citation": "paper:https://doi.org/10.1038/s41467-018-07713-4",
+          "version_cmd": "shapeit --version",
+          "help_cmd": "shapeit --help",
+          "stage_ids": [
+            "vcf.phasing"
+          ],
+          "planned_stage_ids": [],
+          "expected_artifacts": [
+            "phased_vcf"
+          ],
+          "capabilities": [
+            "PE",
+            "SE"
+          ],
+          "metrics_schema_id": "bijux.vcf.phasing.v1",
+          "comparability_notes": "Legacy SHAPEIT4 comparison requires the same panel build, genetic map, and pinned execution profile.",
+          "container": {
+            "image": "containers/apptainer/shapeit.def",
+            "digest": "registry_lock"
           }
         },
         {
@@ -16484,7 +16526,7 @@
           "stage_id": "vcf.phasing",
           "tool_id": "shapeit5",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
-          "rationale": "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative.",
+          "rationale": "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle, Eagle, and SHAPEIT4 stay comparative.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -16660,6 +16702,11 @@
         },
         {
           "stage_id": "vcf.phasing",
+          "tool_id": "shapeit",
+          "fixture_path": "domain/vcf/fixtures/vcf.phasing/shapeit.txt"
+        },
+        {
+          "stage_id": "vcf.phasing",
           "tool_id": "shapeit5",
           "fixture_path": "domain/vcf/fixtures/vcf.phasing/shapeit5.txt"
         },
@@ -16715,7 +16762,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "5206dcfc48e4a1316b70937d8e4ad9775b3aef9a5e342e93f7cb9d64f4f1ce72"
+      "checksum_sha256": "27769b414799ab238bda98e6b32cc8bd03b9768a73ee5f8e06d1933fd46aeac0"
     }
   ]
 }

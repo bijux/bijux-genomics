@@ -6,10 +6,10 @@ authoritative: false
 strict_capable: true
 status: "planned"
 scope: "post_vcf"
-default_version: "planned"
+default_version: "1.2.0"
 upstream: "https://jmarchini.org/software/#impute-5"
 pin_strategy: "external_tool"
-license: "research_only_or_restricted"
+license: "LicenseRef-Oxford-Academic-Use"
 citation: "paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049"
 version_cmd: "impute5 --version"
 help_cmd: "impute5 --help"

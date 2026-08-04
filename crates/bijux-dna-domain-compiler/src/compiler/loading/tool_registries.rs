@@ -1,10 +1,55 @@
-use super::super::*;
+use std::collections::BTreeSet;
+use std::fmt::Write as _;
+
+use super::super::{
+    anyhow, generated_header, required_tool_roles_for_stage, resolve_tool_citation, toml_array,
+    ContainerToolContract, Result, StagePlannedMap, ToolMap, ToolRow,
+};
+use super::ToolRegistryInputs;
 
 pub(super) struct ToolRegistryOutputs {
     pub(super) production_registry: String,
     pub(super) experimental_registry: String,
+    pub(super) container_experimental_registry: String,
     pub(super) required_tools: String,
     pub(super) production_tool_ids: BTreeSet<String>,
+}
+
+fn write_catalog_only_tool(out: &mut String, contract: &ContainerToolContract) {
+    let runtimes = contract.runtimes();
+    let domain = contract.domains.first().map_or("", String::as_str);
+    let _ = writeln!(out, "[[tools]]");
+    let _ = writeln!(out, "id = \"{}\"", contract.id);
+    let _ = writeln!(out, "tool_id = \"{}\"", contract.id);
+    let _ = writeln!(out, "domain = \"{domain}\"");
+    let _ = writeln!(out, "domains = {}", toml_array(&contract.domains));
+    out.push_str("status = \"experimental\"\n");
+    let _ = writeln!(out, "stage_ids = {}", toml_array(&contract.stage_ids));
+    let _ = writeln!(out, "bindings = {}", toml_array(&contract.stage_ids));
+    out.push_str("tool_role = \"catalog_only\"\n");
+    let _ = writeln!(out, "version = \"{}\"", contract.version);
+    let _ = writeln!(out, "default_version = \"{}\"", contract.version);
+    let _ = writeln!(out, "upstream = \"{}\"", contract.upstream);
+    out.push_str("version_rule = \"pinned\"\n");
+    let _ = writeln!(out, "license = \"{}\"", contract.license);
+    let _ = writeln!(out, "pinned_commit = \"{}\"", contract.source_identity());
+    let _ = writeln!(out, "pin_strategy = \"{}\"", contract.source_pin_strategy());
+    let _ = writeln!(out, "container_ref = \"{}\"", contract.container_ref());
+    let _ = writeln!(out, "runtimes = {}", toml_array(&runtimes));
+    let _ = writeln!(out, "container = {}", !runtimes.is_empty());
+    let _ = writeln!(out, "version_cmd = \"{}\"", contract.version_command);
+    let _ = writeln!(out, "help_cmd = \"{}\"", contract.help_command);
+    let _ = writeln!(out, "smoke_version_cmd = \"{}\"", contract.version_command);
+    let _ = writeln!(out, "smoke_help_cmd = \"{}\"", contract.help_command);
+    let _ = writeln!(out, "expected_version_regex = \"{}\"", contract.expected_version_regex);
+    let _ = writeln!(out, "healthcheck_cmd = \"{}\"", contract.help_command);
+    let _ = writeln!(out, "expected_bin = \"{}\"", contract.expected_bin);
+    out.push_str("expected_artifacts = []\n");
+    out.push_str("metrics_schema = \"bijux.tool.metrics.v1\"\n");
+    out.push_str("comparability_notes = \"Catalog-retained packaging contract awaiting an authored domain binding.\"\n");
+    let _ = writeln!(out, "dockerfile = \"{}\"", contract.dockerfile);
+    let _ = writeln!(out, "apptainer_def = \"{}\"", contract.apptainer_definition);
+    out.push_str("require_labels = true\n\n");
 }
 
 fn tool_supports_stage_domain(tools: &ToolMap, tool_id: &str, stage_domain: &str) -> bool {
@@ -24,17 +69,21 @@ fn tool_is_planned_out_of_scope(tool: &ToolRow, stage_planned: &StagePlannedMap)
 
 #[allow(clippy::uninlined_format_args)]
 pub(super) fn build_tool_registries_toml(
-    tools: &ToolMap,
-    stage_to_tools: &StageToolMap,
-    stage_planned: &StagePlannedMap,
-    stage_defaults: &StageDefaultMap,
-    stage_default_rationale: &StageDefaultRationaleMap,
-    container_catalog: &BTreeMap<String, ContainerToolContract>,
-    source_commit: &str,
+    inputs: &ToolRegistryInputs<'_>,
 ) -> Result<ToolRegistryOutputs> {
+    let tools = inputs.tools;
+    let stage_to_tools = inputs.stage_to_tools;
+    let stage_planned = inputs.stage_planned;
+    let stage_defaults = inputs.stage_defaults;
+    let stage_default_rationale = inputs.stage_default_rationale;
+    let container_catalog = inputs.container_catalog;
+    let vcf_tool_ids = inputs.vcf_tool_ids;
+    let source_commit = inputs.source_commit;
     let source = "domain/** + containers/contracts/catalog.toml";
     let mut production_toml = generated_header(source, source_commit);
     let mut experimental_toml = generated_header(source, source_commit);
+    let mut container_experimental_toml =
+        generated_header("containers/contracts/catalog.toml + domain/**", source_commit);
     let mut required_tools_toml = generated_header("domain/**", source_commit);
     required_tools_toml.push_str("schema_version = \"bijux.required_tools.v1\"\n");
     let mut required_tools = stage_defaults.values().cloned().collect::<Vec<_>>();
@@ -131,11 +180,23 @@ pub(super) fn build_tool_registries_toml(
         );
         let _ = writeln!(out, "dockerfile = \"{dockerfile_rel}\"");
         let _ = writeln!(out, "apptainer_def = \"{apptainer_def_rel}\"");
-        out.push_str("require_labels = true\n\n");
+        let _ = writeln!(out, "require_labels = {has_container_defs}\n");
     }
 
     if experimental_tool_count == 0 {
         experimental_toml.push_str("tools = []\n\n");
+    }
+
+    let domain_tool_ids = tools.keys().chain(vcf_tool_ids).collect::<BTreeSet<_>>();
+    let mut catalog_only_count = 0usize;
+    for contract in container_catalog.values() {
+        if contract.support_disposition == "retained" && !domain_tool_ids.contains(&contract.id) {
+            write_catalog_only_tool(&mut container_experimental_toml, contract);
+            catalog_only_count += 1;
+        }
+    }
+    if catalog_only_count == 0 {
+        container_experimental_toml.push_str("tools = []\n\n");
     }
 
     for (stage_id, tools_set) in stage_to_tools {
@@ -200,6 +261,7 @@ pub(super) fn build_tool_registries_toml(
     Ok(ToolRegistryOutputs {
         production_registry: production_toml,
         experimental_registry: experimental_toml,
+        container_experimental_registry: container_experimental_toml,
         required_tools: required_tools_toml,
         production_tool_ids,
     })

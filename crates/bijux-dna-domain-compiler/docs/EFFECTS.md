@@ -6,6 +6,7 @@ write declared generated config files when generation is requested.
 ## Reads
 
 - Domain YAML under the selected `domain_dir`.
+- `containers/contracts/catalog.toml` for canonical container packaging identities.
 - `configs/domain/shared_tools.toml` relative to the workspace root during validation.
 - Local Git metadata or domain file content to derive generated source provenance.
 

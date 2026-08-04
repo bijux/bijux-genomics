@@ -1,4 +1,6 @@
-use super::super::*;
+use std::collections::BTreeMap;
+
+use super::super::{anyhow, bail, ContainerCatalog, ContainerToolContract, Context, Path, Result};
 
 pub(crate) fn load_container_catalog(
     domain_dir: &Path,

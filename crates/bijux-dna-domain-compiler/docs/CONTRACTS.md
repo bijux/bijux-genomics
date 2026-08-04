@@ -12,6 +12,8 @@ config files. The contracts below are the review checklist for any change to com
   vocabularies, and an index.
 - Shared tool-domain ownership is read from `configs/domain/shared_tools.toml` relative to the
   workspace root.
+- Container versions, source identities, runtime support, executable names, and recipe paths are
+  read exclusively from `containers/contracts/catalog.toml`.
 
 ## Output contracts
 
@@ -19,7 +21,9 @@ config files. The contracts below are the review checklist for any change to com
 
 - `ci/registry/tool_registry.toml`
 - `ci/registry/tool_registry_experimental.toml`
+- `ci/registry/tool_registry_container_experimental.toml`
 - `ci/registry/tool_registry_vcf.toml`
+- `ci/registry/tool_registry_vcf_downstream.toml`
 - `ci/registry/domain_registry_release_bundle.json`
 - `ci/registry/domain_defaults_snapshot.json`
 - `ci/registry/domain_artifact_contract_snapshots.json`
@@ -31,10 +35,15 @@ config files. The contracts below are the review checklist for any change to com
 - `ci/stages/stages_vcf.toml`
 - `ci/tools/images.toml`
 - `ci/tools/required_tools.toml`
+- `ci/tools/required_tools_vcf_downstream.toml`
 
 Generated files must include the compiler header, source hash, schema version, owner, authority,
 purpose, and stable ordering. Active generated configs must not contain unsupported placeholder
 tokens.
+
+The container-experimental view contains retained catalog tools without an authored domain binding.
+The VCF-downstream view is a compatibility projection of authored VCF tools excluding the common
+`bcftools` runtime. Neither view may introduce packaging facts independently of the catalog.
 
 `write_domain_registry_bundle` must write only the declared JSON bundle surfaces beneath
 `configs/ci/registry/`. `load_domain_registry_bundle` and `query_domain_registry_bundle` must be
@@ -54,3 +63,7 @@ status values, unknown stage/tool references, incomplete supported provenance, i
 domain mappings, deprecated tool replacements that point outside the domain/tool inventory, stage
 schemas that omit governed required fields, inconsistent tool fixture claims, and unsupported
 generated output vocabulary.
+
+A domain tool may claim `supported` only when the catalog disposition is `retained` and the catalog
+authorizes at least one runtime recipe. Domain metadata cannot promote an unsupported packaging
+contract.

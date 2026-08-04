@@ -127,6 +127,7 @@ pub(crate) fn check_tool_registry_lock(
     let inputs = [
         "configs/ci/registry/tool_registry.toml",
         "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_container_experimental.toml",
         "configs/ci/registry/tool_registry_vcf.toml",
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
         "configs/ci/registry/domains.toml",

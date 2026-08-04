@@ -17,7 +17,7 @@ required_outputs: ["phased_vcf"]
 tool_capability_requirements: []
 metrics:
   - name: "phasing_status"
-compatible_tools: ["beagle", "shapeit5", "eagle"]
+compatible_tools: ["beagle", "shapeit", "shapeit5", "eagle"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["panel_required", "genetic_map_required"]
 bank_hooks: ["none"]

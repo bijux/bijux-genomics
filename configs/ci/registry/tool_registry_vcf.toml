@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: b9e8a26e0f9ffe81778279c8f5f9e7c57ee80303
+# source_commit: 0f32606f205853ada671738a307a52b8877ee89f
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -444,6 +444,37 @@ apptainer_def = "containers/apptainer/plink2.def"
 require_labels = true
 
 [[tools]]
+id = "shapeit"
+tool_id = "shapeit"
+domain = "vcf"
+status = "planned"
+stage_ids = ["vcf.phasing"]
+version = "4.2.2"
+default_version = "4.2.2"
+upstream = "https://github.com/odelaneau/shapeit4"
+version_rule = "pinned"
+license = "MIT"
+citation = "paper:https://doi.org/10.1038/s41467-018-07713-4"
+pinned_commit = "sha256:2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9"
+pin_strategy = "source_sha256"
+container_ref = "bijuxdna/shapeit:4.2.2"
+runtimes = ["apptainer"]
+container = true
+version_cmd = "shapeit --version"
+help_cmd = "shapeit --help"
+smoke_version_cmd = "shapeit --version"
+smoke_help_cmd = "shapeit --help"
+expected_version_regex = "shapeit ([0-9]+([.][0-9]+)?)"
+healthcheck_cmd = "shapeit --help"
+expected_bin = "shapeit"
+expected_artifacts = ["phased_vcf"]
+metrics_schema = "bijux.vcf.phasing.v1"
+comparability_notes = "Legacy SHAPEIT4 comparison requires the same panel build, genetic map, and pinned execution profile."
+dockerfile = ""
+apptainer_def = "containers/apptainer/shapeit.def"
+require_labels = true
+
+[[tools]]
 id = "shapeit5"
 tool_id = "shapeit5"
 domain = "vcf"
@@ -610,11 +641,11 @@ requires_reporting = false
 id = "vcf.phasing"
 required_tool_roles = ["transform"]
 primary_tools = ["shapeit5"]
-optional_alternatives = ["beagle", "eagle"]
+optional_alternatives = ["beagle", "shapeit", "eagle"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative."
+default_rationale = "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle, Eagle, and SHAPEIT4 stay comparative."
 requires_validation = false
 requires_reporting = false
 
