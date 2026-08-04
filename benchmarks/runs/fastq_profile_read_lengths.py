@@ -471,13 +471,19 @@ def parameter_evidence(
 def tool_command(tool: str, mounted_fastq: list[str]) -> str:
     if tool == "seqfu":
         commands = [
-            "seqfu tab " + shlex.quote(path) + " | awk -F '\\t' '{print $1 \"\\t\" length($3)}'"
+            "test -s "
+            + shlex.quote(path)
+            + "; seqfu tab "
+            + shlex.quote(path)
+            + " | awk -F '\\t' '{print $1 \"\\t\" length($3)}'"
             for path in mounted_fastq
         ]
-        return "; ".join(commands)
+        return "( " + "; ".join(commands) + " )"
     quoted = " ".join(shlex.quote(path) for path in mounted_fastq)
     return (
-        "seqkit fx2tab --name --only-id --length --threads 4 "
+        "test -s "
+        + " && test -s ".join(shlex.quote(path) for path in mounted_fastq)
+        + " && seqkit fx2tab --name --only-id --length --threads 4 "
         + quoted
         + " | awk -F '\\t' 'NF < 2 { exit 2 } { print $1 \"\\t\" $NF }'"
     )
@@ -554,7 +560,7 @@ def shell_command(
                 ),
                 f"  diff -u {shlex.quote(sample['expected_histogram_mount'])} {histogram}",
                 f"  observed_histogram_sha=$(sha256sum {histogram} | awk '{{print $1}}')",
-                f"  tail -n +2 {summary} | awk -v OFS='\\t' -v artifact='{artifact}' -v sha=\"$observed_histogram_sha\" '{{print $0, artifact, sha}}' >> \"$manifest\"",
+                f'  tail -n +2 {summary} | awk -v OFS=\'\\t\' -v artifact="{artifact}" -v sha="$observed_histogram_sha" \'{{print $0, artifact, sha}}\' >> "$manifest"',
             ]
         )
         output_paths.extend([raw, summary, histogram])
@@ -609,7 +615,7 @@ def shell_command(
             "done",
         ]
     )
-    return ["sh", "-c", "; ".join(lines)]
+    return ["sh", "-c", "\n".join(lines)]
 
 
 def required_files(samples: list[dict[str, Any]]) -> list[str]:
