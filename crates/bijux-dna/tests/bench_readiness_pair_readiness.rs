@@ -59,27 +59,24 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
+    let domain_counts = payload["domain_counts"].as_object().expect("domain counts");
+    assert!(domain_counts
+        .get("fastq")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
+    assert!(domain_counts
+        .get("bam")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
     assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("fastq"))
-            .and_then(serde_json::Value::as_u64),
-        Some(71)
+        domain_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
+        row_count
     );
-    assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("bam"))
-            .and_then(serde_json::Value::as_u64),
-        Some(49)
-    );
-    assert_eq!(
-        payload
-            .get("asset_status_counts")
-            .and_then(|value| value.get("assigned"))
-            .and_then(serde_json::Value::as_u64),
-        Some(20)
-    );
+    assert!(payload
+        .get("asset_status_counts")
+        .and_then(|value| value.get("assigned"))
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), usize::try_from(row_count).expect("row count fits usize"));

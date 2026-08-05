@@ -92,13 +92,13 @@ fn bench_readiness_render_command_argv_reports_governed_benchmark_ready_row_slic
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
             && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
             && row.get("argv").and_then(serde_json::Value::as_array).is_some_and(|argv| {
                 argv.first().and_then(serde_json::Value::as_str).is_some()
                     && argv
                         .iter()
-                        .any(|arg| arg.as_str().is_some_and(|item| item.contains("ngsbriggs")))
+                        .any(|arg| arg.as_str().is_some_and(|item| item.contains("mapdamage2")))
             })
     }));
 }

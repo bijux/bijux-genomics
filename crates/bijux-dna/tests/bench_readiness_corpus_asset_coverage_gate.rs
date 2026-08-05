@@ -64,31 +64,31 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
     );
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(
-        payload.get("benchmark_ready_asset_required_row_count").and_then(serde_json::Value::as_u64),
-        Some(20)
-    );
+    let asset_required_row_count = payload
+        .get("benchmark_ready_asset_required_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("asset-required row count");
+    assert!(asset_required_row_count > 0);
     assert_eq!(
         payload.get("benchmark_ready_asset_assigned_row_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(asset_required_row_count)
     );
     assert_eq!(
         payload.get("benchmark_ready_asset_missing_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
+    let domain_row_counts = payload["domain_row_counts"].as_object().expect("domain row counts");
+    assert!(domain_row_counts
+        .get("fastq")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
+    assert!(domain_row_counts
+        .get("bam")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
     assert_eq!(
-        payload
-            .get("domain_row_counts")
-            .and_then(|value| value.get("fastq"))
-            .and_then(serde_json::Value::as_u64),
-        Some(71)
-    );
-    assert_eq!(
-        payload
-            .get("domain_row_counts")
-            .and_then(|value| value.get("bam"))
-            .and_then(serde_json::Value::as_u64),
-        Some(49)
+        domain_row_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
+        row_count
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

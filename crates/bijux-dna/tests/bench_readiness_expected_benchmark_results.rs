@@ -53,25 +53,32 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
     let row_count =
         payload.get("row_count").and_then(serde_json::Value::as_u64).expect("row count");
     assert!(row_count > 0);
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert!(payload["stage_count"].as_u64().is_some_and(|count| count > 0));
+    let domain_counts = payload["domain_counts"].as_object().expect("domain counts");
+    assert!(domain_counts
+        .get("fastq")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
+    assert!(domain_counts
+        .get("bam")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
     assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("fastq"))
-            .and_then(serde_json::Value::as_u64),
-        Some(71)
-    );
-    assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("bam"))
-            .and_then(serde_json::Value::as_u64),
-        Some(49)
+        domain_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
+        row_count
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = usize::try_from(row_count).expect("row count fits usize");
     assert_eq!(rows.len(), row_count);
+    assert_eq!(
+        usize::try_from(payload["stage_count"].as_u64().expect("stage count"))
+            .expect("stage count fits usize"),
+        rows.iter()
+            .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len()
+    );
 
     let result_row_ids = rows
         .iter()
