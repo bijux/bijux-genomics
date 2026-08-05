@@ -185,9 +185,10 @@ fn append_measurement_commands(lines: &mut Vec<String>, spec: &BenchmarkExecutio
             .replace("{repetition}", &repetition.to_string());
         let mut timed_command = vec![
             "/usr/bin/time".to_string(),
-            "--quiet".to_string(),
-            format!("--output=/result/{resource_path}.partial"),
-            "--format=wall_seconds\tuser_seconds\tsystem_seconds\tmax_rss_kb\tfilesystem_inputs\tfilesystem_outputs\texit_code\n%e\t%U\t%S\t%M\t%I\t%O\t%x".to_string(),
+            "-o".to_string(),
+            format!("/result/{resource_path}.partial"),
+            "-f".to_string(),
+            "wall_seconds\tuser_seconds\tsystem_seconds\tmax_rss_kb\tfilesystem_inputs\tfilesystem_outputs\texit_code\n%e\t%U\t%S\t%M\t%I\t%O\t%x".to_string(),
         ];
         timed_command.extend(measured_command);
         lines.push(container_invocation(spec, &timed_command));
