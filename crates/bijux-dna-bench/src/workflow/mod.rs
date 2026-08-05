@@ -10,6 +10,7 @@ mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
 mod campaign_lifecycle;
+mod campaign_material;
 mod evaluation;
 mod fastq_expectations;
 mod fastq_profile_read_lengths;
@@ -65,6 +66,10 @@ pub use campaign_lifecycle::{
     load_execution_authorities, load_execution_spec, plan_stage_campaign_attempts,
     plan_stage_campaign_retry_attempts, recover_stage_campaign_retry_lineage,
     verify_campaign_plan_source, BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
+};
+pub use campaign_material::{
+    admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
+    BenchmarkCampaignEvidence, BenchmarkCampaignMaterialRequest,
 };
 pub use evaluation::{compare, gate};
 pub use fastq_expectations::{

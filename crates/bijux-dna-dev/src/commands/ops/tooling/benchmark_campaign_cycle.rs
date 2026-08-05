@@ -74,17 +74,10 @@ struct CampaignPreparation<'a> {
     benchmark_root: &'a Path,
     plan: &'a bijux_dna_bench::BenchmarkCampaignPlan,
     authorities: &'a bijux_dna_bench::BenchmarkExecutionAuthorities,
-    evidence: &'a CampaignEvidence,
+    evidence: &'a bijux_dna_bench::BenchmarkCampaignEvidence,
     options: &'a BTreeMap<String, String>,
     scheduler_timestamp: &'a str,
     recover_submitted: bool,
-}
-
-enum CampaignEvidence {
-    Bam(bijux_dna_bench::AdmittedBamCorpus),
-    BamGenotyping(Box<bijux_dna_bench::AdmittedBamGenotypingCorpus>),
-    ReadLengths(bijux_dna_bench::FastqReadLengthExpectationPublication),
-    ProfileReads(bijux_dna_bench::FastqProfileReadsExpectationPublication),
 }
 
 impl CampaignPreparation<'_> {
@@ -119,122 +112,19 @@ impl CampaignPreparation<'_> {
         identity: &bijux_dna_bench::BenchmarkAttemptIdentity,
     ) -> Result<bijux_dna_bench::BenchmarkExecutionSpec> {
         let image = self.authorities.resolve_current_image(self.study_root, &identity.tool_id)?;
-        let execution = match self.evidence {
-            CampaignEvidence::BamGenotyping(corpus) => {
-                bijux_dna_bench::prepare_bam_genotyping_material_from_corpus(
-                    self.repository_root,
-                    self.benchmark_root,
-                    identity,
-                    self.authorities.source_contract_sha256(),
-                    required(self.options, "--operator")?,
-                    required(self.options, "--prepared-at-utc")?,
-                    required(self.options, "--account")?,
-                    required(self.options, "--partition")?,
-                    corpus,
-                )?
-                .execution
-            }
-            CampaignEvidence::Bam(corpus) => {
-                let arguments = (
-                    self.repository_root,
-                    self.benchmark_root,
-                    identity,
-                    self.authorities.source_contract_sha256(),
-                    required(self.options, "--operator")?,
-                    required(self.options, "--prepared-at-utc")?,
-                    required(self.options, "--account")?,
-                    required(self.options, "--partition")?,
-                    corpus,
-                );
-                match identity.run.run_id.as_str() {
-                    "run-2002" => {
-                        bijux_dna_bench::prepare_bam_coverage_material_from_corpus(
-                            arguments.0,
-                            arguments.1,
-                            arguments.2,
-                            arguments.3,
-                            arguments.4,
-                            arguments.5,
-                            arguments.6,
-                            arguments.7,
-                            arguments.8,
-                        )?
-                        .execution
-                    }
-                    "run-2003" => {
-                        bijux_dna_bench::prepare_bam_endogenous_content_material_from_corpus(
-                            arguments.0,
-                            arguments.1,
-                            arguments.2,
-                            arguments.3,
-                            arguments.4,
-                            arguments.5,
-                            arguments.6,
-                            arguments.7,
-                            arguments.8,
-                        )?
-                        .execution
-                    }
-                    "run-2004" => {
-                        bijux_dna_bench::prepare_bam_mapping_summary_material_from_corpus(
-                            arguments.0,
-                            arguments.1,
-                            arguments.2,
-                            arguments.3,
-                            arguments.4,
-                            arguments.5,
-                            arguments.6,
-                            arguments.7,
-                            arguments.8,
-                        )?
-                        .execution
-                    }
-                    "run-2011" => {
-                        bijux_dna_bench::prepare_bam_duplication_metrics_material_from_corpus(
-                            arguments.0,
-                            arguments.1,
-                            arguments.2,
-                            arguments.3,
-                            arguments.4,
-                            arguments.5,
-                            arguments.6,
-                            arguments.7,
-                            arguments.8,
-                        )?
-                        .execution
-                    }
-                    _ => bail!("BAM campaign has no crate-owned executable material"),
-                }
-            }
-            CampaignEvidence::ReadLengths(expectations) => {
-                bijux_dna_bench::prepare_fastq_profile_read_lengths_material_from_expectations(
-                    self.repository_root,
-                    self.benchmark_root,
-                    identity,
-                    self.authorities.source_contract_sha256(),
-                    required(self.options, "--operator")?,
-                    required(self.options, "--prepared-at-utc")?,
-                    required(self.options, "--account")?,
-                    required(self.options, "--partition")?,
-                    expectations,
-                )?
-                .execution
-            }
-            CampaignEvidence::ProfileReads(expectations) => {
-                bijux_dna_bench::prepare_fastq_profile_reads_material_from_expectations(
-                    self.repository_root,
-                    self.benchmark_root,
-                    identity,
-                    self.authorities.source_contract_sha256(),
-                    required(self.options, "--operator")?,
-                    required(self.options, "--prepared-at-utc")?,
-                    required(self.options, "--account")?,
-                    required(self.options, "--partition")?,
-                    expectations,
-                )?
-                .execution
-            }
-        };
+        let execution = bijux_dna_bench::prepare_benchmark_campaign_material(
+            &bijux_dna_bench::BenchmarkCampaignMaterialRequest {
+                repository_root: self.repository_root,
+                benchmark_root: self.benchmark_root,
+                identity,
+                source_contract_sha256: self.authorities.source_contract_sha256(),
+                operator: required(self.options, "--operator")?,
+                prepared_at_utc: required(self.options, "--prepared-at-utc")?,
+                account: required(self.options, "--account")?,
+                partition: required(self.options, "--partition")?,
+            },
+            self.evidence,
+        )?;
         let spec = self.authorities.build_execution_spec(self.plan, identity, &image, execution)?;
         bijux_dna_bench::ensure_execution_spec(self.benchmark_root, &spec)?;
         Ok(spec)
@@ -396,42 +286,12 @@ fn prepare_campaign_jobs(
         &plan,
     )?;
     let run_id = campaign_run_id(&plan)?;
-    if !has_crate_owned_campaign_material(run_id) {
-        bail!("benchmark campaign has no crate-owned executable material: {run_id}");
-    }
-    let evidence = match run_id {
-        "run-2001" => CampaignEvidence::BamGenotyping(Box::new(
-            bijux_dna_bench::admit_bam_genotyping_corpus(&study_root, &data_index)?,
-        )),
-        "run-2002" | "run-2003" | "run-2004" | "run-2011" => {
-            CampaignEvidence::Bam(bijux_dna_bench::admit_bam_benchmark_corpus(
-                &study_root,
-                &data_index,
-                "ena-prjeb22390-err2112767-bam",
-            )?)
-        }
-        "run-2042" | "run-2043" => {
-            let read_lengths = bijux_dna_bench::ensure_fastq_read_length_expectations(
-                &repository_root,
-                &study_root,
-                &data_index,
-                "human-short-read-diversity",
-                20,
-                30,
-            )?;
-            if run_id == "run-2042" {
-                CampaignEvidence::ReadLengths(read_lengths)
-            } else {
-                CampaignEvidence::ProfileReads(
-                    bijux_dna_bench::ensure_fastq_profile_reads_expectations(
-                        &study_root,
-                        &read_lengths,
-                    )?,
-                )
-            }
-        }
-        _ => bail!("benchmark campaign has no crate-owned executable material: {run_id}"),
-    };
+    let evidence = bijux_dna_bench::admit_benchmark_campaign_evidence(
+        &repository_root,
+        &study_root,
+        &data_index,
+        run_id,
+    )?;
     let mut attempts = active_plan_attempts(&plan);
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
     let preparation = CampaignPreparation {
@@ -459,13 +319,6 @@ fn prepare_campaign_jobs(
         )?;
     }
     Ok(PreparedCampaign { benchmark_root, jobs: prepared })
-}
-
-fn has_crate_owned_campaign_material(run_id: &str) -> bool {
-    matches!(
-        run_id,
-        "run-2001" | "run-2002" | "run-2003" | "run-2004" | "run-2011" | "run-2042" | "run-2043"
-    )
 }
 
 fn reconcile_campaign(
@@ -955,18 +808,11 @@ mod tests {
     use chrono::{TimeZone, Utc};
 
     use super::{
-        has_crate_owned_campaign_material, parse_options, require_exact_options,
+        parse_options, require_exact_options,
         scheduler::{benchmark_accounting, benchmark_observation},
         validate_operator_timestamp_at, BENCHMARK_PREPARATION_OPTIONS,
         BENCHMARK_SUBMISSION_OPTIONS,
     };
-
-    #[test]
-    fn campaign_material_dispatch_includes_duplication_metrics() {
-        assert!(has_crate_owned_campaign_material("run-2001"));
-        assert!(has_crate_owned_campaign_material("run-2011"));
-        assert!(!has_crate_owned_campaign_material("run-9999"));
-    }
 
     #[test]
     fn option_parser_rejects_duplicates_and_incomplete_pairs() {

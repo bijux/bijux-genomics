@@ -91,6 +91,7 @@ fn bench_tree_matches_architecture_contract() {
             "bam_mapping_summary/",
             "bam_observation/",
             "campaign_lifecycle/",
+            "campaign_material/",
             "evaluation.rs",
             "fastq_expectations/",
             "fastq_profile_read_lengths/",
