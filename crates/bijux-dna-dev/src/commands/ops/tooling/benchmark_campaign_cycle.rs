@@ -7,8 +7,33 @@ use anyhow::{bail, Context};
 
 use super::{OpsCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
+
+const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
+    "--account",
+    "--benchmark-root",
+    "--data-index",
+    "--inventory",
+    "--operator",
+    "--partition",
+    "--plan",
+    "--prepared-at-utc",
+    "--study-root",
+];
+
+const FASTQ_SUBMISSION_OPTIONS: &[&str] = &[
+    "--account",
+    "--benchmark-root",
+    "--data-index",
+    "--inventory",
+    "--operator",
+    "--partition",
+    "--plan",
+    "--prepared-at-utc",
+    "--study-root",
+    "--submitted-at-utc",
+];
 
 struct FastqPreparation<'a> {
     repository_root: &'a Path,
@@ -18,6 +43,8 @@ struct FastqPreparation<'a> {
     plan: &'a bijux_dna_bench::BenchmarkCampaignPlan,
     authorities: &'a bijux_dna_bench::BenchmarkExecutionAuthorities,
     options: &'a BTreeMap<String, String>,
+    scheduler_timestamp: &'a str,
+    recover_submitted: bool,
 }
 
 impl FastqPreparation<'_> {
@@ -35,12 +62,16 @@ impl FastqPreparation<'_> {
                 self.validate_recovered_spec(&spec)?;
                 spec
             }
-            _ => bail!("benchmark preparation requires planned or ready attempts"),
+            Some(bijux_dna_bench::BenchmarkLifecycleStatus::Submitted)
+                if self.recover_submitted =>
+            {
+                let spec = bijux_dna_bench::load_execution_spec(self.benchmark_root, identity)?;
+                self.validate_recovered_spec(&spec)?;
+                spec
+            }
+            _ => bail!("benchmark operation requires an eligible planned or prepared attempt"),
         };
-        bijux_dna_runner::api::prepare_benchmark_slurm_job(
-            &spec,
-            required(self.options, "--prepared-at-utc")?,
-        )
+        bijux_dna_runner::api::prepare_benchmark_slurm_job(&spec, self.scheduler_timestamp)
     }
 
     fn build_attempt(
@@ -111,6 +142,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "plan" => plan(workspace, &options),
         "initialize" => initialize(workspace, &options),
         "prepare-fastq-read-lengths" => prepare_fastq_read_lengths(workspace, &options),
+        "submit-fastq-read-lengths" => submit_fastq_read_lengths(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
 }
@@ -119,20 +151,67 @@ fn prepare_fastq_read_lengths(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
-    require_exact_options(
-        options,
-        &[
-            "--account",
-            "--benchmark-root",
-            "--data-index",
-            "--inventory",
-            "--operator",
-            "--partition",
-            "--plan",
-            "--prepared-at-utc",
-            "--study-root",
-        ],
-    )?;
+    require_exact_options(options, FASTQ_PREPARATION_OPTIONS)?;
+    let prepared =
+        prepare_fastq_campaign(workspace, options, required(options, "--prepared-at-utc")?, false)?;
+    let scripts = prepared
+        .jobs
+        .iter()
+        .map(|(_, material)| material.request.script_path.display().to_string())
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok(OpsCommandOutcome::success(format!(
+        "prepared {} benchmark Slurm jobs under {}\n{}\n",
+        prepared.jobs.len(),
+        prepared.benchmark_root.display(),
+        scripts
+    )))
+}
+
+struct PreparedFastqCampaign {
+    benchmark_root: PathBuf,
+    jobs: Vec<(
+        bijux_dna_bench::BenchmarkAttemptIdentity,
+        bijux_dna_runner::api::PreparedBenchmarkSlurmJob,
+    )>,
+}
+
+fn submit_fastq_read_lengths(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(options, FASTQ_SUBMISSION_OPTIONS)?;
+    let submitted_at_utc = required(options, "--submitted-at-utc")?;
+    let prepared = prepare_fastq_campaign(workspace, options, submitted_at_utc, true)?;
+    let scheduler = bijux_dna_runner::api::SlurmClientPaths::default();
+    let mut submitted = Vec::new();
+    for (identity, material) in &prepared.jobs {
+        let handle = bijux_dna_runner::api::submit_prepared_benchmark_job(&scheduler, material)?;
+        bijux_dna_runtime::record_attempt_submission(
+            &prepared.benchmark_root,
+            identity,
+            submitted_at_utc,
+            vec![bijux_dna_bench::BenchmarkJobReference {
+                scheduler: "slurm".to_string(),
+                job_id: handle.job_id.clone(),
+            }],
+        )?;
+        submitted.push(format!("{}\t{}", identity.tool_id, handle.job_id));
+    }
+    Ok(OpsCommandOutcome::success(format!(
+        "submitted {} benchmark Slurm jobs without polling under {}\n{}\n",
+        submitted.len(),
+        prepared.benchmark_root.display(),
+        submitted.join("\n")
+    )))
+}
+
+fn prepare_fastq_campaign(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+    scheduler_timestamp: &str,
+    recover_submitted: bool,
+) -> Result<PreparedFastqCampaign> {
     let repository_root =
         workspace.root.canonicalize().context("canonicalize benchmark source repository")?;
     let plan_path = resolve_path(workspace, required(options, "--plan")?);
@@ -172,6 +251,8 @@ fn prepare_fastq_read_lengths(
         plan: &plan,
         authorities: &authorities,
         options,
+        scheduler_timestamp,
+        recover_submitted,
     };
     let mut prepared = Vec::new();
     for attempt in &attempts {
@@ -185,17 +266,7 @@ fn prepare_fastq_read_lengths(
             required(options, "--prepared-at-utc")?,
         )?;
     }
-    let scripts = prepared
-        .iter()
-        .map(|(_, material)| material.request.script_path.display().to_string())
-        .collect::<Vec<_>>()
-        .join("\n");
-    Ok(OpsCommandOutcome::success(format!(
-        "prepared {} benchmark Slurm jobs under {}\n{}\n",
-        prepared.len(),
-        benchmark_root.display(),
-        scripts
-    )))
+    Ok(PreparedFastqCampaign { benchmark_root, jobs: prepared })
 }
 
 fn execution_schema(
@@ -350,7 +421,9 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_options, require_exact_options};
+    use super::{
+        parse_options, require_exact_options, FASTQ_PREPARATION_OPTIONS, FASTQ_SUBMISSION_OPTIONS,
+    };
 
     #[test]
     fn option_parser_rejects_duplicates_and_incomplete_pairs() {
@@ -399,21 +472,35 @@ mod tests {
             "--study-root".into(),
             "/study".into(),
         ])?;
-        assert!(require_exact_options(
-            &options,
-            &[
-                "--account",
-                "--benchmark-root",
-                "--data-index",
-                "--inventory",
-                "--operator",
-                "--partition",
-                "--plan",
-                "--prepared-at-utc",
-                "--study-root",
-            ],
-        )
-        .is_ok());
+        assert!(require_exact_options(&options, FASTQ_PREPARATION_OPTIONS).is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn fastq_submission_contract_requires_separate_submission_time() -> anyhow::Result<()> {
+        let options = parse_options(&[
+            "--account".into(),
+            "project".into(),
+            "--benchmark-root".into(),
+            "/study/benchmarks".into(),
+            "--data-index".into(),
+            "/study/data-index.json".into(),
+            "--inventory".into(),
+            "/study/image-inventory.json".into(),
+            "--operator".into(),
+            "operator".into(),
+            "--partition".into(),
+            "compute".into(),
+            "--plan".into(),
+            "/study/plan.json".into(),
+            "--prepared-at-utc".into(),
+            "2026-08-05T02:00:00Z".into(),
+            "--study-root".into(),
+            "/study".into(),
+            "--submitted-at-utc".into(),
+            "2026-08-05T03:00:00Z".into(),
+        ])?;
+        assert!(require_exact_options(&options, FASTQ_SUBMISSION_OPTIONS).is_ok());
         Ok(())
     }
 }

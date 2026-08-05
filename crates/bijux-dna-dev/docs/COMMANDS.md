@@ -439,3 +439,9 @@ validate-frontend-mini-domain-stacks
 execution-spec preparation with runner-owned Slurm materialization. It initializes or recovers all
 attempts from the exact source-locked plan, prepares both governed tools, and records `ready`
 lifecycle evidence without submitting or polling scheduler jobs.
+
+`benchmark-campaign-cycle submit-fastq-read-lengths` performs the same complete authority and
+material preflight before the first scheduler effect, then submits every governed tool through the
+runner's intent-first API and records each returned Slurm job identity. It returns after submission
+without observing or polling jobs; repeating it with the same timestamps recovers persisted handles
+without duplicate submission.
