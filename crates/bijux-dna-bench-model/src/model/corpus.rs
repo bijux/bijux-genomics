@@ -92,3 +92,42 @@ pub struct BenchmarkBundleManifest {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub scientific_caveats: Vec<String>,
 }
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkFastqLayout {
+    SingleEnd,
+    PairedEnd,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedFastqCorpusFile {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mate: Option<u8>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedFastqCorpusSample {
+    pub sample_id: String,
+    pub input_layout: BenchmarkFastqLayout,
+    pub files: Vec<AdmittedFastqCorpusFile>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedFastqCorpus {
+    pub corpus_id: String,
+    pub data_index_path: String,
+    pub data_index_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub input_bytes: u64,
+    pub samples: Vec<AdmittedFastqCorpusSample>,
+}

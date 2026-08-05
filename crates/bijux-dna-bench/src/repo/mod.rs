@@ -1,6 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Run repositories for bench.
 
+mod corpus_authority;
 mod repo_root;
 mod repository;
 mod run_artifacts;
@@ -8,6 +9,7 @@ mod run_metadata;
 pub mod sqlite;
 mod workspace_paths;
 
+pub use corpus_authority::admit_fastq_benchmark_corpus;
 pub use repo_root::resolve_repo_root;
 pub use repository::RunRepository;
 pub(crate) use run_artifacts::load_observations;

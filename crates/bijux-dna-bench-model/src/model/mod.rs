@@ -16,7 +16,8 @@ pub mod summary;
 
 #[allow(unused_imports)]
 pub use corpus::{
-    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, CorpusDatasetSpec,
+    AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BackendComparisonSpec,
+    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec,
     CorpusDomain, CorpusScale, DriftScenarioSpec, TruthSetHook, TruthSetStatus,
 };
 pub use decision::BenchmarkDecision;

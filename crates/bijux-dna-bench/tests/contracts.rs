@@ -15,6 +15,8 @@ mod mod_contracts_benchmark_contracts_rs;
 mod mod_contracts_campaign_lifecycle_rs;
 #[path = "contracts/benching/contract_handshake.rs"]
 mod mod_contracts_contract_handshake_rs;
+#[path = "contracts/corpus_admission.rs"]
+mod mod_contracts_corpus_admission_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]
 mod mod_contracts_docs_fixtures_rs;
 #[path = "contracts/execution_planning.rs"]
