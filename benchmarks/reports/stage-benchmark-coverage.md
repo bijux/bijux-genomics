@@ -11,7 +11,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 - Defined campaigns: **6**
 - Qualification-only campaigns: **4**
 - Comparative campaigns: **2**
-- Admitted campaigns: **0**
+- Admitted campaigns: **1**
 - Stale campaigns: **5**
 - Failed campaigns: **0**
 - Missing campaigns: **65**
@@ -34,7 +34,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.insert_size` | `picard` | - | missing | not_defined |
 | `bam.kinship` | `king` | - | missing | not_defined |
 | `bam.length_filter` | `picard`, `samtools` | - | missing | not_defined |
-| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | not_admitted |
+| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | admitted |
 | `bam.mapq_filter` | `bamtools`, `samtools` | - | missing | not_defined |
 | `bam.markdup` | `picard`, `samtools` | - | missing | not_defined |
 | `bam.overlap_correction` | `bamutil` | - | missing | not_defined |
