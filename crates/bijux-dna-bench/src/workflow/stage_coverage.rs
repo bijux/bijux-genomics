@@ -24,6 +24,7 @@ use super::{
     load_benchmark_portfolio, load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
     load_stage_reports_from_dir,
 };
+use crate::workflow::stage_report::current_report_sources;
 
 const COVERAGE_JSON: &str = "benchmarks/reports/stage-benchmark-coverage.json";
 const COVERAGE_MARKDOWN: &str = "benchmarks/reports/stage-benchmark-coverage.md";
@@ -45,6 +46,23 @@ pub fn derive_stage_coverage(
     catalog: &ContainerCatalog,
     reports: &[AdmittedBenchmarkStageReport],
     required_repository_commit: &str,
+) -> Result<BenchmarkStageCoverage> {
+    let current_report_sources = BTreeSet::from([required_repository_commit.to_string()]);
+    derive_stage_coverage_with_current_sources(
+        registry,
+        catalog,
+        reports,
+        required_repository_commit,
+        &current_report_sources,
+    )
+}
+
+fn derive_stage_coverage_with_current_sources(
+    registry: &BenchmarkStageCampaignRegistry,
+    catalog: &ContainerCatalog,
+    reports: &[AdmittedBenchmarkStageReport],
+    required_repository_commit: &str,
+    current_report_sources: &BTreeSet<String>,
 ) -> Result<BenchmarkStageCoverage> {
     if required_repository_commit.len() != 40
         || !required_repository_commit.bytes().all(|byte| byte.is_ascii_hexdigit())
@@ -113,7 +131,7 @@ pub fn derive_stage_coverage(
                     bail!("benchmark coverage report run identity drift for {stage_id}");
                 }
                 let report_commit = &admission.report.tools[0].repository_commit;
-                if report_commit != required_repository_commit {
+                if !current_report_sources.contains(report_commit) {
                     BenchmarkStageExecutionStatus::Stale
                 } else {
                     match admission.report.verdict {
@@ -201,7 +219,15 @@ pub fn publish_checked_in_stage_coverage(
     )?;
     let catalog = load_container_catalog(repository_root)?;
     let repository_commit = bijux_dna_environment::api::repository_head_commit(repository_root)?;
-    let coverage = derive_stage_coverage(&registry, &catalog, &reports, &repository_commit)?;
+    let current_report_sources =
+        current_report_sources(repository_root, &reports, &repository_commit)?;
+    let coverage = derive_stage_coverage_with_current_sources(
+        &registry,
+        &catalog,
+        &reports,
+        &repository_commit,
+        &current_report_sources,
+    )?;
 
     let json = serde_json::to_string_pretty(&coverage)? + "\n";
     let markdown = render_stage_coverage_markdown(&coverage);

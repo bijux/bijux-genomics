@@ -70,6 +70,88 @@ pub fn clean_repository_head_commit(repository_root: &Path) -> Result<String> {
     repository_head_commit(repository_root)
 }
 
+/// List repository paths changed between one ancestor commit and the current `HEAD`.
+///
+/// The result is sorted, repository-relative, UTF-8, and rename detection is disabled so every
+/// changed path remains explicit to callers enforcing source-freshness policy.
+///
+/// # Errors
+/// Returns an error when the commit is malformed, is not an ancestor of `HEAD`, Git cannot inspect
+/// the range, or a changed path is not a safe repository-relative UTF-8 path.
+pub fn repository_changed_paths_since(
+    repository_root: &Path,
+    ancestor_commit: &str,
+) -> Result<Vec<String>> {
+    validate_commit_identity(ancestor_commit)?;
+    let head = repository_head_commit(repository_root)?;
+    if ancestor_commit == head {
+        return Ok(Vec::new());
+    }
+    if !repository_commit_is_ancestor_of_head(repository_root, ancestor_commit)? {
+        bail!("repository source commit is not an ancestor of HEAD");
+    }
+    let range = format!("{ancestor_commit}..{head}");
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository_root)
+        .args([
+            "diff",
+            "--name-only",
+            "--no-ext-diff",
+            "--no-renames",
+            "--diff-filter=ACDMRTUXB",
+            "-z",
+            &range,
+            "--",
+        ])
+        .output()
+        .context("inspect repository paths changed since source commit")?;
+    if !output.status.success() {
+        bail!(
+            "cannot inspect repository paths changed since source commit: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        );
+    }
+    let mut paths = output
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|path| !path.is_empty())
+        .map(|path| {
+            let path = std::str::from_utf8(path)
+                .context("repository changed path is not UTF-8")?
+                .to_string();
+            validate_repository_path(&path, "repository changed path")?;
+            Ok(path)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
+}
+
+/// Return whether one full commit identity is an ancestor of the repository's current `HEAD`.
+///
+/// # Errors
+/// Returns an error when the commit is malformed or Git cannot inspect repository ancestry.
+pub fn repository_commit_is_ancestor_of_head(repository_root: &Path, commit: &str) -> Result<bool> {
+    validate_commit_identity(commit)?;
+    let head = repository_head_commit(repository_root)?;
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository_root)
+        .args(["merge-base", "--is-ancestor", commit, &head])
+        .output()
+        .context("verify repository source ancestry")?;
+    match output.status.code() {
+        Some(0) => Ok(true),
+        Some(1) => Ok(false),
+        _ => bail!(
+            "cannot inspect repository source ancestry: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ),
+    }
+}
+
 /// Resolve an Apptainer definition and every repository-owned `%files` input at one exact commit.
 ///
 /// # Errors
@@ -197,7 +279,10 @@ fn git_object(repository_root: &Path, commit: &str, path: &str) -> Result<String
 
 #[cfg(test)]
 mod tests {
-    use super::definition_file_sources;
+    use std::path::Path;
+    use std::process::Command;
+
+    use super::{definition_file_sources, repository_changed_paths_since, repository_head_commit};
 
     #[test]
     fn definition_sources_preserve_complete_order() -> anyhow::Result<()> {
@@ -216,5 +301,45 @@ mod tests {
         ] {
             assert!(definition_file_sources(definition).is_err());
         }
+    }
+
+    #[test]
+    fn changed_paths_require_ancestor_history_and_preserve_publication_paths() -> anyhow::Result<()>
+    {
+        let temporary = bijux_dna_infra::temp_dir("repository-changed-paths")?;
+        let root = temporary.path();
+        git(root, &["init", "--quiet"])?;
+        git(root, &["config", "user.email", "tests@bijux.invalid"])?;
+        git(root, &["config", "user.name", "Bijux Tests"])?;
+        std::fs::write(root.join("authority.toml"), b"version = 1\n")?;
+        git(root, &["add", "authority.toml"])?;
+        git(root, &["commit", "--quiet", "-m", "initial authority"])?;
+        let source = repository_head_commit(root)?;
+
+        std::fs::create_dir_all(root.join("benchmarks/reports"))?;
+        std::fs::write(root.join("benchmarks/reports/run-2004-bam-mapping-summary.json"), b"{}\n")?;
+        git(root, &["add", "benchmarks/reports/run-2004-bam-mapping-summary.json"])?;
+        git(root, &["commit", "--quiet", "-m", "publish report"])?;
+        assert_eq!(
+            repository_changed_paths_since(root, &source)?,
+            ["benchmarks/reports/run-2004-bam-mapping-summary.json"]
+        );
+
+        git(root, &["checkout", "--quiet", "--orphan", "unrelated"])?;
+        std::fs::write(root.join("authority.toml"), b"version = 2\n")?;
+        git(root, &["add", "authority.toml"])?;
+        git(root, &["commit", "--quiet", "-m", "unrelated authority"])?;
+        assert!(repository_changed_paths_since(root, &source).is_err());
+        Ok(())
+    }
+
+    fn git(root: &Path, arguments: &[&str]) -> anyhow::Result<()> {
+        let output = Command::new("git").arg("-C").arg(root).args(arguments).output()?;
+        anyhow::ensure!(
+            output.status.success(),
+            "git command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(())
     }
 }

@@ -2,6 +2,7 @@
 //! Shared authority for source-locked benchmark stage report derivation.
 
 mod evidence;
+mod freshness;
 mod metrics;
 mod publication;
 
@@ -20,6 +21,7 @@ use bijux_dna_bench_model::{
 use serde::Serialize;
 
 pub(super) use evidence::load_admitted_attempt_evidence;
+pub(super) use freshness::current_report_sources;
 pub(super) use metrics::{distribution, read_resource_observation, ResourceObservation};
 pub(super) use publication::{
     canonical_directory, ensure_bytes, ensure_directory, MAX_REPORT_INPUT_BYTES,

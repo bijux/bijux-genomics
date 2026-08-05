@@ -43,6 +43,28 @@ pub fn derive_scientific_readiness(
     reports: &[AdmittedBenchmarkStageReport],
     required_repository_commit: &str,
 ) -> Result<BenchmarkScientificReadinessReport> {
+    let current_report_sources = BTreeSet::from([required_repository_commit.to_string()]);
+    derive_scientific_readiness_with_current_sources(
+        portfolio,
+        registry,
+        interfaces,
+        catalog,
+        reports,
+        required_repository_commit,
+        &current_report_sources,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn derive_scientific_readiness_with_current_sources(
+    portfolio: &BenchmarkPortfolio,
+    registry: &BenchmarkStageCampaignRegistry,
+    interfaces: &BenchmarkStageInterfaceCatalog,
+    catalog: &ContainerCatalog,
+    reports: &[AdmittedBenchmarkStageReport],
+    required_repository_commit: &str,
+    current_report_sources: &BTreeSet<String>,
+) -> Result<BenchmarkScientificReadinessReport> {
     validate_benchmark_portfolio(portfolio).context("validate benchmark portfolio")?;
     validate_stage_campaign_registry(registry).context("validate benchmark campaigns")?;
     validate_defined_campaign_portfolio_alignment(registry, portfolio)
@@ -167,7 +189,7 @@ pub fn derive_scientific_readiness(
                 profile,
                 corpora: &corpora,
                 report: report_by_stage.get(stage_id.as_str()).copied(),
-                required_repository_commit,
+                current_report_sources,
             };
             validate_campaign_readiness(campaign, &context, &mut blockers)?;
             (Some(campaign.run_id.clone()), Some(campaign.evidence_tier))
@@ -294,13 +316,19 @@ pub fn publish_checked_in_scientific_readiness(
     )?;
     let catalog = bijux_dna_environment::api::load_container_catalog(repository_root)?;
     let repository_commit = bijux_dna_environment::api::repository_head_commit(repository_root)?;
-    let report = derive_scientific_readiness(
+    let current_report_sources = crate::workflow::stage_report::current_report_sources(
+        repository_root,
+        &reports,
+        &repository_commit,
+    )?;
+    let report = derive_scientific_readiness_with_current_sources(
         &portfolio,
         &registry,
         &interfaces,
         &catalog,
         &reports,
         &repository_commit,
+        &current_report_sources,
     )?;
     let json = serde_json::to_string_pretty(&report)? + "\n";
     let markdown = render_scientific_readiness_markdown(&report);
@@ -422,7 +450,7 @@ struct CampaignReadinessContext<'a> {
     profile: &'a bijux_dna_bench_model::BenchmarkScientificProfile,
     corpora: &'a BTreeMap<&'a str, &'a bijux_dna_bench_model::BenchmarkCorpusContract>,
     report: Option<&'a AdmittedBenchmarkStageReport>,
-    required_repository_commit: &'a str,
+    current_report_sources: &'a BTreeSet<String>,
 }
 
 fn validate_campaign_readiness(
@@ -495,7 +523,7 @@ fn validate_campaign_readiness(
                 .report
                 .tools
                 .iter()
-                .any(|tool| tool.repository_commit != context.required_repository_commit) =>
+                .any(|tool| !context.current_report_sources.contains(&tool.repository_commit)) =>
         {
             blockers.push("admitted comparative execution evidence is stale".to_string())
         }

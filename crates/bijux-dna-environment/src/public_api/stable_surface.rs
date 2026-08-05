@@ -9,7 +9,8 @@ pub use crate::build::{
 pub use crate::evidence::tool_contract::{
     apptainer_recipe_identity_at_commit, catalog_identity_at_commit, clean_repository_head_commit,
     container_build_evidence_matches_recipe, load_container_catalog,
-    prepare_apptainer_tool_contract, repository_head_commit, retained_apptainer_tool_ids,
+    prepare_apptainer_tool_contract, repository_changed_paths_since,
+    repository_commit_is_ancestor_of_head, repository_head_commit, retained_apptainer_tool_ids,
     run_apptainer_smoke, tool_contract_labels, tool_contract_schema, validate_container_catalog,
     validate_tool_contract, validate_tool_contract_labels, verify_apptainer_tool_contract,
     write_tool_contract_schema, ApptainerRecipeIdentity, ApptainerSmokeManifest,
