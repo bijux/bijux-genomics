@@ -1,16 +1,14 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: benchmarks/benchmark_portfolio.py -->
+<!-- source: bijux-dna-bench::workflow::scientific_readiness -->
 # Scientific benchmark readiness
 
-This report refuses to treat container qualification, one-sample timing,
-or cross-tool agreement as a complete scientific benchmark. A stage is ready
-only when its real corpus roles, minimum cohort, accuracy strategy, complete
-tool closure, canonical output contract, and downstream substitution probe
-are all represented by a comparative campaign.
+A stage is ready only when real comparative corpora, cohort scale, a closed
+interface, a comparative campaign, passing admitted execution evidence, and
+the current repository identity all close over the retained tool set.
 
 - Retained FASTQ/BAM/VCF stages: **71**
-- Scientifically ready stages: **2**
-- Blocked stages: **69**
+- Scientifically ready stages: **0**
+- Blocked stages: **71**
 - Comparative-ready corpora: **1**
 - Qualification-only campaigns: **4**
 - Comparative campaigns: **2**
@@ -19,8 +17,8 @@ are all represented by a comparative campaign.
 
 | Domain | Stages | Ready | Blocked |
 |---|---:|---:|---:|
-| FASTQ | 27 | 2 | 25 |
 | BAM | 24 | 0 | 24 |
+| FASTQ | 27 | 0 | 27 |
 | VCF | 20 | 0 | 20 |
 
 ## Corpus portfolio
@@ -82,8 +80,8 @@ are all represented by a comparative campaign.
 | `fastq.normalize_abundance` | `seqkit` | `fastq-amplicon` | `run-2039` | blocked | no closed stage interface is defined<br>corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)<br>available comparative sample count 0 is below 10<br>no execution campaign is defined |
 | `fastq.normalize_primers` | `cutadapt` | `fastq-read-transformation` | `run-2040` | blocked | no closed stage interface is defined<br>corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)<br>no execution campaign is defined |
 | `fastq.profile_overrepresented_sequences` | `fastq_scan`, `fastqc`, `seqkit` | `fastq-observational-qc` | `run-2041` | blocked | no closed stage interface is defined<br>no execution campaign is defined |
-| `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `fastq-observational-qc` | `run-2042` (comparative) | ready | — |
-| `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `fastq-observational-qc` | `run-2043` (comparative) | ready | — |
+| `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `fastq-observational-qc` | `run-2042` (comparative) | blocked | admitted comparative execution evidence is stale |
+| `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `fastq-observational-qc` | `run-2043` (comparative) | blocked | admitted comparative execution evidence is stale |
 | `fastq.remove_chimeras` | `vsearch` | `fastq-amplicon` | `run-2044` | blocked | no closed stage interface is defined<br>corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)<br>available comparative sample count 0 is below 10<br>no execution campaign is defined |
 | `fastq.remove_duplicates` | `clumpify` | `fastq-read-transformation` | `run-2045` | blocked | no closed stage interface is defined<br>corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)<br>no execution campaign is defined |
 | `fastq.report_qc` | `multiqc` | `fastq-observational-qc` | `run-2046` | blocked | no closed stage interface is defined<br>no execution campaign is defined |

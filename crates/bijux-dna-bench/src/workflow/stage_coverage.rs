@@ -279,7 +279,9 @@ pub fn render_stage_coverage_markdown(coverage: &BenchmarkStageCoverage) -> Stri
     lines.join("\n") + "\n"
 }
 
-fn retained_stage_tools(catalog: &ContainerCatalog) -> Result<BTreeMap<String, BTreeSet<String>>> {
+pub(super) fn retained_stage_tools(
+    catalog: &ContainerCatalog,
+) -> Result<BTreeMap<String, BTreeSet<String>>> {
     let mut stages: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for tool in &catalog.tools {
         if tool.support_disposition != "retained" {

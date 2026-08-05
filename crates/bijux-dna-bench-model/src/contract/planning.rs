@@ -5,16 +5,18 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkEvidenceTier,
+    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
     BenchmarkMeasurementContract, BenchmarkPortfolio, BenchmarkProfileAssignment,
-    BenchmarkScientificProfile, BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
-    BenchmarkStageCoverage, BenchmarkStageCoverageRow, BenchmarkStageDefinitionStatus,
-    BenchmarkStageExecutionStatus,
+    BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
+    BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
+    BenchmarkStageInterfaceStatus,
 };
 
 use super::{
-    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
-    BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
 };
 
 const REQUIRED_PERFORMANCE_METRICS: &[&str] =
@@ -136,6 +138,169 @@ pub fn validate_defined_campaign_portfolio_alignment(
     portfolio: &BenchmarkPortfolio,
 ) -> Result<(), BenchError> {
     validate_campaign_portfolio_alignment_impl(registry, portfolio, false)
+}
+
+/// Validate a complete scientific-readiness publication.
+///
+/// # Errors
+/// Returns an error when stage identities, readiness states, domain counts, or summary counts
+/// disagree.
+pub fn validate_scientific_readiness(
+    report: &BenchmarkScientificReadinessReport,
+) -> Result<(), BenchError> {
+    if report.schema_version != BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark scientific readiness schema mismatch".to_string(),
+        ));
+    }
+    validate_measurement(&report.measurement)?;
+    if report.stages.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark scientific readiness contains no stages".to_string(),
+        ));
+    }
+
+    validate_scientific_readiness_stages(&report.stages)?;
+    for corpus in &report.corpora {
+        require_text(&corpus.id, "scientific readiness corpus id")?;
+        require_text(&corpus.truth_strategy, "scientific readiness truth strategy")?;
+        validate_text_list(&corpus.roles, "scientific readiness corpus roles", false)?;
+    }
+    validate_scientific_readiness_domains(report)?;
+    validate_scientific_readiness_summary(report)
+}
+
+fn validate_scientific_readiness_stages(
+    stages: &[BenchmarkScientificReadinessStage],
+) -> Result<(), BenchError> {
+    let mut previous_stage = None;
+    for stage in stages {
+        require_text(&stage.stage_id, "scientific readiness stage id")?;
+        require_text(&stage.profile_id, "scientific readiness profile id")?;
+        validate_text_list(&stage.retained_tools, "scientific readiness tools", false)?;
+        if stage.retained_tools.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness tools are not strictly sorted".to_string(),
+            ));
+        }
+        if previous_stage.is_some_and(|previous| previous >= stage.stage_id.as_str()) {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness stages are not strictly sorted".to_string(),
+            ));
+        }
+        previous_stage = Some(stage.stage_id.as_str());
+        let expected_domain = stage.stage_id.split_once('.').map(|(domain, _)| domain);
+        if expected_domain != Some(stage.domain.as_str())
+            || !matches!(stage.domain.as_str(), "fastq" | "bam" | "vcf")
+        {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness stage domain is invalid".to_string(),
+            ));
+        }
+        validate_coverage_run_id(&stage.reserved_run_id)?;
+        if let Some(run_id) = &stage.campaign_run_id {
+            validate_coverage_run_id(run_id)?;
+        }
+        let is_ready = stage.readiness == BenchmarkScientificReadinessStatus::Ready;
+        let ready_contract = stage.blockers.is_empty()
+            && stage.interface_status == BenchmarkStageInterfaceStatus::Closed
+            && stage.campaign_run_id.as_deref() == Some(stage.reserved_run_id.as_str())
+            && stage.campaign_tier == Some(BenchmarkEvidenceTier::Comparative);
+        if is_ready != ready_contract {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness status disagrees with blockers or campaign closure"
+                    .to_string(),
+            ));
+        }
+        if !is_ready && stage.blockers.is_empty() {
+            return Err(BenchError::InvalidPolicy(
+                "blocked scientific readiness stage has no blocker".to_string(),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_scientific_readiness_domains(
+    report: &BenchmarkScientificReadinessReport,
+) -> Result<(), BenchError> {
+    let mut observed_domains = BTreeMap::new();
+    for domain in ["bam", "fastq", "vcf"] {
+        let stages = report.stages.iter().filter(|stage| stage.domain == domain);
+        let stage_count = stages.clone().count();
+        let ready_count = stages
+            .clone()
+            .filter(|stage| stage.readiness == BenchmarkScientificReadinessStatus::Ready)
+            .count();
+        observed_domains.insert(domain, (stage_count, ready_count, stage_count - ready_count));
+    }
+    if report.domains.len() != observed_domains.len()
+        || observed_domains.iter().any(|(domain, observed)| {
+            report.domains.get(*domain).is_none_or(|declared| {
+                *observed != (declared.stage_count, declared.ready_count, declared.blocked_count)
+            })
+        })
+    {
+        return Err(BenchError::InvalidPolicy(
+            "scientific readiness domain summaries disagree with stages".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_scientific_readiness_summary(
+    report: &BenchmarkScientificReadinessReport,
+) -> Result<(), BenchError> {
+    let ready_count = report
+        .stages
+        .iter()
+        .filter(|stage| stage.readiness == BenchmarkScientificReadinessStatus::Ready)
+        .count();
+    let qualification_campaign_count = report
+        .stages
+        .iter()
+        .filter(|stage| stage.campaign_tier == Some(BenchmarkEvidenceTier::Qualification))
+        .count();
+    let comparative_campaign_count = report
+        .stages
+        .iter()
+        .filter(|stage| stage.campaign_tier == Some(BenchmarkEvidenceTier::Comparative))
+        .count();
+    let admitted_comparative_corpus_count = report
+        .corpora
+        .iter()
+        .filter(|corpus| {
+            corpus.status == BenchmarkCorpusStatus::Admitted
+                && corpus.evidence_scope == BenchmarkEvidenceScope::Comparative
+        })
+        .count();
+    let observed_summary = (
+        report.stages.len(),
+        report.stages.len(),
+        ready_count,
+        report.stages.len() - ready_count,
+        report.corpora.len(),
+        admitted_comparative_corpus_count,
+        qualification_campaign_count,
+        comparative_campaign_count,
+    );
+    let summary = &report.summary;
+    let declared_summary = (
+        summary.stage_count,
+        summary.reserved_run_count,
+        summary.ready_count,
+        summary.blocked_count,
+        summary.corpus_count,
+        summary.admitted_comparative_corpus_count,
+        summary.qualification_campaign_count,
+        summary.comparative_campaign_count,
+    );
+    if observed_summary != declared_summary {
+        return Err(BenchError::InvalidPolicy(
+            "scientific readiness summary disagrees with report rows".to_string(),
+        ));
+    }
+    Ok(())
 }
 
 /// Validate a complete benchmark stage-coverage publication.

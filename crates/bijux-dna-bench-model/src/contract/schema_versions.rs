@@ -20,6 +20,8 @@ pub const BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.benchmark.campaign_pl
 pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
 pub const BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1: &str = "bijux.benchmark.stage_campaigns.v1";
 pub const BENCHMARK_STAGE_COVERAGE_SCHEMA_V1: &str = "bijux.benchmark.stage_coverage.v1";
+pub const BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1: &str =
+    "bijux.benchmark.scientific_readiness.v1";
 pub const BENCHMARK_PORTFOLIO_SCHEMA_V1: &str = "bijux.benchmark.portfolio.v1";
 pub const BENCHMARK_STAGE_INTERFACES_SCHEMA_V1: &str = "bijux.benchmark.stage_interfaces.v1";
 pub const BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1: &str = "bijux.benchmark.pipeline_parameters.v1";

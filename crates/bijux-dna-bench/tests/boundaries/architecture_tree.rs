@@ -91,6 +91,7 @@ fn bench_tree_matches_architecture_contract() {
             "options.rs",
             "report_load.rs",
             "run_suite/",
+            "scientific_readiness.rs",
             "stage_coverage.rs",
             "summary/",
             "suite_load.rs",
