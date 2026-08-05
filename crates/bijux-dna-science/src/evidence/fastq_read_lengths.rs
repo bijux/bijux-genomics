@@ -35,6 +35,45 @@ pub struct FastqReadLengthTruth {
     pub exact_rows_sha256: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct FastqReadLengthSummary {
+    pub read_count: u64,
+    pub minimum_read_length: u64,
+    pub mean_read_length: f64,
+    pub median_read_length: f64,
+    pub maximum_read_length: u64,
+    pub distinct_read_lengths: u64,
+}
+
+/// Derive exact aggregate read-length statistics from a governed histogram.
+///
+/// # Errors
+/// Returns an error when the histogram is empty, contains zero-valued lengths or counts, or its
+/// read/base counts exceed the supported integer range.
+pub fn summarize_fastq_read_length_histogram(
+    histogram: &BTreeMap<u64, u64>,
+) -> Result<FastqReadLengthSummary> {
+    if histogram.is_empty() || histogram.iter().any(|(length, count)| *length == 0 || *count == 0) {
+        bail!("FASTQ read-length histogram is empty or contains zero-valued observations");
+    }
+    let read_count = histogram.values().try_fold(0_u64, |total, count| {
+        total.checked_add(*count).context("FASTQ read count overflow")
+    })?;
+    let total_bases = histogram.iter().try_fold(0_u64, |total, (length, count)| {
+        let bases = length.checked_mul(*count).context("FASTQ base count overflow")?;
+        total.checked_add(bases).context("FASTQ base count overflow")
+    })?;
+    Ok(FastqReadLengthSummary {
+        read_count,
+        minimum_read_length: *histogram.first_key_value().context("FASTQ histogram is empty")?.0,
+        mean_read_length: decimal_f64(total_bases)? / decimal_f64(read_count)?,
+        median_read_length: histogram_median(histogram, read_count)?,
+        maximum_read_length: *histogram.last_key_value().context("FASTQ histogram is empty")?.0,
+        distinct_read_lengths: u64::try_from(histogram.len())
+            .context("FASTQ histogram size overflow")?,
+    })
+}
+
 /// Independently decode a sample's FASTQ files and derive exact read-length truth.
 ///
 /// Input order is significant: exact row identity follows the declared file order and record
@@ -52,7 +91,6 @@ pub fn derive_fastq_read_length_truth(
     validate_sample(sample_id, input_layout, paths.len())?;
     let mut histogram = BTreeMap::<u64, u64>::new();
     let mut read_count = 0_u64;
-    let mut total_bases = 0_u64;
     let mut exact_rows = Sha256::new();
 
     for path in paths {
@@ -79,7 +117,6 @@ pub fn derive_fastq_read_length_truth(
             }
             let length = u64::try_from(sequence.len()).context("FASTQ sequence length overflow")?;
             read_count = read_count.checked_add(1).context("FASTQ read count overflow")?;
-            total_bases = total_bases.checked_add(length).context("FASTQ base count overflow")?;
             let count = histogram.entry(length).or_default();
             *count = count.checked_add(1).context("FASTQ histogram count overflow")?;
             exact_rows.update(record_id.as_bytes());
@@ -91,21 +128,20 @@ pub fn derive_fastq_read_length_truth(
     if read_count == 0 {
         bail!("independent FASTQ read-length evidence is empty for {sample_id}");
     }
-
-    let minimum_read_length = *histogram.first_key_value().context("FASTQ histogram is empty")?.0;
-    let maximum_read_length = *histogram.last_key_value().context("FASTQ histogram is empty")?.0;
-    let median_read_length = histogram_median(&histogram, read_count)?;
+    let summary = summarize_fastq_read_length_histogram(&histogram)?;
+    if summary.read_count != read_count {
+        bail!("FASTQ histogram count differs from decoded records");
+    }
     Ok(FastqReadLengthTruth {
         sample_id: sample_id.to_string(),
         input_layout,
         file_count: u64::try_from(paths.len()).context("FASTQ file count overflow")?,
-        read_count,
-        minimum_read_length,
-        mean_read_length: decimal_f64(total_bases)? / decimal_f64(read_count)?,
-        median_read_length,
-        maximum_read_length,
-        distinct_read_lengths: u64::try_from(histogram.len())
-            .context("FASTQ histogram size overflow")?,
+        read_count: summary.read_count,
+        minimum_read_length: summary.minimum_read_length,
+        mean_read_length: summary.mean_read_length,
+        median_read_length: summary.median_read_length,
+        maximum_read_length: summary.maximum_read_length,
+        distinct_read_lengths: summary.distinct_read_lengths,
         histogram,
         exact_rows_sha256: sha256_hex(exact_rows.finalize()),
     })
@@ -226,4 +262,30 @@ fn histogram_median(histogram: &BTreeMap<u64, u64>, observations: u64) -> Result
 
 fn decimal_f64(value: u64) -> Result<f64> {
     value.to_string().parse().context("convert bounded FASTQ statistic to decimal")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use super::summarize_fastq_read_length_histogram;
+
+    #[test]
+    fn histogram_summary_preserves_even_median_and_weighted_mean() -> anyhow::Result<()> {
+        let histogram = BTreeMap::from([(10, 1), (20, 2), (40, 1)]);
+        let observed = summarize_fastq_read_length_histogram(&histogram)?;
+        assert_eq!(observed.read_count, 4);
+        assert_eq!(observed.minimum_read_length, 10);
+        assert_eq!(observed.maximum_read_length, 40);
+        assert_eq!(observed.distinct_read_lengths, 3);
+        assert!((observed.median_read_length - 20.0).abs() < f64::EPSILON);
+        assert!((observed.mean_read_length - 22.5).abs() < f64::EPSILON);
+        Ok(())
+    }
+
+    #[test]
+    fn histogram_summary_rejects_zero_and_overflow() {
+        assert!(summarize_fastq_read_length_histogram(&BTreeMap::from([(0, 1)])).is_err());
+        assert!(summarize_fastq_read_length_histogram(&BTreeMap::from([(u64::MAX, 2)])).is_err());
+    }
 }

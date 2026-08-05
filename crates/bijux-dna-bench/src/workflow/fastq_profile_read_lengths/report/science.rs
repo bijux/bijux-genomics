@@ -9,6 +9,7 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
     BenchmarkStageCampaignSpec,
 };
+use bijux_dna_science::evidence::{summarize_fastq_read_length_histogram, FastqReadLengthSummary};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -74,16 +75,6 @@ pub(super) struct ScientificObservation {
     pub(super) output_bytes: u64,
     pub(super) read_count: u64,
     pub(super) normalized_bundle_sha256: String,
-}
-
-#[derive(Debug, Clone, Copy)]
-struct HistogramSummary {
-    read_count: u64,
-    minimum_read_length: u64,
-    mean_read_length: f64,
-    median_read_length: f64,
-    maximum_read_length: u64,
-    distinct_read_lengths: u64,
 }
 
 pub(super) fn derive_scientific_observation(
@@ -154,7 +145,7 @@ fn summarize_bundle_histograms(
     result_root: &Path,
     repetition: u32,
     bundle: &ReadLengthBundle,
-) -> Result<(HistogramSummary, u64, String)> {
+) -> Result<(FastqReadLengthSummary, u64, String)> {
     let mut rows = bundle.results.iter().collect::<Vec<_>>();
     rows.sort_by(|left, right| left.sample_id.cmp(&right.sample_id));
     let mut seen = std::collections::BTreeSet::new();
@@ -184,7 +175,7 @@ fn summarize_bundle_histograms(
         digest_basis.extend_from_slice(actual_sha256.as_bytes());
         digest_basis.push(b'\n');
         let histogram = read_histogram(&histogram_path, &row.sample_id)?;
-        let sample = summarize_histogram(&histogram)?;
+        let sample = summarize_fastq_read_length_histogram(&histogram)?;
         if sample.read_count != row.read_count
             || sample.minimum_read_length != row.minimum_read_length
             || sample.maximum_read_length != row.maximum_read_length
@@ -202,7 +193,7 @@ fn summarize_bundle_histograms(
         }
     }
     Ok((
-        summarize_histogram(&aggregate)?,
+        summarize_fastq_read_length_histogram(&aggregate)?,
         file_count,
         bijux_dna_infra::hash_bytes_sha256(&digest_basis),
     ))
@@ -232,47 +223,6 @@ fn read_histogram(path: &Path, sample_id: &str) -> Result<BTreeMap<u64, u64>> {
         bail!("FASTQ histogram contains no observations");
     }
     Ok(histogram)
-}
-
-fn summarize_histogram(histogram: &BTreeMap<u64, u64>) -> Result<HistogramSummary> {
-    let read_count = histogram.values().try_fold(0_u64, |total, count| {
-        total.checked_add(*count).context("FASTQ read count overflow")
-    })?;
-    if read_count == 0 {
-        bail!("FASTQ histogram has no reads");
-    }
-    let base_count = histogram.iter().try_fold(0_u128, |total, (length, count)| {
-        total
-            .checked_add(u128::from(*length) * u128::from(*count))
-            .context("FASTQ base count overflow")
-    })?;
-    let lower_rank = read_count.div_ceil(2);
-    let upper_rank = read_count.saturating_add(1).div_ceil(2);
-    let mut cumulative = 0_u64;
-    let mut lower = None;
-    let mut upper = None;
-    for (length, count) in histogram {
-        cumulative = cumulative.checked_add(*count).context("FASTQ rank overflow")?;
-        if lower.is_none() && cumulative >= lower_rank {
-            lower = Some(*length);
-        }
-        if cumulative >= upper_rank {
-            upper = Some(*length);
-            break;
-        }
-    }
-    let minimum = *histogram.first_key_value().context("FASTQ histogram is empty")?.0;
-    let maximum = *histogram.last_key_value().context("FASTQ histogram is empty")?.0;
-    Ok(HistogramSummary {
-        read_count,
-        minimum_read_length: minimum,
-        mean_read_length: base_count as f64 / read_count as f64,
-        median_read_length: (lower.context("FASTQ lower median is absent")? as f64
-            + upper.context("FASTQ upper median is absent")? as f64)
-            / 2.0,
-        maximum_read_length: maximum,
-        distinct_read_lengths: histogram.len() as u64,
-    })
 }
 
 fn normalized_bundle_sha256(bundle: &ReadLengthBundle) -> Result<String> {
@@ -402,9 +352,7 @@ fn parse_nonnegative(value: &str, field: &str) -> Result<f64> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
-    use super::{distribution, summarize_histogram};
+    use super::distribution;
 
     #[test]
     fn distributions_use_sample_standard_deviation() -> anyhow::Result<()> {
@@ -413,19 +361,6 @@ mod tests {
         assert_eq!(observed.maximum, 3.0);
         assert_eq!(observed.mean, 2.0);
         assert_eq!(observed.sample_standard_deviation, 1.0);
-        Ok(())
-    }
-
-    #[test]
-    fn histogram_summary_preserves_even_median_and_weighted_mean() -> anyhow::Result<()> {
-        let histogram = BTreeMap::from([(10, 1), (20, 2), (40, 1)]);
-        let observed = summarize_histogram(&histogram)?;
-        assert_eq!(observed.read_count, 4);
-        assert_eq!(observed.minimum_read_length, 10);
-        assert_eq!(observed.maximum_read_length, 40);
-        assert_eq!(observed.distinct_read_lengths, 3);
-        assert_eq!(observed.median_read_length, 20.0);
-        assert_eq!(observed.mean_read_length, 22.5);
         Ok(())
     }
 }
