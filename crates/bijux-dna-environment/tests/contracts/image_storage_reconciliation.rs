@@ -17,7 +17,7 @@ use bijux_dna_environment::api::{
 fn quarantine_plan_is_resumable_verified_and_reversible() -> Result<()> {
     let fixture = Fixture::new()?;
     let plan = fixture.create_plan()?;
-    assert_eq!(plan.file_count, 5);
+    assert_eq!(plan.file_count, 6);
 
     let applied = apply_image_storage_plan(&fixture.plan, &fixture.images, "2026-08-05T08:00:00Z")?;
     assert_eq!(applied.state, ImageStoragePlanState::Applied);
@@ -27,6 +27,7 @@ fn quarantine_plan_is_resumable_verified_and_reversible() -> Result<()> {
     assert!(!fixture.detached.exists());
     assert!(!fixture.historical.exists());
     assert!(!fixture.detached_historical.exists());
+    assert!(!fixture.stale_selected.exists());
 
     let rolled_back =
         rollback_image_storage_plan(&fixture.plan, &fixture.images, "2026-08-05T08:01:00Z")?;
@@ -36,6 +37,7 @@ fn quarantine_plan_is_resumable_verified_and_reversible() -> Result<()> {
     assert_eq!(std::fs::read(&fixture.detached)?, b"detached");
     assert_eq!(std::fs::read(&fixture.historical)?, b"historical");
     assert_eq!(std::fs::read(&fixture.detached_historical)?, b"detached-historical");
+    assert_eq!(std::fs::read(&fixture.stale_selected)?, b"stale-selected");
     Ok(())
 }
 
@@ -50,7 +52,7 @@ fn report_requires_canonical_post_storage_inventory() -> Result<()> {
     let markdown = render_image_storage_report_markdown(&report);
 
     assert_eq!(report.verdict, ImageStorageVerdict::Passed);
-    assert_eq!(report.moved_file_count, 5);
+    assert_eq!(report.moved_file_count, 6);
     assert_eq!(report.historical_dependencies_preserved, 2);
     assert!(report.checks.values().all(|value| *value));
     assert!(markdown.contains("No SIF was deleted"));
@@ -185,6 +187,7 @@ struct Fixture {
     detached: PathBuf,
     historical: PathBuf,
     detached_historical: PathBuf,
+    stale_selected: PathBuf,
 }
 
 impl Fixture {
@@ -200,6 +203,7 @@ impl Fixture {
         let detached = images.join("detached-obsolete.sif");
         let historical = images.join("samtools-1.18-historical.sif");
         let detached_historical = images.join("detached-historical.sif");
+        let stale_selected = images.join("bijux-dna-stale-selected.sif");
         std::fs::create_dir_all(interrupted.parent().context("resolve staged-image parent")?)?;
         std::fs::create_dir_all(&evidence)?;
         std::fs::write(&canonical, b"canonical")?;
@@ -208,6 +212,7 @@ impl Fixture {
         std::fs::write(&detached, b"detached")?;
         std::fs::write(&historical, b"historical")?;
         std::fs::write(&detached_historical, b"detached-historical")?;
+        std::fs::write(&stale_selected, b"stale-selected")?;
         let fixture = Self {
             _temporary: temporary,
             study,
@@ -221,6 +226,7 @@ impl Fixture {
             detached,
             historical,
             detached_historical,
+            stale_selected,
         };
         write_inventory(&fixture.inventory, &fixture, true)?;
         Ok(fixture)
@@ -276,14 +282,18 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
             raw_sha256: "c".repeat(64),
         },
         summary: ContainerImageInventorySummary {
-            tool_count: 1,
-            states: BTreeMap::from([("current".to_string(), 1)]),
+            tool_count: if include_obsolete { 2 } else { 1 },
+            states: if include_obsolete {
+                BTreeMap::from([("current".to_string(), 1), ("historical".to_string(), 1)])
+            } else {
+                BTreeMap::from([("current".to_string(), 1)])
+            },
             historical_dependency_count: if include_obsolete { 2 } else { 0 },
             unknown_image_count: u64::from(include_obsolete),
             staged_image_count: u64::from(include_obsolete),
             unreferenced_obsolete_count: if include_obsolete { 2 } else { 0 },
         },
-        tools: vec![ContainerImageInventoryTool {
+        tools: [ContainerImageInventoryTool {
             tool: "samtools".to_string(),
             version: "1.20".to_string(),
             support_disposition: ContainerSupportDisposition::Retained,
@@ -291,7 +301,10 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
             state: ContainerImageState::Current,
             selected_image_sha256: Some(canonical_sha),
             candidates,
-        }],
+        }]
+        .into_iter()
+        .chain(include_obsolete.then(|| stale_selected_tool(fixture)).transpose()?)
+        .collect(),
         historical_images: if include_obsolete {
             vec![historical_detached_image(fixture)?]
         } else {
@@ -322,6 +335,29 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
     };
     bijux_dna_infra::atomic_create_json(path, &publication)?;
     Ok(())
+}
+
+fn stale_selected_tool(fixture: &Fixture) -> Result<ContainerImageInventoryTool> {
+    let sha256 = bijux_dna_infra::hash_file_sha256(&fixture.stale_selected)?;
+    Ok(ContainerImageInventoryTool {
+        tool: "bijux_dna".to_string(),
+        version: "0.1.0".to_string(),
+        support_disposition: ContainerSupportDisposition::Retained,
+        apptainer_supported: true,
+        state: ContainerImageState::Historical,
+        selected_image_sha256: Some(sha256.clone()),
+        candidates: vec![ContainerImageCandidate {
+            admitted: true,
+            current_recipe: false,
+            disposition: ImageCandidateDisposition::Canonical,
+            path: locator(&fixture.study, &fixture.stale_selected),
+            sha256,
+            size_bytes: std::fs::metadata(&fixture.stale_selected)?.len(),
+            real_run_references: 0,
+            run_references: Vec::new(),
+            build_evidence: Vec::new(),
+        }],
+    })
 }
 
 fn historical_tool_candidate(fixture: &Fixture) -> Result<ContainerImageCandidate> {

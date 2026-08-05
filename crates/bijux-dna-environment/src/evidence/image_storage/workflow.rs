@@ -4,8 +4,8 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 
 use super::super::{
-    load_image_inventory_publication, ContainerImageInventoryPublication, DetachedImageDisposition,
-    EvidenceSourceIdentity, ImageCandidateDisposition,
+    load_image_inventory_publication, ContainerImageInventoryPublication, ContainerImageState,
+    DetachedImageDisposition, EvidenceSourceIdentity, ImageCandidateDisposition,
 };
 use super::model::{
     ImageStorageMove, ImageStorageMoveCategory, ImageStoragePlan, ImageStoragePlanState,
@@ -257,7 +257,8 @@ fn collect_moves(
     image_root: &Path,
     quarantine_root: &Path,
 ) -> Result<Vec<ImageStorageMove>> {
-    let mut moves = Vec::new();
+    let mut moves =
+        collect_selected_historical_moves(inventory, study_root, image_root, quarantine_root)?;
     for candidate in inventory.tools.iter().flat_map(|tool| &tool.candidates).filter(|candidate| {
         matches!(candidate.disposition, ImageCandidateDisposition::HistoricalRunDependency)
     }) {
@@ -343,6 +344,47 @@ fn collect_moves(
             bail!("image-storage plan contains duplicate source or target paths");
         }
         reject_existing_path(Path::new(&row.target), "quarantine target")?;
+    }
+    Ok(moves)
+}
+
+fn collect_selected_historical_moves(
+    inventory: &ContainerImageInventoryPublication,
+    study_root: &Path,
+    image_root: &Path,
+    quarantine_root: &Path,
+) -> Result<Vec<ImageStorageMove>> {
+    let mut moves = Vec::new();
+    for tool in inventory.tools.iter().filter(|tool| tool.state == ContainerImageState::Historical)
+    {
+        let selected_sha256 = tool
+            .selected_image_sha256
+            .as_deref()
+            .context("historical tool has no selected image digest")?;
+        let mut selected =
+            tool.candidates.iter().filter(|candidate| candidate.sha256 == selected_sha256);
+        let candidate = selected.next().context("historical selected image is absent")?;
+        if selected.next().is_some()
+            || !candidate.admitted
+            || candidate.current_recipe
+            || candidate.disposition != ImageCandidateDisposition::Canonical
+        {
+            bail!("historical selected image has inconsistent inventory identity");
+        }
+        let category = match (candidate.real_run_references, candidate.run_references.is_empty()) {
+            (0, true) => ImageStorageMoveCategory::Obsolete,
+            (count, false) if count > 0 => ImageStorageMoveCategory::Historical,
+            _ => bail!("historical selected image has inconsistent run references"),
+        };
+        moves.push(move_identity(
+            &candidate.path,
+            candidate.size_bytes,
+            &candidate.sha256,
+            category,
+            study_root,
+            image_root,
+            quarantine_root,
+        )?);
     }
     Ok(moves)
 }
