@@ -37,18 +37,24 @@ the resulting SIF is rejected before reuse when its digest, embedded contract,
 or labels differ.
 
 Run from a clean checkout at the commit being qualified. `--hpc-root` is the
-exact study root that owns canonical images and evidence. Publish one retained
-tool per transaction:
+exact study root that owns canonical images and evidence. Launch the retained
+roster through one resumable campaign owner:
 
 ```console
 cargo run -p bijux-dna -- env ensure-images \
   --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --tool bijux_dna \
+  --all-retained \
   --campaign \
+  --jobs 4 \
   --json
 ```
 
-With `--campaign`, the command stages and publishes the digest-named SIF under
+With `--all-retained --campaign`, the command validates the exact catalog roster,
+writes an immutable plan, runs bounded independent workers, persists progress
+after every tool, appends one immutable execution record per invocation, and
+freshly re-verifies any resumed image before skipping it. Canonical
+`execution.json` is published only when the complete retained roster passes.
+It stages and publishes each digest-named SIF under
 `STUDY/containers/staging/<commit>` and creates immutable build evidence under
 `STUDY/containers/evidence/image-campaigns/<commit>`. It verifies the embedded
 contract and labels before publication and never writes the legacy active image

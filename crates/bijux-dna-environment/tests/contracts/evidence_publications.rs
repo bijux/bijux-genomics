@@ -149,12 +149,18 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let storage_plan = bijux_dna_environment::evidence::image_storage_plan_schema();
     let storage_report = bijux_dna_environment::evidence::image_storage_report_schema();
     let tool_contract = bijux_dna_environment::evidence::tool_contract::tool_contract_schema();
+    let build_evidence = bijux_dna_environment::api::container_build_evidence_schema();
+    let campaign_plan = bijux_dna_environment::api::image_campaign_plan_schema();
+    let campaign_execution = bijux_dna_environment::api::image_campaign_execution_schema();
     assert_eq!(inventory["title"], "ContainerImageInventoryPublication");
     assert_eq!(scan["title"], "ImageInventoryScan");
     assert_eq!(runtime["title"], "RuntimeVerificationPublication");
     assert_eq!(storage_plan["title"], "ImageStoragePlan");
     assert_eq!(storage_report["title"], "ImageStorageReport");
     assert_eq!(tool_contract["title"], "ContainerToolContract");
+    assert_eq!(build_evidence["title"], "CanonicalApptainerImagePublication");
+    assert_eq!(campaign_plan["title"], "ImageCampaignPlan");
+    assert_eq!(campaign_execution["title"], "ImageCampaignExecution");
 }
 
 #[test]
@@ -275,6 +281,10 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let qualification_audit_path =
         root.join("containers/contracts/schemas/qualification-run-id-audit.v1.json");
     let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v1.json");
+    let build_evidence_path = root.join("containers/contracts/schemas/build-evidence.v1.json");
+    let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");
+    let campaign_execution_path =
+        root.join("containers/contracts/schemas/image-campaign-execution.v1.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_environment::evidence::write_image_inventory_publication_schema(&inventory_path)?;
         bijux_dna_environment::evidence::write_image_inventory_scan_schema(&scan_path)?;
@@ -295,6 +305,11 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         bijux_dna_environment::evidence::tool_contract::write_tool_contract_schema(
             &tool_contract_path,
         )?;
+        bijux_dna_environment::api::write_container_build_evidence_schema(&build_evidence_path)?;
+        bijux_dna_environment::api::write_image_campaign_plan_schema(&campaign_plan_path)?;
+        bijux_dna_environment::api::write_image_campaign_execution_schema(
+            &campaign_execution_path,
+        )?;
     }
     let inventory: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(inventory_path)?)?;
@@ -312,6 +327,12 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         serde_json::from_str(&std::fs::read_to_string(qualification_audit_path)?)?;
     let tool_contract: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(tool_contract_path)?)?;
+    let build_evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(build_evidence_path)?)?;
+    let campaign_plan: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(campaign_plan_path)?)?;
+    let campaign_execution: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(campaign_execution_path)?)?;
     assert_eq!(inventory, bijux_dna_environment::evidence::image_inventory_publication_schema());
     assert_eq!(scan, bijux_dna_environment::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_environment::evidence::runtime_verification_publication_schema());
@@ -333,5 +354,8 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         tool_contract,
         bijux_dna_environment::evidence::tool_contract::tool_contract_schema()
     );
+    assert_eq!(build_evidence, bijux_dna_environment::api::container_build_evidence_schema());
+    assert_eq!(campaign_plan, bijux_dna_environment::api::image_campaign_plan_schema());
+    assert_eq!(campaign_execution, bijux_dna_environment::api::image_campaign_execution_schema());
     Ok(())
 }

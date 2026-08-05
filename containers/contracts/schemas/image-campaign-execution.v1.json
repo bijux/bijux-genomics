@@ -1,0 +1,290 @@
+{
+  "$defs": {
+    "BuildContextIdentity": {
+      "properties": {
+        "git_object": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "git_object"
+      ],
+      "type": "object"
+    },
+    "CanonicalApptainerImagePublication": {
+      "additionalProperties": false,
+      "properties": {
+        "apptainer_version": {
+          "type": "string"
+        },
+        "architecture": {
+          "type": "string"
+        },
+        "base_image_digest": {
+          "type": "string"
+        },
+        "base_image_reference": {
+          "type": "string"
+        },
+        "build_command": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "build_context": {
+          "items": {
+            "$ref": "#/$defs/BuildContextIdentity"
+          },
+          "type": "array"
+        },
+        "build_evidence_id": {
+          "type": "string"
+        },
+        "build_log": {
+          "$ref": "#/$defs/CanonicalBuildLogIdentity"
+        },
+        "builder_host": {
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "type": "string"
+        },
+        "definition": {
+          "$ref": "#/$defs/CanonicalDefinitionIdentity"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "finished_at_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "identity": {
+          "$ref": "#/$defs/EvidenceSourceIdentity"
+        },
+        "image": {
+          "$ref": "#/$defs/CanonicalImageIdentity"
+        },
+        "interface_sha256": {
+          "type": "string"
+        },
+        "pinned_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repository_commit": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "started_at_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "tool",
+        "version",
+        "status",
+        "repository_commit",
+        "architecture",
+        "build_evidence_id",
+        "catalog_sha256",
+        "interface_sha256",
+        "definition",
+        "build_context",
+        "base_image_reference",
+        "base_image_digest",
+        "builder_host",
+        "apptainer_version",
+        "build_command",
+        "started_at_unix_ms",
+        "finished_at_unix_ms",
+        "image",
+        "identity",
+        "build_log",
+        "evidence_path"
+      ],
+      "type": "object"
+    },
+    "CanonicalBuildLogIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "attempt"
+      ],
+      "type": "object"
+    },
+    "CanonicalDefinitionIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "CanonicalImageIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "EvidenceSourceIdentity": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "ImageCampaignToolOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "publication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CanonicalApptainerImagePublication"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/ImageCampaignToolStatus"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "type": "object"
+    },
+    "ImageCampaignToolStatus": {
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "architecture": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "failed": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "passed": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ImageCampaignToolOutcome"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_commit",
+    "catalog_sha256",
+    "architecture",
+    "tools",
+    "passed",
+    "failed"
+  ],
+  "title": "ImageCampaignExecution",
+  "type": "object"
+}

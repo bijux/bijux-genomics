@@ -70,7 +70,7 @@ pub struct EnsureImagesArgs {
         conflicts_with_all = ["domain", "stage", "stages", "all_retained", "jobs", "force_smoke", "repair_mismatch"]
     )]
     pub tool: Option<String>,
-    #[arg(long, default_value_t = false, requires = "tool")]
+    #[arg(long, default_value_t = false, conflicts_with_all = ["domain", "stage", "stages"])]
     pub campaign: bool,
     #[arg(long, default_value_t = false, conflicts_with = "tool")]
     pub force_smoke: bool,
@@ -130,8 +130,6 @@ mod ensure_images_parse_tests {
 
     #[test]
     fn direct_tool_publication_rejects_competing_selectors_and_legacy_controls() {
-        assert!(Cli::try_parse_from(["bijux-dna", "env", "ensure-images", "--campaign"])
-            .is_err());
         for competing in ["--domain", "--stage", "--stages", "--all-retained", "--jobs"] {
             let mut arguments = vec!["bijux-dna", "env", "ensure-images", "--tool", "samtools"];
             arguments.push(competing);
@@ -154,6 +152,29 @@ mod ensure_images_parse_tests {
             ])
             .is_err());
         }
+    }
+
+    #[test]
+    fn retained_campaign_accepts_bounded_workers() {
+        let cli = Cli::try_parse_from([
+            "bijux-dna",
+            "env",
+            "ensure-images",
+            "--all-retained",
+            "--campaign",
+            "--jobs",
+            "4",
+        ])
+        .unwrap_or_else(|error| panic!("parse retained image campaign: {error}"));
+        let DnaCommand::Environment(root) = cli.command else {
+            panic!("expected environment command");
+        };
+        let EnvCommand::EnsureImages(args) = root.command else {
+            panic!("expected ensure-images command");
+        };
+        assert!(args.all_retained);
+        assert!(args.campaign);
+        assert_eq!(args.jobs, Some(4));
     }
 }
 

@@ -1,11 +1,16 @@
 pub use crate::build::{
     apptainer_build_log_path, build_apptainer_image, classify_apptainer_build_failure,
-    latest_apptainer_build_attempt, next_apptainer_build_attempt,
-    publish_canonical_apptainer_image, ApptainerBuildAttempt, ApptainerBuildFailureClass,
-    ApptainerBuildReport, ApptainerBuildRequest, CanonicalApptainerImageDestination,
-    CanonicalApptainerImagePublication, CanonicalApptainerImagePublicationRequest,
-    CanonicalBuildLogIdentity, CanonicalDefinitionIdentity, CanonicalImageIdentity,
-    CONTAINER_BUILD_EVIDENCE_SCHEMA_V1,
+    container_build_evidence_schema, execute_apptainer_image_campaign,
+    image_campaign_execution_schema, image_campaign_plan_schema, latest_apptainer_build_attempt,
+    next_apptainer_build_attempt, publish_canonical_apptainer_image,
+    write_container_build_evidence_schema, write_image_campaign_execution_schema,
+    write_image_campaign_plan_schema, ApptainerBuildAttempt, ApptainerBuildFailureClass,
+    ApptainerBuildReport, ApptainerBuildRequest, ApptainerImageCampaignRequest,
+    CanonicalApptainerImageDestination, CanonicalApptainerImagePublication,
+    CanonicalApptainerImagePublicationRequest, CanonicalBuildLogIdentity,
+    CanonicalDefinitionIdentity, CanonicalImageIdentity, ImageCampaignExecution, ImageCampaignPlan,
+    ImageCampaignToolOutcome, ImageCampaignToolStatus, CONTAINER_BUILD_EVIDENCE_SCHEMA_V1,
+    IMAGE_CAMPAIGN_EXECUTION_SCHEMA_V1, IMAGE_CAMPAIGN_PLAN_SCHEMA_V1,
 };
 pub use crate::evidence::tool_contract::{
     apptainer_recipe_identity_at_commit, catalog_identity_at_commit, clean_repository_head_commit,

@@ -4,8 +4,9 @@ use std::process::Command;
 use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
-use schemars::JsonSchema;
+use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::evidence::tool_contract::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
@@ -116,6 +117,21 @@ pub struct CanonicalApptainerImagePublication {
     pub identity: EvidenceSourceIdentity,
     pub build_log: CanonicalBuildLogIdentity,
     pub evidence_path: String,
+}
+
+#[must_use]
+pub fn container_build_evidence_schema() -> Value {
+    serde_json::to_value(schema_for!(CanonicalApptainerImagePublication))
+        .unwrap_or_else(|_| serde_json::json!({}))
+}
+
+/// Write the canonical container-build evidence schema atomically.
+///
+/// # Errors
+/// Returns an error when the destination cannot be written.
+pub fn write_container_build_evidence_schema(path: &Path) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(path, &container_build_evidence_schema())?;
+    Ok(())
 }
 
 struct CanonicalContainerRoots {

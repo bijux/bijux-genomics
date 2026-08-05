@@ -67,6 +67,7 @@ fn source_tree_matches_architecture_contract() {
         btree_set(&[
             "apptainer.rs",
             "builder.rs",
+            "campaign.rs",
             "defaults.rs",
             "entrypoints.rs",
             "mod.rs",

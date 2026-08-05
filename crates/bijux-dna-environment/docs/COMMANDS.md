@@ -28,6 +28,9 @@ library can manage when callers invoke the matching API.
   the commit-campaign destination uses `<study>/containers/staging/<commit>` and
   `<study>/containers/evidence/image-campaigns/<commit>` without changing the active root. It runs
   `hostname` and `apptainer --version` to bind the builder environment to the evidence.
+- `execute_apptainer_image_campaign()`: owns catalog-wide bounded workers, immutable planning,
+  atomic per-tool progress, fresh resumed-image inspection, append-only invocation records, and
+  all-passed terminal execution publication.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.

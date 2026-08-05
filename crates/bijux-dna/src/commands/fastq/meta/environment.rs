@@ -75,6 +75,27 @@ pub(crate) fn handle_environment_command(
                 return Ok(true);
             }
             if args.all_retained {
+                if args.campaign {
+                    let execution = bijux_dna_api::v1::api::env::execute_apptainer_image_campaign(
+                        &bijux_dna_api::v1::api::env::ApptainerImageCampaignRequest {
+                            repository_root: std::env::current_dir()?,
+                            study_root: hpc_root.clone(),
+                            apptainer_executable: std::path::PathBuf::from("apptainer"),
+                            worker_count: args.jobs.unwrap_or(4),
+                        },
+                    )?;
+                    if let Some(output) = &args.output {
+                        bijux_dna_infra::atomic_write_json(output, &execution)?;
+                    }
+                    render::json::print_pretty(&execution)?;
+                    if execution.failed != 0 {
+                        return Err(anyhow::anyhow!(
+                            "image campaign has {} failed tools",
+                            execution.failed
+                        ));
+                    }
+                    return Ok(true);
+                }
                 let report = crate::commands::cli::env::ensure_retained_apptainer_roster_at_root(
                     &hpc_root,
                     args.jobs.unwrap_or(2),
@@ -101,6 +122,11 @@ pub(crate) fn handle_environment_command(
                     ));
                 }
                 return Ok(true);
+            }
+            if args.campaign {
+                return Err(anyhow::anyhow!(
+                    "environment ensure-images --campaign requires --tool or --all-retained"
+                ));
             }
             let domain = args.domain.as_deref().ok_or_else(|| {
                 anyhow!(
