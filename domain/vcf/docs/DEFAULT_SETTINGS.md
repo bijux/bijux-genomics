@@ -65,9 +65,9 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.damage_filter` default: `bcftools`. rationale: deterministic PMD/C>T-G>A masking contract anchor for the current governed profile.
 - `vcf.gl_propagation` default: `bcftools`. rationale: preserves GL fields across downstream handoffs in the current governed profile.
 - `vcf.population_structure` default: `plink2`. rationale: the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries.
-- `vcf.ibd` default: `germline` (planned). rationale: the active normalized pairwise-segment contract remains pinned to the germline family surface while external runtime packaging is still pending.
+- `vcf.ibd` default: `germline`. rationale: the governed segment baseline uses the smoke-proven GERMLINE execution contract while IBDseq remains an admitted comparative backend and IBDHap remains outside segment-call comparisons.
 - `vcf.roh` default: `plink2`. rationale: deterministic ROH interval extraction with normalized segment and per-sample summaries.
-- `vcf.demography` default: `ibdne` (planned). rationale: the active deterministic Ne summary contract mirrors the IBDNe surface while external runtime packaging is still pending.
+- `vcf.demography` default: `ibdne`. rationale: the governed recent-demography baseline uses the smoke-proven IBDNe execution contract over normalized IBD segment input and a pinned genetic map.
 
 single_tool_justification: vcf.call
 single_tool_justification: vcf.filter
@@ -82,6 +82,5 @@ single_tool_justification: vcf.impute
 single_tool_justification: vcf.postprocess
 single_tool_justification: vcf.prepare_reference_panel
 single_tool_justification: vcf.call_diploid
-single_tool_justification: vcf.ibd
 single_tool_justification: vcf.roh
 single_tool_justification: vcf.demography

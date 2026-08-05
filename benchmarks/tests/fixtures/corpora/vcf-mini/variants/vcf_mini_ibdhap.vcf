@@ -1,0 +1,8 @@
+##fileformat=VCFv4.2
+##reference=vcf-mini-reference
+##contig=<ID=chr1,length=12>
+##INFO=<ID=AF,Number=A,Type=Float,Description="Alternate allele frequency">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Phased genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample_a	sample_b
+chr1	3	rs1	A	G	60	PASS	AF=0.25	GT	0|1	0|0
+chr1	9	rs2	A	C	55	PASS	AF=0.50	GT	1|1	0|1

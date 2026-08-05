@@ -45,7 +45,7 @@ pub(super) fn build_images_toml(
             .and_modify(|(_, enabled)| *enabled = *enabled || (*domain_enabled && retained))
             .or_insert((version, *domain_enabled && retained));
     }
-    for planned_only in ["ibdseq", "shapeit"] {
+    for planned_only in ["shapeit"] {
         let version = container_catalog
             .get(planned_only)
             .map_or_else(|| "planned".to_string(), |contract| contract.version.clone());

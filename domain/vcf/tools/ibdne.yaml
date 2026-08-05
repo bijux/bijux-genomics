@@ -4,19 +4,19 @@ stage_ids: ["vcf.demography"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
-upstream: "https://faculty.washington.edu/browning/ibdne.shtml"
-pin_strategy: "container_digest"
-license: "GPL-3.0"
+default_version: "23Apr20.ae9"
+upstream: "https://faculty.washington.edu/browning/ibdne.html"
+pin_strategy: "source_sha256"
+license: "Apache-2.0"
 citation: "paper:https://doi.org/10.1016/j.ajhg.2015.07.012"
 version_cmd: "ibdne --version"
 help_cmd: "ibdne --help"
 expected_artifacts: ["demography_report", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.demography.v1"
-comparability_notes: "Planned tool; compare only within pinned profile and reference build."
+comparability_notes: "Compare only within the same segment filters, generation model, recombination map, and cohort ascertainment."
 container:
-  image: "containers/apptainer/lunarc/ibdne.def"
-  digest: "planned"
+  image: "containers/apptainer/ibdne.def"
+  digest: "sha256:ba400ac39ae8e69794d839b409135ecb66e92159c3456825cf396bcad22b296d"

@@ -142,21 +142,15 @@ fn append_panel_workflow_inputs(
 ) -> Result<()> {
     if !matches!(
         stage,
-        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute
+        VcfDomainStage::Phasing
+            | VcfDomainStage::ImputationMetrics
+            | VcfDomainStage::Impute
+            | VcfDomainStage::Ibd
+            | VcfDomainStage::Demography
     ) {
         return Ok(());
     }
 
-    let panel_id = selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
-        anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
-    })?;
-    let panel_vcf_path = match reference_panel_vcf {
-        Some(path) => path.to_path_buf(),
-        None => reference_asset_root(species_id, build_id)
-            .join("panels")
-            .join(panel_id)
-            .join("panel.vcf.gz"),
-    };
     let map_file =
         map.files.iter().find(|file| file.required).or_else(|| map.files.first()).ok_or_else(
             || anyhow!("planner refusal: genetic map {} has no catalog files", map.id),
@@ -165,16 +159,35 @@ fn append_panel_workflow_inputs(
         reference_asset_root(species_id, build_id).join("maps").join(&map.id).join(&map_file.path);
 
     io_inputs.push(ArtifactSpec::required(
-        ArtifactId::new("reference_panel_vcf"),
-        panel_vcf_path,
-        ArtifactRole::Variant,
-    ));
-    io_inputs.push(ArtifactSpec::required(
         ArtifactId::new("genetic_map_tsv"),
         map_path,
         ArtifactRole::Reference,
     ));
+
+    if matches!(
+        stage,
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute
+    ) {
+        let panel_id = selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
+            anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
+        })?;
+        let panel_vcf_path = match reference_panel_vcf {
+            Some(path) => path.to_path_buf(),
+            None => reference_asset_root(species_id, build_id)
+                .join("panels")
+                .join(panel_id)
+                .join("panel.vcf.gz"),
+        };
+        io_inputs.push(ArtifactSpec::required(
+            ArtifactId::new("reference_panel_vcf"),
+            panel_vcf_path,
+            ArtifactRole::Variant,
+        ));
+    }
     if tool == "minimac4" {
+        let panel_id = selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
+            anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
+        })?;
         let panel_m3vcf_path = reference_asset_root(species_id, build_id)
             .join("panels")
             .join(panel_id)

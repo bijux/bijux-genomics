@@ -4,7 +4,7 @@ stage_ids: ["vcf.ibd"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 default_version: "3.4"
 upstream: "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml"
@@ -19,4 +19,4 @@ metrics_schema_id: "bijux.vcf.ibd.v1"
 comparability_notes: "Compare posterior state probabilities only under the same marker map, transition model, priors, and sample pair; these outputs are not direct segment calls."
 container:
   image: "containers/apptainer/ibdhap.def"
-  digest: "planned"
+  digest: "sha256:5c34505e46021dbcddcbd0b0614f0fb9f818ef578613bb436c40ad61d934ca8a"
