@@ -1,12 +1,14 @@
 //! Owner: bijux-dna-bench
 //! Crash-recoverable publication of a complete planned campaign cycle.
 
+use std::fs;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_campaign_plan, BenchmarkAttemptRecordV2, BenchmarkCampaignPlan,
-    BenchmarkLifecycleStatus,
+    validate_campaign_plan, validate_execution_spec, BenchmarkAttemptRecordV2,
+    BenchmarkCampaignPlan, BenchmarkExecutionSpec, BenchmarkLifecycleStatus,
 };
 use bijux_dna_runtime::{
     benchmark_attempt_directory, ensure_attempt_lifecycle, load_attempt_lifecycle,
@@ -51,6 +53,60 @@ pub fn ensure_stage_campaign_attempts(
                 .context("ensure benchmark campaign attempt")
         })
         .collect()
+}
+
+/// Persist one execution specification beside its initialized attempt lifecycle.
+///
+/// Existing structurally identical content is accepted for crash recovery. The result root and
+/// planned attempt evidence must already match the same immutable identity.
+///
+/// # Errors
+/// Returns an error when the specification is invalid, its attempt is absent or no longer wholly
+/// planned, its result root differs from runtime path policy, or existing content conflicts.
+pub fn ensure_execution_spec(
+    benchmark_root: &Path,
+    spec: &BenchmarkExecutionSpec,
+) -> Result<PathBuf> {
+    validate_execution_spec(spec).context("validate benchmark execution specification")?;
+    let directory = benchmark_attempt_directory(benchmark_root, &spec.identity)?;
+    if directory != Path::new(&spec.outputs.result_root) {
+        bail!("benchmark execution result root differs from immutable attempt path");
+    }
+    let attempt = load_attempt_lifecycle(benchmark_root, &spec.identity)
+        .context("load initialized benchmark attempt")?;
+    if attempt.transitions.len() != 1
+        || attempt.current_status() != Some(BenchmarkLifecycleStatus::Planned)
+    {
+        bail!("benchmark execution specification requires a wholly planned attempt");
+    }
+    let path = directory.join("execution-spec.json");
+    match fs::symlink_metadata(&path) {
+        Ok(metadata) => {
+            if !metadata.file_type().is_file() || metadata.file_type().is_symlink() {
+                bail!("benchmark execution specification is not a regular file");
+            }
+            let bytes = bijux_dna_infra::read_to_end_bounded(&path, 16 * 1024 * 1024)
+                .with_context(|| format!("read benchmark execution spec {}", path.display()))?;
+            let existing: BenchmarkExecutionSpec = serde_json::from_slice(&bytes)
+                .with_context(|| format!("parse benchmark execution spec {}", path.display()))?;
+            validate_execution_spec(&existing)
+                .context("validate existing execution specification")?;
+            if existing != *spec {
+                bail!(
+                    "benchmark execution specification conflicts with immutable attempt evidence"
+                );
+            }
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            bijux_dna_infra::atomic_create_json(&path, spec)
+                .with_context(|| format!("write benchmark execution spec {}", path.display()))?;
+        }
+        Err(error) => {
+            return Err(error)
+                .with_context(|| format!("inspect benchmark execution spec {}", path.display()));
+        }
+    }
+    Ok(path)
 }
 
 fn attempt_sort_key(attempt: &BenchmarkAttemptRecordV2) -> (&str, &str, &str, &str, &str) {

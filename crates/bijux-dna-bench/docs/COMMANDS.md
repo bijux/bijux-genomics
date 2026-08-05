@@ -30,6 +30,7 @@ These operations are exported through the crate root and `public_api`.
 | `benchmark-execution-spec-schema` | `benchmark_execution_spec_schema()` | Derive the governed JSON Schema for immutable executable benchmark specifications. |
 | `validate-benchmark-execution-spec` | `validate_execution_spec(spec)` | Reject incomplete source locks, mutable result roots, in-place retries, undeclared acceptance outputs, and inconsistent runtime policy. |
 | `build-benchmark-execution-spec` | `build_execution_spec(registry, interfaces, catalog, plan, identity, image, material)` | Derive one executable attempt from aligned campaign, interface, catalog, source, image, and domain-material authorities. |
+| `ensure-benchmark-execution-spec` | `ensure_execution_spec(benchmark_root, spec)` | Crash-safely persist one immutable executable specification beside its wholly planned attempt lifecycle. |
 | `ensure-stage-campaign-attempts` | `ensure_stage_campaign_attempts(root, plan)` | Validate source locks, then preflight and crash-safely initialize every immutable planned attempt in a campaign cycle. |
 | `benchmark-attempt-directory` | `benchmark_attempt_directory(root, identity)` | Derive the permanent `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>` storage path from validated identity. |
 | `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Delegate atomic publication of an immutable planned attempt record to `bijux-dna-runtime`. |

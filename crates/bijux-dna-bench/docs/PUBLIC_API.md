@@ -86,6 +86,7 @@ including:
 - `validate_execution_spec`
 - `build_execution_spec`
 - `BenchmarkExecutionMaterial`
+- `ensure_execution_spec`
 
 ## Export Policy
 

@@ -2,11 +2,12 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use bijux_dna_bench::{
-    build_execution_spec, load_checked_in_benchmark_planning_contracts,
-    plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
-    BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism,
-    BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkExecutionMaterial,
-    BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
+    build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
+    load_checked_in_benchmark_planning_contracts, plan_stage_campaign_attempts,
+    BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
+    BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkExecutionInput,
+    BenchmarkExecutionInputKind, BenchmarkExecutionMaterial, BenchmarkExecutionParameterEvidence,
+    BenchmarkExecutionSpec,
 };
 use bijux_dna_environment::api::{load_container_catalog, ContainerCatalog, CurrentApptainerImage};
 
@@ -109,6 +110,14 @@ fn build(
     catalog: &ContainerCatalog,
     selected_image: &CurrentApptainerImage,
 ) -> anyhow::Result<BenchmarkExecutionSpec> {
+    build_at(catalog, selected_image, std::path::Path::new("/study/results/benchmarks"))
+}
+
+fn build_at(
+    catalog: &ContainerCatalog,
+    selected_image: &CurrentApptainerImage,
+    benchmark_root: &std::path::Path,
+) -> anyhow::Result<BenchmarkExecutionSpec> {
     let (registry, interfaces, _) = authorities()?;
     let plan = plan()?;
     let identity = plan
@@ -119,6 +128,8 @@ fn build(
         .ok_or_else(|| anyhow::anyhow!("run-2042 plan omits seqkit"))?
         .identity
         .clone();
+    let mut execution_material = material();
+    execution_material.benchmark_root = benchmark_root.to_path_buf();
     build_execution_spec(
         &registry,
         &interfaces,
@@ -126,8 +137,48 @@ fn build(
         &plan,
         &identity,
         selected_image,
-        material(),
+        execution_material,
     )
+}
+
+#[test]
+fn execution_spec_storage_is_restart_safe_and_refuses_conflicts() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-execution-spec-storage");
+    let plan = plan()?;
+    ensure_stage_campaign_attempts(temporary.path(), &plan)?;
+    let (_, _, catalog) = authorities()?;
+    let spec = build_at(&catalog, &image(), temporary.path())?;
+
+    let first = ensure_execution_spec(temporary.path(), &spec)?;
+    let recovered = ensure_execution_spec(temporary.path(), &spec)?;
+    assert_eq!(first, recovered);
+    let persisted: BenchmarkExecutionSpec = serde_json::from_slice(&std::fs::read(first)?)?;
+    assert_eq!(persisted, spec);
+
+    let mut conflicting = spec;
+    conflicting.operator = "different-operator".to_string();
+    assert!(ensure_execution_spec(temporary.path(), &conflicting).is_err());
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn execution_spec_storage_rejects_symlink_substitution() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-execution-spec-symlink");
+    let plan = plan()?;
+    ensure_stage_campaign_attempts(temporary.path(), &plan)?;
+    let (_, _, catalog) = authorities()?;
+    let spec = build_at(&catalog, &image(), temporary.path())?;
+    let external = temporary.path().join("external.json");
+    std::fs::write(&external, serde_json::to_vec_pretty(&spec)?)?;
+    std::os::unix::fs::symlink(
+        &external,
+        std::path::Path::new(&spec.outputs.result_root).join("execution-spec.json"),
+    )?;
+
+    assert!(ensure_execution_spec(temporary.path(), &spec).is_err());
+    assert_eq!(std::fs::read(external)?, serde_json::to_vec_pretty(&spec)?);
+    Ok(())
 }
 
 #[test]
