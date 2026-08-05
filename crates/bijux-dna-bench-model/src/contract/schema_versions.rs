@@ -27,3 +27,5 @@ pub const BENCHMARK_STAGE_REPORT_SCHEMA_V1: &str = "bijux.benchmark.stage_report
 pub const BENCHMARK_REPORT_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.report_admission.v1";
 pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.profile_read_lengths.expectations.v1";
+pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2: &str =
+    "bijux.benchmark.fastq.profile_read_lengths.expectations.v2";

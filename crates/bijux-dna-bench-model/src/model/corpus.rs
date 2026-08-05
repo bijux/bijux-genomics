@@ -156,6 +156,7 @@ pub struct FastqReadLengthExpectationSample {
 pub struct FastqReadLengthExpectations {
     pub schema_version: String,
     pub corpus_id: String,
+    pub derivation_sha256: String,
     pub sample_count: u64,
     pub file_count: u64,
     pub data_index_sha256: String,

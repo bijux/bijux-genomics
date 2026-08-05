@@ -42,6 +42,7 @@ struct FastqPreparation<'a> {
     benchmark_root: &'a Path,
     plan: &'a bijux_dna_bench::BenchmarkCampaignPlan,
     authorities: &'a bijux_dna_bench::BenchmarkExecutionAuthorities,
+    expectations: &'a bijux_dna_bench::FastqReadLengthExpectationPublication,
     options: &'a BTreeMap<String, String>,
     scheduler_timestamp: &'a str,
     recover_submitted: bool,
@@ -79,18 +80,18 @@ impl FastqPreparation<'_> {
         identity: &bijux_dna_bench::BenchmarkAttemptIdentity,
     ) -> Result<bijux_dna_bench::BenchmarkExecutionSpec> {
         let image = self.authorities.resolve_current_image(self.study_root, &identity.tool_id)?;
-        let material = bijux_dna_bench::prepare_fastq_profile_read_lengths_material(
-            self.repository_root,
-            self.study_root,
-            self.data_index,
-            self.benchmark_root,
-            identity,
-            self.authorities.source_contract_sha256(),
-            required(self.options, "--operator")?,
-            required(self.options, "--prepared-at-utc")?,
-            required(self.options, "--account")?,
-            required(self.options, "--partition")?,
-        )?;
+        let material =
+            bijux_dna_bench::prepare_fastq_profile_read_lengths_material_from_expectations(
+                self.repository_root,
+                self.benchmark_root,
+                identity,
+                self.authorities.source_contract_sha256(),
+                required(self.options, "--operator")?,
+                required(self.options, "--prepared-at-utc")?,
+                required(self.options, "--account")?,
+                required(self.options, "--partition")?,
+                self.expectations,
+            )?;
         let spec = self.authorities.build_execution_spec(
             self.plan,
             identity,
@@ -243,6 +244,14 @@ fn prepare_fastq_campaign(
         &repository_commit,
         &plan,
     )?;
+    let expectations = bijux_dna_bench::ensure_fastq_read_length_expectations(
+        &repository_root,
+        &study_root,
+        &data_index,
+        "human-short-read-diversity",
+        20,
+        30,
+    )?;
     let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
     let preparation = FastqPreparation {
@@ -252,6 +261,7 @@ fn prepare_fastq_campaign(
         benchmark_root: &benchmark_root,
         plan: &plan,
         authorities: &authorities,
+        expectations: &expectations,
         options,
         scheduler_timestamp,
         recover_submitted,

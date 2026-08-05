@@ -4,7 +4,7 @@
 use crate::diagnostics::BenchError;
 use crate::model::{BenchmarkFastqLayout, FastqReadLengthExpectations};
 
-use super::FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1;
+use super::FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2;
 
 /// Validate the complete persisted FASTQ read-length expectation contract.
 ///
@@ -14,10 +14,11 @@ use super::FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1;
 pub fn validate_fastq_read_length_expectations(
     expectations: &FastqReadLengthExpectations,
 ) -> Result<(), BenchError> {
-    if expectations.schema_version != FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1 {
+    if expectations.schema_version != FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2 {
         return Err(invalid("FASTQ read-length expectation schema mismatch"));
     }
     validate_identifier(&expectations.corpus_id, "corpus")?;
+    validate_digest(&expectations.derivation_sha256, "derivation")?;
     validate_digest(&expectations.data_index_sha256, "data index")?;
     validate_digest(&expectations.catalog_sha256, "catalog")?;
     let sample_count = u64::try_from(expectations.samples.len())

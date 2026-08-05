@@ -1,7 +1,7 @@
 use bijux_dna_bench_model::{
     validate_fastq_read_length_expectations, BenchmarkFastqLayout,
     FastqReadLengthExpectationSample, FastqReadLengthExpectations,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
 };
 
 #[test]
@@ -35,12 +35,18 @@ fn exact_fastq_expectation_contract_rejects_order_and_digest_drift() {
     expectations.catalog_sha256 = "0".repeat(64);
     assert!(validate_fastq_read_length_expectations(&expectations)
         .is_err_and(|error| error.to_string().contains("catalog digest")));
+
+    let mut expectations = valid_expectations();
+    expectations.derivation_sha256 = "0".repeat(64);
+    assert!(validate_fastq_read_length_expectations(&expectations)
+        .is_err_and(|error| error.to_string().contains("derivation digest")));
 }
 
 fn valid_expectations() -> FastqReadLengthExpectations {
     FastqReadLengthExpectations {
-        schema_version: FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1.to_string(),
+        schema_version: FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2.to_string(),
         corpus_id: "exact-fastq-corpus".to_string(),
+        derivation_sha256: "f".repeat(64),
         sample_count: 1,
         file_count: 1,
         data_index_sha256: "a".repeat(64),

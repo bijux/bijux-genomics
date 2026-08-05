@@ -11,7 +11,7 @@ use anyhow::{Context, Result};
 use bijux_dna_bench_model::{
     validate_fastq_read_length_expectations, AdmittedFastqCorpus, BenchmarkFastqLayout,
     FastqReadLengthExpectationSample, FastqReadLengthExpectations,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
 };
 use bijux_dna_science::evidence::{
     derive_fastq_read_length_truth, FastqInputLayout, FastqReadLengthTruth,
@@ -21,6 +21,13 @@ use self::rendering::{render_histogram, render_summary};
 use self::storage::{ensure_directory_chain, ensure_immutable_file, verify_directory_closure};
 
 const EXPECTATION_KIND: &str = "fastq-profile-read-lengths";
+const DERIVATION_SOURCES: &[&str] = &[
+    "crates/bijux-dna-bench-model/src/contract/corpus_expectations.rs",
+    "crates/bijux-dna-bench-model/src/model/corpus.rs",
+    "crates/bijux-dna-bench/src/workflow/fastq_expectations/mod.rs",
+    "crates/bijux-dna-bench/src/workflow/fastq_expectations/rendering.rs",
+    "crates/bijux-dna-science/src/evidence/fastq_read_lengths.rs",
+];
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FastqReadLengthExpectationPublication {
@@ -39,12 +46,14 @@ pub struct FastqReadLengthExpectationPublication {
 /// Returns an error when corpus admission or scientific derivation fails, a destination contains a
 /// symlink or conflicting artifact, output closure differs, or the manifest is invalid.
 pub fn ensure_fastq_read_length_expectations(
+    repository_root: &Path,
     study_root: &Path,
     data_index_path: &Path,
     corpus_id: &str,
     expected_sample_count: usize,
     expected_file_count: usize,
 ) -> Result<FastqReadLengthExpectationPublication> {
+    let derivation_sha256 = derivation_sha256(repository_root)?;
     let admitted = crate::repo::admit_fastq_benchmark_corpus(
         study_root,
         data_index_path,
@@ -57,6 +66,8 @@ pub fn ensure_fastq_read_length_expectations(
     let root = study_root
         .join("data/evidence/benchmark-expectations")
         .join(&admitted.catalog_sha256)
+        .join("derivations")
+        .join(&derivation_sha256)
         .join(EXPECTATION_KIND);
     let summaries_root = root.join("summaries");
     let histograms_root = root.join("histograms");
@@ -108,8 +119,9 @@ pub fn ensure_fastq_read_length_expectations(
     verify_directory_closure(&root, &root_names)?;
 
     let expectations = FastqReadLengthExpectations {
-        schema_version: FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1.to_string(),
+        schema_version: FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2.to_string(),
         corpus_id: admitted.corpus_id.clone(),
+        derivation_sha256,
         sample_count: admitted.sample_count,
         file_count: admitted.file_count,
         data_index_sha256: admitted.data_index_sha256.clone(),
@@ -136,6 +148,28 @@ pub fn ensure_fastq_read_length_expectations(
         expectations,
         admitted_corpus: admitted,
     })
+}
+
+fn derivation_sha256(repository_root: &Path) -> Result<String> {
+    let repository_root = repository_root
+        .canonicalize()
+        .with_context(|| format!("resolve repository root {}", repository_root.display()))?;
+    let mut identity = Vec::new();
+    for relative in DERIVATION_SOURCES {
+        let path = repository_root.join(relative);
+        let metadata = std::fs::symlink_metadata(&path)
+            .with_context(|| format!("inspect FASTQ derivation source {}", path.display()))?;
+        if metadata.file_type().is_symlink() || !metadata.is_file() {
+            anyhow::bail!("FASTQ derivation source is not a regular file: {}", path.display());
+        }
+        let digest = bijux_dna_infra::hash_file_sha256(&path)
+            .with_context(|| format!("hash FASTQ derivation source {}", path.display()))?;
+        identity.extend_from_slice(relative.as_bytes());
+        identity.push(b'\t');
+        identity.extend_from_slice(digest.as_bytes());
+        identity.push(b'\n');
+    }
+    Ok(bijux_dna_infra::hash_bytes_sha256(&identity))
 }
 
 fn science_layout(layout: BenchmarkFastqLayout) -> FastqInputLayout {
@@ -166,5 +200,27 @@ fn expectation_sample(
         histogram_path: format!("histograms/{}.histogram.tsv", truth.sample_id),
         histogram_sha256: bijux_dna_infra::hash_bytes_sha256(histogram_bytes),
         exact_rows_sha256: truth.exact_rows_sha256.clone(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{derivation_sha256, DERIVATION_SOURCES};
+
+    #[test]
+    fn derivation_identity_changes_when_owned_source_changes() -> anyhow::Result<()> {
+        let repository = bijux_dna_infra::temp_dir("fastq-expectation-derivation")?;
+        for relative in DERIVATION_SOURCES {
+            let path = repository.path().join(relative);
+            let parent =
+                path.parent().ok_or_else(|| anyhow::anyhow!("derivation source has no parent"))?;
+            std::fs::create_dir_all(parent)?;
+            std::fs::write(&path, relative.as_bytes())?;
+        }
+        let first = derivation_sha256(repository.path())?;
+        std::fs::write(repository.path().join(DERIVATION_SOURCES[0]), b"changed source")?;
+        let second = derivation_sha256(repository.path())?;
+        assert_ne!(first, second);
+        Ok(())
     }
 }

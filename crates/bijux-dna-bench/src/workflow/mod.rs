@@ -36,7 +36,8 @@ pub use fastq_expectations::{
     ensure_fastq_read_length_expectations, FastqReadLengthExpectationPublication,
 };
 pub use fastq_profile_read_lengths::{
-    prepare_fastq_profile_read_lengths_material, FastqProfileReadLengthsMaterial,
+    prepare_fastq_profile_read_lengths_material,
+    prepare_fastq_profile_read_lengths_material_from_expectations, FastqProfileReadLengthsMaterial,
 };
 pub use options::BenchRunOptions;
 pub use report_load::{

@@ -12,6 +12,7 @@ const CORPUS_ID: &str = "exact-fastq-corpus";
 
 struct ExpectationFixture {
     _temp: TempDir,
+    repository_root: PathBuf,
     study_root: PathBuf,
     data_index: PathBuf,
 }
@@ -20,6 +21,7 @@ struct ExpectationFixture {
 fn publishes_exact_awk_compatible_evidence_and_replays_identically() -> Result<()> {
     let fixture = expectation_fixture()?;
     let first = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
         &fixture.study_root,
         &fixture.data_index,
         CORPUS_ID,
@@ -27,6 +29,7 @@ fn publishes_exact_awk_compatible_evidence_and_replays_identically() -> Result<(
         1,
     )?;
     let second = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
         &fixture.study_root,
         &fixture.data_index,
         CORPUS_ID,
@@ -36,6 +39,10 @@ fn publishes_exact_awk_compatible_evidence_and_replays_identically() -> Result<(
 
     assert_eq!(first, second);
     validate_fastq_read_length_expectations(&first.expectations)?;
+    assert_eq!(
+        first.root.parent().and_then(Path::file_name).and_then(|value| value.to_str()),
+        Some(first.expectations.derivation_sha256.as_str())
+    );
     assert_eq!(
         fs::read_to_string(first.root.join("summaries/ERR000001.summary.tsv"))?,
         "sample_id\tinput_layout\tfile_count\tread_count\tminimum_read_length\tmean_read_length\tmedian_read_length\tmaximum_read_length\tdistinct_read_lengths\nERR000001\tsingle_end\t1\t2\t2\t3\t3\t4\t2\n"
@@ -57,6 +64,7 @@ fn publishes_exact_awk_compatible_evidence_and_replays_identically() -> Result<(
 fn rejects_conflicting_existing_expectation_bytes() -> Result<()> {
     let fixture = expectation_fixture()?;
     let publication = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
         &fixture.study_root,
         &fixture.data_index,
         CORPUS_ID,
@@ -66,6 +74,7 @@ fn rejects_conflicting_existing_expectation_bytes() -> Result<()> {
     fs::write(publication.root.join("summaries/ERR000001.summary.tsv"), b"conflict\n")?;
 
     let error = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
         &fixture.study_root,
         &fixture.data_index,
         CORPUS_ID,
@@ -81,6 +90,7 @@ fn rejects_conflicting_existing_expectation_bytes() -> Result<()> {
 fn rejects_extra_artifacts_outside_the_manifest_closure() -> Result<()> {
     let fixture = expectation_fixture()?;
     let publication = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
         &fixture.study_root,
         &fixture.data_index,
         CORPUS_ID,
@@ -90,6 +100,7 @@ fn rejects_extra_artifacts_outside_the_manifest_closure() -> Result<()> {
     fs::write(publication.root.join("histograms/untracked.tsv"), b"untracked\n")?;
 
     let error = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
         &fixture.study_root,
         &fixture.data_index,
         CORPUS_ID,
@@ -147,7 +158,12 @@ fn expectation_fixture() -> Result<ExpectationFixture> {
         }],
     });
     write_json(&data_index, &index)?;
-    Ok(ExpectationFixture { _temp: temp, study_root, data_index })
+    Ok(ExpectationFixture {
+        _temp: temp,
+        repository_root: super::support::repo_root()?,
+        study_root,
+        data_index,
+    })
 }
 
 fn write_json(path: &Path, value: &serde_json::Value) -> Result<()> {

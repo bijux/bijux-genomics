@@ -10,9 +10,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_attempt_identity, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
-    BenchmarkAcceptanceOperator, BenchmarkAttemptIdentity, BenchmarkExecutionAcceptance,
-    BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
+    validate_attempt_identity, validate_fastq_read_length_expectations,
+    BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
+    BenchmarkAttemptIdentity, BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism,
+    BenchmarkLifecycleStatus,
 };
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
@@ -51,6 +52,46 @@ pub fn prepare_fastq_profile_read_lengths_material(
     account: &str,
     partition: &str,
 ) -> Result<FastqProfileReadLengthsMaterial> {
+    let expectations = ensure_fastq_read_length_expectations(
+        repository_root,
+        study_root,
+        data_index_path,
+        CORPUS_ID,
+        20,
+        30,
+    )?;
+    prepare_fastq_profile_read_lengths_material_from_expectations(
+        repository_root,
+        benchmark_root,
+        identity,
+        source_contract_sha256,
+        operator,
+        prepared_at_utc,
+        account,
+        partition,
+        &expectations,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+/// Prepare one tool attempt from campaign-wide expectations admitted by the same invocation.
+///
+/// This keeps expensive corpus hashing and independent truth derivation at campaign ownership
+/// rather than repeating it for every tool while preserving the same immutable input closure.
+///
+/// # Errors
+/// Returns an error when the expectation publication or attempt authorities are inconsistent.
+pub fn prepare_fastq_profile_read_lengths_material_from_expectations(
+    repository_root: &Path,
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    source_contract_sha256: &BTreeMap<String, String>,
+    operator: &str,
+    prepared_at_utc: &str,
+    account: &str,
+    partition: &str,
+    expectations: &FastqReadLengthExpectationPublication,
+) -> Result<FastqProfileReadLengthsMaterial> {
     validate_attempt_identity(identity).context("validate FASTQ attempt identity")?;
     if identity.run.run_id != RUN_ID
         || identity.run.domain != "fastq"
@@ -63,15 +104,25 @@ pub fn prepare_fastq_profile_read_lengths_material(
     if lifecycle.current_status() != Some(BenchmarkLifecycleStatus::Planned) {
         bail!("FASTQ execution material requires a wholly planned attempt");
     }
+    validate_fastq_read_length_expectations(&expectations.expectations)
+        .context("validate shared FASTQ read-length expectations")?;
+    if expectations.expectations.corpus_id != CORPUS_ID
+        || expectations.admitted_corpus.corpus_id != CORPUS_ID
+        || expectations.expectations.data_index_sha256
+            != expectations.admitted_corpus.data_index_sha256
+        || expectations.expectations.catalog_sha256 != expectations.admitted_corpus.catalog_sha256
+        || expectations.expectations.sample_count != expectations.admitted_corpus.sample_count
+        || expectations.expectations.file_count != expectations.admitted_corpus.file_count
+    {
+        bail!("shared FASTQ expectation and admitted corpus authorities differ");
+    }
     let attempt_directory = crate::benchmark_attempt_directory(benchmark_root, identity)?;
-    let expectations =
-        ensure_fastq_read_length_expectations(study_root, data_index_path, CORPUS_ID, 20, 30)?;
     let parameters = ensure_parameter_evidence(
         repository_root,
         &attempt_directory,
         &expectations.admitted_corpus,
     )?;
-    let (inputs, samples) = execution_inputs(&expectations)?;
+    let (inputs, samples) = execution_inputs(expectations)?;
     let measured_repetitions = 3;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
@@ -98,7 +149,7 @@ pub fn prepare_fastq_profile_read_lengths_material(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
     };
-    Ok(FastqProfileReadLengthsMaterial { execution, expectations })
+    Ok(FastqProfileReadLengthsMaterial { execution, expectations: expectations.clone() })
 }
 
 fn acceptance() -> BenchmarkExecutionAcceptance {
