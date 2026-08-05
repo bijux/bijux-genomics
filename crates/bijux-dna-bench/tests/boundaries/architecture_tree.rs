@@ -85,6 +85,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "attempt_migration.rs",
             "bam_coverage/",
+            "bam_duplication_metrics/",
             "bam_endogenous_content/",
             "bam_mapping_summary/",
             "bam_observation/",
@@ -107,6 +108,17 @@ fn bench_tree_matches_architecture_contract() {
             "summary_statistics.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_duplication_metrics")),
+        entries(["commands.rs", "mod.rs", "report/"]),
+        "BAM duplication-metrics material must separate execution from reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_duplication_metrics/report")),
+        entries(["mod.rs", "science.rs"]),
+        "BAM duplication-metrics reporting must keep stage science separate"
     );
 
     assert_eq!(

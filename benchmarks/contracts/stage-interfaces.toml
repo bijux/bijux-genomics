@@ -36,6 +36,40 @@ assertions = [
 ]
 
 [[interfaces]]
+stage_id = "bam.duplication_metrics"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.duplication_metrics.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-duplication-metrics-result.schema.json"
+parameter_schema_version = "bijux.bam.params.duplication_metrics.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = []
+immutable_parameters = ["schema_version", "optical_duplicates", "umi_policy", "duplicate_action"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["picard", "samtools"]
+provenance_sources = [
+  "domain/bam/stages/duplication_metrics.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_core.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+  "benchmarks/execution/bam_duplication_metrics.awk",
+]
+
+[interfaces.adapters]
+picard = "bijux_dna_planner_bam::tool_adapters::bam::duplication_metrics"
+samtools = "bijux_dna_planner_bam::tool_adapters::bam::duplication_metrics"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.duplication_metrics.compare"
+input_contract = "bijux.benchmark.bam.duplication_metrics.bundle.v1"
+source = "benchmarks/execution/bam_duplication_metrics.awk"
+assertions = [
+  "every retained tool reports examined reads, duplicate reads, and duplication fraction",
+  "duplicate reads cannot exceed examined reads",
+  "the normalized duplication fraction is derived from the normalized counts",
+]
+
+[[interfaces]]
 stage_id = "bam.endogenous_content"
 accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
 output_contract = "bijux.benchmark.bam.endogenous_content.bundle.v1"

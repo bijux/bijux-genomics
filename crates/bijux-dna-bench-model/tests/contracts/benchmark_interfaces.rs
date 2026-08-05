@@ -124,6 +124,15 @@ fn stage_interface_contracts_accept_aligned_catalog() -> anyhow::Result<()> {
 }
 
 #[test]
+fn stage_interface_contracts_allow_no_input_derived_parameters() -> anyhow::Result<()> {
+    let mut catalog = interface_catalog();
+    catalog.interfaces[0].input_derived_parameters.clear();
+
+    validate_stage_interface_catalog(&catalog)?;
+    Ok(())
+}
+
+#[test]
 fn stage_interface_contracts_reject_incomplete_adapter_coverage() {
     let mut catalog = interface_catalog();
     catalog.interfaces[0].adapters.remove("seqkit");

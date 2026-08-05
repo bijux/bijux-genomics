@@ -8,13 +8,13 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **6**
-- Qualification-only campaigns: **4**
+- Defined campaigns: **7**
+- Qualification-only campaigns: **5**
 - Comparative campaigns: **2**
 - Admitted campaigns: **0**
 - Stale campaigns: **4**
 - Failed campaigns: **0**
-- Missing campaigns: **65**
+- Missing campaigns: **64**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -25,7 +25,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | - | missing | not_defined |
 | `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | not_admitted |
 | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `pmdtools`, `pydamage` | - | missing | not_defined |
-| `bam.duplication_metrics` | `picard`, `samtools` | - | missing | not_defined |
+| `bam.duplication_metrics` | `picard`, `samtools` | `run-2011` | qualification | not_admitted |
 | `bam.endogenous_content` | `samtools` | `run-2003` | qualification | not_admitted |
 | `bam.filter` | `bamtools`, `bedtools`, `samtools` | - | missing | not_defined |
 | `bam.gc_bias` | `picard` | - | missing | not_defined |

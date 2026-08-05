@@ -14,7 +14,26 @@ use super::{OpsCommandOutcome, Result, Workspace};
 mod lifecycle;
 mod scheduler;
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-coverage --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-endogenous-content --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-mapping-summary --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-profile-reads --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
+const USAGE: &str = concat!(
+    "Usage:\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-coverage --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-duplication-metrics --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-endogenous-content --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-mapping-summary --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-profile-reads --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+);
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const BENCHMARK_PREPARATION_OPTIONS: &[&str] = &[
@@ -151,6 +170,20 @@ impl CampaignPreparation<'_> {
                         )?
                         .execution
                     }
+                    "run-2011" => {
+                        bijux_dna_bench::prepare_bam_duplication_metrics_material_from_corpus(
+                            arguments.0,
+                            arguments.1,
+                            arguments.2,
+                            arguments.3,
+                            arguments.4,
+                            arguments.5,
+                            arguments.6,
+                            arguments.7,
+                            arguments.8,
+                        )?
+                        .execution
+                    }
                     _ => bail!("BAM campaign has no crate-owned executable material"),
                 }
             }
@@ -236,6 +269,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "reconcile" => reconcile_campaign(workspace, &options),
         "admit" => admit_campaign(workspace, &options),
         "publish-bam-coverage" => publish_bam_coverage(workspace, &options),
+        "publish-bam-duplication-metrics" => publish_bam_duplication_metrics(workspace, &options),
         "publish-bam-endogenous-content" => publish_bam_endogenous_content(workspace, &options),
         "publish-bam-mapping-summary" => publish_bam_mapping_summary(workspace, &options),
         "publish-fastq-read-lengths" => publish_fastq_read_lengths(workspace, &options),
@@ -668,6 +702,21 @@ fn publish_bam_endogenous_content(
         &arguments.output_root,
     )?;
     Ok(bam_observation_report_outcome("BAM endogenous-content", &publication))
+}
+
+fn publish_bam_duplication_metrics(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    let arguments = report_arguments(workspace, options)?;
+    let publication = bijux_dna_bench::publish_bam_duplication_metrics_stage_report(
+        &arguments.repository_root,
+        &arguments.study_root,
+        &arguments.benchmark_root,
+        &arguments.plan,
+        &arguments.output_root,
+    )?;
+    Ok(bam_observation_report_outcome("BAM duplication-metrics", &publication))
 }
 
 struct StageReportArguments {

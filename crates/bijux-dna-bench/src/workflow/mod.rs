@@ -4,6 +4,7 @@
 
 mod attempt_migration;
 mod bam_coverage;
+mod bam_duplication_metrics;
 mod bam_endogenous_content;
 mod bam_mapping_summary;
 mod bam_observation;
@@ -33,6 +34,11 @@ pub use bam_coverage::{
     prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus,
     publish_bam_coverage_stage_report, render_bam_coverage_markdown, BamCoverageMaterial,
     BamCoverageStageReportPublication,
+};
+pub use bam_duplication_metrics::{
+    prepare_bam_duplication_metrics_material, prepare_bam_duplication_metrics_material_from_corpus,
+    publish_bam_duplication_metrics_stage_report, render_bam_duplication_metrics_markdown,
+    BamDuplicationMetricsMaterial, BamDuplicationMetricsStageReportPublication,
 };
 pub use bam_endogenous_content::{
     prepare_bam_endogenous_content_material, prepare_bam_endogenous_content_material_from_corpus,

@@ -41,7 +41,7 @@ pub(crate) fn read_numeric_summary(
         }
         let value = value.parse::<f64>().context("parse BAM observational metric")?;
         if !value.is_finite()
-            || value <= 0.0
+            || value < 0.0
             || values.insert(metric.to_string(), BenchmarkScientificValue::Number(value)).is_some()
         {
             bail!("BAM observational metric is invalid or duplicated");

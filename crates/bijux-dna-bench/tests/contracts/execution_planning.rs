@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::Context;
 use bijux_dna_bench::{
@@ -356,4 +357,32 @@ fn execution_builder_rejects_image_and_catalog_authority_drift() -> anyhow::Resu
     seqkit.stage_ids.clear();
     assert!(build(&catalog, &image()).is_err());
     Ok(())
+}
+
+#[test]
+fn duplication_normalizer_closes_both_backend_shapes() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bam-duplication-normalizer")?;
+    let picard = temporary.path().join("picard.metrics.txt");
+    let samtools = temporary.path().join("samtools.stats.txt");
+    std::fs::write(
+        &picard,
+        b"## METRICS CLASS\nLIBRARY\tUNPAIRED_READS_EXAMINED\tREAD_PAIRS_EXAMINED\tUNPAIRED_READ_DUPLICATES\tREAD_PAIR_DUPLICATES\tPERCENT_DUPLICATION\nlib\t2\t4\t0\t1\t0.200000\n",
+    )?;
+    std::fs::write(&samtools, b"EXAMINED: 10\nDUPLICATE TOTAL: 2\n")?;
+    let expected = "metric\tvalue\nexamined_reads\t10\nduplicate_reads\t2\nduplication_fraction\t0.200000000000\n";
+    assert_eq!(normalize_duplication("picard", &picard)?, expected);
+    assert_eq!(normalize_duplication("samtools", &samtools)?, expected);
+    Ok(())
+}
+
+fn normalize_duplication(source: &str, input: &Path) -> anyhow::Result<String> {
+    let script =
+        super::support::repo_root()?.join("benchmarks/execution/bam_duplication_metrics.awk");
+    let output = Command::new("awk")
+        .args(["-v", "mode=summary", "-v", &format!("source={source}"), "-f"])
+        .arg(script)
+        .arg(input)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "duplication AWK failed");
+    Ok(String::from_utf8(output.stdout)?)
 }

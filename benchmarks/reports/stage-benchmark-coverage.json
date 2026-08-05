@@ -2,13 +2,13 @@
   "schema_version": "bijux.benchmark.stage_coverage.v1",
   "summary": {
     "retained_stage_count": 71,
-    "defined_stage_count": 6,
-    "qualification_stage_count": 4,
+    "defined_stage_count": 7,
+    "qualification_stage_count": 5,
     "comparative_stage_count": 2,
     "admitted_stage_count": 0,
     "stale_stage_count": 4,
     "failed_stage_count": 0,
-    "missing_stage_count": 65
+    "missing_stage_count": 64
   },
   "stages": [
     {
@@ -85,8 +85,9 @@
         "picard",
         "samtools"
       ],
-      "definition_status": "missing",
-      "execution_status": "not_defined"
+      "campaign_run_id": "run-2011",
+      "definition_status": "qualification",
+      "execution_status": "not_admitted"
     },
     {
       "stage_id": "bam.endogenous_content",

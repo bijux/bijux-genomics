@@ -200,6 +200,55 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2011"
+slug = "bam-duplication-metrics"
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+evidence_tier = "qualification"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-horse-alignment-qualification"]
+scientific_question = "Do Picard and Samtools derive consistent duplicate-read counts for the same governed ancient horse alignment, and what resources does each implementation consume?"
+comparison_scope = "duplicate detection over one governed coordinate-sorted EquCab3 BAM"
+tool_ids = ["picard", "samtools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "duplication-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads_by_tool = { picard = 1, samtools = 4 }
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "cross_tool_duplicate_accounting_consistency_not_library_complexity_truth"
+interpretation = "This campaign compares duplicate-read accounting after each tool performs duplicate detection under one normalized count contract. Agreement is an interoperability check for this BAM, not an independent truth estimate of molecular library complexity."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "examined_reads",
+  "duplicate_reads",
+  "duplication_fraction",
+]
+comparison_metrics = [
+  {id = "examined_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "duplicate_reads", absolute_tolerance = 2.0, relative_tolerance = 0.01},
+  {id = "duplication_fraction", absolute_tolerance = 0.000001, relative_tolerance = 0.01},
+]
+limitations = [
+  "The corpus is one low-coverage ancient horse library and cannot establish agreement across all library structures or sequencing technologies.",
+  "Picard and Samtools implement different duplicate-scoring and optical-duplicate models, so small count differences are interpreted within declared tolerances rather than as truth error.",
+  "Duplicate fraction is an operational BAM statistic and does not independently estimate original molecular diversity.",
+]
+
+[[campaigns]]
 run_id = "run-2042"
 slug = "fastq-profile-read-lengths"
 domain = "fastq"
