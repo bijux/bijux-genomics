@@ -41,11 +41,19 @@ fn bench_readiness_orphan_tools_writes_governed_tsv_columns() {
         Some("domain\ttool_id\tdecision\tdeclared_stage_ids\tbenchmark_stage_ids\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 2);
+    assert!(!rows.is_empty());
+    assert!(rows.iter().all(|row| row.split('\t').nth(2) == Some("future_tool")));
     assert!(rows.iter().any(|row| {
         row == &"fastq\tdustmasker\tfuture_tool\tfastq.filter_low_complexity\t\ttool `dustmasker` only declares non-benchmarked stages fastq.filter_low_complexity; keep it visible for future benchmark expansion"
     }));
     assert!(rows.iter().any(|row| {
         row == &"fastq\tseqpurge\tfuture_tool\tfastq.trim_reads\t\ttool `seqpurge` only declares non-benchmarked stages fastq.trim_reads; keep it visible for future benchmark expansion"
     }));
+    for prefix in [
+        "bam\tangsd\tfuture_tool\t",
+        "bam\tngsbriggs\tfuture_tool\t",
+        "fastq\tfastuniq\tfuture_tool\t",
+    ] {
+        assert!(rows.iter().any(|row| row.starts_with(prefix)));
+    }
 }

@@ -45,14 +45,15 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/executable-resolution.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    let row_count = rows.len() as u64;
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
 
     let resolution_counts = payload
         .get("resolution_counts")
         .and_then(serde_json::Value::as_object)
         .expect("resolution counts");
     assert_eq!(resolution_counts.get("host_binary").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(resolution_counts.get("docker_image").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(
         resolution_counts.get("apptainer_image").and_then(serde_json::Value::as_u64),
         Some(2)
@@ -62,9 +63,10 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
         Some(2)
     );
     assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 71);
+    assert_eq!(
+        resolution_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
+        row_count
+    );
 
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")

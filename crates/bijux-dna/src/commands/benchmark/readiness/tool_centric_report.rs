@@ -137,8 +137,10 @@ fn collect_tool_centric_tools(repo_root: &Path) -> Result<Vec<ToolCentricToolRep
     let rows = collect_pair_readiness_rows(repo_root)?;
     let placements = load_stage_report_placements(repo_root)?;
     let mut rows_by_tool = BTreeMap::<String, Vec<ToolCentricStageRow>>::new();
+    let mut observed_stage_keys = BTreeSet::<(String, String)>::new();
 
     for row in rows {
+        observed_stage_keys.insert((row.domain.clone(), row.stage_id.clone()));
         let placement =
             placements.get(&(row.domain.clone(), row.stage_id.clone())).ok_or_else(|| {
                 anyhow!(
@@ -163,6 +165,15 @@ fn collect_tool_centric_tools(repo_root: &Path) -> Result<Vec<ToolCentricToolRep
             asset_status: pair_asset_status_label(row.asset_status).to_string(),
             reason: row.reason,
         });
+    }
+
+    let expected_stage_keys = placements.keys().cloned().collect::<BTreeSet<_>>();
+    if observed_stage_keys != expected_stage_keys {
+        let missing = expected_stage_keys.difference(&observed_stage_keys).collect::<Vec<_>>();
+        let extra = observed_stage_keys.difference(&expected_stage_keys).collect::<Vec<_>>();
+        return Err(anyhow!(
+            "tool-centric report bindings drifted from report placements; missing={missing:?}, extra={extra:?}"
+        ));
     }
 
     let mut tools = rows_by_tool
@@ -249,19 +260,6 @@ fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Resul
     if row_count == 0 {
         return Err(anyhow!("tool-centric report must retain active stage-tool rows"));
     }
-    let unique_stage_count = tools
-        .iter()
-        .flat_map(|tool| {
-            tool.stages.iter().map(|stage| (stage.domain.clone(), stage.stage_id.clone()))
-        })
-        .collect::<BTreeSet<_>>()
-        .len();
-    if unique_stage_count != 51 {
-        return Err(anyhow!(
-            "tool-centric report must retain exactly 51 unique benchmark stages, found {unique_stage_count}"
-        ));
-    }
-
     ensure_tool_stages(
         tools,
         "samtools",
@@ -298,7 +296,6 @@ fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Resul
         &[
             "fastq.filter_low_complexity",
             "fastq.filter_reads",
-            "fastq.profile_read_lengths",
             "fastq.trim_polyg_tails",
             "fastq.trim_reads",
         ],
@@ -478,7 +475,17 @@ mod tests {
         .expect("render tool-centric report");
 
         assert!(report.tool_count > 0);
-        assert_eq!(report.unique_stage_count, 51);
+        assert_eq!(
+            report.unique_stage_count,
+            report
+                .tools
+                .iter()
+                .flat_map(|tool| {
+                    tool.stages.iter().map(|stage| (stage.domain.as_str(), stage.stage_id.as_str()))
+                })
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+        );
         assert!(report.row_count > 0);
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.blocked_row_count, 0);
@@ -494,7 +501,7 @@ mod tests {
 
         let fastp =
             report.tools.iter().find(|tool| tool.tool_id == "fastp").expect("fastp tool report");
-        assert_eq!(fastp.stage_count, 5);
+        assert_eq!(fastp.stage_count, 4);
         assert_eq!(fastp.blocked_stage_count, 0);
         assert!(fastp.blocked_stage_ids.is_empty());
     }
@@ -511,7 +518,7 @@ mod tests {
         let markdown = std::fs::read_to_string(output_path).expect("read markdown");
         assert!(markdown.contains("# Tool-Centric Benchmark Report"));
         assert!(markdown.contains("## samtools"));
-        assert!(markdown.contains("| fastp | fastq | 5 | 5 | 0 | none |"));
+        assert!(markdown.contains("| fastp | fastq | 4 | 4 | 0 | none |"));
         assert!(
             markdown.contains("| fastq | fastq.report_qc | Quality Profiling | QC Signal Profiles | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |")
         );

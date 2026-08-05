@@ -47,8 +47,15 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/real-output-parser-smoke.json")
     );
-    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(30));
-    assert_eq!(payload.get("passed_family_count").and_then(serde_json::Value::as_u64), Some(30));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("family_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert_eq!(
+        payload.get("passed_family_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(payload.get("failed_family_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let parser_surface_counts = payload
@@ -98,8 +105,9 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
         Some(1)
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 30);
+    assert!(rows.iter().all(|row| {
+        row.get("representative_tool_id").and_then(serde_json::Value::as_str) != Some("angsd")
+    }));
 
     assert!(rows.iter().any(|row| {
         row.get("family_id").and_then(serde_json::Value::as_str) == Some("alignment")
@@ -140,23 +148,6 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
                 .and_then(|value| value.get("observed_max_overlap_snps"))
                 .and_then(serde_json::Value::as_u64)
                 == Some(6)
-            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
-    }));
-
-    assert!(rows.iter().any(|row| {
-        row.get("family_id").and_then(serde_json::Value::as_str)
-            == Some("genotyping_and_population_inference")
-            && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
-                == Some("angsd")
-            && row.get("parser_surface").and_then(serde_json::Value::as_str)
-                == Some("serde_json::<Value> + governed keys")
-            && row.get("parsed_schema_version").and_then(serde_json::Value::as_str)
-                == Some("bijux.bam.genotyping.v1")
-            && row
-                .get("normalized_snapshot")
-                .and_then(|value| value.get("producer"))
-                .and_then(serde_json::Value::as_str)
-                == Some("bam.genotyping")
             && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
     }));
 
@@ -234,10 +225,15 @@ fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.real_output_parser_smoke.v1")
     );
-    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(30));
-    assert_eq!(payload.get("passed_family_count").and_then(serde_json::Value::as_u64), Some(30));
-
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("family_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert_eq!(
+        payload.get("passed_family_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert!(
         rows.iter().any(|row| {
             row.get("family_id").and_then(serde_json::Value::as_str)

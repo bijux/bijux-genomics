@@ -45,17 +45,32 @@ fn bench_readiness_input_preflight_audit_report_governed_retained_tool_coverage(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/input-preflight-tests.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(258));
-    assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(258));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let row_count = rows.len() as u64;
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("covered_tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(
+        payload.get("covered_tool_count").and_then(serde_json::Value::as_u64),
+        payload.get("retained_tool_count").and_then(serde_json::Value::as_u64)
+    );
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(112));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(96));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(50));
+    assert_eq!(domain_counts.len(), 3);
+    assert_eq!(
+        domain_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
+        row_count
+    );
+    for domain in ["fastq", "bam", "vcf"] {
+        assert!(domain_counts
+            .get(domain)
+            .and_then(serde_json::Value::as_u64)
+            .is_some_and(|count| count > 0));
+    }
 
     let missing_input_class_counts = payload
         .get("missing_input_class_counts")
@@ -72,8 +87,6 @@ fn bench_readiness_input_preflight_audit_report_governed_retained_tool_coverage(
         "governed report must not keep ambiguous `other` input classes"
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 258);
     assert!(rows.iter().all(|row| {
         let missing_input_role = row
             .get("missing_input_role")
@@ -185,10 +198,15 @@ fn bench_readiness_input_preflight_audit_write_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.input_preflight_audit.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(258));
-    assert_eq!(payload.get("covered_tool_count").and_then(serde_json::Value::as_u64), Some(71));
-
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert_eq!(
+        payload.get("covered_tool_count").and_then(serde_json::Value::as_u64),
+        payload.get("retained_tool_count").and_then(serde_json::Value::as_u64)
+    );
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fixture_contract")

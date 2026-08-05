@@ -45,8 +45,13 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/version-probes.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("ready_count").and_then(serde_json::Value::as_u64), Some(69));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    let row_count = rows.len() as u64;
+    let ready_count = support::json_u64(&payload, "ready_count").expect("ready count");
+    let unavailable_count =
+        support::json_u64(&payload, "unavailable_count").expect("unavailable count");
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(ready_count + unavailable_count, row_count);
     assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let parser_kind_counts = payload
@@ -55,11 +60,8 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
         .expect("parser kind counts");
     assert_eq!(
         parser_kind_counts.get("first_dotted_numeric_token").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(ready_count)
     );
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 71);
 
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")

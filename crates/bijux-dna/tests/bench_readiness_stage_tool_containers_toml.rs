@@ -92,20 +92,8 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("yleaf")
             && row.get("container_id").and_then(toml::Value::as_str) == Some("bijuxdna/yleaf")
     }));
-    assert!(rows.iter().any(|row| {
-        row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.damage")
-            && row.get("tool_id").and_then(toml::Value::as_str) == Some("ngsbriggs")
-            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
-            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("ngsbriggs")
-            && row.get("container_id").and_then(toml::Value::as_str)
-                == Some("bijuxdna/ngsbriggs:0.1.3")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.genotyping")
-            && row.get("tool_id").and_then(toml::Value::as_str) == Some("angsd")
-            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
-            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("angsd")
-            && row.get("container_id").and_then(toml::Value::as_str) == Some("bijuxdna/angsd")
+    assert!(rows.iter().all(|row| {
+        !matches!(row.get("tool_id").and_then(toml::Value::as_str), Some("angsd" | "ngsbriggs"))
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")

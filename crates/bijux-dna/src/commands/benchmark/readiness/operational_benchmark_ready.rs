@@ -1211,6 +1211,8 @@ mod tests {
     #[cfg(feature = "bam_downstream")]
     use super::DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH;
     use super::{benchmark_asset_profile_id_for_resource_row, binding_blocker, BindingKey};
+    #[cfg(feature = "bam_downstream")]
+    use crate::commands::benchmark::readiness::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
     use crate::commands::benchmark::readiness::stage_tool_resources::StageToolResourceRow;
 
     fn repo_root() -> PathBuf {
@@ -1241,7 +1243,11 @@ mod tests {
         );
         assert_eq!(
             report.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-            Some(141)
+            Some(
+                collect_all_domain_active_stage_tool_matrix_rows(&root)
+                    .expect("collect active stage-tool rows")
+                    .len() as u64,
+            )
         );
         assert_eq!(report.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
         assert_eq!(

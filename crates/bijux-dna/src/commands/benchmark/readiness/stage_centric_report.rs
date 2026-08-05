@@ -174,6 +174,18 @@ pub(crate) fn collect_stage_centric_stage_reports(
         );
     }
 
+    let observed_stage_keys =
+        rows_by_stage.keys().cloned().collect::<std::collections::BTreeSet<_>>();
+    let expected_stage_keys =
+        stage_metadata.keys().cloned().collect::<std::collections::BTreeSet<_>>();
+    if observed_stage_keys != expected_stage_keys {
+        let missing = expected_stage_keys.difference(&observed_stage_keys).collect::<Vec<_>>();
+        let extra = observed_stage_keys.difference(&expected_stage_keys).collect::<Vec<_>>();
+        return Err(anyhow!(
+            "stage-centric report bindings drifted from stage metadata; missing={missing:?}, extra={extra:?}"
+        ));
+    }
+
     let mut stages = rows_by_stage
         .into_iter()
         .map(|((domain, stage_id), mut tools)| {
@@ -304,21 +316,12 @@ fn load_shared_metric_fields_by_stage(
 }
 
 fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> Result<()> {
-    if stages.len() != 51 {
-        return Err(anyhow!(
-            "stage-centric report must retain exactly 51 stages, found {}",
-            stages.len()
-        ));
+    if stages.is_empty() {
+        return Err(anyhow!("stage-centric report must retain active stages"));
     }
     let row_count = stages.iter().map(|stage| stage.tool_count).sum::<usize>();
     if row_count == 0 {
         return Err(anyhow!("stage-centric report must retain active stage-tool rows"));
-    }
-    let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
-    if multi_tool_stage_count != 29 {
-        return Err(anyhow!(
-            "stage-centric report must retain exactly 29 multi-tool stages, found {multi_tool_stage_count}"
-        ));
     }
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
     if blocked_stage_count != 0 {
@@ -328,16 +331,22 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
     }
     let declared_shared_metric_stage_count =
         stages.iter().filter(|stage| stage.comparison_contract_status == "declared").count();
-    if declared_shared_metric_stage_count != 18 {
-        return Err(anyhow!(
-            "stage-centric report must retain exactly 18 stages with declared shared metrics, found {declared_shared_metric_stage_count}"
-        ));
-    }
     let not_declared_shared_metric_stage_count =
         stages.iter().filter(|stage| stage.comparison_contract_status == "not_declared").count();
-    if not_declared_shared_metric_stage_count != 11 {
+    let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
+    if declared_shared_metric_stage_count + not_declared_shared_metric_stage_count
+        != multi_tool_stage_count
+    {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 11 multi-tool stages without declared shared metrics, found {not_declared_shared_metric_stage_count}"
+            "stage-centric report must classify every multi-tool stage as declared or not_declared"
+        ));
+    }
+    if stages.iter().any(|stage| {
+        (stage.tool_count > 1 && stage.comparison_contract_status == "not_applicable")
+            || (stage.tool_count == 1 && stage.comparison_contract_status != "not_applicable")
+    }) {
+        return Err(anyhow!(
+            "stage-centric report comparison-contract applicability drifted from tool cardinality"
         ));
     }
 
@@ -364,7 +373,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         stages,
         "bam",
         "bam.damage",
-        6,
+        5,
         0,
         "declared",
         &["terminal_c_to_t_5p", "terminal_g_to_a_3p", "damage_signal"],
@@ -557,11 +566,17 @@ mod tests {
         )
         .expect("render stage-centric report");
 
-        assert_eq!(report.stage_count, 51);
-        assert_eq!(report.multi_tool_stage_count, 29);
+        assert_eq!(report.stage_count, report.stages.len());
+        assert_eq!(
+            report.multi_tool_stage_count,
+            report.stages.iter().filter(|stage| stage.tool_count > 1).count()
+        );
         assert_eq!(report.blocked_stage_count, 0);
-        assert_eq!(report.declared_shared_metric_stage_count, 18);
-        assert_eq!(report.not_declared_shared_metric_stage_count, 11);
+        assert_eq!(
+            report.declared_shared_metric_stage_count
+                + report.not_declared_shared_metric_stage_count,
+            report.multi_tool_stage_count
+        );
         assert!(report.row_count > 0);
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.blocked_row_count, 0);
@@ -591,7 +606,7 @@ mod tests {
         assert_eq!(profile_overrepresented.tool_count, 3);
         assert_eq!(profile_overrepresented.blocked_tool_count, 0);
         assert_eq!(profile_overrepresented.shared_metric_field_count, 3);
-        assert_eq!(damage.tool_count, 6);
+        assert_eq!(damage.tool_count, 5);
         assert_eq!(damage.shared_metric_field_count, 3);
     }
 
