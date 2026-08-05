@@ -57,6 +57,6 @@ fn bench_readiness_parser_completeness_gate_file_writes_self_describing_report()
     assert_eq!(report.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len),
-        Some(row_count as usize)
+        Some(usize::try_from(row_count).expect("row count fits usize"))
     );
 }

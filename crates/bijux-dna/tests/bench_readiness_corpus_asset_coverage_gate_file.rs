@@ -70,6 +70,6 @@ fn bench_readiness_corpus_asset_coverage_gate_file_writes_self_describing_report
     );
     assert_eq!(
         report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len),
-        Some(row_count as usize)
+        Some(usize::try_from(row_count).expect("row count fits usize"))
     );
 }
