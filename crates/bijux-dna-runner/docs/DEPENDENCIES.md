@@ -18,6 +18,7 @@ The Slurm backend introduces no scheduler library or async runtime dependency. I
 
 ## Dev Dependencies
 - `bijux-dna-policies` for guardrail checks.
+- `bijux-dna-testkit` for shared workspace source scanning support.
 - `cargo_metadata` for dependency boundary tests.
 - `assert_cmd` for command-runner contract tests.
 - `tempfile` for isolated filesystem tests.

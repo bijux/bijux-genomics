@@ -57,6 +57,7 @@ entrypoints, runner behavior, or environment provisioning commands.
 | --- | --- | --- |
 | `read-policy-text` | `read_policy_text` | Read repository policy or fixture text with path-aware panic messages. |
 | `resolve-workspace-root-from-manifest` | `workspace_root_from_manifest` | Resolve the workspace root from a crate manifest directory. |
+| `strip-rust-test-modules` | `workspace_support::strip_rust_test_modules` | Remove inline `#[cfg(test)]` modules before production-source policy scans. |
 
 ## Commands Owned Elsewhere
 

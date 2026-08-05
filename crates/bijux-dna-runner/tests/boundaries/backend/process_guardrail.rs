@@ -44,8 +44,9 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
         if is_allowed_command_path(path) {
             continue;
         }
-        let content =
+        let source =
             std::fs::read_to_string(path).unwrap_or_else(|err| panic!("read source: {err}"));
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(&source);
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(path.display().to_string());
         }
