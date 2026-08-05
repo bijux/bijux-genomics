@@ -74,6 +74,15 @@ fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Resul
         &runtime,
     )
     .is_err_and(|error| error.to_string().contains("tool set differs")));
+
+    let mut capability_drift = inventory.clone();
+    capability_drift.tools[0].apptainer_supported = !capability_drift.tools[0].apptainer_supported;
+    assert!(bijux_dna_environment::evidence::validate_container_inventory_catalog(
+        &inventory.catalog_sha256,
+        &catalog,
+        &capability_drift,
+    )
+    .is_err_and(|error| error.to_string().contains("identity differs")));
     Ok(())
 }
 

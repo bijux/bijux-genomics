@@ -12,7 +12,8 @@ mod validation;
 
 pub use chain::{
     load_container_evidence_chain, validate_container_evidence_chain,
-    validate_container_recipe_evidence_chain, ContainerEvidenceChain,
+    validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
+    ContainerEvidenceChain,
 };
 pub use inventory::{
     derive_image_inventory_evidence, derive_image_inventory_publication, DerivedImageInventory,

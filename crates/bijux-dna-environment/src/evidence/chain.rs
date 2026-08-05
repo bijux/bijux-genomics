@@ -115,14 +115,8 @@ pub fn validate_container_evidence_chain(
     inventory: &ContainerImageInventoryPublication,
     runtime: &RuntimeVerificationPublication,
 ) -> Result<()> {
-    validate_image_inventory_publication(inventory)?;
+    validate_container_inventory_catalog(catalog_sha256, catalog, inventory)?;
     validate_runtime_verification_publication(runtime)?;
-    if inventory.catalog_sha256 != catalog_sha256 {
-        bail!(
-            "image inventory catalog digest is stale: expected {catalog_sha256}, observed {}",
-            inventory.catalog_sha256
-        );
-    }
     if runtime.catalog.sha256 != catalog_sha256 {
         bail!(
             "runtime publication catalog digest is stale: expected {catalog_sha256}, observed {}",
@@ -138,23 +132,11 @@ pub fn validate_container_evidence_chain(
 
     let inventory_tools =
         inventory.tools.iter().map(|tool| (tool.tool.as_str(), tool)).collect::<BTreeMap<_, _>>();
-    let catalog_ids = catalog.tools.iter().map(|tool| tool.id.as_str()).collect::<BTreeSet<_>>();
-    let inventory_ids = inventory_tools.keys().copied().collect::<BTreeSet<_>>();
-    if catalog_ids != inventory_ids {
-        bail!("image inventory tool set differs from the container catalog");
-    }
-
     let mut retained_ids = BTreeSet::new();
     for tool in &catalog.tools {
         let inventory_tool = inventory_tools
             .get(tool.id.as_str())
             .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
-        let expected_disposition = catalog_support_disposition(&tool.support_disposition)?;
-        if inventory_tool.version != tool.version
-            || inventory_tool.support_disposition != expected_disposition
-        {
-            bail!("image inventory identity differs from catalog for {}", tool.id);
-        }
         if tool.support_disposition != "retained" {
             continue;
         }
@@ -172,6 +154,47 @@ pub fn validate_container_evidence_chain(
     }
     if runtime.tools.keys().map(String::as_str).collect::<BTreeSet<_>>() != retained_ids {
         bail!("runtime publication tool set differs from retained catalog tools");
+    }
+    Ok(())
+}
+
+/// Validate exact catalog identity and complete tool closure in an image inventory.
+///
+/// # Errors
+/// Returns an error when the inventory is malformed, names a different catalog digest, omits or
+/// adds tools, or changes a tool version, support disposition, or Apptainer capability.
+pub fn validate_container_inventory_catalog(
+    catalog_sha256: &str,
+    catalog: &ContainerCatalog,
+    inventory: &ContainerImageInventoryPublication,
+) -> Result<()> {
+    validate_image_inventory_publication(inventory)?;
+    if inventory.catalog_sha256 != catalog_sha256 {
+        bail!(
+            "image inventory catalog digest is stale: expected {catalog_sha256}, observed {}",
+            inventory.catalog_sha256
+        );
+    }
+
+    let inventory_tools =
+        inventory.tools.iter().map(|tool| (tool.tool.as_str(), tool)).collect::<BTreeMap<_, _>>();
+    let catalog_ids = catalog.tools.iter().map(|tool| tool.id.as_str()).collect::<BTreeSet<_>>();
+    let inventory_ids = inventory_tools.keys().copied().collect::<BTreeSet<_>>();
+    if catalog_ids.len() != catalog.tools.len() || catalog_ids != inventory_ids {
+        bail!("image inventory tool set differs from the container catalog");
+    }
+
+    for tool in &catalog.tools {
+        let inventory_tool = inventory_tools
+            .get(tool.id.as_str())
+            .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
+        let expected_disposition = catalog_support_disposition(&tool.support_disposition)?;
+        if inventory_tool.version != tool.version
+            || inventory_tool.support_disposition != expected_disposition
+            || inventory_tool.apptainer_supported != tool.apptainer_supported
+        {
+            bail!("image inventory identity differs from catalog for {}", tool.id);
+        }
     }
     Ok(())
 }
