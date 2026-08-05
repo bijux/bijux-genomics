@@ -44,18 +44,20 @@ tool per transaction:
 cargo run -p bijux-dna -- env ensure-images \
   --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
   --tool bijux_dna \
+  --campaign \
   --json
 ```
 
-The command stages the SIF under `STUDY/containers/apptainer/.building`,
-verifies the embedded contract and labels, publishes the final digest-named
-image under `STUDY/containers/apptainer`, and creates immutable build evidence
-under `STUDY/containers/evidence`. An abandoned staging path, digest-prefix
-collision, dirty source tree, changed source commit, or conflicting evidence
-fails closed for explicit reconciliation. Do not invoke the retired Python
-image campaign or cache-oriented compatibility commands to create canonical
-image state. Reports from those paths are historical records, not current
-qualification evidence.
+With `--campaign`, the command stages and publishes the digest-named SIF under
+`STUDY/containers/staging/<commit>` and creates immutable build evidence under
+`STUDY/containers/evidence/image-campaigns/<commit>`. It verifies the embedded
+contract and labels before publication and never writes the legacy active image
+root. Omitting `--campaign` retains the explicit active-root transaction used by
+reviewed storage migration. An abandoned staging path, digest-prefix collision,
+dirty source tree, changed source commit, or conflicting evidence fails closed
+for reconciliation. Do not invoke retired Python image campaign or cache-oriented
+compatibility commands to create canonical image state. Reports from those paths
+are historical records, not current qualification evidence.
 
 Image construction runs on the approved frontend. Scientific tool execution
 remains a Slurm workload with separate pipeline, input, scheduler, runtime, and

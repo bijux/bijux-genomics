@@ -10,7 +10,7 @@ use std::time::Duration;
 use anyhow::{bail, Context, Result};
 use bijux_dna_environment::api::{
     clean_repository_head_commit, derive_image_inventory_evidence, prepare_apptainer_tool_contract,
-    publish_canonical_apptainer_image, tool_contract_labels,
+    publish_canonical_apptainer_image, tool_contract_labels, CanonicalApptainerImageDestination,
     CanonicalApptainerImagePublicationRequest, ContainerImageState,
     ImageInventoryDerivationRequest, ToolContractBuildRequest,
 };
@@ -27,7 +27,7 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
     let prepared = prepare_apptainer_tool_contract(&ToolContractBuildRequest {
         repository_root: repository.path().to_path_buf(),
         tool_id: "contract_tool".to_string(),
-        repository_commit: commit,
+        repository_commit: commit.clone(),
         architecture: "linux/amd64".to_string(),
         output_root: preview_root.clone(),
     })?;
@@ -59,24 +59,33 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
             maximum_build_invocations: 1,
             retry_delay: Duration::ZERO,
             lock_timeout: Duration::from_secs(1),
+            destination: CanonicalApptainerImageDestination::CommitCampaign,
         })?;
 
     assert_eq!(publication.status, "passed");
     assert_eq!(publication.image.sha256.len(), 64);
-    assert!(publication.image.path.starts_with("study://containers/apptainer/"));
-    assert!(publication.build_log.path.starts_with("study://containers/evidence/build-logs/"));
+    let campaign_image_prefix = format!("study://containers/staging/{commit}/");
+    let campaign_evidence_prefix = format!("study://containers/evidence/image-campaigns/{commit}/");
+    assert!(publication.image.path.starts_with(&campaign_image_prefix));
+    assert!(publication.build_log.path.starts_with(&campaign_evidence_prefix));
+    assert!(publication.evidence_path.starts_with(&campaign_evidence_prefix));
     assert!(publication.evidence_path.ends_with(".build.json"));
     assert!(study_path(study.path(), &publication.image.path)?.is_file());
     assert!(study_path(study.path(), &publication.evidence_path)?.is_file());
-    assert_eq!(fs::read_dir(study.path().join("containers/apptainer/.building"))?.count(), 0);
+    assert_eq!(
+        fs::read_dir(study.path().join(format!("containers/staging/{commit}/.building")))?.count(),
+        0
+    );
 
     let run_root = study.path().join("containers/runs");
     fs::create_dir_all(&run_root)?;
     let inventory = derive_image_inventory_evidence(&ImageInventoryDerivationRequest {
         repository_root: repository.path().to_path_buf(),
         study_root: study.path().to_path_buf(),
-        image_root: study.path().join("containers/apptainer"),
-        build_evidence_root: study.path().join("containers/evidence"),
+        image_root: study.path().join(format!("containers/staging/{commit}")),
+        build_evidence_root: study
+            .path()
+            .join(format!("containers/evidence/image-campaigns/{commit}")),
         run_evidence_root: run_root,
     })?;
     assert_eq!(inventory.publication.tools.len(), 1);

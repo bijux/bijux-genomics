@@ -10,7 +10,8 @@ pub use bijux_dna_environment::api::{
     run_smoke_script_batch, validate_tool_contract, verify_apptainer_tool_contract,
     ApptainerBuildAttempt, ApptainerBuildFailureClass, ApptainerBuildReport, ApptainerBuildRequest,
     ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
-    CanonicalApptainerImagePublication, CanonicalApptainerImagePublicationRequest,
-    ContainerToolContract, PlatformSpec, PreparedToolContractBuild, RuntimeKind,
-    ToolContractBuildRequest, ToolImageSpec, APPTAINER_SMOKE_MANIFEST_SCHEMA_V5,
+    CanonicalApptainerImageDestination, CanonicalApptainerImagePublication,
+    CanonicalApptainerImagePublicationRequest, ContainerToolContract, PlatformSpec,
+    PreparedToolContractBuild, RuntimeKind, ToolContractBuildRequest, ToolImageSpec,
+    APPTAINER_SMOKE_MANIFEST_SCHEMA_V5,
 };

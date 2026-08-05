@@ -70,6 +70,8 @@ pub struct EnsureImagesArgs {
         conflicts_with_all = ["domain", "stage", "stages", "all_retained", "jobs", "force_smoke", "repair_mismatch"]
     )]
     pub tool: Option<String>,
+    #[arg(long, default_value_t = false, requires = "tool")]
+    pub campaign: bool,
     #[arg(long, default_value_t = false, conflicts_with = "tool")]
     pub force_smoke: bool,
     #[arg(long, default_value_t = false, conflicts_with = "tool")]
@@ -110,6 +112,7 @@ mod ensure_images_parse_tests {
             "/study",
             "--tool",
             "bijux_dna",
+            "--campaign",
             "--json",
         ])
         .unwrap_or_else(|error| panic!("parse canonical tool publication: {error}"));
@@ -121,11 +124,14 @@ mod ensure_images_parse_tests {
         };
         assert_eq!(args.tool.as_deref(), Some("bijux_dna"));
         assert_eq!(args.hpc_root.as_deref(), Some(std::path::Path::new("/study")));
+        assert!(args.campaign);
         assert!(args.json);
     }
 
     #[test]
     fn direct_tool_publication_rejects_competing_selectors_and_legacy_controls() {
+        assert!(Cli::try_parse_from(["bijux-dna", "env", "ensure-images", "--campaign"])
+            .is_err());
         for competing in ["--domain", "--stage", "--stages", "--all-retained", "--jobs"] {
             let mut arguments = vec!["bijux-dna", "env", "ensure-images", "--tool", "samtools"];
             arguments.push(competing);

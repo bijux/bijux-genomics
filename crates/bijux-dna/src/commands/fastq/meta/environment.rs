@@ -45,13 +45,21 @@ pub(crate) fn handle_environment_command(
             )?;
             if let Some(tool_id) = args.tool.as_deref() {
                 let repository_root = std::env::current_dir()?;
-                let publication = bijux_dna_api::v1::api::env::publish_canonical_apptainer_image(
-                    &bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained(
+                let request = if args.campaign {
+                    bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained_campaign(
                         repository_root,
                         hpc_root.clone(),
                         tool_id.to_string(),
-                    ),
-                )?;
+                    )
+                } else {
+                    bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained(
+                        repository_root,
+                        hpc_root.clone(),
+                        tool_id.to_string(),
+                    )
+                };
+                let publication =
+                    bijux_dna_api::v1::api::env::publish_canonical_apptainer_image(&request)?;
                 if let Some(output) = &args.output {
                     bijux_dna_infra::atomic_write_json(output, &publication)?;
                 }

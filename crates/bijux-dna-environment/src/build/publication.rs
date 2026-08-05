@@ -16,6 +16,12 @@ use super::{build_apptainer_image, ApptainerBuildRequest};
 
 pub const CONTAINER_BUILD_EVIDENCE_SCHEMA_V1: &str = "bijux.container.build_evidence.v1";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CanonicalApptainerImageDestination {
+    Active,
+    CommitCampaign,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CanonicalApptainerImagePublicationRequest {
     pub repository_root: PathBuf,
@@ -26,6 +32,7 @@ pub struct CanonicalApptainerImagePublicationRequest {
     pub maximum_build_invocations: u32,
     pub retry_delay: Duration,
     pub lock_timeout: Duration,
+    pub destination: CanonicalApptainerImageDestination,
 }
 
 impl CanonicalApptainerImagePublicationRequest {
@@ -40,6 +47,19 @@ impl CanonicalApptainerImagePublicationRequest {
             maximum_build_invocations: 3,
             retry_delay: Duration::from_secs(2),
             lock_timeout: Duration::from_secs(30),
+            destination: CanonicalApptainerImageDestination::Active,
+        }
+    }
+
+    #[must_use]
+    pub fn retained_campaign(
+        repository_root: PathBuf,
+        study_root: PathBuf,
+        tool_id: String,
+    ) -> Self {
+        Self {
+            destination: CanonicalApptainerImageDestination::CommitCampaign,
+            ..Self::retained(repository_root, study_root, tool_id)
         }
     }
 }
@@ -102,7 +122,8 @@ pub fn publish_canonical_apptainer_image(
 ) -> Result<CanonicalApptainerImagePublication> {
     validate_request(request)?;
     let repository_commit = clean_repository_head_commit(&request.repository_root)?;
-    let roots = canonical_container_roots(&request.study_root)?;
+    let roots =
+        canonical_container_roots(&request.study_root, &repository_commit, request.destination)?;
     let build_input_root =
         request.repository_root.join("artifacts/containers/tool-contract-build-inputs");
     let lock_path = roots.evidence.join(".build-locks").join(format!("{}.lock", request.tool_id));
@@ -203,10 +224,21 @@ pub fn publish_canonical_apptainer_image(
     Ok(publication)
 }
 
-fn canonical_container_roots(study_root: &Path) -> Result<CanonicalContainerRoots> {
+fn canonical_container_roots(
+    study_root: &Path,
+    repository_commit: &str,
+    destination: CanonicalApptainerImageDestination,
+) -> Result<CanonicalContainerRoots> {
     let containers = study_root.join("containers");
-    let image = containers.join("apptainer");
-    let evidence = containers.join("evidence");
+    let (image, evidence) = match destination {
+        CanonicalApptainerImageDestination::Active => {
+            (containers.join("apptainer"), containers.join("evidence"))
+        }
+        CanonicalApptainerImageDestination::CommitCampaign => (
+            containers.join("staging").join(repository_commit),
+            containers.join("evidence/image-campaigns").join(repository_commit),
+        ),
+    };
     let staging = image.join(".building");
     let build_logs = evidence.join("build-logs");
     for root in [&image, &evidence, &staging, &build_logs] {

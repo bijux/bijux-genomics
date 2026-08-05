@@ -40,6 +40,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `CanonicalApptainerImagePublicationRequest` and `CanonicalApptainerImagePublication`: one clean
   commit-to-study transaction with a staged image, verified embedded contract, digest-addressed
   final SIF, append-only build log, and no-clobber `bijux.container.build_evidence.v1` record.
+- `CanonicalApptainerImageDestination`: explicit active-root or commit-addressed campaign ownership;
+  campaign publication cannot silently write the active image surface.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
   `ContainerToolContract.expected_version_regex` contract.
 

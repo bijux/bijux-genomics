@@ -23,8 +23,10 @@ library can manage when callers invoke the matching API.
 - `build_apptainer_image()`: runs `apptainer build --force` with append-only attempt logs and
   retries only failures classified as transient OCI transport failures.
 - `publish_canonical_apptainer_image()`: owns the complete retained-image transaction: requires a
-  clean Git commit, builds under `<study>/containers/apptainer/.building`, verifies the embedded
-  contract and labels, and no-clobber publishes a digest-named SIF plus build evidence.
+  clean Git commit, verifies the embedded contract and labels, and no-clobber publishes a
+  digest-named SIF plus build evidence. The active destination uses `<study>/containers/apptainer`;
+  the commit-campaign destination uses `<study>/containers/staging/<commit>` and
+  `<study>/containers/evidence/image-campaigns/<commit>` without changing the active root.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.
