@@ -135,6 +135,12 @@ fn transport_classifier_is_explicit_and_fail_closed() {
     for diagnostics in [
         "unexpected end of JSON input",
         "TOOMANYREQUESTS: You have reached your unauthenticated pull rate limit",
+        "curl: (18) transfer closed with 4096 bytes remaining to read",
+        "HTTP 429 Too Many Requests",
+        "HTTP status 500",
+        "upstream returned status code 502",
+        "curl: (22) The requested URL returned error: 503",
+        "response status: 504 Gateway Timeout",
     ] {
         assert_eq!(
             classify_apptainer_build_failure(diagnostics),
@@ -145,6 +151,16 @@ fn transport_classifier_is_explicit_and_fail_closed() {
         classify_apptainer_build_failure("definition parse error"),
         ApptainerBuildFailureClass::Permanent
     );
+    for diagnostics in [
+        "curl: (22) The requested URL returned error: 404",
+        "curl: (22) request failed",
+        "HTTP 401 Unauthorized",
+    ] {
+        assert_eq!(
+            classify_apptainer_build_failure(diagnostics),
+            ApptainerBuildFailureClass::Permanent
+        );
+    }
 }
 
 #[test]

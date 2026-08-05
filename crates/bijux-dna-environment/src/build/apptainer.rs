@@ -156,12 +156,30 @@ pub fn classify_apptainer_build_failure(diagnostics: &str) -> ApptainerBuildFail
         "toomanyrequests",
         "too many requests",
         "service unavailable",
+        "curl: (18)",
+        "transfer closed with outstanding read data remaining",
     ];
-    if transient_markers.iter().any(|marker| normalized.contains(marker)) {
+    if transient_markers.iter().any(|marker| normalized.contains(marker))
+        || has_transient_http_status(&normalized)
+    {
         ApptainerBuildFailureClass::TransientTransport
     } else {
         ApptainerBuildFailureClass::Permanent
     }
+}
+
+fn has_transient_http_status(diagnostics: &str) -> bool {
+    ["429", "500", "502", "503", "504"].iter().any(|status| {
+        [
+            format!("http {status}"),
+            format!("http status {status}"),
+            format!("status code {status}"),
+            format!("returned error: {status}"),
+            format!("response status: {status}"),
+        ]
+        .iter()
+        .any(|marker| diagnostics.contains(marker))
+    })
 }
 
 #[must_use]
