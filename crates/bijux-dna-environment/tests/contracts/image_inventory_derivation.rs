@@ -148,6 +148,22 @@ fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
 }
 
 #[test]
+fn run_reference_closure_is_scoped_to_scanned_images() -> Result<()> {
+    let fixture = Fixture::current()?;
+    fixture.reference_image_from_run(&"d".repeat(64))?;
+
+    let evidence = derive_image_inventory_evidence(&fixture.request)?;
+
+    assert!(evidence.scan.run_references.is_empty());
+    assert!(evidence.publication.tools[0].candidates[0].run_references.is_empty());
+    bijux_dna_environment::evidence::validate_image_inventory_evidence(
+        &evidence.scan,
+        &evidence.publication,
+    )?;
+    Ok(())
+}
+
+#[test]
 fn admits_complete_flattened_build_evidence() -> Result<()> {
     let fixture = Fixture::current()?;
     fs::write(

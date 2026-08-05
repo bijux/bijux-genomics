@@ -55,6 +55,9 @@ The image-inventory derivation hashes every scanned SIF and source evidence file
 immutable names backed by exact build evidence, retains non-canonical images only when immutable
 run locks reference them, and rejects ambiguous current or historical selections. Its raw digest
 commits to the complete scan even when obsolete images are omitted from the public candidate set.
+Run-reference closure is scoped to image digests present under the explicit image root; locks for
+images outside that inventory surface remain owned by their own image inventory and are not copied
+into an unrelated commit-addressed publication.
 The image-inventory and runtime-verification loaders reject malformed identities, duplicate tools
 or candidates, and selected images that are not the unique canonical admitted candidate. The
 evidence-chain loader also rejects cross-publication identity, version, disposition, selected-image,

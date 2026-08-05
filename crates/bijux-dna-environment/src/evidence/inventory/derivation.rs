@@ -60,7 +60,12 @@ pub fn derive_image_inventory_evidence(
     let images = scan_images(request)?;
     let staged_images = scan_staged_images(request)?;
     let build_evidence = load_build_evidence(request)?;
-    let run_references = load_run_references(request)?;
+    let scanned_digests =
+        images.iter().map(|(_, image)| image.sha256.as_str()).collect::<BTreeSet<_>>();
+    let run_references = load_run_references(request)?
+        .into_iter()
+        .filter(|(digest, _)| scanned_digests.contains(digest.as_str()))
+        .collect::<BTreeMap<_, _>>();
 
     let tools = catalog
         .tools
