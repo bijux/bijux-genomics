@@ -11,6 +11,8 @@ mod mod_contracts_evidence_publications_rs;
 mod mod_contracts_image_inventory_derivation_rs;
 #[path = "contracts/image_selection.rs"]
 mod mod_contracts_image_selection_rs;
+#[path = "contracts/image_storage_reconciliation.rs"]
+mod mod_contracts_image_storage_reconciliation_rs;
 #[path = "contracts/matrix.rs"]
 mod mod_contracts_matrix_rs;
 #[path = "contracts/resolve_runtime.rs"]
