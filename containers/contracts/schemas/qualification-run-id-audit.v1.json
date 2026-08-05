@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QualificationRunIdAudit",
+  "type": "object",
+  "properties": {
+    "allocated_mapping_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "attempt_ledger": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "current_run_root": {
+      "type": "string"
+    },
+    "historical_identities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationHistoricalRunIdentity"
+      }
+    },
+    "historical_max_run_number": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "observed_historical_run_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "retained_mapping_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationRunIdAuditRow"
+      }
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "supplemental_history": {
+      "type": "string"
+    },
+    "unsupported_tool_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_sha256",
+    "current_run_root",
+    "attempt_ledger",
+    "supplemental_history",
+    "observed_historical_run_count",
+    "historical_max_run_number",
+    "retained_mapping_count",
+    "unsupported_tool_count",
+    "allocated_mapping_count",
+    "historical_identities",
+    "rows"
+  ],
+  "$defs": {
+    "QualificationHistoricalRunIdentity": {
+      "type": "object",
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "tool_id"
+      ]
+    },
+    "QualificationRunIdAuditRow": {
+      "type": "object",
+      "properties": {
+        "identity_source": {
+          "type": "string"
+        },
+        "input_role": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "support_disposition": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "tool_id",
+        "support_disposition",
+        "identity_source",
+        "stage_id",
+        "input_role"
+      ]
+    }
+  }
+}

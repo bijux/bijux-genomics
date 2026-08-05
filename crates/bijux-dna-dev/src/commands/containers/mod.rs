@@ -20,6 +20,7 @@ mod dispatch;
 mod inventory;
 mod metadata;
 mod qualification;
+mod qualification_registry;
 mod registry_catalog;
 mod runtime;
 mod runtime_verification;

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QualificationRunRegistry",
+  "type": "object",
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "historical_max_run_number": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationRunRegistryEntry"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_sha256",
+    "historical_max_run_number",
+    "tools"
+  ],
+  "$defs": {
+    "QualificationRunRegistryEntry": {
+      "type": "object",
+      "properties": {
+        "acceptance_adapter": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "input_role": {
+          "type": "string"
+        },
+        "resource_profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "support_disposition": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "tool_id",
+        "support_disposition",
+        "stage_id",
+        "input_role"
+      ]
+    }
+  }
+}

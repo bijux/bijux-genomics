@@ -6,6 +6,7 @@ mod image_storage;
 mod inventory;
 mod load;
 mod model;
+mod qualification_registry;
 mod runtime_verification;
 mod schema;
 mod selection;
@@ -46,6 +47,16 @@ pub use model::{
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
+};
+pub use qualification_registry::{
+    derive_qualification_run_registry, load_qualification_run_registry,
+    qualification_run_id_audit_schema, qualification_run_registry_schema,
+    render_qualification_run_registry, validate_qualification_run_registry,
+    write_qualification_run_id_audit_schema, write_qualification_run_registry_schema,
+    DerivedQualificationRunRegistry, QualificationHistoricalRunIdentity,
+    QualificationRegistryDerivationRequest, QualificationRunIdAudit, QualificationRunIdAuditRow,
+    QualificationRunRegistry, QualificationRunRegistryEntry, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V1,
+    QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use runtime_verification::{
     execute_runtime_verification, render_runtime_verification_markdown,

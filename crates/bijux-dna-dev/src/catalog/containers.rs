@@ -317,6 +317,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ImageStorage,
         ),
         native(
+            "qualification-registry",
+            "Derive and audit stable qualification-run identities from catalog and history.",
+            NativeContainerCommandKey::QualificationRegistry,
+        ),
+        native(
             "runtime-verification",
             "Execute and publish runtime evidence for canonical Apptainer images.",
             NativeContainerCommandKey::RuntimeVerification,

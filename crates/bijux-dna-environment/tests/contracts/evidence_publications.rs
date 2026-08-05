@@ -268,6 +268,10 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
+    let qualification_registry_path =
+        root.join("containers/contracts/schemas/qualification-run-registry.v1.json");
+    let qualification_audit_path =
+        root.join("containers/contracts/schemas/qualification-run-id-audit.v1.json");
     let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v1.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_environment::evidence::write_image_inventory_publication_schema(&inventory_path)?;
@@ -277,6 +281,12 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         )?;
         bijux_dna_environment::evidence::write_image_storage_plan_schema(&storage_plan_path)?;
         bijux_dna_environment::evidence::write_image_storage_report_schema(&storage_report_path)?;
+        bijux_dna_environment::evidence::write_qualification_run_registry_schema(
+            &qualification_registry_path,
+        )?;
+        bijux_dna_environment::evidence::write_qualification_run_id_audit_schema(
+            &qualification_audit_path,
+        )?;
         bijux_dna_environment::evidence::tool_contract::write_tool_contract_schema(
             &tool_contract_path,
         )?;
@@ -289,6 +299,10 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         serde_json::from_str(&std::fs::read_to_string(storage_plan_path)?)?;
     let storage_report: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(storage_report_path)?)?;
+    let qualification_registry: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(qualification_registry_path)?)?;
+    let qualification_audit: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(qualification_audit_path)?)?;
     let tool_contract: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(tool_contract_path)?)?;
     assert_eq!(inventory, bijux_dna_environment::evidence::image_inventory_publication_schema());
@@ -296,6 +310,14 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(runtime, bijux_dna_environment::evidence::runtime_verification_publication_schema());
     assert_eq!(storage_plan, bijux_dna_environment::evidence::image_storage_plan_schema());
     assert_eq!(storage_report, bijux_dna_environment::evidence::image_storage_report_schema());
+    assert_eq!(
+        qualification_registry,
+        bijux_dna_environment::evidence::qualification_run_registry_schema()
+    );
+    assert_eq!(
+        qualification_audit,
+        bijux_dna_environment::evidence::qualification_run_id_audit_schema()
+    );
     assert_eq!(
         tool_contract,
         bijux_dna_environment::evidence::tool_contract::tool_contract_schema()

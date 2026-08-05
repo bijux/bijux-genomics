@@ -1,0 +1,22 @@
+schema_version = "bijux.container.qualification_run_history.v1"
+
+[[identities]]
+run_id = "run-1126"
+tool_id = "multiqc"
+terminal_state = "submission_failed"
+
+[[identities.sources]]
+uri = "study://containers/evidence/specifications/run-1126-multiqc/config-pipeline.yml"
+sha256 = "238bba6278d08b210c610240441c2335a3adc2b33b255e2b17dbfdad8a299ab3"
+
+[[identities.sources]]
+uri = "study://containers/evidence/specifications/run-1126-multiqc/config-credential.yml"
+sha256 = "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9"
+
+[[identities.sources]]
+uri = "study://containers/evidence/submissions/run-1126-multiqc/submit.sh"
+sha256 = "d65cf72276498af2916fecbddf0e5f209c3eb01cd0ffa36b6a1f8dadf6a0385e"
+
+[[identities.sources]]
+uri = "study://containers/evidence/submissions/run-1126-multiqc/submission-failure.json"
+sha256 = "0ac7162d4d73f760ca005701a05e96583b1a778a15e9a475d2c9b9340a9f776e"

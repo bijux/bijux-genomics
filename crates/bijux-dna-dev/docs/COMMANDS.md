@@ -270,6 +270,7 @@ image-qa
 image-smoke-vcf
 image-storage
 lint
+qualification-registry
 registry-tools
 release-gate
 run-apptainer-frontend-reproducibility

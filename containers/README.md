@@ -167,6 +167,39 @@ benchmark, security, and release claims remain independent. The command must
 run from the clean frozen repository whose HEAD matches the inventory commit;
 later movement of an active checkout cannot silently change the campaign.
 
+## Govern qualification run identities
+
+[`contracts/qualification-runs.toml`](contracts/qualification-runs.toml) is the
+stable 89-tool qualification identity registry. It preserves successful
+checked-in run IDs for retained tools, allocates missing retained identities
+strictly above the historical maximum, and records unsupported tools without a
+runnable ID. Catalog stage and input-role drift, cross-tool historical ID
+reuse, duplicate final runs, and non-passing final evidence fail closed.
+[`contracts/qualification-run-history.toml`](contracts/qualification-run-history.toml)
+preserves checksummed LUNARC identities that failed before an execution attempt
+could receive a Slurm job ID.
+
+Regenerate and review the registry together with its
+[run-ID audit](reports/qualification-run-id-audit.json):
+
+```console
+cargo run -p bijux-dna-dev -- containers run qualification-registry -- \
+  generate containers/runs containers/runs/attempt-ledger.json \
+  containers/contracts/qualification-run-history.toml \
+  containers/contracts/qualification-runs.toml \
+  containers/reports/qualification-run-id-audit.json
+
+cargo run -p bijux-dna-dev -- containers run qualification-registry -- \
+  check containers/runs containers/runs/attempt-ledger.json \
+  containers/contracts/qualification-run-history.toml \
+  containers/contracts/qualification-runs.toml \
+  containers/reports/qualification-run-id-audit.json
+```
+
+This registry owns run identity only. It does not make historical evidence
+current, generate execution specifications, submit Slurm jobs, or qualify a
+tool; those actions require the separate specification and lifecycle gates.
+
 ## Prepare governed input data
 
 Container validation does not download or silently replace scientific input.

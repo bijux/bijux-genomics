@@ -142,6 +142,7 @@ fn inventory_source_tree_matches_ownership_contract() {
             "load.rs",
             "mod.rs",
             "model.rs",
+            "qualification_registry/",
             "runtime_verification/",
             "schema.rs",
             "selection.rs",
@@ -149,6 +150,11 @@ fn inventory_source_tree_matches_ownership_contract() {
             "validation.rs",
         ]),
         "evidence tree must separate models, admission, validation, and schemas"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/qualification_registry")),
+        btree_set(&["mod.rs", "model.rs", "schema.rs", "workflow.rs"]),
+        "qualification registry must separate persisted models, derivation, and schemas"
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence/image_storage")),
