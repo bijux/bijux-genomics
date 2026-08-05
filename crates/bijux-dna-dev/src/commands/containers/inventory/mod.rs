@@ -10,31 +10,19 @@ const PUBLICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/image-inventory-publication.v2.json";
 const PUBLICATION_PATH: &str = "containers/reports/image-inventory.json";
 const REPORT_PATH: &str = "containers/reports/image-inventory.md";
+const GENERATE_USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output>";
 
 pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <study-root> <scan-output> <publication-output>";
     if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line(usage);
+        return success_line(GENERATE_USAGE);
     }
-    let [study_root, scan_output, publication_output] = args else {
-        anyhow::bail!(usage);
-    };
-    let study_root = path_from_arg(workspace, study_root);
-    let scan_output = path_from_arg(workspace, scan_output);
-    let publication_output = path_from_arg(workspace, publication_output);
+    let (request, scan_output, publication_output) = parse_generate_args(workspace, args)?;
     if scan_output == publication_output {
         anyhow::bail!("image-inventory scan and publication outputs must be distinct");
     }
     if scan_output.try_exists()? || publication_output.try_exists()? {
         anyhow::bail!("refusing to replace existing image-inventory evidence output");
     }
-    let request = bijux_dna_environment::evidence::ImageInventoryDerivationRequest {
-        repository_root: workspace.root.clone(),
-        image_root: study_root.join("containers/apptainer"),
-        build_evidence_root: study_root.join("containers/evidence"),
-        run_evidence_root: workspace.path("containers/runs"),
-        study_root,
-    };
     let evidence = bijux_dna_environment::evidence::derive_image_inventory_evidence(&request)?;
     bijux_dna_infra::atomic_create_json(&scan_output, &evidence.scan)?;
     bijux_dna_infra::atomic_create_json(&publication_output, &evidence.publication)?;
@@ -43,6 +31,32 @@ pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<Contain
         evidence.publication.tools.len(),
         scan_output.display(),
         publication_output.display()
+    ))
+}
+
+fn parse_generate_args(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<(
+    bijux_dna_environment::evidence::ImageInventoryDerivationRequest,
+    std::path::PathBuf,
+    std::path::PathBuf,
+)> {
+    let [repository_root, study_root, image_root, build_evidence_root, run_evidence_root, scan_output, publication_output] =
+        args
+    else {
+        anyhow::bail!(GENERATE_USAGE);
+    };
+    Ok((
+        bijux_dna_environment::evidence::ImageInventoryDerivationRequest {
+            repository_root: path_from_arg(workspace, repository_root),
+            study_root: path_from_arg(workspace, study_root),
+            image_root: path_from_arg(workspace, image_root),
+            build_evidence_root: path_from_arg(workspace, build_evidence_root),
+            run_evidence_root: path_from_arg(workspace, run_evidence_root),
+        },
+        path_from_arg(workspace, scan_output),
+        path_from_arg(workspace, publication_output),
     ))
 }
 
@@ -148,4 +162,50 @@ pub(super) fn check_report(workspace: &Workspace) -> Result<ContainerCommandOutc
         )));
     }
     success_line("image-inventory report: OK")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generation_preserves_explicit_evidence_roots() -> Result<()> {
+        let workspace = Workspace { root: "/automation".into() };
+        let args = [
+            "/source",
+            "/study",
+            "/study/containers/staging/commit",
+            "/study/containers/evidence/image-campaigns/commit",
+            "/runs",
+            "/evidence/scan.json",
+            "/evidence/publication.json",
+        ]
+        .map(str::to_string);
+
+        let (request, scan, publication) = parse_generate_args(&workspace, &args)?;
+
+        assert_eq!(request.repository_root, std::path::Path::new("/source"));
+        assert_eq!(request.study_root, std::path::Path::new("/study"));
+        assert_eq!(request.image_root, std::path::Path::new("/study/containers/staging/commit"));
+        assert_eq!(
+            request.build_evidence_root,
+            std::path::Path::new("/study/containers/evidence/image-campaigns/commit")
+        );
+        assert_eq!(request.run_evidence_root, std::path::Path::new("/runs"));
+        assert_eq!(scan, std::path::Path::new("/evidence/scan.json"));
+        assert_eq!(publication, std::path::Path::new("/evidence/publication.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn generation_rejects_implicit_evidence_roots() {
+        let workspace = Workspace { root: "/automation".into() };
+        let legacy_args =
+            ["/study", "/evidence/scan.json", "/evidence/publication.json"].map(str::to_string);
+
+        let error =
+            parse_generate_args(&workspace, &legacy_args).err().map(|error| error.to_string());
+
+        assert_eq!(error.as_deref(), Some(GENERATE_USAGE));
+    }
 }

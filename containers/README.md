@@ -75,18 +75,30 @@ to replace either path:
 
 ```console
 study_root="/home/bijan/lu2024-12-24/Dardel/STUDY"
-image_commit="$(git rev-parse HEAD)"
-frozen_repository="$(pwd)"
+image_commit="${image_commit:?set exact image campaign commit}"
+source_repository="${study_root}/artifacts/source-checkouts/bijux-genomics-${image_commit:0:10}"
+image_root="${study_root}/containers/staging/${image_commit}"
+build_evidence_root="${study_root}/containers/evidence/image-campaigns/${image_commit}"
+run_evidence_root="${run_evidence_root:?set governed run-evidence root}"
 attempt_id="${attempt_id:?set immutable attempt id}"
 inventory_root="${study_root}/containers/evidence/inventory/${image_commit}/${attempt_id}"
 mkdir -p "${inventory_root}"
 
 cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
+  "${source_repository}" \
   "${study_root}" \
+  "${image_root}" \
+  "${build_evidence_root}" \
+  "${run_evidence_root}" \
   "${inventory_root}/scan.json" \
   "${inventory_root}/image-inventory.json"
 canonical_inventory="${inventory_root}/image-inventory.json"
 ```
+
+The source checkout and all evidence roots are mandatory. This allows a newer
+automation binary to inventory an older exact-commit image campaign without
+misstating the campaign's repository identity or scanning an unrelated active
+image tree.
 
 ## Reconcile canonical image storage
 
