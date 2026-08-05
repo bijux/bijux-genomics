@@ -303,6 +303,18 @@ fn checked_in_campaign_plan_schema_matches_model_authority() -> anyhow::Result<(
 }
 
 #[test]
+fn checked_in_scheduler_observation_schema_matches_model_authority() -> anyhow::Result<()> {
+    let path =
+        bijux_dna_bench::bench_contracts_dir().join("schemas/scheduler-observation.schema.json");
+    let checked_in: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+    let generated =
+        serde_json::to_value(bijux_dna_bench::benchmark_scheduler_observation_schema())?;
+
+    assert_eq!(checked_in, generated);
+    Ok(())
+}
+
+#[test]
 fn campaign_plan_source_verification_rejects_commit_and_registry_drift() -> anyhow::Result<()> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
     let plan = plan_stage_campaign_attempts(

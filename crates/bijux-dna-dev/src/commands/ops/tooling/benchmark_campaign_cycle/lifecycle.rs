@@ -23,6 +23,20 @@ pub(super) fn execution_schema(
     )))
 }
 
+pub(super) fn scheduler_observation_schema(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(options, &["--output"])?;
+    let output = resolve_path(workspace, required(options, "--output")?);
+    let schema = serde_json::to_value(bijux_dna_bench::benchmark_scheduler_observation_schema())?;
+    ensure_json_identity(&output, &schema)?;
+    Ok(OpsCommandOutcome::success(format!(
+        "published benchmark scheduler observation schema at {}\n",
+        output.display()
+    )))
+}
+
 pub(super) fn schema(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,

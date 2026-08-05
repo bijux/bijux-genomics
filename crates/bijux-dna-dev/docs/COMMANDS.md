@@ -453,9 +453,10 @@ without observing or polling jobs; repeating it with the same timestamps recover
 without duplicate submission.
 
 `benchmark-campaign-cycle reconcile-fastq-read-lengths` performs at most one scheduler observation
-for each submitted or running attempt. It records running and terminal accounting transitions,
-reports non-runnable lifecycle states without polling them, and never loops or waits for scheduler
-state to change.
+for each submitted or running attempt. Every actual query is first appended to the attempt's typed
+`scheduler-observations/` journal, including repeated running states, before lifecycle reduction
+records running or terminal accounting transitions. Non-runnable lifecycle states are reported
+without polling, and the command never loops or waits for scheduler state to change.
 
 `benchmark-campaign-cycle admit-fastq-read-lengths` admits only terminally collected attempts. It
 uses benchmark-owned validation to rehash exact output closure, evaluate declared metrics and the

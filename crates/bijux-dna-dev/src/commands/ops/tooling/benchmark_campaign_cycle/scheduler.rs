@@ -3,6 +3,30 @@
 use super::Result;
 use anyhow::bail;
 
+pub(super) fn benchmark_observation(
+    observation: &bijux_dna_runner::api::SlurmJobObservation,
+) -> Result<bijux_dna_bench::BenchmarkSchedulerObservationDraft> {
+    let accounting = observation.accounting.as_ref().map(benchmark_accounting).transpose()?;
+    Ok(bijux_dna_bench::BenchmarkSchedulerObservationDraft {
+        scheduler: "slurm".to_string(),
+        job_id: observation.job_id.clone(),
+        state: benchmark_observed_state(observation.state),
+        source: match observation.source {
+            bijux_dna_runner::api::SlurmEvidenceSource::Submission => {
+                bijux_dna_bench::BenchmarkSchedulerEvidenceSource::Submission
+            }
+            bijux_dna_runner::api::SlurmEvidenceSource::Queue => {
+                bijux_dna_bench::BenchmarkSchedulerEvidenceSource::Queue
+            }
+            bijux_dna_runner::api::SlurmEvidenceSource::Accounting => {
+                bijux_dna_bench::BenchmarkSchedulerEvidenceSource::Accounting
+            }
+        },
+        observed_at_utc: observation.observed_at_utc.clone(),
+        accounting,
+    })
+}
+
 pub(super) fn benchmark_accounting(
     accounting: &bijux_dna_runner::api::SlurmAccounting,
 ) -> Result<bijux_dna_bench::BenchmarkSchedulerAccounting> {
@@ -58,6 +82,46 @@ pub(super) fn slurm_state(state: bijux_dna_runner::api::SlurmJobState) -> &'stat
         bijux_dna_runner::api::SlurmJobState::NodeFailure => "node_failure",
         bijux_dna_runner::api::SlurmJobState::OutOfMemory => "out_of_memory",
         bijux_dna_runner::api::SlurmJobState::AccountingPending => "accounting_pending",
+    }
+}
+
+fn benchmark_observed_state(
+    state: bijux_dna_runner::api::SlurmJobState,
+) -> bijux_dna_bench::BenchmarkSchedulerObservedState {
+    match state {
+        bijux_dna_runner::api::SlurmJobState::Submitted => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Submitted
+        }
+        bijux_dna_runner::api::SlurmJobState::Pending => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Pending
+        }
+        bijux_dna_runner::api::SlurmJobState::Running => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Running
+        }
+        bijux_dna_runner::api::SlurmJobState::Completed => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Completed
+        }
+        bijux_dna_runner::api::SlurmJobState::Failed => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Failed
+        }
+        bijux_dna_runner::api::SlurmJobState::Cancelled => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Cancelled
+        }
+        bijux_dna_runner::api::SlurmJobState::Timeout => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Timeout
+        }
+        bijux_dna_runner::api::SlurmJobState::Preempted => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::Preempted
+        }
+        bijux_dna_runner::api::SlurmJobState::NodeFailure => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::NodeFailure
+        }
+        bijux_dna_runner::api::SlurmJobState::OutOfMemory => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::OutOfMemory
+        }
+        bijux_dna_runner::api::SlurmJobState::AccountingPending => {
+            bijux_dna_bench::BenchmarkSchedulerObservedState::AccountingPending
+        }
     }
 }
 

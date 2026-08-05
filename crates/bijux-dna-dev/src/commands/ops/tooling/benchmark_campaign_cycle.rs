@@ -5,14 +5,16 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context};
 
-use self::lifecycle::{execution_schema, initialize, plan, plan_retry, schema, supersede};
-use self::scheduler::{benchmark_accounting, lifecycle_status, slurm_state};
+use self::lifecycle::{
+    execution_schema, initialize, plan, plan_retry, scheduler_observation_schema, schema, supersede,
+};
+use self::scheduler::{benchmark_accounting, benchmark_observation, lifecycle_status, slurm_state};
 use super::{OpsCommandOutcome, Result, Workspace};
 
 mod lifecycle;
 mod scheduler;
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
@@ -147,6 +149,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
     match operation.as_str() {
         "schema" => schema(workspace, &options),
         "execution-schema" => execution_schema(workspace, &options),
+        "scheduler-observation-schema" => scheduler_observation_schema(workspace, &options),
         "plan" => plan(workspace, &options),
         "plan-retry" => plan_retry(workspace, &options),
         "initialize" => initialize(workspace, &options),
@@ -341,6 +344,11 @@ fn reconcile_fastq_read_lengths(
         let handle = bijux_dna_runner::api::load_benchmark_slurm_job_handle(&spec)?;
         let observation =
             bijux_dna_runner::api::observe_slurm_job(&scheduler, &handle, observed_at_utc)?;
+        bijux_dna_runtime::record_attempt_scheduler_observation(
+            &benchmark_root,
+            identity,
+            benchmark_observation(&observation)?,
+        )?;
         let job = bijux_dna_bench::BenchmarkJobReference {
             scheduler: "slurm".to_string(),
             job_id: handle.job_id.clone(),
@@ -565,7 +573,8 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_options, require_exact_options, scheduler::benchmark_accounting,
+        parse_options, require_exact_options,
+        scheduler::{benchmark_accounting, benchmark_observation},
         FASTQ_PREPARATION_OPTIONS, FASTQ_SUBMISSION_OPTIONS,
     };
 
@@ -671,6 +680,25 @@ mod tests {
         assert_eq!(mapped.raw_state, accounting.raw_state);
         assert_eq!(mapped.max_rss_bytes, accounting.max_rss_bytes);
         assert_eq!(mapped.state, bijux_dna_bench::BenchmarkSchedulerTerminalState::OutOfMemory);
+        Ok(())
+    }
+
+    #[test]
+    fn scheduler_observation_maps_repeated_queue_evidence_without_lifecycle_reduction(
+    ) -> anyhow::Result<()> {
+        let observation = bijux_dna_runner::api::SlurmJobObservation {
+            job_id: "456789".to_string(),
+            state: bijux_dna_runner::api::SlurmJobState::Running,
+            source: bijux_dna_runner::api::SlurmEvidenceSource::Queue,
+            observed_at_utc: "2026-08-05T04:45:06Z".to_string(),
+            accounting: None,
+        };
+        let mapped = benchmark_observation(&observation)?;
+        assert_eq!(mapped.job_id, observation.job_id);
+        assert_eq!(mapped.observed_at_utc, observation.observed_at_utc);
+        assert_eq!(mapped.state, bijux_dna_bench::BenchmarkSchedulerObservedState::Running);
+        assert_eq!(mapped.source, bijux_dna_bench::BenchmarkSchedulerEvidenceSource::Queue);
+        assert!(mapped.accounting.is_none());
         Ok(())
     }
 
