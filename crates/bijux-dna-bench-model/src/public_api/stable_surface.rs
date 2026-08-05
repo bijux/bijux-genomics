@@ -20,7 +20,6 @@ pub use crate::contract::{
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
 };
 pub use crate::diagnostics::BenchError;
-pub use crate::model::decision::DecisionRationale;
 pub use crate::model::execution::{
     benchmark_execution_spec_schema, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
     BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
@@ -54,6 +53,7 @@ pub use crate::model::lifecycle::{
     BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
     BenchmarkSchedulerTerminalState,
 };
+pub use crate::model::observation::benchmark_observation_schema;
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::planning::{
     benchmark_portfolio_schema, benchmark_scientific_readiness_schema,
@@ -82,16 +82,18 @@ pub use crate::model::suite::{
     AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,
 };
-pub use crate::model::summary::{MetricSummary, SummaryRow, SummaryStratum};
-pub use crate::model::{
-    AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
-    AdmittedFastqCorpusSample, BackendComparisonSpec, BenchmarkBundleManifest,
-    BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec, CorpusDomain, CorpusScale,
-    DriftScenarioSpec, FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook,
-    TruthSetStatus,
+pub use crate::model::summary::{
+    benchmark_summary_schema, MetricSummary, SummaryRow, SummaryStratum,
 };
 pub use crate::model::{
-    BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
+    benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema, AdmittedBamCorpus,
+    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkFastqLayout,
+    CorpusDatasetSpec, CorpusDomain, CorpusScale, DriftScenarioSpec,
+    FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
-pub use crate::policy::{GateDecision, GatePolicy, GatePolicyOverrides, GateViolation};
+pub use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
+pub use crate::policy::{
+    gate_decision_schema, GateDecision, GatePolicy, GatePolicyOverrides, GateViolation,
+};
 pub use crate::stats::robust_estimators::robust_stats;

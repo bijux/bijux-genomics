@@ -8,13 +8,17 @@ mod construction;
 mod metrics_envelope;
 mod validation;
 
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
+
+use crate::contract::OBSERVATION_SCHEMA_V1;
 
 pub use metrics_envelope::MetricsEnvelope;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkObservation {
+    #[schemars(schema_with = "benchmark_observation_schema_version")]
     pub schema_version: String,
     pub run_id: String,
     pub dataset_id: String,
@@ -45,4 +49,13 @@ pub struct BenchmarkObservation {
     pub cpu: String,
     pub threads: u32,
     pub io_mode: String,
+}
+
+#[must_use]
+pub fn benchmark_observation_schema() -> Schema {
+    schemars::schema_for!(BenchmarkObservation)
+}
+
+fn benchmark_observation_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": OBSERVATION_SCHEMA_V1})
 }

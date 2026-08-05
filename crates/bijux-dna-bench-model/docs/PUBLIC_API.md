@@ -12,7 +12,6 @@ Model contracts:
 - `BenchmarkSuiteSpec`
 - `BenchmarkObservation`
 - `BenchmarkSummary`
-- `BenchmarkDecision`
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
 - `BenchmarkStageCoverage`
@@ -35,7 +34,6 @@ Model contracts:
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
-- `DecisionRationale`
 - `BenchmarkLifecycleStatus`
 - `BenchmarkJobReference`
 - `BenchmarkSchedulerTerminalState`
@@ -108,6 +106,11 @@ Statistics:
 Schema derivation:
 
 - `benchmark_campaign_plan_schema`
+- `benchmark_corpus_manifest_schema`
+- `benchmark_bundle_manifest_schema`
+- `benchmark_observation_schema`
+- `benchmark_summary_schema`
+- `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
 - `validate_scheduler_observation`

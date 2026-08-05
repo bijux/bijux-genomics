@@ -1,0 +1,162 @@
+{
+  "$defs": {
+    "MetricsEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "values": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "stage_id",
+        "schema_version",
+        "values"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "container_digest": {
+      "type": "string"
+    },
+    "cpu": {
+      "type": "string"
+    },
+    "dataset_class": {
+      "type": "string"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "failure_kind": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "image_digest": {
+      "type": "string"
+    },
+    "input_hash": {
+      "type": "string"
+    },
+    "io_mode": {
+      "type": "string"
+    },
+    "lineage_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "memory_mb": {
+      "format": "double",
+      "type": "number"
+    },
+    "metrics": {
+      "$ref": "#/$defs/MetricsEnvelope"
+    },
+    "params_hash": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "read_layout": {
+      "type": "string"
+    },
+    "replicate_id": {
+      "type": "string"
+    },
+    "replicate_index": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "runner": {
+      "type": "string"
+    },
+    "runtime_s": {
+      "format": "double",
+      "type": "number"
+    },
+    "schema_version": {
+      "const": "bijux.bench.observation.v1",
+      "type": "string"
+    },
+    "seed_policy": {
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "stage_instance_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "threads": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "tool_version": {
+      "type": "string"
+    },
+    "warmup_policy": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "dataset_id",
+    "dataset_class",
+    "read_layout",
+    "stage_id",
+    "tool_id",
+    "tool_version",
+    "image_digest",
+    "container_digest",
+    "params_hash",
+    "input_hash",
+    "runtime_s",
+    "memory_mb",
+    "exit_code",
+    "metrics",
+    "replicate_id",
+    "replicate_index",
+    "warmup_policy",
+    "seed_policy",
+    "runner",
+    "platform",
+    "cpu",
+    "threads",
+    "io_mode"
+  ],
+  "title": "BenchmarkObservation",
+  "type": "object"
+}

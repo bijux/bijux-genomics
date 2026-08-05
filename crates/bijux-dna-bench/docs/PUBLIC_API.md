@@ -58,7 +58,6 @@ including:
 - `BenchmarkSuiteSpec`
 - `BenchmarkObservation`
 - `BenchmarkSummary`
-- `BenchmarkDecision`
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
 - `BenchmarkStageCoverage`

@@ -3,11 +3,13 @@
 //! Owns aggregate stats and completeness for observations.
 //! Must not perform IO or depend on compare/gate logic.
 
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
+use crate::contract::SUMMARY_SCHEMA_V1;
 use crate::stats::robust_estimators::RobustStats;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct MetricSummary {
     pub metric_id: String,
@@ -21,7 +23,7 @@ pub struct MetricSummary {
     pub power_warning: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct SummaryRow {
     pub dataset_id: String,
@@ -43,9 +45,10 @@ pub struct SummaryRow {
     pub low_power: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkSummary {
+    #[schemars(schema_with = "benchmark_summary_schema_version")]
     pub schema_version: String,
     pub suite_id: String,
     pub rows: Vec<SummaryRow>,
@@ -55,7 +58,7 @@ pub struct BenchmarkSummary {
     pub invalid_reasons: Vec<String>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct SummaryStratum {
     pub stage_id: String,
@@ -77,7 +80,7 @@ impl BenchmarkSummary {
         warnings: Vec<String>,
     ) -> Self {
         Self {
-            schema_version: "bijux.bench.summary.v1".to_string(),
+            schema_version: SUMMARY_SCHEMA_V1.to_string(),
             suite_id,
             rows,
             strata,
@@ -86,4 +89,13 @@ impl BenchmarkSummary {
             invalid_reasons: Vec::new(),
         }
     }
+}
+
+#[must_use]
+pub fn benchmark_summary_schema() -> Schema {
+    schemars::schema_for!(BenchmarkSummary)
+}
+
+fn benchmark_summary_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": SUMMARY_SCHEMA_V1})
 }

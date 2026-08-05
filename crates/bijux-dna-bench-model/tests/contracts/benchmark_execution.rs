@@ -205,6 +205,48 @@ fn checked_report_schemas_match_model_authority() -> anyhow::Result<()> {
 }
 
 #[test]
+fn checked_core_record_schemas_match_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let schemas = [
+        (
+            "corpus.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_corpus_manifest_schema())?,
+        ),
+        (
+            "bundle.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_bundle_manifest_schema())?,
+        ),
+        (
+            "observation.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_observation_schema())?,
+        ),
+        (
+            "summary.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_summary_schema())?,
+        ),
+        (
+            "decision.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::gate_decision_schema())?,
+        ),
+    ];
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    for (name, generated) in schemas {
+        let path = schema_root.join(name);
+        if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+            let mut bytes = serde_json::to_vec_pretty(&generated)?;
+            bytes.push(b'\n');
+            std::fs::write(&path, bytes)?;
+        }
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(checked, generated, "core record schema drifted: {name}");
+    }
+    Ok(())
+}
+
+#[test]
 fn execution_spec_rejects_missing_source_lock_and_mutable_result_root() {
     let mut missing_lock = specification();
     missing_lock.source.contract_sha256.remove("image_inventory");

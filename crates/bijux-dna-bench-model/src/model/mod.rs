@@ -3,7 +3,6 @@
 //! Must not perform IO or depend on repo/policy/compare logic.
 
 pub mod corpus;
-pub mod decision;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
@@ -16,13 +15,12 @@ pub mod summary;
 
 #[allow(unused_imports)]
 pub use corpus::{
-    AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
-    AdmittedFastqCorpusSample, BackendComparisonSpec, BenchmarkBundleManifest,
-    BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec, CorpusDomain, CorpusScale,
-    DriftScenarioSpec, FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook,
-    TruthSetStatus,
+    benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema, AdmittedBamCorpus,
+    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkFastqLayout,
+    CorpusDatasetSpec, CorpusDomain, CorpusScale, DriftScenarioSpec,
+    FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
-pub use decision::BenchmarkDecision;
 #[allow(unused_imports)]
 pub use execution::{
     benchmark_execution_spec_schema, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
