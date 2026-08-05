@@ -1,0 +1,243 @@
+{
+  "schema_version": "bijux.benchmark.stage_report.v1",
+  "verdict": "passed",
+  "run_id": "run-2001",
+  "stage_id": "bam.genotyping",
+  "catalog_sha256": "d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250",
+  "evidence_tier": "qualification",
+  "benchmark_profile_id": "bam-biological-inference",
+  "scientific_question": "How reliably and efficiently does each retained BAM genotyping tool recover independently catalogued EquCab3 candidate sites from a real low-coverage ancient horse alignment?",
+  "comparison_scope": "candidate-site genotyping on one governed 10 Mb EquCab3 interval",
+  "accuracy_claim": "candidate_site_recovery_not_genotype_truth",
+  "design": {
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "container_only": true,
+    "threads_by_tool": {
+      "bcftools": 4
+    },
+    "cache_policy": "warm",
+    "warmup_repetitions": 1,
+    "measured_repetitions": 3,
+    "tool_closure": [
+      "bcftools"
+    ],
+    "corpus_ids": [
+      "ancient-horse-alignment-qualification"
+    ],
+    "corpus_catalog_ids": [
+      "ena-prjeb22390-err2112767-bam"
+    ],
+    "reference_catalog_ids": [
+      "equcab3-gcf-002863925.1"
+    ],
+    "database_catalog_ids": [
+      "ensembl-113-equcab3-refseq-known-sites-10mb",
+      "ensembl-113-equcab3-refseq-genotyping-inputs-10mb"
+    ],
+    "input_size_keys": [
+      "bam_input_bytes",
+      "reference_input_bytes",
+      "database_input_bytes"
+    ],
+    "result_artifact": "genotypes.tsv"
+  },
+  "tools": [
+    {
+      "tool": "bcftools",
+      "verdict": "passed",
+      "repository_commit": "9348a2417384417ab59052193b56717b69cb0309",
+      "image": {
+        "name": "bcftools-1.20-linux-amd64-b019a573e858.sif",
+        "sha256": "b019a573e85877eb72be9a3285ce4c28701828f0cadb146fdf58d77b40394c63",
+        "size_bytes": 63160320
+      },
+      "slurm": {
+        "job_id": "3463105",
+        "host": "cn162",
+        "elapsed": "00:00:37",
+        "allocated_cpus": "4"
+      },
+      "source_evidence_sha256": "fab86e8447b4f45fea41e6ab5e899266c9520c943b486e17c2f7f099612ebf03",
+      "input_locks": [
+        {
+          "id": "bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "bam_catalog",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.catalog.json",
+          "sha256": "2e30dda04f4f1b3e44e97973d007420347a6cdc7f01b1637307ec8f9368ca6ff"
+        },
+        {
+          "id": "bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "candidate_regions",
+          "kind": "database",
+          "mount_path": "/input/known-sites.bed",
+          "sha256": "5b7d66827570d4a3d40c5dcff82e903bde5acd58c3f7adde56fe73885fcbde72"
+        },
+        {
+          "id": "constrained_alleles",
+          "kind": "database",
+          "mount_path": "/input/known-sites.alleles.tsv",
+          "sha256": "529fccd7a2a9beb7f2f41340f6a4806063d5bb785379e066ae5540e4743b08ff"
+        },
+        {
+          "id": "corpus_data_index",
+          "kind": "data",
+          "mount_path": "/input/data-index.json",
+          "sha256": "9561315f8a231734c7ba223cdc8798143645c2fee74ff935edb7b811739d0733"
+        },
+        {
+          "id": "genotyping_inputs_catalog",
+          "kind": "database",
+          "mount_path": "/input/genotyping-inputs.catalog.json",
+          "sha256": "8a79b4c395541b245afcf1dcdb03de7e4e11790a85e75cf8fd09c69bd5462dd4"
+        },
+        {
+          "id": "known_sites",
+          "kind": "database",
+          "mount_path": "/input/known-sites.vcf.gz",
+          "sha256": "82347b2f251d35daa712f9af722ca4c6b1a45ff7095219744ed3b20f3cbddf68"
+        },
+        {
+          "id": "known_sites_catalog",
+          "kind": "database",
+          "mount_path": "/input/known-sites.catalog.json",
+          "sha256": "3e1d7f5b7739b70a7ad4f3171041bdc270d62e1484db0611a9f002bd140e0be3"
+        },
+        {
+          "id": "known_sites_index",
+          "kind": "database",
+          "mount_path": "/input/known-sites.vcf.gz.csi",
+          "sha256": "c147a0f08d43f96e743350208368a98659e8e2c8c3d0fe847ccbfbf002d19466"
+        },
+        {
+          "id": "reference",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna",
+          "sha256": "3a60f0b912bad2d78d76add5eb93fc08cb2ad52e4afdb9181046c219671809b6"
+        },
+        {
+          "id": "reference_catalog",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.catalog.json",
+          "sha256": "f26f2abf91cc718eef7f82bbf41c2417cbc9200c8a82ab61f3d51eec5358ff7f"
+        },
+        {
+          "id": "reference_index",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna.fai",
+          "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+        }
+      ],
+      "input_bytes": {
+        "bam": 26592222,
+        "database": 8534981,
+        "reference": 2539168129,
+        "total": 2574295332
+      },
+      "performance": {
+        "cpu_seconds": {
+          "minimum": 8.65,
+          "maximum": 8.780000000000001,
+          "mean": 8.693333333333333,
+          "sample_standard_deviation": 0.0750555349946518
+        },
+        "input_bytes": {
+          "minimum": 2574295332.0,
+          "maximum": 2574295332.0,
+          "mean": 2574295332.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "minimum": 4484572.0,
+          "maximum": 4484572.0,
+          "mean": 4484572.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "minimum": 951232.0,
+          "maximum": 953072.0,
+          "mean": 952272.0,
+          "sample_standard_deviation": 943.1860898041277
+        },
+        "wall_seconds": {
+          "minimum": 8.14,
+          "maximum": 8.22,
+          "mean": 8.193333333333333,
+          "sample_standard_deviation": 0.046188021535170105
+        }
+      },
+      "scientific_observations": {
+        "alternate_genotypes": [
+          3.0,
+          3.0,
+          3.0
+        ],
+        "called_genotypes": [
+          21.0,
+          21.0,
+          21.0
+        ],
+        "covered_sites": [
+          21.0,
+          21.0,
+          21.0
+        ],
+        "mean_depth_at_covered_sites": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "total_records": [
+          139907.0,
+          139907.0,
+          139907.0
+        ]
+      },
+      "determinism": {
+        "artifact": "genotypes.tsv",
+        "sha256": "0f6907c7b606b91ad4ddf2cac410577f7a38aadfc2be16a5d88c0a285f234761",
+        "digest_basis": "normalized genotype TSV bytes",
+        "identical_across_repetitions": true
+      }
+    }
+  ],
+  "comparability": {
+    "repository_commit": "9348a2417384417ab59052193b56717b69cb0309",
+    "input_lock_sha256": "1a3b9a88c4186e1b32e686fb1eb234363c9c56f785a5c2c13fee29ec455ef106",
+    "parameter_lock_sha256": "252bb6b96ad335861ae1a07188a1d823f5a8cd36fbabbdda14551ed8eb00912d",
+    "stage_interface": {
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.genotyping.bundle.v1",
+      "normalized_result_contract": "benchmarks/contracts/schemas/bam-genotyping-result.schema.json",
+      "downstream_probe": {
+        "stage_id": "benchmark.bam.genotyping.consume",
+        "input_contract": "bijux.benchmark.bam.genotyping.bundle.v1",
+        "source": "benchmarks/execution/bam_genotyping.awk",
+        "artifact": "repetitions/repetition-1.report-qc.json"
+      }
+    }
+  },
+  "cross_tool_comparison": {
+    "status": "not_applicable",
+    "metrics": []
+  },
+  "limitations": [
+    "The Ensembl panel is independent candidate-site evidence but is not a sample-level genotype truth set.",
+    "The first 10 Mb of chromosome 1 is a qualification interval, not a genome-wide accuracy estimate.",
+    "Warm-cache repetitions measure stable tool execution after one unmeasured warmup; they do not estimate cold filesystem startup cost."
+  ],
+  "interpretation": "This execution establishes reproducible candidate-site genotyping and resource use for the retained tool set. It does not establish genotype accuracy because no sample-level truth genotype is available."
+}

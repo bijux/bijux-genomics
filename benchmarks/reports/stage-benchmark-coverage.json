@@ -5,7 +5,7 @@
     "defined_stage_count": 7,
     "qualification_stage_count": 5,
     "comparative_stage_count": 2,
-    "admitted_stage_count": 0,
+    "admitted_stage_count": 1,
     "stale_stage_count": 3,
     "failed_stage_count": 0,
     "missing_stage_count": 64
@@ -122,8 +122,10 @@
         "bcftools"
       ],
       "campaign_run_id": "run-2001",
+      "report_repository_commit": "9348a2417384417ab59052193b56717b69cb0309",
+      "report_sha256": "54f6d59ae685e649746dd5666743f7bd273f048362ac679e1e11eae1f6d7d151",
       "definition_status": "qualification",
-      "execution_status": "not_admitted"
+      "execution_status": "admitted"
     },
     {
       "stage_id": "bam.haplogroups",
