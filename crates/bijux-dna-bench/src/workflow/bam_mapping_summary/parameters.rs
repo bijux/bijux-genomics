@@ -71,9 +71,9 @@ pub(super) fn ensure_parameter_evidence(
     Ok(BenchmarkExecutionParameterEvidence {
         parameter_schema_version: PARAMETER_SCHEMA.to_string(),
         defaults_provider: DEFAULTS_PROVIDER.to_string(),
-        overrides_path: overrides_path.display().to_string(),
+        overrides_path: "config-pipeline-parameters.yml".to_string(),
         overrides_sha256: bijux_dna_infra::hash_bytes_sha256(&source_bytes),
-        effective_path: effective_path.display().to_string(),
+        effective_path: "effective-parameters.json".to_string(),
         effective_sha256: bijux_dna_infra::hash_bytes_sha256(&effective_bytes),
     })
 }

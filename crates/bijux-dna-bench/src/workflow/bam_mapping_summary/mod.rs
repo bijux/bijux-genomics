@@ -206,6 +206,11 @@ mod tests {
                 &corpus,
             )?;
             assert!(material.execution.measured_command[2].contains("bam_mapping_summary.awk"));
+            assert_eq!(
+                material.execution.parameters.overrides_path,
+                "config-pipeline-parameters.yml"
+            );
+            assert_eq!(material.execution.parameters.effective_path, "effective-parameters.json");
             assert_eq!(material.execution.required_files.len(), 18);
             assert_eq!(material.execution.acceptance.metrics.len(), 4);
         }
