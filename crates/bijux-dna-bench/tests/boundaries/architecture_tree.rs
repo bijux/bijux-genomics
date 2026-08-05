@@ -84,7 +84,10 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow")),
         entries([
             "attempt_migration.rs",
+            "bam_coverage/",
+            "bam_endogenous_content/",
             "bam_mapping_summary/",
+            "bam_observation/",
             "campaign_lifecycle/",
             "evaluation.rs",
             "fastq_expectations/",

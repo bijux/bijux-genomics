@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-bam-endogenous-content-result-v1.json",
+  "title": "Normalized BAM endogenous-content benchmark bundle",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "total_primary_reads",
+    "mapped_primary_reads",
+    "mapped_fraction",
+    "mapped_nonduplicate_primary_reads"
+  ],
+  "properties": {
+    "schema_version": {"const": "bijux.benchmark.bam.endogenous_content.bundle.v1"},
+    "stage_id": {"const": "bam.endogenous_content"},
+    "tool_id": {"const": "samtools"},
+    "sample_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "total_primary_reads": {"type": "integer", "minimum": 1},
+    "mapped_primary_reads": {"type": "integer", "minimum": 1},
+    "mapped_fraction": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+    "mapped_nonduplicate_primary_reads": {"type": "integer", "minimum": 1}
+  },
+  "additionalProperties": false
+}

@@ -12,7 +12,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 - Qualification-only campaigns: **4**
 - Comparative campaigns: **2**
 - Admitted campaigns: **0**
-- Stale campaigns: **6**
+- Stale campaigns: **4**
 - Failed campaigns: **0**
 - Missing campaigns: **65**
 
@@ -23,10 +23,10 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.bias_mitigation` | `mapdamage2` | - | missing | not_defined |
 | `bam.complexity` | `preseq` | - | missing | not_defined |
 | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | - | missing | not_defined |
-| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | stale |
+| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | not_admitted |
 | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `pmdtools`, `pydamage` | - | missing | not_defined |
 | `bam.duplication_metrics` | `picard`, `samtools` | - | missing | not_defined |
-| `bam.endogenous_content` | `samtools` | `run-2003` | qualification | stale |
+| `bam.endogenous_content` | `samtools` | `run-2003` | qualification | not_admitted |
 | `bam.filter` | `bamtools`, `bedtools`, `samtools` | - | missing | not_defined |
 | `bam.gc_bias` | `picard` | - | missing | not_defined |
 | `bam.genotyping` | `bcftools` | `run-2001` | qualification | stale |

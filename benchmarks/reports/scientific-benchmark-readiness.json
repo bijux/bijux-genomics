@@ -270,10 +270,9 @@
       "campaign_run_id": "run-2002",
       "reserved_run_id": "run-2002",
       "campaign_tier": "qualification",
-      "interface_status": "missing",
+      "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
@@ -336,10 +335,9 @@
       "campaign_run_id": "run-2003",
       "reserved_run_id": "run-2003",
       "campaign_tier": "qualification",
-      "interface_status": "missing",
+      "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"

@@ -6,7 +6,7 @@
     "qualification_stage_count": 4,
     "comparative_stage_count": 2,
     "admitted_stage_count": 0,
-    "stale_stage_count": 6,
+    "stale_stage_count": 4,
     "failed_stage_count": 0,
     "missing_stage_count": 65
   },
@@ -64,10 +64,8 @@
         "samtools"
       ],
       "campaign_run_id": "run-2002",
-      "report_repository_commit": "b087cd5ca6412b19a51cb43e7bf4eb098235b7db",
-      "report_sha256": "36c634cf1b6e65c85b175ea5c7515816bd58f5782b89bed953642ebccfa0a1ef",
       "definition_status": "qualification",
-      "execution_status": "stale"
+      "execution_status": "not_admitted"
     },
     {
       "stage_id": "bam.damage",
@@ -96,10 +94,8 @@
         "samtools"
       ],
       "campaign_run_id": "run-2003",
-      "report_repository_commit": "4e24ded282af44fb985dd869ba944684538814aa",
-      "report_sha256": "c812b164e8e4b0190075c54266479f1cab781c791ee18eee87d90cc9a2ebf1ea",
       "definition_status": "qualification",
-      "execution_status": "stale"
+      "execution_status": "not_admitted"
     },
     {
       "stage_id": "bam.filter",

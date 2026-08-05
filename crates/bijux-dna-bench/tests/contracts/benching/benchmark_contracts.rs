@@ -12,7 +12,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
         "the checked-in stage campaign registry must include the audited seed campaign set"
     );
     assert_eq!(interfaces.schema_version, bijux_dna_bench::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1);
-    assert_eq!(interfaces.interfaces.len(), 3);
+    assert_eq!(interfaces.interfaces.len(), 5);
     Ok(())
 }
 
@@ -63,7 +63,7 @@ fn stage_interface_admission_uses_the_declared_repository_root() -> Result<()> {
 #[test]
 fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    assert_eq!(reports.len(), 6);
+    assert_eq!(reports.len(), 4);
     assert!(reports.iter().any(|admission| admission.report.run_id == "run-2042"));
     assert!(reports.iter().all(|admission| {
         admission.schema_version == bijux_dna_bench::BENCHMARK_REPORT_ADMISSION_SCHEMA_V1
@@ -92,9 +92,21 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
     assert_eq!(coverage.summary.retained_stage_count, 71);
     assert_eq!(coverage.summary.defined_stage_count, 6);
     assert_eq!(coverage.summary.admitted_stage_count, 0);
-    assert_eq!(coverage.summary.stale_stage_count, 6);
+    assert_eq!(coverage.summary.stale_stage_count, 4);
     assert_eq!(coverage.summary.failed_stage_count, 0);
     assert_eq!(coverage.summary.missing_stage_count, 65);
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "bam.coverage"
+            && row.campaign_run_id.as_deref() == Some("run-2002")
+            && row.retained_tools == ["bedtools", "mosdepth", "samtools"]
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
+    }));
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "bam.endogenous_content"
+            && row.campaign_run_id.as_deref() == Some("run-2003")
+            && row.retained_tools == ["samtools"]
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
+    }));
     assert!(coverage.stages.iter().any(|row| {
         row.stage_id == "bam.mapping_summary"
             && row.campaign_run_id.as_deref() == Some("run-2004")

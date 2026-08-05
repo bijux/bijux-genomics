@@ -3,7 +3,10 @@
 #![allow(dead_code)]
 
 mod attempt_migration;
+mod bam_coverage;
+mod bam_endogenous_content;
 mod bam_mapping_summary;
+mod bam_observation;
 mod campaign_lifecycle;
 mod evaluation;
 mod fastq_expectations;
@@ -25,6 +28,13 @@ pub use attempt_migration::{
     apply_attempt_migration, plan_attempt_migration, rollback_attempt_migration,
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,
     BenchmarkAttemptMigrationVerificationEntry,
+};
+pub use bam_coverage::{
+    prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus, BamCoverageMaterial,
+};
+pub use bam_endogenous_content::{
+    prepare_bam_endogenous_content_material, prepare_bam_endogenous_content_material_from_corpus,
+    BamEndogenousContentMaterial,
 };
 pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,

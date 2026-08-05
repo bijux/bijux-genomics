@@ -97,7 +97,7 @@ impl CampaignPreparation<'_> {
         let image = self.authorities.resolve_current_image(self.study_root, &identity.tool_id)?;
         let execution = match self.evidence {
             CampaignEvidence::Bam(corpus) => {
-                bijux_dna_bench::prepare_bam_mapping_summary_material_from_corpus(
+                let arguments = (
                     self.repository_root,
                     self.benchmark_root,
                     identity,
@@ -107,8 +107,52 @@ impl CampaignPreparation<'_> {
                     required(self.options, "--account")?,
                     required(self.options, "--partition")?,
                     corpus,
-                )?
-                .execution
+                );
+                match identity.run.run_id.as_str() {
+                    "run-2002" => {
+                        bijux_dna_bench::prepare_bam_coverage_material_from_corpus(
+                            arguments.0,
+                            arguments.1,
+                            arguments.2,
+                            arguments.3,
+                            arguments.4,
+                            arguments.5,
+                            arguments.6,
+                            arguments.7,
+                            arguments.8,
+                        )?
+                        .execution
+                    }
+                    "run-2003" => {
+                        bijux_dna_bench::prepare_bam_endogenous_content_material_from_corpus(
+                            arguments.0,
+                            arguments.1,
+                            arguments.2,
+                            arguments.3,
+                            arguments.4,
+                            arguments.5,
+                            arguments.6,
+                            arguments.7,
+                            arguments.8,
+                        )?
+                        .execution
+                    }
+                    "run-2004" => {
+                        bijux_dna_bench::prepare_bam_mapping_summary_material_from_corpus(
+                            arguments.0,
+                            arguments.1,
+                            arguments.2,
+                            arguments.3,
+                            arguments.4,
+                            arguments.5,
+                            arguments.6,
+                            arguments.7,
+                            arguments.8,
+                        )?
+                        .execution
+                    }
+                    _ => bail!("BAM campaign has no crate-owned executable material"),
+                }
             }
             CampaignEvidence::ReadLengths(expectations) => {
                 bijux_dna_bench::prepare_fastq_profile_read_lengths_material_from_expectations(
@@ -294,15 +338,17 @@ fn prepare_campaign_jobs(
         &plan,
     )?;
     let run_id = campaign_run_id(&plan)?;
-    if !matches!(run_id, "run-2004" | "run-2042" | "run-2043") {
+    if !matches!(run_id, "run-2002" | "run-2003" | "run-2004" | "run-2042" | "run-2043") {
         bail!("benchmark campaign has no crate-owned executable material: {run_id}");
     }
     let evidence = match run_id {
-        "run-2004" => CampaignEvidence::Bam(bijux_dna_bench::admit_bam_benchmark_corpus(
-            &study_root,
-            &data_index,
-            "ena-prjeb22390-err2112767-bam",
-        )?),
+        "run-2002" | "run-2003" | "run-2004" => {
+            CampaignEvidence::Bam(bijux_dna_bench::admit_bam_benchmark_corpus(
+                &study_root,
+                &data_index,
+                "ena-prjeb22390-err2112767-bam",
+            )?)
+        }
         "run-2042" | "run-2043" => {
             let read_lengths = bijux_dna_bench::ensure_fastq_read_length_expectations(
                 &repository_root,

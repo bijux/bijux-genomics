@@ -2,6 +2,16 @@
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
   "profile": "generic-fastq",
   "stages": {
+    "bam.coverage": {
+      "parameter_schema_version": "bijux.bam.params.coverage.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)",
+      "overrides": {}
+    },
+    "bam.endogenous_content": {
+      "parameter_schema_version": "bijux.bam.params.endogenous_content.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)",
+      "overrides": {}
+    },
     "bam.mapping_summary": {
       "parameter_schema_version": "bijux.bam.params.mapping_summary.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)",

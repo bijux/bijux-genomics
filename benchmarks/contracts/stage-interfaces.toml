@@ -1,6 +1,74 @@
 schema_version = "bijux.benchmark.stage_interfaces.v1"
 
 [[interfaces]]
+stage_id = "bam.coverage"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.coverage.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-coverage-result.schema.json"
+parameter_schema_version = "bijux.bam.params.coverage.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = ["regions"]
+immutable_parameters = ["schema_version", "depth_thresholds", "regime_mode"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["bedtools", "mosdepth", "samtools"]
+provenance_sources = [
+  "domain/bam/stages/coverage.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_core.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+  "benchmarks/execution/bam_coverage.awk",
+]
+
+[interfaces.adapters]
+bedtools = "bijux_dna_planner_bam::tool_adapters::bam::coverage"
+mosdepth = "bijux_dna_planner_bam::tool_adapters::bam::coverage"
+samtools = "bijux_dna_planner_bam::tool_adapters::bam::coverage"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.coverage.compare"
+input_contract = "bijux.benchmark.bam.coverage.bundle.v1"
+source = "benchmarks/execution/bam_coverage.awk"
+assertions = [
+  "every retained tool normalizes to reference bases, covered bases, coverage fraction, and mean depth",
+  "covered bases cannot exceed the declared reference span",
+  "cross-tool comparison consumes one tool-independent bundle",
+]
+
+[[interfaces]]
+stage_id = "bam.endogenous_content"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.endogenous_content.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-endogenous-content-result.schema.json"
+parameter_schema_version = "bijux.bam.params.endogenous_content.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = ["host_reference_scope"]
+immutable_parameters = ["schema_version", "primary_exclude_flags", "mapped_primary_exclude_flags", "mapped_nonduplicate_primary_exclude_flags"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["samtools"]
+provenance_sources = [
+  "domain/bam/stages/endogenous_content.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_core.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+  "benchmarks/execution/bam_endogenous_content.awk",
+]
+
+[interfaces.adapters]
+samtools = "bijux_dna_planner_bam::tool_adapters::bam::endogenous_content"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.endogenous_content.consume"
+input_contract = "bijux.benchmark.bam.endogenous_content.bundle.v1"
+source = "benchmarks/execution/bam_endogenous_content.awk"
+assertions = [
+  "primary read counts exclude secondary and supplementary records",
+  "mapped primary counts additionally exclude unmapped records",
+  "mapped nonduplicate primary counts additionally exclude duplicate records",
+]
+
+[[interfaces]]
 stage_id = "bam.mapping_summary"
 accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
 output_contract = "bijux.benchmark.bam.mapping_summary.bundle.v1"

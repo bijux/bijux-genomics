@@ -336,64 +336,26 @@ cargo run -p bijux-dna-dev -- hpc run benchmark-attempt-migration -- \
   --ledger "$migration_root/migration-ledger.json"
 ```
 
-```console
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2001 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2001-bam-genotyping" \
-  --json-output benchmarks/reports/run-2001-bam-genotyping.json \
-  --markdown-output benchmarks/reports/run-2001-bam-genotyping.md
+Current campaign execution is owned by the Rust `benchmark-campaign-cycle`
+workflow. It plans immutable `run-<id>-<domain>-<stage>` attempt trees,
+prepares crate-owned execution material, submits Slurm jobs, reconciles
+scheduler observations, and admits only complete result closures. Run
+`cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle --` for
+the exact command contract. `run-2002` and `run-2003` have executable material
+but intentionally have no current report until fresh Slurm attempts pass
+reconciliation and admission.
 
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2002 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2002-bam-coverage" \
-  --json-output benchmarks/reports/run-2002-bam-coverage.json \
-  --markdown-output benchmarks/reports/run-2002-bam-coverage.md
+The Python `benchmark_evidence.py` path is retained only to interpret legacy
+bundles while equivalent Rust publication ownership is completed. Its output
+must not be promoted as current evidence. The superseded BAM coverage and
+endogenous-content reports are retained byte-for-byte as
+[historical run-2002 evidence](reports/historical/run-2002-bam-coverage.md)
+and [historical run-2003 evidence](reports/historical/run-2003-bam-endogenous-content.md).
 
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2003 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2003-bam-endogenous-content" \
-  --json-output benchmarks/reports/run-2003-bam-endogenous-content.json \
-  --markdown-output benchmarks/reports/run-2003-bam-endogenous-content.md
-
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2004 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2004-bam-mapping-summary" \
-  --json-output benchmarks/reports/run-2004-bam-mapping-summary.json \
-  --markdown-output benchmarks/reports/run-2004-bam-mapping-summary.md
-
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2042 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2042-fastq-profile-read-lengths" \
-  --json-output benchmarks/reports/run-2042-fastq-profile-read-lengths.json \
-  --markdown-output benchmarks/reports/run-2042-fastq-profile-read-lengths.md
-
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2043 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2043-fastq-profile-reads" \
-  --json-output benchmarks/reports/run-2043-fastq-profile-reads.json \
-  --markdown-output benchmarks/reports/run-2043-fastq-profile-reads.md
-```
-
-The reviewed [BAM-genotyping report](reports/run-2001-bam-genotyping.md)
-records performance and candidate-site observations. The [BAM-coverage
-report](reports/run-2002-bam-coverage.md) compares the complete retained
-tool closure under their honestly declared concurrency. The [endogenous-content
-report](reports/run-2003-bam-endogenous-content.md) publishes the mapping
-proxy with its biological claim boundary. All reports keep large run products
-on the governed study filesystem. The [FASTQ read-length report](reports/run-2042-fastq-profile-read-lengths.md)
-records exact per-record length agreement for the two retained backends. The
-[FASTQ profile report](reports/run-2043-fastq-profile-reads.md)
-publishes the first real multi-tool comparison and its explicit operational
-substitution boundary.
+The current [BAM mapping-summary report](reports/run-2004-bam-mapping-summary.md),
+[FASTQ read-length report](reports/run-2042-fastq-profile-read-lengths.md), and
+[FASTQ profile report](reports/run-2043-fastq-profile-reads.md) are published
+from admitted campaign attempts by crate-owned report workflows. The BAM
+genotyping report remains legacy evidence pending complete input and Rust
+publication authority. All large run products remain on the governed study
+filesystem.
