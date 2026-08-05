@@ -1,10 +1,9 @@
 # Scientific benchmark runs
 
-This directory temporarily retains the BAM mapping-summary generator while its
-execution material moves into `bijux-dna-bench`. New executable campaign logic
-must not be added here. Crate-owned campaign workflows bind stable stage
-identities to complete retained-tool closure, governed data and image evidence,
-commands, resources, acceptance metrics, and immutable result paths.
+Executable campaign logic is owned by `bijux-dna-bench`, not by scripts in this
+directory. Crate-owned campaign workflows bind stable stage identities to
+complete retained-tool closure, governed data and image evidence, commands,
+resources, acceptance metrics, and immutable result paths.
 
 A run definition is not scientific evidence. Results become admissible only
 after Slurm accounting, output checksums, repeated resource observations,
@@ -12,8 +11,11 @@ stage-specific quality checks, and cross-tool tolerances pass the benchmark
 evidence validator. Reviewed small reports then belong in
 `benchmarks/reports/`.
 
-`bam_mapping_summary.py` defines the real Picard and Samtools qualification
-campaign for `bam.mapping_summary`.
+`bijux_dna_bench::workflow::bam_mapping_summary` owns the Picard and Samtools
+qualification campaign for `bam.mapping_summary`. It re-hashes one governed
+coordinate-sorted BAM and its BAI, normalizes both tools to one primary-read
+accounting contract, and preserves raw and normalized outputs for every
+repetition.
 
 `bijux_dna_bench::workflow::fastq_profile_read_lengths` owns the exact SeqFu and
 SeqKit comparison for `fastq.profile_read_lengths`. It derives independent exact

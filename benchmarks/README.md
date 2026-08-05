@@ -210,34 +210,34 @@ sets `run.kind: benchmark`; the execution validator then confines results to
 admitted Apptainer image. LUNARC modules or host-installed scientific binaries
 are not valid benchmark participants.
 
-The mapping-summary campaign has a tracked specification generator rather than
-an operator-maintained YAML copy. On LUNARC, first build the verified data
-index for the exact clean commit, freeze that commit, and then prepare both
-tool contracts from the site policy, data index, and canonical image inventory:
+The mapping-summary campaign is prepared by `bijux-dna-bench` through the
+generic campaign lifecycle rather than an operator-maintained YAML or Python
+generator. On LUNARC, create a source-locked run-2004 plan and initialize it,
+then use `benchmark-campaign-cycle prepare` or `submit` with the exact frozen
+repository, verified data index, canonical image inventory, STUDY root,
+account, and partition authorities:
 
 ```console
-commit=$(git rev-parse HEAD)
-index="$STUDY/data/evidence/indexes/$commit/data-index.json"
-
-python3 -B containers/contracts/container_validation.py freeze-repository \
-  --governance containers/contracts/sites/lunarc.yml \
-  --commit "$commit"
-
-python3 -B benchmarks/runs/bam_mapping_summary.py \
-  --governance containers/contracts/sites/lunarc.yml \
-  --data-index "$index" \
-  --image-inventory containers/reports/image-inventory.json \
-  --catalog containers/contracts/catalog.toml
+cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare \
+  --account "$SLURM_ACCOUNT" \
+  --benchmark-root "$STUDY/results/benchmarks" \
+  --data-index "$STUDY/data/evidence/indexes/$commit/data-index.json" \
+  --inventory "$image_inventory" \
+  --operator "$USER" \
+  --partition "$SLURM_PARTITION" \
+  --plan "$campaign_plan" \
+  --prepared-at-utc "$prepared_at_utc" \
+  --repository-root "$frozen_repository" \
+  --study-root "$STUDY"
 ```
 
-The generator refuses a dirty repository, an ineligible corpus, a non-current
-image, an incomplete tool closure, or an existing destination. It writes
-`config-pipeline.yml` and `config-credential.yml` under the governed
-`$STUDY/results/benchmark-specifications/run-2004-picard/` and
-`run-2004-samtools/` manifest directories. Validate each pair with
-`container_validation.py validate`, then submit with
-`container_validation.py submit`. Submission is asynchronous; accounting and
-benchmark admission happen only after both jobs reach a terminal state.
+Preparation refuses source-lock drift, an ineligible or digest-mismatched
+corpus, a non-current image, incomplete Picard/Samtools closure, or conflicting
+attempt evidence. It writes immutable execution specifications and Slurm
+scripts under
+`$STUDY/results/benchmarks/run-2004-bam-mapping-summary/<tool>/attempts/`.
+`submit` returns without polling; later `reconcile` observations and `admit`
+calls preserve scheduler accounting and validate the exact output closure.
 
 Measured Apptainer images include GNU `time` as a non-scientific runtime
 dependency. The campaign records wall, user, system, and peak-resident-memory

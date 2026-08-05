@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 
 mod attempt_migration;
+mod bam_mapping_summary;
 mod campaign_lifecycle;
 mod evaluation;
 mod fastq_expectations;
@@ -23,6 +24,10 @@ pub use attempt_migration::{
     apply_attempt_migration, plan_attempt_migration, rollback_attempt_migration,
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,
     BenchmarkAttemptMigrationVerificationEntry,
+};
+pub use bam_mapping_summary::{
+    prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,
+    BamMappingSummaryMaterial,
 };
 pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,

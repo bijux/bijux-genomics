@@ -439,8 +439,9 @@ validate-frontend-mini-domain-stacks
 `benchmark-campaign-cycle prepare` composes benchmark-owned corpus and execution-spec preparation
 with runner-owned Slurm materialization. It selects crate-owned material by the source-locked run
 identity, initializes or recovers every attempt, and records `ready` lifecycle evidence without
-submitting or polling scheduler jobs. The command currently supports the complete run-2042 and
-run-2043 FASTQ campaign definitions and fails closed for campaigns without crate-owned material.
+submitting or polling scheduler jobs. The command currently supports the complete run-2004 BAM
+mapping-summary campaign and run-2042/run-2043 FASTQ campaigns, and fails closed for campaigns
+without crate-owned material.
 
 Every campaign operation that creates or consumes a source-locked plan requires an explicit
 `--repository-root`. The operator binary may come from a newer clean worktree, but source identity,

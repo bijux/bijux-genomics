@@ -17,7 +17,7 @@ mod scheduler;
 const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
-const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
+const BENCHMARK_PREPARATION_OPTIONS: &[&str] = &[
     "--account",
     "--benchmark-root",
     "--data-index",
@@ -30,7 +30,7 @@ const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
     "--study-root",
 ];
 
-const FASTQ_SUBMISSION_OPTIONS: &[&str] = &[
+const BENCHMARK_SUBMISSION_OPTIONS: &[&str] = &[
     "--account",
     "--benchmark-root",
     "--data-index",
@@ -44,25 +44,26 @@ const FASTQ_SUBMISSION_OPTIONS: &[&str] = &[
     "--submitted-at-utc",
 ];
 
-struct FastqPreparation<'a> {
+struct CampaignPreparation<'a> {
     repository_root: &'a Path,
     study_root: &'a Path,
     data_index: &'a Path,
     benchmark_root: &'a Path,
     plan: &'a bijux_dna_bench::BenchmarkCampaignPlan,
     authorities: &'a bijux_dna_bench::BenchmarkExecutionAuthorities,
-    expectations: &'a FastqCampaignExpectations,
+    evidence: &'a CampaignEvidence,
     options: &'a BTreeMap<String, String>,
     scheduler_timestamp: &'a str,
     recover_submitted: bool,
 }
 
-enum FastqCampaignExpectations {
+enum CampaignEvidence {
+    Bam(bijux_dna_bench::AdmittedBamCorpus),
     ReadLengths(bijux_dna_bench::FastqReadLengthExpectationPublication),
     ProfileReads(bijux_dna_bench::FastqProfileReadsExpectationPublication),
 }
 
-impl FastqPreparation<'_> {
+impl CampaignPreparation<'_> {
     fn prepare_attempt(
         &self,
         identity: &bijux_dna_bench::BenchmarkAttemptIdentity,
@@ -94,8 +95,22 @@ impl FastqPreparation<'_> {
         identity: &bijux_dna_bench::BenchmarkAttemptIdentity,
     ) -> Result<bijux_dna_bench::BenchmarkExecutionSpec> {
         let image = self.authorities.resolve_current_image(self.study_root, &identity.tool_id)?;
-        let execution = match self.expectations {
-            FastqCampaignExpectations::ReadLengths(expectations) => {
+        let execution = match self.evidence {
+            CampaignEvidence::Bam(corpus) => {
+                bijux_dna_bench::prepare_bam_mapping_summary_material_from_corpus(
+                    self.repository_root,
+                    self.benchmark_root,
+                    identity,
+                    self.authorities.source_contract_sha256(),
+                    required(self.options, "--operator")?,
+                    required(self.options, "--prepared-at-utc")?,
+                    required(self.options, "--account")?,
+                    required(self.options, "--partition")?,
+                    corpus,
+                )?
+                .execution
+            }
+            CampaignEvidence::ReadLengths(expectations) => {
                 bijux_dna_bench::prepare_fastq_profile_read_lengths_material_from_expectations(
                     self.repository_root,
                     self.benchmark_root,
@@ -109,7 +124,7 @@ impl FastqPreparation<'_> {
                 )?
                 .execution
             }
-            FastqCampaignExpectations::ProfileReads(expectations) => {
+            CampaignEvidence::ProfileReads(expectations) => {
                 bijux_dna_bench::prepare_fastq_profile_reads_material_from_expectations(
                     self.repository_root,
                     self.benchmark_root,
@@ -185,9 +200,9 @@ fn prepare_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
-    require_exact_options(options, FASTQ_PREPARATION_OPTIONS)?;
+    require_exact_options(options, BENCHMARK_PREPARATION_OPTIONS)?;
     let prepared =
-        prepare_fastq_campaign(workspace, options, required(options, "--prepared-at-utc")?, false)?;
+        prepare_campaign_jobs(workspace, options, required(options, "--prepared-at-utc")?, false)?;
     let scripts = prepared
         .jobs
         .iter()
@@ -202,7 +217,7 @@ fn prepare_campaign(
     )))
 }
 
-struct PreparedFastqCampaign {
+struct PreparedCampaign {
     benchmark_root: PathBuf,
     jobs: Vec<(
         bijux_dna_bench::BenchmarkAttemptIdentity,
@@ -214,9 +229,9 @@ fn submit_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
-    require_exact_options(options, FASTQ_SUBMISSION_OPTIONS)?;
+    require_exact_options(options, BENCHMARK_SUBMISSION_OPTIONS)?;
     let submitted_at_utc = required(options, "--submitted-at-utc")?;
-    let prepared = prepare_fastq_campaign(workspace, options, submitted_at_utc, true)?;
+    let prepared = prepare_campaign_jobs(workspace, options, submitted_at_utc, true)?;
     let scheduler = bijux_dna_runner::api::SlurmClientPaths::default();
     let mut submitted = Vec::new();
     for (identity, material) in &prepared.jobs {
@@ -240,12 +255,12 @@ fn submit_campaign(
     )))
 }
 
-fn prepare_fastq_campaign(
+fn prepare_campaign_jobs(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
     scheduler_timestamp: &str,
     recover_submitted: bool,
-) -> Result<PreparedFastqCampaign> {
+) -> Result<PreparedCampaign> {
     let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
         .canonicalize()
         .context("canonicalize benchmark source repository")?;
@@ -277,37 +292,47 @@ fn prepare_fastq_campaign(
         &plan,
     )?;
     let run_id = campaign_run_id(&plan)?;
-    if !matches!(run_id, "run-2042" | "run-2043") {
+    if !matches!(run_id, "run-2004" | "run-2042" | "run-2043") {
         bail!("benchmark campaign has no crate-owned executable material: {run_id}");
     }
-    let read_length_expectations = bijux_dna_bench::ensure_fastq_read_length_expectations(
-        &repository_root,
-        &study_root,
-        &data_index,
-        "human-short-read-diversity",
-        20,
-        30,
-    )?;
-    let expectations = match run_id {
-        "run-2042" => FastqCampaignExpectations::ReadLengths(read_length_expectations),
-        "run-2043" => FastqCampaignExpectations::ProfileReads(
-            bijux_dna_bench::ensure_fastq_profile_reads_expectations(
+    let evidence = match run_id {
+        "run-2004" => CampaignEvidence::Bam(bijux_dna_bench::admit_bam_benchmark_corpus(
+            &study_root,
+            &data_index,
+            "ena-prjeb22390-err2112767-bam",
+        )?),
+        "run-2042" | "run-2043" => {
+            let read_lengths = bijux_dna_bench::ensure_fastq_read_length_expectations(
+                &repository_root,
                 &study_root,
-                &read_length_expectations,
-            )?,
-        ),
+                &data_index,
+                "human-short-read-diversity",
+                20,
+                30,
+            )?;
+            if run_id == "run-2042" {
+                CampaignEvidence::ReadLengths(read_lengths)
+            } else {
+                CampaignEvidence::ProfileReads(
+                    bijux_dna_bench::ensure_fastq_profile_reads_expectations(
+                        &study_root,
+                        &read_lengths,
+                    )?,
+                )
+            }
+        }
         _ => bail!("benchmark campaign has no crate-owned executable material: {run_id}"),
     };
     let mut attempts = active_plan_attempts(&plan);
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
-    let preparation = FastqPreparation {
+    let preparation = CampaignPreparation {
         repository_root: &repository_root,
         study_root: &study_root,
         data_index: &data_index,
         benchmark_root: &benchmark_root,
         plan: &plan,
         authorities: &authorities,
-        expectations: &expectations,
+        evidence: &evidence,
         options,
         scheduler_timestamp,
         recover_submitted,
@@ -324,7 +349,7 @@ fn prepare_fastq_campaign(
             required(options, "--prepared-at-utc")?,
         )?;
     }
-    Ok(PreparedFastqCampaign { benchmark_root, jobs: prepared })
+    Ok(PreparedCampaign { benchmark_root, jobs: prepared })
 }
 
 fn reconcile_campaign(
@@ -623,7 +648,7 @@ mod tests {
     use super::{
         parse_options, require_exact_options,
         scheduler::{benchmark_accounting, benchmark_observation},
-        FASTQ_PREPARATION_OPTIONS, FASTQ_SUBMISSION_OPTIONS,
+        BENCHMARK_PREPARATION_OPTIONS, BENCHMARK_SUBMISSION_OPTIONS,
     };
 
     #[test]
@@ -652,7 +677,7 @@ mod tests {
     }
 
     #[test]
-    fn fastq_preparation_contract_requires_complete_authorities() -> anyhow::Result<()> {
+    fn campaign_preparation_contract_requires_complete_authorities() -> anyhow::Result<()> {
         let options = parse_options(&[
             "--account".into(),
             "project".into(),
@@ -675,12 +700,12 @@ mod tests {
             "--study-root".into(),
             "/study".into(),
         ])?;
-        assert!(require_exact_options(&options, FASTQ_PREPARATION_OPTIONS).is_ok());
+        assert!(require_exact_options(&options, BENCHMARK_PREPARATION_OPTIONS).is_ok());
         Ok(())
     }
 
     #[test]
-    fn fastq_submission_contract_requires_separate_submission_time() -> anyhow::Result<()> {
+    fn campaign_submission_contract_requires_separate_submission_time() -> anyhow::Result<()> {
         let options = parse_options(&[
             "--account".into(),
             "project".into(),
@@ -705,7 +730,7 @@ mod tests {
             "--submitted-at-utc".into(),
             "2026-08-05T03:00:00Z".into(),
         ])?;
-        assert!(require_exact_options(&options, FASTQ_SUBMISSION_OPTIONS).is_ok());
+        assert!(require_exact_options(&options, BENCHMARK_SUBMISSION_OPTIONS).is_ok());
         Ok(())
     }
 

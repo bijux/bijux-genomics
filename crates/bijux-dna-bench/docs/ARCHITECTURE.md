@@ -31,9 +31,12 @@ belong under `docs/`.
   from immutable publication storage; derivation delegates to `bijux-dna-science`.
 - `src/workflow/fastq_profile_read_lengths/` owns the run-2042 input mounts,
   exact tool commands, required output closure, and immutable parameter evidence.
+- `src/workflow/bam_mapping_summary/` owns the run-2004 BAM/BAI mounts, Picard and
+  Samtools commands, normalized primary-read contract, output closure, and
+  immutable parameter evidence.
 - `src/workflow/summary/` separates grouping, row metrics, and stratum assembly.
-- `src/repo/` owns repository-root discovery, workspace path policy, governed
-  corpus admission, repository contracts, run metadata, run artifact loaders,
+- `src/repo/` owns repository-root discovery, workspace path policy, domain-specific
+  FASTQ and BAM corpus admission, repository contracts, run metadata, run artifact loaders,
   and sqlite run-index queries.
 - `src/repo/run_artifacts/` separates manifest, metrics, and observations
   loading.

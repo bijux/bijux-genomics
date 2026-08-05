@@ -1,6 +1,41 @@
 schema_version = "bijux.benchmark.stage_interfaces.v1"
 
 [[interfaces]]
+stage_id = "bam.mapping_summary"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.mapping_summary.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-mapping-summary-result.schema.json"
+parameter_schema_version = "bijux.bam.params.mapping_summary.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = ["regions"]
+immutable_parameters = ["schema_version"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["picard", "samtools"]
+provenance_sources = [
+  "domain/bam/stages/mapping_summary.yaml",
+  "crates/bijux-dna-domain-bam/src/artifacts.rs",
+  "crates/bijux-dna-domain-bam/src/stage_specs/mod.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_pre.rs",
+  "benchmarks/execution/bam_mapping_summary.awk",
+]
+
+[interfaces.adapters]
+picard = "bijux_dna_planner_bam::tool_adapters::bam::mapping_summary"
+samtools = "bijux_dna_planner_bam::tool_adapters::bam::mapping_summary"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.mapping_summary.compare"
+input_contract = "bijux.benchmark.bam.mapping_summary.bundle.v1"
+source = "benchmarks/execution/bam_mapping_summary.awk"
+assertions = [
+  "every retained tool normalizes to the same primary-read accounting fields",
+  "Picard PAIR and UNPAIRED categories aggregate without double-counting paired records",
+  "every normalized bundle can be compared without tool-specific downstream parsing",
+]
+
+[[interfaces]]
 stage_id = "fastq.profile_read_lengths"
 accepted_input_contracts = [
   "bijux.fastq.artifact.single_end.v1",

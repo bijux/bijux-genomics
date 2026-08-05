@@ -84,6 +84,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow")),
         entries([
             "attempt_migration.rs",
+            "bam_mapping_summary/",
             "campaign_lifecycle/",
             "evaluation.rs",
             "fastq_expectations/",
@@ -102,6 +103,12 @@ fn bench_tree_matches_architecture_contract() {
             "summary_statistics.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_mapping_summary")),
+        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs"]),
+        "BAM mapping-summary material must separate commands, inputs, and parameter evidence"
     );
 
     assert_eq!(
