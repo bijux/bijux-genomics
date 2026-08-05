@@ -15,6 +15,9 @@ src/
 ├── compile.rs       # authored YAML loading, cross-reference checks, and evidence derivation
 ├── domain/
 │   └── mod.rs       # science data structures and typed science identifiers
+├── evidence/
+│   ├── fastq_read_lengths.rs # bounded independent FASTQ truth derivation
+│   └── mod.rs               # scientific evidence derivation facade
 ├── errors.rs        # validation error formatting
 ├── io.rs            # deterministic UTF-8 file IO helpers
 ├── lib.rs           # library exports

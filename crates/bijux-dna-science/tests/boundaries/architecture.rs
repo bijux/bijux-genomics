@@ -18,6 +18,7 @@ fn science_source_tree_matches_architecture_contract() {
             "cli.rs",
             "compile.rs",
             "domain/",
+            "evidence/",
             "errors.rs",
             "io.rs",
             "lib.rs",
@@ -38,6 +39,11 @@ fn science_source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/domain")),
         entries(["mod.rs"]),
         "science domain types must stay isolated"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence")),
+        entries(["fastq_read_lengths.rs", "mod.rs"]),
+        "science evidence derivation must stay isolated from pure domain types"
     );
     assert_eq!(
         dir_entries(&root.join("src/render")),
@@ -62,6 +68,7 @@ fn science_test_tree_matches_architecture_contract() {
             "boundaries.rs",
             "contracts.rs",
             "fastq_environment_slice.rs",
+            "fastq_read_length_truth.rs",
             "guardrails.rs",
             "tsv_shape.rs",
         ]),

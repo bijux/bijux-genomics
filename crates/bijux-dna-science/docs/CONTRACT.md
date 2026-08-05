@@ -47,6 +47,7 @@ The index must also summarize the source-archive and FASTQ closure surfaces thro
 - Authored science spec loading and validation.
 - Typed science identifier data structures.
 - Deterministic evidence-row compilation.
+- Bounded independent FASTQ decoding for exact read-length truth, histograms, and row digests.
 - Stable TSV and JSON rendering for science outputs.
 - Science release bundle writing under `artifacts/science-releases/`.
 
