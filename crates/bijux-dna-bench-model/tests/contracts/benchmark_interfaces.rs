@@ -153,7 +153,7 @@ fn checked_interface_schemas_match_model_authority() -> anyhow::Result<()> {
             serde_json::to_value(bijux_dna_bench_model::benchmark_stage_interface_catalog_schema())?,
         ),
         (
-            repository_root.join("benchmarks/contracts/config-pipeline-parameters.schema.json"),
+            repository_root.join("benchmarks/contracts/schemas/pipeline-parameters.schema.json"),
             serde_json::to_value(
                 bijux_dna_bench_model::benchmark_pipeline_parameter_config_schema(),
             )?,

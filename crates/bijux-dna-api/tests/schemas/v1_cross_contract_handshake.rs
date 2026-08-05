@@ -42,11 +42,12 @@ fn checked_benchmark_planning_schemas_match_rust_types() -> anyhow::Result<()> {
         .parent()
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
-    let schema_root = repository_root.join("benchmarks").join("schemas");
-    let interfaces: Value =
-        serde_json::from_str(&fs::read_to_string(schema_root.join("stage-interfaces.v1.json"))?)?;
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    let interfaces: Value = serde_json::from_str(&fs::read_to_string(
+        schema_root.join("stage-interfaces.schema.json"),
+    )?)?;
     let parameters: Value = serde_json::from_str(&fs::read_to_string(
-        schema_root.join("pipeline-parameters.v1.json"),
+        schema_root.join("pipeline-parameters.schema.json"),
     )?)?;
 
     assert_eq!(interfaces, render_benchmark_stage_interfaces_schema());
@@ -61,7 +62,7 @@ fn checked_benchmark_stage_report_schema_matches_rust_type() -> anyhow::Result<(
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
     let checked: Value = serde_json::from_str(&fs::read_to_string(
-        repository_root.join("benchmarks/schemas/stage-report.v1.json"),
+        repository_root.join("benchmarks/contracts/schemas/stage-report.schema.json"),
     )?)?;
     let generated = render_benchmark_stage_report_schema();
     assert_eq!(
@@ -79,7 +80,7 @@ fn checked_benchmark_report_admission_schema_matches_rust_type() -> anyhow::Resu
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
     let checked: Value = serde_json::from_str(&fs::read_to_string(
-        repository_root.join("benchmarks/schemas/report-admission.v1.json"),
+        repository_root.join("benchmarks/contracts/schemas/report-admission.schema.json"),
     )?)?;
     let generated = render_benchmark_report_admission_schema();
     assert_eq!(
@@ -137,7 +138,7 @@ fn checked_benchmark_attempt_archive_schema_matches_rust_type() -> anyhow::Resul
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
     let checked: Value = serde_json::from_str(&fs::read_to_string(
-        repository_root.join("benchmarks/schemas/attempt-archive.v1.json"),
+        repository_root.join("benchmarks/contracts/schemas/attempt-archive.schema.json"),
     )?)?;
     let generated = render_benchmark_attempt_archive_schema();
     assert_eq!(
@@ -145,6 +146,24 @@ fn checked_benchmark_attempt_archive_schema_matches_rust_type() -> anyhow::Resul
         Some(BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1)
     );
     assert_eq!(checked, generated);
+    Ok(())
+}
+
+#[test]
+fn legacy_benchmark_model_schema_snapshots_are_absent() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
+    for path in [
+        "benchmarks/schemas/attempt-archive.v1.json",
+        "benchmarks/schemas/pipeline-parameters.v1.json",
+        "benchmarks/schemas/report-admission.v1.json",
+        "benchmarks/schemas/stage-interfaces.v1.json",
+        "benchmarks/schemas/stage-report.v1.json",
+    ] {
+        assert!(!repository_root.join(path).exists(), "legacy schema remains: {path}");
+    }
     Ok(())
 }
 

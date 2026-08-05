@@ -44,9 +44,12 @@ pub use crate::workflow::{
     FastqReadLengthExpectationPublication,
 };
 pub use bijux_dna_bench_model::{
-    benchmark_bundle_manifest_schema, benchmark_campaign_plan_schema,
-    benchmark_corpus_manifest_schema, benchmark_execution_spec_schema,
-    benchmark_observation_schema, benchmark_scheduler_observation_schema,
+    admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
+    benchmark_attempt_schema, benchmark_bundle_manifest_schema, benchmark_campaign_plan_schema,
+    benchmark_corpus_manifest_schema, benchmark_cycle_status_schema,
+    benchmark_execution_spec_schema, benchmark_observation_schema,
+    benchmark_pipeline_parameter_config_schema, benchmark_scheduler_observation_schema,
+    benchmark_stage_interface_catalog_schema, benchmark_stage_report_schema,
     benchmark_suite_spec_schema, benchmark_summary_schema, gate_decision_schema,
     validate_attempt_archive, validate_attempt_identity, validate_attempt_record_v2,
     validate_execution_spec, validate_fastq_read_length_expectations,
