@@ -114,9 +114,10 @@ pub(super) fn plan_retry(
     let prior_plan = read_plan(&prior_plan_path)?;
     bijux_dna_bench::verify_campaign_plan_source(
         &prior_plan,
-        &repository_commit,
-        &campaign_registry_sha256,
+        &prior_plan.repository_commit,
+        &prior_plan.campaign_registry_sha256,
     )?;
+    require_retry_source_ancestry(&repository_root, &prior_plan.repository_commit)?;
     let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?)
         .canonicalize()
         .context("canonicalize benchmark retry result root")?;
@@ -145,6 +146,62 @@ pub(super) fn plan_retry(
         retry.cycle.attempts.len() - active_plan_attempts(&retry).len(),
         output.display()
     )))
+}
+
+fn require_retry_source_ancestry(
+    repository_root: &std::path::Path,
+    prior_commit: &str,
+) -> Result<()> {
+    if !bijux_dna_environment::api::repository_commit_is_ancestor_of_head(
+        repository_root,
+        prior_commit,
+    )? {
+        bail!("benchmark retry prior source is not an ancestor of the current source");
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+    use std::process::Command;
+
+    use super::require_retry_source_ancestry;
+
+    #[test]
+    fn retry_source_accepts_descendants_and_rejects_unrelated_history() -> anyhow::Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("benchmark-retry-source")?;
+        let root = temporary.path();
+        git(root, &["init", "--quiet"])?;
+        git(root, &["config", "user.email", "tests@bijux.invalid"])?;
+        git(root, &["config", "user.name", "Bijux Tests"])?;
+        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 1;\n")?;
+        git(root, &["add", "source.rs"])?;
+        git(root, &["commit", "--quiet", "-m", "initial source"])?;
+        let prior = bijux_dna_environment::api::repository_head_commit(root)?;
+
+        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 2;\n")?;
+        git(root, &["add", "source.rs"])?;
+        git(root, &["commit", "--quiet", "-m", "correct source"])?;
+        require_retry_source_ancestry(root, &prior)?;
+
+        git(root, &["checkout", "--quiet", "--orphan", "unrelated"])?;
+        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 3;\n")?;
+        git(root, &["add", "source.rs"])?;
+        git(root, &["commit", "--quiet", "-m", "unrelated source"])?;
+        assert!(require_retry_source_ancestry(root, &prior).is_err());
+        Ok(())
+    }
+
+    fn git(root: &Path, arguments: &[&str]) -> anyhow::Result<()> {
+        let output = Command::new("git").arg("-C").arg(root).args(arguments).output()?;
+        anyhow::ensure!(
+            output.status.success(),
+            "git command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(())
+    }
 }
 
 pub(super) fn supersede(
