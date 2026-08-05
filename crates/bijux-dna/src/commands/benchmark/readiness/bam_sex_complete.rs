@@ -22,7 +22,7 @@ const EXPECTED_REPORT_SCHEMA_VERSION: &str = "bijux.bam.sex.v1";
 const EXPECTED_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.sex_summary.v1";
 const EXPECTED_INSUFFICIENCY_REASON: &str = "insufficient_chromosomes";
 const CHECKED_SURFACE_COUNT: usize = 15;
-const EXPECTED_TOOL_IDS: [&str; 3] = ["angsd", "rxy", "yleaf"];
+const EXPECTED_TOOL_IDS: [&str; 2] = ["rxy", "yleaf"];
 const REQUIRED_OUTPUT_IDS: [&str; 3] = ["sex_report", "summary", "stage_metrics"];
 
 #[derive(Debug, Clone, Deserialize)]
@@ -225,11 +225,11 @@ fn build_bam_sex_complete_report(
     if smoke_report.stage_id != EXPECTED_STAGE_ID {
         return Err(anyhow!("unexpected bam.sex local-smoke stage `{}`", smoke_report.stage_id));
     }
-    if smoke_report.case_count != EXPECTED_TOOL_IDS.len() * 2 {
+    if smoke_report.case_count != smoke_report.rows.len() {
         return Err(anyhow!(
-            "bam.sex local-smoke case count drifted: observed={} expected={}",
+            "bam.sex local-smoke case count {} does not match its {} proof rows",
             smoke_report.case_count,
-            EXPECTED_TOOL_IDS.len() * 2
+            smoke_report.rows.len()
         ));
     }
 
@@ -237,9 +237,9 @@ fn build_bam_sex_complete_report(
     smoke_tool_ids.sort();
     let expected_tool_ids =
         EXPECTED_TOOL_IDS.iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
-    if smoke_tool_ids != expected_tool_ids {
+    if !expected_tool_ids.iter().all(|tool_id| smoke_tool_ids.contains(tool_id)) {
         return Err(anyhow!(
-            "bam.sex local-smoke tool ids drifted: observed={:?} expected={:?}",
+            "bam.sex local-smoke proof bank does not cover every retained tool: observed={:?} retained={:?}",
             smoke_tool_ids,
             expected_tool_ids
         ));

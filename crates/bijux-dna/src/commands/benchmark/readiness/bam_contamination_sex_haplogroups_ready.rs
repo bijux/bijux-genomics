@@ -160,21 +160,6 @@ fn bam_binding_specs() -> Vec<BamBindingSpec> {
         },
         BamBindingSpec {
             stage_id: "bam.sex",
-            tool_id: "angsd",
-            required_output_ids: &SEX_REQUIRED_OUTPUT_IDS,
-            normalized_metrics_output_id: "sex_report",
-            schema_extension_id: "bam_sex_normalized_v1",
-            expected_local_proof_kind: LOCAL_PROOF_KIND_SMOKE,
-            expected_local_proof_tool_id: "rxy",
-            required_local_proof_fields: &SEX_REQUIRED_LOCAL_PROOF_FIELDS,
-            required_local_proof_output_ids: &SEX_REQUIRED_LOCAL_PROOF_OUTPUT_IDS,
-            required_local_proof_command_fragments: &[],
-            report_section_id: "sample_identity",
-            summary_table_id: "identity_inference",
-            report_anchor_tool_id: "rxy",
-        },
-        BamBindingSpec {
-            stage_id: "bam.sex",
             tool_id: "rxy",
             required_output_ids: &SEX_REQUIRED_OUTPUT_IDS,
             normalized_metrics_output_id: "sex_report",
@@ -1279,9 +1264,9 @@ mod tests {
         .expect("render BAM contamination/sex/haplogroups readiness");
 
         #[cfg(feature = "bam_downstream")]
-        let expected_row_count = 7;
-        #[cfg(not(feature = "bam_downstream"))]
         let expected_row_count = 6;
+        #[cfg(not(feature = "bam_downstream"))]
+        let expected_row_count = 5;
 
         #[cfg(feature = "bam_downstream")]
         let expected_stage_count = 3;

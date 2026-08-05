@@ -239,31 +239,7 @@ fn build_real_output_parser_smoke_report(
         let spec = spec_map.get(family_id.as_str()).copied().ok_or_else(|| {
             anyhow!("real-output parser smoke has no governed probe spec for family `{family_id}`")
         })?;
-        let materialized = materialize_family_proof(repo_root, probe_root, &spec)?;
-        let parsed = parse_proof(&materialized.proof_path, spec.parse_kind, spec.snapshot_keys)?;
-        rows.push(RealOutputParserSmokeRow {
-            family_id,
-            family_summary,
-            representative_stage_id: spec.representative_stage_id.to_string(),
-            representative_tool_id: materialized.observed_tool_id,
-            proof_path: path_relative_to_repo(repo_root, &materialized.proof_path),
-            parser_surface: parse_surface_label(spec.parse_kind).to_string(),
-            parsed_schema_version: parsed
-                .0
-                .get("schema_version")
-                .and_then(Value::as_str)
-                .unwrap_or("unknown")
-                .to_string(),
-            parsed_top_level_key_count: top_level_keys(&parsed.0).len(),
-            parsed_top_level_keys: top_level_keys(&parsed.0),
-            normalized_snapshot: parsed.1,
-            passed: true,
-            reason: format!(
-                "validated {} family output through {}",
-                spec.family_id,
-                parse_surface_label(spec.parse_kind)
-            ),
-        });
+        rows.push(materialize_probe_row(repo_root, probe_root, family_id, family_summary, spec)?);
     }
 
     rows.sort_by(|left, right| left.family_id.cmp(&right.family_id));
@@ -283,6 +259,61 @@ fn build_real_output_parser_smoke_report(
         failed_family_count,
         parser_surface_counts,
         rows,
+    })
+}
+
+pub(crate) fn render_bam_genotyping_parser_smoke_row(
+    repo_root: &Path,
+) -> Result<RealOutputParserSmokeRow> {
+    let probe_root = repo_root.join(DEFAULT_PROBE_ROOT);
+    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    let spec = FamilyProbeSpec {
+        family_id: "bam_genotyping",
+        representative_stage_id: "bam.genotyping",
+        probe_kind: ProbeKind::GeneratedBamGenotyping,
+        parse_kind: ParseKind::BamGenotypingJson,
+        snapshot_keys: &["producer", "reference", "sites", "call_rate", "mean_posterior"],
+    };
+    materialize_probe_row(
+        repo_root,
+        &probe_root,
+        "bam_genotyping".to_string(),
+        "BAM genotyping stage-specific parser proof".to_string(),
+        spec,
+    )
+}
+
+fn materialize_probe_row(
+    repo_root: &Path,
+    probe_root: &Path,
+    family_id: String,
+    family_summary: String,
+    spec: FamilyProbeSpec,
+) -> Result<RealOutputParserSmokeRow> {
+    let materialized = materialize_family_proof(repo_root, probe_root, &spec)?;
+    let parsed = parse_proof(&materialized.proof_path, spec.parse_kind, spec.snapshot_keys)?;
+    Ok(RealOutputParserSmokeRow {
+        family_id,
+        family_summary,
+        representative_stage_id: spec.representative_stage_id.to_string(),
+        representative_tool_id: materialized.observed_tool_id,
+        proof_path: path_relative_to_repo(repo_root, &materialized.proof_path),
+        parser_surface: parse_surface_label(spec.parse_kind).to_string(),
+        parsed_schema_version: parsed
+            .0
+            .get("schema_version")
+            .and_then(Value::as_str)
+            .unwrap_or("unknown")
+            .to_string(),
+        parsed_top_level_key_count: top_level_keys(&parsed.0).len(),
+        parsed_top_level_keys: top_level_keys(&parsed.0),
+        normalized_snapshot: parsed.1,
+        passed: true,
+        reason: format!(
+            "validated {} output through {}",
+            spec.family_id,
+            parse_surface_label(spec.parse_kind)
+        ),
     })
 }
 
