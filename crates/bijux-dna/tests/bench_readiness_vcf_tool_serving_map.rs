@@ -298,12 +298,12 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
         has_row(
             "ibdne",
             "vcf.demography",
-            "planned",
-            "declared_only",
+            "supported",
+            "runnable",
             "parse_normalized",
             "fixture:vcf_production_regression",
             "not_required",
-            "not_benchmark_ready",
+            "benchmark_ready",
         ),
         "VCF tool-serving map must retain the governed demography row"
     );

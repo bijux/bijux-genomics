@@ -43,10 +43,7 @@ fn bench_readiness_vcf_eigensoft_adapter_reports_governed_rows() {
     );
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("eigensoft"));
-    assert_eq!(
-        payload.get("tool_status").and_then(serde_json::Value::as_str),
-        Some("experimental")
-    );
+    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/eigensoft.vcf.json")

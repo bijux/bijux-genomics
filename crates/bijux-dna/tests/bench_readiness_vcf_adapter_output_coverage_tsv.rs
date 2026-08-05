@@ -86,14 +86,7 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
         "TSV must retain the governed shapeit5 phasing output row"
     );
     assert!(
-        has_row(
-            "vcf.demography",
-            "ibdne",
-            "complete",
-            "benchmark_ready",
-            "demography_report=",
-            ""
-        ),
+        has_row("vcf.demography", "ibdne", "complete", "benchmark_ready", "demography_report=", ""),
         "TSV must retain the governed ibdne demography output row"
     );
     assert_eq!(

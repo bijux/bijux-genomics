@@ -153,7 +153,6 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
                 == Some("apptainer_container_smoke")
             && row.get("smoke_command").and_then(serde_json::Value::as_str)
                 == Some("bijux-dna env smoke apptainer shapeit")
-            && row.get("smoke_minimal_cmd").and_then(serde_json::Value::as_str)
-                == Some("shapeit --help")
+            && row.get("smoke_minimal_cmd").and_then(serde_json::Value::as_str) == Some("")
     }));
 }

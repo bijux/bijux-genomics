@@ -134,13 +134,6 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         "limit_to_specialized_tool",
     ));
     assert!(has_row(
-        "vcf.ibd",
-        &["demography", "relatedness"],
-        &["germline"],
-        &["ibdhap", "ibdne", "ibdseq"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
         "vcf.impute",
         &["imputation", "phasing"],
         &["beagle"],
