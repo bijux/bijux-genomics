@@ -132,6 +132,28 @@ pub struct AdmittedFastqCorpus {
     pub samples: Vec<AdmittedFastqCorpusSample>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedBamCorpusFile {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedBamCorpus {
+    pub corpus_id: String,
+    pub sample_id: String,
+    pub data_index_path: String,
+    pub data_index_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub bam: AdmittedBamCorpusFile,
+    pub bam_index: AdmittedBamCorpusFile,
+    pub input_bytes: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthExpectationSample {

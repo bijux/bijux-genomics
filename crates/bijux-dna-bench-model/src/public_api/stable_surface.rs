@@ -78,10 +78,11 @@ pub use crate::model::suite::{
 };
 pub use crate::model::summary::{MetricSummary, SummaryRow, SummaryStratum};
 pub use crate::model::{
-    AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BackendComparisonSpec,
-    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec,
-    CorpusDomain, CorpusScale, DriftScenarioSpec, FastqReadLengthExpectationSample,
-    FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+    AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
+    AdmittedFastqCorpusSample, BackendComparisonSpec, BenchmarkBundleManifest,
+    BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec, CorpusDomain, CorpusScale,
+    DriftScenarioSpec, FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook,
+    TruthSetStatus,
 };
 pub use crate::model::{
     BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,

@@ -49,6 +49,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "bam_corpus_authority.rs",
             "corpus_authority.rs",
             "mod.rs",
             "repo_root.rs",

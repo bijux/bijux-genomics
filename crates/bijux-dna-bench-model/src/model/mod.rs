@@ -16,10 +16,11 @@ pub mod summary;
 
 #[allow(unused_imports)]
 pub use corpus::{
-    AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BackendComparisonSpec,
-    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec,
-    CorpusDomain, CorpusScale, DriftScenarioSpec, FastqReadLengthExpectationSample,
-    FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+    AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
+    AdmittedFastqCorpusSample, BackendComparisonSpec, BenchmarkBundleManifest,
+    BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec, CorpusDomain, CorpusScale,
+    DriftScenarioSpec, FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook,
+    TruthSetStatus,
 };
 pub use decision::BenchmarkDecision;
 #[allow(unused_imports)]

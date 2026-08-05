@@ -2,7 +2,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use bijux_dna_bench::{admit_fastq_benchmark_corpus, BenchmarkFastqLayout};
+use bijux_dna_bench::{
+    admit_bam_benchmark_corpus, admit_fastq_benchmark_corpus, BenchmarkFastqLayout,
+};
 use serde_json::{json, Value};
 use tempfile::TempDir;
 
@@ -13,6 +15,40 @@ struct CorpusFixture {
     study_root: PathBuf,
     data_index: PathBuf,
     first_fastq: PathBuf,
+}
+
+struct BamCorpusFixture {
+    _temp: TempDir,
+    study_root: PathBuf,
+    data_index: PathBuf,
+    bam: PathBuf,
+}
+
+#[test]
+fn admits_exact_verified_bam_and_index_closure() -> Result<()> {
+    let fixture = bam_corpus_fixture()?;
+    let admitted =
+        admit_bam_benchmark_corpus(&fixture.study_root, &fixture.data_index, "horse-bam")?;
+
+    assert_eq!(admitted.corpus_id, "horse-bam");
+    assert_eq!(admitted.sample_id, "ERR2112767");
+    assert_eq!(admitted.bam.size_bytes, 9);
+    assert_eq!(admitted.bam_index.size_bytes, 5);
+    assert_eq!(admitted.input_bytes, 14);
+    assert!(Path::new(&admitted.bam.path).is_absolute());
+    assert_eq!(admitted.catalog_sha256.len(), 64);
+    Ok(())
+}
+
+#[test]
+fn rejects_bam_bytes_that_drift_after_index_publication() -> Result<()> {
+    let fixture = bam_corpus_fixture()?;
+    fs::write(&fixture.bam, b"tampered BAM bytes")?;
+
+    let error = admit_bam_benchmark_corpus(&fixture.study_root, &fixture.data_index, "horse-bam")
+        .expect_err("tampered BAM bytes must be rejected");
+    assert!(error.to_string().contains("size differs"));
+    Ok(())
 }
 
 #[test]
@@ -165,6 +201,70 @@ fn corpus_fixture() -> Result<CorpusFixture> {
         study_root,
         data_index,
     })
+}
+
+fn bam_corpus_fixture() -> Result<BamCorpusFixture> {
+    let temp = tempfile::tempdir()?;
+    let study_root = temp.path().join("STUDY");
+    let catalog_path = study_root.join("data/catalog/horse-bam.json");
+    let data_index = study_root.join("data/evidence/indexes/source/data-index.json");
+    let corpus_root = study_root.join("data/corpora/horse-bam");
+    let bam = corpus_root.join("ERR2112767.sorted.bam");
+    let bam_index = corpus_root.join("ERR2112767.sorted.bam.bai");
+    fs::create_dir_all(catalog_path.parent().expect("catalog parent"))?;
+    fs::create_dir_all(data_index.parent().expect("index parent"))?;
+    fs::create_dir_all(&corpus_root)?;
+    fs::write(&bam, b"BAM-bytes")?;
+    fs::write(&bam_index, b"index")?;
+    let bam_sha256 = bijux_dna_infra::hash_file_sha256(&bam)?;
+    let index_sha256 = bijux_dna_infra::hash_file_sha256(&bam_index)?;
+    let catalog = json!({
+        "schema_version": "bijux.data_catalog.v1",
+        "id": "horse-bam",
+        "run_accession": "ERR2112767",
+        "files": [
+            {
+                "path": bam,
+                "kind": "coordinate-sorted-deduplicated-bam",
+                "sha256": bam_sha256,
+                "size_bytes": 9,
+            },
+            {
+                "path": bam_index,
+                "kind": "bam-index",
+                "sha256": index_sha256,
+                "size_bytes": 5,
+            },
+        ],
+    });
+    write_json(&catalog_path, &catalog)?;
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
+    let index = json!({
+        "schema_version": "bijux.data_index.v1",
+        "records": [{
+            "id": "horse-bam",
+            "benchmark_eligibility": "eligible",
+            "integrity_status": "verified",
+            "catalog_path": "study://data/catalog/horse-bam.json",
+            "catalog_sha256": catalog_sha256,
+            "files": [
+                {
+                    "path": "study://data/corpora/horse-bam/ERR2112767.sorted.bam",
+                    "role": "coordinate-sorted-deduplicated-bam",
+                    "sha256": bam_sha256,
+                    "size_bytes": 9,
+                },
+                {
+                    "path": "study://data/corpora/horse-bam/ERR2112767.sorted.bam.bai",
+                    "role": "bam-index",
+                    "sha256": index_sha256,
+                    "size_bytes": 5,
+                },
+            ],
+        }],
+    });
+    write_json(&data_index, &index)?;
+    Ok(BamCorpusFixture { _temp: temp, study_root, data_index, bam })
 }
 
 fn write_json(path: &Path, value: &Value) -> Result<()> {
