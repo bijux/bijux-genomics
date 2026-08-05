@@ -6,7 +6,7 @@ const PUBLICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/runtime-verification-publication.v2.json";
 const IDENTITY_SCHEMA_PATH: &str =
     "containers/contracts/schemas/tool-image-identity-evidence.v1.json";
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run runtime-verification -- execute <study-root> <inventory> <apptainer> <data-root> <evidence-root> <json-output> <markdown-output> <workers> <timeout-seconds>\n  bijux-dna-dev containers run runtime-verification -- check-report <json-output> <markdown-output>\n  bijux-dna-dev containers run runtime-verification -- generate-schema [<publication-schema> <identity-schema>]\n  bijux-dna-dev containers run runtime-verification -- check-schema";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run runtime-verification -- execute <repository-root> <study-root> <inventory> <apptainer> <data-root> <evidence-root> <json-output> <markdown-output> <workers> <timeout-seconds>\n  bijux-dna-dev containers run runtime-verification -- check-report <json-output> <markdown-output>\n  bijux-dna-dev containers run runtime-verification -- generate-schema [<publication-schema> <identity-schema>]\n  bijux-dna-dev containers run runtime-verification -- check-schema";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -25,27 +25,11 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
 }
 
 fn execute(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let [study_root, inventory, apptainer, data_root, evidence_root, json_output, markdown_output, workers, timeout_seconds] =
-        args
-    else {
-        anyhow::bail!(USAGE);
-    };
-    let worker_count = workers.parse::<usize>()?;
-    let timeout = Duration::from_secs(timeout_seconds.parse::<u64>()?);
-    let request = bijux_dna_environment::api::RuntimeVerificationRequest {
-        repository_root: workspace.root.clone(),
-        study_root: path_from_arg(workspace, study_root),
-        inventory_path: path_from_arg(workspace, inventory),
-        apptainer_executable: path_from_arg(workspace, apptainer),
-        data_root: path_from_arg(workspace, data_root),
-        evidence_root: path_from_arg(workspace, evidence_root),
-        worker_count,
-        timeout,
-    };
+    let (request, json_output, markdown_output) = parse_execute_args(workspace, args)?;
     let result = bijux_dna_environment::api::execute_runtime_verification(
         &request,
-        &path_from_arg(workspace, json_output),
-        &path_from_arg(workspace, markdown_output),
+        &json_output,
+        &markdown_output,
     )?;
     let message = format!(
         "runtime verification completed: {} passed, {} failed",
@@ -56,6 +40,35 @@ fn execute(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
     } else {
         Ok(ContainerCommandOutcome::failure(format!("{message}\n")))
     }
+}
+
+fn parse_execute_args(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<(
+    bijux_dna_environment::api::RuntimeVerificationRequest,
+    std::path::PathBuf,
+    std::path::PathBuf,
+)> {
+    let [repository_root, study_root, inventory, apptainer, data_root, evidence_root, json_output, markdown_output, workers, timeout_seconds] =
+        args
+    else {
+        anyhow::bail!(USAGE);
+    };
+    Ok((
+        bijux_dna_environment::api::RuntimeVerificationRequest {
+            repository_root: path_from_arg(workspace, repository_root),
+            study_root: path_from_arg(workspace, study_root),
+            inventory_path: path_from_arg(workspace, inventory),
+            apptainer_executable: path_from_arg(workspace, apptainer),
+            data_root: path_from_arg(workspace, data_root),
+            evidence_root: path_from_arg(workspace, evidence_root),
+            worker_count: workers.parse::<usize>()?,
+            timeout: Duration::from_secs(timeout_seconds.parse::<u64>()?),
+        },
+        path_from_arg(workspace, json_output),
+        path_from_arg(workspace, markdown_output),
+    ))
 }
 
 fn check_report(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -98,4 +111,52 @@ fn check_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
         ));
     }
     success_line("runtime-verification schema: OK")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn execution_preserves_explicit_repository_root() -> Result<()> {
+        let workspace = Workspace { root: "/automation".into() };
+        let args = [
+            "/source",
+            "/study",
+            "/inventory.json",
+            "/apptainer",
+            "/data",
+            "/evidence",
+            "/report.json",
+            "/report.md",
+            "8",
+            "30",
+        ]
+        .map(str::to_string);
+        let (request, json, markdown) = parse_execute_args(&workspace, &args)?;
+        assert_eq!(request.repository_root, std::path::Path::new("/source"));
+        assert_eq!(request.worker_count, 8);
+        assert_eq!(request.timeout, Duration::from_secs(30));
+        assert_eq!(json, std::path::Path::new("/report.json"));
+        assert_eq!(markdown, std::path::Path::new("/report.md"));
+        Ok(())
+    }
+
+    #[test]
+    fn execution_rejects_implicit_repository_root() {
+        let workspace = Workspace { root: "/automation".into() };
+        let legacy_args = [
+            "/study",
+            "/inventory.json",
+            "/apptainer",
+            "/data",
+            "/evidence",
+            "/report.json",
+            "/report.md",
+            "8",
+            "30",
+        ]
+        .map(str::to_string);
+        assert!(parse_execute_args(&workspace, &legacy_args).is_err());
+    }
 }

@@ -162,6 +162,7 @@ runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/
 publication_root="${runtime_root}/publication"
 
 cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
+  "${source_repository}" \
   /home/bijan/lu2024-12-24/Dardel/STUDY \
   "${canonical_inventory}" \
   "$(command -v apptainer)" \
@@ -185,9 +186,10 @@ publication binds each tool to its identity evidence and smoke manifest with
 
 A passing runtime campaign qualifies only the version and help dimensions.
 Real one-sample execution remains a governed Slurm run, and scientific,
-benchmark, security, and release claims remain independent. The command must
-run from the clean frozen repository whose HEAD matches the inventory commit;
-later movement of an active checkout cannot silently change the campaign.
+benchmark, security, and release claims remain independent. The explicit
+source repository must be the clean checkout whose HEAD matches the inventory
+commit; later movement of the automation checkout cannot silently change the
+campaign.
 
 ## Govern qualification run identities
 
