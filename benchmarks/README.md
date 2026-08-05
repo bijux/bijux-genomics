@@ -239,10 +239,10 @@ scripts under
 `submit` returns without polling; later `reconcile` observations and `admit`
 calls preserve scheduler accounting and validate the exact output closure.
 
-Measured Apptainer images include GNU `time` as a non-scientific runtime
-dependency. The campaign records wall, user, system, and peak-resident-memory
-values inside the same container boundary as the tool; a missing measurement
-binary fails evidence instead of silently dropping resource metrics.
+Measured Apptainer invocations are wrapped by GNU `time` on the Slurm host. The campaign records
+wall, user, system, and peak-resident-memory values for the complete isolated container invocation;
+tool images do not carry an undeclared timing-package dependency. A missing host measurement binary
+fails the job preflight instead of silently dropping resource metrics.
 
 The current BAM-genotyping campaign uses one warmup and three measured warm
 cache repetitions. Candidate-site recovery is reported honestly: the Ensembl
