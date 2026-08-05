@@ -101,7 +101,16 @@ fn parse_duration_seconds(raw: &str) -> Result<u64> {
     };
     let hours: u64 = hours.parse().context("parse Slurm duration hours")?;
     let minutes: u64 = minutes.parse().context("parse Slurm duration minutes")?;
-    let seconds: u64 = seconds.parse().context("parse Slurm duration seconds")?;
+    let whole_seconds = match seconds.split_once('.') {
+        Some((whole, fraction)) => {
+            if fraction.is_empty() || !fraction.bytes().all(|byte| byte.is_ascii_digit()) {
+                bail!("Slurm duration contains a malformed fractional second");
+            }
+            whole
+        }
+        None => seconds,
+    };
+    let seconds: u64 = whole_seconds.parse().context("parse Slurm duration seconds")?;
     if minutes >= 60 || seconds >= 60 {
         bail!("Slurm duration contains an out-of-range component");
     }

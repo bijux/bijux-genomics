@@ -186,6 +186,25 @@ fn accounting_uses_allocation_state_and_peak_step_memory() -> anyhow::Result<()>
 }
 
 #[test]
+fn accounting_accepts_fractional_total_cpu_reported_by_slurm() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let handle = submitted_handle(&temp, &paths)?;
+    write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &paths.sacct,
+        "#!/bin/sh\nprintf '%s\n' '3459974|COMPLETED|0:0|2|00:00:01.750|32K|n001|None'\n",
+    )?;
+
+    let observed = collect_slurm_job(&paths, &handle, "2026-08-04T20:30:00Z")?;
+    let accounting = observed.accounting.ok_or_else(|| anyhow::anyhow!("missing accounting"))?;
+
+    assert_eq!(accounting.total_cpu_seconds, 1);
+    assert_eq!(accounting.max_rss_bytes, Some(32 * 1024));
+    Ok(())
+}
+
+#[test]
 fn missing_accounting_is_explicit_and_duplicate_collection_is_idempotent() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
     let paths = client(&temp)?;
