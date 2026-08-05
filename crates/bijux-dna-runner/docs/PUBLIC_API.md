@@ -28,6 +28,7 @@
 - `StageResultV1`
 - `submit_slurm_job`
 - `submit_slurm_batch`
+- `prepare_benchmark_slurm_job`
 - `observe_slurm_job`
 - `collect_slurm_job`
 - `cancel_slurm_job`
@@ -41,6 +42,7 @@
 - `SlurmJobState`
 - `SlurmEvidenceSource`
 - `SLURM_JOB_HANDLE_SCHEMA_V1`
+- `PreparedBenchmarkSlurmJob`
 
 ## Stability Rules
 - Prefer `bijux_dna_runner::api::*` for consumer-facing use.

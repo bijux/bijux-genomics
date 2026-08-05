@@ -81,7 +81,7 @@ fn runner_tree_matches_architecture_contract() {
 
     let slurm_entries = dir_entries(&root.join("src/backend/slurm"));
     let expected_slurm: BTreeSet<_> =
-        ["client.rs", "contracts.rs", "mod.rs", "parsing.rs", "stable_surface.rs"]
+        ["benchmark.rs", "client.rs", "contracts.rs", "mod.rs", "parsing.rs", "stable_surface.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();

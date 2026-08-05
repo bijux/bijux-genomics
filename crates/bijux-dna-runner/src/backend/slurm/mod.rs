@@ -1,6 +1,7 @@
 //! Owner: bijux-dna-runner
 //! Non-waiting Slurm backend.
 
+mod benchmark;
 mod client;
 mod contracts;
 mod parsing;

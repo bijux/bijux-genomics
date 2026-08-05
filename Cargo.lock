@@ -712,6 +712,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
+ "bijux-dna-bench-model",
  "bijux-dna-core",
  "bijux-dna-environment",
  "bijux-dna-infra",

@@ -20,6 +20,16 @@ This crate may construct and execute only these backend command families from ty
 - terminal scheduler accounting through `sacct`
 - explicit cancellation through `scancel`
 
+`prepare_benchmark_slurm_job` consumes a validated immutable benchmark execution specification,
+rechecks its persisted specification, image, and input identities, then publishes a restart-safe
+Slurm script. It does not submit the script. The generated job runs Apptainer without network
+access, mounts source and inputs read-only, records measured resource rows, and publishes completion
+evidence only after required-output closure succeeds.
+
+Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, `awk`, and
+GNU `time` only for source validation, byte-identity checks, acceptance checks, and resource
+evidence. Shell filesystem utilities are limited to the declared attempt result and scratch roots.
+
 ### Non-Executing Operations
 Replay never executes a backend command. `replay_run` reads an execution manifest and verifies artifacts on disk.
 
