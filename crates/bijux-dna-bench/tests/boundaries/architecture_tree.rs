@@ -96,6 +96,7 @@ fn bench_tree_matches_architecture_contract() {
             "run_suite/",
             "scientific_readiness.rs",
             "stage_coverage.rs",
+            "stage_report/",
             "summary/",
             "suite_load.rs",
             "summary_fairness.rs",
@@ -107,8 +108,13 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/bam_mapping_summary")),
-        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs"]),
-        "BAM mapping-summary material must separate commands, inputs, and parameter evidence"
+        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs", "report/"]),
+        "BAM mapping-summary material must separate commands, inputs, parameter evidence, and reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_mapping_summary/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "BAM report derivation must separate attempt evidence, science, and rendering"
     );
 
     assert_eq!(
@@ -143,6 +149,12 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/run_suite")),
         entries(["mod.rs", "persistence.rs"]),
         "suite run tree must separate orchestration from artifact persistence"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/stage_report")),
+        entries(["evidence.rs", "metrics.rs", "mod.rs", "publication.rs"]),
+        "stage report authority must separate admission, metrics, and immutable publication"
     );
 
     assert_eq!(

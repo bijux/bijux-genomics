@@ -28,7 +28,8 @@ pub use attempt_migration::{
 };
 pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,
-    BamMappingSummaryMaterial,
+    publish_bam_mapping_summary_stage_report, render_bam_mapping_summary_markdown,
+    BamMappingSummaryMaterial, BamMappingSummaryStageReportPublication,
 };
 pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,

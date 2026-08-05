@@ -4,6 +4,7 @@
 mod commands;
 mod inputs;
 mod parameters;
+mod report;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -19,6 +20,11 @@ use self::commands::{measured_command, negative_command, required_files, warmup_
 use self::inputs::execution_inputs;
 use self::parameters::ensure_parameter_evidence;
 use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+
+pub use report::{
+    publish_bam_mapping_summary_stage_report, render_bam_mapping_summary_markdown,
+    BamMappingSummaryStageReportPublication,
+};
 
 const RUN_ID: &str = "run-2004";
 const STAGE_ID: &str = "bam.mapping_summary";
