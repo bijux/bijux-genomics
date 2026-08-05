@@ -23,6 +23,8 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
+| `admit-fastq-benchmark-corpus` | `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` | Verify exact data-index/catalog closure and re-hash every governed FASTQ file. |
+| `ensure-fastq-read-length-expectations` | `ensure_fastq_read_length_expectations(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` | Independently derive and immutably publish exact FASTQ read-length expectations. |
 | `derive-stage-coverage` | `derive_stage_coverage(registry, catalog, reports, required_commit)` | Derive typed retained-stage definition and admitted-evidence coverage with exact catalog tool closure and current-source freshness. |
 | `publish-checked-in-stage-coverage` | `publish_checked_in_stage_coverage(repository_root, mode)` | Deterministically write or check the checked-in JSON, Markdown, and generated schema publications. |
 | `plan-stage-campaign-attempts` | `plan_stage_campaign_attempts(registry, repository_commit, campaign_registry_sha256, run_id, campaign_id, attempt_id, observed_at_utc)` | Deterministically derive a source-locked plan with one validated lifecycle record per declared campaign tool. |
@@ -67,6 +69,7 @@ Managed benchmark artifacts are:
 - `after-inventory.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/attempt.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/transitions/<sequence>.json`
+- `data/evidence/benchmark-expectations/<catalog-sha256>/fastq-profile-read-lengths/manifest.json`
 
 `bijux-dna-bench` writes suite, summary, decision, and migration artifacts only
 under declared benchmark output roots. Attempt lifecycle files are persisted and

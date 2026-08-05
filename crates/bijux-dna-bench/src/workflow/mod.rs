@@ -5,6 +5,7 @@
 mod attempt_migration;
 mod campaign_lifecycle;
 mod evaluation;
+mod fastq_expectations;
 mod options;
 mod report_load;
 mod run_suite;
@@ -30,6 +31,9 @@ pub use campaign_lifecycle::{
     BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
 };
 pub use evaluation::{compare, gate};
+pub use fastq_expectations::{
+    ensure_fastq_read_length_expectations, FastqReadLengthExpectationPublication,
+};
 pub use options::BenchRunOptions;
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,

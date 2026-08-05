@@ -13,6 +13,7 @@ bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-environment = { path = "../bijux-dna-environment" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
+bijux-dna-science.workspace = true
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model" }
 toml = { workspace = true }
 serde_yaml = { workspace = true }

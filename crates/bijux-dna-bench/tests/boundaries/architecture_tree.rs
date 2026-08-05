@@ -80,6 +80,7 @@ fn bench_tree_matches_architecture_contract() {
             "attempt_migration.rs",
             "campaign_lifecycle/",
             "evaluation.rs",
+            "fastq_expectations/",
             "mod.rs",
             "options.rs",
             "report_load.rs",
@@ -98,6 +99,12 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/campaign_lifecycle")),
         entries(["authorities.rs", "execution.rs", "mod.rs", "planning.rs", "storage.rs"]),
         "campaign lifecycle tree must separate source authority, planning, execution, and storage logic"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_expectations")),
+        entries(["mod.rs", "rendering.rs", "storage.rs"]),
+        "FASTQ expectation workflow must separate derivation, rendering, and immutable storage"
     );
 
     assert_eq!(

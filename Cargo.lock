@@ -350,6 +350,7 @@ dependencies = [
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runtime",
+ "bijux-dna-science",
  "bijux-dna-testkit",
  "insta",
  "serde",

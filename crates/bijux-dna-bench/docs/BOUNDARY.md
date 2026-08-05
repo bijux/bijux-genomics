@@ -15,6 +15,7 @@ persistence without defining a parallel state machine.
   fixtures or prior benchmark artifacts.
 - Run manifests, metric payloads, and run metadata that have already been
   materialized by lower-level crates.
+- Governed STUDY data-index and corpus-catalog authorities plus their exact declared files.
 
 ## Allowed Effects
 
@@ -23,6 +24,7 @@ persistence without defining a parallel state machine.
   roots.
 - Resolve repository-local benchmark data and suite directories.
 - Canonicalize JSON before writing stable artifact files.
+- Publish no-clobber scientific expectation artifacts under their catalog digest identity.
 
 ## Forbidden Effects
 
@@ -44,6 +46,7 @@ Allowed normal dependency families:
 - `bijux-dna-infra` for repository path and directory helpers.
 - `bijux-dna-environment` for exact-commit container catalog evidence identity.
 - `bijux-dna-runtime` for atomic artifact writes and runtime report contracts.
+- `bijux-dna-science` for independent scientific truth derivation from admitted observations.
 
 Analyze, policy, domain, and testkit crates belong in dev-dependencies unless
 production source imports their contracts.

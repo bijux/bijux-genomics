@@ -11,6 +11,7 @@ gating, and deterministic artifact persistence.
 - `BenchmarkObservation` records from runtime/analyze benchmark runs.
 - Typed retained-tool catalog, campaign registry, and admitted stage reports for
   stage-coverage derivation.
+- Governed data-index/catalog authorities and exact corpus files for expectation derivation.
 - Optional existing `observations.jsonl` when `BenchRunOptions.resume` is true.
 - Runtime manifests and metric payloads that have already been produced by other
   crates.
@@ -23,6 +24,7 @@ gating, and deterministic artifact persistence.
 - Persisted artifacts documented in `docs/BENCH_FORMAT.md`.
 - Reconstructed `BenchmarkAttemptRecordV2` values from immutable event files.
 - Versioned stage-coverage JSON, Markdown, and generated JSON Schema publications.
+- Immutable exact FASTQ summaries, histograms, row identities, and expectation manifests.
 
 ## Required Invariants
 
@@ -32,6 +34,8 @@ gating, and deterministic artifact persistence.
 - Output ordering must be deterministic.
 - Gate decisions must include rationale and metric evidence.
 - Benchmark operations must not execute tools or product workflows.
+- Corpus expectation publication must re-hash every source file, derive truth through
+  `bijux-dna-science`, reject symlinks/conflicts, and publish its manifest last.
 - Permanent attempt identities cannot be reused, and prior transition events
   cannot be replaced.
 - Retry initialization must identify an existing terminal attempt with the same

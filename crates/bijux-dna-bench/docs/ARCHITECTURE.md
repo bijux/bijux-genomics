@@ -27,9 +27,12 @@ belong under `docs/`.
   scope grouping, and summary statistics.
 - `src/workflow/run_suite/` separates suite orchestration from artifact
   persistence.
+- `src/workflow/fastq_expectations/` separates scientific expectation rendering
+  from immutable publication storage; derivation delegates to `bijux-dna-science`.
 - `src/workflow/summary/` separates grouping, row metrics, and stratum assembly.
-- `src/repo/` owns repository-root discovery, workspace path policy, repository
-  contracts, run metadata, run artifact loaders, and sqlite run-index queries.
+- `src/repo/` owns repository-root discovery, workspace path policy, governed
+  corpus admission, repository contracts, run metadata, run artifact loaders,
+  and sqlite run-index queries.
 - `src/repo/run_artifacts/` separates manifest, metrics, and observations
   loading.
 - `src/repo/sqlite/queries/run_index/` separates run-index queries from
@@ -57,10 +60,10 @@ allowed below `tests/`.
 ## Dependency Direction
 
 Allowed normal dependencies are lower-level model, core, environment, infra,
-and runtime contracts required to load finished artifacts, validate container
-catalog identity, and write deterministic benchmark outputs. `bijux-dna-bench`
-must not depend on API, planner, runner, or domain execution crates for
-production behavior.
+runtime, and science contracts required to admit data, derive independent truth,
+load finished artifacts, validate container catalog identity, and write
+deterministic benchmark outputs. `bijux-dna-bench` must not depend on API,
+planner, runner, or domain execution crates for production behavior.
 
 ## Guardrails
 

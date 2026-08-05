@@ -40,6 +40,14 @@ policy, and options used for a run.
 4. Use `publish_checked_in_stage_coverage` in check mode to verify JSON,
    Markdown, and generated JSON Schema byte identity.
 
+## Reproduce FASTQ Expectations
+
+1. Select the checksummed STUDY data index and exact corpus identity.
+2. Call `ensure_fastq_read_length_expectations` with the governed sample/file closure.
+3. Re-admission verifies every catalog, file size, and compressed-file digest.
+4. Science derivation streams the FASTQ records and reproduces the exact summary,
+   histogram, row digest, and manifest bytes; any existing conflict is rejected.
+
 ## Allowed Variation
 
 - Output directory paths may differ.

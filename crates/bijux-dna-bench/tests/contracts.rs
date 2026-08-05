@@ -21,6 +21,8 @@ mod mod_contracts_corpus_admission_rs;
 mod mod_contracts_docs_fixtures_rs;
 #[path = "contracts/execution_planning.rs"]
 mod mod_contracts_execution_planning_rs;
+#[path = "contracts/fastq_expectations.rs"]
+mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/benching/fastq_local_stage_matrix.rs"]
 mod mod_contracts_fastq_local_stage_matrix_rs;
 #[path = "contracts/benching/gate.rs"]
