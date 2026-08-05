@@ -3,9 +3,9 @@ pub use super::facade::{
 };
 pub use super::kinds::BackendKind;
 pub use super::slurm::{
-    cancel_slurm_job, collect_slurm_job, observe_slurm_job, prepare_benchmark_slurm_job,
-    submit_prepared_benchmark_job, submit_slurm_batch, submit_slurm_job, PreparedBenchmarkSlurmJob,
-    SlurmAccounting, SlurmBatchSubmission, SlurmClientPaths, SlurmEvidenceSource, SlurmJobHandle,
-    SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
-    SLURM_JOB_HANDLE_SCHEMA_V1,
+    cancel_slurm_job, collect_slurm_job, load_benchmark_slurm_job_handle, observe_slurm_job,
+    prepare_benchmark_slurm_job, submit_prepared_benchmark_job, submit_slurm_batch,
+    submit_slurm_job, PreparedBenchmarkSlurmJob, SlurmAccounting, SlurmBatchSubmission,
+    SlurmClientPaths, SlurmEvidenceSource, SlurmJobHandle, SlurmJobObservation, SlurmJobState,
+    SlurmSubmissionFailure, SlurmSubmitRequest, SLURM_JOB_HANDLE_SCHEMA_V1,
 };

@@ -30,6 +30,7 @@
 - `submit_slurm_batch`
 - `prepare_benchmark_slurm_job`
 - `submit_prepared_benchmark_job`
+- `load_benchmark_slurm_job_handle`
 - `observe_slurm_job`
 - `collect_slurm_job`
 - `cancel_slurm_job`

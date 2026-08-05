@@ -30,6 +30,10 @@ evidence only after required-output closure succeeds.
 It returns an existing matching handle without resubmission and refuses an intent with no handle so
 an interrupted scheduler effect cannot silently create a duplicate immutable attempt.
 
+`load_benchmark_slurm_job_handle` verifies and loads retained submission evidence without requiring
+benchmark outputs to remain empty, allowing later one-shot status and collection operations to stay
+inside runner-owned evidence contracts.
+
 Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, `awk`, and
 GNU `time` only for source validation, byte-identity checks, acceptance checks, and resource
 evidence. Shell filesystem utilities are limited to the declared attempt result and scratch roots.

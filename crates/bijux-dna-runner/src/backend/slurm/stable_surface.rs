@@ -10,4 +10,4 @@ pub use super::contracts::{
     SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
     SLURM_JOB_HANDLE_SCHEMA_V1,
 };
-pub use super::submission::submit_prepared_benchmark_job;
+pub use super::submission::{load_benchmark_slurm_job_handle, submit_prepared_benchmark_job};

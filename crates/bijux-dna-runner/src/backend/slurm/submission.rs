@@ -6,6 +6,7 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::{validate_execution_spec, BenchmarkExecutionSpec};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -86,6 +87,67 @@ pub fn submit_prepared_benchmark_job(
     };
     ensure_json_identity(&handle_path, &handle)?;
     Ok(handle)
+}
+
+/// Load and validate the scheduler handle retained for one benchmark execution specification.
+///
+/// This read-only recovery path remains valid after benchmark outputs exist. It verifies the
+/// persisted specification, scheduler script, submission intent, and handle as one identity before
+/// returning scheduler evidence to an observer.
+///
+/// # Errors
+/// Returns an error when the specification is invalid, material is missing or changed, or retained
+/// submission evidence conflicts with the execution identity.
+pub fn load_benchmark_slurm_job_handle(spec: &BenchmarkExecutionSpec) -> Result<SlurmJobHandle> {
+    validate_execution_spec(spec).context("validate benchmark execution specification")?;
+    let result_root = Path::new(&spec.outputs.result_root);
+    let canonical_result_root =
+        result_root.canonicalize().context("canonicalize benchmark result root")?;
+    if canonical_result_root != result_root {
+        bail!("benchmark result root is not canonical");
+    }
+    let scheduler_root = canonical_result_root.join("scheduler");
+    let scheduler_metadata = fs::symlink_metadata(&scheduler_root)
+        .context("inspect persisted benchmark scheduler root")?;
+    if scheduler_metadata.file_type().is_symlink() || !scheduler_metadata.is_dir() {
+        bail!("persisted benchmark scheduler root is not a regular directory");
+    }
+
+    let persisted_spec: BenchmarkExecutionSpec =
+        read_json(&canonical_result_root.join("execution-spec.json"))?;
+    if persisted_spec != *spec {
+        bail!("persisted benchmark execution specification conflicts with requested identity");
+    }
+    let script_path = scheduler_root.join("job.sbatch");
+    if !regular_file_exists(&script_path, "benchmark Slurm script")? {
+        bail!("persisted benchmark Slurm script is missing");
+    }
+    let intent_path = scheduler_root.join("submission-intent.json");
+    let intent: BenchmarkSubmissionIntent = read_json(&intent_path)?;
+    let prepared = PreparedBenchmarkSlurmJob {
+        request: super::SlurmSubmitRequest {
+            run_id: format!(
+                "{}:{}:{}",
+                spec.identity.run.run_id, spec.identity.tool_id, spec.identity.attempt_id
+            ),
+            script_path,
+            working_directory: PathBuf::from(&spec.source.repository_path),
+            stdout_path: scheduler_root.join("stdout.log"),
+            stderr_path: scheduler_root.join("stderr.log"),
+            submitted_at_utc: intent.submitted_at_utc.clone(),
+        },
+        execution_spec_sha256: bijux_dna_infra::hash_file_sha256(
+            &canonical_result_root.join("execution-spec.json"),
+        )
+        .context("hash persisted benchmark execution specification")?,
+        script_sha256: bijux_dna_infra::hash_file_sha256(&scheduler_root.join("job.sbatch"))
+            .context("hash persisted benchmark Slurm script")?,
+    };
+    if submission_intent(&prepared) != intent {
+        bail!("persisted benchmark submission intent conflicts with execution material");
+    }
+    recheck_material(&prepared, &scheduler_root)?;
+    load_matching_handle(&scheduler_root.join("job-handle.json"), &prepared)
 }
 
 fn scheduler_root(prepared: &PreparedBenchmarkSlurmJob) -> Result<PathBuf> {

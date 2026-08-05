@@ -15,7 +15,8 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkRunIdentity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
 };
 use bijux_dna_runner::api::{
-    prepare_benchmark_slurm_job, submit_prepared_benchmark_job, SlurmClientPaths,
+    load_benchmark_slurm_job_handle, prepare_benchmark_slurm_job, submit_prepared_benchmark_job,
+    SlurmClientPaths,
 };
 
 struct Fixture {
@@ -229,8 +230,15 @@ fn benchmark_submission_persists_and_recovers_one_scheduler_effect() -> anyhow::
 
     let first = submit_prepared_benchmark_job(&paths, &prepared)?;
     let recovered = submit_prepared_benchmark_job(&paths, &prepared)?;
+    std::fs::write(
+        PathBuf::from(&fixture.spec.outputs.result_root)
+            .join("repetitions/repetition-1.metrics.json"),
+        b"{}",
+    )?;
+    let loaded = load_benchmark_slurm_job_handle(&fixture.spec)?;
 
     assert_eq!(first, recovered);
+    assert_eq!(first, loaded);
     assert_eq!(std::fs::read_to_string(calls)?, "x");
     let scheduler_root =
         prepared.request.script_path.parent().ok_or_else(|| anyhow::anyhow!("script parent"))?;
