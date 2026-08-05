@@ -5,7 +5,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context};
 
+use self::scheduler::{benchmark_accounting, lifecycle_status, slurm_state};
 use super::{OpsCommandOutcome, Result, Workspace};
+
+mod scheduler;
 
 const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
@@ -465,78 +468,6 @@ fn publish_fastq_read_lengths(
     )))
 }
 
-fn benchmark_accounting(
-    accounting: &bijux_dna_runner::api::SlurmAccounting,
-) -> Result<bijux_dna_bench::BenchmarkSchedulerAccounting> {
-    let state = match accounting.state {
-        bijux_dna_runner::api::SlurmJobState::Completed => {
-            bijux_dna_bench::BenchmarkSchedulerTerminalState::Completed
-        }
-        bijux_dna_runner::api::SlurmJobState::Failed => {
-            bijux_dna_bench::BenchmarkSchedulerTerminalState::Failed
-        }
-        bijux_dna_runner::api::SlurmJobState::Cancelled => {
-            bijux_dna_bench::BenchmarkSchedulerTerminalState::Cancelled
-        }
-        bijux_dna_runner::api::SlurmJobState::Timeout => {
-            bijux_dna_bench::BenchmarkSchedulerTerminalState::Timeout
-        }
-        bijux_dna_runner::api::SlurmJobState::Preempted => {
-            bijux_dna_bench::BenchmarkSchedulerTerminalState::Preempted
-        }
-        bijux_dna_runner::api::SlurmJobState::NodeFailure => {
-            bijux_dna_bench::BenchmarkSchedulerTerminalState::NodeFailure
-        }
-        bijux_dna_runner::api::SlurmJobState::OutOfMemory => {
-            bijux_dna_bench::BenchmarkSchedulerTerminalState::OutOfMemory
-        }
-        _ => bail!("benchmark accounting is not terminal"),
-    };
-    Ok(bijux_dna_bench::BenchmarkSchedulerAccounting {
-        scheduler: "slurm".to_string(),
-        job_id: accounting.job_id.clone(),
-        state,
-        raw_state: accounting.raw_state.clone(),
-        exit_code: accounting.exit_code,
-        signal: accounting.signal,
-        elapsed_seconds: accounting.elapsed_seconds,
-        total_cpu_seconds: accounting.total_cpu_seconds,
-        max_rss_bytes: accounting.max_rss_bytes,
-        node_list: accounting.node_list.clone(),
-        reason: accounting.reason.clone(),
-    })
-}
-
-fn slurm_state(state: bijux_dna_runner::api::SlurmJobState) -> &'static str {
-    match state {
-        bijux_dna_runner::api::SlurmJobState::Submitted => "submitted",
-        bijux_dna_runner::api::SlurmJobState::Pending => "pending",
-        bijux_dna_runner::api::SlurmJobState::Running => "running",
-        bijux_dna_runner::api::SlurmJobState::Completed => "completed",
-        bijux_dna_runner::api::SlurmJobState::Failed => "failed",
-        bijux_dna_runner::api::SlurmJobState::Cancelled => "cancelled",
-        bijux_dna_runner::api::SlurmJobState::Timeout => "timeout",
-        bijux_dna_runner::api::SlurmJobState::Preempted => "preempted",
-        bijux_dna_runner::api::SlurmJobState::NodeFailure => "node_failure",
-        bijux_dna_runner::api::SlurmJobState::OutOfMemory => "out_of_memory",
-        bijux_dna_runner::api::SlurmJobState::AccountingPending => "accounting_pending",
-    }
-}
-
-fn lifecycle_status(status: bijux_dna_bench::BenchmarkLifecycleStatus) -> &'static str {
-    match status {
-        bijux_dna_bench::BenchmarkLifecycleStatus::Planned => "planned",
-        bijux_dna_bench::BenchmarkLifecycleStatus::Ready => "ready",
-        bijux_dna_bench::BenchmarkLifecycleStatus::Submitted => "submitted",
-        bijux_dna_bench::BenchmarkLifecycleStatus::Running => "running",
-        bijux_dna_bench::BenchmarkLifecycleStatus::Collecting => "collecting",
-        bijux_dna_bench::BenchmarkLifecycleStatus::Passed => "passed",
-        bijux_dna_bench::BenchmarkLifecycleStatus::Failed => "failed",
-        bijux_dna_bench::BenchmarkLifecycleStatus::Superseded => "superseded",
-        bijux_dna_bench::BenchmarkLifecycleStatus::BlockedExternal => "blocked_external",
-    }
-}
-
 fn execution_schema(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
@@ -837,8 +768,8 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::{
-        benchmark_accounting, parse_options, require_exact_options, FASTQ_PREPARATION_OPTIONS,
-        FASTQ_SUBMISSION_OPTIONS,
+        parse_options, require_exact_options, scheduler::benchmark_accounting,
+        FASTQ_PREPARATION_OPTIONS, FASTQ_SUBMISSION_OPTIONS,
     };
 
     #[test]
