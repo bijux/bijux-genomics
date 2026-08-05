@@ -1,13 +1,16 @@
 use bijux_dna_bench_model::{
     BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
     BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
+    BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
+    BenchmarkSchedulerTerminalState,
 };
 use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, ensure_attempt_lifecycle,
-    initialize_attempt_lifecycle, load_attempt_lifecycle, record_attempt_acceptance,
-    record_attempt_accounting, record_attempt_blocked_external, record_attempt_ready,
-    record_attempt_running, record_attempt_submission, record_attempt_superseded,
+    initialize_attempt_lifecycle, load_attempt_lifecycle, load_attempt_scheduler_observations,
+    record_attempt_acceptance, record_attempt_accounting, record_attempt_blocked_external,
+    record_attempt_ready, record_attempt_running, record_attempt_scheduler_observation,
+    record_attempt_submission, record_attempt_superseded,
 };
 
 fn identity(attempt_id: &str) -> BenchmarkAttemptIdentity {
@@ -76,6 +79,60 @@ fn accounting(state: BenchmarkSchedulerTerminalState) -> BenchmarkSchedulerAccou
         reason: (state != BenchmarkSchedulerTerminalState::Completed)
             .then(|| "scheduler wall-time limit was exceeded".to_string()),
     }
+}
+
+fn running_observation(job_id: &str, observed_at_utc: &str) -> BenchmarkSchedulerObservationDraft {
+    BenchmarkSchedulerObservationDraft {
+        scheduler: "slurm".to_string(),
+        job_id: job_id.to_string(),
+        state: BenchmarkSchedulerObservedState::Running,
+        source: BenchmarkSchedulerEvidenceSource::Queue,
+        observed_at_utc: observed_at_utc.to_string(),
+        accounting: None,
+    }
+}
+
+#[test]
+fn scheduler_observation_journal_retains_repeated_running_queries() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-scheduler-observation-journal");
+    let initial = planned("attempt-001");
+    initialize_attempt_lifecycle(temporary.path(), &initial)?;
+    record_attempt_ready(temporary.path(), &initial.identity, "2026-08-04T08:01:00Z")?;
+    record_attempt_submission(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:02:00Z",
+        vec![job()],
+    )?;
+
+    let first = record_attempt_scheduler_observation(
+        temporary.path(),
+        &initial.identity,
+        running_observation("3461001", "2026-08-04T08:03:00Z"),
+    )?;
+    record_attempt_running(temporary.path(), &initial.identity, "2026-08-04T08:03:00Z", &job())?;
+    let second = record_attempt_scheduler_observation(
+        temporary.path(),
+        &initial.identity,
+        running_observation("3461001", "2026-08-04T08:04:00Z"),
+    )?;
+
+    assert_eq!((first.sequence, second.sequence), (1, 2));
+    assert_eq!(load_attempt_scheduler_observations(temporary.path(), &initial.identity)?.len(), 2);
+    assert_eq!(load_attempt_lifecycle(temporary.path(), &initial.identity)?.transitions.len(), 4);
+    assert!(record_attempt_scheduler_observation(
+        temporary.path(),
+        &initial.identity,
+        running_observation("3461001", "2026-08-04T08:04:00Z"),
+    )
+    .is_err());
+    assert!(record_attempt_scheduler_observation(
+        temporary.path(),
+        &initial.identity,
+        running_observation("3461002", "2026-08-04T08:05:00Z"),
+    )
+    .is_err());
+    Ok(())
 }
 
 fn evidence() -> BenchmarkEvidenceReference {
@@ -199,7 +256,8 @@ fn lifecycle_store_requires_existing_terminal_retry_lineage() -> anyhow::Result<
 }
 
 #[test]
-fn lifecycle_store_ignores_foreign_artifacts_and_rejects_malformed_evidence() -> anyhow::Result<()> {
+fn lifecycle_store_ignores_foreign_artifacts_and_rejects_malformed_evidence() -> anyhow::Result<()>
+{
     let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-malformed");
     let initial = planned("attempt-001");
     let directory = initialize_attempt_lifecycle(temporary.path(), &initial)?;

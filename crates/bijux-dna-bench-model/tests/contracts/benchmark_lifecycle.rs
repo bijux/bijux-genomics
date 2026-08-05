@@ -1,11 +1,13 @@
 use bijux_dna_bench_model::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
-    validate_attempt_record_v2, validate_cycle_status_v2, BenchmarkArchiveFileRecord,
-    BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
-    BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
-    BenchmarkCampaignPlan, BenchmarkCycleStatusV2, BenchmarkEvidenceReference,
-    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
-    BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
+    validate_attempt_record_v2, validate_cycle_status_v2, validate_scheduler_observation,
+    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
+    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2,
+    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
+    BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
+    BenchmarkSchedulerObservedState, BenchmarkSchedulerTerminalState,
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
 };
 
@@ -387,4 +389,65 @@ fn campaign_plan_requires_full_source_and_registry_identities() -> anyhow::Resul
         Some(bijux_dna_bench_model::BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1)
     );
     Ok(())
+}
+
+fn scheduler_accounting() -> BenchmarkSchedulerAccounting {
+    BenchmarkSchedulerAccounting {
+        scheduler: "slurm".to_string(),
+        job_id: "3461001".to_string(),
+        state: BenchmarkSchedulerTerminalState::Completed,
+        raw_state: "COMPLETED".to_string(),
+        exit_code: 0,
+        signal: 0,
+        elapsed_seconds: 125,
+        total_cpu_seconds: 90,
+        max_rss_bytes: Some(2 * 1024 * 1024),
+        node_list: "n001".to_string(),
+        reason: None,
+    }
+}
+
+fn scheduler_observation(
+    state: BenchmarkSchedulerObservedState,
+    source: BenchmarkSchedulerEvidenceSource,
+    accounting: Option<BenchmarkSchedulerAccounting>,
+) -> BenchmarkSchedulerObservation {
+    BenchmarkSchedulerObservation::v1(
+        1,
+        BenchmarkSchedulerObservationDraft {
+            scheduler: "slurm".to_string(),
+            job_id: "3461001".to_string(),
+            state,
+            source,
+            observed_at_utc: "2026-08-04T08:03:00Z".to_string(),
+            accounting,
+        },
+    )
+}
+
+#[test]
+fn scheduler_observation_requires_exact_source_state_and_accounting_closure() {
+    let running = scheduler_observation(
+        BenchmarkSchedulerObservedState::Running,
+        BenchmarkSchedulerEvidenceSource::Queue,
+        None,
+    );
+    assert!(validate_scheduler_observation(&running).is_ok());
+
+    let completed = scheduler_observation(
+        BenchmarkSchedulerObservedState::Completed,
+        BenchmarkSchedulerEvidenceSource::Accounting,
+        Some(scheduler_accounting()),
+    );
+    assert!(validate_scheduler_observation(&completed).is_ok());
+
+    let mut source_drift = running;
+    source_drift.observation.source = BenchmarkSchedulerEvidenceSource::Accounting;
+    assert!(validate_scheduler_observation(&source_drift).is_err());
+
+    let mut job_drift = completed;
+    if let Some(accounting) = job_drift.observation.accounting.as_mut() {
+        accounting.job_id = "3461002".to_string();
+    }
+    assert!(validate_scheduler_observation(&job_drift).is_err());
 }

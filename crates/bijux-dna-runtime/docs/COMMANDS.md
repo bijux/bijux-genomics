@@ -26,10 +26,12 @@ These are library functions, not shell commands:
 - `initialize_attempt_lifecycle`
 - `append_attempt_lifecycle_transition`
 - `load_attempt_lifecycle`
+- `load_attempt_scheduler_observations`
 - `benchmark_attempt_directory`
 - `record_attempt_ready`
 - `record_attempt_submission`
 - `record_attempt_running`
+- `record_attempt_scheduler_observation`
 - `record_attempt_accounting`
 - `record_attempt_acceptance`
 - `record_attempt_blocked_external`

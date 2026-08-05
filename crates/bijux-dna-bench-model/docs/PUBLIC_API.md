@@ -40,6 +40,10 @@ Model contracts:
 - `BenchmarkJobReference`
 - `BenchmarkSchedulerTerminalState`
 - `BenchmarkSchedulerAccounting`
+- `BenchmarkSchedulerObservedState`
+- `BenchmarkSchedulerEvidenceSource`
+- `BenchmarkSchedulerObservationDraft`
+- `BenchmarkSchedulerObservation`
 - `BenchmarkEvidenceReference`
 - `BenchmarkRunIdentity`
 - `BenchmarkAttemptIdentity`
@@ -89,6 +93,7 @@ Policy and diagnostics:
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V2`
 - `BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1`
 - `BENCHMARK_EXECUTION_SPEC_SCHEMA_V1`
+- `BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
@@ -104,6 +109,8 @@ Schema derivation:
 
 - `benchmark_campaign_plan_schema`
 - `benchmark_execution_spec_schema`
+- `benchmark_scheduler_observation_schema`
+- `validate_scheduler_observation`
 - `validate_execution_spec`
 
 Namespaces:

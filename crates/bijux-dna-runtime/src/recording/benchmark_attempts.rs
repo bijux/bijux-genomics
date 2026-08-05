@@ -8,12 +8,16 @@ use std::time::Duration;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_identity,
-    validate_attempt_record_v2, BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkEvidenceReference, BenchmarkJobReference,
-    BenchmarkLifecycleStatus, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
+    validate_attempt_record_v2, validate_scheduler_observation, BenchmarkAttemptIdentity,
+    BenchmarkAttemptRecordV2, BenchmarkAttemptTransition, BenchmarkEvidenceReference,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkSchedulerAccounting,
+    BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
+    BenchmarkSchedulerTerminalState,
 };
+use chrono::DateTime;
 
 const ATTEMPT_FILE: &str = "attempt.json";
+const SCHEDULER_OBSERVATIONS_DIR: &str = "scheduler-observations";
 const TRANSITIONS_DIR: &str = "transitions";
 const MAX_LIFECYCLE_FILE_BYTES: usize = 1024 * 1024;
 const LIFECYCLE_LOCK_TIMEOUT: Duration = Duration::from_secs(30);
@@ -112,6 +116,60 @@ pub fn load_attempt_lifecycle(
     load_attempt_lifecycle_unlocked(benchmark_root, identity)
 }
 
+/// Load and validate every immutable scheduler observation retained for an attempt.
+///
+/// # Errors
+/// Returns an error for malformed sequence files, unretained jobs, or nonmonotonic observations.
+pub fn load_attempt_scheduler_observations(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+) -> Result<Vec<BenchmarkSchedulerObservation>> {
+    let _lock = acquire_attempt_lock(benchmark_root, identity)?;
+    load_attempt_scheduler_observations_unlocked(benchmark_root, identity)
+}
+
+/// Append one scheduler query result without reducing repeated states into lifecycle transitions.
+///
+/// Every successful call creates one sequence-addressed record. Identical states observed at
+/// different timestamps remain distinct provenance.
+///
+/// # Errors
+/// Returns an error when the observation is invalid, predates prior evidence, references an
+/// unretained job, or cannot be created atomically.
+pub fn record_attempt_scheduler_observation(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    observation: BenchmarkSchedulerObservationDraft,
+) -> Result<BenchmarkSchedulerObservation> {
+    let _lock = acquire_attempt_lock(benchmark_root, identity)?;
+    let lifecycle = load_attempt_lifecycle_unlocked(benchmark_root, identity)?;
+    let job = BenchmarkJobReference {
+        scheduler: observation.scheduler.clone(),
+        job_id: observation.job_id.clone(),
+    };
+    if !retained_jobs(&lifecycle).contains(&job) {
+        bail!("benchmark scheduler observation has no retained scheduler job");
+    }
+    let existing = load_attempt_scheduler_observations_unlocked(benchmark_root, identity)?;
+    let sequence = u32::try_from(existing.len())
+        .ok()
+        .and_then(|value| value.checked_add(1))
+        .context("benchmark scheduler observation sequence overflow")?;
+    let record = BenchmarkSchedulerObservation::v1(sequence, observation);
+    validate_observation_after(existing.last(), &record)?;
+
+    let attempt_directory = benchmark_attempt_directory(benchmark_root, identity)?;
+    let path =
+        attempt_directory.join(SCHEDULER_OBSERVATIONS_DIR).join(format!("{sequence:08}.json"));
+    bijux_dna_infra::atomic_create_json(&path, &record)
+        .with_context(|| format!("append benchmark scheduler observation {}", path.display()))?;
+    let reconstructed = load_attempt_scheduler_observations_unlocked(benchmark_root, identity)?;
+    if reconstructed.last() != Some(&record) {
+        bail!("persisted benchmark scheduler observation differs from validated evidence");
+    }
+    Ok(record)
+}
+
 fn load_attempt_lifecycle_unlocked(
     benchmark_root: &Path,
     identity: &BenchmarkAttemptIdentity,
@@ -134,7 +192,9 @@ fn load_attempt_lifecycle_unlocked(
     }
     validate_attempt_record_v2(&record).context("validate initial benchmark attempt record")?;
 
-    for (sequence, path) in transition_files(&attempt_directory.join(TRANSITIONS_DIR))? {
+    for (sequence, path) in
+        sequence_files(&attempt_directory.join(TRANSITIONS_DIR), "lifecycle transition")?
+    {
         let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_LIFECYCLE_FILE_BYTES)
             .with_context(|| format!("read benchmark transition {}", path.display()))?;
         let transition: BenchmarkAttemptTransition = serde_json::from_slice(&bytes)
@@ -147,6 +207,60 @@ fn load_attempt_lifecycle_unlocked(
     }
     validate_attempt_record_v2(&record).context("validate reconstructed benchmark attempt")?;
     Ok(record)
+}
+
+fn load_attempt_scheduler_observations_unlocked(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+) -> Result<Vec<BenchmarkSchedulerObservation>> {
+    let lifecycle = load_attempt_lifecycle_unlocked(benchmark_root, identity)?;
+    let retained = retained_jobs(&lifecycle);
+    let directory =
+        benchmark_attempt_directory(benchmark_root, identity)?.join(SCHEDULER_OBSERVATIONS_DIR);
+    let mut observations = Vec::new();
+    for (sequence, path) in scheduler_observation_files(&directory)? {
+        let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_LIFECYCLE_FILE_BYTES)
+            .with_context(|| format!("read benchmark scheduler observation {}", path.display()))?;
+        let observation: BenchmarkSchedulerObservation = serde_json::from_slice(&bytes)
+            .with_context(|| format!("parse benchmark scheduler observation {}", path.display()))?;
+        if observation.sequence != sequence {
+            bail!("benchmark scheduler observation filename differs from its sequence");
+        }
+        let job = BenchmarkJobReference {
+            scheduler: observation.observation.scheduler.clone(),
+            job_id: observation.observation.job_id.clone(),
+        };
+        if !retained.contains(&job) {
+            bail!("benchmark scheduler observation has no retained scheduler job");
+        }
+        validate_observation_after(observations.last(), &observation)?;
+        observations.push(observation);
+    }
+    Ok(observations)
+}
+
+fn validate_observation_after(
+    previous: Option<&BenchmarkSchedulerObservation>,
+    observation: &BenchmarkSchedulerObservation,
+) -> Result<()> {
+    validate_scheduler_observation(observation)
+        .context("validate benchmark scheduler observation")?;
+    let expected_sequence = previous.map_or(Ok(1), |record| {
+        record.sequence.checked_add(1).context("benchmark scheduler observation sequence overflow")
+    })?;
+    if observation.sequence != expected_sequence {
+        bail!("benchmark scheduler observation sequence is discontinuous");
+    }
+    if let Some(previous) = previous {
+        let prior = DateTime::parse_from_rfc3339(&previous.observation.observed_at_utc)
+            .context("parse prior scheduler observation timestamp")?;
+        let current = DateTime::parse_from_rfc3339(&observation.observation.observed_at_utc)
+            .context("parse scheduler observation timestamp")?;
+        if current <= prior {
+            bail!("benchmark scheduler observation timestamps are not strictly increasing");
+        }
+    }
+    Ok(())
 }
 
 /// Atomically append one sequence-addressed immutable transition and return the reconstructed record.
@@ -502,14 +616,20 @@ fn validate_attempt_directory_shape(attempt_directory: &Path) -> Result<()> {
             if !file_type.is_file() || file_type.is_symlink() {
                 bail!("benchmark initial attempt record is not a regular file");
             }
-        } else if name == TRANSITIONS_DIR && (!file_type.is_dir() || file_type.is_symlink()) {
-            bail!("benchmark transition evidence is not a regular directory");
+        } else if matches!(name.to_str(), Some(TRANSITIONS_DIR | SCHEDULER_OBSERVATIONS_DIR))
+            && (!file_type.is_dir() || file_type.is_symlink())
+        {
+            bail!("benchmark attempt evidence is not a regular directory");
         }
     }
     Ok(())
 }
 
-fn transition_files(directory: &Path) -> Result<Vec<(u32, PathBuf)>> {
+fn scheduler_observation_files(directory: &Path) -> Result<Vec<(u32, PathBuf)>> {
+    sequence_files(directory, "scheduler observation")
+}
+
+fn sequence_files(directory: &Path, evidence_kind: &str) -> Result<Vec<(u32, PathBuf)>> {
     let entries = match fs::read_dir(directory) {
         Ok(entries) => entries,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -518,29 +638,29 @@ fn transition_files(directory: &Path) -> Result<Vec<(u32, PathBuf)>> {
     let mut files = Vec::new();
     for entry in entries {
         let entry = entry.with_context(|| format!("read entry in {}", directory.display()))?;
-        let file_type = entry
-            .file_type()
-            .with_context(|| format!("inspect benchmark transition {}", entry.path().display()))?;
+        let file_type = entry.file_type().with_context(|| {
+            format!("inspect benchmark {evidence_kind} {}", entry.path().display())
+        })?;
         if !file_type.is_file() || file_type.is_symlink() {
-            bail!("benchmark transition evidence contains a non-regular file");
+            bail!("benchmark {evidence_kind} evidence contains a non-regular file");
         }
         let name = entry
             .file_name()
             .into_string()
-            .map_err(|_| anyhow::anyhow!("benchmark transition filename is not UTF-8"))?;
-        let sequence = parse_transition_filename(&name)?;
+            .map_err(|_| anyhow::anyhow!("benchmark {evidence_kind} filename is not UTF-8"))?;
+        let sequence = parse_sequence_filename(&name, evidence_kind)?;
         files.push((sequence, entry.path()));
     }
     files.sort_by_key(|(sequence, _)| *sequence);
     Ok(files)
 }
 
-fn parse_transition_filename(name: &str) -> Result<u32> {
+fn parse_sequence_filename(name: &str, evidence_kind: &str) -> Result<u32> {
     let Some(sequence) = name.strip_suffix(".json") else {
-        bail!("benchmark transition filename must end in .json");
+        bail!("benchmark {evidence_kind} filename must end in .json");
     };
     if sequence.len() != 8 || !sequence.bytes().all(|byte| byte.is_ascii_digit()) {
-        bail!("benchmark transition filename must use eight sequence digits");
+        bail!("benchmark {evidence_kind} filename must use eight sequence digits");
     }
-    sequence.parse().context("parse benchmark transition sequence")
+    sequence.parse().with_context(|| format!("parse benchmark {evidence_kind} sequence"))
 }

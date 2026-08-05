@@ -7,17 +7,17 @@ pub use crate::contract::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
     validate_attempt_identity, validate_attempt_record_v2, validate_attempt_transition,
     validate_campaign_plan, validate_cycle_status_v2, validate_execution_spec,
-    validate_fastq_read_length_expectations, validate_scientific_readiness,
-    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    validate_fastq_read_length_expectations, validate_scheduler_observation,
+    validate_scientific_readiness, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
     BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
-    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
-    BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
-    BENCHMARK_STAGE_REPORT_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
 };
 pub use crate::diagnostics::BenchError;
 pub use crate::model::decision::DecisionRationale;
@@ -37,15 +37,18 @@ pub use crate::model::interfaces::{
     BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 pub use crate::model::lifecycle::{
-    benchmark_campaign_plan_schema, BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths,
-    BenchmarkAttemptArchive, BenchmarkAttemptDisposition, BenchmarkAttemptIdentity,
-    BenchmarkAttemptMigrationEntry, BenchmarkAttemptMigrationExclusion,
-    BenchmarkAttemptMigrationLedger, BenchmarkAttemptMigrationLedgerEntry,
-    BenchmarkAttemptMigrationPlan, BenchmarkAttemptMigrationState, BenchmarkAttemptRecord,
-    BenchmarkAttemptRecordV2, BenchmarkAttemptTransition, BenchmarkCampaignPlan,
-    BenchmarkCycleStatus, BenchmarkCycleStatusV2, BenchmarkEvidenceReference,
-    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
-    BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
+    benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
+    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
+    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
+    BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
+    BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
+    BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
+    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatus,
+    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
+    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
+    BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
+    BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
+    BenchmarkSchedulerTerminalState,
 };
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::planning::{

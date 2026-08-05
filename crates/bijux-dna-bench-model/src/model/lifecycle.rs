@@ -11,6 +11,7 @@ use crate::contract::{
     BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
     BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
 };
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -171,6 +172,79 @@ pub struct BenchmarkSchedulerAccounting {
     pub node_list: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkSchedulerObservedState {
+    Submitted,
+    Pending,
+    Running,
+    Completed,
+    Failed,
+    Cancelled,
+    Timeout,
+    Preempted,
+    NodeFailure,
+    OutOfMemory,
+    AccountingPending,
+}
+
+impl BenchmarkSchedulerObservedState {
+    #[must_use]
+    pub fn is_terminal(self) -> bool {
+        matches!(
+            self,
+            Self::Completed
+                | Self::Failed
+                | Self::Cancelled
+                | Self::Timeout
+                | Self::Preempted
+                | Self::NodeFailure
+                | Self::OutOfMemory
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkSchedulerEvidenceSource {
+    Submission,
+    Queue,
+    Accounting,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkSchedulerObservationDraft {
+    pub scheduler: String,
+    pub job_id: String,
+    pub state: BenchmarkSchedulerObservedState,
+    pub source: BenchmarkSchedulerEvidenceSource,
+    pub observed_at_utc: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accounting: Option<BenchmarkSchedulerAccounting>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkSchedulerObservation {
+    #[schemars(schema_with = "benchmark_scheduler_observation_schema_version")]
+    pub schema_version: String,
+    pub sequence: u32,
+    #[serde(flatten)]
+    pub observation: BenchmarkSchedulerObservationDraft,
+}
+
+impl BenchmarkSchedulerObservation {
+    #[must_use]
+    pub fn v1(sequence: u32, observation: BenchmarkSchedulerObservationDraft) -> Self {
+        Self {
+            schema_version: BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1.to_string(),
+            sequence,
+            observation,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -387,6 +461,11 @@ pub fn benchmark_campaign_plan_schema() -> Schema {
     schemars::schema_for!(BenchmarkCampaignPlan)
 }
 
+#[must_use]
+pub fn benchmark_scheduler_observation_schema() -> Schema {
+    schemars::schema_for!(BenchmarkSchedulerObservation)
+}
+
 fn benchmark_attempt_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
@@ -440,6 +519,13 @@ fn benchmark_campaign_plan_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    })
+}
+
+fn benchmark_scheduler_observation_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
     })
 }
 

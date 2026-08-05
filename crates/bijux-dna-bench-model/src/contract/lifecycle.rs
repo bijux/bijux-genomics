@@ -9,12 +9,15 @@ use crate::model::{
     BenchmarkAttemptArchive, BenchmarkAttemptDisposition, BenchmarkAttemptRecordV2,
     BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
     BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
+    BenchmarkSchedulerObservation, BenchmarkSchedulerObservedState,
+    BenchmarkSchedulerTerminalState,
 };
 
 use super::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2,
     BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
 };
 
 /// Derive the permanent `run-<id>-<domain>-<stage>` benchmark directory name.
@@ -285,6 +288,61 @@ pub fn validate_attempt_transition(
     Ok(())
 }
 
+/// Validate one immutable scheduler observation independent of its attempt path.
+///
+/// # Errors
+/// Returns an error when identity, sequence, timestamp, source, state, or accounting disagree.
+pub fn validate_scheduler_observation(
+    record: &BenchmarkSchedulerObservation,
+) -> Result<(), BenchError> {
+    if record.schema_version != BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1 {
+        return Err(invalid("benchmark scheduler observation schema mismatch"));
+    }
+    if record.sequence == 0 {
+        return Err(invalid("benchmark scheduler observation sequence starts at one"));
+    }
+    let observation = &record.observation;
+    validate_job(&BenchmarkJobReference {
+        scheduler: observation.scheduler.clone(),
+        job_id: observation.job_id.clone(),
+    })?;
+    parse_timestamp(&observation.observed_at_utc, "scheduler observed_at_utc")?;
+    match (observation.source, observation.state, &observation.accounting) {
+        (
+            BenchmarkSchedulerEvidenceSource::Submission,
+            BenchmarkSchedulerObservedState::Submitted,
+            None,
+        )
+        | (
+            BenchmarkSchedulerEvidenceSource::Queue,
+            BenchmarkSchedulerObservedState::Submitted
+            | BenchmarkSchedulerObservedState::Pending
+            | BenchmarkSchedulerObservedState::Running,
+            None,
+        )
+        | (
+            BenchmarkSchedulerEvidenceSource::Accounting,
+            BenchmarkSchedulerObservedState::AccountingPending,
+            None,
+        ) => Ok(()),
+        (BenchmarkSchedulerEvidenceSource::Accounting, state, Some(accounting))
+            if state.is_terminal() =>
+        {
+            validate_scheduler_accounting_shape(accounting)?;
+            if accounting.scheduler != observation.scheduler
+                || accounting.job_id != observation.job_id
+                || observed_terminal_state(accounting.state) != state
+            {
+                return Err(invalid(
+                    "benchmark scheduler observation accounting identity or state drifted",
+                ));
+            }
+            Ok(())
+        }
+        _ => Err(invalid("benchmark scheduler observation source, state, and accounting disagree")),
+    }
+}
+
 fn validate_run_identity(identity: &BenchmarkRunIdentity) -> Result<(), BenchError> {
     let Some(run_number) = identity.run_id.strip_prefix("run-") else {
         return Err(invalid("benchmark run identity must use run-<id>"));
@@ -419,23 +477,7 @@ fn validate_scheduler_accounting(
     accounting: &BenchmarkSchedulerAccounting,
     transition_status: BenchmarkLifecycleStatus,
 ) -> Result<(), BenchError> {
-    validate_job(&BenchmarkJobReference {
-        scheduler: accounting.scheduler.clone(),
-        job_id: accounting.job_id.clone(),
-    })?;
-    if accounting.raw_state.trim().is_empty()
-        || accounting.raw_state != accounting.raw_state.trim()
-        || accounting.node_list.trim().is_empty()
-        || accounting.node_list != accounting.node_list.trim()
-        || accounting.exit_code < 0
-        || accounting.signal < 0
-        || accounting
-            .reason
-            .as_deref()
-            .is_some_and(|reason| reason.trim().is_empty() || reason != reason.trim())
-    {
-        return Err(invalid("benchmark scheduler accounting is malformed"));
-    }
+    validate_scheduler_accounting_shape(accounting)?;
     match accounting.state {
         BenchmarkSchedulerTerminalState::Completed
             if matches!(
@@ -453,6 +495,52 @@ fn validate_scheduler_accounting(
         _ => return Err(invalid("benchmark scheduler accounting contradicts lifecycle status")),
     }
     Ok(())
+}
+
+fn validate_scheduler_accounting_shape(
+    accounting: &BenchmarkSchedulerAccounting,
+) -> Result<(), BenchError> {
+    validate_job(&BenchmarkJobReference {
+        scheduler: accounting.scheduler.clone(),
+        job_id: accounting.job_id.clone(),
+    })?;
+    if accounting.raw_state.trim().is_empty()
+        || accounting.raw_state != accounting.raw_state.trim()
+        || accounting.node_list.trim().is_empty()
+        || accounting.node_list != accounting.node_list.trim()
+        || accounting.exit_code < 0
+        || accounting.signal < 0
+        || accounting
+            .reason
+            .as_deref()
+            .is_some_and(|reason| reason.trim().is_empty() || reason != reason.trim())
+    {
+        return Err(invalid("benchmark scheduler accounting is malformed"));
+    }
+    if accounting.state == BenchmarkSchedulerTerminalState::Completed
+        && (accounting.exit_code != 0 || accounting.signal != 0)
+    {
+        return Err(invalid("completed benchmark scheduler accounting has a nonzero exit"));
+    }
+    Ok(())
+}
+
+fn observed_terminal_state(
+    state: BenchmarkSchedulerTerminalState,
+) -> BenchmarkSchedulerObservedState {
+    match state {
+        BenchmarkSchedulerTerminalState::Completed => BenchmarkSchedulerObservedState::Completed,
+        BenchmarkSchedulerTerminalState::Failed => BenchmarkSchedulerObservedState::Failed,
+        BenchmarkSchedulerTerminalState::Cancelled => BenchmarkSchedulerObservedState::Cancelled,
+        BenchmarkSchedulerTerminalState::Timeout => BenchmarkSchedulerObservedState::Timeout,
+        BenchmarkSchedulerTerminalState::Preempted => BenchmarkSchedulerObservedState::Preempted,
+        BenchmarkSchedulerTerminalState::NodeFailure => {
+            BenchmarkSchedulerObservedState::NodeFailure
+        }
+        BenchmarkSchedulerTerminalState::OutOfMemory => {
+            BenchmarkSchedulerObservedState::OutOfMemory
+        }
+    }
 }
 
 fn validate_evidence_reference(reference: &BenchmarkEvidenceReference) -> Result<(), BenchError> {

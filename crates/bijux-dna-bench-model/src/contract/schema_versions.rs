@@ -18,6 +18,8 @@ pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V1: &str = "bijux.benchmark.cycle_status
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V2: &str = "bijux.benchmark.cycle_status.v2";
 pub const BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.benchmark.campaign_plan.v1";
 pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
+pub const BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1: &str =
+    "bijux.benchmark.scheduler_observation.v1";
 pub const BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1: &str = "bijux.benchmark.stage_campaigns.v1";
 pub const BENCHMARK_STAGE_COVERAGE_SCHEMA_V1: &str = "bijux.benchmark.stage_coverage.v1";
 pub const BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1: &str =
