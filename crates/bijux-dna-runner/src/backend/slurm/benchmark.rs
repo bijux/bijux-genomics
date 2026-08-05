@@ -173,7 +173,7 @@ fn append_measurement_commands(lines: &mut Vec<String>, spec: &BenchmarkExecutio
         lines.push(container_invocation(spec, &spec.commands.warmup));
     }
     for repetition in 1..=spec.measurement.measured_repetitions {
-        let command = spec
+        let measured_command = spec
             .commands
             .measured
             .iter()
@@ -183,12 +183,14 @@ fn append_measurement_commands(lines: &mut Vec<String>, spec: &BenchmarkExecutio
             .measurement
             .resource_file_template
             .replace("{repetition}", &repetition.to_string());
-        lines.push(format!(
-            "/usr/bin/time --quiet --output={} --format={} {}",
-            result_shell_path(&format!("{resource_path}.partial")),
-            shell_quote("wall_seconds\tuser_seconds\tsystem_seconds\tmax_rss_kb\tfilesystem_inputs\tfilesystem_outputs\texit_code\n%e\t%U\t%S\t%M\t%I\t%O\t%x"),
-            container_invocation(spec, &command)
-        ));
+        let mut timed_command = vec![
+            "/usr/bin/time".to_string(),
+            "--quiet".to_string(),
+            format!("--output=/result/{resource_path}.partial"),
+            "--format=wall_seconds\tuser_seconds\tsystem_seconds\tmax_rss_kb\tfilesystem_inputs\tfilesystem_outputs\texit_code\n%e\t%U\t%S\t%M\t%I\t%O\t%x".to_string(),
+        ];
+        timed_command.extend(measured_command);
+        lines.push(container_invocation(spec, &timed_command));
         lines.push(format!(
             "mv {} {}",
             result_shell_path(&format!("{resource_path}.partial")),

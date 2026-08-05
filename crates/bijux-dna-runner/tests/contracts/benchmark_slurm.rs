@@ -175,6 +175,8 @@ fn benchmark_slurm_material_is_isolated_complete_and_restart_safe() -> anyhow::R
     assert!(script.contains(":/repository:ro"));
     assert!(script.contains(":/input/ERR1.fastq.gz:ro"));
     assert!(script.contains("repetition-3.resource.tsv.partial"));
+    assert!(script.contains("'/usr/bin/time' '--quiet' '--output=/result/repetitions/repetition-1.resource.tsv.partial'"));
+    assert!(!script.lines().any(|line| line.starts_with("/usr/bin/time ")));
     assert!(!script.contains("{repetition}"));
     assert!(script.contains("output-sha256.tsv"));
     assert!(script.contains("completed.json.partial"));
