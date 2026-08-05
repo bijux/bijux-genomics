@@ -14,7 +14,7 @@ pub use crate::workflow::{
     initialize_attempt_lifecycle, load_attempt_lifecycle, load_benchmark_portfolio,
     load_bundle_catalog, load_bundle_manifest, load_checked_in_benchmark_contracts,
     load_checked_in_benchmark_planning_contracts, load_checked_in_stage_reports,
-    load_corpus_catalog, load_corpus_manifest, load_execution_authorities,
+    load_corpus_catalog, load_corpus_manifest, load_execution_authorities, load_execution_spec,
     load_stage_campaign_registry, load_stage_interface_catalog,
     load_stage_interface_catalog_from_repo, load_stage_report, load_stage_reports_from_dir,
     load_suite, plan_attempt_migration, plan_stage_campaign_attempts,

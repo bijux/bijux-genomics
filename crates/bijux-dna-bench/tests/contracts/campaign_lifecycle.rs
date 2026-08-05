@@ -151,6 +151,35 @@ fn campaign_storage_is_restart_safe_and_uses_immutable_run_directories() -> anyh
 }
 
 #[test]
+fn campaign_storage_recovers_attempts_that_advanced_from_the_same_origin() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let cycle = plan_stage_campaign_attempts(
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-campaign-advanced-recovery");
+    let initialized = ensure_stage_campaign_attempts(temporary.path(), &cycle)?;
+    bijux_dna_runtime::record_attempt_ready(
+        temporary.path(),
+        &cycle.cycle.attempts[0].identity,
+        "2026-08-05T00:01:00Z",
+    )?;
+
+    let recovered = ensure_stage_campaign_attempts(temporary.path(), &cycle)?;
+
+    assert_eq!(recovered, initialized);
+    assert_eq!(
+        load_attempt_lifecycle(temporary.path(), &cycle.cycle.attempts[0].identity)?
+            .current_status(),
+        Some(BenchmarkLifecycleStatus::Ready)
+    );
+    Ok(())
+}
+
+#[test]
 fn campaign_storage_preflights_all_existing_attempts_before_writing() -> anyhow::Result<()> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
     let cycle = plan_stage_campaign_attempts(

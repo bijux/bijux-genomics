@@ -28,8 +28,8 @@ pub use bijux_dna_runtime::{
 };
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
-    load_execution_authorities, plan_stage_campaign_attempts, verify_campaign_plan_source,
-    BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
+    load_execution_authorities, load_execution_spec, plan_stage_campaign_attempts,
+    verify_campaign_plan_source, BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
 };
 pub use evaluation::{compare, gate};
 pub use fastq_expectations::{

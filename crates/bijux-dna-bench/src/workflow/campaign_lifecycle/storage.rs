@@ -16,8 +16,8 @@ use bijux_dna_runtime::{
 
 /// Persist every planned campaign attempt under its immutable run/tool/campaign/attempt identity.
 ///
-/// Existing structurally identical planned records are accepted for crash recovery. A complete
-/// preflight rejects known conflicts before any missing attempt is created.
+/// Existing attempts with the same immutable planned origin are accepted after later lifecycle
+/// transitions. A complete preflight rejects known conflicts before any missing attempt is created.
 ///
 /// # Errors
 /// Returns an error when the cycle is invalid or not wholly planned, an existing identity differs,
@@ -36,23 +36,70 @@ pub fn ensure_stage_campaign_attempts(
             bail!("benchmark campaign initialization requires wholly planned attempts");
         }
         let directory = benchmark_attempt_directory(benchmark_root, &attempt.identity)?;
-        if directory.exists()
-            && load_attempt_lifecycle(benchmark_root, &attempt.identity)? != **attempt
-        {
-            bail!(
-                "benchmark campaign attempt conflicts with immutable evidence: {}",
-                directory.display()
-            );
+        if directory.exists() {
+            validate_attempt_origin(benchmark_root, attempt, &directory)?;
         }
     }
 
     attempts
         .into_iter()
         .map(|attempt| {
-            ensure_attempt_lifecycle(benchmark_root, attempt)
-                .context("ensure benchmark campaign attempt")
+            let directory = benchmark_attempt_directory(benchmark_root, &attempt.identity)?;
+            if directory.exists() {
+                validate_attempt_origin(benchmark_root, attempt, &directory)?;
+                Ok(directory)
+            } else {
+                ensure_attempt_lifecycle(benchmark_root, attempt)
+                    .context("ensure benchmark campaign attempt")
+            }
         })
         .collect()
+}
+
+fn validate_attempt_origin(
+    benchmark_root: &Path,
+    planned: &BenchmarkAttemptRecordV2,
+    directory: &Path,
+) -> Result<()> {
+    let existing = load_attempt_lifecycle(benchmark_root, &planned.identity)?;
+    if existing.identity != planned.identity
+        || existing.supersedes_attempt_id != planned.supersedes_attempt_id
+        || existing.transitions.first() != planned.transitions.first()
+    {
+        bail!(
+            "benchmark campaign attempt conflicts with immutable origin evidence: {}",
+            directory.display()
+        );
+    }
+    Ok(())
+}
+
+/// Load and validate one persisted execution specification for an initialized attempt.
+///
+/// # Errors
+/// Returns an error when the attempt or specification is missing, malformed, symlinked, or bound
+/// to a different immutable result identity.
+pub fn load_execution_spec(
+    benchmark_root: &Path,
+    identity: &bijux_dna_bench_model::BenchmarkAttemptIdentity,
+) -> Result<BenchmarkExecutionSpec> {
+    let directory = benchmark_attempt_directory(benchmark_root, identity)?;
+    load_attempt_lifecycle(benchmark_root, identity).context("load execution attempt lifecycle")?;
+    let path = directory.join("execution-spec.json");
+    let metadata = fs::symlink_metadata(&path)
+        .with_context(|| format!("inspect benchmark execution spec {}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("benchmark execution specification is not a regular file");
+    }
+    let bytes = bijux_dna_infra::read_to_end_bounded(&path, 16 * 1024 * 1024)
+        .with_context(|| format!("read benchmark execution spec {}", path.display()))?;
+    let spec: BenchmarkExecutionSpec = serde_json::from_slice(&bytes)
+        .with_context(|| format!("parse benchmark execution spec {}", path.display()))?;
+    validate_execution_spec(&spec).context("validate persisted execution specification")?;
+    if spec.identity != *identity || Path::new(&spec.outputs.result_root) != directory {
+        bail!("benchmark execution specification differs from immutable attempt identity");
+    }
+    Ok(spec)
 }
 
 /// Persist one execution specification beside its initialized attempt lifecycle.

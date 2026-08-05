@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 use bijux_dna_bench::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
-    load_checked_in_benchmark_planning_contracts, load_execution_authorities,
+    load_checked_in_benchmark_planning_contracts, load_execution_authorities, load_execution_spec,
     plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
     BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism,
     BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkExecutionMaterial,
@@ -285,6 +285,7 @@ fn execution_spec_storage_is_restart_safe_and_refuses_conflicts() -> anyhow::Res
     assert_eq!(first, recovered);
     let persisted: BenchmarkExecutionSpec = serde_json::from_slice(&std::fs::read(first)?)?;
     assert_eq!(persisted, spec);
+    assert_eq!(load_execution_spec(temporary.path(), &spec.identity)?, spec);
 
     let mut conflicting = spec;
     conflicting.operator = "different-operator".to_string();
