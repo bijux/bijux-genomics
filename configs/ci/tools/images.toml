@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 3663f2fb07fa6207bec8b88ca27102d178c48a8b
+# source_commit: 612475f7096a976dc2327b1fb157340e2acbea30
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -115,7 +115,6 @@ version = "4.6.2.0"
 
 [germline]
 version = "1.5.3"
-enabled = false
 
 [glimpse]
 version = "1.1.1"
@@ -123,15 +122,12 @@ enabled = false
 
 [ibdhap]
 version = "3.4"
-enabled = false
 
 [ibdne]
 version = "23Apr20.ae9"
-enabled = false
 
 [ibdseq]
 version = "r1206"
-enabled = false
 
 [impute5]
 version = "1.2.0"

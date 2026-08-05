@@ -469,6 +469,14 @@
         "override_policy": "explicit profile override required"
       },
       {
+        "stage_id": "vcf.demography",
+        "tool_id": "ibdne",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "the governed recent-demography baseline uses the smoke-proven IBDNe execution contract over normalized IBD segment input and a pinned genetic map.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
         "stage_id": "vcf.filter",
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -481,6 +489,14 @@
         "tool_id": "bcftools",
         "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "rationale": "preserves GL fields across downstream handoffs in the current governed profile.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.ibd",
+        "tool_id": "germline",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "the governed segment baseline uses the smoke-proven GERMLINE execution contract while IBDseq remains an admitted comparative backend and IBDHap remains outside segment-call comparisons.",
         "governance_status": "enforced",
         "override_policy": "explicit profile override required"
       },

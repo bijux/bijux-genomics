@@ -48,8 +48,10 @@ governed_stage_ids:
   - vcf.call_gl
   - vcf.call_pseudohaploid
   - vcf.damage_filter
+  - vcf.demography
   - vcf.filter
   - vcf.gl_propagation
+  - vcf.ibd
   - vcf.imputation_metrics
   - vcf.impute
   - vcf.pca
@@ -64,6 +66,10 @@ governed_tool_ids:
   - bcftools
   - beagle
   - eigensoft
+  - germline
+  - ibdhap
+  - ibdne
+  - ibdseq
   - plink2
   - shapeit5
 stage_tool_compatibility:
@@ -93,7 +99,6 @@ stage_tool_compatibility:
   vcf.ibd:
   - germline
   - ibdseq
-  - ibdhap
   vcf.imputation_metrics:
   - beagle
   - glimpse
@@ -154,7 +159,6 @@ stage_tool_integration:
     bcftools: governed_contract
   vcf.ibd:
     germline: governed_contract
-    ibdhap: governed_contract
     ibdseq: governed_contract
   vcf.imputation_metrics:
     beagle: governed_contract
@@ -218,8 +222,10 @@ active_defaults:
   vcf.call_gl: "bcftools"
   vcf.call_pseudohaploid: "bcftools"
   vcf.damage_filter: "bcftools"
+  vcf.demography: "ibdne"
   vcf.filter: "bcftools"
   vcf.gl_propagation: "bcftools"
+  vcf.ibd: "germline"
   vcf.imputation_metrics: "beagle"
   vcf.impute: "beagle"
   vcf.pca: "plink2"
@@ -237,8 +243,10 @@ active_default_rationale:
   vcf.call_gl: "current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative."
   vcf.call_pseudohaploid: "current governed production default preserves the pseudohaploid contract while `angsd` remains a planned alternative."
   vcf.damage_filter: "deterministic PMD/C>T-G>A masking contract anchor for the current governed profile."
+  vcf.demography: "the governed recent-demography baseline uses the smoke-proven IBDNe execution contract over normalized IBD segment input and a pinned genetic map."
   vcf.filter: "stable filtering semantics for regression comparability."
   vcf.gl_propagation: "preserves GL fields across downstream handoffs in the current governed profile."
+  vcf.ibd: "the governed segment baseline uses the smoke-proven GERMLINE execution contract while IBDseq remains an admitted comparative backend and IBDHap remains outside segment-call comparisons."
   vcf.imputation_metrics: "keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence."
   vcf.impute: "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative."
   vcf.pca: "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative."
