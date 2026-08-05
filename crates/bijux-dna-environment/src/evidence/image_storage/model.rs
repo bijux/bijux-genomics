@@ -52,6 +52,7 @@ pub struct ImageStorageMove {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ImageStorageMoveCategory {
+    Historical,
     Obsolete,
     Interrupted,
 }

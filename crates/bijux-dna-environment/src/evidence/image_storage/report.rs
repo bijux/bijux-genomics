@@ -92,7 +92,11 @@ pub fn derive_image_storage_report(
         })?,
         post_storage_summary: inventory.summary.clone(),
         checks,
-        historical_dependencies_preserved: inventory.summary.historical_dependency_count,
+        historical_dependencies_preserved: plan
+            .moves
+            .iter()
+            .filter(|row| row.category == super::model::ImageStorageMoveCategory::Historical)
+            .count() as u64,
         recovery: ImageStorageRecovery {
             mode: "same_filesystem_quarantine".to_string(),
             command: "bijux-dna-dev containers run image-storage -- rollback <plan> <image-root> <observed-at-utc>"
@@ -114,7 +118,7 @@ pub fn render_image_storage_report_markdown(report: &ImageStorageReport) -> Stri
         ImageStorageVerdict::Failed => "failed",
     };
     let mut output = format!(
-        "<!-- GENERATED FILE - DO NOT EDIT -->\n<!-- source: bijux-dna-environment image storage report -->\n# LUNARC Apptainer canonical storage evidence\n\nPurpose: record reversible quarantine of unreferenced obsolete and interrupted SIF material outside the active image surface.\n\n## Verdict\n\n- Verdict: **{verdict}**\n- Repository commit: `{}`\n- Quarantined files: **{}**\n- Quarantined bytes: **{}**\n- Historical run dependencies preserved: **{}**\n\nNo SIF was deleted. Every move remains on the governed filesystem and is recoverable through the checksummed plan after target digests are revalidated.\n\n## Acceptance checks\n\n",
+        "<!-- GENERATED FILE - DO NOT EDIT -->\n<!-- source: bijux-dna-environment image storage report -->\n# LUNARC Apptainer canonical storage evidence\n\nPurpose: record reversible quarantine of historical, unreferenced obsolete, and interrupted SIF material outside the active image surface.\n\n## Verdict\n\n- Verdict: **{verdict}**\n- Repository commit: `{}`\n- Quarantined files: **{}**\n- Quarantined bytes: **{}**\n- Historical run dependencies preserved: **{}**\n\nNo SIF was deleted. Every move remains on the governed filesystem and is recoverable through the checksummed plan after target digests are revalidated. Historical run references remain bound through the plan's immutable source inventory.\n\n## Acceptance checks\n\n",
         report.repository_commit,
         report.moved_file_count,
         report.moved_size_bytes,
@@ -193,6 +197,7 @@ fn markdown_code(value: &str) -> String {
 
 fn category_name(category: super::model::ImageStorageMoveCategory) -> &'static str {
     match category {
+        super::model::ImageStorageMoveCategory::Historical => "historical",
         super::model::ImageStorageMoveCategory::Obsolete => "obsolete",
         super::model::ImageStorageMoveCategory::Interrupted => "interrupted",
     }

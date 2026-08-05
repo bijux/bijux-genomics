@@ -46,6 +46,11 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ImageCampaignPlan` and `ImageCampaignExecution`: exact retained roster, commit, catalog, roots,
   worker policy, per-tool publications or failures, resumable progress, append-only invocation
   history, and an all-passed canonical terminal record.
+- `ImageActivationPlan`: a no-clobber, resumable, reversible publication of every selected
+  canonical campaign image into the active image root by verified same-filesystem hard link.
+- `ImageStoragePlan` and `ImageStorageReport`: a resumable, reversible migration of historical,
+  unreferenced obsolete, and interrupted images out of the active top level while preserving
+  exact file identity and historical run-reference authority through the source inventory.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
   `ContainerToolContract.expected_version_regex` contract.
 

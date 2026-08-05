@@ -257,14 +257,43 @@ fn collect_moves(
     image_root: &Path,
     quarantine_root: &Path,
 ) -> Result<Vec<ImageStorageMove>> {
-    let candidates = inventory.tools.iter().flat_map(|tool| &tool.candidates).filter(|candidate| {
-        matches!(candidate.disposition, ImageCandidateDisposition::UnreferencedObsolete)
-    });
-    let detached = inventory.unknown_images.iter().filter(|image| {
-        matches!(image.disposition, DetachedImageDisposition::UnreferencedObsolete)
-    });
     let mut moves = Vec::new();
-    for candidate in candidates {
+    for candidate in inventory.tools.iter().flat_map(|tool| &tool.candidates).filter(|candidate| {
+        matches!(candidate.disposition, ImageCandidateDisposition::HistoricalRunDependency)
+    }) {
+        if candidate.real_run_references == 0 || candidate.run_references.is_empty() {
+            bail!("historical image candidate has no real-run references");
+        }
+        moves.push(move_identity(
+            &candidate.path,
+            candidate.size_bytes,
+            &candidate.sha256,
+            ImageStorageMoveCategory::Historical,
+            study_root,
+            image_root,
+            quarantine_root,
+        )?);
+    }
+    for image in &inventory.historical_images {
+        if image.disposition != DetachedImageDisposition::HistoricalRunDependency
+            || image.real_run_references == 0
+            || image.run_references.is_empty()
+        {
+            bail!("detached historical image has no real-run reference authority");
+        }
+        moves.push(move_identity(
+            &image.path,
+            image.size_bytes,
+            &image.sha256,
+            ImageStorageMoveCategory::Historical,
+            study_root,
+            image_root,
+            quarantine_root,
+        )?);
+    }
+    for candidate in inventory.tools.iter().flat_map(|tool| &tool.candidates).filter(|candidate| {
+        matches!(candidate.disposition, ImageCandidateDisposition::UnreferencedObsolete)
+    }) {
         if candidate.real_run_references != 0 {
             bail!("obsolete image candidate retains real-run references");
         }
@@ -278,7 +307,11 @@ fn collect_moves(
             quarantine_root,
         )?);
     }
-    for image in detached {
+    for image in inventory
+        .unknown_images
+        .iter()
+        .filter(|image| matches!(image.disposition, DetachedImageDisposition::UnreferencedObsolete))
+    {
         if image.real_run_references != 0 {
             bail!("obsolete detached image retains real-run references");
         }
@@ -330,6 +363,7 @@ fn move_identity(
     validate_file_identity(&source, size_bytes, sha256)?;
     let file_name = source.file_name().context("inventory image has no file name")?;
     let category_name = match category {
+        ImageStorageMoveCategory::Historical => "historical",
         ImageStorageMoveCategory::Obsolete => "obsolete",
         ImageStorageMoveCategory::Interrupted => "interrupted",
     };

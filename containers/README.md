@@ -100,15 +100,51 @@ automation binary to inventory an older exact-commit image campaign without
 misstating the campaign's repository identity or scanning an unrelated active
 image tree.
 
+## Activate a reviewed image campaign
+
+Activation is a separate no-clobber transaction. It selects the unique
+canonical image for every retained tool from the immutable campaign inventory,
+rechecks each source identity, and publishes same-filesystem hard links into
+the active root without removing staging evidence. The plan persists progress
+after every image and accepts an interrupted publication only when source and
+target are the same inode.
+
+```console
+activation_root="${study_root}/containers/evidence/activation/${image_commit}/${attempt_id}"
+activation_plan="${activation_root}/image-activation-plan.json"
+mkdir -p "${activation_root}"
+
+cargo run -p bijux-dna-dev -- containers run image-activation -- \
+  plan "${study_root}" "${canonical_inventory}" "${image_root}" \
+  "${study_root}/containers/apptainer" "${activation_plan}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cargo run -p bijux-dna-dev -- containers run image-activation -- \
+  apply "${activation_plan}" "${image_root}" \
+  "${study_root}/containers/apptainer" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cargo run -p bijux-dna-dev -- containers run image-activation -- \
+  verify "${activation_plan}" "${image_root}" \
+  "${study_root}/containers/apptainer"
+```
+
+Review the complete preview before applying it. Rollback removes only the
+verified active links recorded by the plan and leaves every staging source in
+place.
+
 ## Reconcile canonical image storage
 
 Storage reconciliation is a typed, reversible environment workflow. It accepts
-only inventory rows classified as unreferenced obsolete or interrupted,
+inventory rows classified as historical run dependencies, unreferenced
+obsolete, or interrupted,
 rechecks every regular-file size and digest, and refuses targets outside a
 same-filesystem quarantine beneath the image root. Planning and report
 publication are no-clobber operations. Apply and rollback persist progress
 after every rename and resume only when the discovered file matches the locked
-identity.
+identity. Historical dependencies leave the active top level but remain
+checksummed under the `historical/` quarantine category; their run-reference
+authority remains in the plan's immutable source inventory.
 
 Preview the exact move set before applying it:
 

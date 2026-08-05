@@ -24,6 +24,8 @@ ask for host-environment inspection or reference preparation.
 - Generated embedded contracts and rendered definitions under a caller-provided repository
   `artifacts/` root.
 - Apptainer SIF targets and append-only build attempt logs under caller-provided container roots.
+- Hard-linked canonical SIF publications in an explicit active root.
+- Same-filesystem image quarantine moves and their persisted apply or rollback plans.
 
 ## Allowed Processes
 
@@ -37,6 +39,7 @@ that inventory and its boundary test.
 - Mutating repository source, docs, configs, or fixtures from library code.
 - Owning user-facing CLI routing.
 - Deleting cache contents outside an explicit caller-owned maintenance command.
+- Deleting SIF evidence during activation or storage reconciliation.
 
 ## Determinism Guarantees
 

@@ -18,10 +18,10 @@
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
   execution with bounded immutable streams; catalog-wide parallel runtime verification and
   portable report publication; exact-commit catalog and Apptainer recipe identity;
-  `resolve_current_apptainer_image`
-  selection with on-disk size and digest verification; focused catalog/image-inventory closure
-  validation for execution planning; runtime inspection; validation, loading, JSON Schema
-  rendering, and atomic schema writing.
+  `resolve_current_apptainer_image` selection with on-disk size and digest verification;
+  no-clobber canonical image activation; reversible historical, obsolete, and interrupted image
+  quarantine; focused catalog/image-inventory closure validation for execution planning; runtime
+  inspection; validation, loading, JSON Schema rendering, and atomic schema writing.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.
