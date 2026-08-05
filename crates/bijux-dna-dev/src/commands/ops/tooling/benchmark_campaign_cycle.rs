@@ -7,7 +7,7 @@ use anyhow::{bail, Context};
 
 use super::{OpsCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
@@ -19,6 +19,7 @@ const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
     "--partition",
     "--plan",
     "--prepared-at-utc",
+    "--repository-root",
     "--study-root",
 ];
 
@@ -31,6 +32,7 @@ const FASTQ_SUBMISSION_OPTIONS: &[&str] = &[
     "--partition",
     "--plan",
     "--prepared-at-utc",
+    "--repository-root",
     "--study-root",
     "--submitted-at-utc",
 ];
@@ -218,11 +220,12 @@ fn prepare_fastq_campaign(
     scheduler_timestamp: &str,
     recover_submitted: bool,
 ) -> Result<PreparedFastqCampaign> {
-    let repository_root =
-        workspace.root.canonicalize().context("canonicalize benchmark source repository")?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark source repository")?;
     let plan_path = resolve_path(workspace, required(options, "--plan")?);
     let plan = read_plan(&plan_path)?;
-    let (repository_commit, campaign_registry_sha256) = source_identity(workspace)?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
     bijux_dna_bench::verify_campaign_plan_source(
         &plan,
         &repository_commit,
@@ -288,11 +291,17 @@ fn reconcile_fastq_read_lengths(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
-    require_exact_options(options, &["--benchmark-root", "--observed-at-utc", "--plan"])?;
+    require_exact_options(
+        options,
+        &["--benchmark-root", "--observed-at-utc", "--plan", "--repository-root"],
+    )?;
     let observed_at_utc = required(options, "--observed-at-utc")?;
     let plan_path = resolve_path(workspace, required(options, "--plan")?);
     let plan = read_plan(&plan_path)?;
-    let (repository_commit, campaign_registry_sha256) = source_identity(workspace)?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark source repository")?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
     bijux_dna_bench::verify_campaign_plan_source(
         &plan,
         &repository_commit,
@@ -370,12 +379,15 @@ fn admit_fastq_read_lengths(
 ) -> Result<OpsCommandOutcome> {
     require_exact_options(
         options,
-        &["--admitted-at-utc", "--benchmark-root", "--plan", "--study-root"],
+        &["--admitted-at-utc", "--benchmark-root", "--plan", "--repository-root", "--study-root"],
     )?;
     let admitted_at_utc = required(options, "--admitted-at-utc")?;
     let plan_path = resolve_path(workspace, required(options, "--plan")?);
     let plan = read_plan(&plan_path)?;
-    let (repository_commit, campaign_registry_sha256) = source_identity(workspace)?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark source repository")?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
     bijux_dna_bench::verify_campaign_plan_source(
         &plan,
         &repository_commit,
@@ -553,10 +565,22 @@ fn schema(workspace: &Workspace, options: &BTreeMap<String, String>) -> Result<O
 fn plan(workspace: &Workspace, options: &BTreeMap<String, String>) -> Result<OpsCommandOutcome> {
     require_exact_options(
         options,
-        &["--attempt-id", "--campaign-id", "--observed-at-utc", "--output", "--run-id"],
+        &[
+            "--attempt-id",
+            "--campaign-id",
+            "--observed-at-utc",
+            "--output",
+            "--repository-root",
+            "--run-id",
+        ],
     )?;
-    let (repository_commit, campaign_registry_sha256) = source_identity(workspace)?;
-    let (registry, _, _) = bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark source repository")?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
+    let registry = bijux_dna_bench::load_stage_campaign_registry(
+        &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
     let cycle = bijux_dna_bench::plan_stage_campaign_attempts(
         &registry,
         &repository_commit,
@@ -697,10 +721,13 @@ fn initialize(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
-    require_exact_options(options, &["--benchmark-root", "--plan"])?;
+    require_exact_options(options, &["--benchmark-root", "--plan", "--repository-root"])?;
     let plan_path = resolve_path(workspace, required(options, "--plan")?);
     let cycle = read_plan(&plan_path)?;
-    let (repository_commit, campaign_registry_sha256) = source_identity(workspace)?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark source repository")?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
     bijux_dna_bench::verify_campaign_plan_source(
         &cycle,
         &repository_commit,
@@ -720,10 +747,6 @@ fn read_plan(path: &Path) -> Result<bijux_dna_bench::BenchmarkCampaignPlan> {
         .with_context(|| format!("read benchmark campaign plan {}", path.display()))?;
     serde_json::from_slice(&bytes)
         .with_context(|| format!("parse benchmark campaign plan {}", path.display()))
-}
-
-fn source_identity(workspace: &Workspace) -> Result<(String, String)> {
-    source_identity_at(&workspace.root)
 }
 
 fn source_identity_at(repository_root: &Path) -> Result<(String, String)> {
@@ -862,6 +885,8 @@ mod tests {
             "/study/plan.json".into(),
             "--prepared-at-utc".into(),
             "2026-08-05T02:00:00Z".into(),
+            "--repository-root".into(),
+            "/source/bijux-genomics".into(),
             "--study-root".into(),
             "/study".into(),
         ])?;
@@ -888,6 +913,8 @@ mod tests {
             "/study/plan.json".into(),
             "--prepared-at-utc".into(),
             "2026-08-05T02:00:00Z".into(),
+            "--repository-root".into(),
+            "/source/bijux-genomics".into(),
             "--study-root".into(),
             "/study".into(),
             "--submitted-at-utc".into(),
@@ -928,12 +955,20 @@ mod tests {
             "/study/results/benchmarks".into(),
             "--plan".into(),
             "/study/plan.json".into(),
+            "--repository-root".into(),
+            "/source/bijux-genomics".into(),
             "--study-root".into(),
             "/study".into(),
         ])?;
         assert!(require_exact_options(
             &options,
-            &["--admitted-at-utc", "--benchmark-root", "--plan", "--study-root"]
+            &[
+                "--admitted-at-utc",
+                "--benchmark-root",
+                "--plan",
+                "--repository-root",
+                "--study-root"
+            ]
         )
         .is_ok());
         Ok(())

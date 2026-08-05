@@ -440,6 +440,11 @@ execution-spec preparation with runner-owned Slurm materialization. It initializ
 attempts from the exact source-locked plan, prepares both governed tools, and records `ready`
 lifecycle evidence without submitting or polling scheduler jobs.
 
+Every campaign operation that creates or consumes a source-locked plan requires an explicit
+`--repository-root`. The operator binary may come from a newer clean worktree, but source identity,
+contracts, interfaces, and generated execution material are always resolved from that declared
+repository root.
+
 `benchmark-campaign-cycle submit-fastq-read-lengths` performs the same complete authority and
 material preflight before the first scheduler effect, then submits every governed tool through the
 runner's intent-first API and records each returned Slurm job identity. It returns after submission
