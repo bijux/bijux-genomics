@@ -2,7 +2,7 @@
 //! Exact source and container authority loading for executable benchmark attempts.
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_defined_interface_campaign_alignment;
@@ -25,6 +25,7 @@ const STAGE_INTERFACE_REGISTRY_PATH: &str = "benchmarks/contracts/stage-interfac
 
 /// Validated, source-locked authorities needed to construct executable benchmark attempts.
 pub struct BenchmarkExecutionAuthorities {
+    repository_path: PathBuf,
     registry: BenchmarkStageCampaignRegistry,
     interfaces: BenchmarkStageInterfaceCatalog,
     catalog: ContainerCatalog,
@@ -67,6 +68,13 @@ impl BenchmarkExecutionAuthorities {
         if material.source_contract_sha256 != self.source_contract_sha256 {
             bail!("execution material source locks differ from loaded authorities");
         }
+        let material_repository_path = material
+            .repository_path
+            .canonicalize()
+            .context("canonicalize execution material repository path")?;
+        if material_repository_path != self.repository_path {
+            bail!("execution material repository path differs from loaded authorities");
+        }
         super::build_execution_spec(
             &self.registry,
             &self.interfaces,
@@ -90,19 +98,22 @@ pub fn load_execution_authorities(
     repository_commit: &str,
     plan: &BenchmarkCampaignPlan,
 ) -> Result<BenchmarkExecutionAuthorities> {
-    let campaign_path = repository_root.join(CAMPAIGN_REGISTRY_PATH);
-    let interface_path = repository_root.join(STAGE_INTERFACE_REGISTRY_PATH);
-    let catalog_path = repository_root.join(CONTAINER_CATALOG_PATH);
+    let repository_path = repository_root
+        .canonicalize()
+        .context("canonicalize benchmark execution repository root")?;
+    let campaign_path = repository_path.join(CAMPAIGN_REGISTRY_PATH);
+    let interface_path = repository_path.join(STAGE_INTERFACE_REGISTRY_PATH);
+    let catalog_path = repository_path.join(CONTAINER_CATALOG_PATH);
     require_source_file(&campaign_path)?;
     require_source_file(&interface_path)?;
     require_source_file(&catalog_path)?;
     require_source_file(inventory_path)?;
 
     let registry = load_stage_campaign_registry(&campaign_path)?;
-    let interfaces = load_stage_interface_catalog_from_repo(&interface_path, repository_root)?;
+    let interfaces = load_stage_interface_catalog_from_repo(&interface_path, &repository_path)?;
     validate_defined_interface_campaign_alignment(&interfaces, &registry)
         .context("align stage interfaces with campaign declarations")?;
-    let catalog = load_container_catalog(repository_root)?;
+    let catalog = load_container_catalog(&repository_path)?;
     let image_inventory = load_image_inventory_publication(inventory_path)?;
 
     let campaign_registry_sha256 = source_digest(&campaign_path)?;
@@ -117,6 +128,7 @@ pub fn load_execution_authorities(
         .context("validate execution image inventory against container catalog")?;
 
     Ok(BenchmarkExecutionAuthorities {
+        repository_path,
         registry,
         interfaces,
         catalog,

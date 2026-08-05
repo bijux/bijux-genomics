@@ -224,6 +224,14 @@ fn execution_authorities_recheck_selected_sif_bytes() -> anyhow::Result<()> {
     let spec = authorities.build_execution_spec(&plan, &identity, &image, execution_material)?;
     assert_eq!(spec.image.sha256, image_sha256);
 
+    let mut wrong_material = material();
+    wrong_material.repository_path = temporary.path().to_path_buf();
+    wrong_material.benchmark_root = temporary.path().join("results/benchmarks");
+    wrong_material.source_contract_sha256 = authorities.source_contract_sha256().clone();
+    assert!(authorities
+        .build_execution_spec(&plan, &identity, &image, wrong_material)
+        .is_err_and(|error| error.to_string().contains("repository path differs")));
+
     std::fs::write(&image_path, b"mutated")?;
     assert!(authorities.resolve_current_image(&study_root, "seqkit").is_err());
     Ok(())
