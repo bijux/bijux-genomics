@@ -457,6 +457,41 @@ impl BenchmarkCampaignPlan {
 }
 
 #[must_use]
+pub fn benchmark_attempt_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptRecord)
+}
+
+#[must_use]
+pub fn benchmark_attempt_v2_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptRecordV2)
+}
+
+#[must_use]
+pub fn benchmark_attempt_archive_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptArchive)
+}
+
+#[must_use]
+pub fn benchmark_attempt_migration_plan_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptMigrationPlan)
+}
+
+#[must_use]
+pub fn benchmark_attempt_migration_ledger_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptMigrationLedger)
+}
+
+#[must_use]
+pub fn benchmark_cycle_status_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCycleStatus)
+}
+
+#[must_use]
+pub fn benchmark_cycle_status_v2_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCycleStatusV2)
+}
+
+#[must_use]
 pub fn benchmark_campaign_plan_schema() -> Schema {
     schemars::schema_for!(BenchmarkCampaignPlan)
 }

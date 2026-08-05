@@ -189,6 +189,58 @@ fn run_directory_name_is_derived_from_validated_identity() {
 }
 
 #[test]
+fn checked_lifecycle_schemas_match_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let schemas = [
+        (
+            "attempt-v1.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_schema())?,
+        ),
+        (
+            "attempt-v2.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_v2_schema())?,
+        ),
+        (
+            "attempt-archive.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_archive_schema())?,
+        ),
+        (
+            "attempt-migration-plan.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_migration_plan_schema())?,
+        ),
+        (
+            "attempt-migration-ledger.schema.json",
+            serde_json::to_value(
+                bijux_dna_bench_model::benchmark_attempt_migration_ledger_schema(),
+            )?,
+        ),
+        (
+            "cycle-status-v1.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_status_schema())?,
+        ),
+        (
+            "cycle-status-v2.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_status_v2_schema())?,
+        ),
+    ];
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    for (name, generated) in schemas {
+        let path = schema_root.join(name);
+        if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+            let mut bytes = serde_json::to_vec_pretty(&generated)?;
+            bytes.push(b'\n');
+            std::fs::write(&path, bytes)?;
+        }
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(checked, generated, "lifecycle schema drifted: {name}");
+    }
+    Ok(())
+}
+
+#[test]
 fn attempt_lifecycle_accepts_a_complete_append_only_chain() {
     let record = passed_attempt("attempt-001", "seqkit");
     assert_eq!(record.current_status(), Some(BenchmarkLifecycleStatus::Passed));

@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "BenchmarkAttemptRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "blocked_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "evidence_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "jobs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkJobReference"
+          },
+          "type": "array"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.benchmark.attempt.v1",
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkLifecycleStatus"
+        },
+        "supersedes_attempt_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "campaign_id",
+        "run_id",
+        "attempt_id",
+        "stage_id",
+        "tool_id",
+        "status"
+      ],
+      "type": "object"
+    },
+    "BenchmarkJobReference": {
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "type": "string"
+        },
+        "scheduler": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheduler",
+        "job_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLifecycleStatus": {
+      "enum": [
+        "planned",
+        "ready",
+        "submitted",
+        "running",
+        "collecting",
+        "passed",
+        "failed",
+        "superseded",
+        "blocked_external"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attempts": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkAttemptRecord"
+      },
+      "type": "array"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.cycle_status.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "generated_at",
+    "attempts"
+  ],
+  "title": "BenchmarkCycleStatus",
+  "type": "object"
+}

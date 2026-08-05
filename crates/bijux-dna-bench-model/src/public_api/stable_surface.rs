@@ -37,7 +37,10 @@ pub use crate::model::interfaces::{
     BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 pub use crate::model::lifecycle::{
-    benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
+    benchmark_attempt_archive_schema, benchmark_attempt_migration_ledger_schema,
+    benchmark_attempt_migration_plan_schema, benchmark_attempt_schema, benchmark_attempt_v2_schema,
+    benchmark_campaign_plan_schema, benchmark_cycle_status_schema,
+    benchmark_cycle_status_v2_schema, benchmark_scheduler_observation_schema,
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
     BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
     BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
