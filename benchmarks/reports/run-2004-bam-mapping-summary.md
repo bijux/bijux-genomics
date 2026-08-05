@@ -15,7 +15,7 @@ Accuracy claim: `cross_tool_primary_mapping_summary_consistency_not_alignment_tr
 ## Reproducible Design
 
 - Campaign: `run-2004`
-- Repository commit: `48a75c5aaf233d5a39b43d987c019b3428a77949`
+- Repository commit: `520efb95cf753b65fca168f0610b1b4138932031`
 - Container catalog: `d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250`
 - Tool closure: `picard`, `samtools`
 - Repetitions: 1 warmup and 3 measured
@@ -26,14 +26,14 @@ Accuracy claim: `cross_tool_primary_mapping_summary_consistency_not_alignment_tr
 
 - Immutable inputs: `3dfe7e5aab7fddd3ac3b35abcb4748495b7c44de59bf32661f5916780d2fbd73`
 - Effective parameters: `9b4c1bd2ebd4575e48de46aafa35d3045ba9ab122990eccda2761b71bdf3fa5f`
-- Repository source: `48a75c5aaf233d5a39b43d987c019b3428a77949`
+- Repository source: `520efb95cf753b65fca168f0610b1b4138932031`
 
 ## Performance
 
 | Tool | Slurm job | Wall mean (range), s | CPU mean, s | Peak RSS mean, MiB | Input bytes | Output mean, bytes |
 |---|---:|---:|---:|---:|---:|---:|
-| `picard` | `3461955` | 3.863 (3.700-3.960) | 3.817 | 667.8 | 26592222 | 5226.0 |
-| `samtools` | `3461956` | 0.313 (0.310-0.320) | 0.297 | 42.5 | 26592222 | 1094.0 |
+| `picard` | `3461968` | 3.837 (3.750-4.000) | 3.793 | 664.1 | 26592222 | 5226.0 |
+| `samtools` | `3461969` | 0.313 (0.310-0.320) | 0.297 | 43.7 | 26592222 | 1094.0 |
 
 ## Scientific Observations
 
@@ -48,7 +48,7 @@ Accuracy claim: `cross_tool_primary_mapping_summary_consistency_not_alignment_tr
 
 The `mapping-summary.tsv` artifact was identical across measured repetitions by normalized mapping-summary TSV bytes: `e9271883fe302da8df277f6cb22b65a239d9f9f01a0bb88f13dac7fc5f17e6e0`.
 
-Evidence: Slurm job `3461955`, node `cn162`, image `649ebc98578bc1d3b4e5d233e5448da4a5908b1fcba44f1c432825cc0e576a49`, acceptance `f0a860be20fe9e2cb75db6b07bc8b5dff49dac29ae0fc7f938c8afebbbcee1a2`.
+Evidence: Slurm job `3461968`, node `cn162`, image `649ebc98578bc1d3b4e5d233e5448da4a5908b1fcba44f1c432825cc0e576a49`, acceptance `9736ea6301a9fea32ca8f6ef8cd68de465fdb6497e3588d307efe63440a2ee63`.
 
 ### samtools
 
@@ -61,7 +61,7 @@ Evidence: Slurm job `3461955`, node `cn162`, image `649ebc98578bc1d3b4e5d233e544
 
 The `mapping-summary.tsv` artifact was identical across measured repetitions by normalized mapping-summary TSV bytes: `e9271883fe302da8df277f6cb22b65a239d9f9f01a0bb88f13dac7fc5f17e6e0`.
 
-Evidence: Slurm job `3461956`, node `cn162`, image `a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f`, acceptance `a01f0d3c31fb7dc30b3fe558425a5feea4248febac9f57d0a4a2dc4ed76e17b7`.
+Evidence: Slurm job `3461969`, node `cn162`, image `a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f`, acceptance `b2adce7d1d870cd0c98b63738b72b666d6ad2f0373bd572b516e5adc9a92eafa`.
 
 ## Cross-tool Agreement
 

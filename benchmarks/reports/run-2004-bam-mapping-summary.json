@@ -42,19 +42,19 @@
     {
       "tool": "picard",
       "verdict": "passed",
-      "repository_commit": "48a75c5aaf233d5a39b43d987c019b3428a77949",
+      "repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
       "image": {
         "name": "picard-3.3.0-linux-amd64-649ebc98578b.sif",
         "sha256": "649ebc98578bc1d3b4e5d233e5448da4a5908b1fcba44f1c432825cc0e576a49",
         "size_bytes": 160636928
       },
       "slurm": {
-        "job_id": "3461955",
+        "job_id": "3461968",
         "host": "cn162",
-        "elapsed": "00:00:23",
+        "elapsed": "00:00:22",
         "allocated_cpus": "1"
       },
-      "source_evidence_sha256": "f0a860be20fe9e2cb75db6b07bc8b5dff49dac29ae0fc7f938c8afebbbcee1a2",
+      "source_evidence_sha256": "9736ea6301a9fea32ca8f6ef8cd68de465fdb6497e3588d307efe63440a2ee63",
       "input_locks": [
         {
           "id": "bam",
@@ -88,10 +88,10 @@
       },
       "performance": {
         "cpu_seconds": {
-          "minimum": 3.6599999999999997,
-          "maximum": 3.91,
-          "mean": 3.8166666666666664,
-          "sample_standard_deviation": 0.13650396819628866
+          "minimum": 3.71,
+          "maximum": 3.96,
+          "mean": 3.793333333333333,
+          "sample_standard_deviation": 0.14433756729740646
         },
         "input_bytes": {
           "minimum": 26592222.0,
@@ -106,16 +106,16 @@
           "sample_standard_deviation": 0.0
         },
         "peak_rss_kib": {
-          "minimum": 680880.0,
-          "maximum": 689184.0,
-          "mean": 683797.3333333334,
-          "sample_standard_deviation": 4670.3650107174
+          "minimum": 678648.0,
+          "maximum": 680748.0,
+          "mean": 680006.6666666666,
+          "sample_standard_deviation": 1178.272181345776
         },
         "wall_seconds": {
-          "minimum": 3.7,
-          "maximum": 3.96,
-          "mean": 3.8633333333333333,
-          "sample_standard_deviation": 0.14224392195567906
+          "minimum": 3.75,
+          "maximum": 4.0,
+          "mean": 3.8366666666666664,
+          "sample_standard_deviation": 0.1415391583037477
         }
       },
       "scientific_observations": {
@@ -150,19 +150,19 @@
     {
       "tool": "samtools",
       "verdict": "passed",
-      "repository_commit": "48a75c5aaf233d5a39b43d987c019b3428a77949",
+      "repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
       "image": {
         "name": "samtools-1.20-linux-amd64-a29122faccca.sif",
         "sha256": "a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f",
         "size_bytes": 122376192
       },
       "slurm": {
-        "job_id": "3461956",
+        "job_id": "3461969",
         "host": "cn162",
         "elapsed": "00:00:04",
         "allocated_cpus": "1"
       },
-      "source_evidence_sha256": "a01f0d3c31fb7dc30b3fe558425a5feea4248febac9f57d0a4a2dc4ed76e17b7",
+      "source_evidence_sha256": "b2adce7d1d870cd0c98b63738b72b666d6ad2f0373bd572b516e5adc9a92eafa",
       "input_locks": [
         {
           "id": "bam",
@@ -214,10 +214,10 @@
           "sample_standard_deviation": 0.0
         },
         "peak_rss_kib": {
-          "minimum": 42564.0,
-          "maximum": 43996.0,
-          "mean": 43492.0,
-          "sample_standard_deviation": 804.6663904998145
+          "minimum": 43820.0,
+          "maximum": 45972.0,
+          "mean": 44798.666666666664,
+          "sample_standard_deviation": 1089.1268674187288
         },
         "wall_seconds": {
           "minimum": 0.31,
@@ -257,7 +257,7 @@
     }
   ],
   "comparability": {
-    "repository_commit": "48a75c5aaf233d5a39b43d987c019b3428a77949",
+    "repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
     "input_lock_sha256": "3dfe7e5aab7fddd3ac3b35abcb4748495b7c44de59bf32661f5916780d2fbd73",
     "parameter_lock_sha256": "9b4c1bd2ebd4575e48de46aafa35d3045ba9ab122990eccda2761b71bdf3fa5f",
     "stage_interface": {
