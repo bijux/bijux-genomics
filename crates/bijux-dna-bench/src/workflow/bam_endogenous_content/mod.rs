@@ -2,6 +2,7 @@
 //! Executable material for the governed BAM endogenous-content campaign.
 
 mod commands;
+mod report;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -16,6 +17,11 @@ use bijux_dna_bench_model::{
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
 use super::bam_observation::{ensure_parameter_evidence, execution_inputs, BamParameterPolicy};
 use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+
+pub use report::{
+    publish_bam_endogenous_content_stage_report, render_bam_endogenous_content_markdown,
+    BamEndogenousContentStageReportPublication,
+};
 
 const RUN_ID: &str = "run-2003";
 const STAGE_ID: &str = "bam.endogenous_content";

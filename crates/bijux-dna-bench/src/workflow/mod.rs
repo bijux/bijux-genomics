@@ -30,11 +30,14 @@ pub use attempt_migration::{
     BenchmarkAttemptMigrationVerificationEntry,
 };
 pub use bam_coverage::{
-    prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus, BamCoverageMaterial,
+    prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus,
+    publish_bam_coverage_stage_report, render_bam_coverage_markdown, BamCoverageMaterial,
+    BamCoverageStageReportPublication,
 };
 pub use bam_endogenous_content::{
     prepare_bam_endogenous_content_material, prepare_bam_endogenous_content_material_from_corpus,
-    BamEndogenousContentMaterial,
+    publish_bam_endogenous_content_stage_report, render_bam_endogenous_content_markdown,
+    BamEndogenousContentMaterial, BamEndogenousContentStageReportPublication,
 };
 pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,

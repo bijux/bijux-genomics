@@ -1,0 +1,145 @@
+//! Owner: bijux-dna-bench
+//! Shared source-locked publication for BAM observational stage reports.
+
+mod evidence;
+mod rendering;
+mod science;
+
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+
+use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::{
+    BenchmarkCampaignPlan, BenchmarkExecutionSpec, BenchmarkStageCampaignSpec, BenchmarkStageReport,
+};
+
+use self::evidence::load_attempt_evidence;
+pub(crate) use self::rendering::render_bam_observation_markdown;
+pub(crate) use self::science::{
+    numeric_value, read_numeric_summary, validate_byte_counts, ScientificObservation,
+};
+use super::super::{
+    load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
+    verify_campaign_plan_source,
+};
+use crate::workflow::stage_report::{
+    build_stage_report, canonical_directory, ensure_bytes, ensure_directory, is_active_plan_origin,
+    require_complete_plan,
+};
+
+pub(crate) type ScientificDeriver =
+    fn(&BenchmarkExecutionSpec, u32) -> Result<ScientificObservation>;
+
+pub(crate) struct BamObservationReportPolicy {
+    pub(crate) run_id: &'static str,
+    pub(crate) stage_id: &'static str,
+    pub(crate) report_file_stem: &'static str,
+    pub(crate) tool_ids: &'static [&'static str],
+    pub(crate) result_artifact: &'static str,
+    pub(crate) input_size_keys: &'static [&'static str],
+    pub(crate) digest_basis: &'static str,
+    pub(crate) derive: ScientificDeriver,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct BamObservationStageReportPublication {
+    pub report_path: PathBuf,
+    pub markdown_path: PathBuf,
+    pub report_sha256: String,
+    pub markdown_sha256: String,
+    pub report: BenchmarkStageReport,
+}
+
+pub(crate) fn publish_bam_observation_stage_report(
+    repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    output_root: &Path,
+    policy: &BamObservationReportPolicy,
+) -> Result<BamObservationStageReportPublication> {
+    let repository_root = canonical_directory(repository_root, "benchmark repository")?;
+    let study_root = canonical_directory(study_root, "STUDY root")?;
+    let benchmark_root = canonical_directory(benchmark_root, "benchmark result root")?;
+    if !benchmark_root.starts_with(&study_root) {
+        bail!("benchmark result root is outside STUDY");
+    }
+    let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
+    let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
+    let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
+    verify_campaign_plan_source(plan, &plan.repository_commit, &registry_sha256)?;
+    let repository_commit = bijux_dna_environment::api::repository_head_commit(&repository_root)?;
+    if repository_commit != plan.repository_commit {
+        bail!("benchmark report source worktree differs from campaign plan");
+    }
+    let registry = load_stage_campaign_registry(&registry_path)?;
+    let campaign = registry
+        .campaigns
+        .iter()
+        .find(|campaign| campaign.run_id == policy.run_id)
+        .with_context(|| format!("benchmark registry omits {}", policy.run_id))?;
+    require_governed_campaign(campaign, plan, policy)?;
+    let interfaces = load_stage_interface_catalog_from_repo(&interface_path, &repository_root)?;
+    let interface = interfaces
+        .interfaces
+        .iter()
+        .find(|interface| interface.stage_id == policy.stage_id)
+        .with_context(|| format!("benchmark stage interface omits {}", policy.stage_id))?;
+
+    let mut evidence_by_tool = BTreeMap::new();
+    for tool in &campaign.tool_ids {
+        let planned = plan
+            .cycle
+            .attempts
+            .iter()
+            .filter(|attempt| is_active_plan_origin(attempt))
+            .find(|attempt| attempt.identity.tool_id == *tool)
+            .with_context(|| format!("campaign plan omits tool attempt {tool}"))?;
+        let evidence = load_attempt_evidence(
+            &repository_root,
+            &study_root,
+            &benchmark_root,
+            campaign,
+            interface,
+            plan,
+            &planned.identity,
+            policy,
+        )?;
+        evidence_by_tool.insert(tool.clone(), evidence);
+    }
+    let report = build_stage_report(&repository_root, plan, campaign, interface, evidence_by_tool)?;
+    ensure_directory(output_root)?;
+    let report_path = output_root.join(format!("{}.json", policy.report_file_stem));
+    let markdown_path = output_root.join(format!("{}.md", policy.report_file_stem));
+    let mut report_bytes = serde_json::to_vec_pretty(&report)?;
+    report_bytes.push(b'\n');
+    let markdown = render_bam_observation_markdown(&report);
+    ensure_bytes(&report_path, &report_bytes)?;
+    ensure_bytes(&markdown_path, markdown.as_bytes())?;
+    Ok(BamObservationStageReportPublication {
+        report_path,
+        markdown_path,
+        report_sha256: bijux_dna_infra::hash_bytes_sha256(&report_bytes),
+        markdown_sha256: bijux_dna_infra::hash_bytes_sha256(markdown.as_bytes()),
+        report,
+    })
+}
+
+fn require_governed_campaign(
+    campaign: &BenchmarkStageCampaignSpec,
+    plan: &BenchmarkCampaignPlan,
+    policy: &BamObservationReportPolicy,
+) -> Result<()> {
+    let tools = campaign.tool_ids.iter().map(String::as_str).collect::<Vec<_>>();
+    let input_keys = campaign.input_size_keys.iter().map(String::as_str).collect::<Vec<_>>();
+    if campaign.run_id != policy.run_id
+        || campaign.stage_id != policy.stage_id
+        || tools != policy.tool_ids
+        || campaign.result_artifact != policy.result_artifact
+        || input_keys != policy.input_size_keys
+        || campaign.measured_repetitions < 3
+    {
+        bail!("campaign differs from its governed BAM observational report policy");
+    }
+    require_complete_plan(campaign, plan)
+}
