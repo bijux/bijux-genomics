@@ -13,12 +13,14 @@ mode == "summary" && source == "bedtools" {
   next
 }
 
+mode == "summary" && source == "samtools" && FILENAME ~ /reference-span[.]tsv$/ && $1 == "reference_bases" {
+  reference_bases = $2
+  next
+}
+
 mode == "summary" && source == "samtools" {
-  reference_bases++
+  covered_bases++
   depth_sum += $3
-  if ($3 > 0) {
-    covered_bases++
-  }
   next
 }
 

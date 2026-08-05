@@ -223,7 +223,12 @@ mod tests {
             assert!(material.execution.measured_command[2].contains("bam_coverage.awk"));
             assert_eq!(material.execution.parameters.effective_path, "effective-parameters.json");
             assert_eq!(material.execution.acceptance.metrics.len(), 4);
-            let expected_files = if attempt.identity.tool_id == "mosdepth" { 21 } else { 18 };
+            let expected_files =
+                if matches!(attempt.identity.tool_id.as_str(), "mosdepth" | "samtools") {
+                    21
+                } else {
+                    18
+                };
             assert_eq!(material.execution.required_files.len(), expected_files);
         }
         Ok(())

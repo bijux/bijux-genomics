@@ -7,7 +7,7 @@ pub(super) fn warmup_command(tool: &str) -> Vec<String> {
     shell(match tool {
         "bedtools" => format!("bedtools genomecov -ibam {BAM} -bga > /scratch/warmup.bedgraph"),
         "mosdepth" => format!("mosdepth --threads 4 --no-per-base /scratch/warmup {BAM}"),
-        "samtools" => format!("samtools depth -aa {BAM} > /scratch/warmup.depth.tsv"),
+        "samtools" => format!("samtools depth {BAM} > /scratch/warmup.depth.tsv"),
         _ => "false".to_string(),
     })
 }
@@ -40,9 +40,11 @@ pub(super) fn measured_command(
             vec!["mosdepth.summary.txt", "mosdepth.global.dist.txt"],
         ),
         "samtools" => (
-            format!("samtools depth -aa {BAM} > \"${{prefix}}.depth.tsv\""),
-            "\"${prefix}.depth.tsv\"".to_string(),
-            vec!["depth.tsv"],
+            format!(
+                "samtools depth {BAM} > \"${{prefix}}.depth.tsv\"\nsamtools view -H {BAM} | awk -F '\\t' 'BEGIN {{OFS=\"\\t\"}} $1 == \"@SQ\" {{for (i=2; i<=NF; i++) if ($i ~ /^LN:/) total += substr($i, 4)}} END {{if (total <= 0) exit 2; print \"reference_bases\", total}}' > \"${{prefix}}.reference-span.tsv\""
+            ),
+            "\"${prefix}.depth.tsv\" \"${prefix}.reference-span.tsv\"".to_string(),
+            vec!["depth.tsv", "reference-span.tsv"],
         ),
         _ => ("false".to_string(), String::new(), Vec::new()),
     };
@@ -72,7 +74,7 @@ pub(super) fn required_files(tool: &str, repetitions: u32) -> Vec<String> {
     let raw = match tool {
         "bedtools" => vec!["bedgraph"],
         "mosdepth" => vec!["mosdepth.summary.txt", "mosdepth.global.dist.txt"],
-        "samtools" => vec!["depth.tsv"],
+        "samtools" => vec!["depth.tsv", "reference-span.tsv"],
         _ => Vec::new(),
     };
     let mut files = Vec::new();
@@ -119,8 +121,10 @@ mod tests {
         std::fs::write(&bedgraph, b"chr1\t0\t4\t0\nchr1\t4\t10\t2\n")?;
         std::fs::write(
             &depth,
-            b"chr1\t1\t0\nchr1\t2\t0\nchr1\t3\t0\nchr1\t4\t0\nchr1\t5\t2\nchr1\t6\t2\nchr1\t7\t2\nchr1\t8\t2\nchr1\t9\t2\nchr1\t10\t2\n",
+            b"chr1\t5\t2\nchr1\t6\t2\nchr1\t7\t2\nchr1\t8\t2\nchr1\t9\t2\nchr1\t10\t2\n",
         )?;
+        let reference_span = temporary.path().join("coverage.reference-span.tsv");
+        std::fs::write(&reference_span, b"reference_bases\t10\n")?;
         std::fs::write(
             &summary,
             b"chrom\tlength\tbases\tmean\tmin\tmax\ntotal\t10\t12\t1.2\t0\t2\n",
@@ -129,7 +133,7 @@ mod tests {
 
         let expected = "metric\tvalue\nreference_bases\t10\ncovered_bases\t6\ncoverage_fraction\t0.600000000000\nmean_depth\t1.200000000000\n";
         assert_eq!(normalize("bedtools", &[bedgraph])?, expected);
-        assert_eq!(normalize("samtools", &[depth])?, expected);
+        assert_eq!(normalize("samtools", &[depth, reference_span])?, expected);
         assert_eq!(normalize("mosdepth", &[summary, distribution])?, expected);
         Ok(())
     }
@@ -139,6 +143,10 @@ mod tests {
         for tool in ["bedtools", "mosdepth", "samtools"] {
             let command = measured_command(tool, "ERR2112767", 23, 3, 26);
             assert!(command[2].contains("bam_coverage.awk"));
+            if tool == "samtools" {
+                assert!(command[2].contains("samtools view -H"));
+                assert!(!command[2].contains("depth -aa"));
+            }
             let required = required_files(tool, 3);
             assert!(required.contains(&"repetitions/repetition-3.metrics.json".to_string()));
             assert!(required.contains(&"repetitions/repetition-3.resource.tsv".to_string()));
