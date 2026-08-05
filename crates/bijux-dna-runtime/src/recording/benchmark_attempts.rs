@@ -502,12 +502,8 @@ fn validate_attempt_directory_shape(attempt_directory: &Path) -> Result<()> {
             if !file_type.is_file() || file_type.is_symlink() {
                 bail!("benchmark initial attempt record is not a regular file");
             }
-        } else if name == TRANSITIONS_DIR {
-            if !file_type.is_dir() || file_type.is_symlink() {
-                bail!("benchmark transition evidence is not a regular directory");
-            }
-        } else {
-            bail!("benchmark attempt directory contains an unmanaged entry");
+        } else if name == TRANSITIONS_DIR && (!file_type.is_dir() || file_type.is_symlink()) {
+            bail!("benchmark transition evidence is not a regular directory");
         }
     }
     Ok(())

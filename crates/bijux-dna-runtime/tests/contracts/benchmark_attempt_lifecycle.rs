@@ -199,14 +199,13 @@ fn lifecycle_store_requires_existing_terminal_retry_lineage() -> anyhow::Result<
 }
 
 #[test]
-fn lifecycle_store_rejects_unmanaged_or_malformed_evidence() -> anyhow::Result<()> {
+fn lifecycle_store_ignores_foreign_artifacts_and_rejects_malformed_evidence() -> anyhow::Result<()> {
     let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-malformed");
     let initial = planned("attempt-001");
     let directory = initialize_attempt_lifecycle(temporary.path(), &initial)?;
     std::fs::write(directory.join("unexpected.txt"), b"not governed")?;
-    assert!(load_attempt_lifecycle(temporary.path(), &initial.identity).is_err());
+    assert_eq!(load_attempt_lifecycle(temporary.path(), &initial.identity)?, initial);
 
-    std::fs::remove_file(directory.join("unexpected.txt"))?;
     std::fs::create_dir(directory.join("transitions"))?;
     std::fs::write(directory.join("transitions/2.json"), b"{}")?;
     assert!(load_attempt_lifecycle(temporary.path(), &initial.identity).is_err());

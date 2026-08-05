@@ -16,6 +16,7 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 - Load governed runtime registry metadata.
 - Assemble provenance, telemetry, and observability records from declared inputs.
 - Persist and reconstruct immutable benchmark attempt identities and sequence-addressed transitions.
+- Validate only runtime-owned lifecycle entries inside benchmark attempt directories; sibling execution and evidence artifacts remain owned by their producing crates.
 
 ## Forbidden Responsibilities
 - Spawning processes or invoking Docker/Apptainer directly.
