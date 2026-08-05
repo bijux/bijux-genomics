@@ -22,6 +22,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_reports_from_dir(path, registry, interfaces)` admits checksummed reports against supplied authorities; raw report values are never returned to aggregation callers.
 - `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
 - `plan_stage_campaign_attempts(registry, run_id, campaign_id, attempt_id, observed_at_utc)` deterministically derives one validated planned attempt per declared tool.
+- `ensure_stage_campaign_attempts(root, cycle)` preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
 - `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.
 - `initialize_attempt_lifecycle(root, record)` delegates publication of one immutable planned attempt to runtime.
 - `append_attempt_lifecycle_transition(root, identity, transition)` delegates one no-clobber lifecycle event to runtime.

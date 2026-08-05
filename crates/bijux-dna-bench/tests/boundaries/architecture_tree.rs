@@ -95,8 +95,8 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/campaign_lifecycle")),
-        entries(["mod.rs", "planning.rs"]),
-        "campaign lifecycle tree must separate its stable facade from planning logic"
+        entries(["mod.rs", "planning.rs", "storage.rs"]),
+        "campaign lifecycle tree must separate its stable facade, planning, and storage logic"
     );
 
     assert_eq!(
@@ -184,6 +184,7 @@ fn commands_doc_lists_managed_benchmark_operations() {
         "verify-attempt-migration",
         "rollback-attempt-migration",
         "plan-stage-campaign-attempts",
+        "ensure-stage-campaign-attempts",
         "derive-stage-coverage",
         "publish-checked-in-stage-coverage",
     ] {
