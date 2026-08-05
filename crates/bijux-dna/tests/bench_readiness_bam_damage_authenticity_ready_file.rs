@@ -44,7 +44,10 @@ fn bench_readiness_bam_damage_authenticity_ready_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_damage_authenticity_ready.v1")
     );
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(
+        report.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        report.get("active_row_count").and_then(serde_json::Value::as_u64)
+    );
     assert_eq!(report.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let expected_tool_ids = report

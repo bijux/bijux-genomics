@@ -50,8 +50,8 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     );
     assert_eq!(payload["sample_id"], serde_json::json!("adna_damage_non_udg"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
-    assert_eq!(payload["method"], serde_json::json!("ngsbriggs"));
-    assert_eq!(payload["tools_seen"], serde_json::json!(["ngsbriggs", "mapdamage2"]));
+    assert_eq!(payload["method"], serde_json::json!("mapdamage2"));
+    assert_eq!(payload["tools_seen"], serde_json::json!(["mapdamage2", "pydamage"]));
     assert_eq!(payload["terminal_c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(payload["terminal_g_to_a_3p"], serde_json::json!(0.11));
     assert_eq!(payload["short_fragment_fraction"], serde_json::json!(1.0));
@@ -72,10 +72,8 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     let damage_profile = repo_root.join(
         payload["damage_profile"].as_str().unwrap_or_else(|| panic!("damage_profile path missing")),
     );
-    let damage_parameters = repo_root.join(
-        payload["damage_parameters"]
-            .as_str()
-            .unwrap_or_else(|| panic!("damage_parameters path missing")),
+    let damage_plot = repo_root.join(
+        payload["damage_plot"].as_str().unwrap_or_else(|| panic!("damage_plot path missing")),
     );
     let advisory_boundary = repo_root.join(
         payload["advisory_boundary"]
@@ -92,7 +90,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         &terminal_position_metrics,
         &parser_output,
         &damage_profile,
-        &damage_parameters,
+        &damage_plot,
         &advisory_boundary,
         &udg_regime,
         &stage_metrics,
@@ -100,16 +98,16 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         assert!(path.is_file(), "governed BAM damage artifact must exist: {}", path.display());
     }
     assert!(
-        payload.get("damage_plot").is_none(),
-        "ngsbriggs local-smoke proof must not claim undeclared damage_plot output"
+        payload.get("damage_parameters").is_none(),
+        "mapdamage2 local-smoke proof must not claim undeclared damage_parameters output"
     );
     assert!(
         payload.get("damage_clusters").is_none(),
-        "ngsbriggs local-smoke proof must not claim undeclared damage_clusters output"
+        "mapdamage2 local-smoke proof must not claim undeclared damage_clusters output"
     );
     assert!(
         payload.get("pmd_scores").is_none(),
-        "ngsbriggs local-smoke proof must not claim undeclared pmd_scores output"
+        "mapdamage2 local-smoke proof must not claim undeclared pmd_scores output"
     );
 
     let summary_json: serde_json::Value =
@@ -126,7 +124,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         serde_json::from_str(&std::fs::read_to_string(&terminal_position_metrics)?)?;
     assert_eq!(unified_json["canonical"]["c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(unified_json["canonical"]["g_to_a_3p"], serde_json::json!(0.11));
-    assert_eq!(unified_json["tools_seen"], serde_json::json!(["ngsbriggs", "mapdamage2"]));
+    assert_eq!(unified_json["tools_seen"], serde_json::json!(["mapdamage2", "pydamage"]));
 
     let parser_output_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&parser_output)?)?;
@@ -135,7 +133,7 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         serde_json::json!("bijux.bam.damage.parser_output.v1")
     );
     assert_eq!(parser_output_json["stage_id"], serde_json::json!("bam.damage"));
-    assert_eq!(parser_output_json["parsed_tools"][0]["tool_id"], serde_json::json!("ngsbriggs"));
+    assert_eq!(parser_output_json["parsed_tools"][0]["tool_id"], serde_json::json!("mapdamage2"));
 
     let advisory_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&advisory_boundary)?)?;
@@ -149,8 +147,8 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         serde_json::json!("bijux.bam.damage.stage_metrics.v1")
     );
     assert_eq!(stage_metrics_json["sample_id"], serde_json::json!("adna_damage_non_udg"));
-    assert_eq!(stage_metrics_json["tool_id"], serde_json::json!("ngsbriggs"));
-    assert_eq!(stage_metrics_json["tools_seen"], serde_json::json!(["ngsbriggs", "mapdamage2"]));
+    assert_eq!(stage_metrics_json["tool_id"], serde_json::json!("mapdamage2"));
+    assert_eq!(stage_metrics_json["tools_seen"], serde_json::json!(["mapdamage2", "pydamage"]));
     assert_eq!(stage_metrics_json["expected_terminal_c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(stage_metrics_json["terminal_c_to_t_5p"], serde_json::json!(0.18));
     assert_eq!(stage_metrics_json["terminal_c_to_t_5p_delta"], serde_json::json!(0.0));
