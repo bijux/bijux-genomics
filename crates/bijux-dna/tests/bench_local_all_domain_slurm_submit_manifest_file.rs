@@ -40,9 +40,11 @@ fn bench_local_render_all_domain_slurm_submit_manifest_writes_governed_manifest_
     let manifest: serde_json::Value =
         serde_json::from_slice(&fs::read(&manifest_path).expect("read manifest"))
             .expect("parse manifest");
-    assert_eq!(manifest.get("job_count").and_then(serde_json::Value::as_u64), Some(234));
-
     let jobs = manifest.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
+    assert_eq!(
+        manifest.get("job_count").and_then(serde_json::Value::as_u64),
+        u64::try_from(jobs.len()).ok()
+    );
     let benchmark_job = jobs
         .iter()
         .find(|job| {

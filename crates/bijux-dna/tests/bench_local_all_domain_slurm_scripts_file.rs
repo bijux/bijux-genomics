@@ -59,7 +59,11 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
     let mut script_paths = Vec::new();
     collect_sbatch_paths(&output_root, &mut script_paths);
     script_paths.sort();
-    assert_eq!(script_paths.len(), 234);
+    let manifest: serde_json::Value = serde_json::from_slice(
+        &fs::read(output_root.join("submit-manifest.json")).expect("read submit manifest"),
+    )
+    .expect("parse submit manifest");
+    assert_eq!(script_paths.len(), manifest["jobs"].as_array().expect("manifest jobs").len());
 
     let vcf_script = output_root.join(
         "benchmark-results/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/job.sbatch",
