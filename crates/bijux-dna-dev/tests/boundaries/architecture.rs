@@ -120,6 +120,7 @@ fn dev_tree_matches_architecture_contract() {
         "content_support.rs",
         "contracts.rs",
         "dispatch.rs",
+        "image_activation.rs",
         "inventory/",
         "metadata.rs",
         "mod.rs",

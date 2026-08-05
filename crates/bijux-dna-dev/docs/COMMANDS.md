@@ -266,6 +266,7 @@ generate-tool-ids
 generate-tool-name-map
 generate-version-lock
 generate-versions-index-sha
+image-activation
 image-qa
 image-smoke-vcf
 image-storage
