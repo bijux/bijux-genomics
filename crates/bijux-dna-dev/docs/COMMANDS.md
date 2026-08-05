@@ -445,3 +445,8 @@ material preflight before the first scheduler effect, then submits every governe
 runner's intent-first API and records each returned Slurm job identity. It returns after submission
 without observing or polling jobs; repeating it with the same timestamps recovers persisted handles
 without duplicate submission.
+
+`benchmark-campaign-cycle reconcile-fastq-read-lengths` performs at most one scheduler observation
+for each submitted or running attempt. It records running and terminal accounting transitions,
+reports non-runnable lifecycle states without polling them, and never loops or waits for scheduler
+state to change.

@@ -7,7 +7,7 @@ use anyhow::{bail, Context};
 
 use super::{OpsCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
@@ -143,6 +143,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "initialize" => initialize(workspace, &options),
         "prepare-fastq-read-lengths" => prepare_fastq_read_lengths(workspace, &options),
         "submit-fastq-read-lengths" => submit_fastq_read_lengths(workspace, &options),
+        "reconcile-fastq-read-lengths" => reconcile_fastq_read_lengths(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
 }
@@ -267,6 +268,158 @@ fn prepare_fastq_campaign(
         )?;
     }
     Ok(PreparedFastqCampaign { benchmark_root, jobs: prepared })
+}
+
+fn reconcile_fastq_read_lengths(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(options, &["--benchmark-root", "--observed-at-utc", "--plan"])?;
+    let observed_at_utc = required(options, "--observed-at-utc")?;
+    let plan_path = resolve_path(workspace, required(options, "--plan")?);
+    let plan = read_plan(&plan_path)?;
+    let (repository_commit, campaign_registry_sha256) = source_identity(workspace)?;
+    bijux_dna_bench::verify_campaign_plan_source(
+        &plan,
+        &repository_commit,
+        &campaign_registry_sha256,
+    )?;
+    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark result root")?;
+    let scheduler = bijux_dna_runner::api::SlurmClientPaths::default();
+    let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
+    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+    let mut observations = Vec::new();
+    for attempt in attempts {
+        let identity = &attempt.identity;
+        let lifecycle = bijux_dna_bench::load_attempt_lifecycle(&benchmark_root, identity)?;
+        let Some(status) = lifecycle.current_status() else {
+            bail!("benchmark attempt has no current lifecycle status");
+        };
+        if !matches!(
+            status,
+            bijux_dna_bench::BenchmarkLifecycleStatus::Submitted
+                | bijux_dna_bench::BenchmarkLifecycleStatus::Running
+        ) {
+            observations.push(format!(
+                "{}\t{}\tnot_polled",
+                identity.tool_id,
+                lifecycle_status(status)
+            ));
+            continue;
+        }
+        let spec = bijux_dna_bench::load_execution_spec(&benchmark_root, identity)?;
+        let handle = bijux_dna_runner::api::load_benchmark_slurm_job_handle(&spec)?;
+        let observation =
+            bijux_dna_runner::api::observe_slurm_job(&scheduler, &handle, observed_at_utc)?;
+        let job = bijux_dna_bench::BenchmarkJobReference {
+            scheduler: "slurm".to_string(),
+            job_id: handle.job_id.clone(),
+        };
+        if observation.state == bijux_dna_runner::api::SlurmJobState::Running {
+            bijux_dna_runtime::record_attempt_running(
+                &benchmark_root,
+                identity,
+                observed_at_utc,
+                &job,
+            )?;
+        } else if observation.state.is_terminal() {
+            let accounting = observation
+                .accounting
+                .as_ref()
+                .context("terminal benchmark observation omits scheduler accounting")?;
+            bijux_dna_runtime::record_attempt_accounting(
+                &benchmark_root,
+                identity,
+                observed_at_utc,
+                benchmark_accounting(accounting)?,
+            )?;
+        }
+        observations.push(format!(
+            "{}\t{}\t{}",
+            identity.tool_id,
+            handle.job_id,
+            slurm_state(observation.state)
+        ));
+    }
+    Ok(OpsCommandOutcome::success(format!(
+        "reconciled {} benchmark attempts with at most one scheduler observation each\n{}\n",
+        observations.len(),
+        observations.join("\n")
+    )))
+}
+
+fn benchmark_accounting(
+    accounting: &bijux_dna_runner::api::SlurmAccounting,
+) -> Result<bijux_dna_bench::BenchmarkSchedulerAccounting> {
+    let state = match accounting.state {
+        bijux_dna_runner::api::SlurmJobState::Completed => {
+            bijux_dna_bench::BenchmarkSchedulerTerminalState::Completed
+        }
+        bijux_dna_runner::api::SlurmJobState::Failed => {
+            bijux_dna_bench::BenchmarkSchedulerTerminalState::Failed
+        }
+        bijux_dna_runner::api::SlurmJobState::Cancelled => {
+            bijux_dna_bench::BenchmarkSchedulerTerminalState::Cancelled
+        }
+        bijux_dna_runner::api::SlurmJobState::Timeout => {
+            bijux_dna_bench::BenchmarkSchedulerTerminalState::Timeout
+        }
+        bijux_dna_runner::api::SlurmJobState::Preempted => {
+            bijux_dna_bench::BenchmarkSchedulerTerminalState::Preempted
+        }
+        bijux_dna_runner::api::SlurmJobState::NodeFailure => {
+            bijux_dna_bench::BenchmarkSchedulerTerminalState::NodeFailure
+        }
+        bijux_dna_runner::api::SlurmJobState::OutOfMemory => {
+            bijux_dna_bench::BenchmarkSchedulerTerminalState::OutOfMemory
+        }
+        _ => bail!("benchmark accounting is not terminal"),
+    };
+    Ok(bijux_dna_bench::BenchmarkSchedulerAccounting {
+        scheduler: "slurm".to_string(),
+        job_id: accounting.job_id.clone(),
+        state,
+        raw_state: accounting.raw_state.clone(),
+        exit_code: accounting.exit_code,
+        signal: accounting.signal,
+        elapsed_seconds: accounting.elapsed_seconds,
+        total_cpu_seconds: accounting.total_cpu_seconds,
+        max_rss_bytes: accounting.max_rss_bytes,
+        node_list: accounting.node_list.clone(),
+        reason: accounting.reason.clone(),
+    })
+}
+
+fn slurm_state(state: bijux_dna_runner::api::SlurmJobState) -> &'static str {
+    match state {
+        bijux_dna_runner::api::SlurmJobState::Submitted => "submitted",
+        bijux_dna_runner::api::SlurmJobState::Pending => "pending",
+        bijux_dna_runner::api::SlurmJobState::Running => "running",
+        bijux_dna_runner::api::SlurmJobState::Completed => "completed",
+        bijux_dna_runner::api::SlurmJobState::Failed => "failed",
+        bijux_dna_runner::api::SlurmJobState::Cancelled => "cancelled",
+        bijux_dna_runner::api::SlurmJobState::Timeout => "timeout",
+        bijux_dna_runner::api::SlurmJobState::Preempted => "preempted",
+        bijux_dna_runner::api::SlurmJobState::NodeFailure => "node_failure",
+        bijux_dna_runner::api::SlurmJobState::OutOfMemory => "out_of_memory",
+        bijux_dna_runner::api::SlurmJobState::AccountingPending => "accounting_pending",
+    }
+}
+
+fn lifecycle_status(status: bijux_dna_bench::BenchmarkLifecycleStatus) -> &'static str {
+    match status {
+        bijux_dna_bench::BenchmarkLifecycleStatus::Planned => "planned",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Ready => "ready",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Submitted => "submitted",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Running => "running",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Collecting => "collecting",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Passed => "passed",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Failed => "failed",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Superseded => "superseded",
+        bijux_dna_bench::BenchmarkLifecycleStatus::BlockedExternal => "blocked_external",
+    }
 }
 
 fn execution_schema(
@@ -422,7 +575,8 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_options, require_exact_options, FASTQ_PREPARATION_OPTIONS, FASTQ_SUBMISSION_OPTIONS,
+        benchmark_accounting, parse_options, require_exact_options, FASTQ_PREPARATION_OPTIONS,
+        FASTQ_SUBMISSION_OPTIONS,
     };
 
     #[test]
@@ -501,6 +655,28 @@ mod tests {
             "2026-08-05T03:00:00Z".into(),
         ])?;
         assert!(require_exact_options(&options, FASTQ_SUBMISSION_OPTIONS).is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn scheduler_accounting_maps_terminal_evidence_without_loss() -> anyhow::Result<()> {
+        let accounting = bijux_dna_runner::api::SlurmAccounting {
+            job_id: "456789".to_string(),
+            state: bijux_dna_runner::api::SlurmJobState::OutOfMemory,
+            raw_state: "OUT_OF_MEMORY".to_string(),
+            exit_code: 1,
+            signal: 9,
+            elapsed_seconds: 12,
+            total_cpu_seconds: 17,
+            max_rss_bytes: Some(4096),
+            node_list: "node1".to_string(),
+            reason: Some("memory limit".to_string()),
+        };
+        let mapped = benchmark_accounting(&accounting)?;
+        assert_eq!(mapped.job_id, accounting.job_id);
+        assert_eq!(mapped.raw_state, accounting.raw_state);
+        assert_eq!(mapped.max_rss_bytes, accounting.max_rss_bytes);
+        assert_eq!(mapped.state, bijux_dna_bench::BenchmarkSchedulerTerminalState::OutOfMemory);
         Ok(())
     }
 }
