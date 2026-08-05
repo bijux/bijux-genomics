@@ -15,10 +15,9 @@ const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-
 const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
-const LEGACY_AUTHORITIES: [&str; 3] = [
+const LEGACY_AUTHORITIES: [&str; 2] = [
     "benchmarks/benchmark_evidence.py",
     "containers/contracts/container_validation.py",
-    "containers/contracts/image_storage.py",
 ];
 const CRATE_SCOPES: [&str; 11] = [
     "crates/bijux-dna-bench-model/",
