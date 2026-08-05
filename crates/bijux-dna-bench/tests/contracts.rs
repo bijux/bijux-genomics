@@ -17,6 +17,8 @@ mod mod_contracts_campaign_lifecycle_rs;
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]
 mod mod_contracts_docs_fixtures_rs;
+#[path = "contracts/execution_planning.rs"]
+mod mod_contracts_execution_planning_rs;
 #[path = "contracts/benching/fastq_local_stage_matrix.rs"]
 mod mod_contracts_fastq_local_stage_matrix_rs;
 #[path = "contracts/benching/gate.rs"]

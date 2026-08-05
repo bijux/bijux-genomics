@@ -84,6 +84,8 @@ including:
 - `BenchRunOptions`
 - `benchmark_execution_spec_schema`
 - `validate_execution_spec`
+- `build_execution_spec`
+- `BenchmarkExecutionMaterial`
 
 ## Export Policy
 
