@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context};
+use chrono::{DateTime, Duration, Utc};
 
 use self::lifecycle::{
     execution_schema, initialize, plan, plan_retry, scheduler_observation_schema, schema, supersede,
@@ -272,6 +273,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         return Ok(OpsCommandOutcome::failure(USAGE));
     };
     let options = parse_options(remaining).context("parse benchmark campaign cycle options")?;
+    validate_operation_timestamps(operation, &options)?;
     match operation.as_str() {
         "schema" => schema(workspace, &options),
         "execution-schema" => execution_schema(workspace, &options),
@@ -904,6 +906,36 @@ fn required<'a>(options: &'a BTreeMap<String, String>, name: &str) -> Result<&'a
     Ok(value)
 }
 
+fn validate_operation_timestamps(
+    operation: &str,
+    options: &BTreeMap<String, String>,
+) -> Result<()> {
+    let names: &[&str] = match operation {
+        "plan" | "plan-retry" | "supersede" | "reconcile" => &["--observed-at-utc"],
+        "prepare" => &["--prepared-at-utc"],
+        "submit" => &["--prepared-at-utc", "--submitted-at-utc"],
+        "admit" => &["--admitted-at-utc"],
+        _ => return Ok(()),
+    };
+    let now = Utc::now();
+    for name in names {
+        validate_operator_timestamp_at(required(options, name)?, name, now)?;
+    }
+    Ok(())
+}
+
+fn validate_operator_timestamp_at(value: &str, name: &str, now: DateTime<Utc>) -> Result<()> {
+    let parsed = DateTime::parse_from_rfc3339(value)
+        .with_context(|| format!("benchmark campaign cycle timestamp is not RFC 3339: {name}"))?;
+    if parsed.offset().local_minus_utc() != 0 {
+        bail!("benchmark campaign cycle timestamp is not UTC: {name}");
+    }
+    if parsed.with_timezone(&Utc) > now + Duration::minutes(5) {
+        bail!("benchmark campaign cycle timestamp is ahead of host UTC: {name}");
+    }
+    Ok(())
+}
+
 fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
     let path = Path::new(value);
     if path.is_absolute() {
@@ -915,10 +947,13 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
+    use chrono::{TimeZone, Utc};
+
     use super::{
         has_crate_owned_campaign_material, parse_options, require_exact_options,
         scheduler::{benchmark_accounting, benchmark_observation},
-        BENCHMARK_PREPARATION_OPTIONS, BENCHMARK_SUBMISSION_OPTIONS,
+        validate_operator_timestamp_at, BENCHMARK_PREPARATION_OPTIONS,
+        BENCHMARK_SUBMISSION_OPTIONS,
     };
 
     #[test]
@@ -939,6 +974,28 @@ mod tests {
             "run-2043".into(),
         ])
         .is_err());
+    }
+
+    #[test]
+    fn operator_timestamp_guard_accepts_replay_and_small_clock_skew() -> anyhow::Result<()> {
+        let now = Utc.with_ymd_and_hms(2026, 8, 5, 18, 0, 0).single().unwrap();
+        validate_operator_timestamp_at("2025-01-01T00:00:00Z", "--observed-at-utc", now)?;
+        validate_operator_timestamp_at("2026-08-05T18:05:00Z", "--observed-at-utc", now)?;
+        Ok(())
+    }
+
+    #[test]
+    fn operator_timestamp_guard_rejects_future_non_utc_and_malformed_values() {
+        let now = Utc.with_ymd_and_hms(2026, 8, 5, 18, 0, 0).single().unwrap();
+        assert!(validate_operator_timestamp_at("2026-08-05T18:05:01Z", "--submitted-at-utc", now)
+            .is_err());
+        assert!(validate_operator_timestamp_at(
+            "2026-08-05T20:00:00+02:00",
+            "--submitted-at-utc",
+            now
+        )
+        .is_err());
+        assert!(validate_operator_timestamp_at("not-a-time", "--submitted-at-utc", now).is_err());
     }
 
     #[test]
