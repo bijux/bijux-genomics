@@ -131,3 +131,34 @@ pub struct AdmittedFastqCorpus {
     pub input_bytes: u64,
     pub samples: Vec<AdmittedFastqCorpusSample>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqReadLengthExpectationSample {
+    pub sample_id: String,
+    pub input_layout: BenchmarkFastqLayout,
+    pub file_count: u64,
+    pub read_count: u64,
+    pub minimum_read_length: u64,
+    pub mean_read_length: f64,
+    pub median_read_length: f64,
+    pub maximum_read_length: u64,
+    pub distinct_read_lengths: u64,
+    pub summary_path: String,
+    pub summary_sha256: String,
+    pub histogram_path: String,
+    pub histogram_sha256: String,
+    pub exact_rows_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqReadLengthExpectations {
+    pub schema_version: String,
+    pub corpus_id: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub data_index_sha256: String,
+    pub catalog_sha256: String,
+    pub samples: Vec<FastqReadLengthExpectationSample>,
+}

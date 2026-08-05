@@ -4,6 +4,7 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod corpus_expectations;
 mod execution;
 mod interfaces;
 mod lifecycle;
@@ -12,6 +13,7 @@ mod records;
 mod report;
 mod schema_versions;
 mod suite;
+pub use corpus_expectations::validate_fastq_read_length_expectations;
 pub use execution::validate_execution_spec;
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
@@ -43,7 +45,7 @@ pub use schema_versions::{
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
     BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1, BUNDLE_SCHEMA_V1,
-    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1,
-    SUMMARY_SCHEMA_V1,
+    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use suite::validate_suite;
