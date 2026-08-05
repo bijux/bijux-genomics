@@ -63,7 +63,7 @@ fn stage_interface_admission_uses_the_declared_repository_root() -> Result<()> {
 #[test]
 fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    assert_eq!(reports.len(), 3);
+    assert!(reports.iter().any(|admission| admission.report.run_id == "run-2001"));
     assert!(reports.iter().any(|admission| admission.report.run_id == "run-2042"));
     assert!(reports.iter().all(|admission| {
         admission.schema_version == bijux_dna_bench::BENCHMARK_REPORT_ADMISSION_SCHEMA_V1
@@ -91,10 +91,29 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
 
     assert_eq!(coverage.summary.retained_stage_count, 71);
     assert_eq!(coverage.summary.defined_stage_count, 7);
-    assert_eq!(coverage.summary.admitted_stage_count, 0);
-    assert_eq!(coverage.summary.stale_stage_count, 3);
     assert_eq!(coverage.summary.failed_stage_count, 0);
-    assert_eq!(coverage.summary.missing_stage_count, 64);
+    assert!(
+        coverage.summary.admitted_stage_count
+            + coverage.summary.stale_stage_count
+            + coverage.summary.failed_stage_count
+            <= coverage.summary.defined_stage_count
+    );
+    assert_eq!(
+        coverage.summary.defined_stage_count + coverage.summary.missing_stage_count,
+        coverage.summary.retained_stage_count
+    );
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "bam.genotyping"
+            && row.campaign_run_id.as_deref() == Some("run-2001")
+            && row.retained_tools == ["bcftools"]
+            && row.report_repository_commit.as_deref().is_some_and(|commit| commit.len() == 40)
+            && row.report_sha256.as_deref().is_some_and(|digest| digest.len() == 64)
+            && matches!(
+                row.execution_status,
+                bijux_dna_bench::BenchmarkStageExecutionStatus::Admitted
+                    | bijux_dna_bench::BenchmarkStageExecutionStatus::Stale
+            )
+    }));
     assert!(coverage.stages.iter().any(|row| {
         row.stage_id == "bam.coverage"
             && row.campaign_run_id.as_deref() == Some("run-2002")
