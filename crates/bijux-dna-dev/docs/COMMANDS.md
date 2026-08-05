@@ -450,3 +450,7 @@ without duplicate submission.
 for each submitted or running attempt. It records running and terminal accounting transitions,
 reports non-runnable lifecycle states without polling them, and never loops or waits for scheduler
 state to change.
+
+`benchmark-campaign-cycle admit-fastq-read-lengths` admits only terminally collected attempts. It
+uses benchmark-owned validation to rehash exact output closure, evaluate declared metrics and the
+downstream probe, publish immutable acceptance evidence, and record `passed` lifecycle transitions.

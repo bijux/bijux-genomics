@@ -7,7 +7,7 @@ use anyhow::{bail, Context};
 
 use super::{OpsCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --study-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
@@ -144,6 +144,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "prepare-fastq-read-lengths" => prepare_fastq_read_lengths(workspace, &options),
         "submit-fastq-read-lengths" => submit_fastq_read_lengths(workspace, &options),
         "reconcile-fastq-read-lengths" => reconcile_fastq_read_lengths(workspace, &options),
+        "admit-fastq-read-lengths" => admit_fastq_read_lengths(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
 }
@@ -347,6 +348,65 @@ fn reconcile_fastq_read_lengths(
         "reconciled {} benchmark attempts with at most one scheduler observation each\n{}\n",
         observations.len(),
         observations.join("\n")
+    )))
+}
+
+fn admit_fastq_read_lengths(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(
+        options,
+        &["--admitted-at-utc", "--benchmark-root", "--plan", "--study-root"],
+    )?;
+    let admitted_at_utc = required(options, "--admitted-at-utc")?;
+    let plan_path = resolve_path(workspace, required(options, "--plan")?);
+    let plan = read_plan(&plan_path)?;
+    let (repository_commit, campaign_registry_sha256) = source_identity(workspace)?;
+    bijux_dna_bench::verify_campaign_plan_source(
+        &plan,
+        &repository_commit,
+        &campaign_registry_sha256,
+    )?;
+    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark result root")?;
+    let study_root = resolve_path(workspace, required(options, "--study-root")?)
+        .canonicalize()
+        .context("canonicalize STUDY root")?;
+    let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
+    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+    let mut admitted = Vec::new();
+    for attempt in attempts {
+        let identity = &attempt.identity;
+        let lifecycle = bijux_dna_bench::load_attempt_lifecycle(&benchmark_root, identity)?;
+        if !matches!(
+            lifecycle.current_status(),
+            Some(
+                bijux_dna_bench::BenchmarkLifecycleStatus::Collecting
+                    | bijux_dna_bench::BenchmarkLifecycleStatus::Passed
+            )
+        ) {
+            bail!("benchmark admission requires collecting or passed attempts");
+        }
+        let spec = bijux_dna_bench::load_execution_spec(&benchmark_root, identity)?;
+        let publication = bijux_dna_bench::admit_benchmark_execution_outputs(
+            &study_root,
+            &spec,
+            admitted_at_utc,
+        )?;
+        bijux_dna_runtime::record_attempt_acceptance(
+            &benchmark_root,
+            identity,
+            admitted_at_utc,
+            vec![publication.evidence.clone()],
+        )?;
+        admitted.push(format!("{}\t{}", identity.tool_id, publication.evidence.uri));
+    }
+    Ok(OpsCommandOutcome::success(format!(
+        "admitted {} benchmark attempts from verified output closure\n{}\n",
+        admitted.len(),
+        admitted.join("\n")
     )))
 }
 
@@ -677,6 +737,26 @@ mod tests {
         assert_eq!(mapped.raw_state, accounting.raw_state);
         assert_eq!(mapped.max_rss_bytes, accounting.max_rss_bytes);
         assert_eq!(mapped.state, bijux_dna_bench::BenchmarkSchedulerTerminalState::OutOfMemory);
+        Ok(())
+    }
+
+    #[test]
+    fn fastq_admission_contract_requires_study_authority() -> anyhow::Result<()> {
+        let options = parse_options(&[
+            "--admitted-at-utc".into(),
+            "2026-08-05T04:00:00Z".into(),
+            "--benchmark-root".into(),
+            "/study/results/benchmarks".into(),
+            "--plan".into(),
+            "/study/plan.json".into(),
+            "--study-root".into(),
+            "/study".into(),
+        ])?;
+        assert!(require_exact_options(
+            &options,
+            &["--admitted-at-utc", "--benchmark-root", "--plan", "--study-root"]
+        )
+        .is_ok());
         Ok(())
     }
 }
