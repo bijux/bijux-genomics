@@ -55,7 +55,8 @@ pub use fastq_profile_read_lengths::{
 };
 pub use fastq_profile_reads::{
     prepare_fastq_profile_reads_material, prepare_fastq_profile_reads_material_from_expectations,
-    FastqProfileReadsMaterial,
+    publish_fastq_profile_reads_stage_report, render_fastq_profile_reads_markdown,
+    FastqProfileReadsMaterial, FastqProfileReadsStageReportPublication,
 };
 pub use options::BenchRunOptions;
 pub use report_load::{

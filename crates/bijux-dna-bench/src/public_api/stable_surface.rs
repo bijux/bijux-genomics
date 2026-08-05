@@ -30,7 +30,8 @@ pub use crate::workflow::{
     prepare_fastq_profile_reads_material, prepare_fastq_profile_reads_material_from_expectations,
     publish_bam_mapping_summary_stage_report, publish_checked_in_scientific_readiness,
     publish_checked_in_stage_coverage, publish_fastq_profile_read_lengths_stage_report,
-    render_bam_mapping_summary_markdown, render_fastq_profile_read_lengths_markdown,
+    publish_fastq_profile_reads_stage_report, render_bam_mapping_summary_markdown,
+    render_fastq_profile_read_lengths_markdown, render_fastq_profile_reads_markdown,
     render_scientific_readiness_markdown, render_stage_coverage_markdown,
     rollback_attempt_migration, summarize, verify_attempt_migration, verify_campaign_plan_source,
     write_attempt_migration_plan, BamMappingSummaryMaterial,
@@ -39,7 +40,8 @@ pub use crate::workflow::{
     BenchmarkCoverageWriteMode, BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
     FastqProfileReadLengthsMaterial, FastqProfileReadLengthsStageReportPublication,
     FastqProfileReadsExpectationPublication, FastqProfileReadsExpectationSample,
-    FastqProfileReadsMaterial, FastqReadLengthExpectationPublication,
+    FastqProfileReadsMaterial, FastqProfileReadsStageReportPublication,
+    FastqReadLengthExpectationPublication,
 };
 pub use bijux_dna_bench_model::{
     benchmark_campaign_plan_schema, benchmark_execution_spec_schema,

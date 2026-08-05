@@ -141,8 +141,13 @@ fn bench_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/workflow/fastq_profile_reads")),
-        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs"]),
-        "FASTQ profile campaign material must separate commands, inputs, and parameter evidence"
+        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs", "report/"]),
+        "FASTQ profile campaign material must separate execution and reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_profile_reads/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "FASTQ profile reporting must separate evidence, science, and rendering"
     );
 
     assert_eq!(

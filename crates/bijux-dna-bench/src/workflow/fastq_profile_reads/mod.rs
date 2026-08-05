@@ -4,6 +4,7 @@
 mod commands;
 mod inputs;
 mod parameters;
+mod report;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -21,6 +22,11 @@ use self::parameters::ensure_parameter_evidence;
 use super::{
     ensure_fastq_profile_reads_expectations, ensure_fastq_read_length_expectations,
     load_attempt_lifecycle, BenchmarkExecutionMaterial, FastqProfileReadsExpectationPublication,
+};
+
+pub use report::{
+    publish_fastq_profile_reads_stage_report, render_fastq_profile_reads_markdown,
+    FastqProfileReadsStageReportPublication,
 };
 
 const RUN_ID: &str = "run-2043";

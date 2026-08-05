@@ -465,3 +465,7 @@ without polling, and the command never loops or waits for scheduler state to cha
 `benchmark-campaign-cycle admit` admits only terminally collected attempts. It uses benchmark-owned
 validation to rehash exact output closure, evaluate declared metrics and the downstream probe,
 publish immutable acceptance evidence, and record `passed` lifecycle transitions.
+
+`benchmark-campaign-cycle publish-fastq-profile-reads` replays admitted run-2043 attempt closure,
+validates normalized TSV, bundle, metrics, and downstream-probe agreement for every repetition,
+then no-clobber publishes the comparative stage report.
