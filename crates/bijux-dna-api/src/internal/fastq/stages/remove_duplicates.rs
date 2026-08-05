@@ -1067,20 +1067,20 @@ mod tests {
     }
 
     #[test]
-    fn implicit_single_end_dedup_selection_filters_paired_only_tools() {
-        let tools = resolve_remove_duplicates_tools(
+    fn implicit_dedup_selection_rejects_unsupported_tools() {
+        let error = resolve_remove_duplicates_tools(
             &["fastuniq".to_string(), "clumpify".to_string()],
             true,
             false,
         )
-        .expect("single-end auto selection should keep only compatible tools");
-        assert_eq!(tools, vec!["clumpify".to_string()]);
+        .expect_err("unsupported tools must fail before layout filtering");
+        assert!(error.to_string().contains("unsupported"));
     }
 
     #[test]
-    fn explicit_single_end_fastuniq_request_still_fails() {
+    fn explicit_fastuniq_request_fails_as_unsupported() {
         let error = resolve_remove_duplicates_tools(&["fastuniq".to_string()], false, false)
-            .expect_err("explicit incompatible tool request must fail");
-        assert!(error.to_string().contains("single-end"));
+            .expect_err("explicit unsupported tool request must fail");
+        assert!(error.to_string().contains("unsupported"));
     }
 }
