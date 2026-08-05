@@ -275,6 +275,7 @@ release-gate
 run-apptainer-frontend-reproducibility
 run-apptainer-frontend-security
 run-apptainer-frontend-smoke
+runtime-verification
 smoke-apptainer
 smoke-containers-apptainer
 smoke-containers-apptainer-apptainer-run

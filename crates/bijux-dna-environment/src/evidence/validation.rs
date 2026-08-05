@@ -478,6 +478,10 @@ pub fn validate_runtime_verification_publication(
             bail!("runtime publication contains an empty tool identity");
         }
         validate_sha256(&evidence.image_sha256, "runtime image")?;
+        if let Some(manifest) = &evidence.manifest {
+            validate_portable_path(&manifest.path, "runtime manifest")?;
+            validate_sha256(&manifest.sha256, "runtime manifest")?;
+        }
     }
     Ok(())
 }

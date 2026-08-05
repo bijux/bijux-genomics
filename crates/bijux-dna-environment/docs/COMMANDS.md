@@ -25,8 +25,11 @@ library can manage when callers invoke the matching API.
 - `publish_canonical_apptainer_image()`: owns the complete retained-image transaction: requires a
   clean Git commit, builds under `<study>/containers/apptainer/.building`, verifies the embedded
   contract and labels, and no-clobber publishes a digest-named SIF plus build evidence.
-- `run_apptainer_smoke()`: runs offline `apptainer exec --containall --cleanenv --net --network
-  none` probes and admits version output against the catalog contract regex.
+- `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
+  bijux-runtime --net --network none` probes, persists immutable streams when requested, and
+  admits version output against the catalog contract regex.
+- `execute_runtime_verification()`: resolves canonical inventory images and runs independent
+  version/help smoke workers before publishing manifest-bound portable evidence.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
 - `apptainer_recipe_identity_at_commit()`: runs `git show --no-ext-diff` for one definition and

@@ -69,6 +69,8 @@ fn smoke_request(
         probe_commands: Vec::new(),
         java_heap_mb: None,
         upstream: "catalog-declared".to_string(),
+        evidence_root: None,
+        timeout: Duration::from_secs(2),
     })
 }
 
@@ -185,5 +187,25 @@ fn smoke_rejects_version_drift_invalid_regex_and_command_failure() -> anyhow::Re
 
     let invalid_regex = smoke_request(&temp, executable, "[")?;
     assert!(run_apptainer_smoke(&invalid_regex).is_err());
+    Ok(())
+}
+
+#[test]
+fn smoke_bounds_execution_and_persists_immutable_streams() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let executable = temp.path().join("apptainer");
+    write_executable(
+        &executable,
+        "#!/bin/sh\nprintf 'partial output\\n'\nprintf 'partial error\\n' >&2\nsleep 5\n",
+    )?;
+    let mut request = smoke_request(&temp, executable, "contract-tool 1[.]0")?;
+    request.timeout = Duration::from_millis(100);
+    request.evidence_root = Some(temp.path().join("evidence"));
+
+    let manifest = run_apptainer_smoke(&request)?;
+
+    assert_eq!(manifest.status, "wrapper_failed");
+    assert!(manifest.probe_results.iter().all(|probe| probe.timed_out));
+    assert_eq!(std::fs::read_dir(temp.path().join("evidence"))?.count(), 4);
     Ok(())
 }

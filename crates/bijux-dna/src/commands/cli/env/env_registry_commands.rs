@@ -155,6 +155,8 @@ fn execute_contract_smoke(
             probe_commands: probe_commands.to_vec(),
             java_heap_mb,
             upstream: upstream.to_string(),
+            evidence_root: None,
+            timeout: std::time::Duration::from_secs(30),
         },
     )
 }

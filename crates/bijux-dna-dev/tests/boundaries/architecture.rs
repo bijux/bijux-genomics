@@ -126,6 +126,7 @@ fn dev_tree_matches_architecture_contract() {
         "qualification/",
         "registry_catalog.rs",
         "runtime/",
+        "runtime_verification.rs",
         "storage.rs",
         "validation/",
         "version_state.rs",

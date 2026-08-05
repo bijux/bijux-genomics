@@ -8,9 +8,9 @@ CLI, runner, planner, stage, and domain crates.
 
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
-- `src/evidence/`: typed image-inventory and runtime-verification publication admission,
+- `src/evidence/`: typed image-inventory and runtime-verification execution/publication,
   cross-publication evidence-chain validation, complete catalog and recipe-closure validation,
-  and catalog-derived embedded tool identity contracts.
+  catalog-derived embedded tool identity contracts, and parallel immutable smoke evidence.
 - `src/build/`: Docker metadata, bounded Apptainer attempts, and canonical no-clobber image and
   build-evidence publication under governed study roots.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
@@ -39,6 +39,8 @@ CLI, runner, planner, stage, and domain crates.
 7. Tool-contract preparation hashes canonical catalog, recipe, source, interface, repository, and
    architecture inputs into a rendered definition; runtime inspection binds that non-circular
    identity to the externally computed immutable SIF digest.
+8. Runtime verification resolves only canonical inventory selections, executes bounded offline
+   probes in parallel, and binds immutable logs and manifests into the portable publication.
 
 ## Boundaries
 
@@ -47,8 +49,8 @@ CLI, runner, planner, stage, and domain crates.
   `ReferenceBuildRequest`.
 - The crate must not own biological stage execution, planner semantics, user CLI routing, report
   rendering, or runner backends.
-- Runtime QA orchestration belongs in `bijux-dna-environment-qa`; this crate exposes compatibility
-  helpers that the QA crate may call.
+- Cross-runtime and scientific QA orchestration belongs in `bijux-dna-environment-qa`; canonical
+  image identity and version/help admission remain environment evidence responsibilities.
 
 ## Change Rules
 

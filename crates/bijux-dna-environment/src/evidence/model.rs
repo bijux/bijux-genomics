@@ -169,6 +169,8 @@ pub struct ContainerRuntimeEvidence {
     pub version: String,
     pub image_sha256: String,
     pub status: RuntimeEvidenceStatus,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest: Option<EvidenceSourceIdentity>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

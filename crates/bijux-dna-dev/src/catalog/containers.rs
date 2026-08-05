@@ -317,6 +317,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ImageStorage,
         ),
         native(
+            "runtime-verification",
+            "Execute and publish runtime evidence for canonical Apptainer images.",
+            NativeContainerCommandKey::RuntimeVerification,
+        ),
+        native(
             "check-evidence-qualification",
             "Validate that container qualification is reproducibly derived from current evidence.",
             NativeContainerCommandKey::CheckEvidenceQualification,

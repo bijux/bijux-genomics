@@ -139,51 +139,33 @@ restoring network access:
 
 ```console
 runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
-mkdir -p "${runtime_root}"
-
-python3 -B containers/contracts/runtime_verification.py prepare \
-  --inventory "${canonical_inventory}" \
-  --catalog containers/contracts/catalog.toml \
-  --governance containers/contracts/sites/lunarc.yml \
-  --repository "${frozen_repository}" \
-  --output "${runtime_root}/execution.json"
-
-python3 -B containers/contracts/runtime_verification.py execute \
-  --execution "${runtime_root}/execution.json" \
-  --governance containers/contracts/sites/lunarc.yml \
-  --jobs 8 \
-  --timeout-seconds 30
-```
-
-The execution record retains the exact frozen repository, catalog, inventory,
-image, command, output, and log digests. A passing runtime campaign qualifies
-only the version and help dimensions. Real one-sample execution remains a
-governed Slurm run, and scientific, benchmark, security, and release claims
-remain independent. `--repository` must identify a clean checkout beneath the
-governed commit-addressed worktree root whose HEAD matches the inventory
-commit; later movement of the active checkout cannot invalidate or silently
-change this campaign.
-
-Raw execution JSON keeps the absolute paths needed to audit files at LUNARC;
-it is not suitable for a public repository. Publish portable companions before
-reviewing or importing tracked reports:
-
-```console
 publication_root="${runtime_root}/publication"
-mkdir -p "${publication_root}"
 
-python3 -B containers/contracts/runtime_verification.py publish \
-  --execution "${runtime_root}/execution.json" \
-  --study-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --repository "$(pwd)" \
-  --output "${publication_root}/runtime-verification.json"
+cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
+  /home/bijan/lu2024-12-24/Dardel/STUDY \
+  "${canonical_inventory}" \
+  "$(command -v apptainer)" \
+  /home/bijan/lu2024-12-24/Dardel/STUDY/data \
+  "${runtime_root}" \
+  "${publication_root}/runtime-verification.json" \
+  "${publication_root}/runtime-verification.md" \
+  8 \
+  30
 ```
 
-The inventory command publishes only governed `study://` and `repository://`
-identities. Runtime publication performs the same root replacement and records
-the SHA-256 of the untouched raw execution JSON. Publication fails when any
-absolute path lies outside those roots. Qualification accepts only portable
-publication schemas; execution and replay continue to use raw site records.
+The environment crate resolves every image through the canonical inventory,
+re-hashes it before execution, runs independent workers without polling or
+serial queueing, and preserves one immutable manifest plus stdout/stderr pair
+per probe. Existing matching manifests are reused after interruption; identity
+drift or changed bytes at an immutable path fail closed. The portable
+publication binds each tool to its manifest with `study://` paths and exact
+SHA-256 identities.
+
+A passing runtime campaign qualifies only the version and help dimensions.
+Real one-sample execution remains a governed Slurm run, and scientific,
+benchmark, security, and release claims remain independent. The command must
+run from the clean frozen repository whose HEAD matches the inventory commit;
+later movement of an active checkout cannot silently change the campaign.
 
 ## Prepare governed input data
 

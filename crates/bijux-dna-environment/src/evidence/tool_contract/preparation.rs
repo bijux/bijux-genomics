@@ -4,7 +4,7 @@ use anyhow::{bail, Context, Result};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
-use super::catalog::load_retained_tool;
+use super::catalog::{load_retained_tool, CatalogToolSource};
 use super::labels::tool_contract_labels;
 use super::model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
@@ -31,6 +31,38 @@ pub fn prepare_apptainer_tool_contract(
     }
     let source =
         load_retained_tool(&request.repository_root, &request.tool_id, &request.architecture)?;
+    let contract = derive_contract(request, &source)?;
+    persist_contract_build(request, source, contract)
+}
+
+/// Derive the immutable contract identity for one retained Apptainer tool without writing files.
+///
+/// # Errors
+/// Returns an error when the catalog, recipe, source identity, or requested architecture is
+/// invalid.
+pub fn derive_apptainer_tool_contract(
+    repository_root: &std::path::Path,
+    tool_id: &str,
+    repository_commit: &str,
+    architecture: &str,
+) -> Result<ContainerToolContract> {
+    let source = load_retained_tool(repository_root, tool_id, architecture)?;
+    derive_contract(
+        &ToolContractBuildRequest {
+            repository_root: repository_root.to_path_buf(),
+            tool_id: tool_id.to_string(),
+            repository_commit: repository_commit.to_string(),
+            architecture: architecture.to_string(),
+            output_root: repository_root.to_path_buf(),
+        },
+        &source,
+    )
+}
+
+fn derive_contract(
+    request: &ToolContractBuildRequest,
+    source: &CatalogToolSource,
+) -> Result<ContainerToolContract> {
     let recipe_path = source
         .recipe_path
         .strip_prefix(&request.repository_root)
@@ -61,9 +93,9 @@ pub fn prepare_apptainer_tool_contract(
     };
     let contract = ContainerToolContract {
         schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V1.to_string(),
-        tool_id: source.tool.id,
-        version: source.tool.version,
-        support_disposition: source.tool.support_disposition,
+        tool_id: source.tool.id.clone(),
+        version: source.tool.version.clone(),
+        support_disposition: source.tool.support_disposition.clone(),
         catalog_sha256,
         recipe_path,
         recipe_sha256,
@@ -72,13 +104,20 @@ pub fn prepare_apptainer_tool_contract(
         repository_commit: request.repository_commit.clone(),
         architecture: request.architecture.clone(),
         build_evidence_id,
-        expected_binary: source.tool.expected_bin,
-        version_command: source.tool.version_command,
-        expected_version_regex: source.tool.expected_version_regex,
+        expected_binary: source.tool.expected_bin.clone(),
+        version_command: source.tool.version_command.clone(),
+        expected_version_regex: source.tool.expected_version_regex.clone(),
         interface_sha256,
     };
     validate_tool_contract(&contract)?;
+    Ok(contract)
+}
 
+fn persist_contract_build(
+    request: &ToolContractBuildRequest,
+    source: CatalogToolSource,
+    contract: ContainerToolContract,
+) -> Result<PreparedToolContractBuild> {
     let tool_root = request.output_root.join(&contract.tool_id);
     bijux_dna_infra::ensure_dir(&tool_root)
         .with_context(|| format!("create tool-contract root {}", tool_root.display()))?;

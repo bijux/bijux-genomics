@@ -23,7 +23,7 @@ pub use model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
     CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
 };
-pub use preparation::prepare_apptainer_tool_contract;
+pub use preparation::{derive_apptainer_tool_contract, prepare_apptainer_tool_contract};
 pub use recipe_identity::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
     container_build_evidence_matches_recipe, repository_changed_paths_since,
@@ -32,6 +32,6 @@ pub use recipe_identity::{
 pub use schema::{tool_contract_schema, write_tool_contract_schema};
 pub use smoke::{
     run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
-    APPTAINER_SMOKE_MANIFEST_SCHEMA_V5,
+    APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
 };
 pub use validation::validate_tool_contract;

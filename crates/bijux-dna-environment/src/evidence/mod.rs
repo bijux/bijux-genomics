@@ -6,6 +6,7 @@ mod image_storage;
 mod inventory;
 mod load;
 mod model;
+mod runtime_verification;
 mod schema;
 mod selection;
 pub mod tool_contract;
@@ -45,6 +46,10 @@ pub use model::{
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
+};
+pub use runtime_verification::{
+    execute_runtime_verification, render_runtime_verification_markdown,
+    verify_runtime_verification_report, RuntimeVerificationRequest, RuntimeVerificationResult,
 };
 pub use schema::{
     image_inventory_publication_schema, image_inventory_scan_schema,

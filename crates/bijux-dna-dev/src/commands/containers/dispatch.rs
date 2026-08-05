@@ -196,6 +196,9 @@ pub(super) fn run_native_container_command(
             inventory::generate_scan_schema(workspace, args)
         }
         NativeContainerCommandKey::ImageStorage => storage::run(workspace, args),
+        NativeContainerCommandKey::RuntimeVerification => {
+            runtime_verification::run(workspace, args)
+        }
         NativeContainerCommandKey::CheckEvidenceQualification => {
             ensure_no_args("check-evidence-qualification", args)?;
             contracts::check_evidence_qualification(workspace)

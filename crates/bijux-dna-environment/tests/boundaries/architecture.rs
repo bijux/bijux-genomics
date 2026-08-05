@@ -142,6 +142,7 @@ fn inventory_source_tree_matches_ownership_contract() {
             "load.rs",
             "mod.rs",
             "model.rs",
+            "runtime_verification/",
             "schema.rs",
             "selection.rs",
             "tool_contract/",

@@ -16,7 +16,9 @@
   tool contracts; the complete canonical `ContainerCatalog` and `ContainerCatalogTool` model;
   `validate_container_catalog` roster and recipe closure; catalog-derived Apptainer build
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
-  execution; exact-commit catalog and Apptainer recipe identity; `resolve_current_apptainer_image`
+  execution with bounded immutable streams; catalog-wide parallel runtime verification and
+  portable report publication; exact-commit catalog and Apptainer recipe identity;
+  `resolve_current_apptainer_image`
   selection with on-disk size and digest verification; focused catalog/image-inventory closure
   validation for execution planning; runtime inspection; validation, loading, JSON Schema
   rendering, and atomic schema writing.

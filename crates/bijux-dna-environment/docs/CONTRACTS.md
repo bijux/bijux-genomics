@@ -50,7 +50,8 @@ commits to the complete scan even when obsolete images are omitted from the publ
 The image-inventory and runtime-verification loaders reject malformed identities, duplicate tools
 or candidates, and selected images that are not the unique canonical admitted candidate. The
 evidence-chain loader also rejects cross-publication identity, version, disposition, selected-image,
-and roster drift.
+and roster drift. New runtime evidence binds each tool to an immutable execution-site manifest;
+the manifest retains bounded probe outcomes and exact stdout/stderr identities.
 Unknown descriptive fields remain forward-compatible; every identity and decision field consumed
 by qualification is typed. The complete chain does not trust the inventory's `current_recipe`
 label: it recomputes the exact committed definition and `%files` identity and requires matching
