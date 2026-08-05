@@ -1,6 +1,11 @@
 //! Owner: bijux-dna-bench
 //! Stable public benchmark surface re-exported by the crate root.
 
+pub use crate::artifacts::{
+    admit_benchmark_execution_outputs, BenchmarkExecutionAdmission,
+    BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+    BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1,
+};
 pub use crate::repo::{
     admit_fastq_benchmark_corpus, bench_bam_local_stage_matrix_path, bench_bundles_dir,
     bench_contracts_dir, bench_corpora_dir, bench_data_dir, bench_fastq_local_stage_matrix_path,

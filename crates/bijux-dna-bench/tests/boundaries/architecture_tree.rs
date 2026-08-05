@@ -20,8 +20,13 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["mod.rs", "writer/"]),
+        entries(["admission/", "mod.rs", "writer/"]),
         "artifacts tree must stay focused on deterministic serialization"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/admission")),
+        entries(["mod.rs", "model.rs", "validation.rs"]),
+        "benchmark admission must separate typed evidence from output validation"
     );
 
     assert_eq!(
