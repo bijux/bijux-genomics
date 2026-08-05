@@ -7,7 +7,7 @@ use anyhow::{bail, Context};
 
 use super::{OpsCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --study-root <path>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
@@ -141,11 +141,14 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "schema" => schema(workspace, &options),
         "execution-schema" => execution_schema(workspace, &options),
         "plan" => plan(workspace, &options),
+        "plan-retry" => plan_retry(workspace, &options),
         "initialize" => initialize(workspace, &options),
+        "supersede" => supersede(workspace, &options),
         "prepare-fastq-read-lengths" => prepare_fastq_read_lengths(workspace, &options),
         "submit-fastq-read-lengths" => submit_fastq_read_lengths(workspace, &options),
         "reconcile-fastq-read-lengths" => reconcile_fastq_read_lengths(workspace, &options),
         "admit-fastq-read-lengths" => admit_fastq_read_lengths(workspace, &options),
+        "publish-fastq-read-lengths" => publish_fastq_read_lengths(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
 }
@@ -252,7 +255,7 @@ fn prepare_fastq_campaign(
         20,
         30,
     )?;
-    let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
+    let mut attempts = active_plan_attempts(&plan);
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
     let preparation = FastqPreparation {
         repository_root: &repository_root,
@@ -299,7 +302,7 @@ fn reconcile_fastq_read_lengths(
         .canonicalize()
         .context("canonicalize benchmark result root")?;
     let scheduler = bijux_dna_runner::api::SlurmClientPaths::default();
-    let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
+    let mut attempts = active_plan_attempts(&plan);
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
     let mut observations = Vec::new();
     for attempt in attempts {
@@ -384,7 +387,7 @@ fn admit_fastq_read_lengths(
     let study_root = resolve_path(workspace, required(options, "--study-root")?)
         .canonicalize()
         .context("canonicalize STUDY root")?;
-    let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
+    let mut attempts = active_plan_attempts(&plan);
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
     let mut admitted = Vec::new();
     for attempt in attempts {
@@ -417,6 +420,36 @@ fn admit_fastq_read_lengths(
         "admitted {} benchmark attempts from verified output closure\n{}\n",
         admitted.len(),
         admitted.join("\n")
+    )))
+}
+
+fn publish_fastq_read_lengths(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(
+        options,
+        &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
+    )?;
+    let plan_path = resolve_path(workspace, required(options, "--plan")?);
+    let plan = read_plan(&plan_path)?;
+    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?);
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?);
+    let study_root = resolve_path(workspace, required(options, "--study-root")?);
+    let output_root = resolve_path(workspace, required(options, "--output-root")?);
+    let publication = bijux_dna_bench::publish_fastq_profile_read_lengths_stage_report(
+        &repository_root,
+        &study_root,
+        &benchmark_root,
+        &plan,
+        &output_root,
+    )?;
+    Ok(OpsCommandOutcome::success(format!(
+        "published admitted FASTQ read-length stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
+        publication.report_path.display(),
+        publication.report_sha256,
+        publication.markdown_path.display(),
+        publication.markdown_sha256,
     )))
 }
 
@@ -542,6 +575,124 @@ fn plan(workspace: &Workspace, options: &BTreeMap<String, String>) -> Result<Ops
     )))
 }
 
+fn plan_retry(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(
+        options,
+        &[
+            "--attempt-id",
+            "--benchmark-root",
+            "--observed-at-utc",
+            "--output",
+            "--prior-plan",
+            "--repository-root",
+        ],
+    )?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark retry repository")?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
+    let prior_plan_path = resolve_path(workspace, required(options, "--prior-plan")?);
+    let prior_plan = read_plan(&prior_plan_path)?;
+    bijux_dna_bench::verify_campaign_plan_source(
+        &prior_plan,
+        &repository_commit,
+        &campaign_registry_sha256,
+    )?;
+    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark retry result root")?;
+    let prior_attempts = prior_plan
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| bijux_dna_bench::load_attempt_lifecycle(&benchmark_root, &attempt.identity))
+        .collect::<Result<Vec<_>>>()?;
+    let registry = bijux_dna_bench::load_stage_campaign_registry(
+        &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let retry = bijux_dna_bench::plan_stage_campaign_retry_attempts(
+        &registry,
+        &repository_commit,
+        &campaign_registry_sha256,
+        prior_attempts,
+        required(options, "--attempt-id")?,
+        required(options, "--observed-at-utc")?,
+    )?;
+    let output = resolve_path(workspace, required(options, "--output")?);
+    ensure_json_identity(&output, &retry)?;
+    Ok(OpsCommandOutcome::success(format!(
+        "planned {} active benchmark retries with {} retained lineage records at {}\n",
+        active_plan_attempts(&retry).len(),
+        retry.cycle.attempts.len() - active_plan_attempts(&retry).len(),
+        output.display()
+    )))
+}
+
+fn supersede(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(
+        options,
+        &["--benchmark-root", "--observed-at-utc", "--plan", "--reason", "--repository-root"],
+    )?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark supersession repository")?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
+    let plan_path = resolve_path(workspace, required(options, "--plan")?);
+    let plan = read_plan(&plan_path)?;
+    bijux_dna_bench::verify_campaign_plan_source(
+        &plan,
+        &repository_commit,
+        &campaign_registry_sha256,
+    )?;
+    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark supersession root")?;
+    let attempts = active_plan_attempts(&plan);
+    if attempts.is_empty() {
+        bail!("benchmark supersession plan has no active attempt origins");
+    }
+    let reason = required(options, "--reason")?;
+    for attempt in &attempts {
+        let persisted =
+            bijux_dna_bench::load_attempt_lifecycle(&benchmark_root, &attempt.identity)?;
+        let is_active = matches!(
+            persisted.current_status(),
+            Some(
+                bijux_dna_bench::BenchmarkLifecycleStatus::Planned
+                    | bijux_dna_bench::BenchmarkLifecycleStatus::Ready
+                    | bijux_dna_bench::BenchmarkLifecycleStatus::Submitted
+                    | bijux_dna_bench::BenchmarkLifecycleStatus::Running
+                    | bijux_dna_bench::BenchmarkLifecycleStatus::Collecting
+            )
+        );
+        let is_identical_replay = persisted.current_status()
+            == Some(bijux_dna_bench::BenchmarkLifecycleStatus::Superseded)
+            && persisted.transitions.last().and_then(|transition| transition.reason.as_deref())
+                == Some(reason);
+        if !is_active && !is_identical_replay {
+            bail!("benchmark supersession requires active persisted attempts");
+        }
+    }
+    for attempt in &attempts {
+        bijux_dna_runtime::record_attempt_superseded(
+            &benchmark_root,
+            &attempt.identity,
+            required(options, "--observed-at-utc")?,
+            reason,
+        )?;
+    }
+    Ok(OpsCommandOutcome::success(format!(
+        "ensured {} benchmark attempts are superseded with the retained reason\n",
+        attempts.len()
+    )))
+}
+
 fn initialize(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
@@ -572,13 +723,31 @@ fn read_plan(path: &Path) -> Result<bijux_dna_bench::BenchmarkCampaignPlan> {
 }
 
 fn source_identity(workspace: &Workspace) -> Result<(String, String)> {
+    source_identity_at(&workspace.root)
+}
+
+fn source_identity_at(repository_root: &Path) -> Result<(String, String)> {
     let repository_commit =
-        bijux_dna_environment::api::clean_repository_head_commit(&workspace.root)
+        bijux_dna_environment::api::clean_repository_head_commit(repository_root)
             .context("require a clean source tree for benchmark campaign operation")?;
-    let registry_path = bijux_dna_bench::bench_stage_campaigns_path();
+    let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)
         .with_context(|| format!("hash benchmark campaign registry {}", registry_path.display()))?;
     Ok((repository_commit, campaign_registry_sha256))
+}
+
+fn active_plan_attempts(
+    plan: &bijux_dna_bench::BenchmarkCampaignPlan,
+) -> Vec<&bijux_dna_bench::BenchmarkAttemptRecordV2> {
+    plan.cycle
+        .attempts
+        .iter()
+        .filter(|attempt| {
+            attempt.transitions.len() == 1
+                && attempt.current_status()
+                    == Some(bijux_dna_bench::BenchmarkLifecycleStatus::Planned)
+        })
+        .collect()
 }
 
 fn ensure_json_identity<T>(path: &Path, value: &T) -> Result<()>
