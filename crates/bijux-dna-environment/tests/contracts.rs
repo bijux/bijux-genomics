@@ -9,6 +9,8 @@ mod mod_contracts_canonical_image_publication_rs;
 mod mod_contracts_evidence_publications_rs;
 #[path = "contracts/image_inventory_derivation.rs"]
 mod mod_contracts_image_inventory_derivation_rs;
+#[path = "contracts/image_selection.rs"]
+mod mod_contracts_image_selection_rs;
 #[path = "contracts/matrix.rs"]
 mod mod_contracts_matrix_rs;
 #[path = "contracts/resolve_runtime.rs"]

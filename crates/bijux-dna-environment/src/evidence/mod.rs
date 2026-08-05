@@ -6,6 +6,7 @@ mod inventory;
 mod load;
 mod model;
 mod schema;
+mod selection;
 pub mod tool_contract;
 mod validation;
 
@@ -37,6 +38,7 @@ pub use schema::{
     runtime_verification_publication_schema, write_image_inventory_publication_schema,
     write_image_inventory_scan_schema, write_runtime_verification_publication_schema,
 };
+pub use selection::{resolve_current_apptainer_image, CurrentApptainerImage};
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
     load_container_catalog, repository_head_commit, validate_container_catalog,

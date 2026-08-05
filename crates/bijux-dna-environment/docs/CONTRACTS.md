@@ -14,6 +14,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ReferenceRecord`: digest-addressed reference cache record.
 - `ReferenceBuildRequest`: explicit switches for optional reference indexes.
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
+- `CurrentApptainerImage`: absolute current retained SIF identity reverified against the selected
+  inventory candidate at consumption time.
 - `ImageInventoryDerivationRequest`: governed repository, study, image, build-evidence, and run-lock
   roots used to derive a portable publication without delegating selection to contract scripts.
 - `ImageInventoryScan`: complete typed identities for scanned SIFs, build-evidence sources, and

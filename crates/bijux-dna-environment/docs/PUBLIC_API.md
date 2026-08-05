@@ -16,8 +16,9 @@
   tool contracts; the complete canonical `ContainerCatalog` and `ContainerCatalogTool` model;
   `validate_container_catalog` roster and recipe closure; catalog-derived Apptainer build
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
-  execution; exact-commit catalog and Apptainer recipe identity; runtime inspection; validation,
-  loading, JSON Schema rendering, and atomic schema writing.
+  execution; exact-commit catalog and Apptainer recipe identity; `resolve_current_apptainer_image`
+  selection with on-disk size and digest verification; runtime inspection; validation, loading,
+  JSON Schema rendering, and atomic schema writing.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.

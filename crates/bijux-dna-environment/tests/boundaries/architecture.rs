@@ -142,6 +142,7 @@ fn inventory_source_tree_matches_ownership_contract() {
             "mod.rs",
             "model.rs",
             "schema.rs",
+            "selection.rs",
             "tool_contract/",
             "validation.rs",
         ]),
