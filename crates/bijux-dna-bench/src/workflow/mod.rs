@@ -26,7 +26,8 @@ pub use bijux_dna_runtime::{
 };
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
-    plan_stage_campaign_attempts, verify_campaign_plan_source, BenchmarkExecutionMaterial,
+    load_execution_authorities, plan_stage_campaign_attempts, verify_campaign_plan_source,
+    BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
 };
 pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;

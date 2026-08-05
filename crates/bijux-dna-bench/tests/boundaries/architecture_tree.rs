@@ -95,8 +95,8 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/campaign_lifecycle")),
-        entries(["execution.rs", "mod.rs", "planning.rs", "storage.rs"]),
-        "campaign lifecycle tree must separate its stable facade, planning, and storage logic"
+        entries(["authorities.rs", "execution.rs", "mod.rs", "planning.rs", "storage.rs"]),
+        "campaign lifecycle tree must separate source authority, planning, execution, and storage logic"
     );
 
     assert_eq!(

@@ -1,15 +1,19 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use anyhow::Context;
 use bijux_dna_bench::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
-    load_checked_in_benchmark_planning_contracts, plan_stage_campaign_attempts,
-    BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
-    BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkExecutionInput,
-    BenchmarkExecutionInputKind, BenchmarkExecutionMaterial, BenchmarkExecutionParameterEvidence,
-    BenchmarkExecutionSpec,
+    load_checked_in_benchmark_planning_contracts, load_execution_authorities,
+    plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
+    BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism,
+    BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkExecutionMaterial,
+    BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
 };
-use bijux_dna_environment::api::{load_container_catalog, ContainerCatalog, CurrentApptainerImage};
+use bijux_dna_environment::api::{
+    load_container_catalog, load_image_inventory_publication, ContainerCatalog,
+    CurrentApptainerImage,
+};
 
 fn plan() -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
@@ -104,6 +108,125 @@ fn acceptance() -> BenchmarkExecutionAcceptance {
 
 fn shell(command: &str) -> Vec<String> {
     vec!["sh".to_string(), "-c".to_string(), command.to_string()]
+}
+
+fn source_locked_plan(
+    repository_commit: &str,
+    campaign_registry_sha256: &str,
+) -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    plan_stage_campaign_attempts(
+        &registry,
+        repository_commit,
+        campaign_registry_sha256,
+        "run-2042",
+        "human-short-read-length-comparison",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )
+}
+
+#[test]
+fn execution_authorities_bind_exact_source_files_and_reject_stale_inventory() -> anyhow::Result<()>
+{
+    let repository_root = super::support::repo_root()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-execution-authorities");
+    let inventory_path = temporary.path().join("image-inventory.json");
+    let mut inventory = load_image_inventory_publication(
+        &repository_root.join("containers/reports/image-inventory.json"),
+    )?;
+    let repository_commit = "a".repeat(40);
+    let campaign_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    inventory.repository_commit.clone_from(&repository_commit);
+    inventory.catalog_sha256.clone_from(&catalog_sha256);
+    std::fs::write(&inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+    let plan = source_locked_plan(&repository_commit, &campaign_sha256)?;
+
+    let authorities =
+        load_execution_authorities(&repository_root, &inventory_path, &repository_commit, &plan)?;
+    assert_eq!(authorities.source_contract_sha256()["container_catalog"], catalog_sha256);
+    assert_eq!(
+        authorities.source_contract_sha256()["image_inventory"],
+        bijux_dna_infra::hash_file_sha256(&inventory_path)?
+    );
+
+    inventory.repository_commit = "9".repeat(40);
+    let stale_path = temporary.path().join("stale-image-inventory.json");
+    std::fs::write(&stale_path, serde_json::to_vec_pretty(&inventory)?)?;
+    assert!(load_execution_authorities(&repository_root, &stale_path, &repository_commit, &plan,)
+        .is_err_and(|error| error.to_string().contains("repository commit differs")));
+    Ok(())
+}
+
+#[test]
+fn execution_authorities_recheck_selected_sif_bytes() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-execution-image");
+    let study_root = temporary.path().join("STUDY");
+    let image_path = study_root.join("containers/apptainer/seqkit.sif");
+    std::fs::create_dir_all(image_path.parent().context("image parent")?)?;
+    std::fs::write(&image_path, b"source-locked seqkit image")?;
+    let image_sha256 = bijux_dna_infra::hash_file_sha256(&image_path)?;
+
+    let mut inventory = load_image_inventory_publication(
+        &repository_root.join("containers/reports/image-inventory.json"),
+    )?;
+    let repository_commit = "a".repeat(40);
+    let campaign_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    inventory.repository_commit.clone_from(&repository_commit);
+    inventory.catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    let seqkit = inventory
+        .tools
+        .iter_mut()
+        .find(|tool| tool.tool == "seqkit")
+        .context("inventory omits seqkit")?;
+    let selected_sha256 = seqkit.selected_image_sha256.clone().context("seqkit selection")?;
+    let selected = seqkit
+        .candidates
+        .iter_mut()
+        .find(|candidate| candidate.sha256 == selected_sha256)
+        .context("inventory omits selected seqkit candidate")?;
+    selected.path = "study://containers/apptainer/seqkit.sif".to_string();
+    selected.sha256.clone_from(&image_sha256);
+    selected.size_bytes = std::fs::metadata(&image_path)?.len();
+    seqkit.selected_image_sha256 = Some(image_sha256.clone());
+    let inventory_path = temporary.path().join("image-inventory.json");
+    std::fs::write(&inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+    let plan = source_locked_plan(&repository_commit, &campaign_sha256)?;
+
+    let authorities =
+        load_execution_authorities(&repository_root, &inventory_path, &repository_commit, &plan)?;
+    let image = authorities.resolve_current_image(&study_root, "seqkit")?;
+    assert_eq!(image.path, image_path.canonicalize()?);
+    assert_eq!(image.sha256, image_sha256);
+
+    let identity = plan
+        .cycle
+        .attempts
+        .iter()
+        .find(|attempt| attempt.identity.tool_id == "seqkit")
+        .context("run-2042 plan omits seqkit")?
+        .identity
+        .clone();
+    let mut execution_material = material();
+    execution_material.repository_path = repository_root.clone();
+    execution_material.benchmark_root = temporary.path().join("results/benchmarks");
+    execution_material.source_contract_sha256 = authorities.source_contract_sha256().clone();
+    let spec = authorities.build_execution_spec(&plan, &identity, &image, execution_material)?;
+    assert_eq!(spec.image.sha256, image_sha256);
+
+    std::fs::write(&image_path, b"mutated")?;
+    assert!(authorities.resolve_current_image(&study_root, "seqkit").is_err());
+    Ok(())
 }
 
 fn build(
