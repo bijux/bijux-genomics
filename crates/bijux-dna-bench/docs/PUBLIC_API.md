@@ -27,6 +27,8 @@ The `public_api` module itself is private. Stable exports are owned by
 - `prepare_fastq_profile_read_lengths_material(...)` prepares the complete run-2042 attempt input, command, parameter, output, resource, and acceptance closure.
 - `prepare_bam_mapping_summary_material(...)` prepares the complete run-2004 BAM mapping-summary attempt closure.
 - `plan_stage_campaign_attempts(registry, repository_commit, campaign_registry_sha256, run_id, campaign_id, attempt_id, observed_at_utc)` deterministically derives a source-locked plan with one validated attempt per declared tool.
+- `recover_stage_campaign_retry_lineage(root, registry, run_id, campaign_id, tip_attempt_id)` reconstructs the explicit terminal lineage for every declared tool while rejecting detached execution evidence.
+- `plan_stage_campaign_retry_attempts(registry, repository_commit, campaign_registry_sha256, prior_attempts, attempt_id, observed_at_utc)` derives linked retry origins from one complete terminal lineage.
 - `verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)` rejects stale source or campaign declaration identity before execution state is created.
 - `ensure_stage_campaign_attempts(root, plan)` validates source locks, then preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
 - `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.

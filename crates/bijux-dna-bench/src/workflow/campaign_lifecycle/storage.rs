@@ -1,18 +1,150 @@
 //! Owner: bijux-dna-bench
 //! Crash-recoverable publication of a complete planned campaign cycle.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::contract::validate_stage_campaign_registry;
 use bijux_dna_bench_model::{
-    validate_campaign_plan, validate_execution_spec, BenchmarkAttemptRecordV2,
-    BenchmarkCampaignPlan, BenchmarkExecutionSpec, BenchmarkLifecycleStatus,
+    validate_campaign_plan, validate_execution_spec, BenchmarkAttemptIdentity,
+    BenchmarkAttemptRecordV2, BenchmarkCampaignPlan, BenchmarkExecutionSpec,
+    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkStageCampaignRegistry,
 };
 use bijux_dna_runtime::{
     benchmark_attempt_directory, ensure_attempt_lifecycle, load_attempt_lifecycle,
 };
+
+/// Recover the complete executed retry lineage ending at an explicit attempt tip for each tool.
+///
+/// Untouched planned siblings are ignored because they contain no execution evidence and cannot
+/// compete with the selected lineage. Every other detached record fails closed.
+///
+/// # Errors
+/// Returns an error when the campaign is unknown, any tool tip or predecessor is missing, a chain
+/// cycles or is nonterminal, persisted identity differs from its path, or detached execution
+/// evidence would make lineage selection ambiguous.
+pub fn recover_stage_campaign_retry_lineage(
+    benchmark_root: &Path,
+    registry: &BenchmarkStageCampaignRegistry,
+    run_id: &str,
+    campaign_id: &str,
+    tip_attempt_id: &str,
+) -> Result<Vec<BenchmarkAttemptRecordV2>> {
+    validate_stage_campaign_registry(registry).context("validate benchmark campaign registry")?;
+    let campaign = registry
+        .campaigns
+        .iter()
+        .find(|campaign| campaign.run_id == run_id)
+        .with_context(|| format!("benchmark campaign registry does not define {run_id}"))?;
+    let run = BenchmarkRunIdentity {
+        run_id: campaign.run_id.clone(),
+        domain: campaign.domain.clone(),
+        stage_id: campaign.stage_id.clone(),
+    };
+    let mut tools = campaign.tool_ids.clone();
+    tools.sort();
+    let mut lineage = Vec::new();
+    for tool_id in tools {
+        let tip = BenchmarkAttemptIdentity {
+            campaign_id: campaign_id.to_string(),
+            run: run.clone(),
+            attempt_id: tip_attempt_id.to_string(),
+            tool_id,
+        };
+        let records = load_campaign_tool_attempts(benchmark_root, &tip)?;
+        let mut selected = BTreeSet::new();
+        let mut chain = Vec::new();
+        let mut current = tip.attempt_id.clone();
+        loop {
+            if !selected.insert(current.clone()) {
+                bail!("benchmark retry lineage contains a cycle");
+            }
+            let (record, _) = records
+                .get(&current)
+                .with_context(|| format!("benchmark retry predecessor is absent: {current}"))?;
+            if !is_terminal_history(record) {
+                bail!("benchmark retry lineage contains a nonterminal attempt");
+            }
+            chain.push(record.clone());
+            let Some(predecessor) = &record.supersedes_attempt_id else {
+                break;
+            };
+            current.clone_from(predecessor);
+        }
+        for (attempt_id, (record, directory)) in &records {
+            if !selected.contains(attempt_id) && !is_untouched_planned_sibling(record, directory)? {
+                bail!("benchmark retry lineage has detached execution evidence: {attempt_id}");
+            }
+        }
+        chain.reverse();
+        lineage.extend(chain);
+    }
+    Ok(lineage)
+}
+
+fn load_campaign_tool_attempts(
+    benchmark_root: &Path,
+    tip: &BenchmarkAttemptIdentity,
+) -> Result<BTreeMap<String, (BenchmarkAttemptRecordV2, PathBuf)>> {
+    let tip_directory = benchmark_attempt_directory(benchmark_root, tip)?;
+    let campaign_directory =
+        tip_directory.parent().context("benchmark retry tip has no campaign directory")?;
+    let metadata = fs::symlink_metadata(campaign_directory).with_context(|| {
+        format!("inspect benchmark retry campaign {}", campaign_directory.display())
+    })?;
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        bail!("benchmark retry campaign path is not an owned directory");
+    }
+    let mut records = BTreeMap::new();
+    for entry in fs::read_dir(campaign_directory).with_context(|| {
+        format!("read benchmark retry campaign {}", campaign_directory.display())
+    })? {
+        let entry = entry.context("read benchmark retry attempt directory entry")?;
+        let file_type = entry.file_type().context("inspect benchmark retry attempt entry")?;
+        if file_type.is_symlink() || !file_type.is_dir() {
+            bail!("benchmark retry campaign contains a non-directory attempt entry");
+        }
+        let attempt_id = entry
+            .file_name()
+            .into_string()
+            .map_err(|_| anyhow::anyhow!("benchmark retry attempt identity is not UTF-8"))?;
+        let mut identity = tip.clone();
+        identity.attempt_id.clone_from(&attempt_id);
+        let record = load_attempt_lifecycle(benchmark_root, &identity)
+            .with_context(|| format!("load benchmark retry attempt {attempt_id}"))?;
+        if records.insert(attempt_id.clone(), (record, entry.path())).is_some() {
+            bail!("benchmark retry campaign duplicates attempt identity: {attempt_id}");
+        }
+    }
+    Ok(records)
+}
+
+fn is_untouched_planned_sibling(
+    record: &BenchmarkAttemptRecordV2,
+    directory: &Path,
+) -> Result<bool> {
+    if record.supersedes_attempt_id.is_some()
+        || record.transitions.len() != 1
+        || record.current_status() != Some(BenchmarkLifecycleStatus::Planned)
+    {
+        return Ok(false);
+    }
+    let mut names = Vec::new();
+    for entry in fs::read_dir(directory)
+        .with_context(|| format!("read detached benchmark attempt {}", directory.display()))?
+    {
+        let entry = entry.context("read detached benchmark attempt entry")?;
+        let file_type = entry.file_type().context("inspect detached benchmark attempt entry")?;
+        if file_type.is_symlink() || !file_type.is_file() {
+            return Ok(false);
+        }
+        names.push(entry.file_name());
+    }
+    Ok(names == [std::ffi::OsString::from("attempt.json")])
+}
 
 /// Persist every planned campaign attempt under its immutable run/tool/campaign/attempt identity.
 ///

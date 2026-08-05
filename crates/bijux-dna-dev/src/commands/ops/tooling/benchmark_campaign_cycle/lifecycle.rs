@@ -1,6 +1,6 @@
 //! Benchmark campaign lifecycle planning and persistent state operations.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::{bail, Context};
 
@@ -146,6 +146,76 @@ pub(super) fn plan_retry(
         retry.cycle.attempts.len() - active_plan_attempts(&retry).len(),
         output.display()
     )))
+}
+
+pub(super) fn plan_retry_from_tip(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(
+        options,
+        &[
+            "--attempt-id",
+            "--benchmark-root",
+            "--campaign-id",
+            "--observed-at-utc",
+            "--output",
+            "--repository-root",
+            "--run-id",
+            "--tip-attempt-id",
+        ],
+    )?;
+    let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark retry repository")?;
+    let (repository_commit, campaign_registry_sha256) = source_identity_at(&repository_root)?;
+    let registry = bijux_dna_bench::load_stage_campaign_registry(
+        &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?)
+        .canonicalize()
+        .context("canonicalize benchmark retry result root")?;
+    let prior_attempts = bijux_dna_bench::recover_stage_campaign_retry_lineage(
+        &benchmark_root,
+        &registry,
+        required(options, "--run-id")?,
+        required(options, "--campaign-id")?,
+        required(options, "--tip-attempt-id")?,
+    )?;
+    require_recovered_lineage_source_ancestry(&repository_root, &benchmark_root, &prior_attempts)?;
+    let retry = bijux_dna_bench::plan_stage_campaign_retry_attempts(
+        &registry,
+        &repository_commit,
+        &campaign_registry_sha256,
+        prior_attempts,
+        required(options, "--attempt-id")?,
+        required(options, "--observed-at-utc")?,
+    )?;
+    let output = resolve_path(workspace, required(options, "--output")?);
+    ensure_json_identity(&output, &retry)?;
+    Ok(OpsCommandOutcome::success(format!(
+        "recovered terminal benchmark lineage and planned {} active retries with {} retained records at {}\n",
+        active_plan_attempts(&retry).len(),
+        retry.cycle.attempts.len() - active_plan_attempts(&retry).len(),
+        output.display()
+    )))
+}
+
+fn require_recovered_lineage_source_ancestry(
+    repository_root: &std::path::Path,
+    benchmark_root: &std::path::Path,
+    attempts: &[bijux_dna_bench::BenchmarkAttemptRecordV2],
+) -> Result<()> {
+    let mut commits = BTreeSet::new();
+    for attempt in attempts {
+        let spec = bijux_dna_bench::load_execution_spec(benchmark_root, &attempt.identity)
+            .context("load recovered benchmark lineage source lock")?;
+        commits.insert(spec.source.repository_commit);
+    }
+    for commit in commits {
+        require_retry_source_ancestry(repository_root, &commit)?;
+    }
+    Ok(())
 }
 
 fn require_retry_source_ancestry(

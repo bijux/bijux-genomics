@@ -7,7 +7,8 @@ use anyhow::{bail, Context};
 use chrono::{DateTime, Duration, Utc};
 
 use self::lifecycle::{
-    execution_schema, initialize, plan, plan_retry, scheduler_observation_schema, schema, supersede,
+    execution_schema, initialize, plan, plan_retry, plan_retry_from_tip,
+    scheduler_observation_schema, schema, supersede,
 };
 use self::scheduler::{benchmark_accounting, benchmark_observation, lifecycle_status, slurm_state};
 use super::{OpsCommandOutcome, Result, Workspace};
@@ -22,6 +23,7 @@ const USAGE: &str = concat!(
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry-from-tip --attempt-id <attempt-id> --benchmark-root <path> --campaign-id <campaign-id> --observed-at-utc <timestamp> --output <path> --repository-root <path> --run-id <run-id> --tip-attempt-id <attempt-id>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n",
@@ -280,6 +282,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "scheduler-observation-schema" => scheduler_observation_schema(workspace, &options),
         "plan" => plan(workspace, &options),
         "plan-retry" => plan_retry(workspace, &options),
+        "plan-retry-from-tip" => plan_retry_from_tip(workspace, &options),
         "initialize" => initialize(workspace, &options),
         "supersede" => supersede(workspace, &options),
         "prepare" => prepare_campaign(workspace, &options),
@@ -911,7 +914,9 @@ fn validate_operation_timestamps(
     options: &BTreeMap<String, String>,
 ) -> Result<()> {
     let names: &[&str] = match operation {
-        "plan" | "plan-retry" | "supersede" | "reconcile" => &["--observed-at-utc"],
+        "plan" | "plan-retry" | "plan-retry-from-tip" | "supersede" | "reconcile" => {
+            &["--observed-at-utc"]
+        }
         "prepare" => &["--prepared-at-utc"],
         "submit" => &["--prepared-at-utc", "--submitted-at-utc"],
         "admit" => &["--admitted-at-utc"],
