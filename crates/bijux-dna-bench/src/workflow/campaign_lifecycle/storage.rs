@@ -30,19 +30,33 @@ pub fn ensure_stage_campaign_attempts(
     let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
     attempts.sort_by(|left, right| attempt_sort_key(left).cmp(&attempt_sort_key(right)));
     for attempt in &attempts {
-        if attempt.transitions.len() != 1
-            || attempt.current_status() != Some(BenchmarkLifecycleStatus::Planned)
-        {
-            bail!("benchmark campaign initialization requires wholly planned attempts");
-        }
         let directory = benchmark_attempt_directory(benchmark_root, &attempt.identity)?;
-        if directory.exists() {
-            validate_attempt_origin(benchmark_root, attempt, &directory)?;
+        if is_planned_origin(attempt) {
+            if directory.exists() {
+                validate_attempt_origin(benchmark_root, attempt, &directory)?;
+            }
+        } else if is_terminal_history(attempt) {
+            if !directory.exists() {
+                bail!(
+                    "benchmark retry history is absent from persistent storage: {}",
+                    directory.display()
+                );
+            }
+            let existing = load_attempt_lifecycle(benchmark_root, &attempt.identity)?;
+            if existing != **attempt {
+                bail!(
+                    "benchmark retry history differs from persistent evidence: {}",
+                    directory.display()
+                );
+            }
+        } else {
+            bail!("benchmark campaign plan contains unsupported active history");
         }
     }
 
     attempts
         .into_iter()
+        .filter(|attempt| is_planned_origin(attempt))
         .map(|attempt| {
             let directory = benchmark_attempt_directory(benchmark_root, &attempt.identity)?;
             if directory.exists() {
@@ -54,6 +68,23 @@ pub fn ensure_stage_campaign_attempts(
             }
         })
         .collect()
+}
+
+fn is_planned_origin(attempt: &BenchmarkAttemptRecordV2) -> bool {
+    attempt.transitions.len() == 1
+        && attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned)
+}
+
+fn is_terminal_history(attempt: &BenchmarkAttemptRecordV2) -> bool {
+    matches!(
+        attempt.current_status(),
+        Some(
+            BenchmarkLifecycleStatus::Passed
+                | BenchmarkLifecycleStatus::Failed
+                | BenchmarkLifecycleStatus::Superseded
+                | BenchmarkLifecycleStatus::BlockedExternal
+        )
+    )
 }
 
 fn validate_attempt_origin(

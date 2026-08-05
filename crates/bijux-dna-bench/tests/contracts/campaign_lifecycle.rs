@@ -1,8 +1,9 @@
 use bijux_dna_bench::{
     benchmark_attempt_directory, ensure_stage_campaign_attempts, load_attempt_lifecycle,
     load_checked_in_benchmark_planning_contracts,
-    plan_stage_campaign_attempts as derive_campaign_plan, verify_campaign_plan_source,
-    BenchmarkCampaignPlan, BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry,
+    plan_stage_campaign_attempts as derive_campaign_plan, plan_stage_campaign_retry_attempts,
+    verify_campaign_plan_source, BenchmarkCampaignPlan, BenchmarkLifecycleStatus,
+    BenchmarkStageCampaignRegistry,
 };
 
 fn plan_stage_campaign_attempts(
@@ -205,6 +206,89 @@ fn campaign_storage_preflights_all_existing_attempts_before_writing() -> anyhow:
     assert!(ensure_stage_campaign_attempts(temporary.path(), &cycle).is_err());
     let missing = benchmark_attempt_directory(temporary.path(), &cycle.cycle.attempts[0].identity)?;
     assert!(!missing.exists());
+    Ok(())
+}
+
+#[test]
+fn campaign_retry_retains_terminal_history_and_initializes_linked_attempts() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let initial = plan_stage_campaign_attempts(
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-campaign-linked-retry");
+    ensure_stage_campaign_attempts(temporary.path(), &initial)?;
+    for attempt in &initial.cycle.attempts {
+        bijux_dna_runtime::record_attempt_ready(
+            temporary.path(),
+            &attempt.identity,
+            "2026-08-05T00:01:00Z",
+        )?;
+        bijux_dna_runtime::record_attempt_superseded(
+            temporary.path(),
+            &attempt.identity,
+            "2026-08-05T00:02:00Z",
+            "scheduler partition authority was rejected before submission",
+        )?;
+    }
+    let prior = initial
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| load_attempt_lifecycle(temporary.path(), &attempt.identity))
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    let retry = plan_stage_campaign_retry_attempts(
+        &registry,
+        &"a".repeat(40),
+        &"b".repeat(64),
+        prior,
+        "attempt-002",
+        "2026-08-05T00:03:00Z",
+    )?;
+
+    assert_eq!(retry.cycle.attempts.len(), 4);
+    let active = retry
+        .cycle
+        .attempts
+        .iter()
+        .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned))
+        .collect::<Vec<_>>();
+    assert_eq!(active.len(), 2);
+    assert!(active.iter().all(|attempt| {
+        attempt.identity.attempt_id == "attempt-002"
+            && attempt.supersedes_attempt_id.as_deref() == Some("attempt-001")
+    }));
+    let initialized = ensure_stage_campaign_attempts(temporary.path(), &retry)?;
+    assert_eq!(initialized.len(), 2);
+    for attempt in active {
+        assert_eq!(load_attempt_lifecycle(temporary.path(), &attempt.identity)?, *attempt);
+    }
+    Ok(())
+}
+
+#[test]
+fn campaign_retry_rejects_nonterminal_predecessors() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let initial = plan_stage_campaign_attempts(
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+
+    assert!(plan_stage_campaign_retry_attempts(
+        &registry,
+        &"a".repeat(40),
+        &"b".repeat(64),
+        initial.cycle.attempts,
+        "attempt-002",
+        "2026-08-05T00:03:00Z",
+    )
+    .is_err());
     Ok(())
 }
 
