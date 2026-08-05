@@ -165,7 +165,7 @@ fn execution_inputs(corpus: &AdmittedBamGenotypingCorpus) -> Vec<BenchmarkExecut
             &corpus.bam.bam_index.sha256,
         ),
         input(
-            "data_index",
+            "corpus_data_index",
             BenchmarkExecutionInputKind::Data,
             &corpus.bam.data_index_path,
             "/input/data-index.json",
@@ -317,6 +317,9 @@ mod tests {
             &admitted_corpus(temporary.path()),
         )?;
         assert_eq!(material.execution.inputs.len(), 13);
+        assert!(material.execution.inputs.iter().any(|input| {
+            input.id == "corpus_data_index" && input.mount_path == "/input/data-index.json"
+        }));
         assert_eq!(material.execution.required_files.len(), 27);
         assert!(material.execution.measured_command[2].contains("bcftools call"));
         Ok(())
