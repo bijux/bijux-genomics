@@ -31,7 +31,7 @@ pub(super) fn markdown(inventory: &ContainerImageInventoryPublication) -> String
         ));
     }
     output.push_str(
-        "\n`missing` means no admitted SIF exists for the catalog version. `historical`\nmeans an admitted image exists but does not represent the active recipe.\n`unsupported` is an explicit catalog decision, not a failed build.\nA historical run dependency is preserved because a final governed run records\nits immutable path and digest; it is not current support or release evidence.\n\nThe machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).\n",
+        "\n`missing` means no admitted SIF exists for the catalog version. `ambiguous`\nmeans admitted candidates exist but none can be selected uniquely. `historical`\nmeans one admitted image is selected but does not represent the active recipe.\n`unsupported` is an explicit catalog decision, not a failed build.\nA historical run dependency is preserved because a final governed run records\nits immutable path and digest; it is not current support or release evidence.\n\nThe machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).\n",
     );
     output
 }
@@ -49,6 +49,7 @@ fn image_state(state: &ContainerImageState) -> &'static str {
     match state {
         ContainerImageState::Current => "current",
         ContainerImageState::Historical => "historical",
+        ContainerImageState::Ambiguous => "ambiguous",
         ContainerImageState::Missing => "missing",
         ContainerImageState::Unsupported => "unsupported",
     }

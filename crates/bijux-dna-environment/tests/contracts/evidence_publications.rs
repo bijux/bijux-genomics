@@ -208,6 +208,7 @@ fn refresh_inventory_summary(
         let state = match tool.state {
             bijux_dna_environment::evidence::ContainerImageState::Current => "current",
             bijux_dna_environment::evidence::ContainerImageState::Historical => "historical",
+            bijux_dna_environment::evidence::ContainerImageState::Ambiguous => "ambiguous",
             bijux_dna_environment::evidence::ContainerImageState::Missing => "missing",
             bijux_dna_environment::evidence::ContainerImageState::Unsupported => "unsupported",
         };
@@ -256,7 +257,7 @@ fn refresh_inventory_summary(
 fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let root = repository_root()?;
     let inventory_path =
-        root.join("containers/contracts/schemas/image-inventory-publication.v1.json");
+        root.join("containers/contracts/schemas/image-inventory-publication.v2.json");
     let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v1.json");
     let runtime_path =
         root.join("containers/contracts/schemas/runtime-verification-publication.v1.json");

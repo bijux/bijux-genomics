@@ -9,7 +9,7 @@ use crate::evidence::{
     ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
     ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
-    ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
 };
 
 use super::source::{
@@ -102,7 +102,7 @@ pub fn derive_image_inventory_evidence(
         serde_json::to_vec_pretty(&scan).context("serialize raw image inventory scan")?;
     crate::evidence::validate_image_inventory_scan(&scan)?;
     let publication = ContainerImageInventoryPublication {
-        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2.to_string(),
         catalog_sha256,
         repository_commit,
         publication: ImageInventoryPublicationIdentity {
@@ -147,8 +147,7 @@ fn derive_tool(
     )?;
     let candidates =
         derive_candidates(request, tool, &recipe, images, evidence_by_digest, run_references)?;
-    let (state, selected, retained) =
-        select_candidates(&tool.id, &support_disposition, candidates)?;
+    let (state, selected, retained) = select_candidates(candidates);
     verify_historical_references(&retained)?;
     Ok(ContainerImageInventoryTool {
         tool: tool.id.clone(),
@@ -218,10 +217,8 @@ fn derive_candidates(
 }
 
 fn select_candidates(
-    tool_id: &str,
-    support_disposition: &ContainerSupportDisposition,
     mut candidates: Vec<CandidateWithReference>,
-) -> Result<(ContainerImageState, Option<String>, Vec<ContainerImageCandidate>)> {
+) -> (ContainerImageState, Option<String>, Vec<ContainerImageCandidate>) {
     let current =
         candidates.iter().filter(|(candidate, _)| candidate.current_recipe).collect::<Vec<_>>();
     let admitted =
@@ -233,23 +230,11 @@ fn select_candidates(
         selection_pool.first().copied()
     } else if unreferenced.len() == 1 {
         unreferenced.first().copied()
-    } else if selection_pool.is_empty() {
-        None
-    } else if current.is_empty() {
-        bail!(
-            "tool {tool_id} has {} admitted historical images and no unique selection",
-            admitted.len()
-        );
     } else {
-        bail!(
-            "tool {tool_id} has {} admitted images for the current recipe and no unique unreferenced rebuild",
-            current.len()
-        );
+        None
     };
+    let selection_pool_is_empty = selection_pool.is_empty();
     let selected = selected_candidate.map(|(candidate, _)| candidate.sha256.clone());
-    if matches!(support_disposition, ContainerSupportDisposition::Retained) && selected.is_none() {
-        bail!("retained tool {tool_id} has no admitted immutable image");
-    }
     for (candidate, _) in &mut candidates {
         if Some(candidate.sha256.as_str()) == selected.as_deref() {
             candidate.disposition = ImageCandidateDisposition::Canonical;
@@ -267,9 +252,10 @@ fn select_candidates(
             ContainerImageState::Current
         }
         Some(_) => ContainerImageState::Historical,
-        None => ContainerImageState::Missing,
+        None if selection_pool_is_empty => ContainerImageState::Missing,
+        None => ContainerImageState::Ambiguous,
     };
-    Ok((state, selected, retained))
+    (state, selected, retained)
 }
 
 fn verify_historical_references(candidates: &[ContainerImageCandidate]) -> Result<()> {
@@ -377,6 +363,7 @@ fn image_state_name(state: &ContainerImageState) -> &'static str {
     match state {
         ContainerImageState::Current => "current",
         ContainerImageState::Historical => "historical",
+        ContainerImageState::Ambiguous => "ambiguous",
         ContainerImageState::Missing => "missing",
         ContainerImageState::Unsupported => "unsupported",
     }

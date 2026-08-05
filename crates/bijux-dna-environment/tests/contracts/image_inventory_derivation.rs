@@ -392,20 +392,20 @@ fn selects_unique_unreferenced_rebuild_beside_current_run_dependency() -> Result
 }
 
 #[test]
-fn rejects_multiple_images_admitted_for_the_current_recipe() -> Result<()> {
+fn publishes_ambiguous_current_images_without_selecting_either() -> Result<()> {
     let fixture = Fixture::current()?;
     fixture.add_admitted_image(b"another image from the same recipe")?;
-    let error = derive_image_inventory_publication(&fixture.request)
-        .err()
-        .context("ambiguous current images were admitted")?;
-    assert!(error
-        .to_string()
-        .contains("2 admitted images for the current recipe and no unique unreferenced rebuild"));
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Ambiguous);
+    assert!(tool.selected_image_sha256.is_none());
+    assert_eq!(tool.candidates.iter().filter(|candidate| candidate.admitted).count(), 2);
+    bijux_dna_environment::evidence::validate_image_inventory_publication(&publication)?;
     Ok(())
 }
 
 #[test]
-fn rejects_image_whose_recorded_size_does_not_match_storage() -> Result<()> {
+fn publishes_missing_when_recorded_image_size_does_not_match_storage() -> Result<()> {
     let fixture = Fixture::current()?;
     let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
         .next()
@@ -414,10 +414,11 @@ fn rejects_image_whose_recorded_size_does_not_match_storage() -> Result<()> {
     let mut evidence: serde_json::Value = serde_json::from_slice(&fs::read(&evidence_path)?)?;
     evidence["image"]["size_bytes"] = json!(1);
     fs::write(evidence_path, serde_json::to_vec_pretty(&evidence)?)?;
-    let error = derive_image_inventory_publication(&fixture.request)
-        .err()
-        .context("tampered image metadata was admitted")?;
-    assert!(error.to_string().contains("has no admitted immutable image"));
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Missing);
+    assert!(tool.selected_image_sha256.is_none());
+    assert!(tool.candidates.iter().all(|candidate| !candidate.admitted));
     Ok(())
 }
 

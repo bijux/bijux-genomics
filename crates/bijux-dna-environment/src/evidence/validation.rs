@@ -9,6 +9,7 @@ use super::model::{
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
     ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
     RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
 };
 
@@ -129,7 +130,11 @@ pub fn validate_image_inventory_evidence(
 pub fn validate_image_inventory_publication(
     publication: &ContainerImageInventoryPublication,
 ) -> Result<()> {
-    if publication.schema_version != CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1 {
+    if !matches!(
+        publication.schema_version.as_str(),
+        CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1
+            | CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2
+    ) {
         bail!("unsupported image-inventory publication schema: {}", publication.schema_version);
     }
     validate_sha256(&publication.catalog_sha256, "inventory catalog")?;
@@ -145,7 +150,7 @@ pub fn validate_image_inventory_publication(
         if !tool_ids.insert(tool.tool.as_str()) {
             bail!("image inventory duplicates tool {}", tool.tool);
         }
-        validate_inventory_tool(tool, &mut state)?;
+        validate_inventory_tool(tool, &publication.schema_version, &mut state)?;
     }
     for image in publication.historical_images.iter().chain(&publication.unknown_images) {
         validate_detached_image(image, &mut state)?;
@@ -183,6 +188,7 @@ struct InventoryValidationState {
 
 fn validate_inventory_tool(
     tool: &ContainerImageInventoryTool,
+    schema_version: &str,
     state: &mut InventoryValidationState,
 ) -> Result<()> {
     if tool.tool.trim().is_empty() || tool.version.trim().is_empty() {
@@ -199,7 +205,7 @@ fn validate_inventory_tool(
         canonical_candidates +=
             u64::from(matches!(candidate.disposition, ImageCandidateDisposition::Canonical));
     }
-    validate_selected_image(tool, canonical_candidates)
+    validate_selected_image(tool, schema_version, canonical_candidates)
 }
 
 fn validate_image_candidate(
@@ -251,7 +257,11 @@ fn validate_image_candidate(
     Ok(())
 }
 
-fn validate_selected_image(tool: &ContainerImageInventoryTool, canonical: u64) -> Result<()> {
+fn validate_selected_image(
+    tool: &ContainerImageInventoryTool,
+    schema_version: &str,
+    canonical: u64,
+) -> Result<()> {
     match (&tool.support_disposition, &tool.selected_image_sha256) {
         (ContainerSupportDisposition::Retained, Some(selected)) => {
             validate_sha256(selected, "selected image")?;
@@ -279,7 +289,42 @@ fn validate_selected_image(tool: &ContainerImageInventoryTool, canonical: u64) -
             }
         }
         (ContainerSupportDisposition::Retained, None) => {
-            bail!("retained tool {} has no selected image", tool.tool);
+            if schema_version == CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1 {
+                bail!("retained tool {} has no selected image", tool.tool);
+            }
+            if canonical != 0 {
+                bail!("unresolved retained tool {} exposes a canonical image", tool.tool);
+            }
+            let admitted = tool.candidates.iter().filter(|candidate| candidate.admitted).count();
+            match tool.state {
+                ContainerImageState::Missing if admitted == 0 => {}
+                ContainerImageState::Ambiguous if admitted > 1 => {
+                    let current =
+                        tool.candidates.iter().filter(|candidate| candidate.current_recipe).count();
+                    let selection_pool = if current == 0 { admitted } else { current };
+                    let unreferenced = tool
+                        .candidates
+                        .iter()
+                        .filter(|candidate| {
+                            (if current == 0 {
+                                candidate.admitted
+                            } else {
+                                candidate.current_recipe
+                            }) && candidate.real_run_references == 0
+                        })
+                        .count();
+                    if selection_pool < 2 || unreferenced == 1 {
+                        bail!("ambiguous retained tool {} has a unique image selection", tool.tool);
+                    }
+                }
+                ContainerImageState::Missing => {
+                    bail!("missing retained tool {} has admitted image candidates", tool.tool);
+                }
+                ContainerImageState::Ambiguous => {
+                    bail!("ambiguous retained tool {} lacks competing admitted images", tool.tool);
+                }
+                _ => bail!("unselected retained tool {} has an invalid image state", tool.tool),
+            }
         }
         (_, Some(selected)) => validate_sha256(selected, "selected image")?,
         (_, None) => {}
@@ -403,6 +448,7 @@ fn image_state_name(state: &ContainerImageState) -> &'static str {
     match state {
         ContainerImageState::Current => "current",
         ContainerImageState::Historical => "historical",
+        ContainerImageState::Ambiguous => "ambiguous",
         ContainerImageState::Missing => "missing",
         ContainerImageState::Unsupported => "unsupported",
     }

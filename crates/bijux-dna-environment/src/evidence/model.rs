@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 pub const CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1: &str =
     "bijux.container.image_inventory_publication.v1";
+pub const CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2: &str =
+    "bijux.container.image_inventory_publication.v2";
 pub const CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1: &str =
     "bijux.container.runtime_verification_publication.v1";
 
@@ -67,6 +69,7 @@ pub enum ContainerSupportDisposition {
 pub enum ContainerImageState {
     Current,
     Historical,
+    Ambiguous,
     Missing,
     Unsupported,
 }
@@ -179,7 +182,7 @@ pub enum RuntimeEvidenceStatus {
 fn image_inventory_publication_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+        "const": CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     })
 }
 

@@ -7,7 +7,7 @@ use super::{
 
 const SCAN_SCHEMA_PATH: &str = "containers/contracts/schemas/image-inventory-scan.v1.json";
 const PUBLICATION_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/image-inventory-publication.v1.json";
+    "containers/contracts/schemas/image-inventory-publication.v2.json";
 const PUBLICATION_PATH: &str = "containers/reports/image-inventory.json";
 const REPORT_PATH: &str = "containers/reports/image-inventory.md";
 

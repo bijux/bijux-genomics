@@ -39,6 +39,7 @@ pub use crate::evidence::{
     ImageInventoryScan, ImageInventoryScannedImage, ImageInventorySourceFile,
     RuntimeEvidenceStatus, RuntimeVerificationPublication,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
 };
 pub use crate::resolve::*;
