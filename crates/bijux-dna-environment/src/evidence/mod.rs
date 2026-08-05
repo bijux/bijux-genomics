@@ -2,6 +2,7 @@
 //! Typed admission for immutable container environment evidence.
 
 mod chain;
+mod image_activation;
 mod image_storage;
 mod inventory;
 mod load;
@@ -17,6 +18,12 @@ pub use chain::{
     load_container_evidence_chain, validate_container_evidence_chain,
     validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
     ContainerEvidenceChain,
+};
+pub use image_activation::{
+    apply_image_activation_plan, create_image_activation_plan, image_activation_plan_schema,
+    load_image_activation_plan, rollback_image_activation_plan, verify_image_activation_plan,
+    write_image_activation_plan_schema, ImageActivationPlan, ImageActivationPlanRequest,
+    ImageActivationPlanState, ImageActivationPublication, IMAGE_ACTIVATION_PLAN_SCHEMA_V1,
 };
 pub use image_storage::{
     apply_image_storage_plan, create_image_storage_plan, derive_image_storage_report,

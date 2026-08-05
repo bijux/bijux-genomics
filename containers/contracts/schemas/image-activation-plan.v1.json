@@ -1,0 +1,132 @@
+{
+  "$defs": {
+    "EvidenceSourceIdentity": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "ImageActivationPlanState": {
+      "enum": [
+        "previewed",
+        "applying",
+        "applied",
+        "rolling_back",
+        "rolled_back"
+      ],
+      "type": "string"
+    },
+    "ImageActivationPublication": {
+      "additionalProperties": false,
+      "properties": {
+        "applied": {
+          "type": "boolean"
+        },
+        "applied_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "source",
+        "target",
+        "size_bytes",
+        "sha256",
+        "applied"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_root": {
+      "type": "string"
+    },
+    "completed_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "inventory": {
+      "$ref": "#/$defs/EvidenceSourceIdentity"
+    },
+    "publications": {
+      "items": {
+        "$ref": "#/$defs/ImageActivationPublication"
+      },
+      "type": "array"
+    },
+    "rolled_back_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "size_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "source_root": {
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/ImageActivationPlanState"
+    }
+  },
+  "required": [
+    "schema_version",
+    "state",
+    "created_at_utc",
+    "inventory",
+    "source_root",
+    "active_root",
+    "file_count",
+    "size_bytes",
+    "publications"
+  ],
+  "title": "ImageActivationPlan",
+  "type": "object"
+}

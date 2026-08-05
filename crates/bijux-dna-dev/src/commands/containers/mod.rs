@@ -17,6 +17,7 @@ mod command_support;
 mod content_support;
 mod contracts;
 mod dispatch;
+mod image_activation;
 mod inventory;
 mod metadata;
 mod qualification;

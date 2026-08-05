@@ -7,6 +7,8 @@ mod mod_contracts_build_dockerfile_rs;
 mod mod_contracts_canonical_image_publication_rs;
 #[path = "contracts/evidence_publications.rs"]
 mod mod_contracts_evidence_publications_rs;
+#[path = "contracts/image_activation.rs"]
+mod mod_contracts_image_activation_rs;
 #[path = "contracts/image_inventory_derivation.rs"]
 mod mod_contracts_image_inventory_derivation_rs;
 #[path = "contracts/image_selection.rs"]
