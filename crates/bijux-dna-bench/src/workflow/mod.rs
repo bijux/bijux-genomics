@@ -6,6 +6,7 @@ mod attempt_migration;
 mod campaign_lifecycle;
 mod evaluation;
 mod fastq_expectations;
+mod fastq_profile_read_lengths;
 mod options;
 mod report_load;
 mod run_suite;
@@ -33,6 +34,9 @@ pub use campaign_lifecycle::{
 pub use evaluation::{compare, gate};
 pub use fastq_expectations::{
     ensure_fastq_read_length_expectations, FastqReadLengthExpectationPublication,
+};
+pub use fastq_profile_read_lengths::{
+    prepare_fastq_profile_read_lengths_material, FastqProfileReadLengthsMaterial,
 };
 pub use options::BenchRunOptions;
 pub use report_load::{

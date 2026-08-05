@@ -23,6 +23,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
 - `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` re-hashes and admits one exact governed FASTQ closure.
 - `ensure_fastq_read_length_expectations(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` independently derives and immutably publishes exact read-length evidence.
+- `prepare_fastq_profile_read_lengths_material(...)` prepares the complete run-2042 attempt input, command, parameter, output, resource, and acceptance closure.
 - `plan_stage_campaign_attempts(registry, repository_commit, campaign_registry_sha256, run_id, campaign_id, attempt_id, observed_at_utc)` deterministically derives a source-locked plan with one validated attempt per declared tool.
 - `verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)` rejects stale source or campaign declaration identity before execution state is created.
 - `ensure_stage_campaign_attempts(root, plan)` validates source locks, then preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
@@ -78,6 +79,7 @@ including:
 - `BenchmarkExecutionSpec`
 - `FastqReadLengthExpectations`
 - `FastqReadLengthExpectationPublication`
+- `FastqProfileReadLengthsMaterial`
 - `GatePolicy`
 - `GatePolicyOverrides`
 - `GateDecision`

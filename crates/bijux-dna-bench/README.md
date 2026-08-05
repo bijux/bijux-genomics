@@ -47,7 +47,8 @@ The SSOT for callable operations is `docs/COMMANDS.md`.
 - `src/lib.rs` stays thin and re-exports `public_api`.
 - `src/public_api/` owns the curated stable surface.
 - `src/workflow/` owns suite loading, summarization, comparison, gate decisions,
-  suite artifact persistence, attempt lifecycle persistence, and scientific expectation publication.
+  suite artifact persistence, attempt lifecycle persistence, scientific expectation publication,
+  and stage-specific executable benchmark material.
 - `src/repo/` owns workspace path policy, governed corpus admission, and read-only run artifact loading.
 - `src/artifacts/` owns deterministic artifact serialization.
 - `crates/bijux-dna-bench/bench/suites/` contains the checked-in benchmark suite catalog.

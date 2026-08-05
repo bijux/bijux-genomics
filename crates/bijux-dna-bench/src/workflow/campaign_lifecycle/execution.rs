@@ -142,6 +142,8 @@ pub fn build_execution_spec(
         bijux_dna_bench_model::BenchmarkCachePolicy::Cold => BenchmarkExecutionCachePolicy::Cold,
         bijux_dna_bench_model::BenchmarkCachePolicy::Warm => BenchmarkExecutionCachePolicy::Warm,
     };
+    let mut acceptance = material.acceptance;
+    acceptance.version_regex.clone_from(&tool.expected_version_regex);
     let spec = BenchmarkExecutionSpec {
         schema_version: BENCHMARK_EXECUTION_SPEC_SCHEMA_V1.to_string(),
         identity: identity.clone(),
@@ -210,7 +212,7 @@ pub fn build_execution_spec(
             cache_policy,
             determinism: material.determinism,
         },
-        acceptance: material.acceptance,
+        acceptance,
     };
     validate_execution_spec(&spec).context("validate constructed benchmark execution spec")?;
     Ok(spec)

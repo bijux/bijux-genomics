@@ -47,6 +47,8 @@ policy, and options used for a run.
 3. Re-admission verifies every catalog, file size, and compressed-file digest.
 4. Science derivation streams the FASTQ records and reproduces the exact summary,
    histogram, row digest, and manifest bytes; any existing conflict is rejected.
+5. Call `prepare_fastq_profile_read_lengths_material` for each planned tool identity;
+   identical attempts reproduce parameter, mount, command, and required-file bytes.
 
 ## Allowed Variation
 

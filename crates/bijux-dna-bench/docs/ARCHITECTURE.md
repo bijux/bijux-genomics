@@ -29,6 +29,8 @@ belong under `docs/`.
   persistence.
 - `src/workflow/fastq_expectations/` separates scientific expectation rendering
   from immutable publication storage; derivation delegates to `bijux-dna-science`.
+- `src/workflow/fastq_profile_read_lengths/` owns the run-2042 input mounts,
+  exact tool commands, required output closure, and immutable parameter evidence.
 - `src/workflow/summary/` separates grouping, row metrics, and stratum assembly.
 - `src/repo/` owns repository-root discovery, workspace path policy, governed
   corpus admission, repository contracts, run metadata, run artifact loaders,

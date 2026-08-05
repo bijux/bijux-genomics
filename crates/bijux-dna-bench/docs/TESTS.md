@@ -29,6 +29,8 @@ README files are intentionally not allowed under `tests/`.
 - `tests/contracts/docs/` protects docs-to-fixture alignment.
 - `tests/contracts/corpus_admission.rs` and `fastq_expectations.rs` protect exact
   corpus closure and immutable scientific expectation publication.
+- Unit contracts under `fastq_profile_read_lengths/` protect command expansion and
+  restart-safe effective parameter evidence.
 - `tests/contracts/contracts.rs` is the contract target aggregator.
 
 ## Determinism Tests

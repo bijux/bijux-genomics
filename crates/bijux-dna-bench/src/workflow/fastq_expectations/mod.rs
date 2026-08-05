@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_bench_model::{
-    validate_fastq_read_length_expectations, BenchmarkFastqLayout,
+    validate_fastq_read_length_expectations, AdmittedFastqCorpus, BenchmarkFastqLayout,
     FastqReadLengthExpectationSample, FastqReadLengthExpectations,
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
 };
@@ -27,6 +27,7 @@ pub struct FastqReadLengthExpectationPublication {
     pub root: PathBuf,
     pub manifest_path: PathBuf,
     pub expectations: FastqReadLengthExpectations,
+    pub admitted_corpus: AdmittedFastqCorpus,
 }
 
 /// Derive and immutably publish exact read-length evidence for one admitted FASTQ corpus.
@@ -108,11 +109,11 @@ pub fn ensure_fastq_read_length_expectations(
 
     let expectations = FastqReadLengthExpectations {
         schema_version: FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1.to_string(),
-        corpus_id: admitted.corpus_id,
+        corpus_id: admitted.corpus_id.clone(),
         sample_count: admitted.sample_count,
         file_count: admitted.file_count,
-        data_index_sha256: admitted.data_index_sha256,
-        catalog_sha256: admitted.catalog_sha256,
+        data_index_sha256: admitted.data_index_sha256.clone(),
+        catalog_sha256: admitted.catalog_sha256.clone(),
         samples,
     };
     validate_fastq_read_length_expectations(&expectations)
@@ -129,7 +130,12 @@ pub fn ensure_fastq_read_length_expectations(
             "summaries".to_string(),
         ]),
     )?;
-    Ok(FastqReadLengthExpectationPublication { root, manifest_path, expectations })
+    Ok(FastqReadLengthExpectationPublication {
+        root,
+        manifest_path,
+        expectations,
+        admitted_corpus: admitted,
+    })
 }
 
 fn science_layout(layout: BenchmarkFastqLayout) -> FastqInputLayout {

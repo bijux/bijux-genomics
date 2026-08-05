@@ -25,6 +25,8 @@ persistence without defining a parallel state machine.
 - Resolve repository-local benchmark data and suite directories.
 - Canonicalize JSON before writing stable artifact files.
 - Publish no-clobber scientific expectation artifacts under their catalog digest identity.
+- Prepare source-locked stage-specific inputs, commands, parameter evidence, acceptance rules,
+  and required-file closures without executing them.
 
 ## Forbidden Effects
 

@@ -25,6 +25,7 @@ gating, and deterministic artifact persistence.
 - Reconstructed `BenchmarkAttemptRecordV2` values from immutable event files.
 - Versioned stage-coverage JSON, Markdown, and generated JSON Schema publications.
 - Immutable exact FASTQ summaries, histograms, row identities, and expectation manifests.
+- Complete stage-specific execution material consumed by the immutable execution-spec builder.
 
 ## Required Invariants
 
@@ -36,6 +37,8 @@ gating, and deterministic artifact persistence.
 - Benchmark operations must not execute tools or product workflows.
 - Corpus expectation publication must re-hash every source file, derive truth through
   `bijux-dna-science`, reject symlinks/conflicts, and publish its manifest last.
+- Run-2042 material must bind all 30 FASTQ files, 20 summary/histogram pairs,
+  data authorities, parameter evidence, three repetitions, and exact acceptance metrics.
 - Permanent attempt identities cannot be reused, and prior transition events
   cannot be replaced.
 - Retry initialization must identify an existing terminal attempt with the same
