@@ -44,9 +44,12 @@ pub use crate::workflow::{
     FastqReadLengthExpectationPublication,
 };
 pub use bijux_dna_bench_model::{
-    benchmark_campaign_plan_schema, benchmark_execution_spec_schema,
-    benchmark_scheduler_observation_schema, validate_attempt_archive, validate_attempt_identity,
-    validate_attempt_record_v2, validate_execution_spec, validate_fastq_read_length_expectations,
+    benchmark_bundle_manifest_schema, benchmark_campaign_plan_schema,
+    benchmark_corpus_manifest_schema, benchmark_execution_spec_schema,
+    benchmark_observation_schema, benchmark_scheduler_observation_schema,
+    benchmark_suite_spec_schema, benchmark_summary_schema, gate_decision_schema,
+    validate_attempt_archive, validate_attempt_identity, validate_attempt_record_v2,
+    validate_execution_spec, validate_fastq_read_length_expectations,
     validate_scientific_readiness, AdmittedBamCorpus, AdmittedBamCorpusFile,
     AdmittedBenchmarkStageReport, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
     AdmittedFastqCorpusSample, AnalysisRequirements, BackendComparisonSpec, BenchError,
@@ -97,6 +100,8 @@ pub use bijux_dna_bench_model::{
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
     BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
-    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1, BUNDLE_SCHEMA_V1,
+    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1,
 };

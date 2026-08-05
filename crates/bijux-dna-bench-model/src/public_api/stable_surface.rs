@@ -16,8 +16,10 @@ pub use crate::contract::{
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
     BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
-    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1, BUNDLE_SCHEMA_V1,
+    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1,
 };
 pub use crate::diagnostics::BenchError;
 pub use crate::model::execution::{
@@ -79,8 +81,8 @@ pub use crate::model::report::{
     BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 pub use crate::model::suite::{
-    AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, DatasetSpec,
-    DiversityRequirements, ReplicatePolicy, StratificationRequirement,
+    benchmark_suite_spec_schema, AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec,
+    DatasetSpec, DiversityRequirements, ReplicatePolicy, StratificationRequirement,
 };
 pub use crate::model::summary::{
     benchmark_summary_schema, MetricSummary, SummaryRow, SummaryStratum,

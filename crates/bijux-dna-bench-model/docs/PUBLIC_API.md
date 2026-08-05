@@ -85,6 +85,12 @@ Policy and diagnostics:
 - `GateDecision`
 - `GateViolation`
 - `BenchError`
+- `SUITE_SCHEMA_V1`
+- `CORPUS_SCHEMA_V1`
+- `BUNDLE_SCHEMA_V1`
+- `OBSERVATION_SCHEMA_V1`
+- `SUMMARY_SCHEMA_V1`
+- `DECISION_SCHEMA_V1`
 - `BENCHMARK_ATTEMPT_SCHEMA_V1`
 - `BENCHMARK_ATTEMPT_SCHEMA_V2`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
@@ -106,6 +112,7 @@ Statistics:
 Schema derivation:
 
 - `benchmark_campaign_plan_schema`
+- `benchmark_suite_spec_schema`
 - `benchmark_corpus_manifest_schema`
 - `benchmark_bundle_manifest_schema`
 - `benchmark_observation_schema`

@@ -92,6 +92,12 @@ including:
 - `BenchError`
 - `BenchRunOptions`
 - `benchmark_execution_spec_schema`
+- `benchmark_suite_spec_schema`
+- `benchmark_corpus_manifest_schema`
+- `benchmark_bundle_manifest_schema`
+- `benchmark_observation_schema`
+- `benchmark_summary_schema`
+- `gate_decision_schema`
 - `validate_execution_spec`
 - `build_execution_spec`
 - `BenchmarkExecutionMaterial`

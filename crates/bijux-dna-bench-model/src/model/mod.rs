@@ -78,6 +78,8 @@ pub use report::{
     BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 #[allow(unused_imports)]
-pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};
+pub use suite::{
+    benchmark_suite_spec_schema, BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec,
+};
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};

@@ -5,6 +5,7 @@ use super::{
     AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,
 };
+use crate::contract::SUITE_SCHEMA_V1;
 
 impl BenchmarkSuiteSpec {
     #[must_use]
@@ -55,7 +56,7 @@ impl BenchmarkSuiteSpec {
         analysis_requirements: AnalysisRequirements,
     ) -> Self {
         Self {
-            schema_version: "bijux.bench.suite.v1".to_string(),
+            schema_version: SUITE_SCHEMA_V1.to_string(),
             suite_id,
             datasets,
             stages,
