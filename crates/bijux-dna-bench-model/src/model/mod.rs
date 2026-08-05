@@ -4,6 +4,7 @@
 
 pub mod corpus;
 pub mod decision;
+pub mod execution;
 pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
@@ -19,6 +20,17 @@ pub use corpus::{
     CorpusDomain, CorpusScale, DriftScenarioSpec, TruthSetHook, TruthSetStatus,
 };
 pub use decision::BenchmarkDecision;
+#[allow(unused_imports)]
+pub use execution::{
+    benchmark_execution_spec_schema, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
+    BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
+    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
+    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
+    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
+    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
+    BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
+    BenchmarkExecutionSpec,
+};
 #[allow(unused_imports)]
 pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 #[allow(unused_imports)]

@@ -73,6 +73,7 @@ including:
 - `BenchmarkAttemptTransition`
 - `BenchmarkCycleStatusV2`
 - `BenchmarkCampaignPlan`
+- `BenchmarkExecutionSpec`
 - `GatePolicy`
 - `GatePolicyOverrides`
 - `GateDecision`
@@ -81,6 +82,8 @@ including:
 - `SummaryRow`
 - `BenchError`
 - `BenchRunOptions`
+- `benchmark_execution_spec_schema`
+- `validate_execution_spec`
 
 ## Export Policy
 

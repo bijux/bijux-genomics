@@ -7,7 +7,7 @@ use anyhow::{bail, Context};
 
 use super::{OpsCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 pub(in super::super) fn tooling_benchmark_campaign_cycle(
@@ -20,10 +20,25 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
     let options = parse_options(remaining).context("parse benchmark campaign cycle options")?;
     match operation.as_str() {
         "schema" => schema(workspace, &options),
+        "execution-schema" => execution_schema(workspace, &options),
         "plan" => plan(workspace, &options),
         "initialize" => initialize(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
+}
+
+fn execution_schema(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    require_exact_options(options, &["--output"])?;
+    let output = resolve_path(workspace, required(options, "--output")?);
+    let schema = serde_json::to_value(bijux_dna_bench::benchmark_execution_spec_schema())?;
+    ensure_json_identity(&output, &schema)?;
+    Ok(OpsCommandOutcome::success(format!(
+        "published benchmark execution specification schema at {}\n",
+        output.display()
+    )))
 }
 
 fn schema(workspace: &Workspace, options: &BTreeMap<String, String>) -> Result<OpsCommandOutcome> {

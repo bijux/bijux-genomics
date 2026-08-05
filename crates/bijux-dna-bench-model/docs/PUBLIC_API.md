@@ -47,6 +47,18 @@ Model contracts:
 - `BenchmarkAttemptRecordV2`
 - `BenchmarkCycleStatusV2`
 - `BenchmarkCampaignPlan`
+- `BenchmarkExecutionSpec`
+- `BenchmarkExecutionSourceLock`
+- `BenchmarkExecutionImage`
+- `BenchmarkExecutionInput`
+- `BenchmarkExecutionCommands`
+- `BenchmarkExecutionParameterEvidence`
+- `BenchmarkExecutionInterface`
+- `BenchmarkExecutionMeasurement`
+- `BenchmarkExecutionOutputs`
+- `BenchmarkExecutionResources`
+- `BenchmarkExecutionRuntimePolicy`
+- `BenchmarkExecutionAcceptance`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
 - `BenchmarkGraphNode`
@@ -76,6 +88,7 @@ Policy and diagnostics:
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V2`
 - `BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1`
+- `BENCHMARK_EXECUTION_SPEC_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
@@ -90,6 +103,8 @@ Statistics:
 Schema derivation:
 
 - `benchmark_campaign_plan_schema`
+- `benchmark_execution_spec_schema`
+- `validate_execution_spec`
 
 Namespaces:
 
