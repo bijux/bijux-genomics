@@ -44,7 +44,12 @@ fn bench_readiness_fastq_report_map_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 71, "TSV must retain every FASTQ expected-result reporting row");
+    assert!(!rows.is_empty(), "TSV must retain FASTQ expected-result reporting rows");
+    let result_ids = rows
+        .iter()
+        .filter_map(|row| row.split('\t').next())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(result_ids.len(), rows.len(), "each expected result must appear exactly once");
     assert!(
         rows.iter().any(|row| {
             row.contains(

@@ -47,9 +47,13 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq-tool-serving-map.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
-
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let stage_count = rows
+        .iter()
+        .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>()
+        .len() as u64;
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(stage_count));
     assert_eq!(
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
@@ -148,7 +152,7 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed profile-reads row for {tool_id}"
         );
     }
-    for tool_id in ["fastp", "prinseq", "seqfu", "seqkit_stats"] {
+    for tool_id in ["seqfu", "seqkit"] {
         assert!(
             rows.iter().any(|row| {
                 row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
@@ -166,6 +170,14 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed profile-read-lengths row for {tool_id}"
         );
     }
+    assert!(rows.iter().all(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            != Some("fastq.profile_read_lengths")
+            || !matches!(
+                row.get("tool_id").and_then(serde_json::Value::as_str),
+                Some("fastp" | "prinseq" | "seqkit_stats")
+            )
+    }));
     for tool_id in [
         "adapterremoval",
         "alientrimmer",

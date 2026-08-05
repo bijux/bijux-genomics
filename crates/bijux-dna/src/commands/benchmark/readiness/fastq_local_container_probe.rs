@@ -122,6 +122,10 @@ pub(crate) fn collect_fastq_local_container_smoke_rows(
     repo_root: &Path,
 ) -> Result<Vec<FastqLocalContainerSmokeRow>> {
     let retained_rows = collect_fastq_active_stage_tool_matrix_rows(repo_root)?.rows;
+    let retained_bindings = retained_rows
+        .iter()
+        .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
+        .collect::<BTreeSet<_>>();
     let retained_tool_ids =
         retained_rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>();
     let registry_by_tool = load_fastq_registry_smoke_records(repo_root, &retained_tool_ids)?;
@@ -138,7 +142,7 @@ pub(crate) fn collect_fastq_local_container_smoke_rows(
     rows.sort_by(|left, right| {
         left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
-    ensure_fastq_local_container_smoke_contract(repo_root, &rows)?;
+    ensure_fastq_local_container_smoke_contract(repo_root, &rows, &retained_bindings)?;
     Ok(rows)
 }
 
@@ -401,6 +405,7 @@ fn string_field(value: &toml::Value, key: &str) -> String {
 fn ensure_fastq_local_container_smoke_contract(
     repo_root: &Path,
     rows: &[FastqLocalContainerSmokeRow],
+    retained_bindings: &BTreeSet<(String, String)>,
 ) -> Result<()> {
     let host_default_wrapper_row_count = rows
         .iter()
@@ -410,22 +415,11 @@ fn ensure_fastq_local_container_smoke_contract(
                 && host_smoke_source_path(repo_root, &row.stage_id).is_ok_and(|path| path.is_some())
         })
         .count();
-    if rows.len() != 71 {
+    let emitted_bindings =
+        rows.iter().map(|row| (row.stage_id.clone(), row.tool_id.clone())).collect::<BTreeSet<_>>();
+    if rows.len() != retained_bindings.len() || emitted_bindings != *retained_bindings {
         return Err(anyhow!(
-            "FASTQ local-container smoke report drifted from the governed retained surface (expected 71 rows, found {})",
-            rows.len()
-        ));
-    }
-    let stage_count = rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len();
-    if stage_count != 27 {
-        return Err(anyhow!(
-            "FASTQ local-container smoke report drifted from the governed retained stage surface (expected 27 stages, found {stage_count})"
-        ));
-    }
-    let tool_count = rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len();
-    if tool_count != 42 {
-        return Err(anyhow!(
-            "FASTQ local-container smoke report drifted from the governed retained tool surface (expected 42 tools, found {tool_count})"
+            "FASTQ local-container smoke bindings drifted from the governed active stage-tool matrix (expected {retained_bindings:?}, found {emitted_bindings:?})"
         ));
     }
 

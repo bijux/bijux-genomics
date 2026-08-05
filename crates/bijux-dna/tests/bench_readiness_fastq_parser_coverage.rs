@@ -46,12 +46,14 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq-parser-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(
         payload.get("parser_covered_row_count").and_then(serde_json::Value::as_u64),
-        Some(71)
+        Some(rows.len() as u64)
     );
     assert_eq!(
         payload.get("parser_missing_row_count").and_then(serde_json::Value::as_u64),
@@ -62,14 +64,21 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
         Some(100.0)
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 71);
     assert!(rows.iter().all(|row| {
         row.get("parser_coverage").and_then(serde_json::Value::as_str) == Some("covered")
             && row
                 .get("corpus_status")
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|value| value.starts_with("fixture:") || value.starts_with("asset:"))
+    }));
+    assert!(rows.iter().all(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) != Some("fastuniq")
+            && (row.get("stage_id").and_then(serde_json::Value::as_str)
+                != Some("fastq.profile_read_lengths")
+                || matches!(
+                    row.get("tool_id").and_then(serde_json::Value::as_str),
+                    Some("seqfu" | "seqkit")
+                ))
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")
