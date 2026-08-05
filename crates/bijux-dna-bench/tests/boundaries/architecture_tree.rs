@@ -184,6 +184,7 @@ fn commands_doc_lists_managed_benchmark_operations() {
         "verify-attempt-migration",
         "rollback-attempt-migration",
         "plan-stage-campaign-attempts",
+        "verify-campaign-plan-source",
         "ensure-stage-campaign-attempts",
         "derive-stage-coverage",
         "publish-checked-in-stage-coverage",

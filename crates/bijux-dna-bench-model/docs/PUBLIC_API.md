@@ -46,6 +46,7 @@ Model contracts:
 - `BenchmarkAttemptTransition`
 - `BenchmarkAttemptRecordV2`
 - `BenchmarkCycleStatusV2`
+- `BenchmarkCampaignPlan`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
 - `BenchmarkGraphNode`
@@ -74,6 +75,7 @@ Policy and diagnostics:
 - `BENCHMARK_ATTEMPT_SCHEMA_V2`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V2`
+- `BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
@@ -84,6 +86,10 @@ Policy and diagnostics:
 Statistics:
 
 - `robust_stats`
+
+Schema derivation:
+
+- `benchmark_campaign_plan_schema`
 
 Namespaces:
 

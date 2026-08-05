@@ -3,9 +3,10 @@ use bijux_dna_bench_model::{
     validate_attempt_record_v2, validate_cycle_status_v2, BenchmarkArchiveFileRecord,
     BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
     BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
-    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
-    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
-    BenchmarkSchedulerTerminalState, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BenchmarkCampaignPlan, BenchmarkCycleStatusV2, BenchmarkEvidenceReference,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
+    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
 };
 
 fn run_identity() -> BenchmarkRunIdentity {
@@ -353,4 +354,37 @@ fn cycle_resolves_supersession_within_the_same_run_and_tool() {
     );
 
     assert!(validate_cycle_status_v2(&cycle).is_ok());
+}
+
+#[test]
+fn campaign_plan_requires_full_source_and_registry_identities() -> anyhow::Result<()> {
+    let cycle = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![attempt("attempt-001", "seqkit")],
+    );
+    let plan = BenchmarkCampaignPlan::new("a".repeat(40), "b".repeat(64), cycle);
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&plan).is_ok());
+
+    let mut abbreviated = plan.clone();
+    abbreviated.repository_commit = "a123456".to_string();
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&abbreviated).is_err());
+
+    let mut uppercase = plan.clone();
+    uppercase.campaign_registry_sha256 = "B".repeat(64);
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&uppercase).is_err());
+
+    let mut zero = plan;
+    zero.repository_commit = "0".repeat(40);
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&zero).is_err());
+
+    let schema = serde_json::to_value(bijux_dna_bench_model::benchmark_campaign_plan_schema())?;
+    assert_eq!(
+        schema
+            .pointer("/$defs/BenchmarkCampaignPlan/properties/schema_version/const")
+            .or_else(|| schema.pointer("/properties/schema_version/const"))
+            .and_then(serde_json::Value::as_str),
+        Some(bijux_dna_bench_model::BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1)
+    );
+    Ok(())
 }

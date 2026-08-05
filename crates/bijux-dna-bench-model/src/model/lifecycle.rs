@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use crate::contract::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
 };
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -241,6 +241,18 @@ pub struct BenchmarkCycleStatusV2 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkCampaignPlan {
+    #[schemars(schema_with = "benchmark_campaign_plan_schema_version")]
+    pub schema_version: String,
+    #[schemars(schema_with = "repository_commit_schema")]
+    pub repository_commit: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub campaign_registry_sha256: String,
+    pub cycle: BenchmarkCycleStatusV2,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkAttemptRecord {
     #[schemars(schema_with = "benchmark_attempt_schema_version")]
     pub schema_version: String,
@@ -354,6 +366,27 @@ impl BenchmarkCycleStatusV2 {
     }
 }
 
+impl BenchmarkCampaignPlan {
+    #[must_use]
+    pub fn new(
+        repository_commit: String,
+        campaign_registry_sha256: String,
+        cycle: BenchmarkCycleStatusV2,
+    ) -> Self {
+        Self {
+            schema_version: BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1.to_string(),
+            repository_commit,
+            campaign_registry_sha256,
+            cycle,
+        }
+    }
+}
+
+#[must_use]
+pub fn benchmark_campaign_plan_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCampaignPlan)
+}
+
 fn benchmark_attempt_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
@@ -403,10 +436,24 @@ fn benchmark_cycle_status_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
     })
 }
 
+fn benchmark_campaign_plan_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    })
+}
+
 fn sha256_identity_schema(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
+    })
+}
+
+fn repository_commit_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^[0-9a-f]{40}$",
     })
 }
 

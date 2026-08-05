@@ -341,6 +341,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingArchitectureReport,
         ),
         native(
+            "benchmark-campaign-cycle",
+            "Publish schema, plan, or initialize immutable benchmark campaign attempts through crate-owned workflows.",
+            NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
+        ),
+        native(
             "benchmark-stage-coverage",
             "Generate or check benchmark stage coverage through the crate-owned workflow.",
             NativeOpsCommandKey::ToolingBenchmarkStageCoverage,

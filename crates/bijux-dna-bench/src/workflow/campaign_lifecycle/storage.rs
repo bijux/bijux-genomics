@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_cycle_status_v2, BenchmarkAttemptRecordV2, BenchmarkCycleStatusV2,
+    validate_campaign_plan, BenchmarkAttemptRecordV2, BenchmarkCampaignPlan,
     BenchmarkLifecycleStatus,
 };
 use bijux_dna_runtime::{
@@ -22,10 +22,10 @@ use bijux_dna_runtime::{
 /// or runtime cannot atomically initialize an attempt.
 pub fn ensure_stage_campaign_attempts(
     benchmark_root: &Path,
-    cycle: &BenchmarkCycleStatusV2,
+    plan: &BenchmarkCampaignPlan,
 ) -> Result<Vec<PathBuf>> {
-    validate_cycle_status_v2(cycle).context("validate benchmark campaign cycle")?;
-    let mut attempts = cycle.attempts.iter().collect::<Vec<_>>();
+    validate_campaign_plan(plan).context("validate benchmark campaign plan")?;
+    let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
     attempts.sort_by(|left, right| attempt_sort_key(left).cmp(&attempt_sort_key(right)));
     for attempt in &attempts {
         if attempt.transitions.len() != 1

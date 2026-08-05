@@ -1,0 +1,319 @@
+{
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkAttemptRecordV2": {
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/BenchmarkAttemptIdentity"
+        },
+        "schema_version": {
+          "const": "bijux.benchmark.attempt.v2",
+          "type": "string"
+        },
+        "supersedes_attempt_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkAttemptTransition"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "identity",
+        "transitions"
+      ],
+      "type": "object"
+    },
+    "BenchmarkAttemptTransition": {
+      "additionalProperties": false,
+      "properties": {
+        "accounting": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkSchedulerAccounting"
+          },
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkEvidenceReference"
+          },
+          "type": "array"
+        },
+        "from_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkLifecycleStatus"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "jobs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkJobReference"
+          },
+          "type": "array"
+        },
+        "observed_at_utc": {
+          "type": "string"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sequence": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "to_status": {
+          "$ref": "#/$defs/BenchmarkLifecycleStatus"
+        }
+      },
+      "required": [
+        "sequence",
+        "to_status",
+        "observed_at_utc"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCycleStatusV2": {
+      "additionalProperties": false,
+      "properties": {
+        "attempts": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkAttemptRecordV2"
+          },
+          "type": "array"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "generated_at_utc": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.benchmark.cycle_status.v2",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "campaign_id",
+        "generated_at_utc",
+        "attempts"
+      ],
+      "type": "object"
+    },
+    "BenchmarkEvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uri": {
+          "pattern": "^study://[^/].+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkJobReference": {
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "type": "string"
+        },
+        "scheduler": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheduler",
+        "job_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLifecycleStatus": {
+      "enum": [
+        "planned",
+        "ready",
+        "submitted",
+        "running",
+        "collecting",
+        "passed",
+        "failed",
+        "superseded",
+        "blocked_external"
+      ],
+      "type": "string"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkSchedulerAccounting": {
+      "additionalProperties": false,
+      "properties": {
+        "elapsed_seconds": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "max_rss_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "node_list": {
+          "type": "string"
+        },
+        "raw_state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scheduler": {
+          "type": "string"
+        },
+        "signal": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "state": {
+          "$ref": "#/$defs/BenchmarkSchedulerTerminalState"
+        },
+        "total_cpu_seconds": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scheduler",
+        "job_id",
+        "state",
+        "raw_state",
+        "exit_code",
+        "signal",
+        "elapsed_seconds",
+        "total_cpu_seconds",
+        "node_list"
+      ],
+      "type": "object"
+    },
+    "BenchmarkSchedulerTerminalState": {
+      "enum": [
+        "completed",
+        "failed",
+        "cancelled",
+        "timeout",
+        "preempted",
+        "node_failure",
+        "out_of_memory"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign_registry_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "cycle": {
+      "$ref": "#/$defs/BenchmarkCycleStatusV2"
+    },
+    "repository_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.campaign_plan.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_commit",
+    "campaign_registry_sha256",
+    "cycle"
+  ],
+  "title": "BenchmarkCampaignPlan",
+  "type": "object"
+}

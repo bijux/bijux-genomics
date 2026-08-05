@@ -7,14 +7,14 @@ use chrono::{DateTime, FixedOffset};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkAttemptArchive, BenchmarkAttemptDisposition, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkCycleStatusV2, BenchmarkEvidenceReference,
-    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
-    BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
+    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerTerminalState,
 };
 
 use super::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
 };
 
 /// Derive the permanent `run-<id>-<domain>-<stage>` benchmark directory name.
@@ -221,6 +221,31 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
         }
     }
     Ok(())
+}
+
+/// Validate a source-locked campaign plan and its complete planned cycle.
+///
+/// # Errors
+/// Returns an error when schema, source commit, registry digest, or cycle evidence is invalid.
+pub fn validate_campaign_plan(plan: &BenchmarkCampaignPlan) -> Result<(), BenchError> {
+    if plan.schema_version != BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1 {
+        return Err(invalid("benchmark campaign plan schema mismatch"));
+    }
+    if plan.repository_commit.len() != 40
+        || !plan.repository_commit.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || plan.repository_commit.bytes().any(|byte| byte.is_ascii_uppercase())
+        || plan.repository_commit.bytes().all(|byte| byte == b'0')
+    {
+        return Err(invalid("benchmark campaign plan commit identity is malformed"));
+    }
+    if plan.campaign_registry_sha256.len() != 64
+        || !plan.campaign_registry_sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || plan.campaign_registry_sha256.bytes().any(|byte| byte.is_ascii_uppercase())
+        || plan.campaign_registry_sha256.bytes().all(|byte| byte == b'0')
+    {
+        return Err(invalid("benchmark campaign registry digest is malformed"));
+    }
+    validate_cycle_status_v2(&plan.cycle)
 }
 
 /// Validate one transition independent of its surrounding chain.
