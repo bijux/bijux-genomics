@@ -170,8 +170,8 @@
         "samtools"
       ],
       "campaign_run_id": "run-2004",
-      "report_repository_commit": "48a75c5aaf233d5a39b43d987c019b3428a77949",
-      "report_sha256": "23908ebb4d4fa27631d3ee1c3a20382c28a8e3f09e72bb75d1f633a9eb7eef15",
+      "report_repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "report_sha256": "e16df1257329c3d6221c35d55b461ba3b287148d023aedcb8afa1c9f6b2e20df",
       "definition_status": "qualification",
       "execution_status": "admitted"
     },
