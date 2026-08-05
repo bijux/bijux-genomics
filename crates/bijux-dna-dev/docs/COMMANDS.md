@@ -436,28 +436,29 @@ simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
 
-`benchmark-campaign-cycle prepare-fastq-read-lengths` composes benchmark-owned corpus and
-execution-spec preparation with runner-owned Slurm materialization. It initializes or recovers all
-attempts from the exact source-locked plan, prepares both governed tools, and records `ready`
-lifecycle evidence without submitting or polling scheduler jobs.
+`benchmark-campaign-cycle prepare` composes benchmark-owned corpus and execution-spec preparation
+with runner-owned Slurm materialization. It selects crate-owned material by the source-locked run
+identity, initializes or recovers every attempt, and records `ready` lifecycle evidence without
+submitting or polling scheduler jobs. The command currently supports the complete run-2042 and
+run-2043 FASTQ campaign definitions and fails closed for campaigns without crate-owned material.
 
 Every campaign operation that creates or consumes a source-locked plan requires an explicit
 `--repository-root`. The operator binary may come from a newer clean worktree, but source identity,
 contracts, interfaces, and generated execution material are always resolved from that declared
 repository root.
 
-`benchmark-campaign-cycle submit-fastq-read-lengths` performs the same complete authority and
-material preflight before the first scheduler effect, then submits every governed tool through the
-runner's intent-first API and records each returned Slurm job identity. It returns after submission
-without observing or polling jobs; repeating it with the same timestamps recovers persisted handles
-without duplicate submission.
+`benchmark-campaign-cycle submit` performs the same complete authority and material preflight
+before the first scheduler effect, then submits every governed tool through the runner's
+intent-first API and records each returned Slurm job identity. It returns after submission without
+observing or polling jobs; repeating it with the same timestamps recovers persisted handles without
+duplicate submission.
 
-`benchmark-campaign-cycle reconcile-fastq-read-lengths` performs at most one scheduler observation
-for each submitted or running attempt. Every actual query is first appended to the attempt's typed
+`benchmark-campaign-cycle reconcile` performs at most one scheduler observation for each submitted
+or running attempt. Every actual query is first appended to the attempt's typed
 `scheduler-observations/` journal, including repeated running states, before lifecycle reduction
 records running or terminal accounting transitions. Non-runnable lifecycle states are reported
 without polling, and the command never loops or waits for scheduler state to change.
 
-`benchmark-campaign-cycle admit-fastq-read-lengths` admits only terminally collected attempts. It
-uses benchmark-owned validation to rehash exact output closure, evaluate declared metrics and the
-downstream probe, publish immutable acceptance evidence, and record `passed` lifecycle transitions.
+`benchmark-campaign-cycle admit` admits only terminally collected attempts. It uses benchmark-owned
+validation to rehash exact output closure, evaluate declared metrics and the downstream probe,
+publish immutable acceptance evidence, and record `passed` lifecycle transitions.

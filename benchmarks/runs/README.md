@@ -1,10 +1,10 @@
 # Scientific benchmark runs
 
-This directory owns executable stage benchmark definitions. Each module binds
-one stable stage identity to its complete retained-tool closure, governed data
-and image evidence, commands, resources, acceptance metrics, and result paths.
-It emits replayable pipeline and credential-reference contracts beneath
-`STUDY/results/benchmark-specifications/`; it does not store raw results.
+This directory temporarily retains the BAM mapping-summary generator while its
+execution material moves into `bijux-dna-bench`. New executable campaign logic
+must not be added here. Crate-owned campaign workflows bind stable stage
+identities to complete retained-tool closure, governed data and image evidence,
+commands, resources, acceptance metrics, and immutable result paths.
 
 A run definition is not scientific evidence. Results become admissible only
 after Slurm accounting, output checksums, repeated resource observations,
@@ -15,20 +15,17 @@ evidence validator. Reviewed small reports then belong in
 `bam_mapping_summary.py` defines the real Picard and Samtools qualification
 campaign for `bam.mapping_summary`.
 
-`fastq_profile_read_lengths.py` defines the exact SeqFu and SeqKit comparison
-for `fastq.profile_read_lengths`. It derives independent exact read-length
-evidence from the admitted 20-run human FASTQ cohort, emits one governed
-specification per retained backend, and refuses benchmark admission unless each
-sample's raw `record_id<TAB>length` surface and normalized histogram agree with
-the independently decoded expectation.
+`bijux_dna_bench::workflow::fastq_profile_read_lengths` owns the exact SeqFu and
+SeqKit comparison for `fastq.profile_read_lengths`. It derives independent exact
+read-length evidence from the admitted 20-run human FASTQ cohort and refuses
+admission unless every record and normalized histogram agrees with that truth.
 
-`fastq_profile_reads.py` defines the complete SeqFu, SeqKit, and SeqKit Stats
-comparison for `fastq.profile_reads`. It admits all 20 runs and 30 files from
-the real human short-read diversity corpus, resolves the shared stage
-parameters, emits one specification per interchangeable tool, and checks each
-normalized result against independently catalogued read and base counts. The
-versioned normalizer under `benchmarks/execution/` is mounted from the frozen
-repository commit during every Slurm execution.
+`bijux_dna_bench::workflow::fastq_profile_reads` owns the SeqFu, SeqKit, and
+SeqKit Stats comparison for `fastq.profile_reads`. It admits all 20 runs and 30
+files, derives exact read and base counts from independently decoded FASTQ
+histograms, and checks every normalized result against that immutable truth.
+The versioned normalizers under `benchmarks/execution/` remain declarative
+workers mounted from the frozen repository commit during Slurm execution.
 
 Future modules must be named by stable domain and stage responsibility, not by
 delivery order.

@@ -14,7 +14,7 @@ use super::{OpsCommandOutcome, Result, Workspace};
 mod lifecycle;
 mod scheduler;
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit-fastq-read-lengths --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile-fastq-read-lengths --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-fastq-read-lengths --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
+const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const FASTQ_PREPARATION_OPTIONS: &[&str] = &[
@@ -51,10 +51,15 @@ struct FastqPreparation<'a> {
     benchmark_root: &'a Path,
     plan: &'a bijux_dna_bench::BenchmarkCampaignPlan,
     authorities: &'a bijux_dna_bench::BenchmarkExecutionAuthorities,
-    expectations: &'a bijux_dna_bench::FastqReadLengthExpectationPublication,
+    expectations: &'a FastqCampaignExpectations,
     options: &'a BTreeMap<String, String>,
     scheduler_timestamp: &'a str,
     recover_submitted: bool,
+}
+
+enum FastqCampaignExpectations {
+    ReadLengths(bijux_dna_bench::FastqReadLengthExpectationPublication),
+    ProfileReads(bijux_dna_bench::FastqProfileReadsExpectationPublication),
 }
 
 impl FastqPreparation<'_> {
@@ -89,24 +94,37 @@ impl FastqPreparation<'_> {
         identity: &bijux_dna_bench::BenchmarkAttemptIdentity,
     ) -> Result<bijux_dna_bench::BenchmarkExecutionSpec> {
         let image = self.authorities.resolve_current_image(self.study_root, &identity.tool_id)?;
-        let material =
-            bijux_dna_bench::prepare_fastq_profile_read_lengths_material_from_expectations(
-                self.repository_root,
-                self.benchmark_root,
-                identity,
-                self.authorities.source_contract_sha256(),
-                required(self.options, "--operator")?,
-                required(self.options, "--prepared-at-utc")?,
-                required(self.options, "--account")?,
-                required(self.options, "--partition")?,
-                self.expectations,
-            )?;
-        let spec = self.authorities.build_execution_spec(
-            self.plan,
-            identity,
-            &image,
-            material.execution,
-        )?;
+        let execution = match self.expectations {
+            FastqCampaignExpectations::ReadLengths(expectations) => {
+                bijux_dna_bench::prepare_fastq_profile_read_lengths_material_from_expectations(
+                    self.repository_root,
+                    self.benchmark_root,
+                    identity,
+                    self.authorities.source_contract_sha256(),
+                    required(self.options, "--operator")?,
+                    required(self.options, "--prepared-at-utc")?,
+                    required(self.options, "--account")?,
+                    required(self.options, "--partition")?,
+                    expectations,
+                )?
+                .execution
+            }
+            FastqCampaignExpectations::ProfileReads(expectations) => {
+                bijux_dna_bench::prepare_fastq_profile_reads_material_from_expectations(
+                    self.repository_root,
+                    self.benchmark_root,
+                    identity,
+                    self.authorities.source_contract_sha256(),
+                    required(self.options, "--operator")?,
+                    required(self.options, "--prepared-at-utc")?,
+                    required(self.options, "--account")?,
+                    required(self.options, "--partition")?,
+                    expectations,
+                )?
+                .execution
+            }
+        };
+        let spec = self.authorities.build_execution_spec(self.plan, identity, &image, execution)?;
         bijux_dna_bench::ensure_execution_spec(self.benchmark_root, &spec)?;
         Ok(spec)
     }
@@ -154,16 +172,16 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "plan-retry" => plan_retry(workspace, &options),
         "initialize" => initialize(workspace, &options),
         "supersede" => supersede(workspace, &options),
-        "prepare-fastq-read-lengths" => prepare_fastq_read_lengths(workspace, &options),
-        "submit-fastq-read-lengths" => submit_fastq_read_lengths(workspace, &options),
-        "reconcile-fastq-read-lengths" => reconcile_fastq_read_lengths(workspace, &options),
-        "admit-fastq-read-lengths" => admit_fastq_read_lengths(workspace, &options),
+        "prepare" => prepare_campaign(workspace, &options),
+        "submit" => submit_campaign(workspace, &options),
+        "reconcile" => reconcile_campaign(workspace, &options),
+        "admit" => admit_campaign(workspace, &options),
         "publish-fastq-read-lengths" => publish_fastq_read_lengths(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
 }
 
-fn prepare_fastq_read_lengths(
+fn prepare_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
@@ -192,7 +210,7 @@ struct PreparedFastqCampaign {
     )>,
 }
 
-fn submit_fastq_read_lengths(
+fn submit_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
@@ -258,7 +276,11 @@ fn prepare_fastq_campaign(
         &repository_commit,
         &plan,
     )?;
-    let expectations = bijux_dna_bench::ensure_fastq_read_length_expectations(
+    let run_id = campaign_run_id(&plan)?;
+    if !matches!(run_id, "run-2042" | "run-2043") {
+        bail!("benchmark campaign has no crate-owned executable material: {run_id}");
+    }
+    let read_length_expectations = bijux_dna_bench::ensure_fastq_read_length_expectations(
         &repository_root,
         &study_root,
         &data_index,
@@ -266,6 +288,16 @@ fn prepare_fastq_campaign(
         20,
         30,
     )?;
+    let expectations = match run_id {
+        "run-2042" => FastqCampaignExpectations::ReadLengths(read_length_expectations),
+        "run-2043" => FastqCampaignExpectations::ProfileReads(
+            bijux_dna_bench::ensure_fastq_profile_reads_expectations(
+                &study_root,
+                &read_length_expectations,
+            )?,
+        ),
+        _ => bail!("benchmark campaign has no crate-owned executable material: {run_id}"),
+    };
     let mut attempts = active_plan_attempts(&plan);
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
     let preparation = FastqPreparation {
@@ -295,7 +327,7 @@ fn prepare_fastq_campaign(
     Ok(PreparedFastqCampaign { benchmark_root, jobs: prepared })
 }
 
-fn reconcile_fastq_read_lengths(
+fn reconcile_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
@@ -386,7 +418,7 @@ fn reconcile_fastq_read_lengths(
     )))
 }
 
-fn admit_fastq_read_lengths(
+fn admit_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
@@ -507,6 +539,22 @@ fn active_plan_attempts(
                     == Some(bijux_dna_bench::BenchmarkLifecycleStatus::Planned)
         })
         .collect()
+}
+
+fn campaign_run_id(plan: &bijux_dna_bench::BenchmarkCampaignPlan) -> Result<&str> {
+    let run_id = plan
+        .cycle
+        .attempts
+        .first()
+        .context("benchmark campaign plan has no attempts")?
+        .identity
+        .run
+        .run_id
+        .as_str();
+    if plan.cycle.attempts.iter().any(|attempt| attempt.identity.run.run_id != run_id) {
+        bail!("benchmark campaign plan mixes run identities");
+    }
+    Ok(run_id)
 }
 
 fn ensure_json_identity<T>(path: &Path, value: &T) -> Result<()>
