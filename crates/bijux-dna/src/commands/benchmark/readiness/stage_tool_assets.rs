@@ -1091,6 +1091,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "bam_downstream")]
     use std::collections::BTreeSet;
     use std::path::PathBuf;
 
