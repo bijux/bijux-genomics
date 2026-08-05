@@ -33,6 +33,7 @@ pub use crate::model::execution::{
 };
 pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use crate::model::interfaces::{
+    benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
     BenchmarkParameterValue, BenchmarkPipelineParameterConfig, BenchmarkStageDownstreamProbe,
     BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
@@ -55,17 +56,18 @@ pub use crate::model::lifecycle::{
 };
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::planning::{
-    benchmark_scientific_readiness_schema, benchmark_stage_coverage_schema, BenchmarkCachePolicy,
-    BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract, BenchmarkCorpusStatus,
-    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
-    BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
-    BenchmarkProfileAssignment, BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
-    BenchmarkScientificReadinessDomain, BenchmarkScientificReadinessReport,
-    BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
-    BenchmarkScientificReadinessSummary, BenchmarkStageCampaignRegistry,
-    BenchmarkStageCampaignSpec, BenchmarkStageCoverage, BenchmarkStageCoverageRow,
-    BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
-    BenchmarkStageInterfaceStatus,
+    benchmark_portfolio_schema, benchmark_scientific_readiness_schema,
+    benchmark_stage_campaign_registry_schema, benchmark_stage_coverage_schema,
+    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
+    BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
+    BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
+    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
+    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
+    BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
+    BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
+    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
 };
 pub use crate::model::report::{
     AdmittedBenchmarkStageReport, BenchmarkComparisonMetric, BenchmarkComparisonStatus,

@@ -1,26 +1,69 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-pipeline-parameters-v1.json",
-  "title": "Bijux Genomics benchmark pipeline parameter overrides",
-  "type": "object",
-  "required": ["schema_version", "profile", "stages"],
-  "properties": {
-    "schema_version": {"const": "bijux.benchmark.pipeline_parameters.v1"},
-    "profile": {"type": "string", "minLength": 1},
-    "stages": {
-      "type": "object",
-      "minProperties": 1,
-      "additionalProperties": {
-        "type": "object",
-        "required": ["parameter_schema_version", "defaults_provider", "overrides"],
-        "properties": {
-          "parameter_schema_version": {"type": "string", "minLength": 1},
-          "defaults_provider": {"type": "string", "minLength": 1},
-          "overrides": {"type": "object"}
+  "$defs": {
+    "BenchmarkParameterValue": {
+      "anyOf": [
+        {
+          "format": "int64",
+          "type": "integer"
         },
-        "additionalProperties": false
-      }
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "BenchmarkStageParameterConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "defaults_provider": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BenchmarkParameterValue"
+          },
+          "type": "object"
+        },
+        "parameter_schema_version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "parameter_schema_version",
+        "defaults_provider",
+        "overrides"
+      ],
+      "type": "object"
     }
   },
-  "additionalProperties": false
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "profile": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.pipeline_parameters.v1",
+      "type": "string"
+    },
+    "stages": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BenchmarkStageParameterConfig"
+      },
+      "minProperties": 1,
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "profile",
+    "stages"
+  ],
+  "title": "BenchmarkPipelineParameterConfig",
+  "type": "object"
 }

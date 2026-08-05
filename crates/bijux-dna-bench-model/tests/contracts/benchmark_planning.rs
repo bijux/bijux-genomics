@@ -153,6 +153,44 @@ fn benchmark_stage_campaign_registry_rejects_slug_drift() {
 }
 
 #[test]
+fn checked_planning_schemas_match_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let schemas = [
+        (
+            "stage-campaigns.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_stage_campaign_registry_schema())?,
+        ),
+        (
+            "portfolio.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_portfolio_schema())?,
+        ),
+    ];
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    for (name, generated) in schemas {
+        let path = schema_root.join(name);
+        write_generated_schema(&path, &generated)?;
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(checked, generated, "planning schema drifted: {name}");
+    }
+    Ok(())
+}
+
+fn write_generated_schema(
+    path: &std::path::Path,
+    generated: &serde_json::Value,
+) -> anyhow::Result<()> {
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(generated)?;
+        bytes.push(b'\n');
+        std::fs::write(path, bytes)?;
+    }
+    Ok(())
+}
+
+#[test]
 fn benchmark_planning_alignment_rejects_run_id_drift() {
     let registry = stage_campaign_registry();
     let mut portfolio = benchmark_portfolio();

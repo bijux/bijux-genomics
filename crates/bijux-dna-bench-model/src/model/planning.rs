@@ -36,7 +36,7 @@ pub enum BenchmarkCachePolicy {
     Warm,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkComparisonMetricTolerance {
     pub id: String,
@@ -44,7 +44,7 @@ pub struct BenchmarkComparisonMetricTolerance {
     pub relative_tolerance: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageCampaignSpec {
     pub run_id: String,
@@ -84,9 +84,10 @@ pub struct BenchmarkStageCampaignSpec {
     pub limitations: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageCampaignRegistry {
+    #[schemars(schema_with = "benchmark_stage_campaigns_schema_version")]
     pub schema_version: String,
     pub campaigns: Vec<BenchmarkStageCampaignSpec>,
 }
@@ -115,7 +116,7 @@ pub enum BenchmarkEvidenceScope {
     Comparative,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkCorpusContract {
     pub id: String,
@@ -136,7 +137,7 @@ pub struct BenchmarkCorpusContract {
     pub limitations: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkScientificProfile {
     pub id: String,
@@ -147,16 +148,17 @@ pub struct BenchmarkScientificProfile {
     pub downstream_probe: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkProfileAssignment {
     pub profile_id: String,
     pub stage_ids: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkPortfolio {
+    #[schemars(schema_with = "benchmark_portfolio_schema_version")]
     pub schema_version: String,
     pub measurement: BenchmarkMeasurementContract,
     pub stage_runs: BTreeMap<String, String>,
@@ -327,8 +329,32 @@ impl BenchmarkStageCoverage {
 }
 
 #[must_use]
+pub fn benchmark_stage_campaign_registry_schema() -> Schema {
+    schemars::schema_for!(BenchmarkStageCampaignRegistry)
+}
+
+#[must_use]
+pub fn benchmark_portfolio_schema() -> Schema {
+    schemars::schema_for!(BenchmarkPortfolio)
+}
+
+#[must_use]
 pub fn benchmark_scientific_readiness_schema() -> Schema {
     schemars::schema_for!(BenchmarkScientificReadinessReport)
+}
+
+fn benchmark_stage_campaigns_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    })
+}
+
+fn benchmark_portfolio_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_PORTFOLIO_SCHEMA_V1,
+    })
 }
 
 fn benchmark_scientific_readiness_schema_version(_: &mut SchemaGenerator) -> Schema {
