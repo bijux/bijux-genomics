@@ -1,409 +1,1313 @@
 {
-  "accuracy_claim": "exact_per_record_length_concordance_with_independent_fastq_decode",
-  "benchmark_profile_id": "fastq-observational-qc",
+  "schema_version": "bijux.benchmark.stage_report.v1",
+  "verdict": "passed",
+  "run_id": "run-2042",
+  "stage_id": "fastq.profile_read_lengths",
   "catalog_sha256": "d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250",
+  "evidence_tier": "comparative",
+  "benchmark_profile_id": "fastq-observational-qc",
+  "scientific_question": "Do both exact read-length backends recover every independently decoded per-record length across the complete real human short-read diversity cohort, and what resources does each implementation consume?",
+  "comparison_scope": "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end libraries",
+  "accuracy_claim": "exact_per_record_length_concordance_with_independent_fastq_decode",
+  "design": {
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "container_only": true,
+    "threads_by_tool": {
+      "seqfu": 1,
+      "seqkit": 4
+    },
+    "cache_policy": "warm",
+    "warmup_repetitions": 1,
+    "measured_repetitions": 3,
+    "tool_closure": [
+      "seqfu",
+      "seqkit"
+    ],
+    "corpus_ids": [
+      "human-short-read-diversity"
+    ],
+    "corpus_catalog_ids": [
+      "human-short-read-diversity"
+    ],
+    "reference_catalog_ids": [],
+    "database_catalog_ids": [],
+    "input_size_keys": [
+      "fastq_input_bytes"
+    ],
+    "result_artifact": "read-lengths.json"
+  },
+  "tools": [
+    {
+      "tool": "seqfu",
+      "verdict": "passed",
+      "repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "image": {
+        "name": "seqfu-1.26.0-linux-amd64-ba6d5e5acd51.sif",
+        "sha256": "ba6d5e5acd51137d94fee735ae5a5ffcde3f1841d675ef5bc9c131bb673b47c4",
+        "size_bytes": 37445632
+      },
+      "slurm": {
+        "job_id": "3461973",
+        "host": "cn162",
+        "elapsed": "00:37:58",
+        "allocated_cpus": "1"
+      },
+      "source_evidence_sha256": "e4bcb2f7b89b008f0b5ca9de2bcbeb35d4357bf6b40b3ca7f59564e334f7bee3",
+      "input_locks": [
+        {
+          "id": "corpus_catalog",
+          "kind": "data",
+          "mount_path": "/input/corpus-catalog.json",
+          "sha256": "45a64d10342959d844bd2229739149479cb5c326a2f9337646fbf8d35c3325cc"
+        },
+        {
+          "id": "corpus_data_index",
+          "kind": "data",
+          "mount_path": "/input/data-index.json",
+          "sha256": "9561315f8a231734c7ba223cdc8798143645c2fee74ff935edb7b811739d0733"
+        },
+        {
+          "id": "drr000093_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000093.histogram.tsv",
+          "sha256": "7da860168d7fe70f1fbf24590cf6a520a3a6884b55148b24f9b8e4c2d55b01e2"
+        },
+        {
+          "id": "drr000093_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000093.summary.tsv",
+          "sha256": "c6decc737f273139a31c6ba591ade161dd7d6fb74852f026b5fcc68918bf703f"
+        },
+        {
+          "id": "drr000095_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000095.histogram.tsv",
+          "sha256": "24734258a7a47ad4d5435e906758cdc8531297b339b84648b5e82141c3f2fd39"
+        },
+        {
+          "id": "drr000095_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000095.summary.tsv",
+          "sha256": "63fbe859006a2aa76705b8e75a67eb0399087d5498fe1d3524af234d9b2422de"
+        },
+        {
+          "id": "drr000550_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000550.histogram.tsv",
+          "sha256": "019e3d4c4b775ab78f5e91026d7ac5cdc8356bd0fbad3778638402530f6d7908"
+        },
+        {
+          "id": "drr000550_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000550.summary.tsv",
+          "sha256": "ca2ae1dac7b3cd6fd51b54353c2c534f4dfdcdd620dc23af39e2d842dc8adb24"
+        },
+        {
+          "id": "drr001059_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001059.histogram.tsv",
+          "sha256": "b0dfe422124df27cf6185c72e70e0c187ed8c1b1017a4bc2dc736709ea984950"
+        },
+        {
+          "id": "drr001059_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001059.summary.tsv",
+          "sha256": "cd20bf00d07c823efdffb4842659653e8b9525515b23b6dfe5594efb3185f940"
+        },
+        {
+          "id": "drr001066_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001066.histogram.tsv",
+          "sha256": "98f64c034848e1a79f187a36349329198b613eeaed3af13b89e84d90b955c277"
+        },
+        {
+          "id": "drr001066_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001066.summary.tsv",
+          "sha256": "9b3ad1431a062ed0ce0c1d4c0d546ee400ee2adad03e59155c689aea8b472102"
+        },
+        {
+          "id": "drr001073_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001073.histogram.tsv",
+          "sha256": "460d8a7b09099276141ed999222152da5eaa892f1ab30295674f6b81d9554e56"
+        },
+        {
+          "id": "drr001073_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001073.summary.tsv",
+          "sha256": "bad93ea8f49006d738acc146cd19cd22c38ef7213b7d2845d77aa3d4efee5886"
+        },
+        {
+          "id": "drr001076_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001076.histogram.tsv",
+          "sha256": "9b4e37fa7da8565ec4f5fe90f1b878a6513787403245acfda08327e5ab2a3757"
+        },
+        {
+          "id": "drr001076_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001076.summary.tsv",
+          "sha256": "74404ff98778c2324c7693b6a02512c8b3b3a168e47b0c56a39cb2502b60a216"
+        },
+        {
+          "id": "drr001083_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001083.histogram.tsv",
+          "sha256": "12aece33ded683c9b2a937a1ec29af7663f48c8732c059211696a7457e18f673"
+        },
+        {
+          "id": "drr001083_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001083.summary.tsv",
+          "sha256": "8ee845511b4421ed01218eebc72b0aaa04cef3be1c00ac49d6420c5b7f486912"
+        },
+        {
+          "id": "drr015482_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015482.histogram.tsv",
+          "sha256": "f767bf094af168dd6c31be67c57ff26938e5ef8e347c63befa08bf2dfdce1b94"
+        },
+        {
+          "id": "drr015482_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015482.summary.tsv",
+          "sha256": "39794890aa1afec1739ce67fa4fe52e49eb592964c888825d276ca88a931c2ce"
+        },
+        {
+          "id": "drr015568_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015568.histogram.tsv",
+          "sha256": "3db53a8dbe910c6a838b1b10903401dddd265e0a27b7b8fe74ab1c3995e06d83"
+        },
+        {
+          "id": "drr015568_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015568.summary.tsv",
+          "sha256": "71e27466e07af1e4ab4e7093f81c271f9b25fa9149e264a7b663a5318cdd419d"
+        },
+        {
+          "id": "err15108349_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15108349.histogram.tsv",
+          "sha256": "dd7487c99c0f1144667381bc462d657acd81dd2885889b859bd103fb4f538518"
+        },
+        {
+          "id": "err15108349_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15108349.summary.tsv",
+          "sha256": "ab5731bd4f1114f3156748322fa94703d08ea0537f728035add3655134a6c809"
+        },
+        {
+          "id": "err15886307_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886307.histogram.tsv",
+          "sha256": "d83fd694741967c8d0fa7fbd6b528e2fcab0eefebfa9916248fb945c94a81406"
+        },
+        {
+          "id": "err15886307_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886307.summary.tsv",
+          "sha256": "a788eee4c1e058a422c3cc7c9809390bc96d63eb131a429d5562f2b981ec79ff"
+        },
+        {
+          "id": "err15886310_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886310.histogram.tsv",
+          "sha256": "7c92a89c3cadd4a1bab4f51860316c033c4a81540ed8764527a4a8b0fbe4f2f1"
+        },
+        {
+          "id": "err15886310_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886310.summary.tsv",
+          "sha256": "272e364e1d8cf5a81860fc1158a4394791a383b5baf0d8e1b40a9236539e9385"
+        },
+        {
+          "id": "err4210492_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210492.histogram.tsv",
+          "sha256": "08321301db333a7485a531e83f30e4797cd711d3f9821b8e53b84b2193a25901"
+        },
+        {
+          "id": "err4210492_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210492.summary.tsv",
+          "sha256": "c7a1e2a3441f0bd5dc81adc5dda6c4317b75f2aad5a1d0b84680f7a6b8112836"
+        },
+        {
+          "id": "err4210542_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210542.histogram.tsv",
+          "sha256": "4aadec9bceea868a382418a628fa81406fd507db6140a546ab4ce128d27581ce"
+        },
+        {
+          "id": "err4210542_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210542.summary.tsv",
+          "sha256": "010ae208530ca6a28dc481d737f7200a388b0367f95f9203da5cac69c4635cd0"
+        },
+        {
+          "id": "err769585_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769585.histogram.tsv",
+          "sha256": "f2af3abdb12101e285f7b60a1b8448ae739b7cbab5d893416ff7c6887fee495e"
+        },
+        {
+          "id": "err769585_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769585.summary.tsv",
+          "sha256": "4706bb0dbbbb92ba5a4692fb5d09265c3ecad63d17a7f064ac6f9ade53a6b58f"
+        },
+        {
+          "id": "err769590_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769590.histogram.tsv",
+          "sha256": "5bd9de75ed950505273464f459a6a8d7b340bfbeeec35a88d90890699e6565bb"
+        },
+        {
+          "id": "err769590_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769590.summary.tsv",
+          "sha256": "1232d6d8bb656653d4116d21269f516fd8655fba91c594d65e836f1191ce4afd"
+        },
+        {
+          "id": "err769591_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769591.histogram.tsv",
+          "sha256": "a84ce0b7f2bbda4c42fdfeed0d4af6e415e989ae75e9c8f395afa4e274009401"
+        },
+        {
+          "id": "err769591_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769591.summary.tsv",
+          "sha256": "726c2384845a323fa3776530e969887008972492f37b7ff63ee0a7f681f23f7f"
+        },
+        {
+          "id": "err769594_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769594.histogram.tsv",
+          "sha256": "36d117d5d38f58e9fe2aab3a87e1a20414e0153ef3d0b27dc5264aa5abb6d080"
+        },
+        {
+          "id": "err769594_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769594.summary.tsv",
+          "sha256": "9f80aa3bf57d0c28bd20d01284b47b1c2088a21e7e8b2885a81c3f52d3445ba6"
+        },
+        {
+          "id": "err769610_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769610.histogram.tsv",
+          "sha256": "3bd4e4f4cded991701db57f409fd6d87e59f22420f5c04cf5d2bca4471f815a5"
+        },
+        {
+          "id": "err769610_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769610.summary.tsv",
+          "sha256": "07787fca9ca1d8bd7acc2fe30dd2b47a5eb3fe09f2907b9975e40a49dcc7a075"
+        },
+        {
+          "id": "fastq_drr000093_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000093_1.fastq.gz",
+          "sha256": "5d17c31848963fa04e79e3424406566eb9ba03f322ce71055e332e5f8b12163b"
+        },
+        {
+          "id": "fastq_drr000093_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000093_2.fastq.gz",
+          "sha256": "bb64f6aa72825591d110d3e2e93a1ab42e8a2a5a1575d07768862d729f2f38f1"
+        },
+        {
+          "id": "fastq_drr000095_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000095_1.fastq.gz",
+          "sha256": "c44a1162ed97bda3cef3f770fcf1cc1481c67b984b3c2c3134f79dcba26da923"
+        },
+        {
+          "id": "fastq_drr000095_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000095_2.fastq.gz",
+          "sha256": "e7781958faa932bf24f2054aa51fd9b83c6eefc3331fd76d94da62c49eee1a76"
+        },
+        {
+          "id": "fastq_drr000550_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000550_1.fastq.gz",
+          "sha256": "40776fd3be79729f6062449ff7d2e75320a2bf4812455cd592b5097c6dd89aaa"
+        },
+        {
+          "id": "fastq_drr000550_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000550_2.fastq.gz",
+          "sha256": "681bd46542e5bce7eb02e41e91551a12749430eb3ebdb1d23be3c54844f8b039"
+        },
+        {
+          "id": "fastq_drr001059_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001059.fastq.gz",
+          "sha256": "57e7be4e36fdb72d1602a5cdcb433d01ccd31507bf75764c84ff469fe58ef090"
+        },
+        {
+          "id": "fastq_drr001066_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001066.fastq.gz",
+          "sha256": "f6f91ec633b78cbb0c4483196f216aff6db7d3ec1743e109600e78a15f9f507f"
+        },
+        {
+          "id": "fastq_drr001073_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001073.fastq.gz",
+          "sha256": "c9865f70b9e3bccaf06769666f79ab276b0582e4569763f0d25c0a54655ef5ec"
+        },
+        {
+          "id": "fastq_drr001076_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001076.fastq.gz",
+          "sha256": "0a94b92e478b1e5637f9f75015be470ea9f20f2dbf74be395264c2e739f5ba4b"
+        },
+        {
+          "id": "fastq_drr001083_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001083.fastq.gz",
+          "sha256": "55bc8659d55b2027890e024da00be7835a6f2746916ba69a3df2cc22ea006c96"
+        },
+        {
+          "id": "fastq_drr015482_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015482_1.fastq.gz",
+          "sha256": "9a848e2477952324a29812117e509af3bd144b6336b307b93ce8917caf4e9a6e"
+        },
+        {
+          "id": "fastq_drr015482_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015482_2.fastq.gz",
+          "sha256": "fb33e5b882cb8e1bad6aa7986411c8a979bacd3e2cdacd5a53d0da1cc88b4f99"
+        },
+        {
+          "id": "fastq_drr015568_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015568_1.fastq.gz",
+          "sha256": "1686558b28f43fbac5d557ec9343ffa1d34d9d51ff7042574e7355f7d639f88d"
+        },
+        {
+          "id": "fastq_drr015568_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015568_2.fastq.gz",
+          "sha256": "26db1959907866e20792164e76ad8558b18d1159718b31d9b86e34fd2faa3342"
+        },
+        {
+          "id": "fastq_err15108349_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15108349_1.fastq.gz",
+          "sha256": "78b9a3462cc5424be8e6ff7fa8bd5ae16f4ef7b3f37cf51c104e0a329c4888e1"
+        },
+        {
+          "id": "fastq_err15108349_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15108349_2.fastq.gz",
+          "sha256": "dac5994defafbe79dfe176fe5dffe434eb9075d8e675970d40fcc433e3c3eb04"
+        },
+        {
+          "id": "fastq_err15886307_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886307_1.fastq.gz",
+          "sha256": "5d853d965e682d7e42a3d3b8183e5f239c1e133224df0d70b853c87325e5fed0"
+        },
+        {
+          "id": "fastq_err15886307_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886307_2.fastq.gz",
+          "sha256": "953261db508cd1c7e67bf507f4f7482bfb6338f6591b0dc264c026a00dbccd7f"
+        },
+        {
+          "id": "fastq_err15886310_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886310_1.fastq.gz",
+          "sha256": "626f68ce29ba5c5aff86cf98bb0bd9240be2916d9ed2f4f87c3600bde2e43abd"
+        },
+        {
+          "id": "fastq_err15886310_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886310_2.fastq.gz",
+          "sha256": "e1163abcc8535c6ed87665e721ffe55c382ac131bb88799f6a711070a709aaff"
+        },
+        {
+          "id": "fastq_err4210492_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210492_1.fastq.gz",
+          "sha256": "26f46424f1920a45abdb4a9eebb3661ef4e3ebe2c8d6380b6c310a812434678e"
+        },
+        {
+          "id": "fastq_err4210492_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210492_2.fastq.gz",
+          "sha256": "689602dfc28e8e07665e0f92072e228d14f5618e90e33acd39f540d5a7038ade"
+        },
+        {
+          "id": "fastq_err4210542_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210542_1.fastq.gz",
+          "sha256": "15e9848db3a9bb8195a1deaf3940808643e7815f0418b6a51f8858e7c524bcd7"
+        },
+        {
+          "id": "fastq_err4210542_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210542_2.fastq.gz",
+          "sha256": "b0e37f95a46e3e437ac6fffa2768589cc34708b77907ebde60ecd8fbbc56612d"
+        },
+        {
+          "id": "fastq_err769585_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769585.fastq.gz",
+          "sha256": "eaa4ea79964d0aa3ef2ca7e4fae25530bdda2d3eddaa745da6a273fb3478490f"
+        },
+        {
+          "id": "fastq_err769590_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769590.fastq.gz",
+          "sha256": "cdea5fb8a6238f89a7155a8cf251acac13a6ceac6cbdbc9b685a2163b77c93f8"
+        },
+        {
+          "id": "fastq_err769591_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769591.fastq.gz",
+          "sha256": "aa3c3971604db3fb55a94daaabdb992db4a05be030dc1bc2527df9da5f4e8c9c"
+        },
+        {
+          "id": "fastq_err769594_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769594.fastq.gz",
+          "sha256": "0116cbf2df8d25ecc5362a3fbacdf8fed39012ce9f095f6a7755ff5cfd04e968"
+        },
+        {
+          "id": "fastq_err769610_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769610.fastq.gz",
+          "sha256": "24cc006c5fecdd244c401cc800ac7a83a3e9d814beb7f08d38f2cecfc7936947"
+        },
+        {
+          "id": "read_length_manifest",
+          "kind": "expected_evidence",
+          "mount_path": "/input/read-length-manifest.json",
+          "sha256": "b4b7f2c5e6bd6ddbbc9cd4590029921944ec1cd6a26f2b7f6dd9ebb581158f0f"
+        }
+      ],
+      "input_bytes": {
+        "fastq": 3638085565,
+        "total": 3638085565
+      },
+      "performance": {
+        "cpu_seconds": {
+          "minimum": 572.71,
+          "maximum": 579.74,
+          "mean": 576.5400000000001,
+          "sample_standard_deviation": 3.5570915085220767
+        },
+        "cpu_utilization_percent": {
+          "minimum": 98.71779590307696,
+          "maximum": 99.24961874393458,
+          "mean": 99.00726137074706,
+          "sample_standard_deviation": 0.26902279260092465
+        },
+        "filesystem_input_operations": {
+          "minimum": 0.0,
+          "maximum": 88.0,
+          "mean": 29.333333333333332,
+          "sample_standard_deviation": 50.80682368868707
+        },
+        "filesystem_output_operations": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "mean": 0.0,
+          "sample_standard_deviation": 0.0
+        },
+        "input_bytes": {
+          "minimum": 3638085565.0,
+          "maximum": 3638085565.0,
+          "mean": 3638085565.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "minimum": 1592964957.0,
+          "maximum": 1592964957.0,
+          "mean": 1592964957.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "minimum": 45948.0,
+          "maximum": 47388.0,
+          "mean": 46692.0,
+          "sample_standard_deviation": 721.1990016632026
+        },
+        "throughput_input_bytes_per_second": {
+          "minimum": 6194911.3099596435,
+          "maximum": 6304737.219256897,
+          "mean": 6247786.532347024,
+          "sample_standard_deviation": 55026.26324354326
+        },
+        "throughput_reads_per_second": {
+          "minimum": 128009.25809252984,
+          "maximum": 130278.6583252461,
+          "mean": 129101.85129534203,
+          "sample_standard_deviation": 1137.0414814632966
+        },
+        "wall_seconds": {
+          "minimum": 577.04,
+          "maximum": 587.27,
+          "mean": 582.3299999999999,
+          "sample_standard_deviation": 5.12397306784492
+        }
+      },
+      "scientific_observations": {
+        "distinct_read_lengths": [
+          287.0,
+          287.0,
+          287.0
+        ],
+        "file_count": [
+          30.0,
+          30.0,
+          30.0
+        ],
+        "histogram_sha256": [
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5"
+        ],
+        "maximum_read_length": [
+          301.0,
+          301.0,
+          301.0
+        ],
+        "mean_read_length": [
+          60.9798697581623,
+          60.9798697581623,
+          60.9798697581623
+        ],
+        "median_read_length": [
+          36.0,
+          36.0,
+          36.0
+        ],
+        "minimum_read_length": [
+          15.0,
+          15.0,
+          15.0
+        ],
+        "read_count": [
+          75175997.0,
+          75175997.0,
+          75175997.0
+        ]
+      },
+      "determinism": {
+        "artifact": "read-lengths.json",
+        "sha256": "c6e4771f8239b8f77a46fd137a34ccf03646ce4b99ce5722a5f82d2ea5e9bc08",
+        "digest_basis": "canonical bundle content with repetition-local histogram paths normalized",
+        "identical_across_repetitions": true
+      }
+    },
+    {
+      "tool": "seqkit",
+      "verdict": "passed",
+      "repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "image": {
+        "name": "seqkit-2.8.2-linux-amd64-4646ad26f815.sif",
+        "sha256": "4646ad26f8152674cda466d229ba0a5a495b9176ee4f3fc77f4d50cdf7e9d3d5",
+        "size_bytes": 38809600
+      },
+      "slurm": {
+        "job_id": "3461974",
+        "host": "cn162",
+        "elapsed": "00:07:06",
+        "allocated_cpus": "4"
+      },
+      "source_evidence_sha256": "be1b7289a1d478c04f59da755dc56f83b294e8d947dc9adf13d7f241d6649f32",
+      "input_locks": [
+        {
+          "id": "corpus_catalog",
+          "kind": "data",
+          "mount_path": "/input/corpus-catalog.json",
+          "sha256": "45a64d10342959d844bd2229739149479cb5c326a2f9337646fbf8d35c3325cc"
+        },
+        {
+          "id": "corpus_data_index",
+          "kind": "data",
+          "mount_path": "/input/data-index.json",
+          "sha256": "9561315f8a231734c7ba223cdc8798143645c2fee74ff935edb7b811739d0733"
+        },
+        {
+          "id": "drr000093_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000093.histogram.tsv",
+          "sha256": "7da860168d7fe70f1fbf24590cf6a520a3a6884b55148b24f9b8e4c2d55b01e2"
+        },
+        {
+          "id": "drr000093_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000093.summary.tsv",
+          "sha256": "c6decc737f273139a31c6ba591ade161dd7d6fb74852f026b5fcc68918bf703f"
+        },
+        {
+          "id": "drr000095_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000095.histogram.tsv",
+          "sha256": "24734258a7a47ad4d5435e906758cdc8531297b339b84648b5e82141c3f2fd39"
+        },
+        {
+          "id": "drr000095_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000095.summary.tsv",
+          "sha256": "63fbe859006a2aa76705b8e75a67eb0399087d5498fe1d3524af234d9b2422de"
+        },
+        {
+          "id": "drr000550_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000550.histogram.tsv",
+          "sha256": "019e3d4c4b775ab78f5e91026d7ac5cdc8356bd0fbad3778638402530f6d7908"
+        },
+        {
+          "id": "drr000550_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR000550.summary.tsv",
+          "sha256": "ca2ae1dac7b3cd6fd51b54353c2c534f4dfdcdd620dc23af39e2d842dc8adb24"
+        },
+        {
+          "id": "drr001059_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001059.histogram.tsv",
+          "sha256": "b0dfe422124df27cf6185c72e70e0c187ed8c1b1017a4bc2dc736709ea984950"
+        },
+        {
+          "id": "drr001059_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001059.summary.tsv",
+          "sha256": "cd20bf00d07c823efdffb4842659653e8b9525515b23b6dfe5594efb3185f940"
+        },
+        {
+          "id": "drr001066_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001066.histogram.tsv",
+          "sha256": "98f64c034848e1a79f187a36349329198b613eeaed3af13b89e84d90b955c277"
+        },
+        {
+          "id": "drr001066_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001066.summary.tsv",
+          "sha256": "9b3ad1431a062ed0ce0c1d4c0d546ee400ee2adad03e59155c689aea8b472102"
+        },
+        {
+          "id": "drr001073_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001073.histogram.tsv",
+          "sha256": "460d8a7b09099276141ed999222152da5eaa892f1ab30295674f6b81d9554e56"
+        },
+        {
+          "id": "drr001073_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001073.summary.tsv",
+          "sha256": "bad93ea8f49006d738acc146cd19cd22c38ef7213b7d2845d77aa3d4efee5886"
+        },
+        {
+          "id": "drr001076_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001076.histogram.tsv",
+          "sha256": "9b4e37fa7da8565ec4f5fe90f1b878a6513787403245acfda08327e5ab2a3757"
+        },
+        {
+          "id": "drr001076_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001076.summary.tsv",
+          "sha256": "74404ff98778c2324c7693b6a02512c8b3b3a168e47b0c56a39cb2502b60a216"
+        },
+        {
+          "id": "drr001083_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001083.histogram.tsv",
+          "sha256": "12aece33ded683c9b2a937a1ec29af7663f48c8732c059211696a7457e18f673"
+        },
+        {
+          "id": "drr001083_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR001083.summary.tsv",
+          "sha256": "8ee845511b4421ed01218eebc72b0aaa04cef3be1c00ac49d6420c5b7f486912"
+        },
+        {
+          "id": "drr015482_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015482.histogram.tsv",
+          "sha256": "f767bf094af168dd6c31be67c57ff26938e5ef8e347c63befa08bf2dfdce1b94"
+        },
+        {
+          "id": "drr015482_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015482.summary.tsv",
+          "sha256": "39794890aa1afec1739ce67fa4fe52e49eb592964c888825d276ca88a931c2ce"
+        },
+        {
+          "id": "drr015568_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015568.histogram.tsv",
+          "sha256": "3db53a8dbe910c6a838b1b10903401dddd265e0a27b7b8fe74ab1c3995e06d83"
+        },
+        {
+          "id": "drr015568_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/DRR015568.summary.tsv",
+          "sha256": "71e27466e07af1e4ab4e7093f81c271f9b25fa9149e264a7b663a5318cdd419d"
+        },
+        {
+          "id": "err15108349_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15108349.histogram.tsv",
+          "sha256": "dd7487c99c0f1144667381bc462d657acd81dd2885889b859bd103fb4f538518"
+        },
+        {
+          "id": "err15108349_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15108349.summary.tsv",
+          "sha256": "ab5731bd4f1114f3156748322fa94703d08ea0537f728035add3655134a6c809"
+        },
+        {
+          "id": "err15886307_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886307.histogram.tsv",
+          "sha256": "d83fd694741967c8d0fa7fbd6b528e2fcab0eefebfa9916248fb945c94a81406"
+        },
+        {
+          "id": "err15886307_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886307.summary.tsv",
+          "sha256": "a788eee4c1e058a422c3cc7c9809390bc96d63eb131a429d5562f2b981ec79ff"
+        },
+        {
+          "id": "err15886310_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886310.histogram.tsv",
+          "sha256": "7c92a89c3cadd4a1bab4f51860316c033c4a81540ed8764527a4a8b0fbe4f2f1"
+        },
+        {
+          "id": "err15886310_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR15886310.summary.tsv",
+          "sha256": "272e364e1d8cf5a81860fc1158a4394791a383b5baf0d8e1b40a9236539e9385"
+        },
+        {
+          "id": "err4210492_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210492.histogram.tsv",
+          "sha256": "08321301db333a7485a531e83f30e4797cd711d3f9821b8e53b84b2193a25901"
+        },
+        {
+          "id": "err4210492_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210492.summary.tsv",
+          "sha256": "c7a1e2a3441f0bd5dc81adc5dda6c4317b75f2aad5a1d0b84680f7a6b8112836"
+        },
+        {
+          "id": "err4210542_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210542.histogram.tsv",
+          "sha256": "4aadec9bceea868a382418a628fa81406fd507db6140a546ab4ce128d27581ce"
+        },
+        {
+          "id": "err4210542_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR4210542.summary.tsv",
+          "sha256": "010ae208530ca6a28dc481d737f7200a388b0367f95f9203da5cac69c4635cd0"
+        },
+        {
+          "id": "err769585_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769585.histogram.tsv",
+          "sha256": "f2af3abdb12101e285f7b60a1b8448ae739b7cbab5d893416ff7c6887fee495e"
+        },
+        {
+          "id": "err769585_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769585.summary.tsv",
+          "sha256": "4706bb0dbbbb92ba5a4692fb5d09265c3ecad63d17a7f064ac6f9ade53a6b58f"
+        },
+        {
+          "id": "err769590_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769590.histogram.tsv",
+          "sha256": "5bd9de75ed950505273464f459a6a8d7b340bfbeeec35a88d90890699e6565bb"
+        },
+        {
+          "id": "err769590_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769590.summary.tsv",
+          "sha256": "1232d6d8bb656653d4116d21269f516fd8655fba91c594d65e836f1191ce4afd"
+        },
+        {
+          "id": "err769591_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769591.histogram.tsv",
+          "sha256": "a84ce0b7f2bbda4c42fdfeed0d4af6e415e989ae75e9c8f395afa4e274009401"
+        },
+        {
+          "id": "err769591_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769591.summary.tsv",
+          "sha256": "726c2384845a323fa3776530e969887008972492f37b7ff63ee0a7f681f23f7f"
+        },
+        {
+          "id": "err769594_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769594.histogram.tsv",
+          "sha256": "36d117d5d38f58e9fe2aab3a87e1a20414e0153ef3d0b27dc5264aa5abb6d080"
+        },
+        {
+          "id": "err769594_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769594.summary.tsv",
+          "sha256": "9f80aa3bf57d0c28bd20d01284b47b1c2088a21e7e8b2885a81c3f52d3445ba6"
+        },
+        {
+          "id": "err769610_histogram",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769610.histogram.tsv",
+          "sha256": "3bd4e4f4cded991701db57f409fd6d87e59f22420f5c04cf5d2bca4471f815a5"
+        },
+        {
+          "id": "err769610_summary",
+          "kind": "expected_evidence",
+          "mount_path": "/input/ERR769610.summary.tsv",
+          "sha256": "07787fca9ca1d8bd7acc2fe30dd2b47a5eb3fe09f2907b9975e40a49dcc7a075"
+        },
+        {
+          "id": "fastq_drr000093_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000093_1.fastq.gz",
+          "sha256": "5d17c31848963fa04e79e3424406566eb9ba03f322ce71055e332e5f8b12163b"
+        },
+        {
+          "id": "fastq_drr000093_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000093_2.fastq.gz",
+          "sha256": "bb64f6aa72825591d110d3e2e93a1ab42e8a2a5a1575d07768862d729f2f38f1"
+        },
+        {
+          "id": "fastq_drr000095_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000095_1.fastq.gz",
+          "sha256": "c44a1162ed97bda3cef3f770fcf1cc1481c67b984b3c2c3134f79dcba26da923"
+        },
+        {
+          "id": "fastq_drr000095_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000095_2.fastq.gz",
+          "sha256": "e7781958faa932bf24f2054aa51fd9b83c6eefc3331fd76d94da62c49eee1a76"
+        },
+        {
+          "id": "fastq_drr000550_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000550_1.fastq.gz",
+          "sha256": "40776fd3be79729f6062449ff7d2e75320a2bf4812455cd592b5097c6dd89aaa"
+        },
+        {
+          "id": "fastq_drr000550_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR000550_2.fastq.gz",
+          "sha256": "681bd46542e5bce7eb02e41e91551a12749430eb3ebdb1d23be3c54844f8b039"
+        },
+        {
+          "id": "fastq_drr001059_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001059.fastq.gz",
+          "sha256": "57e7be4e36fdb72d1602a5cdcb433d01ccd31507bf75764c84ff469fe58ef090"
+        },
+        {
+          "id": "fastq_drr001066_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001066.fastq.gz",
+          "sha256": "f6f91ec633b78cbb0c4483196f216aff6db7d3ec1743e109600e78a15f9f507f"
+        },
+        {
+          "id": "fastq_drr001073_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001073.fastq.gz",
+          "sha256": "c9865f70b9e3bccaf06769666f79ab276b0582e4569763f0d25c0a54655ef5ec"
+        },
+        {
+          "id": "fastq_drr001076_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001076.fastq.gz",
+          "sha256": "0a94b92e478b1e5637f9f75015be470ea9f20f2dbf74be395264c2e739f5ba4b"
+        },
+        {
+          "id": "fastq_drr001083_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR001083.fastq.gz",
+          "sha256": "55bc8659d55b2027890e024da00be7835a6f2746916ba69a3df2cc22ea006c96"
+        },
+        {
+          "id": "fastq_drr015482_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015482_1.fastq.gz",
+          "sha256": "9a848e2477952324a29812117e509af3bd144b6336b307b93ce8917caf4e9a6e"
+        },
+        {
+          "id": "fastq_drr015482_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015482_2.fastq.gz",
+          "sha256": "fb33e5b882cb8e1bad6aa7986411c8a979bacd3e2cdacd5a53d0da1cc88b4f99"
+        },
+        {
+          "id": "fastq_drr015568_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015568_1.fastq.gz",
+          "sha256": "1686558b28f43fbac5d557ec9343ffa1d34d9d51ff7042574e7355f7d639f88d"
+        },
+        {
+          "id": "fastq_drr015568_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/DRR015568_2.fastq.gz",
+          "sha256": "26db1959907866e20792164e76ad8558b18d1159718b31d9b86e34fd2faa3342"
+        },
+        {
+          "id": "fastq_err15108349_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15108349_1.fastq.gz",
+          "sha256": "78b9a3462cc5424be8e6ff7fa8bd5ae16f4ef7b3f37cf51c104e0a329c4888e1"
+        },
+        {
+          "id": "fastq_err15108349_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15108349_2.fastq.gz",
+          "sha256": "dac5994defafbe79dfe176fe5dffe434eb9075d8e675970d40fcc433e3c3eb04"
+        },
+        {
+          "id": "fastq_err15886307_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886307_1.fastq.gz",
+          "sha256": "5d853d965e682d7e42a3d3b8183e5f239c1e133224df0d70b853c87325e5fed0"
+        },
+        {
+          "id": "fastq_err15886307_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886307_2.fastq.gz",
+          "sha256": "953261db508cd1c7e67bf507f4f7482bfb6338f6591b0dc264c026a00dbccd7f"
+        },
+        {
+          "id": "fastq_err15886310_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886310_1.fastq.gz",
+          "sha256": "626f68ce29ba5c5aff86cf98bb0bd9240be2916d9ed2f4f87c3600bde2e43abd"
+        },
+        {
+          "id": "fastq_err15886310_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR15886310_2.fastq.gz",
+          "sha256": "e1163abcc8535c6ed87665e721ffe55c382ac131bb88799f6a711070a709aaff"
+        },
+        {
+          "id": "fastq_err4210492_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210492_1.fastq.gz",
+          "sha256": "26f46424f1920a45abdb4a9eebb3661ef4e3ebe2c8d6380b6c310a812434678e"
+        },
+        {
+          "id": "fastq_err4210492_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210492_2.fastq.gz",
+          "sha256": "689602dfc28e8e07665e0f92072e228d14f5618e90e33acd39f540d5a7038ade"
+        },
+        {
+          "id": "fastq_err4210542_1_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210542_1.fastq.gz",
+          "sha256": "15e9848db3a9bb8195a1deaf3940808643e7815f0418b6a51f8858e7c524bcd7"
+        },
+        {
+          "id": "fastq_err4210542_2_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR4210542_2.fastq.gz",
+          "sha256": "b0e37f95a46e3e437ac6fffa2768589cc34708b77907ebde60ecd8fbbc56612d"
+        },
+        {
+          "id": "fastq_err769585_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769585.fastq.gz",
+          "sha256": "eaa4ea79964d0aa3ef2ca7e4fae25530bdda2d3eddaa745da6a273fb3478490f"
+        },
+        {
+          "id": "fastq_err769590_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769590.fastq.gz",
+          "sha256": "cdea5fb8a6238f89a7155a8cf251acac13a6ceac6cbdbc9b685a2163b77c93f8"
+        },
+        {
+          "id": "fastq_err769591_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769591.fastq.gz",
+          "sha256": "aa3c3971604db3fb55a94daaabdb992db4a05be030dc1bc2527df9da5f4e8c9c"
+        },
+        {
+          "id": "fastq_err769594_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769594.fastq.gz",
+          "sha256": "0116cbf2df8d25ecc5362a3fbacdf8fed39012ce9f095f6a7755ff5cfd04e968"
+        },
+        {
+          "id": "fastq_err769610_fastq_gz",
+          "kind": "data",
+          "mount_path": "/input/ERR769610.fastq.gz",
+          "sha256": "24cc006c5fecdd244c401cc800ac7a83a3e9d814beb7f08d38f2cecfc7936947"
+        },
+        {
+          "id": "read_length_manifest",
+          "kind": "expected_evidence",
+          "mount_path": "/input/read-length-manifest.json",
+          "sha256": "b4b7f2c5e6bd6ddbbc9cd4590029921944ec1cd6a26f2b7f6dd9ebb581158f0f"
+        }
+      ],
+      "input_bytes": {
+        "fastq": 3638085565,
+        "total": 3638085565
+      },
+      "performance": {
+        "cpu_seconds": {
+          "minimum": 151.6,
+          "maximum": 152.34,
+          "mean": 152.08666666666667,
+          "sample_standard_deviation": 0.42158431343366576
+        },
+        "cpu_utilization_percent": {
+          "minimum": 126.83820467982345,
+          "maximum": 127.05330204492122,
+          "mean": 126.95422286168491,
+          "sample_standard_deviation": 0.10854453636097318
+        },
+        "filesystem_input_operations": {
+          "minimum": 0.0,
+          "maximum": 168.0,
+          "mean": 56.0,
+          "sample_standard_deviation": 96.99484522385713
+        },
+        "filesystem_output_operations": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "mean": 0.0,
+          "sample_standard_deviation": 0.0
+        },
+        "input_bytes": {
+          "minimum": 3638085565.0,
+          "maximum": 3638085565.0,
+          "mean": 3638085565.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "minimum": 1592964958.0,
+          "maximum": 1592964958.0,
+          "mean": 1592964958.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "minimum": 57680.0,
+          "maximum": 57792.0,
+          "mean": 57736.0,
+          "sample_standard_deviation": 56.0
+        },
+        "throughput_input_bytes_per_second": {
+          "minimum": 30294658.714297608,
+          "maximum": 30490157.266174994,
+          "mean": 30369083.14257127,
+          "sample_standard_deviation": 105768.92975883627
+        },
+        "throughput_reads_per_second": {
+          "minimum": 625997.14380881,
+          "maximum": 630036.8504860878,
+          "mean": 627535.0214910869,
+          "sample_standard_deviation": 2185.56837220605
+        },
+        "wall_seconds": {
+          "minimum": 119.32,
+          "maximum": 120.09,
+          "mean": 119.79666666666667,
+          "sample_standard_deviation": 0.41645327869202603
+        }
+      },
+      "scientific_observations": {
+        "distinct_read_lengths": [
+          287.0,
+          287.0,
+          287.0
+        ],
+        "file_count": [
+          30.0,
+          30.0,
+          30.0
+        ],
+        "histogram_sha256": [
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
+          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5"
+        ],
+        "maximum_read_length": [
+          301.0,
+          301.0,
+          301.0
+        ],
+        "mean_read_length": [
+          60.9798697581623,
+          60.9798697581623,
+          60.9798697581623
+        ],
+        "median_read_length": [
+          36.0,
+          36.0,
+          36.0
+        ],
+        "minimum_read_length": [
+          15.0,
+          15.0,
+          15.0
+        ],
+        "read_count": [
+          75175997.0,
+          75175997.0,
+          75175997.0
+        ]
+      },
+      "determinism": {
+        "artifact": "read-lengths.json",
+        "sha256": "312d1fc4fe44184427fa83057dd7dc362db6db822e618446f93eace3f284f9b7",
+        "digest_basis": "canonical bundle content with repetition-local histogram paths normalized",
+        "identical_across_repetitions": true
+      }
+    }
+  ],
   "comparability": {
-    "input_lock_sha256": "491ffd8e8df3857616d1d401d1a4ab729a58d5a9e4c18a0951f308d1bfb966ad",
-    "parameter_lock_sha256": "31cd719ef9b42cab2eb2fb36183ccc1cc18bc3d0ca9617e8465d29dd4132dd3d",
-    "repository_commit": "7c604e7c596ba446911de3a167840e97c8acbffc",
+    "repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+    "input_lock_sha256": "9da50b9e49370be6d7ffe55160dfe964bf53dd31bcc1cc22d1253ed17fd6c0c9",
+    "parameter_lock_sha256": "b04b7fdaa89b9657fb007d10a26101351bd33d1601e6915295a13d806183d6ad",
     "stage_interface": {
       "accepted_input_contracts": [
         "bijux.fastq.artifact.single_end.v1",
         "bijux.fastq.artifact.paired_end.v1"
       ],
+      "output_contract": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+      "normalized_result_contract": "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json",
       "downstream_probe": {
-        "artifact": "repetitions/repetition-1.report-qc.json",
+        "stage_id": "benchmark.fastq.profile_read_lengths.compare",
         "input_contract": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
         "source": "benchmarks/execution/fastq_read_lengths.awk",
-        "stage_id": "benchmark.fastq.profile_read_lengths.compare"
-      },
-      "normalized_result_contract": "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json",
-      "output_contract": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+        "artifact": "repetitions/repetition-1.report-qc.json"
+      }
     }
   },
-  "comparison_scope": "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end libraries",
   "cross_tool_comparison": {
+    "status": "within_tolerance",
     "metrics": [
       {
-        "absolute_range": 0,
-        "absolute_tolerance": 0.0,
-        "allowed_range": 0.0,
-        "maximum": 30,
         "metric": "file_count",
-        "minimum": 30,
         "observations": {
-          "seqfu": 30,
-          "seqkit": 30
+          "seqfu": 30.0,
+          "seqkit": 30.0
         },
-        "relative_tolerance": 0.0,
-        "within_tolerance": true
-      },
-      {
-        "absolute_range": 0,
-        "absolute_tolerance": 0.0,
-        "allowed_range": 0.0,
-        "maximum": 75175997,
-        "metric": "read_count",
-        "minimum": 75175997,
-        "observations": {
-          "seqfu": 75175997,
-          "seqkit": 75175997
-        },
-        "relative_tolerance": 0.0,
-        "within_tolerance": true
-      },
-      {
-        "absolute_range": 0,
-        "absolute_tolerance": 0.0,
-        "allowed_range": 0.0,
-        "maximum": 15,
-        "metric": "minimum_read_length",
-        "minimum": 15,
-        "observations": {
-          "seqfu": 15,
-          "seqkit": 15
-        },
-        "relative_tolerance": 0.0,
-        "within_tolerance": true
-      },
-      {
+        "minimum": 30.0,
+        "maximum": 30.0,
         "absolute_range": 0.0,
-        "absolute_tolerance": 0.0,
         "allowed_range": 0.0,
-        "maximum": 60.9798697581623,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
+      },
+      {
+        "metric": "read_count",
+        "observations": {
+          "seqfu": 75175997.0,
+          "seqkit": 75175997.0
+        },
+        "minimum": 75175997.0,
+        "maximum": 75175997.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
+      },
+      {
+        "metric": "minimum_read_length",
+        "observations": {
+          "seqfu": 15.0,
+          "seqkit": 15.0
+        },
+        "minimum": 15.0,
+        "maximum": 15.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
+      },
+      {
         "metric": "mean_read_length",
-        "minimum": 60.9798697581623,
         "observations": {
           "seqfu": 60.9798697581623,
           "seqkit": 60.9798697581623
         },
-        "relative_tolerance": 0.0,
-        "within_tolerance": true
+        "minimum": 60.9798697581623,
+        "maximum": 60.9798697581623,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
       },
       {
-        "absolute_range": 0.0,
-        "absolute_tolerance": 0.0,
-        "allowed_range": 0.0,
-        "maximum": 36.0,
         "metric": "median_read_length",
-        "minimum": 36.0,
         "observations": {
           "seqfu": 36.0,
           "seqkit": 36.0
         },
-        "relative_tolerance": 0.0,
-        "within_tolerance": true
+        "minimum": 36.0,
+        "maximum": 36.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
       },
       {
-        "absolute_range": 0,
-        "absolute_tolerance": 0.0,
-        "allowed_range": 0.0,
-        "maximum": 301,
         "metric": "maximum_read_length",
-        "minimum": 301,
         "observations": {
-          "seqfu": 301,
-          "seqkit": 301
+          "seqfu": 301.0,
+          "seqkit": 301.0
         },
-        "relative_tolerance": 0.0,
-        "within_tolerance": true
+        "minimum": 301.0,
+        "maximum": 301.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
       },
       {
-        "absolute_range": 0,
-        "absolute_tolerance": 0.0,
-        "allowed_range": 0.0,
-        "maximum": 287,
         "metric": "distinct_read_lengths",
-        "minimum": 287,
         "observations": {
-          "seqfu": 287,
-          "seqkit": 287
+          "seqfu": 287.0,
+          "seqkit": 287.0
         },
-        "relative_tolerance": 0.0,
-        "within_tolerance": true
+        "minimum": 287.0,
+        "maximum": 287.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
       }
-    ],
-    "status": "within_tolerance"
+    ]
   },
-  "design": {
-    "cache_policy": "warm",
-    "container_only": true,
-    "corpus_catalog_ids": [
-      "human-short-read-diversity"
-    ],
-    "corpus_ids": [
-      "human-short-read-diversity"
-    ],
-    "database_catalog_ids": [],
-    "input_size_keys": [
-      "fastq_input_bytes"
-    ],
-    "measured_repetitions": 3,
-    "reference_catalog_ids": [],
-    "result_artifact": "read-lengths.json",
-    "runtime": "apptainer",
-    "scheduler": "slurm",
-    "threads_by_tool": {
-      "seqfu": 1,
-      "seqkit": 4
-    },
-    "tool_closure": [
-      "seqfu",
-      "seqkit"
-    ],
-    "warmup_repetitions": 1
-  },
-  "evidence_tier": "comparative",
-  "interpretation": "Exact row agreement with an independent FASTQ decoder establishes record coverage and read-length correctness for this cohort. It does not assess read transformation, biological representativeness, or every valid FASTQ encoding.",
   "limitations": [
     "The cohort is curated for workload diversity and is not population-representative.",
     "The independent truth surface validates lengths and record closure but not sequence identity beyond the preserved record identifiers.",
     "Warm-cache repetitions characterize stable parsing after one warmup and do not measure cold shared-filesystem startup.",
     "SeqFu tabulate is single-stream; its one-CPU allocation is intentional and recorded rather than falsely projecting the shared thread override into unsupported backend flags."
   ],
-  "run_id": "run-2042",
-  "schema_version": "bijux.benchmark.stage_report.v1",
-  "scientific_question": "Do both exact read-length backends recover every independently decoded per-record length across the complete real human short-read diversity cohort, and what resources does each implementation consume?",
-  "stage_id": "fastq.profile_read_lengths",
-  "tools": [
-    {
-      "determinism": {
-        "artifact": "read-lengths.json",
-        "digest_basis": "canonical bundle content with repetition-local histogram paths normalized",
-        "identical_across_repetitions": true,
-        "sha256": "3bd8e09540754442bd0ac0cb8f8c79c54e66da519e2cc1c9fbd85d20ca24ad8c"
-      },
-      "image": {
-        "name": "seqfu-1.26.0-linux-amd64-ba6d5e5acd51.sif",
-        "sha256": "ba6d5e5acd51137d94fee735ae5a5ffcde3f1841d675ef5bc9c131bb673b47c4",
-        "size_bytes": 37445632
-      },
-      "input_bytes": {
-        "fastq": 3638085565,
-        "total": 3638085565
-      },
-      "performance": {
-        "cpu_seconds": {
-          "maximum": 595.111682,
-          "mean": 593.035101,
-          "minimum": 589.816183,
-          "sample_standard_deviation": 2.826531
-        },
-        "cpu_utilization_percent": {
-          "maximum": 99.307913,
-          "mean": 99.283717,
-          "minimum": 99.24719,
-          "sample_standard_deviation": 0.032185
-        },
-        "filesystem_input_operations": {
-          "maximum": 0.0,
-          "mean": 0.0,
-          "minimum": 0.0,
-          "sample_standard_deviation": 0.0
-        },
-        "filesystem_output_operations": {
-          "maximum": 0.0,
-          "mean": 0.0,
-          "minimum": 0.0,
-          "sample_standard_deviation": 0.0
-        },
-        "output_bytes": {
-          "maximum": 1592964957.0,
-          "mean": 1592964957.0,
-          "minimum": 1592964957.0,
-          "sample_standard_deviation": 0.0
-        },
-        "peak_rss_kib": {
-          "maximum": 47348.0,
-          "mean": 45676.0,
-          "minimum": 44604.0,
-          "sample_standard_deviation": 1467.100542
-        },
-        "throughput_input_bytes_per_second": {
-          "maximum": 6124747.545431,
-          "mean": 6090840.246509,
-          "minimum": 6070972.810479,
-          "sample_standard_deviation": 29508.792627
-        },
-        "wall_seconds": {
-          "maximum": 599.259077,
-          "mean": 597.313703,
-          "minimum": 593.997636,
-          "sample_standard_deviation": 2.886137
-        }
-      },
-      "repository_commit": "7c604e7c596ba446911de3a167840e97c8acbffc",
-      "scientific_observations": {
-        "distinct_read_lengths": [
-          287,
-          287,
-          287
-        ],
-        "file_count": [
-          30,
-          30,
-          30
-        ],
-        "histogram_sha256": [
-          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
-          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
-          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5"
-        ],
-        "maximum_read_length": [
-          301,
-          301,
-          301
-        ],
-        "mean_read_length": [
-          60.9798697581623,
-          60.9798697581623,
-          60.9798697581623
-        ],
-        "median_read_length": [
-          36.0,
-          36.0,
-          36.0
-        ],
-        "minimum_read_length": [
-          15,
-          15,
-          15
-        ],
-        "read_count": [
-          75175997,
-          75175997,
-          75175997
-        ]
-      },
-      "slurm": {
-        "allocated_cpus": "1",
-        "elapsed": "00:38:50",
-        "host": "cn091",
-        "job_id": "3460317"
-      },
-      "source_evidence_sha256": "eb7d2c84aa6166bddf42259aa06f506d4aa909e139e891352bbde0c143226a54",
-      "tool": "seqfu",
-      "verdict": "passed"
-    },
-    {
-      "determinism": {
-        "artifact": "read-lengths.json",
-        "digest_basis": "canonical bundle content with repetition-local histogram paths normalized",
-        "identical_across_repetitions": true,
-        "sha256": "57d23e6d37afd82d77792258b7c4403a849385ae8b1cda1fae4abb49e6f6ab91"
-      },
-      "image": {
-        "name": "seqkit-2.8.2-linux-amd64-4646ad26f815.sif",
-        "sha256": "4646ad26f8152674cda466d229ba0a5a495b9176ee4f3fc77f4d50cdf7e9d3d5",
-        "size_bytes": 38809600
-      },
-      "input_bytes": {
-        "fastq": 3638085565,
-        "total": 3638085565
-      },
-      "performance": {
-        "cpu_seconds": {
-          "maximum": 151.58389,
-          "mean": 151.397171,
-          "minimum": 151.245054,
-          "sample_standard_deviation": 0.172048
-        },
-        "cpu_utilization_percent": {
-          "maximum": 127.826651,
-          "mean": 127.616348,
-          "minimum": 127.418125,
-          "sample_standard_deviation": 0.204531
-        },
-        "filesystem_input_operations": {
-          "maximum": 168.0,
-          "mean": 56.0,
-          "minimum": 0.0,
-          "sample_standard_deviation": 96.994845
-        },
-        "filesystem_output_operations": {
-          "maximum": 0.0,
-          "mean": 0.0,
-          "minimum": 0.0,
-          "sample_standard_deviation": 0.0
-        },
-        "output_bytes": {
-          "maximum": 1592964958.0,
-          "mean": 1592964958.0,
-          "minimum": 1592964958.0,
-          "sample_standard_deviation": 0.0
-        },
-        "peak_rss_kib": {
-          "maximum": 58088.0,
-          "mean": 57802.666667,
-          "minimum": 57648.0,
-          "sample_standard_deviation": 247.397117
-        },
-        "throughput_input_bytes_per_second": {
-          "maximum": 30747735.6584,
-          "mean": 30666368.490339,
-          "minimum": 30580957.018671,
-          "sample_standard_deviation": 83462.841799
-        },
-        "wall_seconds": {
-          "maximum": 118.96572,
-          "mean": 118.634964,
-          "minimum": 118.320438,
-          "sample_standard_deviation": 0.322947
-        }
-      },
-      "repository_commit": "7c604e7c596ba446911de3a167840e97c8acbffc",
-      "scientific_observations": {
-        "distinct_read_lengths": [
-          287,
-          287,
-          287
-        ],
-        "file_count": [
-          30,
-          30,
-          30
-        ],
-        "histogram_sha256": [
-          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
-          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5",
-          "054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5"
-        ],
-        "maximum_read_length": [
-          301,
-          301,
-          301
-        ],
-        "mean_read_length": [
-          60.9798697581623,
-          60.9798697581623,
-          60.9798697581623
-        ],
-        "median_read_length": [
-          36.0,
-          36.0,
-          36.0
-        ],
-        "minimum_read_length": [
-          15,
-          15,
-          15
-        ],
-        "read_count": [
-          75175997,
-          75175997,
-          75175997
-        ]
-      },
-      "slurm": {
-        "allocated_cpus": "4",
-        "elapsed": "00:06:54",
-        "host": "cn162",
-        "job_id": "3460318"
-      },
-      "source_evidence_sha256": "4694ab9c88f03af8222fe62fccc18e2532d63d3bf3ac1825516beaac15c68fae",
-      "tool": "seqkit",
-      "verdict": "passed"
-    }
-  ],
-  "verdict": "passed"
+  "interpretation": "Exact row agreement with an independent FASTQ decoder establishes record coverage and read-length correctness for this cohort. It does not assess read transformation, biological representativeness, or every valid FASTQ encoding."
 }

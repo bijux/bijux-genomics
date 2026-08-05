@@ -5,8 +5,8 @@
     "defined_stage_count": 6,
     "qualification_stage_count": 4,
     "comparative_stage_count": 2,
-    "admitted_stage_count": 1,
-    "stale_stage_count": 5,
+    "admitted_stage_count": 0,
+    "stale_stage_count": 6,
     "failed_stage_count": 0,
     "missing_stage_count": 65
   },
@@ -173,7 +173,7 @@
       "report_repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
       "report_sha256": "e16df1257329c3d6221c35d55b461ba3b287148d023aedcb8afa1c9f6b2e20df",
       "definition_status": "qualification",
-      "execution_status": "admitted"
+      "execution_status": "stale"
     },
     {
       "stage_id": "bam.mapq_filter",
@@ -397,8 +397,8 @@
         "seqkit"
       ],
       "campaign_run_id": "run-2042",
-      "report_repository_commit": "7c604e7c596ba446911de3a167840e97c8acbffc",
-      "report_sha256": "795a623440df018e42667211787a08b72c417db1a4aea1b040b9534cf8c45322",
+      "report_repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "report_sha256": "082329641a50be741785401ee359ece05d232c909b31481ddf46b46d580cbaf1",
       "definition_status": "comparative",
       "execution_status": "stale"
     },
@@ -410,8 +410,8 @@
         "seqkit_stats"
       ],
       "campaign_run_id": "run-2043",
-      "report_repository_commit": "0250599effd8ddcd48870d3ae717589ee71756f3",
-      "report_sha256": "40496d7f6e4ca1929977e9a84ff2f88a48d5c29f16a64ab814ad6f2784a28c5d",
+      "report_repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "report_sha256": "fb337cb54255df40078c14dc8e105b955a998e044683c842baa1f6bec2c0b7ef",
       "definition_status": "comparative",
       "execution_status": "stale"
     },
