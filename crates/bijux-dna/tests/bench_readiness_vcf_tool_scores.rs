@@ -134,6 +134,31 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
         Some("not_available")
     );
 
+    let ibdseq = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.ibd")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ibdseq")
+        })
+        .expect("vcf.ibd ibdseq row");
+    assert_eq!(ibdseq.get("score_status").and_then(serde_json::Value::as_str), Some("scored"));
+    assert_eq!(
+        ibdseq.get("truth_correctness_basis").and_then(serde_json::Value::as_str),
+        Some("nonzero_pair_coverage_not_independent_ibd_truth")
+    );
+
+    let demography = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.demography")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ibdne")
+        })
+        .expect("vcf.demography ibdne row");
+    assert_eq!(
+        demography.get("contract_correctness_basis").and_then(serde_json::Value::as_str),
+        Some("demography smoke preserved governed trajectory and inference outputs")
+    );
+
     let pca_eigensoft = rows
         .iter()
         .find(|row| {
