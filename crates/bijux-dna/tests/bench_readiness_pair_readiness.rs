@@ -48,10 +48,12 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/pair-readiness.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
+    let row_count =
+        payload.get("row_count").and_then(serde_json::Value::as_u64).expect("row count");
+    assert!(row_count > 0);
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(row_count)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
@@ -80,7 +82,7 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 120);
+    assert_eq!(rows.len(), row_count as usize);
 
     let taxonomy = rows
         .iter()

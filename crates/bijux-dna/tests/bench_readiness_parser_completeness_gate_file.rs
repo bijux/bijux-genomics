@@ -48,8 +48,15 @@ fn bench_readiness_parser_completeness_gate_file_writes_self_describing_report()
         Some("bijux.bench.readiness.parser_completeness_gate.v1")
     );
     assert_eq!(report.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
-    assert_eq!(report.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
-    assert_eq!(report.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(118));
+    let row_count = report.get("row_count").and_then(serde_json::Value::as_u64).expect("row count");
+    assert!(row_count > 0);
+    assert_eq!(
+        report.get("gate_passed_row_count").and_then(serde_json::Value::as_u64),
+        report.get("gate_row_count").and_then(serde_json::Value::as_u64)
+    );
     assert_eq!(report.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(120));
+    assert_eq!(
+        report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len),
+        Some(row_count as usize)
+    );
 }

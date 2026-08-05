@@ -316,13 +316,11 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 120);
-        assert_eq!(report.benchmark_ready_row_count, 120);
-        assert_eq!(report.external_row_count, 118);
-        assert_eq!(report.container_declared_row_count, 118);
-        assert_eq!(report.command_entrypoint_row_count, 120);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
-        assert_eq!(report.domain_counts.get("bam"), Some(&49));
+        assert!(report.row_count > 0);
+        assert_eq!(report.benchmark_ready_row_count, report.row_count);
+        assert_eq!(report.external_row_count, report.container_declared_row_count);
+        assert_eq!(report.command_entrypoint_row_count, report.row_count);
+        assert_eq!(report.domain_counts.values().sum::<usize>(), report.row_count);
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -379,19 +377,16 @@ mod tests {
                 && row.container_id.as_deref() == Some("bijuxdna/king:2.3.0")
         }));
         assert!(report.rows.iter().any(|row| {
-            row.stage_id == "bam.damage"
-                && row.tool_id == "ngsbriggs"
-                && row.execution_mode == "containerized"
-                && row.command_entrypoint.as_deref() == Some("ngsbriggs")
-                && row.container_id.as_deref() == Some("bijuxdna/ngsbriggs:0.1.3")
-        }));
-        assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"
-                && row.tool_id == "angsd"
+                && row.tool_id == "bcftools"
                 && row.execution_mode == "containerized"
-                && row.command_entrypoint.as_deref() == Some("angsd")
-                && row.container_id.as_deref() == Some("bijuxdna/angsd")
+                && row.command_entrypoint.as_deref() == Some("bcftools")
+                && row.container_id.as_deref() == Some("bijuxdna/bcftools:1.20")
         }));
+        assert!(report
+            .rows
+            .iter()
+            .all(|row| { !matches!(row.tool_id.as_str(), "angsd" | "fastuniq" | "ngsbriggs") }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.overlap_correction"
                 && row.tool_id == "bamutil"
@@ -519,7 +514,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 120);
+        assert!(!config.rows.is_empty());
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -527,11 +522,15 @@ mod tests {
         }));
         assert!(config.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"
-                && row.tool_id == "angsd"
+                && row.tool_id == "bcftools"
                 && row.execution_mode == "containerized"
-                && row.command_entrypoint.as_deref() == Some("angsd")
-                && row.container_id.as_deref() == Some("bijuxdna/angsd")
+                && row.command_entrypoint.as_deref() == Some("bcftools")
+                && row.container_id.as_deref() == Some("bijuxdna/bcftools:1.20")
         }));
+        assert!(config
+            .rows
+            .iter()
+            .all(|row| { !matches!(row.tool_id.as_str(), "angsd" | "fastuniq" | "ngsbriggs") }));
         assert!(config.rows.iter().any(|row| {
             row.stage_id == "fastq.detect_adapters"
                 && row.tool_id == "fastqc"

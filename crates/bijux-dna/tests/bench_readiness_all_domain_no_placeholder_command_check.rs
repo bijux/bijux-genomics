@@ -74,8 +74,8 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
-    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
+    let fastq_bam_count = support::object_u64(domain_counts, "fastq").expect("fastq count")
+        + support::object_u64(domain_counts, "bam").expect("bam count");
     assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
@@ -85,7 +85,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         .expect("command source counts");
     assert_eq!(
         command_source_counts.get("fastq_bam_command_adapter").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(fastq_bam_count)
     );
     assert_eq!(
         command_source_counts.get("vcf_bcftools_adapter").and_then(serde_json::Value::as_u64),

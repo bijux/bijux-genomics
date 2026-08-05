@@ -252,13 +252,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
             let expected_results_report = expected_results_report
                 .as_ref()
                 .context("goal 280 expected benchmark results report is required")?;
+            let expected_fastq_bam_command_count = ["fastq", "bam"]
+                .iter()
+                .filter_map(|domain| expected_results_report.domain_counts.get(*domain))
+                .sum::<usize>();
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
                 || report.domain_counts != expected_results_report.domain_counts
                 || report.benchmark_status_counts.get("benchmark_ready").copied()
                     != Some(benchmark_ready_binding_count)
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
-                    != Some(120)
+                    != Some(expected_fastq_bam_command_count)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
                 || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()

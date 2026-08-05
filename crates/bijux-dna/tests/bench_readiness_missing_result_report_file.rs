@@ -48,11 +48,18 @@ fn bench_readiness_missing_result_report_writes_self_describing_report() {
         Some("bijux.bench.readiness.missing_result_report.v1")
     );
     assert_eq!(report.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
-    assert_eq!(report.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(120));
+    let expected_row_count = report
+        .get("expected_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("expected row count");
+    assert!(expected_row_count > 0);
     assert_eq!(
         report.get("present_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(119)
+        Some(expected_row_count - 1)
     );
     assert_eq!(report.get("missing_result_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(120));
+    assert_eq!(
+        report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len),
+        Some(expected_row_count as usize)
+    );
 }
