@@ -12,9 +12,8 @@ use serde::Serialize;
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -24,6 +23,10 @@ const VCF_DESCENT_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_descent_family_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
     "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
+const GOVERNED_IBDHAP_VCF_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_ibdhap.vcf";
+const GOVERNED_IBDHAP_MAP_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/vcf-mini/reference/vcf_mini_genetic_map.tsv";
 const GOVERNED_DESCENT_ROWS: [(&str, &str); 5] = [
     ("plink2", "vcf.roh"),
     ("germline", "vcf.ibd"),
@@ -32,7 +35,8 @@ const GOVERNED_DESCENT_ROWS: [(&str, &str); 5] = [
     ("ibdne", "vcf.demography"),
 ];
 const GOVERNED_DEMOGRAPHY_SEGMENTS_CONTENT: &str =
-    "sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\tmarker_count\nsample_a\tsample_b\tchr1\t100\t100000\t8.5\t24\n";
+    "sample_a\t0\tsample_b\t0\t1\t100\t100000\t8.5\nsample_a\t1\tsample_c\t0\t1\t120000\t200000\t7.0\n";
+const GOVERNED_DEMOGRAPHY_MAP_CONTENT: &str = "1\t.\t0.0\t1\n1\t.\t10.0\t250000\n";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfDescentFamilyAdapterArtifact {
@@ -155,14 +159,14 @@ pub(crate) fn render_vcf_descent_family_adapter(
     Ok(report)
 }
 
-fn collect_vcf_descent_family_adapter_rows(
+pub(crate) fn collect_vcf_descent_family_adapter_rows(
     repo_root: &Path,
 ) -> Result<Vec<VcfDescentFamilyAdapterRow>> {
     let catalog_by_stage = build_vcf_stage_catalog_rows()?
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let matrix_by_pair = build_vcf_stage_matrix_rows()?
+    let matrix_by_pair = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
@@ -366,9 +370,8 @@ fn build_stage_contract(
             let normalized_output_path = report_tsv_path("ibd_segments");
             let log_output_path = raw_path("ibd_segments", "log");
             let cohort_prefix = format!("{output_root}/ibd_segments.cohort");
-            let cohort_bed = format!("{cohort_prefix}.bed");
-            let cohort_bim = format!("{cohort_prefix}.bim");
-            let cohort_fam = format!("{cohort_prefix}.fam");
+            let cohort_ped = format!("{cohort_prefix}.ped");
+            let cohort_map = format!("{cohort_prefix}.map");
             let germline_match = raw_path("ibd_segments", "match");
             Ok((
                 Some(input_vcf_path.clone()),
@@ -379,17 +382,15 @@ fn build_stage_contract(
                 normalized_output_path.clone(),
                 log_output_path.clone(),
                 vec![
-                    "cohort_bed".to_string(),
-                    "cohort_bim".to_string(),
-                    "cohort_fam".to_string(),
+                    "cohort_ped".to_string(),
+                    "cohort_map".to_string(),
                     "germline_match".to_string(),
                     "logs_txt".to_string(),
                 ],
                 vec!["ibd_segments".to_string()],
                 vec![
-                    artifact("cohort_bed", "bed", &cohort_bed),
-                    artifact("cohort_bim", "bim", &cohort_bim),
-                    artifact("cohort_fam", "fam", &cohort_fam),
+                    artifact("cohort_ped", "ped", &cohort_ped),
+                    artifact("cohort_map", "map", &cohort_map),
                     artifact("germline_match", "report_tsv", &germline_match),
                     artifact("logs_txt", "log", &log_output_path),
                     artifact("ibd_segments", "report_tsv", &normalized_output_path),
@@ -401,10 +402,10 @@ fn build_stage_contract(
                         "sh".to_string(),
                         "-lc".to_string(),
                         format!(
-                            "plink2 --vcf '{input_vcf_path}' --double-id --allow-extra-chr --make-bed --out '{cohort_prefix}' >/dev/null 2>&1 && germline -input '{cohort_prefix}' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output '{output_root}/ibd_segments' > '{log_output_path}' 2>&1"
+                            "plink2 --vcf '{input_vcf_path}' --double-id --allow-extra-chr --recode ped --out '{cohort_prefix}' >/dev/null 2>&1 && germline -silent -input '{cohort_ped}' '{cohort_map}' -output '{output_root}/ibd_segments' -bits 50 -min_m 1 -err_hom 2 -err_het 0 > '{log_output_path}' 2>&1"
                         ),
                     ],
-                    &["cohort_bed", "cohort_bim", "cohort_fam", "germline_match", "logs_txt"],
+                    &["cohort_ped", "cohort_map", "germline_match", "logs_txt"],
                 )],
             ))
         }
@@ -412,7 +413,8 @@ fn build_stage_contract(
             let input_vcf_path = GOVERNED_COHORT_VCF_PATH.to_string();
             let normalized_output_path = report_tsv_path("ibd_segments");
             let log_output_path = raw_path("ibd_segments", "log");
-            let raw_segments_path = raw_path("ibd_segments", "segments.tsv");
+            let output_prefix = format!("{output_root}/ibd_segments");
+            let raw_segments_path = format!("{output_prefix}.ibd.gz");
             Ok((
                 Some(input_vcf_path.clone()),
                 None,
@@ -435,7 +437,7 @@ fn build_stage_contract(
                         "sh".to_string(),
                         "-lc".to_string(),
                         format!(
-                            "ibdseq --vcf '{input_vcf_path}' --out '{raw_segments_path}' > '{log_output_path}' 2>&1"
+                            "ibdseq gt='{input_vcf_path}' out='{output_prefix}' nthreads=8 > '{log_output_path}' 2>&1"
                         ),
                     ],
                     &["ibdseq_segments_tsv", "logs_txt"],
@@ -443,51 +445,71 @@ fn build_stage_contract(
             ))
         }
         ("ibdhap", VcfDomainStage::Ibd) => {
-            let input_vcf_path = GOVERNED_COHORT_VCF_PATH.to_string();
-            let normalized_output_path = report_tsv_path("ibd_segments");
-            let log_output_path = raw_path("ibd_segments", "log");
-            let raw_segments_path = raw_path("ibd_segments", "segments.tsv");
+            let input_vcf_path = GOVERNED_IBDHAP_VCF_PATH.to_string();
+            let genetic_map_path = GOVERNED_IBDHAP_MAP_PATH.to_string();
+            let normalized_output_path = report_json_path("ibd_state_probabilities");
+            let log_output_path = raw_path("ibd_state_probabilities", "log");
+            let scores_path = report_tsv_path("ibd_state_probabilities");
+            let identifiers_path = report_tsv_path("ibd_haplotype_identifiers");
+            let work_dir = format!("{output_root}/work");
             Ok((
                 Some(input_vcf_path.clone()),
                 None,
-                vec![artifact("vcf", "variant", &input_vcf_path)],
+                vec![
+                    artifact("vcf", "variant", &input_vcf_path),
+                    artifact("genetic_map", "reference", &genetic_map_path),
+                ],
                 "domain/vcf/fixtures/vcf.ibd/ibdhap.txt".to_string(),
-                "ibd_segments".to_string(),
+                "ibd_state_probabilities".to_string(),
                 normalized_output_path.clone(),
                 log_output_path.clone(),
-                vec!["ibdhap_segments_tsv".to_string(), "logs_txt".to_string()],
-                vec!["ibd_segments".to_string()],
                 vec![
-                    artifact("ibdhap_segments_tsv", "report_tsv", &raw_segments_path),
+                    "ibdhap_state_probabilities_tsv".to_string(),
+                    "ibdhap_haplotype_identifiers_tsv".to_string(),
+                    "logs_txt".to_string(),
+                ],
+                vec!["ibd_state_probabilities".to_string()],
+                vec![
+                    artifact("ibdhap_state_probabilities_tsv", "report_tsv", &scores_path),
+                    artifact("ibdhap_haplotype_identifiers_tsv", "report_tsv", &identifiers_path),
                     artifact("logs_txt", "log", &log_output_path),
-                    artifact("ibd_segments", "report_tsv", &normalized_output_path),
+                    artifact("ibd_state_probabilities", "report_json", &normalized_output_path),
                 ],
                 vec![step(
                     "ibd",
-                    "relatedness_segments",
+                    "ibd_state_probabilities",
                     vec![
                         "sh".to_string(),
                         "-lc".to_string(),
                         format!(
-                            "ibdhap --vcf '{input_vcf_path}' --out '{raw_segments_path}' > '{log_output_path}' 2>&1"
+                            "ibdhap analyze-vcf --vcf '{input_vcf_path}' --genetic-map '{genetic_map_path}' --sample sample_a --sample sample_b --region chr1:2-10 --max-markers 500 --work-dir '{work_dir}' --scores '{scores_path}' --identifiers '{identifiers_path}' --summary '{normalized_output_path}' > '{log_output_path}' 2>&1"
                         ),
                     ],
-                    &["ibdhap_segments_tsv", "logs_txt"],
+                    &[
+                        "ibdhap_state_probabilities_tsv",
+                        "ibdhap_haplotype_identifiers_tsv",
+                        "logs_txt",
+                        "ibd_state_probabilities",
+                    ],
                 )],
             ))
         }
         ("ibdne", VcfDomainStage::Demography) => {
-            let input_ibd_segments_path =
-                materialize_governed_demography_input(repo_root, &PathBuf::from(output_root))?;
+            let (input_ibd_segments_path, genetic_map_path) =
+                materialize_governed_demography_inputs(repo_root, &PathBuf::from(output_root))?;
             let input_ibd_segments_path_str =
                 path_relative_to_repo(repo_root, &input_ibd_segments_path);
+            let genetic_map_path_str = path_relative_to_repo(repo_root, &genetic_map_path);
             let normalized_output_path = report_json_path("demography_report");
             let log_output_path = raw_path("demography_report", "log");
             let trajectory_path = report_tsv_path("ne_trajectory");
             Ok((
                 None,
                 Some(input_ibd_segments_path_str.clone()),
-                vec![artifact("ibd_segments", "report_tsv", &input_ibd_segments_path_str)],
+                vec![
+                    artifact("ibd_segments", "report_tsv", &input_ibd_segments_path_str),
+                    artifact("genetic_map", "reference", &genetic_map_path_str),
+                ],
                 "domain/vcf/fixtures/vcf.demography/ibdne.txt".to_string(),
                 "demography_report".to_string(),
                 normalized_output_path.clone(),
@@ -506,7 +528,7 @@ fn build_stage_contract(
                         "sh".to_string(),
                         "-lc".to_string(),
                         format!(
-                            "ibdne --ibd '{input_ibd_segments_path_str}' --out '{output_root}/demography_report' > '{log_output_path}' 2>&1"
+                            "cat '{input_ibd_segments_path_str}' | ibdne map='{genetic_map_path_str}' out='{output_root}/demography_report' nthreads=8 nboots=0 seed=15052011 > '{log_output_path}' 2>&1"
                         ),
                     ],
                     &["ne_trajectory_tsv", "logs_txt"],
@@ -517,14 +539,20 @@ fn build_stage_contract(
     }
 }
 
-fn materialize_governed_demography_input(repo_root: &Path, output_root: &Path) -> Result<PathBuf> {
+fn materialize_governed_demography_inputs(
+    repo_root: &Path,
+    output_root: &Path,
+) -> Result<(PathBuf, PathBuf)> {
     let absolute_output_root = repo_relative_path(repo_root, output_root);
     let input_root = absolute_output_root.join("artifacts").join("input");
     fs::create_dir_all(&input_root).with_context(|| format!("create {}", input_root.display()))?;
     let input_path = input_root.join("ibd_segments.tsv");
     fs::write(&input_path, GOVERNED_DEMOGRAPHY_SEGMENTS_CONTENT)
         .with_context(|| format!("write {}", input_path.display()))?;
-    Ok(repo_relative_path(repo_root, &input_path))
+    let map_path = input_root.join("genetic.map");
+    fs::write(&map_path, GOVERNED_DEMOGRAPHY_MAP_CONTENT)
+        .with_context(|| format!("write {}", map_path.display()))?;
+    Ok((repo_relative_path(repo_root, &input_path), repo_relative_path(repo_root, &map_path)))
 }
 
 fn validate_required_inputs(
@@ -562,18 +590,29 @@ fn validate_command_steps(
     if joined.contains("--help") {
         bail!("VCF descent-family adapter row `{stage_id}` still contains placeholder argv");
     }
-    let expected = match (tool_id, stage_id) {
-        ("plink2", "vcf.roh") => "plink2",
-        ("germline", "vcf.ibd") => "germline",
-        ("ibdseq", "vcf.ibd") => "ibdseq",
-        ("ibdhap", "vcf.ibd") => "ibdhap",
-        ("ibdne", "vcf.demography") => "ibdne",
-        _ => tool_id,
+    let expected_fragments: &[&str] = match (tool_id, stage_id) {
+        ("plink2", "vcf.roh") => &["plink2", "--homozyg"],
+        ("germline", "vcf.ibd") => {
+            &["plink2", "--recode ped", "germline", "-input", ".ped", ".map", "-output"]
+        }
+        ("ibdseq", "vcf.ibd") => &["ibdseq", "gt=", "out=", "nthreads="],
+        ("ibdhap", "vcf.ibd") => &[
+            "ibdhap analyze-vcf",
+            "--genetic-map",
+            "--sample sample_a --sample sample_b",
+            "--scores",
+            "--identifiers",
+            "--summary",
+        ],
+        ("ibdne", "vcf.demography") => &["ibdne", "map=", "out=", "nthreads=", "nboots=", "seed="],
+        _ => &[tool_id],
     };
-    if !joined.contains(expected) {
-        bail!(
-            "VCF descent-family adapter row `{stage_id}` must retain `{expected}` in its command rendering"
-        );
+    for expected in expected_fragments {
+        if !joined.contains(expected) {
+            bail!(
+                "VCF descent-family adapter row `{stage_id}` must retain `{expected}` in its command rendering"
+            );
+        }
     }
     Ok(())
 }
@@ -709,7 +748,7 @@ mod tests {
 
         assert_eq!(report.row_count, 5);
         assert_eq!(report.tool_count, 5);
-        assert_eq!(report.benchmark_ready_row_count, 3);
+        assert_eq!(report.benchmark_ready_row_count, 4);
         assert_eq!(report.parser_output_row_count, 5);
         assert_eq!(report.missing_input_test_passed_row_count, 5);
 
@@ -723,6 +762,14 @@ mod tests {
             roh.command_steps[0].argv.iter().any(|part| part == "--homozyg"),
             "plink2 roh row must retain homozyg command flags"
         );
+
+        let ibdhap = report
+            .rows
+            .iter()
+            .find(|row| row.tool_id == "ibdhap" && row.stage_id == "vcf.ibd")
+            .expect("ibdhap IBD row");
+        assert_eq!(ibdhap.benchmark_status, "not_benchmark_ready");
+        assert_eq!(ibdhap.normalized_output_artifact_id, "ibd_state_probabilities");
 
         let demography = report
             .rows

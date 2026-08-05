@@ -47,10 +47,12 @@ fn bench_readiness_vcf_plink_adapter_writes_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.vcf_plink_adapter.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
-
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    for stage_id in ["vcf.qc", "vcf.admixture"] {
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    for stage_id in ["vcf.qc", "vcf.admixture", "vcf.population_structure"] {
         assert!(
             rows.iter().any(|row| {
                 row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)

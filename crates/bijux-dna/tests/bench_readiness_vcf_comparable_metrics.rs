@@ -49,7 +49,7 @@ fn bench_readiness_vcf_comparable_metrics_reports_governed_metric_rows() {
     assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(
         payload.get("retained_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(31)
+        Some(32)
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(35));
 

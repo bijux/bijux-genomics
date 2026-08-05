@@ -46,20 +46,20 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-tool-serving-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(23));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(24)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(0)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 23);
+    assert_eq!(rows.len(), 24);
 
     let has_row = |tool_id: &str,
                    stage_id: &str,

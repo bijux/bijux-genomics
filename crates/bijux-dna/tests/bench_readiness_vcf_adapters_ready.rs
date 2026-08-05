@@ -54,19 +54,19 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(24)
     );
     assert_eq!(
         payload.get("adapter_complete_pair_count").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(24)
     );
     assert_eq!(
         payload.get("output_complete_pair_count").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(24)
     );
     assert_eq!(
         payload.get("rendered_command_pair_count").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(24)
     );
     assert_eq!(payload.get("ok"), Some(&serde_json::Value::Bool(true)));
 
@@ -94,7 +94,7 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
         orphan_check
             .get("detail")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|detail| detail.contains("8 governed orphan VCF tools")),
+            .is_some_and(|detail| detail.contains("7 governed orphan VCF tools")),
         "goal 232 detail must keep the governed orphan tool count explicit"
     );
 

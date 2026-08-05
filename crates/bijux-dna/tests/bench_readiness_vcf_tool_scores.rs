@@ -51,10 +51,10 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
         payload.get("config_path").and_then(serde_json::Value::as_str),
         Some("configs/bench/local/stage-scoring.toml")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(21));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(18));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("scored_row_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("scored_row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(
         payload.get("insufficient_evidence_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
@@ -62,13 +62,13 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
     assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 21);
+    assert_eq!(rows.len(), 24);
 
     let failure_counts = payload
         .get("failure_class_counts")
         .and_then(serde_json::Value::as_object)
         .expect("failure_class_counts");
-    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(24));
 
     let qc_plink2 = rows
         .iter()

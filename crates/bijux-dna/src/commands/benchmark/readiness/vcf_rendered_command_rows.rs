@@ -437,7 +437,7 @@ mod tests {
         let rows = collect_vcf_rendered_command_rows(&repo_root())
             .expect("collect VCF rendered command rows");
 
-        assert_eq!(rows.len(), 21);
+        assert_eq!(rows.len(), 24);
         assert!(rows.iter().all(|row| row.benchmark_status == "benchmark_ready"));
         assert!(rows.iter().all(|row| !row.script_commands.is_empty()));
         assert!(rows.iter().any(|row| row.stage_id == "vcf.call" && row.tool_id == "bcftools"));

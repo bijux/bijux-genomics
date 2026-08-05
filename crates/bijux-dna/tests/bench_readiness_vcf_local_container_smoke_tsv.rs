@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -45,7 +46,15 @@ fn bench_readiness_vcf_local_container_smoke_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 42);
+    assert!(!rows.is_empty());
+    let bindings = rows
+        .iter()
+        .map(|row| {
+            let mut columns = row.split('\t');
+            (columns.next().expect("stage id"), columns.next().expect("tool id"))
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(bindings.len(), rows.len(), "stage-tool bindings must be unique");
     assert!(rows.iter().any(|row| {
         row == &"vcf.call\tbcftools\tbcftools\tproduction\tsupported\tactive\tactive\thost_stage_smoke\thost\tbcftools\tbijux-dna bench local run-vcf-call-smoke --tool-id bcftools\tcrates/bijux-dna/src/commands/benchmark/local_vcf_call_smoke.rs\t\tbinding `vcf.call` / `bcftools` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));

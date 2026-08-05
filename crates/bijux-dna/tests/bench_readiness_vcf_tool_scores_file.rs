@@ -55,7 +55,7 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
     let rows = lines.collect::<Vec<_>>();
     assert_eq!(
         rows.len(),
-        21,
+        24,
         "TSV must retain one VCF score row per governed benchmark-ready binding"
     );
     assert!(

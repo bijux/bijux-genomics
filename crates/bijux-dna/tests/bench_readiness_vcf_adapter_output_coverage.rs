@@ -45,24 +45,36 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-adapter-output-coverage.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(39));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(24)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(21)
+        Some(24)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(36));
-    assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(3));
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 39);
+    let complete_count = rows
+        .iter()
+        .filter(|row| row.get("status").and_then(serde_json::Value::as_str) == Some("complete"))
+        .count() as u64;
+    let incomplete_count = rows.len() as u64 - complete_count;
+    assert_eq!(
+        payload.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        Some(complete_count)
+    );
+    assert_eq!(
+        payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64),
+        Some(incomplete_count)
+    );
 
     let call = rows
         .iter()

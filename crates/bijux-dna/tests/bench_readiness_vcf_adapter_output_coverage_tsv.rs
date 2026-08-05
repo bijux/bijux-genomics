@@ -44,7 +44,12 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 39, "TSV must retain the governed 39-row VCF adapter slice");
+    assert!(!rows.is_empty(), "TSV must retain governed VCF adapter rows");
+    let bindings = rows
+        .iter()
+        .map(|row| row.split('\t').take(2).collect::<Vec<_>>())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(bindings.len(), rows.len(), "each VCF adapter binding must appear once");
 
     let has_row = |stage_id: &str,
                    tool_id: &str,

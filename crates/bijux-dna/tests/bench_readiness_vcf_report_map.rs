@@ -45,11 +45,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(21));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(18));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(10));
-    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(
         payload
             .get("section_counts")
@@ -94,7 +94,7 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 21);
+    assert_eq!(rows.len(), 24);
 
     let call = rows
         .iter()

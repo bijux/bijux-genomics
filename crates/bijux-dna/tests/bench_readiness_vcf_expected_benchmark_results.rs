@@ -46,14 +46,14 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-expected-benchmark-results.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(21));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(18));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(6));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 21);
+    assert_eq!(rows.len(), 24);
     assert!(rows.iter().all(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
             && row.get("corpus_id").and_then(serde_json::Value::as_str)

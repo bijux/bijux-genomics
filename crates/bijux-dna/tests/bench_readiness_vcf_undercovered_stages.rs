@@ -49,14 +49,14 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(10)
+        Some(9)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(8)
+        Some(7)
     );
     assert_eq!(
         payload
@@ -67,7 +67,7 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 10);
+    assert_eq!(rows.len(), 9);
 
     let has_row = |stage_id: &str,
                    valid_tool_classes: &[&str],
