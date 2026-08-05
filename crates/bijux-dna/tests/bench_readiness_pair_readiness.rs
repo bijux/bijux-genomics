@@ -82,7 +82,7 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), row_count as usize);
+    assert_eq!(rows.len(), usize::try_from(row_count).expect("row count fits usize"));
 
     let taxonomy = rows
         .iter()

@@ -60,6 +60,6 @@ fn bench_readiness_missing_result_report_writes_self_describing_report() {
     assert_eq!(report.get("missing_result_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
         report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len),
-        Some(expected_row_count as usize)
+        Some(usize::try_from(expected_row_count).expect("expected row count fits usize"))
     );
 }

@@ -99,7 +99,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), row_count as usize);
+    assert_eq!(rows.len(), usize::try_from(row_count).expect("row count fits usize"));
     assert!(rows
         .iter()
         .all(|row| { row.get("gate_status").and_then(serde_json::Value::as_str) != Some("fail") }));

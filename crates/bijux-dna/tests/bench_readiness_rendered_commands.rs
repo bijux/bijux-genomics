@@ -52,7 +52,7 @@ fn bench_readiness_render_commands_reports_governed_benchmark_ready_row_slice() 
     assert!(row_count > 0);
     assert_eq!(
         payload.get("rows").and_then(serde_json::Value::as_array).map(Vec::len),
-        Some(row_count as usize)
+        Some(usize::try_from(row_count).expect("row count fits usize"))
     );
     assert!(payload
         .get("rows")

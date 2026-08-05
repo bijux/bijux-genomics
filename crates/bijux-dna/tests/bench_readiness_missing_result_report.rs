@@ -70,7 +70,10 @@ fn bench_readiness_missing_result_report_tracks_governed_missing_row() {
     assert!(domain_counts.contains_key("bam"));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), expected_row_count as usize);
+    assert_eq!(
+        rows.len(),
+        usize::try_from(expected_row_count).expect("expected row count fits usize")
+    );
 
     let removed_result_row_id = payload
         .get("removed_result_row_id")

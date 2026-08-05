@@ -70,7 +70,8 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), row_count as usize);
+    let row_count = usize::try_from(row_count).expect("row count fits usize");
+    assert_eq!(rows.len(), row_count);
 
     let result_row_ids = rows
         .iter()
@@ -78,7 +79,7 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
         .collect::<BTreeSet<_>>();
     assert_eq!(
         result_row_ids.len(),
-        row_count as usize,
+        row_count,
         "every expected benchmark result row must keep a unique governed id"
     );
     assert!(rows.iter().all(|row| {
