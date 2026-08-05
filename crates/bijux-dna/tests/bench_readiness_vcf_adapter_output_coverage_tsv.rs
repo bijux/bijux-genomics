@@ -90,7 +90,7 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
             "vcf.demography",
             "ibdne",
             "complete",
-            "not_benchmark_ready",
+            "benchmark_ready",
             "demography_report=",
             ""
         ),
