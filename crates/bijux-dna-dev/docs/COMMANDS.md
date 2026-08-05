@@ -381,6 +381,7 @@ acquire-reference
 architecture-report
 benchmark-campaign-cycle
 benchmark-integrity-mini
+benchmark-scientific-readiness
 benchmark-smoke-level1
 benchmark-stage-coverage
 bijux

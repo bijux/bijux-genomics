@@ -22,6 +22,7 @@ use super::{
 
 mod acquisition;
 mod benchmark_campaign_cycle;
+mod benchmark_scientific_readiness;
 mod benchmark_stage_coverage;
 mod cargo_targets;
 mod certification;
@@ -37,6 +38,7 @@ pub(super) use self::acquisition::{
     tooling_benchmark_integrity_mini, tooling_validate_frontend_mini_domain_stacks,
 };
 pub(super) use self::benchmark_campaign_cycle::tooling_benchmark_campaign_cycle;
+pub(super) use self::benchmark_scientific_readiness::tooling_benchmark_scientific_readiness;
 pub(super) use self::benchmark_stage_coverage::tooling_benchmark_stage_coverage;
 pub(super) use self::cargo_targets::tooling_cargo_targets;
 pub(super) use self::certification::{

@@ -15,11 +15,8 @@ const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-
 const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
-const LEGACY_AUTHORITIES: [&str; 3] = [
-    "benchmarks/benchmark_evidence.py",
-    "benchmarks/benchmark_portfolio.py",
-    "containers/contracts/container_validation.py",
-];
+const LEGACY_AUTHORITIES: [&str; 2] =
+    ["benchmarks/benchmark_evidence.py", "containers/contracts/container_validation.py"];
 const CRATE_SCOPES: [&str; 11] = [
     "crates/bijux-dna-bench-model/",
     "crates/bijux-dna-bench/",
@@ -303,8 +300,9 @@ fn classify(
 
 fn classification_for(path: &str, content: &str) -> (&'static str, &'static str) {
     if path.starts_with("crates/bijux-dna/src/commands/benchmark/readiness/")
-        || path.contains("simulation")
-        || path.contains("readiness")
+        || path.starts_with("benchmarks/readiness/")
+        || path.contains("/simulation/")
+        || path.contains("_simulation.")
     {
         return (
             "obsolete simulation/readiness logic",
@@ -554,7 +552,7 @@ mod tests {
     fn legacy_authority_has_explicit_removal_contract() -> anyhow::Result<()> {
         let row = classify(
             &SourceFile {
-                path: "benchmarks/benchmark_portfolio.py".to_string(),
+                path: "benchmarks/benchmark_evidence.py".to_string(),
                 content: "SCHEMA = 'bijux.benchmark.registry.v1'".to_string(),
             },
             &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,

@@ -76,6 +76,7 @@ pub enum NativeOpsCommandKey {
     ToolingOperatorWorkflowMaturity,
     ToolingArchitectureReport,
     ToolingBenchmarkCampaignCycle,
+    ToolingBenchmarkScientificReadiness,
     ToolingBenchmarkStageCoverage,
     ToolingBenchmarkSmokeLevel1,
     ToolingBenchmarkIntegrityMini,

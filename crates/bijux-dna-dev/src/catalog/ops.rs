@@ -346,6 +346,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
         ),
         native(
+            "benchmark-scientific-readiness",
+            "Generate or check scientific benchmark readiness from typed admitted evidence.",
+            NativeOpsCommandKey::ToolingBenchmarkScientificReadiness,
+        ),
+        native(
             "benchmark-stage-coverage",
             "Generate or check benchmark stage coverage through the crate-owned workflow.",
             NativeOpsCommandKey::ToolingBenchmarkStageCoverage,

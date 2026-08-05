@@ -132,6 +132,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkCampaignCycle => {
             tooling::tooling_benchmark_campaign_cycle(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkScientificReadiness => {
+            tooling::tooling_benchmark_scientific_readiness(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkStageCoverage => {
             tooling::tooling_benchmark_stage_coverage(workspace, args)
         }

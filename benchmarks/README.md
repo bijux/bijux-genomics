@@ -50,15 +50,8 @@ The portfolio separates three facts that were previously blurred:
 Validate the portfolio and render the exact blockers for every stage:
 
 ```console
-python3 -B benchmarks/benchmark_portfolio.py \
-  --portfolio benchmarks/contracts/portfolio.toml \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --interfaces benchmarks/contracts/stage-interfaces.toml \
-  --catalog containers/contracts/catalog.toml \
-  --repository-root . \
-  --evidence-root benchmarks/reports \
-  --json-output benchmarks/reports/scientific-benchmark-readiness.json \
-  --markdown-output benchmarks/reports/scientific-benchmark-readiness.md
+cargo run -p bijux-dna-dev -- \
+  tooling run benchmark-scientific-readiness --
 ```
 
 The generated readiness report is deliberately strict. It is the work queue
