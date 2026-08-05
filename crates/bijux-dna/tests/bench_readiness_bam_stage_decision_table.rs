@@ -106,7 +106,7 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
         ("bam.endogenous_content", "samtools", "fixture:corpus-01-bam-mini"),
         ("bam.filter", "samtools", "fixture:corpus-01-bam-mini"),
         ("bam.gc_bias", "picard", "fixture:corpus-01-bam-mini"),
-        ("bam.genotyping", "angsd", "fixture:corpus-01-genotyping-mini"),
+        ("bam.genotyping", "bcftools", "fixture:corpus-01-genotyping-mini"),
         ("bam.haplogroups", "yleaf", "fixture:corpus-01-adna-bam-mini"),
         ("bam.insert_size", "picard", "fixture:corpus-01-bam-mini"),
         ("bam.kinship", "king", "fixture:corpus-01-kinship-mini"),

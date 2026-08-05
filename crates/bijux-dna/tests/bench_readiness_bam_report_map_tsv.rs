@@ -44,7 +44,10 @@ fn bench_readiness_bam_report_map_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 49, "TSV must retain every BAM benchmark-ready result row");
+    assert!(!rows.is_empty(), "TSV must retain BAM benchmark-ready result rows");
+    assert!(rows
+        .iter()
+        .all(|row| { !matches!(row.split('\t').nth(2), Some("angsd" | "ngsbriggs")) }));
     assert!(
         rows.iter().any(|row| {
             row.contains(

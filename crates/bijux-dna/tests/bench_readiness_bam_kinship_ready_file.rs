@@ -41,7 +41,7 @@ fn bench_readiness_bam_kinship_ready_writes_governed_json_file() {
         serde_json::from_str(&payload).expect("parse BAM kinship readiness JSON");
 
     #[cfg(feature = "bam_downstream")]
-    let expected_row_count = 2;
+    let expected_row_count = 1;
     #[cfg(not(feature = "bam_downstream"))]
     let expected_row_count = 0;
 
@@ -86,9 +86,6 @@ fn bench_readiness_bam_kinship_ready_writes_governed_json_file() {
         assert!(expected_tool_ids
             .get("bam.kinship")
             .and_then(serde_json::Value::as_array)
-            .is_some_and(|tools| {
-                tools.iter().any(|tool| tool.as_str() == Some("angsd"))
-                    && tools.iter().any(|tool| tool.as_str() == Some("king"))
-            }));
+            .is_some_and(|tools| tools.as_slice() == [serde_json::json!("king")]));
     }
 }

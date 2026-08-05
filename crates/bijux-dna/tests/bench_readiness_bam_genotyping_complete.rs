@@ -62,7 +62,7 @@ fn bench_readiness_bam_genotyping_complete_reports_governed_row() {
     );
     assert_eq!(
         payload.get("expected_tool_ids").and_then(serde_json::Value::as_array),
-        Some(&vec![serde_json::json!("angsd")])
+        Some(&vec![serde_json::json!("bcftools")])
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
@@ -70,7 +70,7 @@ fn bench_readiness_bam_genotyping_complete_reports_governed_row() {
     let row = &rows[0];
 
     assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.genotyping"));
-    assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("angsd"));
+    assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("bcftools"));
     assert_eq!(
         row.get("local_plan_sample_id").and_then(serde_json::Value::as_str),
         Some("human_like_genotyping_candidate_panel")

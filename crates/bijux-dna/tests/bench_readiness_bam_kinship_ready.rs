@@ -38,7 +38,7 @@ fn bench_readiness_bam_kinship_ready_reports_complete_governed_rows() {
     let payload = run_cli_json();
 
     #[cfg(feature = "bam_downstream")]
-    let expected_row_count = 2;
+    let expected_row_count = 1;
     #[cfg(not(feature = "bam_downstream"))]
     let expected_row_count = 0;
 
@@ -83,44 +83,6 @@ fn bench_readiness_bam_kinship_ready_reports_complete_governed_rows() {
 
     #[cfg(feature = "bam_downstream")]
     {
-        let angsd_row = rows
-            .iter()
-            .find(|row| {
-                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
-                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
-            })
-            .expect("bam.kinship angsd row");
-        assert_eq!(
-            angsd_row
-                .get("expected_normalized_metrics_output_id")
-                .and_then(serde_json::Value::as_str),
-            Some("kinship_report")
-        );
-        assert_eq!(
-            angsd_row.get("expected_local_proof_kind").and_then(serde_json::Value::as_str),
-            Some("local_smoke")
-        );
-        assert_eq!(
-            angsd_row.get("local_proof_tool_id").and_then(serde_json::Value::as_str),
-            Some("king")
-        );
-        assert!(angsd_row
-            .get("required_local_proof_fields")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|fields| {
-                fields.iter().any(|field| field.as_str() == Some("overlap_snps"))
-                    && fields.iter().any(|field| field.as_str() == Some("kinship_coefficient"))
-                    && fields.iter().any(|field| field.as_str() == Some("status"))
-            }));
-        assert!(angsd_row
-            .get("local_proof_artifact_paths")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|paths| {
-                paths.iter().any(|path| {
-                    path.as_str().is_some_and(|value| value.ends_with("kinship.segments.tsv"))
-                })
-            }));
-
         let king_row = rows
             .iter()
             .find(|row| {
@@ -135,6 +97,14 @@ fn bench_readiness_bam_kinship_ready_reports_complete_governed_rows() {
             Some("kinship_report")
         );
         assert_eq!(
+            king_row.get("expected_local_proof_kind").and_then(serde_json::Value::as_str),
+            Some("local_smoke")
+        );
+        assert_eq!(
+            king_row.get("local_proof_tool_id").and_then(serde_json::Value::as_str),
+            Some("king")
+        );
+        assert_eq!(
             king_row.get("local_proof_sample_id").and_then(serde_json::Value::as_str),
             Some("sample-set")
         );
@@ -146,5 +116,24 @@ fn bench_readiness_bam_kinship_ready_reports_complete_governed_rows() {
                     && outputs.iter().any(|output| output.as_str() == Some("summary"))
                     && outputs.iter().any(|output| output.as_str() == Some("stage_metrics"))
             }));
+        assert!(king_row
+            .get("required_local_proof_fields")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|fields| {
+                fields.iter().any(|field| field.as_str() == Some("overlap_snps"))
+                    && fields.iter().any(|field| field.as_str() == Some("kinship_coefficient"))
+                    && fields.iter().any(|field| field.as_str() == Some("status"))
+            }));
+        assert!(king_row
+            .get("local_proof_artifact_paths")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|paths| {
+                paths.iter().any(|path| {
+                    path.as_str().is_some_and(|value| value.ends_with("kinship.segments.tsv"))
+                })
+            }));
+        assert!(rows
+            .iter()
+            .all(|row| row.get("tool_id").and_then(serde_json::Value::as_str) != Some("angsd")));
     }
 }

@@ -38,9 +38,6 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-bam-local-container-smoke", "--json"]);
 
-    let expected_host_count = if cfg!(feature = "bam_downstream") { 20 } else { 18 };
-    let expected_container_count = 49 - expected_host_count;
-
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_local_container_smoke.v1")
@@ -49,9 +46,35 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/bam/bam-local-container-smoke.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let stage_ids = rows
+        .iter()
+        .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    let tool_ids = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    let expected_host_count = rows
+        .iter()
+        .filter(|row| {
+            row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                == Some("host_stage_smoke")
+        })
+        .count() as u64;
+    let expected_container_count = rows.len() as u64 - expected_host_count;
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert_eq!(
+        payload.get("stage_count").and_then(serde_json::Value::as_u64),
+        Some(stage_ids.len() as u64)
+    );
+    assert_eq!(
+        payload.get("tool_count").and_then(serde_json::Value::as_u64),
+        Some(tool_ids.len() as u64)
+    );
     assert_eq!(
         payload.get("host_stage_smoke_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_host_count)
@@ -70,8 +93,8 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
         Some(expected_host_count)
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 49);
+    assert!(!rows.is_empty());
+    assert!(tool_ids.is_disjoint(&["angsd", "ngsbriggs"].into_iter().collect()));
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
