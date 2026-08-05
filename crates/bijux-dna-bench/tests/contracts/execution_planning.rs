@@ -398,7 +398,7 @@ fn genotyping_normalizer_derives_candidate_site_metrics() -> anyhow::Result<()> 
     let script = super::support::repo_root()?.join("benchmarks/execution/bam_genotyping.awk");
     let output = Command::new("awk")
         .args(["-v", "mode=summary", "-f"])
-        .arg(script)
+        .arg(&script)
         .arg(genotypes)
         .output()?;
     anyhow::ensure!(output.status.success(), "genotyping AWK failed");
@@ -406,5 +406,34 @@ fn genotyping_normalizer_derives_candidate_site_metrics() -> anyhow::Result<()> 
         String::from_utf8(output.stdout)?,
         "metric\tvalue\ntotal_records\t3\ncovered_sites\t2\ncalled_genotypes\t2\nalternate_genotypes\t1\nmean_depth_at_covered_sites\t2.500000000000\n"
     );
+
+    let summary = temporary.path().join("summary.tsv");
+    std::fs::write(
+        &summary,
+        b"metric\tvalue\ntotal_records\t3\ncovered_sites\t2\ncalled_genotypes\t2\nalternate_genotypes\t1\nmean_depth_at_covered_sites\t2.500000000000\n",
+    )?;
+    let output = Command::new("awk")
+        .args([
+            "-v",
+            "mode=metrics",
+            "-v",
+            "bam_input_bytes=26592222",
+            "-v",
+            "reference_input_bytes=2539168129",
+            "-v",
+            "database_input_bytes=8534981",
+            "-v",
+            "input_bytes=2574295332",
+            "-v",
+            "output_bytes=4484572",
+            "-f",
+        ])
+        .arg(script)
+        .arg(summary)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "genotyping metrics AWK failed");
+    let metrics: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(metrics["reference_input_bytes"], 2_539_168_129_u64);
+    assert_eq!(metrics["input_bytes"], 2_574_295_332_u64);
     Ok(())
 }
