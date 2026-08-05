@@ -345,17 +345,19 @@ the exact command contract. `run-2002` and `run-2003` have executable material
 but intentionally have no current report until fresh Slurm attempts pass
 reconciliation and admission.
 
-The Python `benchmark_evidence.py` path is retained only to interpret legacy
-bundles while equivalent Rust publication ownership is completed. Its output
-must not be promoted as current evidence. The superseded BAM coverage and
+Benchmark execution admission and report publication are owned exclusively by
+`bijux-dna-bench`, with operator composition in `bijux-dna-dev`. Historical
+reports retain their original source comments as provenance, but no Python
+benchmark evidence control plane remains. The superseded BAM coverage and
 endogenous-content reports are retained byte-for-byte as
 [historical run-2002 evidence](reports/historical/run-2002-bam-coverage.md)
 and [historical run-2003 evidence](reports/historical/run-2003-bam-endogenous-content.md).
 
-The current [BAM mapping-summary report](reports/run-2004-bam-mapping-summary.md),
+The checked-in [BAM mapping-summary report](reports/run-2004-bam-mapping-summary.md),
 [FASTQ read-length report](reports/run-2042-fastq-profile-read-lengths.md), and
 [FASTQ profile report](reports/run-2043-fastq-profile-reads.md) are published
-from admitted campaign attempts by crate-owned report workflows. The BAM
-genotyping report remains legacy evidence pending complete input and Rust
-publication authority. All large run products remain on the governed study
-filesystem.
+from admitted campaign attempts by crate-owned report workflows. BAM
+genotyping uses the same Rust admission and publication authority. A report is
+current only when its source, data, image, scheduler, output, science, and
+downstream-probe locks validate together. All large run products remain on the
+governed study filesystem.
