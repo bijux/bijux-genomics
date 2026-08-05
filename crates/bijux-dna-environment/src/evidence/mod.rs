@@ -19,12 +19,12 @@ pub use chain::{
 pub use image_storage::{
     apply_image_storage_plan, create_image_storage_plan, derive_image_storage_report,
     image_storage_plan_schema, image_storage_report_schema, load_image_storage_plan,
-    render_image_storage_report_markdown, rollback_image_storage_plan, verify_image_storage_plan,
-    write_image_storage_plan_schema, write_image_storage_report_schema, ImageStorageMove,
-    ImageStorageMoveCategory, ImageStoragePlan, ImageStoragePlanRequest, ImageStoragePlanState,
-    ImageStorageRecovery, ImageStorageReport, ImageStorageReportSource, ImageStorageReportSources,
-    ImageStorageVerdict, QuarantinedImageIdentity, IMAGE_STORAGE_PLAN_SCHEMA_V1,
-    IMAGE_STORAGE_REPORT_SCHEMA_V1,
+    publish_image_storage_report, render_image_storage_report_markdown,
+    rollback_image_storage_plan, verify_image_storage_plan, write_image_storage_plan_schema,
+    write_image_storage_report_schema, ImageStorageMove, ImageStorageMoveCategory,
+    ImageStoragePlan, ImageStoragePlanRequest, ImageStoragePlanState, ImageStorageRecovery,
+    ImageStorageReport, ImageStorageReportSource, ImageStorageReportSources, ImageStorageVerdict,
+    QuarantinedImageIdentity, IMAGE_STORAGE_PLAN_SCHEMA_V1, IMAGE_STORAGE_REPORT_SCHEMA_V1,
 };
 pub use inventory::{
     derive_image_inventory_evidence, derive_image_inventory_publication, DerivedImageInventory,

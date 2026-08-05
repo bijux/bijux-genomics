@@ -22,6 +22,7 @@ mod metadata;
 mod qualification;
 mod registry_catalog;
 mod runtime;
+mod storage;
 mod validation;
 mod version_state;
 mod versioning;

@@ -146,10 +146,14 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let inventory = bijux_dna_environment::evidence::image_inventory_publication_schema();
     let scan = bijux_dna_environment::evidence::image_inventory_scan_schema();
     let runtime = bijux_dna_environment::evidence::runtime_verification_publication_schema();
+    let storage_plan = bijux_dna_environment::evidence::image_storage_plan_schema();
+    let storage_report = bijux_dna_environment::evidence::image_storage_report_schema();
     let tool_contract = bijux_dna_environment::evidence::tool_contract::tool_contract_schema();
     assert_eq!(inventory["title"], "ContainerImageInventoryPublication");
     assert_eq!(scan["title"], "ImageInventoryScan");
     assert_eq!(runtime["title"], "RuntimeVerificationPublication");
+    assert_eq!(storage_plan["title"], "ImageStoragePlan");
+    assert_eq!(storage_report["title"], "ImageStorageReport");
     assert_eq!(tool_contract["title"], "ContainerToolContract");
 }
 
@@ -261,6 +265,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v1.json");
     let runtime_path =
         root.join("containers/contracts/schemas/runtime-verification-publication.v1.json");
+    let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
+    let storage_report_path =
+        root.join("containers/contracts/schemas/image-storage-report.v1.json");
     let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v1.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_environment::evidence::write_image_inventory_publication_schema(&inventory_path)?;
@@ -268,6 +275,8 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         bijux_dna_environment::evidence::write_runtime_verification_publication_schema(
             &runtime_path,
         )?;
+        bijux_dna_environment::evidence::write_image_storage_plan_schema(&storage_plan_path)?;
+        bijux_dna_environment::evidence::write_image_storage_report_schema(&storage_report_path)?;
         bijux_dna_environment::evidence::tool_contract::write_tool_contract_schema(
             &tool_contract_path,
         )?;
@@ -276,11 +285,17 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         serde_json::from_str(&std::fs::read_to_string(inventory_path)?)?;
     let scan: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(scan_path)?)?;
     let runtime: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(runtime_path)?)?;
+    let storage_plan: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(storage_plan_path)?)?;
+    let storage_report: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(storage_report_path)?)?;
     let tool_contract: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(tool_contract_path)?)?;
     assert_eq!(inventory, bijux_dna_environment::evidence::image_inventory_publication_schema());
     assert_eq!(scan, bijux_dna_environment::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_environment::evidence::runtime_verification_publication_schema());
+    assert_eq!(storage_plan, bijux_dna_environment::evidence::image_storage_plan_schema());
+    assert_eq!(storage_report, bijux_dna_environment::evidence::image_storage_report_schema());
     assert_eq!(
         tool_contract,
         bijux_dna_environment::evidence::tool_contract::tool_contract_schema()

@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_environment::api::{
     apply_image_storage_plan, create_image_storage_plan, derive_image_storage_report,
-    load_image_storage_plan, render_image_storage_report_markdown, rollback_image_storage_plan,
-    verify_image_storage_plan, ContainerDetachedImage, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    load_image_storage_plan, publish_image_storage_report, render_image_storage_report_markdown,
+    rollback_image_storage_plan, verify_image_storage_plan, ContainerDetachedImage,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
     ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
     ImageInventoryPublicationIdentity, ImageStoragePlanRequest, ImageStoragePlanState,
@@ -50,6 +50,72 @@ fn report_requires_canonical_post_storage_inventory() -> Result<()> {
     assert!(report.checks.values().all(|value| *value));
     assert!(markdown.contains("No SIF was deleted"));
     assert!(markdown.contains("containers/apptainer/.quarantine"));
+    Ok(())
+}
+
+#[test]
+fn report_publication_resumes_an_exact_partial_pair_and_rejects_drift() -> Result<()> {
+    let fixture = Fixture::new()?;
+    fixture.create_plan()?;
+    apply_image_storage_plan(&fixture.plan, &fixture.images, "2026-08-05T08:00:00Z")?;
+    write_inventory(&fixture.after_inventory, &fixture, false)?;
+    let json_output = fixture.plan.with_file_name("image-storage-report.json");
+    let markdown_output = fixture.plan.with_file_name("image-storage-report.md");
+    let report = derive_image_storage_report(&fixture.plan, &fixture.after_inventory)?;
+    bijux_dna_infra::atomic_create_bytes(&json_output, &serde_json::to_vec_pretty(&report)?)?;
+
+    publish_image_storage_report(
+        &fixture.plan,
+        &fixture.after_inventory,
+        &json_output,
+        &markdown_output,
+    )?;
+    publish_image_storage_report(
+        &fixture.plan,
+        &fixture.after_inventory,
+        &json_output,
+        &markdown_output,
+    )?;
+    assert_eq!(
+        std::fs::read_to_string(&markdown_output)?,
+        render_image_storage_report_markdown(&report)
+    );
+
+    std::fs::write(&markdown_output, b"drifted")?;
+    assert!(publish_image_storage_report(
+        &fixture.plan,
+        &fixture.after_inventory,
+        &json_output,
+        &markdown_output,
+    )
+    .is_err());
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn report_publication_rejects_symbolic_link_destinations() -> Result<()> {
+    use std::os::unix::fs::symlink;
+
+    let fixture = Fixture::new()?;
+    fixture.create_plan()?;
+    apply_image_storage_plan(&fixture.plan, &fixture.images, "2026-08-05T08:00:00Z")?;
+    write_inventory(&fixture.after_inventory, &fixture, false)?;
+    let redirect = fixture.plan.with_file_name("redirect.json");
+    let json_output = fixture.plan.with_file_name("image-storage-report.json");
+    let markdown_output = fixture.plan.with_file_name("image-storage-report.md");
+    std::fs::write(&redirect, b"redirect")?;
+    symlink(&redirect, &json_output)?;
+
+    assert!(publish_image_storage_report(
+        &fixture.plan,
+        &fixture.after_inventory,
+        &json_output,
+        &markdown_output,
+    )
+    .is_err());
+    assert_eq!(std::fs::read(&redirect)?, b"redirect");
+    assert!(!markdown_output.exists());
     Ok(())
 }
 

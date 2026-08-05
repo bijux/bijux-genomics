@@ -268,6 +268,7 @@ generate-version-lock
 generate-versions-index-sha
 image-qa
 image-smoke-vcf
+image-storage
 lint
 registry-tools
 release-gate

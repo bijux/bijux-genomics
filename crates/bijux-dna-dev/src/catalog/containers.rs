@@ -312,6 +312,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateImageInventoryScanSchema,
         ),
         native(
+            "image-storage",
+            "Plan, apply, verify, report, or roll back governed image quarantine.",
+            NativeContainerCommandKey::ImageStorage,
+        ),
+        native(
             "check-evidence-qualification",
             "Validate that container qualification is reproducibly derived from current evidence.",
             NativeContainerCommandKey::CheckEvidenceQualification,

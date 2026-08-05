@@ -80,6 +80,52 @@ cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
 canonical_inventory="${inventory_root}/image-inventory.json"
 ```
 
+## Reconcile canonical image storage
+
+Storage reconciliation is a typed, reversible environment workflow. It accepts
+only inventory rows classified as unreferenced obsolete or interrupted,
+rechecks every regular-file size and digest, and refuses targets outside a
+same-filesystem quarantine beneath the image root. Planning and report
+publication are no-clobber operations. Apply and rollback persist progress
+after every rename and resume only when the discovered file matches the locked
+identity.
+
+Preview the exact move set before applying it:
+
+```console
+quarantine_root="${study_root}/containers/apptainer/.quarantine/${image_commit}/${attempt_id}"
+storage_plan="${inventory_root}/image-storage-plan.json"
+
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  plan "${study_root}" "${canonical_inventory}" \
+  "${study_root}/containers/apptainer" "${quarantine_root}" \
+  "${storage_plan}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+```
+
+After review, apply and verify the plan. Generate a new inventory at the same
+source and catalog identity, then derive the portable report from that exact
+post-storage inventory:
+
+```console
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  apply "${storage_plan}" "${study_root}/containers/apptainer" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  verify "${storage_plan}" "${study_root}/containers/apptainer"
+
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  report "${storage_plan}" "${inventory_root}/after-storage.json" \
+  "${inventory_root}/image-storage.json" \
+  "${inventory_root}/image-storage.md"
+```
+
+The report passes only when every retained tool is current, every non-retained
+tool is explicitly unsupported, and no unknown, staged, or unreferenced
+obsolete image remains. A failed report is evidence of an incomplete roster,
+not permission to weaken the checks. Until the plan is accepted, rollback is
+available with the same image root and a new UTC observation timestamp.
+
 ## Verify version and help contracts
 
 Image admission proves that a recipe produced an inspectable SIF; it does not

@@ -12,6 +12,32 @@ use super::model::{
 };
 use super::workflow::{load_image_storage_plan, verify_image_storage_plan};
 
+const MAX_IMAGE_STORAGE_REPORT_BYTES: usize = 16 * 1024 * 1024;
+
+/// Publish the JSON and Markdown image-storage report as an idempotent evidence pair.
+///
+/// Existing exact members are accepted so an interrupted publication can resume. Existing
+/// non-regular, symbolic-link, or differing members are rejected rather than overwritten.
+///
+/// # Errors
+/// Returns an error when report derivation fails or either destination cannot be admitted.
+pub fn publish_image_storage_report(
+    plan_path: &Path,
+    after_inventory_path: &Path,
+    json_output: &Path,
+    markdown_output: &Path,
+) -> Result<ImageStorageReport> {
+    if json_output == markdown_output {
+        bail!("image-storage report destinations must differ");
+    }
+    let report = derive_image_storage_report(plan_path, after_inventory_path)?;
+    let json = serde_json::to_vec_pretty(&report).context("serialize image-storage report")?;
+    let markdown = render_image_storage_report_markdown(&report);
+    ensure_publication_bytes(json_output, &json)?;
+    ensure_publication_bytes(markdown_output, markdown.as_bytes())?;
+    Ok(report)
+}
+
 /// Derive a portable storage report from an applied plan and a post-storage inventory.
 ///
 /// # Errors
@@ -169,5 +195,32 @@ fn category_name(category: super::model::ImageStorageMoveCategory) -> &'static s
     match category {
         super::model::ImageStorageMoveCategory::Obsolete => "obsolete",
         super::model::ImageStorageMoveCategory::Interrupted => "interrupted",
+    }
+}
+
+fn ensure_publication_bytes(path: &Path, expected: &[u8]) -> Result<()> {
+    match std::fs::symlink_metadata(path) {
+        Ok(metadata) => {
+            if !metadata.file_type().is_file() {
+                bail!("image-storage report destination is not a regular file: {}", path.display());
+            }
+            let observed =
+                bijux_dna_infra::read_to_end_bounded(path, MAX_IMAGE_STORAGE_REPORT_BYTES)
+                    .with_context(|| {
+                        format!("read image-storage report destination {}", path.display())
+                    })?;
+            if observed != expected {
+                bail!("image-storage report destination differs: {}", path.display());
+            }
+            Ok(())
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            bijux_dna_infra::atomic_create_bytes(path, expected).with_context(|| {
+                format!("publish image-storage report destination {}", path.display())
+            })
+        }
+        Err(error) => Err(error).with_context(|| {
+            format!("inspect image-storage report destination {}", path.display())
+        }),
     }
 }

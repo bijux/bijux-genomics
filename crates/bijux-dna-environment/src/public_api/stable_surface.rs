@@ -23,9 +23,10 @@ pub use crate::evidence::tool_contract::{
 pub use crate::evidence::{
     apply_image_storage_plan, create_image_storage_plan, derive_image_inventory_evidence,
     derive_image_inventory_publication, derive_image_storage_report,
-    image_inventory_publication_schema, image_inventory_scan_schema, load_container_evidence_chain,
-    load_image_inventory_publication, load_image_inventory_scan, load_image_storage_plan,
-    load_runtime_verification_publication, render_image_storage_report_markdown,
+    image_inventory_publication_schema, image_inventory_scan_schema, image_storage_plan_schema,
+    image_storage_report_schema, load_container_evidence_chain, load_image_inventory_publication,
+    load_image_inventory_scan, load_image_storage_plan, load_runtime_verification_publication,
+    publish_image_storage_report, render_image_storage_report_markdown,
     resolve_current_apptainer_image, rollback_image_storage_plan,
     runtime_verification_publication_schema, validate_container_evidence_chain,
     validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
