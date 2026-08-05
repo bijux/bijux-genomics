@@ -983,15 +983,22 @@ mod tests {
 
     #[test]
     fn operator_timestamp_guard_accepts_replay_and_small_clock_skew() -> anyhow::Result<()> {
-        let now = Utc.with_ymd_and_hms(2026, 8, 5, 18, 0, 0).single().unwrap();
+        let now = Utc
+            .with_ymd_and_hms(2026, 8, 5, 18, 0, 0)
+            .single()
+            .ok_or_else(|| anyhow::anyhow!("test timestamp is invalid"))?;
         validate_operator_timestamp_at("2025-01-01T00:00:00Z", "--observed-at-utc", now)?;
         validate_operator_timestamp_at("2026-08-05T18:05:00Z", "--observed-at-utc", now)?;
         Ok(())
     }
 
     #[test]
-    fn operator_timestamp_guard_rejects_future_non_utc_and_malformed_values() {
-        let now = Utc.with_ymd_and_hms(2026, 8, 5, 18, 0, 0).single().unwrap();
+    fn operator_timestamp_guard_rejects_future_non_utc_and_malformed_values() -> anyhow::Result<()>
+    {
+        let now = Utc
+            .with_ymd_and_hms(2026, 8, 5, 18, 0, 0)
+            .single()
+            .ok_or_else(|| anyhow::anyhow!("test timestamp is invalid"))?;
         assert!(validate_operator_timestamp_at("2026-08-05T18:05:01Z", "--submitted-at-utc", now)
             .is_err());
         assert!(validate_operator_timestamp_at(
@@ -1001,6 +1008,7 @@ mod tests {
         )
         .is_err());
         assert!(validate_operator_timestamp_at("not-a-time", "--submitted-at-utc", now).is_err());
+        Ok(())
     }
 
     #[test]

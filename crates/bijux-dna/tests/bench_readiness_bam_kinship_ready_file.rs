@@ -55,43 +55,40 @@ fn bench_readiness_bam_kinship_ready_writes_governed_json_file() {
     );
     assert_eq!(report.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
 
-    let expected_local_proof_kind = report
-        .get("expected_local_proof_kind_by_stage")
-        .and_then(serde_json::Value::as_object)
-        .expect("expected local proof kind by stage");
-
     #[cfg(feature = "bam_downstream")]
-    assert_eq!(
-        expected_local_proof_kind.get("bam.kinship").and_then(serde_json::Value::as_str),
-        Some("local_smoke")
-    );
+    {
+        let expected_local_proof_kind = report
+            .get("expected_local_proof_kind_by_stage")
+            .and_then(serde_json::Value::as_object)
+            .expect("expected local proof kind by stage");
+        assert_eq!(
+            expected_local_proof_kind.get("bam.kinship").and_then(serde_json::Value::as_str),
+            Some("local_smoke")
+        );
 
-    let required_output_ids = report
-        .get("required_output_ids_by_stage")
-        .and_then(serde_json::Value::as_object)
-        .expect("required output ids by stage");
+        let required_output_ids = report
+            .get("required_output_ids_by_stage")
+            .and_then(serde_json::Value::as_object)
+            .expect("required output ids by stage");
+        assert!(required_output_ids
+            .get("bam.kinship")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|outputs| {
+                outputs.iter().any(|output| output.as_str() == Some("kinship_report"))
+                    && outputs.iter().any(|output| output.as_str() == Some("summary"))
+                    && outputs.iter().any(|output| output.as_str() == Some("stage_metrics"))
+            }));
 
-    #[cfg(feature = "bam_downstream")]
-    assert!(required_output_ids
-        .get("bam.kinship")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|outputs| {
-            outputs.iter().any(|output| output.as_str() == Some("kinship_report"))
-                && outputs.iter().any(|output| output.as_str() == Some("summary"))
-                && outputs.iter().any(|output| output.as_str() == Some("stage_metrics"))
-        }));
-
-    let expected_tool_ids = report
-        .get("expected_tool_ids_by_stage")
-        .and_then(serde_json::Value::as_object)
-        .expect("expected tool ids by stage");
-
-    #[cfg(feature = "bam_downstream")]
-    assert!(expected_tool_ids
-        .get("bam.kinship")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|tools| {
-            tools.iter().any(|tool| tool.as_str() == Some("angsd"))
-                && tools.iter().any(|tool| tool.as_str() == Some("king"))
-        }));
+        let expected_tool_ids = report
+            .get("expected_tool_ids_by_stage")
+            .and_then(serde_json::Value::as_object)
+            .expect("expected tool ids by stage");
+        assert!(expected_tool_ids
+            .get("bam.kinship")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|tools| {
+                tools.iter().any(|tool| tool.as_str() == Some("angsd"))
+                    && tools.iter().any(|tool| tool.as_str() == Some("king"))
+            }));
+    }
 }

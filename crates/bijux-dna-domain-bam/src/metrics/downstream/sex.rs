@@ -56,7 +56,7 @@ pub fn parse_sex_json(path: &std::path::Path) -> anyhow::Result<SexInferenceV1> 
             _ => None,
         });
     let sufficient = declared_sufficient.unwrap_or(confidence >= 0.6 && x_to_y > 0.0);
-    let classification = declared_classification.unwrap_or_else(|| {
+    let classification = declared_classification.unwrap_or({
         if !sufficient {
             SexConfidenceClass::Insufficient
         } else if x_to_y <= 0.6 {

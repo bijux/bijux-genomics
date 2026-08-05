@@ -854,29 +854,27 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .and_then(serde_json::Value::as_str),
         Some("bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971")
     );
-    for tool_id in ["clumpify"] {
-        let remove_duplicates = rows
-            .iter()
-            .find(|row| {
-                row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("fastq.remove_duplicates")
-                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
-            })
-            .unwrap_or_else(|| panic!("remove-duplicates {tool_id} row"));
-        assert_eq!(
-            remove_duplicates.get("execution_mode").and_then(serde_json::Value::as_str),
-            Some("containerized")
-        );
-        assert_eq!(
-            remove_duplicates.get("command_entrypoint").and_then(serde_json::Value::as_str),
-            Some("bash")
-        );
-        assert!(
-            remove_duplicates
-                .get("container_id")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|value| value.starts_with(&format!("bijuxdna/{tool_id}@sha256:"))),
-            "remove-duplicates {tool_id} row must preserve the governed container declaration"
-        );
-    }
+    let remove_duplicates = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.remove_duplicates")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("clumpify")
+        })
+        .expect("remove-duplicates clumpify row");
+    assert_eq!(
+        remove_duplicates.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        remove_duplicates.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("bash")
+    );
+    assert!(
+        remove_duplicates
+            .get("container_id")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|value| value.starts_with("bijuxdna/clumpify@sha256:")),
+        "remove-duplicates clumpify row must preserve the governed container declaration"
+    );
 }

@@ -6,7 +6,12 @@ use std::path::Path;
 #[test]
 fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    assert_root_and_source_layout(root);
+    assert_policy_rule_trees(root);
+    assert_evidence_and_test_trees(root);
+}
 
+fn assert_root_and_source_layout(root: &Path) {
     assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
@@ -28,7 +33,9 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
         ]),
         "src tree must match the documented policy engine layout"
     );
+}
 
+fn assert_policy_rule_trees(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/assertions")),
         entries([
@@ -76,7 +83,9 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
         entries(["OWNER.toml", "contracts.rs", "mod.rs", "render.rs", "stable_surface.rs",]),
         "policy diagnostics tree must keep contracts and rendering separated"
     );
+}
 
+fn assert_evidence_and_test_trees(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
         entries(["OWNER.toml", "mod.rs", "stable_surface.rs"]),

@@ -429,7 +429,9 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
             corpora: [(
                 "corpus-42".to_string(),
                 super::BenchmarkCorpusConfig {
-                    spec_path: Some("benchmarks/corpora/human-short-read-diversity.toml".to_string()),
+                    spec_path: Some(
+                        "benchmarks/corpora/human-short-read-diversity.toml".to_string(),
+                    ),
                 },
             )]
             .into_iter()

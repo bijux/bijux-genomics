@@ -125,9 +125,10 @@ fn increment_severity(counts: &mut VulnerabilitySeverityCounts, severity: Vulner
 mod tests {
     use super::parse_grype_vulnerability_report;
     use crate::security_evidence::VulnerabilitySeverity;
+    use anyhow::Result;
 
     #[test]
-    fn preserves_finding_identity_and_computes_counts() {
+    fn preserves_finding_identity_and_computes_counts() -> Result<()> {
         let report = parse_grype_vulnerability_report(
             br#"{
               "matches": [
@@ -148,18 +149,18 @@ mod tests {
                 }
               ]
             }"#,
-        )
-        .expect("parse report");
+        )?;
         assert_eq!(report.severity_counts.critical, 1);
         assert_eq!(report.severity_counts.high, 1);
         assert_eq!(report.findings[0].id, "CVE-2026-0001");
         assert_eq!(report.findings[0].severity, VulnerabilitySeverity::Critical);
         assert_eq!(report.findings[1].package, "libbeta");
         assert_eq!(report.findings[1].fixed_versions, ["2.0"]);
+        Ok(())
     }
 
     #[test]
-    fn rejects_duplicate_vulnerability_package_pairs() {
+    fn rejects_duplicate_vulnerability_package_pairs() -> Result<()> {
         let raw = br#"{
           "matches": [
             {
@@ -172,25 +173,34 @@ mod tests {
             }
           ]
         }"#;
-        let error = parse_grype_vulnerability_report(raw).expect_err("duplicate must fail");
+        let Err(error) = parse_grype_vulnerability_report(raw) else {
+            anyhow::bail!("duplicate vulnerability-package pair was accepted");
+        };
         assert!(error.to_string().contains("repeats vulnerability"));
+        Ok(())
     }
 
     #[test]
-    fn rejects_missing_package_identity() {
+    fn rejects_missing_package_identity() -> Result<()> {
         let raw = br#"{
           "matches": [{
             "vulnerability": {"id": "CVE-1", "severity": "High"},
             "artifact": {"name": " ", "version": "1"}
           }]
         }"#;
-        let error = parse_grype_vulnerability_report(raw).expect_err("identity must fail");
+        let Err(error) = parse_grype_vulnerability_report(raw) else {
+            anyhow::bail!("missing package identity was accepted");
+        };
         assert!(error.to_string().contains("empty package name"));
+        Ok(())
     }
 
     #[test]
-    fn rejects_malformed_json() {
-        let error = parse_grype_vulnerability_report(b"not-json").expect_err("JSON must fail");
+    fn rejects_malformed_json() -> Result<()> {
+        let Err(error) = parse_grype_vulnerability_report(b"not-json") else {
+            anyhow::bail!("malformed Grype report was accepted");
+        };
         assert!(error.to_string().contains("parse Grype"));
+        Ok(())
     }
 }

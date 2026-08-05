@@ -668,26 +668,24 @@ fn ensure_bam_asset_coverage(rows: &[StageToolAssetRow]) -> Result<()> {
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf",
         "BAM recalibration",
     )?;
-    for tool_id in ["king"] {
-        ensure_stage_tool_asset_row(
-            rows,
-            "bam.kinship",
-            tool_id,
-            "reference_fasta",
-            "corpus_01_bam_reference",
-            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
-            "BAM kinship",
-        )?;
-        ensure_stage_tool_asset_row(
-            rows,
-            "bam.kinship",
-            tool_id,
-            "reference_panel",
-            "human_like_relatedness_panel",
-            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv",
-            "BAM kinship",
-        )?;
-    }
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.kinship",
+        "king",
+        "reference_fasta",
+        "corpus_01_bam_reference",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        "BAM kinship",
+    )?;
+    ensure_stage_tool_asset_row(
+        rows,
+        "bam.kinship",
+        "king",
+        "reference_panel",
+        "human_like_relatedness_panel",
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv",
+        "BAM kinship",
+    )?;
 
     Ok(())
 }

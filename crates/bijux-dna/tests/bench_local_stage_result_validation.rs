@@ -1,10 +1,13 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+#[cfg(feature = "bam_downstream")]
 use std::process::Command;
 
+#[cfg(feature = "bam_downstream")]
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
+#[cfg(feature = "bam_downstream")]
 fn run_cli(args: &[&str]) -> std::process::Output {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");

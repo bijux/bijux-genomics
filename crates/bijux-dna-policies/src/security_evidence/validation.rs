@@ -416,8 +416,8 @@ fn parse_database_timestamp(
 mod tests {
     use super::*;
 
-    fn valid_publication() -> ContainerSecurityEvidencePublication {
-        serde_json::from_value(serde_json::json!({
+    fn valid_publication() -> Result<ContainerSecurityEvidencePublication> {
+        Ok(serde_json::from_value(serde_json::json!({
             "schema_version": "bijux.container.security_evidence.v1",
             "evaluated_at_utc": "2026-08-04T00:00:00Z",
             "repository_commit": "a".repeat(40),
@@ -506,57 +506,69 @@ mod tests {
                     "reasons": []
                 }
             }
-        }))
-        .expect("valid security evidence fixture")
+        }))?)
     }
 
     #[test]
     fn complete_security_evidence_passes() -> Result<()> {
-        validate_security_evidence_publication(&valid_publication())
+        validate_security_evidence_publication(&valid_publication()?)
     }
 
     #[test]
-    fn stale_database_cannot_inherit_a_passing_verdict() {
-        let mut publication = valid_publication();
+    fn stale_database_cannot_inherit_a_passing_verdict() -> Result<()> {
+        let mut publication = valid_publication()?;
         publication.scanner.database.status = VulnerabilityDatabaseStatus::Stale;
         publication.scanner.database.updated_at_utc = Some("2026-06-01T00:00:00Z".to_string());
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("stale or missing")));
+        Ok(())
     }
 
     #[test]
-    fn expired_waiver_cannot_pass() {
-        let mut publication = valid_publication();
-        publication.tools.get_mut("samtools").expect("samtools fixture").waivers[0].expires_on =
-            "2026-08-03".to_string();
+    fn expired_waiver_cannot_pass() -> Result<()> {
+        let mut publication = valid_publication()?;
+        let Some(evidence) = publication.tools.get_mut("samtools") else {
+            anyhow::bail!("security fixture lacks samtools evidence");
+        };
+        evidence.waivers[0].expires_on = "2026-08-03".to_string();
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("expired waiver")));
+        Ok(())
     }
 
     #[test]
-    fn unwaived_critical_finding_cannot_pass() {
-        let mut publication = valid_publication();
-        let evidence = publication.tools.get_mut("samtools").expect("samtools fixture");
-        evidence.vulnerabilities.as_mut().expect("vulnerability fixture").findings[0].waiver_id =
-            None;
+    fn unwaived_critical_finding_cannot_pass() -> Result<()> {
+        let mut publication = valid_publication()?;
+        let Some(evidence) = publication.tools.get_mut("samtools") else {
+            anyhow::bail!("security fixture lacks samtools evidence");
+        };
+        let Some(vulnerabilities) = evidence.vulnerabilities.as_mut() else {
+            anyhow::bail!("security fixture lacks vulnerability evidence");
+        };
+        vulnerabilities.findings[0].waiver_id = None;
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("unwaived critical")));
+        Ok(())
     }
 
     #[test]
-    fn unsupported_tool_cannot_receive_passing_evidence() {
-        let mut publication = valid_publication();
-        let evidence = publication.tools.get_mut("samtools").expect("samtools fixture");
+    fn unsupported_tool_cannot_receive_passing_evidence() -> Result<()> {
+        let mut publication = valid_publication()?;
+        let Some(evidence) = publication.tools.get_mut("samtools") else {
+            anyhow::bail!("security fixture lacks samtools evidence");
+        };
         evidence.support_disposition = SupportDisposition::Unsupported;
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("cannot receive")));
+        Ok(())
     }
 
     #[test]
-    fn unknown_fields_fail_deserialization() {
-        let mut payload = serde_json::to_value(valid_publication()).expect("serialize fixture");
+    fn unknown_fields_fail_deserialization() -> Result<()> {
+        let mut payload = serde_json::to_value(valid_publication()?)?;
         payload["unowned"] = serde_json::json!(true);
         assert!(serde_json::from_value::<ContainerSecurityEvidencePublication>(payload).is_err());
+        Ok(())
     }
 
     #[test]

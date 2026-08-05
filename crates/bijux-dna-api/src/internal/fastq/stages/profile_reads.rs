@@ -1215,14 +1215,18 @@ mod parser_tests {
     use super::parse_sequence_statistics_rows;
 
     #[test]
-    fn seqfu_rows_normalize_to_the_common_profile_contract() {
+    fn seqfu_rows_normalize_to_the_common_profile_contract() -> anyhow::Result<()> {
         let output = "File\t#Seq\tTotal bp\tAvg\tN50\tN75\tN90\tauN\tMin\tMax\t%GC\nreads.fastq.gz\t33128\t7687151\t232.04\t300\t254\t149\t264.88\t35\t301\t0.58\n";
-        let rows = parse_sequence_statistics_rows(output).expect("parse SeqFu statistics");
+        let rows = parse_sequence_statistics_rows(output)?;
 
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].reads, 33_128);
         assert_eq!(rows[0].bases, 7_687_151);
         assert!(rows[0].mean_q.is_none());
-        assert!((rows[0].gc_percent.expect("GC") - 58.0).abs() < f64::EPSILON * 100.0);
+        let gc_percent = rows[0]
+            .gc_percent
+            .ok_or_else(|| anyhow::anyhow!("normalized SeqFu row omits GC percentage"))?;
+        assert!((gc_percent - 58.0).abs() < f64::EPSILON * 100.0);
+        Ok(())
     }
 }

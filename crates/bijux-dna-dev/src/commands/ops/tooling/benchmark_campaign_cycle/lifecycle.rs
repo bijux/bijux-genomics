@@ -231,49 +231,6 @@ fn require_retry_source_ancestry(
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use std::path::Path;
-    use std::process::Command;
-
-    use super::require_retry_source_ancestry;
-
-    #[test]
-    fn retry_source_accepts_descendants_and_rejects_unrelated_history() -> anyhow::Result<()> {
-        let temporary = bijux_dna_infra::temp_dir("benchmark-retry-source")?;
-        let root = temporary.path();
-        git(root, &["init", "--quiet"])?;
-        git(root, &["config", "user.email", "tests@bijux.invalid"])?;
-        git(root, &["config", "user.name", "Bijux Tests"])?;
-        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 1;\n")?;
-        git(root, &["add", "source.rs"])?;
-        git(root, &["commit", "--quiet", "-m", "initial source"])?;
-        let prior = bijux_dna_environment::api::repository_head_commit(root)?;
-
-        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 2;\n")?;
-        git(root, &["add", "source.rs"])?;
-        git(root, &["commit", "--quiet", "-m", "correct source"])?;
-        require_retry_source_ancestry(root, &prior)?;
-
-        git(root, &["checkout", "--quiet", "--orphan", "unrelated"])?;
-        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 3;\n")?;
-        git(root, &["add", "source.rs"])?;
-        git(root, &["commit", "--quiet", "-m", "unrelated source"])?;
-        assert!(require_retry_source_ancestry(root, &prior).is_err());
-        Ok(())
-    }
-
-    fn git(root: &Path, arguments: &[&str]) -> anyhow::Result<()> {
-        let output = Command::new("git").arg("-C").arg(root).args(arguments).output()?;
-        anyhow::ensure!(
-            output.status.success(),
-            "git command failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        Ok(())
-    }
-}
-
 pub(super) fn supersede(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
@@ -359,4 +316,47 @@ pub(super) fn initialize(
         directories.len(),
         benchmark_root.display()
     )))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+    use std::process::Command;
+
+    use super::require_retry_source_ancestry;
+
+    #[test]
+    fn retry_source_accepts_descendants_and_rejects_unrelated_history() -> anyhow::Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("benchmark-retry-source")?;
+        let root = temporary.path();
+        git(root, &["init", "--quiet"])?;
+        git(root, &["config", "user.email", "tests@bijux.invalid"])?;
+        git(root, &["config", "user.name", "Bijux Tests"])?;
+        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 1;\n")?;
+        git(root, &["add", "source.rs"])?;
+        git(root, &["commit", "--quiet", "-m", "initial source"])?;
+        let prior = bijux_dna_environment::api::repository_head_commit(root)?;
+
+        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 2;\n")?;
+        git(root, &["add", "source.rs"])?;
+        git(root, &["commit", "--quiet", "-m", "correct source"])?;
+        require_retry_source_ancestry(root, &prior)?;
+
+        git(root, &["checkout", "--quiet", "--orphan", "unrelated"])?;
+        std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 3;\n")?;
+        git(root, &["add", "source.rs"])?;
+        git(root, &["commit", "--quiet", "-m", "unrelated source"])?;
+        assert!(require_retry_source_ancestry(root, &prior).is_err());
+        Ok(())
+    }
+
+    fn git(root: &Path, arguments: &[&str]) -> anyhow::Result<()> {
+        let output = Command::new("git").arg("-C").arg(root).args(arguments).output()?;
+        anyhow::ensure!(
+            output.status.success(),
+            "git command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(())
+    }
 }

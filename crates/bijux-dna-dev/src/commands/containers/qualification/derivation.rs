@@ -404,8 +404,10 @@ mod tests {
             },
         )]);
         let original = freshness_identity(&"b".repeat(40), &sources)?;
-        sources.get_mut("benchmark:run-1001").expect("benchmark source fixture").sha256 =
-            "c".repeat(64);
+        let source = sources
+            .get_mut("benchmark:run-1001")
+            .ok_or_else(|| anyhow::anyhow!("benchmark source fixture is absent"))?;
+        source.sha256 = "c".repeat(64);
         assert_ne!(original, freshness_identity(&"b".repeat(40), &sources)?);
         Ok(())
     }

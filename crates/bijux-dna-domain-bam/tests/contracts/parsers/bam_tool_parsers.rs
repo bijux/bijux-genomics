@@ -71,6 +71,6 @@ fn parse_sex_json_honors_explicit_r_y_classification() -> anyhow::Result<()> {
     let sex = parse_sex_json(&fixture_path("rxy_female.json"))?;
     assert_eq!(sex.classification, SexConfidenceClass::Female);
     assert!(sex.sufficient_data);
-    assert_eq!(sex.x_to_y_ratio, 0.0);
+    assert!(sex.x_to_y_ratio.abs() < f64::EPSILON);
     Ok(())
 }
