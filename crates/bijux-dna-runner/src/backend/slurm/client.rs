@@ -85,7 +85,7 @@ pub fn observe_slurm_job(
 ) -> Result<SlurmJobObservation> {
     validate_handle(handle)?;
     require_text(observed_at_utc, "observation timestamp")?;
-    let queue = execute(
+    let queue = execute_queue(
         &paths.squeue,
         &[
             "--noheader".to_string(),
@@ -148,6 +148,29 @@ pub fn cancel_slurm_job(paths: &SlurmClientPaths, handle: &SlurmJobHandle) -> Re
     validate_handle(handle)?;
     execute(&paths.scancel, std::slice::from_ref(&handle.job_id))?;
     Ok(())
+}
+
+fn execute_queue(executable: &Path, arguments: &[String]) -> Result<String> {
+    let output = Command::new(executable)
+        .args(arguments)
+        .output()
+        .with_context(|| format!("execute Slurm command {}", executable.display()))?;
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let absent_from_queue = output.status.code() == Some(1)
+        && output.stdout.is_empty()
+        && stderr.trim() == "slurm_load_jobs error: Invalid job id specified";
+    if absent_from_queue {
+        return Ok(String::new());
+    }
+    if !output.status.success() {
+        bail!(
+            "Slurm command {} failed with {}: {}",
+            executable.display(),
+            output.status,
+            stderr.trim()
+        );
+    }
+    String::from_utf8(output.stdout).context("Slurm command stdout is not UTF-8")
 }
 
 fn execute(executable: &Path, arguments: &[String]) -> Result<String> {

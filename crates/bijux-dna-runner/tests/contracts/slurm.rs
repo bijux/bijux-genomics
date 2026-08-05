@@ -126,6 +126,43 @@ fn queue_observation_does_not_consult_accounting() -> anyhow::Result<()> {
 }
 
 #[test]
+fn completed_job_queue_error_falls_through_to_accounting() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let handle = submitted_handle(&temp, &paths)?;
+    write_executable(
+        &paths.squeue,
+        "#!/bin/sh\nprintf '%s\n' 'slurm_load_jobs error: Invalid job id specified' >&2\nexit 1\n",
+    )?;
+    write_executable(
+        &paths.sacct,
+        "#!/bin/sh\nprintf '%s\n' '3459974|COMPLETED|0:0|2|00:00:01.750|32K|n001|None'\n",
+    )?;
+
+    let observed = observe_slurm_job(&paths, &handle, "2026-08-04T20:30:00Z")?;
+
+    assert_eq!(observed.state, SlurmJobState::Completed);
+    assert_eq!(observed.source, SlurmEvidenceSource::Accounting);
+    assert!(observed.accounting.is_some());
+    Ok(())
+}
+
+#[test]
+fn unrelated_queue_failure_remains_fatal() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let handle = submitted_handle(&temp, &paths)?;
+    write_executable(&paths.squeue, "#!/bin/sh\nprintf 'permission denied\n' >&2\nexit 1\n")?;
+
+    let error = observe_slurm_job(&paths, &handle, "2026-08-04T20:30:00Z")
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("unrelated queue failure was accepted"))?;
+
+    assert!(format!("{error:#}").contains("permission denied"));
+    Ok(())
+}
+
+#[test]
 fn terminal_accounting_parses_exit_resources_and_failure_states() -> anyhow::Result<()> {
     for (raw_state, expected) in [
         ("COMPLETED", SlurmJobState::Completed),
