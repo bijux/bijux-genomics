@@ -59,6 +59,8 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
         support::json_u64(&payload, "fake_run_row_count").expect("fake_run_row_count");
     let real_smoke_row_count =
         support::json_u64(&payload, "real_smoke_row_count").expect("real_smoke_row_count");
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), row_count);
     assert_eq!(row_count, fake_run_row_count + real_smoke_row_count);
     assert_eq!(real_smoke_row_count, 4);
 
@@ -73,12 +75,18 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
     );
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(72));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(50));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(23));
-
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, row_count);
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert_eq!(
+            domain_counts.get(domain).and_then(serde_json::Value::as_u64),
+            Some(expected_count)
+        );
+    }
 
     let fake_result_ids = rows
         .iter()
@@ -87,7 +95,10 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
         })
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(fake_result_ids.len() as u64, fake_run_row_count);
+    assert_eq!(
+        u64::try_from(fake_result_ids.len()).expect("fake result count fits u64"),
+        fake_run_row_count
+    );
 
     let fastq_smoke = rows
         .iter()

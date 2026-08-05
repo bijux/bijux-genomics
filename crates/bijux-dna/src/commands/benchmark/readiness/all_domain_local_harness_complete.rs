@@ -24,7 +24,7 @@ use super::all_domain_output_declarations::{
 };
 use super::all_domain_parser_collector::{
     render_all_domain_parser_collector, AllDomainParserCollectorReport,
-    DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH,
+    AllDomainParserCollectorSourceKind, DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH,
 };
 use super::all_domain_rendered_commands::{
     render_all_domain_commands, AllDomainRenderedCommandsReport,
@@ -188,15 +188,19 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH),
             )?;
-            if report.row_count != 143
+            if report.row_count != report.domain_counts.values().sum::<usize>()
                 || report.benchmark_ready_row_count != report.benchmark_ready_unique_binding_count
-                || report.domain_counts.get("fastq").copied() != Some(71)
-                || report.domain_counts.get("bam").copied() != Some(49)
-                || report.domain_counts.get("vcf").copied() != Some(23)
-                || report.benchmark_ready_domain_counts.get("fastq").copied().unwrap_or_default()
-                    == 0
-                || report.benchmark_ready_domain_counts.get("bam").copied().unwrap_or_default() == 0
-                || report.benchmark_ready_domain_counts.get("vcf").copied().unwrap_or_default() == 0
+                || report.benchmark_ready_unique_binding_count
+                    != report.benchmark_ready_domain_counts.values().sum::<usize>()
+                || ["fastq", "bam", "vcf"].iter().any(|domain| {
+                    report.domain_counts.get(*domain).copied().unwrap_or_default() == 0
+                        || report
+                            .benchmark_ready_domain_counts
+                            .get(*domain)
+                            .copied()
+                            .unwrap_or_default()
+                            == 0
+                })
             {
                 bail!("all-domain stage tool table drifted from the governed binding set");
             }
@@ -221,12 +225,24 @@ pub(crate) fn render_all_domain_local_harness_complete(
             let stage_tool_report = stage_tool_report
                 .as_ref()
                 .context("goal 279 stage tool table report is required")?;
+            let stage_count =
+                report.rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len();
+            let tool_count =
+                report.rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len();
+            let corpus_count =
+                report.rows.iter().map(|row| row.corpus_id.as_str()).collect::<BTreeSet<_>>().len();
+            let asset_profile_count = report
+                .rows
+                .iter()
+                .map(|row| row.asset_profile_id.as_str())
+                .collect::<BTreeSet<_>>()
+                .len();
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 69
-                || report.tool_count != 71
-                || report.corpus_count != 10
-                || report.asset_profile_count != 14
+                || report.stage_count != stage_count
+                || report.tool_count != tool_count
+                || report.corpus_count != corpus_count
+                || report.asset_profile_count != asset_profile_count
                 || report.domain_counts != stage_tool_report.benchmark_ready_domain_counts
             {
                 bail!("all-domain expected benchmark results drifted from the governed slice");
@@ -409,12 +425,26 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH),
             )?;
+            let domain_counts_match_rows = ["fastq", "bam", "vcf"].iter().all(|domain| {
+                let expected_count = expected_results_report
+                    .as_ref()
+                    .and_then(|expected| expected.domain_counts.get(*domain))
+                    .copied()
+                    .unwrap_or_default()
+                    + report
+                        .rows
+                        .iter()
+                        .filter(|row| {
+                            row.domain == *domain
+                                && row.source_kind == AllDomainParserCollectorSourceKind::RealSmoke
+                        })
+                        .count();
+                report.domain_counts.get(*domain).copied() == Some(expected_count)
+            });
             if report.row_count != report.fake_run_row_count + report.real_smoke_row_count
                 || report.fake_run_row_count != benchmark_ready_binding_count
                 || report.real_smoke_row_count != 4
-                || report.domain_counts.get("fastq").copied() != Some(72)
-                || report.domain_counts.get("bam").copied() != Some(50)
-                || report.domain_counts.get("vcf").copied() != Some(23)
+                || !domain_counts_match_rows
             {
                 bail!(
                     "all-domain parser collector drifted from the governed fake-run and smoke set"

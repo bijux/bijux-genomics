@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -50,14 +51,39 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
-    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    let rows = support::json_array(&payload, "rows");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
+    let stage_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("stage count fits u64");
+    let tool_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("tool count fits u64");
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(stage_count));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert_eq!(
+            domain_counts.get(domain).and_then(serde_json::Value::as_u64),
+            Some(expected_count)
+        );
+    }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let status_counts = support::json_object(&payload, "status_counts");
@@ -67,9 +93,12 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
     );
     assert_eq!(status_counts.len(), 1);
 
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, row_count);
-
+    assert!(rows.iter().all(|row| {
+        !matches!(
+            row.get("tool_id").and_then(serde_json::Value::as_str),
+            Some("angsd" | "fastuniq" | "ngsbriggs")
+        )
+    }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.contamination")

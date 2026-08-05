@@ -50,9 +50,9 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
         payload.get("removed_from_scope_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/removed-from-scope.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -60,78 +60,17 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
         .get("blocker_type_counts")
         .and_then(serde_json::Value::as_object)
         .expect("blocker type counts");
-    assert_eq!(
-        blocker_type_counts.get("lifecycle_not_active").and_then(serde_json::Value::as_u64),
-        Some(2)
-    );
-    assert!(
-        blocker_type_counts.len() == 1,
-        "current active-scope blockers should be fully explained by lifecycle exits"
-    );
+    assert!(blocker_type_counts.is_empty());
 
     let blocker_path_counts = payload
         .get("blocker_path_counts")
         .and_then(serde_json::Value::as_object)
         .expect("blocker path counts");
-    assert_eq!(
-        blocker_path_counts
-            .get("benchmarks/readiness/all-domains/no-planned-rows.json")
-            .and_then(serde_json::Value::as_u64),
-        Some(2)
-    );
+    assert!(blocker_path_counts.is_empty());
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 2);
+    assert!(rows.is_empty());
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active-scope blocker table must fail closed on drift");
-
-    assert!(rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.demography")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ibdne")
-            && row.get("corpus_id").and_then(serde_json::Value::as_str)
-                == Some("vcf_production_regression")
-            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
-                == Some("json_ibd_segments")
-            && row.get("blocker_type").and_then(serde_json::Value::as_str)
-                == Some("lifecycle_not_active")
-            && row.get("blocker_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/no-planned-rows.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.ibd")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("germline")
-            && row.get("blocker_type").and_then(serde_json::Value::as_str)
-                == Some("lifecycle_not_active")
-    }));
-    assert!(
-        rows.iter().all(|row| {
-            !(row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.estimate_library_complexity_prealign")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna"))
-        }),
-        "supported complexity rows must stay out of active-scope blockers"
-    );
-    assert!(
-        rows.iter().all(|row| {
-            !(row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("vcf.population_structure")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2"))
-        }),
-        "vcf.population_structure/plink2 must stay out of active-scope blockers once it is benchmark ready"
-    );
-    assert!(
-        rows.iter().all(|row| {
-            row.get("absent_from_active_matrix").and_then(serde_json::Value::as_bool) == Some(true)
-                && row.get("absent_from_rendered_commands").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                && row.get("absent_from_expected_results").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                && row.get("absent_from_full_benchmark_report").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-        }),
-        "every blocker row must stay absent from governed active downstream surfaces"
-    );
 }

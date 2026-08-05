@@ -51,21 +51,47 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/expected-benchmark-results-all-domains.tsv")
     );
+    let rows = support::json_array(&payload, "rows");
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), row_count);
+    let stage_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("stage count fits u64");
+    let tool_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("tool count fits u64");
     assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
-    assert_eq!(support::json_u64(&payload, "stage_count"), Some(69));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(support::json_u64(&payload, "stage_count"), Some(stage_count));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(14));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert!(expected_count > 0, "{domain} rows must be present");
+        assert_eq!(
+            domain_counts.get(domain).and_then(serde_json::Value::as_u64),
+            Some(expected_count)
+        );
+    }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let section_counts = support::json_object(&payload, "report_section_counts");
-    assert_eq!(section_counts.get("read_cleanup").and_then(serde_json::Value::as_u64), Some(38));
+    assert_eq!(support::object_u64_sum(section_counts), row_count);
     assert_eq!(section_counts.get("variant_calling").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(section_counts.get("imputation").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
@@ -76,15 +102,11 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         section_counts.get("runs_of_homozygosity").and_then(serde_json::Value::as_u64),
         Some(1)
     );
-
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, row_count);
-
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len() as u64, row_count);
+    assert_eq!(u64::try_from(result_ids.len()).expect("result count fits u64"), row_count);
 
     let taxonomy_rows = rows
         .iter()

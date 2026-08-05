@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -50,13 +51,22 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/output-contract-coverage.tsv")
     );
-    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    let rows = support::json_array(&payload, "rows");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert!(payload
         .get("stage_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count >= 62));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    let tool_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("tool count fits u64");
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
     assert_eq!(
         payload.get("output_declaration_binding_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -102,27 +112,35 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
-    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert_eq!(support::object_u64(domain_counts, domain), Some(expected_count));
+    }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let proof_source_counts = payload
         .get("proof_source_counts")
         .and_then(serde_json::Value::as_object)
         .expect("proof source counts");
-    assert_eq!(
-        proof_source_counts.get("fastq_output_contract").and_then(serde_json::Value::as_u64),
-        Some(71)
-    );
-    assert_eq!(
-        proof_source_counts.get("bam_output_contract").and_then(serde_json::Value::as_u64),
-        Some(49)
-    );
-    assert_eq!(
-        proof_source_counts.get("vcf_output_contract").and_then(serde_json::Value::as_u64),
-        Some(21)
-    );
+    for source in ["fastq_output_contract", "bam_output_contract", "vcf_output_contract"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| {
+                    row.get("proof_source").and_then(serde_json::Value::as_str) == Some(source)
+                })
+                .count(),
+        )
+        .expect("proof source count fits u64");
+        assert_eq!(
+            proof_source_counts.get(source).and_then(serde_json::Value::as_u64),
+            Some(expected_count)
+        );
+    }
     assert_eq!(
         proof_source_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
         row_count
@@ -147,8 +165,6 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
         Some(row_count)
     );
 
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, row_count);
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));

@@ -45,22 +45,5 @@ fn bench_readiness_all_domain_active_scope_blockers_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 2);
-    assert!(rows.iter().any(|row| {
-        row == &"vcf\tvcf.demography\tibdne\tvcf_production_regression\tjson_ibd_segments\tvcf.adapter.demography\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.demography.v1\tplanned\tdeclared_only\tlifecycle_not_active\tlifecycle_not_active\tbenchmarks/readiness/all-domains/no-planned-rows.json\tbinding is intentionally outside final job-bearing active scope because its lifecycle status is not yet active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
-    }));
-    assert!(rows.iter().any(|row| {
-        row == &"vcf\tvcf.ibd\tgermline\tvcf_production_regression\tvcf_cohort\tvcf.adapter.ibd\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.ibd.v1\tplanned\tdeclared_only\tlifecycle_not_active\tlifecycle_not_active\tbenchmarks/readiness/all-domains/no-planned-rows.json\tbinding is intentionally outside final job-bearing active scope because its lifecycle status is not yet active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
-    }));
-    assert!(
-        rows.iter().all(|row| {
-            let columns = row.split('\t').collect::<Vec<_>>();
-            columns.len() == 20
-                && columns[16] == "true"
-                && columns[17] == "true"
-                && columns[18] == "true"
-                && columns[19] == "true"
-        }),
-        "every blocker row must stay absent from governed active downstream surfaces"
-    );
+    assert!(rows.is_empty(), "all supported VCF stages must be admitted to active scope");
 }

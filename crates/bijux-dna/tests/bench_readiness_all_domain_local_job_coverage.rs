@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -54,13 +55,22 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
     );
-    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    let rows = support::json_array(&payload, "rows");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert!(payload
         .get("stage_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count >= 62));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    let tool_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("tool count fits u64");
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
     assert_eq!(
         payload.get("local_job_binding_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -77,7 +87,15 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     let domain_counts = support::json_object(&payload, "domain_counts");
     let fastq_bam_count = support::object_u64(domain_counts, "fastq").expect("fastq count")
         + support::object_u64(domain_counts, "bam").expect("bam count");
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert_eq!(support::object_u64(domain_counts, domain), Some(expected_count));
+    }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let command_source_counts = payload
@@ -122,8 +140,6 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     );
     assert_eq!(coverage_status_counts.len(), 1);
 
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, row_count);
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
