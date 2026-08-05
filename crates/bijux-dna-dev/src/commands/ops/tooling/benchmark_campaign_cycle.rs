@@ -374,11 +374,11 @@ fn prepare_campaign_jobs(
         &plan,
     )?;
     let run_id = campaign_run_id(&plan)?;
-    if !matches!(run_id, "run-2002" | "run-2003" | "run-2004" | "run-2042" | "run-2043") {
+    if !has_crate_owned_campaign_material(run_id) {
         bail!("benchmark campaign has no crate-owned executable material: {run_id}");
     }
     let evidence = match run_id {
-        "run-2002" | "run-2003" | "run-2004" => {
+        "run-2002" | "run-2003" | "run-2004" | "run-2011" => {
             CampaignEvidence::Bam(bijux_dna_bench::admit_bam_benchmark_corpus(
                 &study_root,
                 &data_index,
@@ -434,6 +434,10 @@ fn prepare_campaign_jobs(
         )?;
     }
     Ok(PreparedCampaign { benchmark_root, jobs: prepared })
+}
+
+fn has_crate_owned_campaign_material(run_id: &str) -> bool {
+    matches!(run_id, "run-2002" | "run-2003" | "run-2004" | "run-2011" | "run-2042" | "run-2043")
 }
 
 fn reconcile_campaign(
@@ -868,10 +872,16 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_options, require_exact_options,
+        has_crate_owned_campaign_material, parse_options, require_exact_options,
         scheduler::{benchmark_accounting, benchmark_observation},
         BENCHMARK_PREPARATION_OPTIONS, BENCHMARK_SUBMISSION_OPTIONS,
     };
+
+    #[test]
+    fn campaign_material_dispatch_includes_duplication_metrics() {
+        assert!(has_crate_owned_campaign_material("run-2011"));
+        assert!(!has_crate_owned_campaign_material("run-9999"));
+    }
 
     #[test]
     fn option_parser_rejects_duplicates_and_incomplete_pairs() {
