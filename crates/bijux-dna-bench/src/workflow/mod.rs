@@ -14,6 +14,7 @@ mod report_load;
 mod run_suite;
 mod scientific_readiness;
 mod stage_coverage;
+mod stage_report;
 mod suite_load;
 mod summary;
 mod summary_fairness;
