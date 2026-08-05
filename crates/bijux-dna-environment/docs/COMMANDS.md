@@ -26,7 +26,8 @@ library can manage when callers invoke the matching API.
   clean Git commit, verifies the embedded contract and labels, and no-clobber publishes a
   digest-named SIF plus build evidence. The active destination uses `<study>/containers/apptainer`;
   the commit-campaign destination uses `<study>/containers/staging/<commit>` and
-  `<study>/containers/evidence/image-campaigns/<commit>` without changing the active root.
+  `<study>/containers/evidence/image-campaigns/<commit>` without changing the active root. It runs
+  `hostname` and `apptainer --version` to bind the builder environment to the evidence.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.
@@ -65,6 +66,8 @@ library can manage when callers invoke the matching API.
 - `src/evidence/tool_contract/recipe_identity.rs`: exact-commit definition and `%files` identity.
 - `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
+- `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
+  canonical image publication.
 
 ## Verification
 

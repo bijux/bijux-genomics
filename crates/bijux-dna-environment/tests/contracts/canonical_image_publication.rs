@@ -44,7 +44,7 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
     write_executable(
         &executable,
         &format!(
-            "#!/bin/sh\ncase \"$1\" in\n  build) printf 'canonical-sif' > \"$3\" ;;\n  exec) cat {} ;;\n  inspect) cat {} ;;\n  *) exit 64 ;;\nesac\n",
+            "#!/bin/sh\ncase \"$1\" in\n  --version) echo 'apptainer version 1.4.2' ;;\n  build) printf 'canonical-sif' > \"$3\" ;;\n  exec) cat {} ;;\n  inspect) cat {} ;;\n  *) exit 64 ;;\nesac\n",
             shell_literal(&contract_path),
             shell_literal(&labels_path),
         ),
@@ -64,11 +64,15 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
 
     assert_eq!(publication.status, "passed");
     assert_eq!(publication.image.sha256.len(), 64);
+    assert_eq!(publication.base_image_digest, "b".repeat(64));
+    assert_eq!(publication.apptainer_version, "apptainer version 1.4.2");
+    assert!(publication.finished_at_unix_ms >= publication.started_at_unix_ms);
     let campaign_image_prefix = format!("study://containers/staging/{commit}/");
     let campaign_evidence_prefix = format!("study://containers/evidence/image-campaigns/{commit}/");
     assert!(publication.image.path.starts_with(&campaign_image_prefix));
     assert!(publication.build_log.path.starts_with(&campaign_evidence_prefix));
     assert!(publication.evidence_path.starts_with(&campaign_evidence_prefix));
+    assert!(publication.identity.path.starts_with(&campaign_evidence_prefix));
     assert!(publication.evidence_path.ends_with(".build.json"));
     assert!(study_path(study.path(), &publication.image.path)?.is_file());
     assert!(study_path(study.path(), &publication.evidence_path)?.is_file());
@@ -157,7 +161,10 @@ real_test_input_kind = "fixture"
     )?;
     fs::write(
         root.join("containers/apptainer/contract_tool.def"),
-        "Bootstrap: docker\nFrom: scratch\n\n%labels\n    org.opencontainers.image.title contract-tool\n\n%post\n    true\n",
+        format!(
+            "Bootstrap: docker\nFrom: ubuntu@sha256:{}\n\n%labels\n    org.opencontainers.image.title contract-tool\n\n%post\n    true\n",
+            "b".repeat(64)
+        ),
     )?;
     Ok(())
 }
