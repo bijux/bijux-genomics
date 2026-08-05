@@ -2,7 +2,7 @@
   "schema_version": "bijux.bench.readiness.vcf_eagle_adapter.v1",
   "domain": "vcf",
   "tool_id": "eagle",
-  "tool_status": "experimental",
+  "tool_status": "planned",
   "output_path": "benchmarks/readiness/adapters/eagle.vcf.json",
   "row_count": 1,
   "benchmark_ready_row_count": 0,
@@ -12,7 +12,7 @@
   "rows": [
     {
       "tool_id": "eagle",
-      "tool_status": "experimental",
+      "tool_status": "planned",
       "stage_id": "vcf.phasing",
       "stage_status": "supported",
       "benchmark_status": "not_benchmark_ready",

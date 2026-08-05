@@ -13,8 +13,9 @@ bcftools	vcf.stats	supported	runnable	parse_normalized	fixture:vcf_production_re
 beagle	vcf.imputation_metrics	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
 beagle	vcf.impute	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
 eigensoft	vcf.pca	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
-germline	vcf.ibd	planned	declared_only	parse_normalized	fixture:vcf_production_regression	assigned	not_benchmark_ready
-ibdne	vcf.demography	planned	declared_only	parse_normalized	fixture:vcf_production_regression	not_required	not_benchmark_ready
+germline	vcf.ibd	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
+ibdne	vcf.demography	supported	runnable	parse_normalized	fixture:vcf_production_regression	not_required	benchmark_ready
+ibdseq	vcf.ibd	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
 plink	vcf.qc	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
 plink2	vcf.admixture	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready
 plink2	vcf.pca	supported	runnable	parse_normalized	fixture:vcf_production_regression	assigned	benchmark_ready

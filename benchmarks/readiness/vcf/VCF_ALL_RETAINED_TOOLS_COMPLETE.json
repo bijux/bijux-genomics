@@ -5,20 +5,20 @@
   "passed_goal_count": 24,
   "failed_goal_count": 0,
   "failing_goal_ids": [],
-  "retained_row_count": 42,
+  "retained_row_count": 35,
   "retained_stage_count": 20,
-  "retained_tool_count": 16,
-  "active_row_count": 21,
-  "removed_row_count": 21,
-  "active_stage_count": 18,
-  "active_tool_count": 6,
-  "expected_result_row_count": 21,
-  "rendered_command_row_count": 21,
-  "parser_fixture_row_count": 21,
-  "local_smoke_row_count": 42,
+  "retained_tool_count": 14,
+  "active_row_count": 24,
+  "removed_row_count": 11,
+  "active_stage_count": 20,
+  "active_tool_count": 9,
+  "expected_result_row_count": 24,
+  "rendered_command_row_count": 24,
+  "parser_fixture_row_count": 24,
+  "local_smoke_row_count": 35,
   "local_smoke_host_stage_row_count": 20,
-  "local_smoke_container_row_count": 22,
-  "report_map_row_count": 21,
+  "local_smoke_container_row_count": 15,
+  "report_map_row_count": 24,
   "ok": true,
   "checks": [
     {
@@ -26,7 +26,7 @@
       "surface": "vcf active stage tool matrix",
       "output_path": "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv",
       "ok": true,
-      "detail": "validated the governed 42-row retained VCF matrix with 21 active bindings across 18 active stages"
+      "detail": "validated the governed 35-row retained VCF matrix with 24 active bindings across 20 active stages"
     },
     {
       "goal_id": 337,
@@ -152,7 +152,7 @@
       "surface": "vcf.ibd retained family coverage",
       "output_path": "benchmarks/readiness/adapters/descent-family.vcf.json",
       "ok": true,
-      "detail": "validated the retained IBD family with germline benchmark-ready and ibdhap/ibdseq explicitly governed as non-benchmark-ready"
+      "detail": "validated GERMLINE and IBDseq as segment-call benchmarks while retaining IBDHap outside that comparison because it reports posterior IBD-state probabilities"
     },
     {
       "goal_id": 355,

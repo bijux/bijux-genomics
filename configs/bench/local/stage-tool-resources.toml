@@ -1210,6 +1210,16 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "vcf"
+stage_id = "vcf.demography"
+tool_id = "ibdne"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
 stage_id = "vcf.filter"
 tool_id = "bcftools"
 threads = 2
@@ -1222,6 +1232,26 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 domain = "vcf"
 stage_id = "vcf.gl_propagation"
 tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+tool_id = "germline"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+tool_id = "ibdseq"
 threads = 2
 memory_gb = 4
 walltime_minutes = 20
