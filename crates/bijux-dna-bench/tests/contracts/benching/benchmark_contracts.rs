@@ -12,7 +12,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
         "the checked-in stage campaign registry must include the audited seed campaign set"
     );
     assert_eq!(interfaces.schema_version, bijux_dna_bench::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1);
-    assert_eq!(interfaces.interfaces.len(), 6);
+    assert_eq!(interfaces.interfaces.len(), 7);
     Ok(())
 }
 
@@ -63,7 +63,7 @@ fn stage_interface_admission_uses_the_declared_repository_root() -> Result<()> {
 #[test]
 fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    assert_eq!(reports.len(), 4);
+    assert_eq!(reports.len(), 3);
     assert!(reports.iter().any(|admission| admission.report.run_id == "run-2042"));
     assert!(reports.iter().all(|admission| {
         admission.schema_version == bijux_dna_bench::BENCHMARK_REPORT_ADMISSION_SCHEMA_V1
@@ -92,7 +92,7 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
     assert_eq!(coverage.summary.retained_stage_count, 71);
     assert_eq!(coverage.summary.defined_stage_count, 7);
     assert_eq!(coverage.summary.admitted_stage_count, 0);
-    assert_eq!(coverage.summary.stale_stage_count, 4);
+    assert_eq!(coverage.summary.stale_stage_count, 3);
     assert_eq!(coverage.summary.failed_stage_count, 0);
     assert_eq!(coverage.summary.missing_stage_count, 64);
     assert!(coverage.stages.iter().any(|row| {
@@ -198,11 +198,11 @@ fn stage_report_admission_rejects_abbreviated_identities() -> Result<()> {
 fn stage_report_admission_requires_data_locks() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
     let mut report = reports
-        .iter()
-        .find(|admission| admission.report.comparability.is_none())
-        .ok_or_else(|| anyhow::anyhow!("checked-in reports contain no qualification campaign"))?
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?
         .report
         .clone();
+    report.comparability = None;
     for tool in &mut report.tools {
         tool.input_locks.clear();
     }

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-bam-genotyping-result-v1.json",
+  "title": "Normalized BAM genotyping benchmark bundle",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "total_records",
+    "covered_sites",
+    "called_genotypes",
+    "alternate_genotypes",
+    "mean_depth_at_covered_sites"
+  ],
+  "properties": {
+    "schema_version": {"const": "bijux.benchmark.bam.genotyping.bundle.v1"},
+    "stage_id": {"const": "bam.genotyping"},
+    "tool_id": {"const": "bcftools"},
+    "sample_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "total_records": {"type": "integer", "minimum": 1},
+    "covered_sites": {"type": "integer", "minimum": 1},
+    "called_genotypes": {"type": "integer", "minimum": 1},
+    "alternate_genotypes": {"type": "integer", "minimum": 0},
+    "mean_depth_at_covered_sites": {"type": "number", "exclusiveMinimum": 0}
+  },
+  "additionalProperties": false
+}

@@ -14,6 +14,24 @@ const BAM_ROLE: &str = "coordinate-sorted-deduplicated-bam";
 const BAI_ROLE: &str = "bam-index";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdmittedBamGenotypingCorpus {
+    pub bam: AdmittedBamCorpus,
+    pub reference: AdmittedBamCorpusFile,
+    pub reference_index: AdmittedBamCorpusFile,
+    pub reference_catalog: AdmittedBamCorpusFile,
+    pub known_sites: AdmittedBamCorpusFile,
+    pub known_sites_index: AdmittedBamCorpusFile,
+    pub candidate_regions: AdmittedBamCorpusFile,
+    pub known_sites_catalog: AdmittedBamCorpusFile,
+    pub constrained_alleles: AdmittedBamCorpusFile,
+    pub genotyping_inputs_catalog: AdmittedBamCorpusFile,
+    pub bam_input_bytes: u64,
+    pub reference_input_bytes: u64,
+    pub database_input_bytes: u64,
+    pub input_bytes: u64,
+}
+
 #[derive(Debug, Deserialize)]
 struct DataIndex {
     schema_version: String,
@@ -52,6 +70,24 @@ struct CatalogFile {
     kind: String,
     sha256: String,
     size_bytes: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct GenericDataCatalog {
+    schema_version: String,
+    id: String,
+    files: Vec<GenericCatalogFile>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GenericCatalogFile {
+    path: Option<String>,
+    kind: Option<String>,
+    sha256: Option<String>,
+    size_bytes: Option<u64>,
+    governed_path: Option<String>,
+    governed_sha256: Option<String>,
+    governed_size_bytes: Option<u64>,
 }
 
 /// Admit one coordinate-sorted BAM and its index from governed STUDY authorities.
@@ -139,6 +175,199 @@ pub fn admit_bam_benchmark_corpus(
         bam_index,
         input_bytes,
     })
+}
+
+/// Admit the complete reference and candidate-site closure used by BAM genotyping.
+///
+/// # Errors
+/// Returns an error when any governed index record, catalog, materialized file, size, or digest
+/// differs from the exact run-2001 input contract.
+pub fn admit_bam_genotyping_corpus(
+    study_root: &Path,
+    data_index_path: &Path,
+) -> Result<AdmittedBamGenotypingCorpus> {
+    let bam =
+        admit_bam_benchmark_corpus(study_root, data_index_path, "ena-prjeb22390-err2112767-bam")?;
+    let study_root = std::fs::canonicalize(study_root).context("resolve genotyping STUDY root")?;
+    let data_index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
+    let index: DataIndex = serde_json::from_slice(&read_authority(&data_index_path, "data index")?)
+        .context("parse genotyping data index")?;
+    if index.schema_version != DATA_INDEX_SCHEMA {
+        bail!("data index schema is unsupported: {}", index.schema_version);
+    }
+
+    let reference_record = unique_record(&index, "equcab3-gcf-002863925.1")?;
+    let known_sites_record = unique_record(&index, "ensembl-113-equcab3-refseq-known-sites-10mb")?;
+    let alleles_record =
+        unique_record(&index, "ensembl-113-equcab3-refseq-genotyping-inputs-10mb")?;
+    let reference_catalog = admit_record_catalog(&study_root, reference_record)?;
+    let known_sites_catalog = admit_record_catalog(&study_root, known_sites_record)?;
+    let genotyping_inputs_catalog = admit_record_catalog(&study_root, alleles_record)?;
+    let reference = admit_record_role(&study_root, reference_record, "catalog.files.0")?;
+    let reference_index = admit_record_role(&study_root, reference_record, "catalog.files.1")?;
+    let known_sites =
+        admit_record_role(&study_root, known_sites_record, "normalized-known-sites-vcf")?;
+    let known_sites_index =
+        admit_record_role(&study_root, known_sites_record, "known-sites-vcf-index")?;
+    let candidate_regions =
+        admit_record_role(&study_root, known_sites_record, "zero-based-candidate-regions")?;
+    let constrained_alleles =
+        admit_record_role(&study_root, alleles_record, "bcftools-constrained-calling-alleles")?;
+    let bam_input_bytes = checked_sum(&[bam.bam.size_bytes, bam.bam_index.size_bytes])?;
+    let reference_input_bytes = checked_sum(&[reference.size_bytes, reference_index.size_bytes])?;
+    let database_input_bytes = checked_sum(&[
+        known_sites.size_bytes,
+        known_sites_index.size_bytes,
+        candidate_regions.size_bytes,
+        constrained_alleles.size_bytes,
+    ])?;
+    let input_bytes = checked_sum(&[bam_input_bytes, reference_input_bytes, database_input_bytes])?;
+
+    Ok(AdmittedBamGenotypingCorpus {
+        bam,
+        reference,
+        reference_index,
+        reference_catalog,
+        known_sites,
+        known_sites_index,
+        candidate_regions,
+        known_sites_catalog,
+        constrained_alleles,
+        genotyping_inputs_catalog,
+        bam_input_bytes,
+        reference_input_bytes,
+        database_input_bytes,
+        input_bytes,
+    })
+}
+
+fn unique_record<'a>(index: &'a DataIndex, id: &str) -> Result<&'a DataIndexRecord> {
+    let mut matches = index.records.iter().filter(|record| record.id == id);
+    let record = matches.next().with_context(|| format!("data index lacks record {id}"))?;
+    if matches.next().is_some() {
+        bail!("data index record identity is not unique: {id}");
+    }
+    if record.benchmark_eligibility != "eligible" || record.integrity_status != "verified" {
+        bail!("genotyping input is not eligible with verified integrity: {id}");
+    }
+    Ok(record)
+}
+
+fn admit_record_catalog(
+    study_root: &Path,
+    record: &DataIndexRecord,
+) -> Result<AdmittedBamCorpusFile> {
+    validate_sha256(&record.catalog_sha256, "catalog")?;
+    let path = resolve_study_uri(study_root, &record.catalog_path, "catalog")?;
+    let path = governed_regular_file(study_root, &path, "catalog")?;
+    let bytes = read_authority(&path, "catalog")?;
+    let sha256 = bijux_dna_infra::hash_bytes_sha256(&bytes);
+    if sha256 != record.catalog_sha256 {
+        bail!("genotyping catalog digest differs from the data index: {}", record.id);
+    }
+    let catalog: GenericDataCatalog = serde_json::from_slice(&bytes).context("parse catalog")?;
+    if catalog.schema_version != DATA_CATALOG_SCHEMA || catalog.id != record.id {
+        bail!("genotyping catalog identity is unsupported: {}", record.id);
+    }
+    validate_record_catalog_closure(study_root, record, &catalog.files)?;
+    Ok(AdmittedBamCorpusFile {
+        path: path_string(&path)?,
+        sha256,
+        size_bytes: u64::try_from(bytes.len()).context("catalog size does not fit u64")?,
+    })
+}
+
+fn validate_record_catalog_closure(
+    study_root: &Path,
+    record: &DataIndexRecord,
+    catalog_files: &[GenericCatalogFile],
+) -> Result<()> {
+    if record.files.len() != catalog_files.len() {
+        bail!("genotyping catalog and data index file closures differ: {}", record.id);
+    }
+    let mut matched = BTreeSet::new();
+    for index_file in &record.files {
+        validate_sha256(&index_file.sha256, "data index file")?;
+        let index_path = governed_regular_file(
+            study_root,
+            &resolve_study_uri(study_root, &index_file.path, &index_file.role)?,
+            &index_file.role,
+        )?;
+        let mut candidates = catalog_files.iter().enumerate().filter_map(|(position, file)| {
+            catalog_file_identity(file).ok().and_then(|(path, sha256, size_bytes)| {
+                let path = resolve_catalog_path(study_root, path, &index_file.role).ok()?;
+                (path == index_path
+                    && sha256 == index_file.sha256
+                    && size_bytes == index_file.size_bytes
+                    && file.kind.as_deref().is_none_or(|kind| kind == index_file.role))
+                .then_some(position)
+            })
+        });
+        let position = candidates.next().with_context(|| {
+            format!("genotyping catalog and data index disagree for role {}", index_file.role)
+        })?;
+        if candidates.next().is_some() || !matched.insert(position) {
+            bail!("genotyping catalog file identity is ambiguous for role {}", index_file.role);
+        }
+    }
+    if matched.len() != catalog_files.len() {
+        bail!("genotyping catalog contains unmatched file identities: {}", record.id);
+    }
+    Ok(())
+}
+
+fn catalog_file_identity(file: &GenericCatalogFile) -> Result<(&str, &str, u64)> {
+    match (
+        file.path.as_deref(),
+        file.sha256.as_deref(),
+        file.size_bytes,
+        file.governed_path.as_deref(),
+        file.governed_sha256.as_deref(),
+        file.governed_size_bytes,
+    ) {
+        (Some(path), Some(sha256), Some(size_bytes), None, None, None) => {
+            validate_sha256(sha256, "catalog file")?;
+            Ok((path, sha256, size_bytes))
+        }
+        (None, None, None, Some(path), Some(sha256), Some(size_bytes)) => {
+            validate_sha256(sha256, "catalog file")?;
+            Ok((path, sha256, size_bytes))
+        }
+        _ => bail!("genotyping catalog file identity is incomplete or ambiguous"),
+    }
+}
+
+fn resolve_catalog_path(study_root: &Path, value: &str, label: &str) -> Result<PathBuf> {
+    let path = if value.starts_with("study://") {
+        resolve_study_uri(study_root, value, label)?
+    } else {
+        let path = Path::new(value);
+        if !path.is_absolute() {
+            bail!("catalog file path is neither absolute nor a STUDY URI: {value}");
+        }
+        path.to_path_buf()
+    };
+    governed_regular_file(study_root, &path, label)
+}
+
+fn admit_record_role(
+    study_root: &Path,
+    record: &DataIndexRecord,
+    role: &str,
+) -> Result<AdmittedBamCorpusFile> {
+    let mut matches = record.files.iter().filter(|file| file.role == role);
+    let file = matches.next().with_context(|| format!("{} lacks role {role}", record.id))?;
+    if matches.next().is_some() {
+        bail!("{} contains duplicate role {role}", record.id);
+    }
+    admit_materialized_file(study_root, file, role)
+}
+
+fn checked_sum(values: &[u64]) -> Result<u64> {
+    values
+        .iter()
+        .try_fold(0_u64, |sum, value| sum.checked_add(*value))
+        .context("genotyping input size overflow")
 }
 
 fn files_by_role(

@@ -30,6 +30,7 @@ const USAGE: &str = concat!(
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-coverage --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-duplication-metrics --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-endogenous-content --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-genotyping --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-mapping-summary --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-profile-reads --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
@@ -78,6 +79,7 @@ struct CampaignPreparation<'a> {
 
 enum CampaignEvidence {
     Bam(bijux_dna_bench::AdmittedBamCorpus),
+    BamGenotyping(Box<bijux_dna_bench::AdmittedBamGenotypingCorpus>),
     ReadLengths(bijux_dna_bench::FastqReadLengthExpectationPublication),
     ProfileReads(bijux_dna_bench::FastqProfileReadsExpectationPublication),
 }
@@ -115,6 +117,20 @@ impl CampaignPreparation<'_> {
     ) -> Result<bijux_dna_bench::BenchmarkExecutionSpec> {
         let image = self.authorities.resolve_current_image(self.study_root, &identity.tool_id)?;
         let execution = match self.evidence {
+            CampaignEvidence::BamGenotyping(corpus) => {
+                bijux_dna_bench::prepare_bam_genotyping_material_from_corpus(
+                    self.repository_root,
+                    self.benchmark_root,
+                    identity,
+                    self.authorities.source_contract_sha256(),
+                    required(self.options, "--operator")?,
+                    required(self.options, "--prepared-at-utc")?,
+                    required(self.options, "--account")?,
+                    required(self.options, "--partition")?,
+                    corpus,
+                )?
+                .execution
+            }
             CampaignEvidence::Bam(corpus) => {
                 let arguments = (
                     self.repository_root,
@@ -271,6 +287,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "publish-bam-coverage" => publish_bam_coverage(workspace, &options),
         "publish-bam-duplication-metrics" => publish_bam_duplication_metrics(workspace, &options),
         "publish-bam-endogenous-content" => publish_bam_endogenous_content(workspace, &options),
+        "publish-bam-genotyping" => publish_bam_genotyping(workspace, &options),
         "publish-bam-mapping-summary" => publish_bam_mapping_summary(workspace, &options),
         "publish-fastq-read-lengths" => publish_fastq_read_lengths(workspace, &options),
         "publish-fastq-profile-reads" => publish_fastq_profile_reads(workspace, &options),
@@ -378,6 +395,9 @@ fn prepare_campaign_jobs(
         bail!("benchmark campaign has no crate-owned executable material: {run_id}");
     }
     let evidence = match run_id {
+        "run-2001" => CampaignEvidence::BamGenotyping(Box::new(
+            bijux_dna_bench::admit_bam_genotyping_corpus(&study_root, &data_index)?,
+        )),
         "run-2002" | "run-2003" | "run-2004" | "run-2011" => {
             CampaignEvidence::Bam(bijux_dna_bench::admit_bam_benchmark_corpus(
                 &study_root,
@@ -437,7 +457,10 @@ fn prepare_campaign_jobs(
 }
 
 fn has_crate_owned_campaign_material(run_id: &str) -> bool {
-    matches!(run_id, "run-2002" | "run-2003" | "run-2004" | "run-2011" | "run-2042" | "run-2043")
+    matches!(
+        run_id,
+        "run-2001" | "run-2002" | "run-2003" | "run-2004" | "run-2011" | "run-2042" | "run-2043"
+    )
 }
 
 fn reconcile_campaign(
@@ -678,6 +701,27 @@ fn publish_bam_mapping_summary(
     )))
 }
 
+fn publish_bam_genotyping(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    let arguments = report_arguments(workspace, options)?;
+    let publication = bijux_dna_bench::publish_bam_genotyping_stage_report(
+        &arguments.repository_root,
+        &arguments.study_root,
+        &arguments.benchmark_root,
+        &arguments.plan,
+        &arguments.output_root,
+    )?;
+    Ok(OpsCommandOutcome::success(format!(
+        "published admitted BAM genotyping stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
+        publication.report_path.display(),
+        publication.report_sha256,
+        publication.markdown_path.display(),
+        publication.markdown_sha256,
+    )))
+}
+
 fn publish_bam_coverage(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
@@ -879,6 +923,7 @@ mod tests {
 
     #[test]
     fn campaign_material_dispatch_includes_duplication_metrics() {
+        assert!(has_crate_owned_campaign_material("run-2001"));
         assert!(has_crate_owned_campaign_material("run-2011"));
         assert!(!has_crate_owned_campaign_material("run-9999"));
     }

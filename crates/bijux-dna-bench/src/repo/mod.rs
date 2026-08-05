@@ -10,7 +10,9 @@ mod run_metadata;
 pub mod sqlite;
 mod workspace_paths;
 
-pub use bam_corpus_authority::admit_bam_benchmark_corpus;
+pub use bam_corpus_authority::{
+    admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, AdmittedBamGenotypingCorpus,
+};
 pub use corpus_authority::admit_fastq_benchmark_corpus;
 pub use repo_root::resolve_repo_root;
 pub use repository::RunRepository;

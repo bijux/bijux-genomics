@@ -6,6 +6,7 @@ mod attempt_migration;
 mod bam_coverage;
 mod bam_duplication_metrics;
 mod bam_endogenous_content;
+mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
 mod campaign_lifecycle;
@@ -44,6 +45,11 @@ pub use bam_endogenous_content::{
     prepare_bam_endogenous_content_material, prepare_bam_endogenous_content_material_from_corpus,
     publish_bam_endogenous_content_stage_report, render_bam_endogenous_content_markdown,
     BamEndogenousContentMaterial, BamEndogenousContentStageReportPublication,
+};
+pub use bam_genotyping::{
+    prepare_bam_genotyping_material, prepare_bam_genotyping_material_from_corpus,
+    publish_bam_genotyping_stage_report, render_bam_genotyping_markdown, BamGenotypingMaterial,
+    BamGenotypingStageReportPublication,
 };
 pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,

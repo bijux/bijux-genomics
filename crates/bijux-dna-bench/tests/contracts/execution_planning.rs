@@ -386,3 +386,25 @@ fn normalize_duplication(source: &str, input: &Path) -> anyhow::Result<String> {
     anyhow::ensure!(output.status.success(), "duplication AWK failed");
     Ok(String::from_utf8(output.stdout)?)
 }
+
+#[test]
+fn genotyping_normalizer_derives_candidate_site_metrics() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bam-genotyping-normalizer")?;
+    let genotypes = temporary.path().join("genotypes.tsv");
+    std::fs::write(
+        &genotypes,
+        b"chr1\t1\tA\tG\t0/0\t3\nchr1\t2\tC\tT\t0/1\t2\nchr1\t3\tG\tA\t./.\t0\n",
+    )?;
+    let script = super::support::repo_root()?.join("benchmarks/execution/bam_genotyping.awk");
+    let output = Command::new("awk")
+        .args(["-v", "mode=summary", "-f"])
+        .arg(script)
+        .arg(genotypes)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "genotyping AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\ntotal_records\t3\ncovered_sites\t2\ncalled_genotypes\t2\nalternate_genotypes\t1\nmean_depth_at_covered_sites\t2.500000000000\n"
+    );
+    Ok(())
+}

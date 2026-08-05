@@ -2,6 +2,11 @@
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
   "profile": "generic-fastq",
   "stages": {
+    "bam.genotyping": {
+      "parameter_schema_version": "bijux.bam.params.genotyping.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",
+      "overrides": {}
+    },
     "bam.coverage": {
       "parameter_schema_version": "bijux.bam.params.coverage.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)",
