@@ -342,7 +342,7 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
         ),
         native(
             "benchmark-campaign-cycle",
-            "Publish schema, plan, or initialize immutable benchmark campaign attempts through crate-owned workflows.",
+            "Plan, initialize, or prepare immutable benchmark campaign attempts through crate-owned workflows.",
             NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
         ),
         native(

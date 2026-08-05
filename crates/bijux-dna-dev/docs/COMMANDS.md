@@ -379,8 +379,10 @@ acquire-maps
 acquire-panels
 acquire-reference
 architecture-report
+benchmark-campaign-cycle
 benchmark-integrity-mini
 benchmark-smoke-level1
+benchmark-stage-coverage
 bijux
 cargo-targets
 certification-gate
@@ -432,3 +434,8 @@ setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
+
+`benchmark-campaign-cycle prepare-fastq-read-lengths` composes benchmark-owned corpus and
+execution-spec preparation with runner-owned Slurm materialization. It initializes or recovers all
+attempts from the exact source-locked plan, prepares both governed tools, and records `ready`
+lifecycle evidence without submitting or polling scheduler jobs.
