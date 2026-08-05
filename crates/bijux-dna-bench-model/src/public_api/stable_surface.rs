@@ -70,6 +70,7 @@ pub use crate::model::planning::{
     BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
 };
 pub use crate::model::report::{
+    admitted_benchmark_stage_report_schema, benchmark_stage_report_schema,
     AdmittedBenchmarkStageReport, BenchmarkComparisonMetric, BenchmarkComparisonStatus,
     BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
     BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
