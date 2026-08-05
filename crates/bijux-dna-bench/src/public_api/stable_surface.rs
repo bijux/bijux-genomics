@@ -15,8 +15,9 @@ pub use crate::repo::{
 pub use crate::workflow::{
     append_attempt_lifecycle_transition, apply_attempt_migration, benchmark_attempt_directory,
     build_execution_spec, compare, derive_scientific_readiness, derive_stage_coverage,
-    ensure_execution_spec, ensure_fastq_read_length_expectations, ensure_stage_campaign_attempts,
-    gate, initialize_attempt_lifecycle, load_attempt_lifecycle, load_benchmark_portfolio,
+    ensure_execution_spec, ensure_fastq_profile_reads_expectations,
+    ensure_fastq_read_length_expectations, ensure_stage_campaign_attempts, gate,
+    initialize_attempt_lifecycle, load_attempt_lifecycle, load_benchmark_portfolio,
     load_bundle_catalog, load_bundle_manifest, load_checked_in_benchmark_contracts,
     load_checked_in_benchmark_planning_contracts, load_checked_in_stage_reports,
     load_corpus_catalog, load_corpus_manifest, load_execution_authorities, load_execution_spec,
@@ -25,6 +26,7 @@ pub use crate::workflow::{
     load_suite, plan_attempt_migration, plan_stage_campaign_attempts,
     plan_stage_campaign_retry_attempts, prepare_fastq_profile_read_lengths_material,
     prepare_fastq_profile_read_lengths_material_from_expectations,
+    prepare_fastq_profile_reads_material, prepare_fastq_profile_reads_material_from_expectations,
     publish_checked_in_scientific_readiness, publish_checked_in_stage_coverage,
     publish_fastq_profile_read_lengths_stage_report, render_fastq_profile_read_lengths_markdown,
     render_scientific_readiness_markdown, render_stage_coverage_markdown,
@@ -32,7 +34,9 @@ pub use crate::workflow::{
     write_attempt_migration_plan, BenchRunOptions, BenchmarkAttemptMigrationVerification,
     BenchmarkAttemptMigrationVerificationEntry, BenchmarkCoverageWriteMode,
     BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial, FastqProfileReadLengthsMaterial,
-    FastqProfileReadLengthsStageReportPublication, FastqReadLengthExpectationPublication,
+    FastqProfileReadLengthsStageReportPublication, FastqProfileReadsExpectationPublication,
+    FastqProfileReadsExpectationSample, FastqProfileReadsMaterial,
+    FastqReadLengthExpectationPublication,
 };
 pub use bijux_dna_bench_model::{
     benchmark_campaign_plan_schema, benchmark_execution_spec_schema,

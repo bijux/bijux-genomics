@@ -87,6 +87,7 @@ fn bench_tree_matches_architecture_contract() {
             "evaluation.rs",
             "fastq_expectations/",
             "fastq_profile_read_lengths/",
+            "fastq_profile_reads/",
             "mod.rs",
             "options.rs",
             "report_load.rs",
@@ -110,7 +111,7 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/fastq_expectations")),
-        entries(["mod.rs", "rendering.rs", "storage.rs"]),
+        entries(["mod.rs", "profile_reads.rs", "rendering.rs", "storage.rs"]),
         "FASTQ expectation workflow must separate derivation, rendering, and immutable storage"
     );
 
@@ -123,6 +124,11 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/fastq_profile_read_lengths/report")),
         entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
         "FASTQ report derivation must separate attempt evidence, science, and rendering"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_profile_reads")),
+        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs"]),
+        "FASTQ profile campaign material must separate commands, inputs, and parameter evidence"
     );
 
     assert_eq!(

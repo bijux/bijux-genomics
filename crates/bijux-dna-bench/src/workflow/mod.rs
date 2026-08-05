@@ -7,6 +7,7 @@ mod campaign_lifecycle;
 mod evaluation;
 mod fastq_expectations;
 mod fastq_profile_read_lengths;
+mod fastq_profile_reads;
 mod options;
 mod report_load;
 mod run_suite;
@@ -35,13 +36,19 @@ pub use campaign_lifecycle::{
 };
 pub use evaluation::{compare, gate};
 pub use fastq_expectations::{
-    ensure_fastq_read_length_expectations, FastqReadLengthExpectationPublication,
+    ensure_fastq_profile_reads_expectations, ensure_fastq_read_length_expectations,
+    FastqProfileReadsExpectationPublication, FastqProfileReadsExpectationSample,
+    FastqReadLengthExpectationPublication,
 };
 pub use fastq_profile_read_lengths::{
     prepare_fastq_profile_read_lengths_material,
     prepare_fastq_profile_read_lengths_material_from_expectations,
     publish_fastq_profile_read_lengths_stage_report, render_fastq_profile_read_lengths_markdown,
     FastqProfileReadLengthsMaterial, FastqProfileReadLengthsStageReportPublication,
+};
+pub use fastq_profile_reads::{
+    prepare_fastq_profile_reads_material, prepare_fastq_profile_reads_material_from_expectations,
+    FastqProfileReadsMaterial,
 };
 pub use options::BenchRunOptions;
 pub use report_load::{

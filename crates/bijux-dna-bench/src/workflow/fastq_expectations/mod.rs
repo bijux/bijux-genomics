@@ -1,6 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Publication of exact FASTQ read-length expectation evidence.
 
+mod profile_reads;
 mod rendering;
 mod storage;
 
@@ -19,6 +20,11 @@ use bijux_dna_science::evidence::{
 
 use self::rendering::{render_histogram, render_summary};
 use self::storage::{ensure_directory_chain, ensure_immutable_file, verify_directory_closure};
+
+pub use self::profile_reads::{
+    ensure_fastq_profile_reads_expectations, FastqProfileReadsExpectationPublication,
+    FastqProfileReadsExpectationSample,
+};
 
 const EXPECTATION_KIND: &str = "fastq-profile-read-lengths";
 const DERIVATION_SOURCES: &[&str] = &[

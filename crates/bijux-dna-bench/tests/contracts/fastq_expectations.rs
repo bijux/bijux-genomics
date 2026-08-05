@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    ensure_fastq_read_length_expectations, validate_fastq_read_length_expectations,
+    ensure_fastq_profile_reads_expectations, ensure_fastq_read_length_expectations,
+    validate_fastq_read_length_expectations,
 };
 use serde_json::json;
 use tempfile::TempDir;
@@ -57,6 +58,54 @@ fn publishes_exact_awk_compatible_evidence_and_replays_identically() -> Result<(
     invalid.samples[0].summary_path = "../escaped.tsv".to_string();
     assert!(validate_fastq_read_length_expectations(&invalid)
         .is_err_and(|error| error.to_string().contains("artifact path")));
+    Ok(())
+}
+
+#[test]
+fn publishes_exact_read_and_base_count_admission_profile() -> Result<()> {
+    let fixture = expectation_fixture()?;
+    let read_lengths = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
+        &fixture.study_root,
+        &fixture.data_index,
+        CORPUS_ID,
+        1,
+        1,
+    )?;
+    let first = ensure_fastq_profile_reads_expectations(&fixture.study_root, &read_lengths)?;
+    let second = ensure_fastq_profile_reads_expectations(&fixture.study_root, &read_lengths)?;
+
+    assert_eq!(first, second);
+    assert_eq!(first.samples[0].read_count, 2);
+    assert_eq!(first.samples[0].base_count, 6);
+    assert_eq!(
+        fs::read_to_string(&first.profile_path)?,
+        "sample_id\tinput_layout\tfile_count\tread_count\tbase_count\nERR000001\tsingle_end\t1\t2\t6\n"
+    );
+    assert_eq!(
+        first.root.file_name().and_then(|value| value.to_str()),
+        Some("fastq-profile-reads")
+    );
+    Ok(())
+}
+
+#[test]
+fn rejects_conflicting_existing_read_profile_truth() -> Result<()> {
+    let fixture = expectation_fixture()?;
+    let read_lengths = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
+        &fixture.study_root,
+        &fixture.data_index,
+        CORPUS_ID,
+        1,
+        1,
+    )?;
+    let publication = ensure_fastq_profile_reads_expectations(&fixture.study_root, &read_lengths)?;
+    fs::write(&publication.profile_path, b"conflict\n")?;
+
+    let error = ensure_fastq_profile_reads_expectations(&fixture.study_root, &read_lengths)
+        .expect_err("conflicting profile truth must be rejected");
+    assert!(error.to_string().contains("conflicts with immutable evidence"));
     Ok(())
 }
 
