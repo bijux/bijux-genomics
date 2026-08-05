@@ -196,28 +196,30 @@ pub(crate) fn collect_vcf_adapter_command_row_map(
             tool_id,
             temp_root.join(format!("{tool_id}.phasing.adapter.json")),
         )?;
-        rows.extend(report.rows.into_iter().map(|row| {
-            VcfRenderedCommandRow {
-                stage_id: row.stage_id,
-                tool_id: row.tool_id,
-                readiness_kind: "benchmark_ready".to_string(),
-                benchmark_status: row.benchmark_status,
-                command_source: "vcf_phasing_family_adapter".to_string(),
-                command_steps: row
-                    .command_steps
-                    .into_iter()
-                    .map(|step| VcfRenderedCommandStep {
-                        step_id: step.step_id,
-                        step_kind: step.step_kind,
-                        consumes_previous_stdout: false,
-                        command: render_shell_command(&step.argv),
-                        argv: step.argv,
-                    })
-                    .collect(),
-                script_commands: Vec::new(),
-                reason: row.reason,
-            }
-        }));
+        rows.extend(report.rows.into_iter().filter(|row| row.stage_id == "vcf.phasing").map(
+            |row| {
+                VcfRenderedCommandRow {
+                    stage_id: row.stage_id,
+                    tool_id: row.tool_id,
+                    readiness_kind: "benchmark_ready".to_string(),
+                    benchmark_status: row.benchmark_status,
+                    command_source: "vcf_phasing_family_adapter".to_string(),
+                    command_steps: row
+                        .command_steps
+                        .into_iter()
+                        .map(|step| VcfRenderedCommandStep {
+                            step_id: step.step_id,
+                            step_kind: step.step_kind,
+                            consumes_previous_stdout: false,
+                            command: render_shell_command(&step.argv),
+                            argv: step.argv,
+                        })
+                        .collect(),
+                    script_commands: Vec::new(),
+                    reason: row.reason,
+                }
+            },
+        ));
     }
 
     let imputation_report = render_vcf_imputation_family_adapter(
