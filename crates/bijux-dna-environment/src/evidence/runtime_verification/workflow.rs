@@ -9,14 +9,15 @@ use anyhow::{bail, Context, Result};
 
 use crate::evidence::tool_contract::{
     clean_repository_head_commit, derive_apptainer_tool_contract, run_apptainer_smoke,
-    ApptainerSmokeManifest, ApptainerSmokeRequest,
+    validate_tool_image_identity_evidence, verify_apptainer_tool_contract, ApptainerSmokeManifest,
+    ApptainerSmokeRequest, ContainerToolContract,
 };
 use crate::evidence::{
     load_container_catalog, load_image_inventory_publication, resolve_current_apptainer_image,
     validate_container_evidence_chain, validate_container_inventory_catalog,
     validate_container_recipe_evidence_chain, ContainerRuntimeEvidence, EvidenceSourceIdentity,
     RuntimeEvidenceStatus, RuntimeVerificationPublication,
-    CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
+    CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 
 use super::report::render_runtime_verification_markdown;
@@ -46,9 +47,7 @@ struct ToolTask {
     version: String,
     upstream: String,
     help_command: String,
-    build_evidence_id: String,
-    version_command: String,
-    expected_version_regex: String,
+    contract: ContainerToolContract,
     image_path: PathBuf,
     image_sha256: String,
 }
@@ -59,6 +58,7 @@ struct ToolResult {
     version: String,
     image_sha256: String,
     status: RuntimeEvidenceStatus,
+    identity: EvidenceSourceIdentity,
     manifest: EvidenceSourceIdentity,
 }
 
@@ -106,9 +106,7 @@ pub fn execute_runtime_verification(
                 version: tool.version.clone(),
                 upstream: tool.upstream.clone(),
                 help_command: tool.help_command.clone(),
-                build_evidence_id: contract.build_evidence_id,
-                version_command: contract.version_command,
-                expected_version_regex: contract.expected_version_regex,
+                contract,
                 image_path: image.path,
                 image_sha256: image.sha256,
             })
@@ -129,12 +127,13 @@ pub fn execute_runtime_verification(
                 version: result.version,
                 image_sha256: result.image_sha256,
                 status: result.status,
+                identity: Some(result.identity),
                 manifest: Some(result.manifest),
             },
         );
     }
     let publication = RuntimeVerificationPublication {
-        schema_version: CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2.to_string(),
         catalog: EvidenceSourceIdentity {
             path: "repository://containers/contracts/catalog.toml".to_string(),
             sha256: inventory.catalog_sha256.clone(),
@@ -224,6 +223,16 @@ fn execute_tool(
     catalog_sha256: &str,
     task: &ToolTask,
 ) -> Result<ToolResult> {
+    let identity_path =
+        request.evidence_root.join("identities").join(format!("{}.json", task.tool_id));
+    let identity = verify_apptainer_tool_contract(
+        &request.apptainer_executable,
+        &task.image_path,
+        &task.image_sha256,
+        &task.contract,
+    )?;
+    validate_tool_image_identity_evidence(&identity, &task.image_sha256, &task.contract)?;
+    ensure_immutable_json(&identity_path, &identity)?;
     let manifest_path =
         request.evidence_root.join("manifests").join(format!("{}.json", task.tool_id));
     let manifest = if manifest_path.is_file() {
@@ -244,12 +253,12 @@ fn execute_tool(
             results_root,
             tool_id: task.tool_id.clone(),
             stage_id: "catalog.retained".to_string(),
-            build_evidence_id: task.build_evidence_id.clone(),
+            build_evidence_id: task.contract.build_evidence_id.clone(),
             repository_commit: commit.to_string(),
             registry_digest: catalog_sha256.to_string(),
             image_sha256: task.image_sha256.clone(),
-            version_command: task.version_command.clone(),
-            expected_version_regex: task.expected_version_regex.clone(),
+            version_command: task.contract.version_command.clone(),
+            expected_version_regex: task.contract.expected_version_regex.clone(),
             help_command: task.help_command.clone(),
             require_help: true,
             probe_commands: Vec::new(),
@@ -271,6 +280,10 @@ fn execute_tool(
         version: task.version.clone(),
         image_sha256: task.image_sha256.clone(),
         status,
+        identity: EvidenceSourceIdentity {
+            path: portable_path(&identity_path, &request.study_root, "study")?,
+            sha256: bijux_dna_infra::hash_file_sha256(&identity_path)?,
+        },
         manifest: EvidenceSourceIdentity {
             path: portable_path(&manifest_path, &request.study_root, "study")?,
             sha256: bijux_dna_infra::hash_file_sha256(&manifest_path)?,
@@ -288,10 +301,10 @@ fn validate_manifest(
         || manifest.repository_commit != commit
         || manifest.registry_digest != catalog_sha256
         || manifest.sif_sha256 != task.image_sha256
-        || manifest.build_evidence_id != task.build_evidence_id
-        || manifest.version_cmd != task.version_command
+        || manifest.build_evidence_id != task.contract.build_evidence_id
+        || manifest.version_cmd != task.contract.version_command
         || manifest.help_cmd != task.help_command
-        || manifest.expected_version_regex != task.expected_version_regex
+        || manifest.expected_version_regex != task.contract.expected_version_regex
     {
         bail!("runtime manifest identity differs from requested tool evidence");
     }

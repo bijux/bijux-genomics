@@ -6,11 +6,15 @@ use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
+use bijux_dna_environment::evidence::tool_contract::{
+    derive_apptainer_tool_contract, tool_contract_labels, verify_apptainer_tool_contract,
+};
 use bijux_dna_environment::evidence::{
     apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
     execute_runtime_verification, repository_head_commit, verify_runtime_verification_report,
     ImageInventoryDerivationRequest, RuntimeEvidenceStatus, RuntimeVerificationRequest,
+    RuntimeVerificationResult,
 };
 use serde_json::json;
 
@@ -81,44 +85,106 @@ fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
     let inventory_path = study.join("containers/evidence/inventory.json");
     bijux_dna_infra::atomic_create_json(&inventory_path, &inventory)?;
 
-    let apptainer = temporary.path().join("apptainer");
-    fs::write(
-        &apptainer,
-        "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo 'example 1.0.0' ;;\n  *--help*) echo 'example help' ;;\n  *) exit 2 ;;\nesac\n",
-    )?;
-    let mut permissions = fs::metadata(&apptainer)?.permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&apptainer, permissions)?;
+    let contract = derive_apptainer_tool_contract(&repository, "example", &commit, "linux-amd64")?;
+    let apptainer = fake_apptainer(temporary.path(), &contract)?;
     let evidence_root = study.join("containers/evidence/runtime").join(&commit);
     let publication_path = evidence_root.join("publication/runtime-verification.json");
     let markdown_path = evidence_root.join("publication/runtime-verification.md");
-    let result = execute_runtime_verification(
-        &RuntimeVerificationRequest {
-            repository_root: repository,
-            study_root: study,
-            inventory_path,
-            apptainer_executable: apptainer,
-            data_root: inventory_request.study_root.join("data"),
-            evidence_root: evidence_root.clone(),
-            worker_count: 2,
-            timeout: Duration::from_secs(2),
-        },
-        &publication_path,
-        &markdown_path,
-    )?;
+    let request = RuntimeVerificationRequest {
+        repository_root: repository,
+        study_root: study,
+        inventory_path,
+        apptainer_executable: apptainer,
+        data_root: inventory_request.study_root.join("data"),
+        evidence_root: evidence_root.clone(),
+        worker_count: 2,
+        timeout: Duration::from_secs(2),
+    };
+    let result = execute_runtime_verification(&request, &publication_path, &markdown_path)?;
 
-    assert_eq!(result.passed, 1);
-    assert_eq!(result.failed, 0);
+    assert_runtime_evidence(&result, &evidence_root)?;
+    verify_runtime_verification_report(&publication_path, &markdown_path)?;
+
+    assert_label_tampering_rejected(
+        temporary.path(),
+        &contract,
+        &request,
+        &image_path,
+        &image_sha256,
+    )?;
+    Ok(())
+}
+
+fn assert_runtime_evidence(result: &RuntimeVerificationResult, evidence_root: &Path) -> Result<()> {
+    assert_eq!((result.passed, result.failed), (1, 0));
     let tool = result.publication.tools.get("example").context("missing runtime tool")?;
     assert_eq!(tool.status, RuntimeEvidenceStatus::Passed);
-    assert!(tool
-        .manifest
-        .as_ref()
-        .is_some_and(|manifest| manifest.path.starts_with("study://containers/evidence/runtime/")));
+    let prefix = "study://containers/evidence/runtime/";
+    assert!(tool.identity.as_ref().is_some_and(|identity| identity.path.starts_with(prefix)));
+    assert!(tool.manifest.as_ref().is_some_and(|manifest| manifest.path.starts_with(prefix)));
     assert!(evidence_root.join("manifests/example.json").is_file());
+    assert!(evidence_root.join("identities/example.json").is_file());
     assert_eq!(fs::read_dir(evidence_root.join("logs/example"))?.count(), 4);
-    verify_runtime_verification_report(&publication_path, &markdown_path)?;
     Ok(())
+}
+
+fn assert_label_tampering_rejected(
+    root: &Path,
+    contract: &bijux_dna_environment::evidence::tool_contract::ContainerToolContract,
+    request: &RuntimeVerificationRequest,
+    image_path: &Path,
+    image_sha256: &str,
+) -> Result<()> {
+    let mut labels = tool_contract_labels(contract);
+    labels.insert("io.bijux.tool-contract.version".to_string(), "stale".to_string());
+    fs::write(
+        root.join("labels.json"),
+        serde_json::to_vec_pretty(&json!({"data": {"attributes": {"labels": labels}}}))?,
+    )?;
+    let Err(error) = verify_apptainer_tool_contract(
+        &request.apptainer_executable,
+        image_path,
+        image_sha256,
+        contract,
+    ) else {
+        bail!("changed labels passed direct image identity verification");
+    };
+    let detail = format!("{error:#}");
+    assert!(detail.contains("mismatches embedded contract"), "{detail}");
+    let publication_path = request.evidence_root.join("publication/replayed-verification.json");
+    let markdown_path = request.evidence_root.join("publication/replayed-verification.md");
+    let Err(error) = execute_runtime_verification(request, &publication_path, &markdown_path)
+    else {
+        bail!("changed image labels did not invalidate replayed runtime evidence");
+    };
+    assert!(error.to_string().contains("runtime verification execution errors"));
+    Ok(())
+}
+
+fn fake_apptainer(
+    root: &Path,
+    contract: &bijux_dna_environment::evidence::tool_contract::ContainerToolContract,
+) -> Result<std::path::PathBuf> {
+    let contract_path = root.join("tool-contract.json");
+    bijux_dna_infra::atomic_create_json(&contract_path, contract)?;
+    let labels_path = root.join("labels.json");
+    bijux_dna_infra::atomic_create_json(
+        &labels_path,
+        &json!({"data": {"attributes": {"labels": tool_contract_labels(contract)}}}),
+    )?;
+    let executable = root.join("apptainer");
+    fs::write(
+        &executable,
+        format!(
+            "#!/bin/sh\ncase \"$1\" in\n  inspect) cat '{}' ;;\n  exec)\n    case \"$*\" in\n      *tool-contract.json*) cat '{}' ;;\n      *--version*) echo 'example 1.0.0' ;;\n      *--help*) echo 'example help' ;;\n      *) exit 2 ;;\n    esac\n    ;;\n  *) exit 2 ;;\nesac\n",
+            labels_path.display(),
+            contract_path.display(),
+        ),
+    )?;
+    let mut permissions = fs::metadata(&executable)?.permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(&executable, permissions)?;
+    Ok(executable)
 }
 
 fn git(repository: &Path, args: &[&str]) -> Result<()> {

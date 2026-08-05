@@ -156,10 +156,12 @@ cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
 The environment crate resolves every image through the canonical inventory,
 re-hashes it before execution, runs independent workers without polling or
 serial queueing, and preserves one immutable manifest plus stdout/stderr pair
-per probe. Existing matching manifests are reused after interruption; identity
-drift or changed bytes at an immutable path fail closed. The portable
-publication binds each tool to its manifest with `study://` paths and exact
-SHA-256 identities.
+per probe. Every invocation re-inspects the embedded contract and image labels;
+an existing identity artifact must equal that fresh observation and cannot
+replace it. Existing matching smoke manifests are reused after interruption;
+identity drift or changed bytes at an immutable path fail closed. The portable
+publication binds each tool to its identity evidence and smoke manifest with
+`study://` paths and exact SHA-256 identities.
 
 A passing runtime campaign qualifies only the version and help dimensions.
 Real one-sample execution remains a governed Slurm run, and scientific,

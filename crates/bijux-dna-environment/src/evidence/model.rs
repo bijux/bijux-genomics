@@ -9,6 +9,8 @@ pub const CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2: &str =
     "bijux.container.image_inventory_publication.v2";
 pub const CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1: &str =
     "bijux.container.runtime_verification_publication.v1";
+pub const CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2: &str =
+    "bijux.container.runtime_verification_publication.v2";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct ContainerImageInventoryPublication {
@@ -170,6 +172,8 @@ pub struct ContainerRuntimeEvidence {
     pub image_sha256: String,
     pub status: RuntimeEvidenceStatus,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity: Option<EvidenceSourceIdentity>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub manifest: Option<EvidenceSourceIdentity>,
 }
 
@@ -191,6 +195,6 @@ fn image_inventory_publication_schema_version(_: &mut SchemaGenerator) -> Schema
 fn runtime_verification_publication_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
+        "const": CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
     })
 }

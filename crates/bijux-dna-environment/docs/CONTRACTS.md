@@ -24,6 +24,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
   image identities.
 - `ContainerToolContract`: the strict identity installed exactly once at
   `/usr/share/bijux/tool-contract.json` in each retained tool image.
+- `ToolImageIdentityEvidence`: persisted image digest, complete embedded tool contract, and exact
+  inspected labels required by current runtime verification.
 - `ApptainerRecipeIdentity`: exact committed definition digest plus ordered `%files` Git objects;
   build evidence matches only when status, commit, definition, and complete context agree.
 - `ContainerCatalog` and `ContainerCatalogTool`: the complete fail-closed model loaded from
@@ -50,8 +52,9 @@ commits to the complete scan even when obsolete images are omitted from the publ
 The image-inventory and runtime-verification loaders reject malformed identities, duplicate tools
 or candidates, and selected images that are not the unique canonical admitted candidate. The
 evidence-chain loader also rejects cross-publication identity, version, disposition, selected-image,
-and roster drift. New runtime evidence binds each tool to an immutable execution-site manifest;
-the manifest retains bounded probe outcomes and exact stdout/stderr identities.
+and roster drift. Runtime publication v2 binds each tool to immutable image-identity evidence and an
+execution-site smoke manifest; the manifest retains bounded probe outcomes and exact stdout/stderr
+identities. Legacy v1 publications remain readable but cannot qualify the current evidence chain.
 Unknown descriptive fields remain forward-compatible; every identity and decision field consumed
 by qualification is typed. The complete chain does not trust the inventory's `current_recipe`
 label: it recomputes the exact committed definition and `%files` identity and requires matching
@@ -60,7 +63,7 @@ built/passed evidence for every retained selected image.
 Embedded contracts reject unknown fields and identify the exact catalog, canonical recipe, source,
 repository commit, architecture, build evidence, expected binary, and version interface. The SIF
 digest is deliberately computed outside the SIF because embedding its own digest would be circular;
-`VerifiedToolImageIdentity` binds that digest to the validated internal contract and matching labels.
+`ToolImageIdentityEvidence` binds that digest to the validated internal contract and matching labels.
 Build retries are permitted only for the environment-owned transient transport taxonomy. Permanent
 recipe, source, and command failures stop after the first invocation. Smoke admission does not
 assume semantic-version punctuation; valid contract formats such as `r1206` and `2026_06` are

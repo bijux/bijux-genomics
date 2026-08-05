@@ -18,8 +18,30 @@ pub fn image_inventory_publication_schema() -> Value {
 
 #[must_use]
 pub fn runtime_verification_publication_schema() -> Value {
-    serde_json::to_value(schema_for!(RuntimeVerificationPublication))
-        .unwrap_or_else(|_| serde_json::json!({}))
+    let mut schema = serde_json::to_value(schema_for!(RuntimeVerificationPublication))
+        .unwrap_or_else(|_| serde_json::json!({}));
+    if let Some(required) =
+        schema.pointer_mut("/$defs/ContainerRuntimeEvidence/required").and_then(Value::as_array_mut)
+    {
+        for field in ["identity", "manifest"] {
+            let field = Value::String(field.to_string());
+            if !required.contains(&field) {
+                required.push(field);
+            }
+        }
+    }
+    if let Some(properties) = schema
+        .pointer_mut("/$defs/ContainerRuntimeEvidence/properties")
+        .and_then(Value::as_object_mut)
+    {
+        for field in ["identity", "manifest"] {
+            properties.insert(
+                field.to_string(),
+                serde_json::json!({"$ref": "#/$defs/EvidenceSourceIdentity"}),
+            );
+        }
+    }
+    schema
 }
 
 /// Write the image-inventory publication schema atomically.

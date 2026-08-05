@@ -22,8 +22,9 @@ pub fn render_runtime_verification_markdown(
         "<!-- GENERATED FILE - DO NOT EDIT -->\n\
 <!-- source: bijux-dna-environment::evidence::runtime_verification -->\n\
 # Apptainer Runtime Verification\n\n\
-This report verifies catalog-owned version and help entry points for the exact\n\
-canonical images selected by the admitted inventory. It does not establish\n\
+This report verifies embedded identity contracts, image labels, and catalog-owned\n\
+version and help entry points for the exact canonical images selected by the\n\
+admitted inventory. It does not establish\n\
 real-data, scientific, benchmark, security, or release qualification.\n\n\
 ## Evidence Boundary\n\n",
     );
@@ -32,8 +33,8 @@ real-data, scientific, benchmark, security, or release qualification.\n\n\
     let _ = writeln!(output, "- Raw inventory SHA-256: `{}`", publication.inventory.sha256);
     let _ = writeln!(output, "- Tool results: **passed {passed}**, **failed {failed}**");
     output.push_str("- Runtime network: **disabled**\n\n## Tool Results\n\n");
-    output.push_str("| Tool | Version | Image SHA-256 | Manifest | Result |\n");
-    output.push_str("|---|---|---|---|---|\n");
+    output.push_str("| Tool | Version | Image SHA-256 | Identity | Manifest | Result |\n");
+    output.push_str("|---|---|---|---|---|---|\n");
     for (tool_id, evidence) in &publication.tools {
         let result = match evidence.status {
             RuntimeEvidenceStatus::Passed => "passed",
@@ -42,14 +43,16 @@ real-data, scientific, benchmark, security, or release qualification.\n\n\
         };
         let manifest =
             evidence.manifest.as_ref().map_or("unpublished", |identity| identity.path.as_str());
+        let identity =
+            evidence.identity.as_ref().map_or("unpublished", |identity| identity.path.as_str());
         let _ = writeln!(
             output,
-            "| `{tool_id}` | `{}` | `{}` | `{manifest}` | **{result}** |",
+            "| `{tool_id}` | `{}` | `{}` | `{identity}` | `{manifest}` | **{result}** |",
             evidence.version, evidence.image_sha256
         );
     }
     output.push_str(
-        "\n## Interpretation\n\nA pass means the immutable image started without network access, its declared\nversion and help probes completed within the execution timeout, and version\noutput matched the catalog contract. Full probe manifests and immutable logs\nremain in the governed execution-site evidence tree.\n",
+        "\n## Interpretation\n\nA pass means the image digest, embedded contract, and image labels matched the\ncurrent catalog and recipe identity; the immutable image then started without\nnetwork access, its declared version and help probes completed within the\nexecution timeout, and version output matched the catalog contract. Full identity\nevidence, probe manifests, and immutable logs remain in the governed execution-site\nevidence tree.\n",
     );
     output
 }

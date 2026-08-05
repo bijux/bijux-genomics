@@ -9,7 +9,8 @@ use bijux_dna_environment::evidence::tool_contract::{
     container_build_evidence_matches_recipe, load_container_catalog,
     prepare_apptainer_tool_contract, retained_apptainer_tool_ids, tool_contract_labels,
     validate_container_catalog, validate_tool_contract, validate_tool_contract_labels,
-    verify_apptainer_tool_contract, ToolContractBuildRequest,
+    validate_tool_image_identity_evidence, verify_apptainer_tool_contract,
+    ToolContractBuildRequest,
 };
 
 #[test]
@@ -262,6 +263,16 @@ fn runtime_verification_binds_contract_labels_and_image_digest() -> Result<()> {
         verify_apptainer_tool_contract(&fake_apptainer, &image, &image_sha256, &prepared.contract)?;
     assert_eq!(verified.contract, prepared.contract);
     assert_eq!(verified.image_sha256, image_sha256);
+    validate_tool_image_identity_evidence(&verified, &image_sha256, &prepared.contract)?;
+
+    let mut stale_labels = verified.clone();
+    stale_labels.labels.insert("io.bijux.tool-contract.version".to_string(), "stale".to_string());
+    assert!(validate_tool_image_identity_evidence(
+        &stale_labels,
+        &image_sha256,
+        &prepared.contract,
+    )
+    .is_err_and(|error| error.to_string().contains("mismatches embedded contract")));
 
     assert!(verify_apptainer_tool_contract(
         &fake_apptainer,

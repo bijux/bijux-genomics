@@ -2,8 +2,11 @@ use std::time::Duration;
 
 use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
 
-const SCHEMA_PATH: &str = "containers/contracts/schemas/runtime-verification-publication.v1.json";
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run runtime-verification -- execute <study-root> <inventory> <apptainer> <data-root> <evidence-root> <json-output> <markdown-output> <workers> <timeout-seconds>\n  bijux-dna-dev containers run runtime-verification -- check-report <json-output> <markdown-output>\n  bijux-dna-dev containers run runtime-verification -- generate-schema [<schema-output>]\n  bijux-dna-dev containers run runtime-verification -- check-schema";
+const PUBLICATION_SCHEMA_PATH: &str =
+    "containers/contracts/schemas/runtime-verification-publication.v2.json";
+const IDENTITY_SCHEMA_PATH: &str =
+    "containers/contracts/schemas/tool-image-identity-evidence.v1.json";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run runtime-verification -- execute <study-root> <inventory> <apptainer> <data-root> <evidence-root> <json-output> <markdown-output> <workers> <timeout-seconds>\n  bijux-dna-dev containers run runtime-verification -- check-report <json-output> <markdown-output>\n  bijux-dna-dev containers run runtime-verification -- generate-schema [<publication-schema> <identity-schema>]\n  bijux-dna-dev containers run runtime-verification -- check-schema";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -67,22 +70,29 @@ fn check_report(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
 }
 
 fn generate_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let output = match args {
-        [] => workspace.path(SCHEMA_PATH),
-        [output] => path_from_arg(workspace, output),
+    let (publication, identity) = match args {
+        [] => (workspace.path(PUBLICATION_SCHEMA_PATH), workspace.path(IDENTITY_SCHEMA_PATH)),
+        [publication, identity] => {
+            (path_from_arg(workspace, publication), path_from_arg(workspace, identity))
+        }
         _ => anyhow::bail!(USAGE),
     };
-    bijux_dna_environment::api::write_runtime_verification_publication_schema(&output)?;
-    success_line(format!("generated {}", output.display()))
+    bijux_dna_environment::api::write_runtime_verification_publication_schema(&publication)?;
+    bijux_dna_environment::api::write_tool_image_identity_evidence_schema(&identity)?;
+    success_line(format!("generated {} and {}", publication.display(), identity.display()))
 }
 
 fn check_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     if !args.is_empty() {
         anyhow::bail!(USAGE);
     }
-    let path = workspace.path(SCHEMA_PATH);
-    let observed: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
-    if observed != bijux_dna_environment::api::runtime_verification_publication_schema() {
+    let publication: serde_json::Value =
+        serde_json::from_str(&read_utf8(&workspace.path(PUBLICATION_SCHEMA_PATH))?)?;
+    let identity: serde_json::Value =
+        serde_json::from_str(&read_utf8(&workspace.path(IDENTITY_SCHEMA_PATH))?)?;
+    if publication != bijux_dna_environment::api::runtime_verification_publication_schema()
+        || identity != bijux_dna_environment::api::tool_image_identity_evidence_schema()
+    {
         return Ok(ContainerCommandOutcome::failure(
             "runtime-verification schema drifted from Rust environment types\n",
         ));

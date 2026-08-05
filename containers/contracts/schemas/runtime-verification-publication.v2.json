@@ -1,0 +1,85 @@
+{
+  "$defs": {
+    "ContainerRuntimeEvidence": {
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/EvidenceSourceIdentity"
+        },
+        "image_sha256": {
+          "type": "string"
+        },
+        "manifest": {
+          "$ref": "#/$defs/EvidenceSourceIdentity"
+        },
+        "status": {
+          "$ref": "#/$defs/RuntimeEvidenceStatus"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "image_sha256",
+        "status",
+        "identity",
+        "manifest"
+      ],
+      "type": "object"
+    },
+    "EvidenceSourceIdentity": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "RuntimeEvidenceStatus": {
+      "enum": [
+        "passed",
+        "failed",
+        "blocked"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "catalog": {
+      "$ref": "#/$defs/EvidenceSourceIdentity"
+    },
+    "inventory": {
+      "$ref": "#/$defs/EvidenceSourceIdentity"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.container.runtime_verification_publication.v2",
+      "type": "string"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ContainerRuntimeEvidence"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "catalog",
+    "inventory",
+    "repository_commit",
+    "tools"
+  ],
+  "title": "RuntimeVerificationPublication",
+  "type": "object"
+}

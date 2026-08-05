@@ -11,6 +11,7 @@ use super::model::{
     RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
+    CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 
 /// Validate complete scan identities before publication or replay.
@@ -461,7 +462,11 @@ fn image_state_name(state: &ContainerImageState) -> &'static str {
 pub fn validate_runtime_verification_publication(
     publication: &RuntimeVerificationPublication,
 ) -> Result<()> {
-    if publication.schema_version != CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1 {
+    if !matches!(
+        publication.schema_version.as_str(),
+        CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1
+            | CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2
+    ) {
         bail!(
             "unsupported runtime-verification publication schema: {}",
             publication.schema_version
@@ -478,6 +483,15 @@ pub fn validate_runtime_verification_publication(
             bail!("runtime publication contains an empty tool identity");
         }
         validate_sha256(&evidence.image_sha256, "runtime image")?;
+        if publication.schema_version == CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2
+            && (evidence.identity.is_none() || evidence.manifest.is_none())
+        {
+            bail!("runtime v2 evidence for {tool_id} omits identity or smoke manifest");
+        }
+        if let Some(identity) = &evidence.identity {
+            validate_portable_path(&identity.path, "runtime image identity")?;
+            validate_sha256(&identity.sha256, "runtime image identity")?;
+        }
         if let Some(manifest) = &evidence.manifest {
             validate_portable_path(&manifest.path, "runtime manifest")?;
             validate_sha256(&manifest.sha256, "runtime manifest")?;

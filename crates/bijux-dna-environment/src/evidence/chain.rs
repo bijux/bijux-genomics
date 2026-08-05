@@ -11,6 +11,7 @@ use super::{
     validate_image_inventory_publication, validate_runtime_verification_publication,
     ContainerCatalog, ContainerImageInventoryPublication, ContainerSupportDisposition,
     RuntimeEvidenceStatus, RuntimeVerificationPublication,
+    CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -117,6 +118,9 @@ pub fn validate_container_evidence_chain(
 ) -> Result<()> {
     validate_container_inventory_catalog(catalog_sha256, catalog, inventory)?;
     validate_runtime_verification_publication(runtime)?;
+    if runtime.schema_version != CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2 {
+        bail!("runtime evidence chain requires embedded image identity evidence");
+    }
     if runtime.catalog.sha256 != catalog_sha256 {
         bail!(
             "runtime publication catalog digest is stale: expected {catalog_sha256}, observed {}",

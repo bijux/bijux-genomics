@@ -264,7 +264,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         root.join("containers/contracts/schemas/image-inventory-publication.v2.json");
     let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v1.json");
     let runtime_path =
-        root.join("containers/contracts/schemas/runtime-verification-publication.v1.json");
+        root.join("containers/contracts/schemas/runtime-verification-publication.v2.json");
+    let tool_identity_path =
+        root.join("containers/contracts/schemas/tool-image-identity-evidence.v1.json");
     let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
@@ -278,6 +280,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         bijux_dna_environment::evidence::write_image_inventory_scan_schema(&scan_path)?;
         bijux_dna_environment::evidence::write_runtime_verification_publication_schema(
             &runtime_path,
+        )?;
+        bijux_dna_environment::evidence::tool_contract::write_tool_image_identity_evidence_schema(
+            &tool_identity_path,
         )?;
         bijux_dna_environment::evidence::write_image_storage_plan_schema(&storage_plan_path)?;
         bijux_dna_environment::evidence::write_image_storage_report_schema(&storage_report_path)?;
@@ -295,6 +300,8 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         serde_json::from_str(&std::fs::read_to_string(inventory_path)?)?;
     let scan: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(scan_path)?)?;
     let runtime: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(runtime_path)?)?;
+    let tool_identity: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(tool_identity_path)?)?;
     let storage_plan: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(storage_plan_path)?)?;
     let storage_report: serde_json::Value =
@@ -308,6 +315,10 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(inventory, bijux_dna_environment::evidence::image_inventory_publication_schema());
     assert_eq!(scan, bijux_dna_environment::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_environment::evidence::runtime_verification_publication_schema());
+    assert_eq!(
+        tool_identity,
+        bijux_dna_environment::evidence::tool_contract::tool_image_identity_evidence_schema()
+    );
     assert_eq!(storage_plan, bijux_dna_environment::evidence::image_storage_plan_schema());
     assert_eq!(storage_report, bijux_dna_environment::evidence::image_storage_report_schema());
     assert_eq!(
