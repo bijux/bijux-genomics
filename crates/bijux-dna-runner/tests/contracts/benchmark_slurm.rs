@@ -1,4 +1,6 @@
 use std::collections::BTreeMap;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt as _;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -12,10 +14,12 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
     BenchmarkExecutionSpec, BenchmarkRunIdentity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
 };
-use bijux_dna_runner::api::prepare_benchmark_slurm_job;
+use bijux_dna_runner::api::{
+    prepare_benchmark_slurm_job, submit_prepared_benchmark_job, SlurmClientPaths,
+};
 
 struct Fixture {
-    _root: tempfile::TempDir,
+    root: tempfile::TempDir,
     spec: BenchmarkExecutionSpec,
     input_path: PathBuf,
 }
@@ -154,7 +158,7 @@ fn fixture() -> anyhow::Result<Fixture> {
         },
     };
     std::fs::write(result_root.join("execution-spec.json"), serde_json::to_vec_pretty(&spec)?)?;
-    Ok(Fixture { _root: root, spec, input_path })
+    Ok(Fixture { root, spec, input_path })
 }
 
 #[test]
@@ -210,4 +214,70 @@ fn benchmark_slurm_material_rejects_output_symlinks_and_directive_injection() ->
     assert!(prepare_benchmark_slurm_job(&symlinked.spec, "2026-08-05T02:10:00Z")
         .is_err_and(|error| error.to_string().contains("non-symlink directory")));
     Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn benchmark_submission_persists_and_recovers_one_scheduler_effect() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let prepared = prepare_benchmark_slurm_job(&fixture.spec, "2026-08-05T02:10:00Z")?;
+    let calls = fixture.root.path().join("sbatch-calls");
+    let paths = scheduler_client(
+        fixture.root.path(),
+        &format!("printf x >> {}\nprintf '456789\\n'\n", shell_literal(&calls)),
+    )?;
+
+    let first = submit_prepared_benchmark_job(&paths, &prepared)?;
+    let recovered = submit_prepared_benchmark_job(&paths, &prepared)?;
+
+    assert_eq!(first, recovered);
+    assert_eq!(std::fs::read_to_string(calls)?, "x");
+    let scheduler_root =
+        prepared.request.script_path.parent().ok_or_else(|| anyhow::anyhow!("script parent"))?;
+    assert!(scheduler_root.join("submission-intent.json").is_file());
+    assert!(scheduler_root.join("job-handle.json").is_file());
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn unresolved_submission_intent_blocks_duplicate_scheduler_effects() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let prepared = prepare_benchmark_slurm_job(&fixture.spec, "2026-08-05T02:10:00Z")?;
+    let paths = scheduler_client(fixture.root.path(), "echo rejected >&2\nexit 1\n")?;
+    assert!(submit_prepared_benchmark_job(&paths, &prepared).is_err());
+
+    write_executable(&paths.sbatch, "printf '999999\\n'\n")?;
+    assert!(submit_prepared_benchmark_job(&paths, &prepared)
+        .is_err_and(|error| error.to_string().contains("reconcile scheduler state")));
+    let scheduler_root =
+        prepared.request.script_path.parent().ok_or_else(|| anyhow::anyhow!("script parent"))?;
+    assert!(scheduler_root.join("submission-failure.json").is_file());
+    assert!(!scheduler_root.join("job-handle.json").exists());
+    Ok(())
+}
+
+#[cfg(unix)]
+fn scheduler_client(root: &std::path::Path, sbatch_body: &str) -> anyhow::Result<SlurmClientPaths> {
+    let paths = SlurmClientPaths {
+        sbatch: root.join("sbatch"),
+        squeue: root.join("squeue"),
+        sacct: root.join("sacct"),
+        scancel: root.join("scancel"),
+    };
+    write_executable(&paths.sbatch, sbatch_body)?;
+    Ok(paths)
+}
+
+#[cfg(unix)]
+fn write_executable(path: &std::path::Path, body: &str) -> anyhow::Result<()> {
+    std::fs::write(path, format!("#!/bin/sh\n{body}"))?;
+    let mut permissions = std::fs::metadata(path)?.permissions();
+    permissions.set_mode(0o755);
+    std::fs::set_permissions(path, permissions)?;
+    Ok(())
+}
+
+fn shell_literal(path: &std::path::Path) -> String {
+    format!("'{}'", path.display().to_string().replace('\'', "'\\''"))
 }

@@ -6,5 +6,6 @@ mod client;
 mod contracts;
 mod parsing;
 mod stable_surface;
+mod submission;
 
 pub use stable_surface::*;

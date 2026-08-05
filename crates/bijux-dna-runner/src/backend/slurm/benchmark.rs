@@ -37,10 +37,6 @@ pub fn prepare_benchmark_slurm_job(
     require_scheduler_token(&spec.resources.account, "account")?;
     require_scheduler_token(&spec.resources.partition, "partition")?;
     require_shell_commands(spec)?;
-    let job_name = format!("bijux-{}-{}", spec.identity.run.run_id, spec.identity.tool_id);
-    if job_name.len() > 128 {
-        bail!("benchmark Slurm job name exceeds scheduler limit");
-    }
 
     let repository_path = require_canonical_directory(
         Path::new(&spec.source.repository_path),
@@ -104,7 +100,7 @@ fn script_preflight(spec: &BenchmarkExecutionSpec, execution_spec_sha256: &str) 
     let image_path = shell_quote(&spec.image.path);
     let mut lines = vec![
         "#!/usr/bin/env bash".to_string(),
-        format!("#SBATCH --job-name=bijux-{}-{}", spec.identity.run.run_id, spec.identity.tool_id),
+        format!("#SBATCH --job-name={}", benchmark_job_name(spec)),
         format!("#SBATCH --account={}", spec.resources.account),
         format!("#SBATCH --partition={}", spec.resources.partition),
         format!("#SBATCH --cpus-per-task={}", spec.resources.cpus),
@@ -433,6 +429,25 @@ fn require_shell_commands(spec: &BenchmarkExecutionSpec) -> Result<()> {
 
 fn shell_quote(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
+}
+
+fn benchmark_job_name(spec: &BenchmarkExecutionSpec) -> String {
+    let identity = format!(
+        "{}\0{}\0{}\0{}\0{}\0{}",
+        spec.identity.run.run_id,
+        spec.identity.run.domain,
+        spec.identity.run.stage_id,
+        spec.identity.tool_id,
+        spec.identity.campaign_id,
+        spec.identity.attempt_id
+    );
+    let digest = bijux_dna_infra::hash_bytes_sha256(identity.as_bytes());
+    let mut prefix = format!(
+        "bijux-{}-{}-{}",
+        spec.identity.run.run_id, spec.identity.tool_id, spec.identity.attempt_id
+    );
+    prefix.truncate(prefix.len().min(96));
+    format!("{prefix}-{}", &digest[..16])
 }
 
 fn result_shell_path(relative: &str) -> String {

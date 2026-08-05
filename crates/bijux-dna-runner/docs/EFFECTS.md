@@ -10,6 +10,8 @@
 - Read declared inputs and execution manifests.
 - Write runner-owned records, stdout/stderr captures, and artifacts under declared run/output roots.
 - Materialize source-locked benchmark batch scripts under their declared immutable attempt roots.
+- Persist benchmark submission intent before `sbatch` and scheduler handles immediately after a
+  successful submission effect.
 - Create temporary paths through `bijux-dna-infra` helpers.
 
 ## Effect Codes

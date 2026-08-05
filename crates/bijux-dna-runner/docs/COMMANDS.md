@@ -26,6 +26,10 @@ Slurm script. It does not submit the script. The generated job runs Apptainer wi
 access, mounts source and inputs read-only, records measured resource rows, and publishes completion
 evidence only after required-output closure succeeds.
 
+`submit_prepared_benchmark_job` persists an immutable submission intent before invoking `sbatch`.
+It returns an existing matching handle without resubmission and refuses an intent with no handle so
+an interrupted scheduler effect cannot silently create a duplicate immutable attempt.
+
 Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, `awk`, and
 GNU `time` only for source validation, byte-identity checks, acceptance checks, and resource
 evidence. Shell filesystem utilities are limited to the declared attempt result and scratch roots.

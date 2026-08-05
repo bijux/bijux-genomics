@@ -13,7 +13,8 @@ Upstream callers use the `bijux-dna-runtime::Runner` contract and runner facade 
 Use `bijux_dna_runner::api::*` for stable consumer-facing entrypoints. The crate root also exports `ApptainerRunner`, `DockerRunner`, and `LocalRunner` for the concrete runtime adapters. Slurm callers submit, observe, collect, or cancel once per call and own their scheduling cadence. See `docs/PUBLIC_API.md` for the full facade contract and `docs/COMMANDS.md` for the command inventory this crate may manage.
 
 Benchmark callers first use `prepare_benchmark_slurm_job` to turn a persisted execution
-specification into exact scheduler material, then explicitly call the non-waiting submission API.
+specification into exact scheduler material, then use `submit_prepared_benchmark_job` for
+intent-first, non-waiting, duplicate-safe scheduler submission.
 
 ## Key contracts it owns/consumes
 The runner owns backend execution specs, command invocation identity, stdout/stderr capture, exit mapping, runner artifacts, replay verification, and the dependency/effect boundary around those responsibilities.
