@@ -5,59 +5,27 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{bail, Result};
+use bijux_dna_bench_model::normalized_result::{
+    bam::{
+        BenchmarkBamDuplicationMetricsMeasurements as DuplicationMetrics,
+        BenchmarkBamDuplicationMetricsResult as DuplicationBundle,
+        BenchmarkBamDuplicationMetricsValues as DuplicationValues,
+        BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+        BAM_DUPLICATION_METRICS_STAGE_ID as STAGE_ID,
+    },
+    BenchmarkDownstreamProbeRecord as DownstreamProbe,
+};
 use bijux_dna_bench_model::{BenchmarkExecutionSpec, BenchmarkScientificValue};
-use serde::Deserialize;
 
 use super::super::super::bam_observation::{
     numeric_value, read_numeric_summary, validate_byte_counts, ScientificObservation,
 };
 use crate::workflow::stage_report::read_json;
 
-const BUNDLE_SCHEMA: &str = "bijux.benchmark.bam.duplication_metrics.bundle.v1";
-const STAGE_ID: &str = "bam.duplication_metrics";
 const PROBE_STAGE_ID: &str = "benchmark.bam.duplication_metrics.compare";
 const FLOAT_TOLERANCE: f64 = 1e-12;
 const MAX_EXACT_INTEGER: u64 = 1 << 53;
 const METRICS: [&str; 3] = ["examined_reads", "duplicate_reads", "duplication_fraction"];
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DuplicationValues {
-    examined_reads: u64,
-    duplicate_reads: u64,
-    duplication_fraction: f64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DuplicationBundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    sample_id: String,
-    #[serde(flatten)]
-    values: DuplicationValues,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DuplicationMetrics {
-    #[serde(flatten)]
-    values: DuplicationValues,
-    bam_input_bytes: u64,
-    bam_index_input_bytes: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DownstreamProbe {
-    schema_version: String,
-    stage_id: String,
-    input_contract: String,
-    complete: bool,
-}
 
 pub(super) fn derive_scientific_observation(
     spec: &BenchmarkExecutionSpec,

@@ -26,7 +26,6 @@ use crate::workflow::stage_report::{
 
 pub(super) const RUN_ID: &str = "run-2004";
 pub(super) const STAGE_ID: &str = "bam.mapping_summary";
-pub(super) const BUNDLE_SCHEMA: &str = "bijux.benchmark.bam.mapping_summary.bundle.v1";
 const REPORT_FILE_STEM: &str = "run-2004-bam-mapping-summary";
 
 #[derive(Debug, Clone, PartialEq)]

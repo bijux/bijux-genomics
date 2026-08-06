@@ -1,0 +1,377 @@
+//! Canonical normalized BAM result and measurement records.
+
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
+
+pub const BAM_COVERAGE_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.coverage.bundle.v1";
+pub const BAM_COVERAGE_STAGE_ID: &str = "bam.coverage";
+pub const BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1: &str =
+    "bijux.benchmark.bam.duplication_metrics.bundle.v1";
+pub const BAM_DUPLICATION_METRICS_STAGE_ID: &str = "bam.duplication_metrics";
+pub const BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1: &str =
+    "bijux.benchmark.bam.endogenous_content.bundle.v1";
+pub const BAM_ENDOGENOUS_CONTENT_STAGE_ID: &str = "bam.endogenous_content";
+pub const BAM_GENOTYPING_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.genotyping.bundle.v1";
+pub const BAM_GENOTYPING_STAGE_ID: &str = "bam.genotyping";
+pub const BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1: &str =
+    "bijux.benchmark.bam.mapping_summary.bundle.v1";
+pub const BAM_MAPPING_SUMMARY_STAGE_ID: &str = "bam.mapping_summary";
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamCoverageValues {
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub reference_bases: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub covered_bases: u64,
+    #[schemars(schema_with = "positive_fraction_schema")]
+    pub coverage_fraction: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub mean_depth: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamCoverageResult {
+    #[serde(deserialize_with = "deserialize_coverage_schema_version")]
+    #[schemars(schema_with = "coverage_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_coverage_stage_id")]
+    #[schemars(schema_with = "coverage_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_coverage_tool_id")]
+    #[schemars(schema_with = "coverage_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[serde(flatten)]
+    pub values: BenchmarkBamCoverageValues,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamCoverageMetrics {
+    #[serde(flatten)]
+    pub values: BenchmarkBamCoverageValues,
+    pub bam_input_bytes: u64,
+    pub bam_index_input_bytes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamDuplicationMetricsValues {
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub examined_reads: u64,
+    pub duplicate_reads: u64,
+    #[schemars(schema_with = "fraction_schema")]
+    pub duplication_fraction: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamDuplicationMetricsResult {
+    #[serde(deserialize_with = "deserialize_duplication_schema_version")]
+    #[schemars(schema_with = "duplication_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_duplication_stage_id")]
+    #[schemars(schema_with = "duplication_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_duplication_tool_id")]
+    #[schemars(schema_with = "duplication_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[serde(flatten)]
+    pub values: BenchmarkBamDuplicationMetricsValues,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamDuplicationMetricsMeasurements {
+    #[serde(flatten)]
+    pub values: BenchmarkBamDuplicationMetricsValues,
+    pub bam_input_bytes: u64,
+    pub bam_index_input_bytes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamEndogenousContentValues {
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub total_primary_reads: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub mapped_primary_reads: u64,
+    #[schemars(schema_with = "positive_fraction_schema")]
+    pub mapped_fraction: f64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub mapped_nonduplicate_primary_reads: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamEndogenousContentResult {
+    #[serde(deserialize_with = "deserialize_endogenous_schema_version")]
+    #[schemars(schema_with = "endogenous_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_endogenous_stage_id")]
+    #[schemars(schema_with = "endogenous_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_samtools_tool_id")]
+    #[schemars(schema_with = "samtools_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[serde(flatten)]
+    pub values: BenchmarkBamEndogenousContentValues,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamEndogenousContentMetrics {
+    #[serde(flatten)]
+    pub values: BenchmarkBamEndogenousContentValues,
+    pub bam_input_bytes: u64,
+    pub bam_index_input_bytes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamGenotypingResult {
+    #[serde(deserialize_with = "deserialize_genotyping_schema_version")]
+    #[schemars(schema_with = "genotyping_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_genotyping_stage_id")]
+    #[schemars(schema_with = "genotyping_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_bcftools_tool_id")]
+    #[schemars(schema_with = "bcftools_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub total_records: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub covered_sites: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub called_genotypes: u64,
+    pub alternate_genotypes: u64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub mean_depth_at_covered_sites: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamGenotypingMetrics {
+    pub total_records: u64,
+    pub covered_sites: u64,
+    pub called_genotypes: u64,
+    pub alternate_genotypes: u64,
+    pub mean_depth_at_covered_sites: f64,
+    pub bam_input_bytes: u64,
+    pub reference_input_bytes: u64,
+    pub database_input_bytes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamMappingSummaryResult {
+    #[serde(deserialize_with = "deserialize_mapping_schema_version")]
+    #[schemars(schema_with = "mapping_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_mapping_stage_id")]
+    #[schemars(schema_with = "mapping_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_mapping_tool_id")]
+    #[schemars(schema_with = "mapping_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub primary_reads: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub mapped_primary_reads: u64,
+    #[schemars(schema_with = "positive_fraction_schema")]
+    pub mapped_primary_fraction: f64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub paired_primary_reads: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamMappingSummaryMetrics {
+    pub primary_reads: u64,
+    pub mapped_primary_reads: u64,
+    pub mapped_primary_fraction: f64,
+    pub paired_primary_reads: u64,
+    pub bam_input_bytes: u64,
+    pub bam_index_input_bytes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+#[must_use]
+pub fn bam_coverage_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamCoverageResult)
+}
+
+#[must_use]
+pub fn bam_duplication_metrics_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamDuplicationMetricsResult)
+}
+
+#[must_use]
+pub fn bam_endogenous_content_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamEndogenousContentResult)
+}
+
+#[must_use]
+pub fn bam_genotyping_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamGenotypingResult)
+}
+
+#[must_use]
+pub fn bam_mapping_summary_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamMappingSummaryResult)
+}
+
+macro_rules! const_string_schema {
+    ($name:ident, $value:expr) => {
+        fn $name(_: &mut SchemaGenerator) -> Schema {
+            json_schema!({"type": "string", "const": $value})
+        }
+    };
+}
+
+const_string_schema!(coverage_schema_version, BAM_COVERAGE_RESULT_SCHEMA_V1);
+const_string_schema!(coverage_stage_id, BAM_COVERAGE_STAGE_ID);
+const_string_schema!(duplication_schema_version, BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1);
+const_string_schema!(duplication_stage_id, BAM_DUPLICATION_METRICS_STAGE_ID);
+const_string_schema!(endogenous_schema_version, BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1);
+const_string_schema!(endogenous_stage_id, BAM_ENDOGENOUS_CONTENT_STAGE_ID);
+const_string_schema!(samtools_tool_id, "samtools");
+const_string_schema!(genotyping_schema_version, BAM_GENOTYPING_RESULT_SCHEMA_V1);
+const_string_schema!(genotyping_stage_id, BAM_GENOTYPING_STAGE_ID);
+const_string_schema!(bcftools_tool_id, "bcftools");
+const_string_schema!(mapping_schema_version, BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1);
+const_string_schema!(mapping_stage_id, BAM_MAPPING_SUMMARY_STAGE_ID);
+
+fn coverage_tool_id(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "enum": ["bedtools", "mosdepth", "samtools"]})
+}
+
+fn duplication_tool_id(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "enum": ["picard", "samtools"]})
+}
+
+fn mapping_tool_id(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "enum": ["picard", "samtools"]})
+}
+
+fn sample_id_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"})
+}
+
+fn positive_integer_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "integer", "minimum": 1})
+}
+
+fn fraction_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "number", "minimum": 0, "maximum": 1})
+}
+
+fn positive_fraction_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "number", "exclusiveMinimum": 0, "maximum": 1})
+}
+
+fn positive_number_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "number", "exclusiveMinimum": 0})
+}
+
+macro_rules! exact_deserializer {
+    ($name:ident, $expected:expr) => {
+        fn $name<'de, D>(deserializer: D) -> Result<String, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserialize_one_of(deserializer, &[$expected])
+        }
+    };
+}
+
+exact_deserializer!(deserialize_coverage_schema_version, BAM_COVERAGE_RESULT_SCHEMA_V1);
+exact_deserializer!(deserialize_coverage_stage_id, BAM_COVERAGE_STAGE_ID);
+exact_deserializer!(
+    deserialize_duplication_schema_version,
+    BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1
+);
+exact_deserializer!(deserialize_duplication_stage_id, BAM_DUPLICATION_METRICS_STAGE_ID);
+exact_deserializer!(deserialize_endogenous_schema_version, BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1);
+exact_deserializer!(deserialize_endogenous_stage_id, BAM_ENDOGENOUS_CONTENT_STAGE_ID);
+exact_deserializer!(deserialize_samtools_tool_id, "samtools");
+exact_deserializer!(deserialize_genotyping_schema_version, BAM_GENOTYPING_RESULT_SCHEMA_V1);
+exact_deserializer!(deserialize_genotyping_stage_id, BAM_GENOTYPING_STAGE_ID);
+exact_deserializer!(deserialize_bcftools_tool_id, "bcftools");
+exact_deserializer!(deserialize_mapping_schema_version, BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1);
+exact_deserializer!(deserialize_mapping_stage_id, BAM_MAPPING_SUMMARY_STAGE_ID);
+
+fn deserialize_coverage_tool_id<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_one_of(deserializer, &["bedtools", "mosdepth", "samtools"])
+}
+
+fn deserialize_duplication_tool_id<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_one_of(deserializer, &["picard", "samtools"])
+}
+
+fn deserialize_mapping_tool_id<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_one_of(deserializer, &["picard", "samtools"])
+}
+
+fn deserialize_one_of<'de, D>(deserializer: D, allowed: &[&str]) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    if allowed.contains(&value.as_str()) {
+        Ok(value)
+    } else {
+        Err(D::Error::custom(format!("unsupported normalized BAM identity: {value}")))
+    }
+}
+
+fn deserialize_sample_id<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    let normalized = !value.is_empty()
+        && value.bytes().enumerate().all(|(index, byte)| {
+            byte.is_ascii_alphanumeric() || (index > 0 && matches!(byte, b'.' | b'_' | b'-'))
+        });
+    if normalized {
+        Ok(value)
+    } else {
+        Err(D::Error::custom("normalized BAM sample identity is malformed"))
+    }
+}

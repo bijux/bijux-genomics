@@ -5,16 +5,21 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::{
-    BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
-};
-use serde::Deserialize;
-
-use super::BUNDLE_SCHEMA;
 use crate::workflow::bam_observation::{numeric_value, read_numeric_summary};
 use crate::workflow::stage_report::{
     distribution, read_json, ResourceObservation, MAX_REPORT_INPUT_BYTES,
+};
+use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::{
+    bam::{
+        BenchmarkBamGenotypingMetrics as GenotypingMetrics,
+        BenchmarkBamGenotypingResult as GenotypingBundle,
+        BAM_GENOTYPING_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+    },
+    BenchmarkDownstreamProbeRecord as DownstreamProbe,
+};
+use bijux_dna_bench_model::{
+    BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
 };
 
 const FLOAT_TOLERANCE: f64 = 1e-12;
@@ -26,44 +31,6 @@ const SCIENTIFIC_METRICS: [&str; 5] = [
     "alternate_genotypes",
     "mean_depth_at_covered_sites",
 ];
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct GenotypingBundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    sample_id: String,
-    total_records: u64,
-    covered_sites: u64,
-    called_genotypes: u64,
-    alternate_genotypes: u64,
-    mean_depth_at_covered_sites: f64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct GenotypingMetrics {
-    total_records: u64,
-    covered_sites: u64,
-    called_genotypes: u64,
-    alternate_genotypes: u64,
-    mean_depth_at_covered_sites: f64,
-    bam_input_bytes: u64,
-    reference_input_bytes: u64,
-    database_input_bytes: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DownstreamProbe {
-    schema_version: String,
-    stage_id: String,
-    input_contract: String,
-    complete: bool,
-}
 
 #[derive(Debug, Clone)]
 pub(super) struct ScientificObservation {

@@ -23,7 +23,6 @@ use crate::workflow::stage_report::{
     require_complete_plan,
 };
 
-pub(super) const BUNDLE_SCHEMA: &str = "bijux.benchmark.bam.genotyping.bundle.v1";
 const REPORT_FILE_STEM: &str = "run-2001-bam-genotyping";
 
 #[derive(Debug, Clone, PartialEq)]

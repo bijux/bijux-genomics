@@ -69,6 +69,7 @@ pub use crate::model::lifecycle::{
 pub use crate::model::materialization::{
     corpus_acquisition_plan_schema, governed_data_catalog_schema,
 };
+pub use crate::model::normalized_result;
 pub use crate::model::observation::benchmark_observation_schema;
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::planning::{

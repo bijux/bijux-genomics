@@ -1,8 +1,41 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-bam-duplication-metrics-result-v1.json",
-  "title": "Normalized BAM duplication-metrics benchmark bundle",
-  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "duplicate_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "duplication_fraction": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "examined_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.duplication_metrics.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.duplication_metrics",
+      "type": "string"
+    },
+    "tool_id": {
+      "enum": [
+        "picard",
+        "samtools"
+      ],
+      "type": "string"
+    }
+  },
   "required": [
     "schema_version",
     "stage_id",
@@ -12,14 +45,6 @@
     "duplicate_reads",
     "duplication_fraction"
   ],
-  "properties": {
-    "schema_version": {"const": "bijux.benchmark.bam.duplication_metrics.bundle.v1"},
-    "stage_id": {"const": "bam.duplication_metrics"},
-    "tool_id": {"enum": ["picard", "samtools"]},
-    "sample_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
-    "examined_reads": {"type": "integer", "minimum": 1},
-    "duplicate_reads": {"type": "integer", "minimum": 0},
-    "duplication_fraction": {"type": "number", "minimum": 0, "maximum": 1}
-  },
-  "additionalProperties": false
+  "title": "BenchmarkBamDuplicationMetricsResult",
+  "type": "object"
 }

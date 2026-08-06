@@ -1,8 +1,44 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-bam-mapping-summary-result-v1.json",
-  "title": "Normalized BAM mapping-summary benchmark bundle",
-  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "mapped_primary_fraction": {
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "type": "number"
+    },
+    "mapped_primary_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "paired_primary_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "primary_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.mapping_summary.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.mapping_summary",
+      "type": "string"
+    },
+    "tool_id": {
+      "enum": [
+        "picard",
+        "samtools"
+      ],
+      "type": "string"
+    }
+  },
   "required": [
     "schema_version",
     "stage_id",
@@ -13,15 +49,6 @@
     "mapped_primary_fraction",
     "paired_primary_reads"
   ],
-  "properties": {
-    "schema_version": {"const": "bijux.benchmark.bam.mapping_summary.bundle.v1"},
-    "stage_id": {"const": "bam.mapping_summary"},
-    "tool_id": {"enum": ["picard", "samtools"]},
-    "sample_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
-    "primary_reads": {"type": "integer", "minimum": 1},
-    "mapped_primary_reads": {"type": "integer", "minimum": 1},
-    "mapped_primary_fraction": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
-    "paired_primary_reads": {"type": "integer", "minimum": 1}
-  },
-  "additionalProperties": false
+  "title": "BenchmarkBamMappingSummaryResult",
+  "type": "object"
 }

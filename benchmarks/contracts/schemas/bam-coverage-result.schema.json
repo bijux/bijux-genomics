@@ -1,8 +1,45 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-bam-coverage-result-v1.json",
-  "title": "Normalized BAM coverage benchmark bundle",
-  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "coverage_fraction": {
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "type": "number"
+    },
+    "covered_bases": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "mean_depth": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "reference_bases": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.coverage.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.coverage",
+      "type": "string"
+    },
+    "tool_id": {
+      "enum": [
+        "bedtools",
+        "mosdepth",
+        "samtools"
+      ],
+      "type": "string"
+    }
+  },
   "required": [
     "schema_version",
     "stage_id",
@@ -13,15 +50,6 @@
     "coverage_fraction",
     "mean_depth"
   ],
-  "properties": {
-    "schema_version": {"const": "bijux.benchmark.bam.coverage.bundle.v1"},
-    "stage_id": {"const": "bam.coverage"},
-    "tool_id": {"enum": ["bedtools", "mosdepth", "samtools"]},
-    "sample_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
-    "reference_bases": {"type": "integer", "minimum": 1},
-    "covered_bases": {"type": "integer", "minimum": 1},
-    "coverage_fraction": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
-    "mean_depth": {"type": "number", "exclusiveMinimum": 0}
-  },
-  "additionalProperties": false
+  "title": "BenchmarkBamCoverageResult",
+  "type": "object"
 }

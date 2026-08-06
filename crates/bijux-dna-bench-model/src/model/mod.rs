@@ -8,6 +8,7 @@ pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
 pub mod materialization;
+pub mod normalized_result;
 pub mod observation;
 pub mod planning;
 pub mod protocol;

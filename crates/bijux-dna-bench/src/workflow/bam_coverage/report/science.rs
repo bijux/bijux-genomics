@@ -5,60 +5,25 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
+use bijux_dna_bench_model::normalized_result::{
+    bam::{
+        BenchmarkBamCoverageMetrics as CoverageMetrics,
+        BenchmarkBamCoverageResult as CoverageBundle, BenchmarkBamCoverageValues as CoverageValues,
+        BAM_COVERAGE_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA, BAM_COVERAGE_STAGE_ID as STAGE_ID,
+    },
+    BenchmarkDownstreamProbeRecord as DownstreamProbe,
+};
 use bijux_dna_bench_model::{BenchmarkExecutionSpec, BenchmarkScientificValue};
-use serde::Deserialize;
 
 use super::super::super::bam_observation::{
     numeric_value, read_numeric_summary, validate_byte_counts, ScientificObservation,
 };
 use crate::workflow::stage_report::read_json;
 
-const BUNDLE_SCHEMA: &str = "bijux.benchmark.bam.coverage.bundle.v1";
-const STAGE_ID: &str = "bam.coverage";
 const PROBE_STAGE_ID: &str = "benchmark.bam.coverage.compare";
 const FLOAT_TOLERANCE: f64 = 1e-12;
 const MAX_EXACT_INTEGER: u64 = 1 << 53;
 const METRICS: [&str; 4] = ["reference_bases", "covered_bases", "coverage_fraction", "mean_depth"];
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CoverageValues {
-    reference_bases: u64,
-    covered_bases: u64,
-    coverage_fraction: f64,
-    mean_depth: f64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CoverageBundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    sample_id: String,
-    #[serde(flatten)]
-    values: CoverageValues,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CoverageMetrics {
-    #[serde(flatten)]
-    values: CoverageValues,
-    bam_input_bytes: u64,
-    bam_index_input_bytes: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DownstreamProbe {
-    schema_version: String,
-    stage_id: String,
-    input_contract: String,
-    complete: bool,
-}
 
 pub(super) fn derive_scientific_observation(
     spec: &BenchmarkExecutionSpec,

@@ -5,16 +5,23 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{bail, Result};
+use bijux_dna_bench_model::normalized_result::{
+    bam::{
+        BenchmarkBamEndogenousContentMetrics as EndogenousMetrics,
+        BenchmarkBamEndogenousContentResult as EndogenousBundle,
+        BenchmarkBamEndogenousContentValues as EndogenousValues,
+        BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+        BAM_ENDOGENOUS_CONTENT_STAGE_ID as STAGE_ID,
+    },
+    BenchmarkDownstreamProbeRecord as DownstreamProbe,
+};
 use bijux_dna_bench_model::{BenchmarkExecutionSpec, BenchmarkScientificValue};
-use serde::Deserialize;
 
 use super::super::super::bam_observation::{
     numeric_value, read_numeric_summary, validate_byte_counts, ScientificObservation,
 };
 use crate::workflow::stage_report::read_json;
 
-const BUNDLE_SCHEMA: &str = "bijux.benchmark.bam.endogenous_content.bundle.v1";
-const STAGE_ID: &str = "bam.endogenous_content";
 const PROBE_STAGE_ID: &str = "benchmark.bam.endogenous_content.consume";
 const FLOAT_TOLERANCE: f64 = 1e-12;
 const MAX_EXACT_INTEGER: u64 = 1 << 53;
@@ -24,46 +31,6 @@ const METRICS: [&str; 4] = [
     "mapped_fraction",
     "mapped_nonduplicate_primary_reads",
 ];
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct EndogenousValues {
-    total_primary_reads: u64,
-    mapped_primary_reads: u64,
-    mapped_fraction: f64,
-    mapped_nonduplicate_primary_reads: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct EndogenousBundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    sample_id: String,
-    #[serde(flatten)]
-    values: EndogenousValues,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct EndogenousMetrics {
-    #[serde(flatten)]
-    values: EndogenousValues,
-    bam_input_bytes: u64,
-    bam_index_input_bytes: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DownstreamProbe {
-    schema_version: String,
-    stage_id: String,
-    input_contract: String,
-    complete: bool,
-}
 
 pub(super) fn derive_scientific_observation(
     spec: &BenchmarkExecutionSpec,
