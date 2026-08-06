@@ -11,6 +11,7 @@ mod recipe_identity;
 mod schema;
 mod smoke;
 mod validation;
+mod version_catalog;
 
 pub use catalog::{
     catalog_identity_at_commit, load_container_catalog, retained_apptainer_tool_ids,
@@ -37,9 +38,9 @@ pub use recipe_identity::{
     repository_commit_is_ancestor_of_head, repository_head_commit, ApptainerRecipeIdentity,
 };
 pub use schema::{
-    container_catalog_lock_schema, container_catalog_schema, tool_contract_schema,
-    tool_image_identity_evidence_schema, write_container_catalog_lock_schema,
-    write_container_catalog_schema, write_tool_contract_schema,
+    container_catalog_lock_schema, container_catalog_schema, container_version_map_schema,
+    tool_contract_schema, tool_image_identity_evidence_schema, write_container_catalog_lock_schema,
+    write_container_catalog_schema, write_container_version_map_schema, write_tool_contract_schema,
     write_tool_image_identity_evidence_schema,
 };
 pub use smoke::{
@@ -47,3 +48,7 @@ pub use smoke::{
     APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
 };
 pub use validation::{validate_tool_contract, validate_tool_image_identity_evidence};
+pub use version_catalog::{
+    derive_container_version_map, render_container_version_map, ContainerVersionMap,
+    ContainerVersionMapItem, CONTAINER_VERSION_CATALOG_PATH, CONTAINER_VERSION_MAP_SCHEMA_V2,
+};

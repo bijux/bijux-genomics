@@ -5,7 +5,7 @@ use super::{
     env_or_empty, failure_lines, fs, git_last_modified_timestamp, governed_container_file_ids,
     load_toml, lock_items_by_tool, out_path_arg, parse_date, read_lock_json, read_utf8, run_argv,
     sha256_hex, success_line, table_string, tool_versions, write_utf8, BTreeMap, BTreeSet,
-    ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc, VersionMapItem, Workspace,
+    ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc, Workspace,
 };
 
 const VERSION_LOCK_GENERATOR_PATH: &str =
@@ -49,42 +49,7 @@ fn lock_build_date_utc(workspace: &Workspace, versions_path: &std::path::Path) -
 }
 
 pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<String> {
-    let versions = tool_versions(workspace)?;
-    let items = versions
-        .into_iter()
-        .map(|(tool, row)| VersionMapItem {
-            tool,
-            version: row
-                .get("version")
-                .and_then(toml::Value::as_str)
-                .unwrap_or_default()
-                .to_string(),
-            source: row.get("source").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
-            source_sha256: row
-                .get("source_sha256")
-                .and_then(toml::Value::as_str)
-                .unwrap_or_default()
-                .to_string(),
-            pinned_commit: row
-                .get("pinned_commit")
-                .and_then(toml::Value::as_str)
-                .unwrap_or_default()
-                .to_string(),
-            date_pinned: row
-                .get("date_pinned")
-                .and_then(toml::Value::as_str)
-                .unwrap_or_default()
-                .to_string(),
-        })
-        .collect::<Vec<_>>();
-    Ok(format!(
-        "{}\n",
-        serde_json::to_string_pretty(&serde_json::json!({
-            "schema_version": "bijux.container.version_map.v2",
-            "source": "containers/versions/versions.toml",
-            "items": items,
-        }))?
-    ))
+    bijux_dna_containers::api::render_container_version_map(&workspace.root)
 }
 
 pub(super) fn extract_version_map(

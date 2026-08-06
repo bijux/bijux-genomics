@@ -162,6 +162,26 @@ fn catalog_lock_is_model_owned_current_and_fail_closed() -> Result<()> {
 }
 
 #[test]
+fn version_map_is_catalog_reconciled_and_fail_closed() -> Result<()> {
+    let root = repository_root()?;
+    let version_map = bijux_dna_containers::evidence::derive_container_version_map(&root)?;
+    assert_eq!(version_map.items.len(), 89);
+    assert!(version_map.items.windows(2).all(|pair| pair[0].tool < pair[1].tool));
+    assert_eq!(version_map.source, bijux_dna_containers::evidence::CONTAINER_VERSION_CATALOG_PATH);
+
+    let rendered = bijux_dna_containers::evidence::render_container_version_map(&root)?;
+    let admitted: bijux_dna_containers::evidence::ContainerVersionMap =
+        serde_json::from_str(&rendered)?;
+    assert_eq!(admitted, version_map);
+
+    let mut future = serde_json::to_value(version_map)?;
+    future["schema_version"] = serde_json::json!("bijux.container.version_map.v3");
+    assert!(serde_json::from_value::<bijux_dna_containers::evidence::ContainerVersionMap>(future)
+        .is_err());
+    Ok(())
+}
+
+#[test]
 fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
     let root = repository_root()?;
     let validation = validate_container_catalog(&root)?;

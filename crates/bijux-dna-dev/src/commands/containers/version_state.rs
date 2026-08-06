@@ -1,6 +1,5 @@
 use super::{
-    load_toml, read_utf8, write_utf8, BTreeMap, Context, NaiveDate, PathBuf, Result, Serialize,
-    Workspace,
+    load_toml, read_utf8, write_utf8, BTreeMap, Context, NaiveDate, PathBuf, Result, Workspace,
 };
 
 pub(super) fn tool_versions(
@@ -70,14 +69,4 @@ pub(super) fn append_toml_table(
         format!("{}{}", new_file_header, content.trim_end())
     };
     write_utf8(path, &format!("{body}\n"))
-}
-
-#[derive(Serialize)]
-pub(super) struct VersionMapItem {
-    pub(super) tool: String,
-    pub(super) version: String,
-    pub(super) source: String,
-    pub(super) source_sha256: String,
-    pub(super) pinned_commit: String,
-    pub(super) date_pinned: String,
 }

@@ -78,13 +78,16 @@ pub use schema::{
 pub use selection::{resolve_current_apptainer_image, CurrentApptainerImage};
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
-    container_catalog_lock_schema, container_catalog_schema, derive_container_catalog_lock,
-    load_container_catalog, load_container_catalog_lock, render_container_catalog_lock,
+    container_catalog_lock_schema, container_catalog_schema, container_version_map_schema,
+    derive_container_catalog_lock, derive_container_version_map, load_container_catalog,
+    load_container_catalog_lock, render_container_catalog_lock, render_container_version_map,
     repository_head_commit, validate_container_catalog, validate_container_catalog_lock,
-    write_container_catalog_lock_schema, write_container_catalog_schema, ApptainerRecipeIdentity,
-    ContainerCatalog, ContainerCatalogLock, ContainerCatalogLockTool, ContainerCatalogTool,
-    ContainerCatalogValidation, CONTAINER_CATALOG_LOCK_PATH, CONTAINER_CATALOG_LOCK_SCHEMA_V1,
-    CONTAINER_CATALOG_PATH, CONTAINER_CATALOG_SCHEMA_V1,
+    write_container_catalog_lock_schema, write_container_catalog_schema,
+    write_container_version_map_schema, ApptainerRecipeIdentity, ContainerCatalog,
+    ContainerCatalogLock, ContainerCatalogLockTool, ContainerCatalogTool,
+    ContainerCatalogValidation, ContainerVersionMap, ContainerVersionMapItem,
+    CONTAINER_CATALOG_LOCK_PATH, CONTAINER_CATALOG_LOCK_SCHEMA_V1, CONTAINER_CATALOG_PATH,
+    CONTAINER_CATALOG_SCHEMA_V1, CONTAINER_VERSION_CATALOG_PATH, CONTAINER_VERSION_MAP_SCHEMA_V2,
 };
 pub use validation::{
     validate_image_inventory_evidence, validate_image_inventory_publication,

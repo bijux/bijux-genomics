@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use chrono::{Local, NaiveDate, Utc};
 use regex::Regex;
-use serde::Serialize;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
@@ -61,7 +60,7 @@ use self::runtime::{
 };
 use self::version_state::{
     append_toml_table, container_version_deprecations_path, lock_items_by_tool, lock_json_path,
-    parse_date, read_lock_json, tool_versions, VersionMapItem,
+    parse_date, read_lock_json, tool_versions,
 };
 
 pub fn run_native_container_command(
