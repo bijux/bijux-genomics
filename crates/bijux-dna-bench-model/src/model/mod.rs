@@ -7,6 +7,7 @@ pub mod execution;
 pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
+pub mod materialization;
 pub mod observation;
 pub mod planning;
 pub mod report;
@@ -56,6 +57,13 @@ pub use lifecycle::{
     BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
     BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
     BenchmarkSchedulerTerminalState,
+};
+#[allow(unused_imports)]
+pub use materialization::{
+    corpus_acquisition_plan_schema, governed_data_catalog_schema, CorpusAcquisitionFile,
+    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    CorpusMaterializationDisposition, GovernedDataCatalog, GovernedDataCatalogFile,
+    GovernedDataCatalogSample,
 };
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]

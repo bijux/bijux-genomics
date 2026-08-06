@@ -61,6 +61,14 @@ Model contracts:
 - `BenchmarkExecutionResources`
 - `BenchmarkExecutionRuntimePolicy`
 - `BenchmarkExecutionAcceptance`
+- `CorpusAcquisitionPlan`
+- `CorpusAcquisitionSample`
+- `CorpusAcquisitionFile`
+- `CorpusAcquisitionLayout`
+- `GovernedDataCatalog`
+- `GovernedDataCatalogSample`
+- `GovernedDataCatalogFile`
+- `CorpusMaterializationDisposition`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
 - `BenchmarkGraphNode`
@@ -104,6 +112,8 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
+- `CORPUS_ACQUISITION_SCHEMA_V1`
+- `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 
 Statistics:
 
@@ -120,8 +130,12 @@ Schema derivation:
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
+- `corpus_acquisition_plan_schema`
+- `governed_data_catalog_schema`
 - `validate_scheduler_observation`
 - `validate_execution_spec`
+- `validate_corpus_acquisition_plan`
+- `validate_governed_data_catalog`
 
 Namespaces:
 

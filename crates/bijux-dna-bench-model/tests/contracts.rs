@@ -11,5 +11,7 @@ mod mod_contracts_benchmark_planning_rs;
 mod mod_contracts_data_index_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
+#[path = "contracts/materialization.rs"]
+mod mod_contracts_materialization_rs;
 #[path = "contracts/suite_validation.rs"]
 mod mod_contracts_suite_validation_rs;
