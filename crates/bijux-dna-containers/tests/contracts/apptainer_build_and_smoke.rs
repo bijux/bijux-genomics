@@ -2,6 +2,7 @@
 
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::time::Duration;
 
 use bijux_dna_containers::api::{
@@ -35,6 +36,27 @@ fn seqpurge_recipe_runs_help_probe_from_private_writable_directory() -> anyhow::
     assert!(test_section.contains("cd \"$seqpurge_test_dir\""));
     assert!(test_section.contains("seqpurge --help >/dev/null"));
     assert!(!test_section.contains("|| true"));
+    Ok(())
+}
+
+#[test]
+fn seqpurge_wrapper_rejects_an_unusable_inherited_tmpdir() -> anyhow::Result<()> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let wrapper = workspace.join("containers/tools/seqpurge/seqpurge");
+    let temporary = tempfile::tempdir()?;
+    let unusable_tmpdir = temporary.path().join("not-a-directory");
+    std::fs::write(&unusable_tmpdir, b"hostile scheduler TMPDIR")?;
+
+    let output = Command::new("sh")
+        .arg(wrapper)
+        .arg("--version")
+        .env("TMPDIR", unusable_tmpdir)
+        .env_remove("XDG_RUNTIME_DIR")
+        .output()?;
+
+    assert!(output.status.success());
+    assert_eq!(output.stdout, b"seqpurge 2026_06\n");
+    assert!(output.stderr.is_empty());
     Ok(())
 }
 
