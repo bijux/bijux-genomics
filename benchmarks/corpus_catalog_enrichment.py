@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import corpus_materialization as materialization
+import corpus_acquisition as acquisition
 
 SHA256 = re.compile(r"[0-9a-f]{64}")
 
@@ -53,7 +53,7 @@ def verify_catalog_files(catalog: dict[str, Any]) -> None:
             raise EnrichmentError(f"catalog file identity is invalid: {path}")
         if path.stat().st_size != expected_size:
             raise EnrichmentError(f"catalog file size drifted: {path}")
-        if materialization.sha256_file(path) != expected_sha256:
+        if acquisition.sha256_file(path) != expected_sha256:
             raise EnrichmentError(f"catalog file digest drifted: {path}")
 
 
@@ -67,7 +67,7 @@ def enriched_catalog(
         raise EnrichmentError("catalog files are invalid")
     plan_files: dict[tuple[str, str], tuple[dict[str, Any], dict[str, Any]]] = {}
     for sample in plan["samples"]:
-        context = materialization.sample_context(sample)
+        context = acquisition.sample_context(sample)
         for record in sample["files"]:
             identity = (str(sample["accession"]), str(record["name"]))
             if identity in plan_files:
@@ -109,7 +109,7 @@ def enriched_catalog(
     updated_catalog = dict(catalog)
     updated_catalog["files"] = enriched_files
     updated_catalog["samples"] = [
-        materialization.sample_context(sample) for sample in plan["samples"]
+        acquisition.sample_context(sample) for sample in plan["samples"]
     ]
     return updated_catalog
 
@@ -122,8 +122,8 @@ def enrich(
 ) -> Path:
     if SHA256.fullmatch(expected_catalog_sha256) is None:
         raise EnrichmentError("expected catalog SHA-256 is invalid")
-    plan = materialization.load_plan(plan_path)
-    observed_catalog_sha256 = materialization.sha256_file(catalog_path)
+    plan = acquisition.load_plan(plan_path)
+    observed_catalog_sha256 = acquisition.sha256_file(catalog_path)
     if observed_catalog_sha256 != expected_catalog_sha256:
         raise EnrichmentError("catalog SHA-256 does not match the reviewed input")
     catalog = load_json(catalog_path)
@@ -135,7 +135,7 @@ def enrich(
     except ValueError as exc:
         raise EnrichmentError("acquisition plan escapes the governed data root") from exc
     updated["source_record"] = f"study://data/{plan_identity.as_posix()}"
-    updated["source_record_sha256"] = materialization.sha256_file(plan_path)
+    updated["source_record_sha256"] = acquisition.sha256_file(plan_path)
     payload = json.dumps(updated, indent=2, sort_keys=True) + "\n"
     updated_sha256 = hashlib.sha256(payload.encode()).hexdigest()
     evidence = evidence_root / f"{observed_catalog_sha256}-{updated_sha256}"
@@ -154,7 +154,7 @@ def enrich(
                 "catalog_id": updated["id"],
                 "before_sha256": observed_catalog_sha256,
                 "after_sha256": updated_sha256,
-                "plan_sha256": materialization.sha256_file(plan_path),
+                "plan_sha256": acquisition.sha256_file(plan_path),
                 "sample_count": len(updated["samples"]),
                 "file_count": len(updated["files"]),
                 "recovery": "restore catalog.before.json only after verifying before_sha256",
@@ -194,7 +194,7 @@ def main() -> int:
             )
         )
         return 0
-    except (EnrichmentError, materialization.MaterializationError) as exc:
+    except (EnrichmentError, acquisition.AcquisitionError) as exc:
         print(f"corpus catalog enrichment failed: {exc}", file=sys.stderr)
         return 2
 

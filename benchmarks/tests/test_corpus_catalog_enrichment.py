@@ -9,13 +9,13 @@ import unittest
 from pathlib import Path
 
 BENCHMARKS = Path(__file__).parents[1]
-MATERIALIZATION_SPEC = importlib.util.spec_from_file_location(
-    "corpus_materialization", BENCHMARKS / "corpus_materialization.py"
+ACQUISITION_SPEC = importlib.util.spec_from_file_location(
+    "corpus_acquisition", BENCHMARKS / "corpus_acquisition.py"
 )
-assert MATERIALIZATION_SPEC is not None and MATERIALIZATION_SPEC.loader is not None
-materialization = importlib.util.module_from_spec(MATERIALIZATION_SPEC)
-sys.modules[MATERIALIZATION_SPEC.name] = materialization
-MATERIALIZATION_SPEC.loader.exec_module(materialization)
+assert ACQUISITION_SPEC is not None and ACQUISITION_SPEC.loader is not None
+acquisition = importlib.util.module_from_spec(ACQUISITION_SPEC)
+sys.modules[ACQUISITION_SPEC.name] = acquisition
+ACQUISITION_SPEC.loader.exec_module(acquisition)
 ENRICHMENT_SPEC = importlib.util.spec_from_file_location(
     "corpus_catalog_enrichment", BENCHMARKS / "corpus_catalog_enrichment.py"
 )
@@ -66,7 +66,7 @@ class CorpusCatalogEnrichmentTests(unittest.TestCase):
         plan_path.parent.mkdir(parents=True)
         context = self.context()
         plan = {
-            "schema_version": materialization.PLAN_SCHEMA,
+            "schema_version": acquisition.PLAN_SCHEMA,
             "corpus_id": "corpus-01",
             "portfolio_id": "human-short-read-diversity",
             "species": "Homo sapiens",
@@ -93,7 +93,7 @@ class CorpusCatalogEnrichmentTests(unittest.TestCase):
         catalog_path = data_root / "catalog" / "human-short-read-diversity.json"
         catalog_path.parent.mkdir()
         catalog = {
-            "schema_version": materialization.CATALOG_SCHEMA,
+            "schema_version": "bijux.data_catalog.v1",
             "id": "human-short-read-diversity",
             "purpose": "real human short-read diversity corpus",
             "source": "European Nucleotide Archive",
@@ -138,8 +138,8 @@ class CorpusCatalogEnrichmentTests(unittest.TestCase):
                 (evidence / "catalog.after.json").read_bytes(), catalog_path.read_bytes()
             )
             self.assertEqual(report["before_sha256"], before_sha256)
-            self.assertEqual(report["after_sha256"], materialization.sha256_file(catalog_path))
-            self.assertEqual(report["plan_sha256"], materialization.sha256_file(plan_path))
+            self.assertEqual(report["after_sha256"], acquisition.sha256_file(catalog_path))
+            self.assertEqual(report["plan_sha256"], acquisition.sha256_file(plan_path))
             self.assertEqual(catalog["samples"][0]["sample_accession"], "SAMEA1")
             self.assertEqual(catalog["files"][0]["experiment_accession"], "ERX1")
             self.assertEqual(catalog["files"][0]["era"], "ancient")
@@ -179,7 +179,7 @@ class CorpusCatalogEnrichmentTests(unittest.TestCase):
                 enrichment.enrich(
                     plan_path,
                     catalog_path,
-                    materialization.sha256_file(catalog_path),
+                    acquisition.sha256_file(catalog_path),
                     data_root / "evidence" / "catalog-enrichments",
                 )
 
@@ -193,7 +193,7 @@ class CorpusCatalogEnrichmentTests(unittest.TestCase):
                 enrichment.enrich(
                     plan_path,
                     catalog_path,
-                    materialization.sha256_file(catalog_path),
+                    acquisition.sha256_file(catalog_path),
                     data_root / "evidence" / "catalog-enrichments",
                 )
 

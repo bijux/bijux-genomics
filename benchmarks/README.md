@@ -76,56 +76,65 @@ governed data-catalog record before a comparative campaign can consume them.
 Materialize the resolved plan under the governed data root:
 
 ```console
-python3 -B benchmarks/corpus_materialization.py \
+bijux-dna bench materialize-fastq-corpus \
   --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
   --data-root "$STUDY/data" \
-  --jobs 4
+  --jobs 4 \
+  --retries 2 \
+  --timeout-seconds 120 \
+  --admitted-at-utc "$admitted_at_utc"
 ```
 
-For a queued materialization, first freeze only the benchmark-owned source at
-the exact clean commit:
+For a queued materialization, author one
+`bijux.runner.corpus_materialization_slurm_spec.v1` JSON specification. The
+typed contract binds the permanent run and attempt identities, clean frozen
+repository path and commit, Linux `bijux-dna` executable path and SHA-256,
+acquisition plan path and SHA-256, governed data and evidence roots, scheduler
+resources, transfer limits, and admission timestamp.
+
+Prepare immutable scheduler material from that specification, then submit it
+exactly once without waiting:
 
 ```console
-python3 -B containers/contracts/container_validation.py freeze-repository \
-  --governance containers/contracts/sites/lunarc.yml \
-  --commit "$commit" \
-  --scope sources \
-  --path benchmarks \
-  --namespace benchmark-campaigns
-```
-
-Prepare the non-secret pipeline, explicit credential-reference contract, and
-Slurm submission from that frozen source, then submit it:
-
-```console
-specification="$STUDY/data/evidence/materializations/$commit/human-short-read-diversity"
-python3 -B benchmarks/corpus_materialization_spec.py prepare \
-  --governance containers/contracts/sites/lunarc.yml \
-  --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
-  --repository . \
-  --frozen-repository "$frozen" \
-  --output "$specification" \
-  --jobs 4
-python3 -B benchmarks/corpus_materialization_spec.py submit \
+specification="$STUDY/data/evidence/materializations/run-$run_id/specification.json"
+bijux-dna bench corpus-materialization prepare \
+  --specification "$specification" \
+  --submitted-at-utc "$submitted_at_utc"
+bijux-dna bench corpus-materialization submit \
   --specification "$specification"
+```
+
+Observe one scheduler snapshot without polling:
+
+```console
+bijux-dna bench corpus-materialization status \
+  --specification "$specification" \
+  --observed-at-utc "$observed_at_utc"
 ```
 
 After the job is terminal, collect scheduler accounting, re-hash the admitted
-FASTQ files and catalog, and publish the commit-scoped data index:
+FASTQ files and catalog, and publish immutable materialization evidence:
 
 ```console
-python3 -B benchmarks/corpus_materialization_spec.py collect \
-  --specification "$specification"
+bijux-dna bench corpus-materialization collect \
+  --specification "$specification" \
+  --collected-at-utc "$collected_at_utc"
 ```
 
 Collection refuses active jobs and existing evidence. A completed Slurm state
 is insufficient by itself: catalog identity, file count, byte total, per-file
 SHA-256, and positive read counts must all pass before the corpus receives a
-passing materialization record and data index.
+passing materialization evidence record.
 
-This transfer job uses site Python only for checksum-pinned public data
-acquisition; it runs no scientific application. FASTQ, BAM, and VCF stage
-campaigns remain strictly container-only.
+The generated transfer job invokes only the exact checksum-bound Rust
+executable; it runs no Python and no scientific application. FASTQ, BAM, and
+VCF stage campaigns remain strictly container-only.
+
+`benchmarks/adapters/materialize_fastq_corpus.py` and
+`benchmarks/adapters/corpus_materialization_slurm.py` are argument-only
+compatibility adapters. They replace their process with the same `bijux-dna`
+commands, use `BIJUX_DNA_BIN` when set, and own no transfer, validation,
+scheduler, evidence, or publication decisions.
 
 The materializer streams each file into a private partial path, verifies the
 declared compressed byte count and ENA MD5, and atomically publishes it. It
