@@ -367,10 +367,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         );
     }
     if path.ends_with(".py") {
-        if path == "benchmarks/data_catalog.py"
-            || path.starts_with("benchmarks/runs/")
-            || path.contains("/adapters/")
-        {
+        if path.starts_with("benchmarks/runs/") || path.contains("/adapters/") {
             return (
                 "thin external adapter",
                 "the file only translates an external process invocation to a crate-owned command",
