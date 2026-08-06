@@ -249,11 +249,12 @@ pub use observer::{
 };
 pub use params::correct::FastqCorrectParams;
 pub use params::defaults::{
-    correct_defaults, overrepresented_profile_defaults, read_length_profile_defaults,
-    stats_defaults, umi_defaults,
+    correct_defaults, estimate_library_complexity_prealign_defaults,
+    overrepresented_profile_defaults, read_length_profile_defaults, stats_defaults, umi_defaults,
 };
 pub use params::stats::{
-    FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
+    FastqEstimateLibraryComplexityPrealignParams, FastqOverrepresentedProfileParams,
+    FastqReadLengthProfileParams, FastqStatsParams,
 };
 pub use params::trim::{
     AlienTrimmerParamsV1, FastxClipperParamsV1, LeeHomTrimParamsV1, OverlapCollapseMode,
