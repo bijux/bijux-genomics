@@ -9,9 +9,13 @@ use bijux_dna_bench_model::normalized_result::bam::{
     BenchmarkBamMappingSummaryResult,
 };
 use bijux_dna_bench_model::normalized_result::fastq::{
-    fastq_detect_adapters_result_schema, fastq_profile_read_lengths_result_schema,
-    fastq_profile_reads_result_schema, fastq_validate_reads_result_schema,
-    BenchmarkFastqProfileResult,
+    fastq_detect_adapters_metrics_schema, fastq_detect_adapters_probe_schema,
+    fastq_detect_adapters_result_schema, fastq_profile_read_lengths_metrics_schema,
+    fastq_profile_read_lengths_probe_schema, fastq_profile_read_lengths_result_schema,
+    fastq_profile_reads_metrics_schema, fastq_profile_reads_probe_schema,
+    fastq_profile_reads_result_schema, fastq_validate_reads_metrics_schema,
+    fastq_validate_reads_probe_schema, fastq_validate_reads_result_schema,
+    BenchmarkFastqProfileMetrics, BenchmarkFastqProfileProbe, BenchmarkFastqProfileResult,
 };
 use bijux_dna_bench_model::normalized_result::{
     bam_downstream_probe_schema, BenchmarkDownstreamProbeRecord,
@@ -199,6 +203,44 @@ fn normalized_fastq_results_reject_unknown_fields() -> anyhow::Result<()> {
 }
 
 #[test]
+fn normalized_fastq_evidence_rejects_unknown_identities() -> anyhow::Result<()> {
+    let metrics = serde_json::json!({
+        "schema_version": "bijux.benchmark.fastq.profile_reads.metrics.v1",
+        "sample_count": 1,
+        "file_count": 1,
+        "read_count": 10,
+        "base_count": 100,
+        "minimum_read_length": 10,
+        "maximum_read_length": 10,
+        "admission_mismatch_count": 0,
+        "input_bytes": 100,
+        "output_bytes": 20
+    });
+    serde_json::from_value::<BenchmarkFastqProfileMetrics>(metrics.clone())?;
+    let mut unsupported_metrics = metrics;
+    unsupported_metrics["schema_version"] =
+        serde_json::json!("bijux.benchmark.fastq.profile_reads.metrics.v2");
+    assert!(serde_json::from_value::<BenchmarkFastqProfileMetrics>(unsupported_metrics).is_err());
+
+    let probe = serde_json::json!({
+        "schema_version": "bijux.benchmark.fastq.report_qc.probe.v1",
+        "consumer_stage_id": "benchmark.fastq.profile_reads.compare",
+        "input_contract": "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "sample_count": 1,
+        "file_count": 1,
+        "read_count": 10,
+        "base_count": 100,
+        "minimum_read_length": 10,
+        "maximum_read_length": 10
+    });
+    serde_json::from_value::<BenchmarkFastqProfileProbe>(probe.clone())?;
+    let mut unsupported_probe = probe;
+    unsupported_probe["consumer_stage_id"] = serde_json::json!("benchmark.fastq.invented.compare");
+    assert!(serde_json::from_value::<BenchmarkFastqProfileProbe>(unsupported_probe).is_err());
+    Ok(())
+}
+
+#[test]
 fn checked_normalized_fastq_schemas_match_model_authority() -> anyhow::Result<()> {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -210,16 +252,48 @@ fn checked_normalized_fastq_schemas_match_model_authority() -> anyhow::Result<()
             serde_json::to_value(fastq_detect_adapters_result_schema())?,
         ),
         (
+            "fastq-detect-adapters-metrics.schema.json",
+            serde_json::to_value(fastq_detect_adapters_metrics_schema())?,
+        ),
+        (
+            "fastq-detect-adapters-probe.schema.json",
+            serde_json::to_value(fastq_detect_adapters_probe_schema())?,
+        ),
+        (
             "fastq-profile-read-lengths-result.schema.json",
             serde_json::to_value(fastq_profile_read_lengths_result_schema())?,
+        ),
+        (
+            "fastq-profile-read-lengths-metrics.schema.json",
+            serde_json::to_value(fastq_profile_read_lengths_metrics_schema())?,
+        ),
+        (
+            "fastq-profile-read-lengths-probe.schema.json",
+            serde_json::to_value(fastq_profile_read_lengths_probe_schema())?,
         ),
         (
             "fastq-profile-reads-result.schema.json",
             serde_json::to_value(fastq_profile_reads_result_schema())?,
         ),
         (
+            "fastq-profile-reads-metrics.schema.json",
+            serde_json::to_value(fastq_profile_reads_metrics_schema())?,
+        ),
+        (
+            "fastq-profile-reads-probe.schema.json",
+            serde_json::to_value(fastq_profile_reads_probe_schema())?,
+        ),
+        (
             "fastq-validate-reads-result.schema.json",
             serde_json::to_value(fastq_validate_reads_result_schema())?,
+        ),
+        (
+            "fastq-validate-reads-metrics.schema.json",
+            serde_json::to_value(fastq_validate_reads_metrics_schema())?,
+        ),
+        (
+            "fastq-validate-reads-probe.schema.json",
+            serde_json::to_value(fastq_validate_reads_probe_schema())?,
         ),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");

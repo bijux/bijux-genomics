@@ -7,8 +7,11 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::normalized_result::fastq::{
     BenchmarkFastqReadLengthMetrics as ReadLengthMetrics,
+    BenchmarkFastqReadLengthProbe as ReadLengthProbe,
     BenchmarkFastqReadLengthResult as ReadLengthBundle,
     FASTQ_PROFILE_READ_LENGTHS_METRICS_SCHEMA_V1 as METRICS_SCHEMA,
+    FASTQ_PROFILE_READ_LENGTHS_PROBE_SCHEMA_V1 as PROBE_SCHEMA,
+    FASTQ_PROFILE_READ_LENGTHS_PROBE_STAGE_ID as PROBE_STAGE_ID,
     FASTQ_PROFILE_READ_LENGTHS_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
     FASTQ_PROFILE_READ_LENGTHS_STAGE_ID as STAGE_ID,
 };
@@ -41,6 +44,7 @@ pub(super) fn derive_scientific_observation(
     let prefix = format!("repetitions/repetition-{repetition}");
     let metrics: ReadLengthMetrics =
         read_json(&result_root.join(format!("{prefix}.metrics.json")))?;
+    let probe: ReadLengthProbe = read_json(&result_root.join(format!("{prefix}.report-qc.json")))?;
     if metrics.schema_version != METRICS_SCHEMA
         || metrics.sample_count == 0
         || metrics.file_count == 0
@@ -69,6 +73,17 @@ pub(super) fn derive_scientific_observation(
         || metrics.maximum_read_length != summary.maximum_read_length
     {
         bail!("FASTQ read-length metrics disagree with admitted histograms");
+    }
+    if probe.schema_version != PROBE_SCHEMA
+        || probe.consumer_stage_id != PROBE_STAGE_ID
+        || probe.input_contract != BUNDLE_SCHEMA
+        || probe.sample_count != metrics.sample_count
+        || probe.file_count != metrics.file_count
+        || probe.read_count != metrics.read_count
+        || probe.minimum_read_length != metrics.minimum_read_length
+        || probe.maximum_read_length != metrics.maximum_read_length
+    {
+        bail!("FASTQ read-length downstream probe differs from admitted histograms");
     }
     let normalized_bundle_sha256 = normalized_bundle_sha256(&bundle)?;
     let values = BTreeMap::from([

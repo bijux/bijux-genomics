@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_adapter_count_total": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "consumer_stage_id": {
+      "const": "benchmark.fastq.detect_adapters.compare",
+      "type": "string"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_contract": {
+      "const": "bijux.benchmark.fastq.detect_adapters.bundle.v1",
+      "type": "string"
+    },
+    "max_detection_confidence": {
+      "format": "double",
+      "type": "number"
+    },
+    "reads_in": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "samples_with_detected_adapters": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.detect_adapters.probe.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "consumer_stage_id",
+    "input_contract",
+    "sample_count",
+    "file_count",
+    "reads_in",
+    "candidate_adapter_count_total",
+    "samples_with_detected_adapters",
+    "max_detection_confidence"
+  ],
+  "title": "BenchmarkFastqAdapterProbe",
+  "type": "object"
+}
