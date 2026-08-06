@@ -13,6 +13,7 @@ mod lifecycle;
 mod materialization;
 mod planning;
 mod protocol;
+mod publication;
 mod records;
 mod report;
 mod schema_versions;
@@ -43,6 +44,7 @@ pub use planning::{
     validate_stage_campaign_registry, validate_stage_coverage,
 };
 pub use protocol::{validate_benchmark_case_definition, validate_benchmark_run_definition};
+pub use publication::{validate_benchmark_evidence_book, validate_benchmark_publication_receipt};
 pub use records::{
     validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_observation,
     validate_summary,
@@ -56,8 +58,9 @@ pub use schema_versions::{
     BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
     BENCHMARK_CASE_DEFINITION_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V2, BENCHMARK_DATA_INDEX_SCHEMA_V1,
-    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
-    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
+    BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
     BENCHMARK_RUN_DEFINITION_SCHEMA_V1, BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,

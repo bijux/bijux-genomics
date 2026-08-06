@@ -8,6 +8,7 @@ pub use crate::contract::{
     parse_benchmark_attempt_document, parse_benchmark_cycle_document, validate_attempt_archive,
     validate_attempt_identity, validate_attempt_record_v1, validate_attempt_record_v2,
     validate_attempt_transition, validate_benchmark_case_definition, validate_benchmark_data_index,
+    validate_benchmark_evidence_book, validate_benchmark_publication_receipt,
     validate_benchmark_run_definition, validate_benchmark_stage_result_manifest,
     validate_campaign_plan, validate_corpus_acquisition_plan, validate_cycle_status_v1,
     validate_cycle_status_v2, validate_execution_spec, validate_fastq_read_length_expectations,
@@ -17,8 +18,9 @@ pub use crate::contract::{
     BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
     BENCHMARK_CASE_DEFINITION_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V2, BENCHMARK_DATA_INDEX_SCHEMA_V1,
-    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
-    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
+    BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
     BENCHMARK_RUN_DEFINITION_SCHEMA_V1, BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
@@ -84,6 +86,10 @@ pub use crate::model::protocol::{
     benchmark_case_definition_schema, benchmark_run_definition_schema, BenchmarkCaseDefinition,
     BenchmarkCaseInputLock, BenchmarkCaseQualificationReceipt, BenchmarkContractLock,
     BenchmarkCorpusRole, BenchmarkRunDefinition, BenchmarkRunState,
+};
+pub use crate::model::publication::{
+    benchmark_evidence_book_schema, benchmark_publication_receipt_schema, BenchmarkEvidenceBook,
+    BenchmarkEvidenceBookEntry, BenchmarkEvidenceBookStatus, BenchmarkPublicationReceipt,
 };
 pub use crate::model::report::{
     admitted_benchmark_stage_report_schema, benchmark_stage_report_schema,

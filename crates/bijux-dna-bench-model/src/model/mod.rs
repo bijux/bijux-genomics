@@ -11,6 +11,7 @@ pub mod materialization;
 pub mod observation;
 pub mod planning;
 pub mod protocol;
+pub mod publication;
 pub mod report;
 pub mod stage_result;
 pub mod suite;
@@ -86,6 +87,11 @@ pub use protocol::{
     benchmark_case_definition_schema, benchmark_run_definition_schema, BenchmarkCaseDefinition,
     BenchmarkCaseInputLock, BenchmarkCaseQualificationReceipt, BenchmarkContractLock,
     BenchmarkCorpusRole, BenchmarkRunDefinition, BenchmarkRunState,
+};
+#[allow(unused_imports)]
+pub use publication::{
+    benchmark_evidence_book_schema, benchmark_publication_receipt_schema, BenchmarkEvidenceBook,
+    BenchmarkEvidenceBookEntry, BenchmarkEvidenceBookStatus, BenchmarkPublicationReceipt,
 };
 #[allow(unused_imports)]
 pub use report::{
