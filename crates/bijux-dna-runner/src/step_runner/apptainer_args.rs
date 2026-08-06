@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 
 use super::command_template::container_command_template;
 use super::inputs::{input_bind_roots, preserve_absolute_input_paths};

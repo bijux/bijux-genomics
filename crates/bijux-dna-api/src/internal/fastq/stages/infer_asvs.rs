@@ -18,7 +18,7 @@ use bijux_dna_domain_fastq::{
     execution_support_for_stage, ExecutionStatus, InferAsvsReportV1,
     INFER_ASVS_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{

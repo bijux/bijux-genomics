@@ -16,7 +16,7 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::observer::parse_validation_report;
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_validate_tools;

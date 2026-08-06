@@ -178,12 +178,12 @@ fn policy__boundaries__workspace__workspace_constitution_contract() {
         );
     }
     bijux_dna_policies::policy_assert!(
-        crates.contains_key("bijux-dna-environment"),
-        "missing bijux-dna-environment crate"
+        crates.contains_key("bijux-dna-containers"),
+        "missing bijux-dna-containers crate"
     );
     bijux_dna_policies::policy_assert!(
-        crates.contains_key("bijux-dna-environment-qa"),
-        "missing bijux-dna-environment-qa crate"
+        crates.contains_key("bijux-dna-containers-qa"),
+        "missing bijux-dna-containers-qa crate"
     );
     let env_crates: Vec<_> = crates
         .keys()
@@ -378,8 +378,8 @@ fn policy__boundaries__workspace__workspace_no_orphan_crates() {
         "bijux-dna",
         "bijux-dna-bench",
         "bijux-dna-domain-vcf",
-        "bijux-dna-environment",
-        "bijux-dna-environment-qa",
+        "bijux-dna-containers",
+        "bijux-dna-containers-qa",
         "bijux-dna-planner-vcf",
         "bijux-dna-runner",
         "bijux-dna-runtime",

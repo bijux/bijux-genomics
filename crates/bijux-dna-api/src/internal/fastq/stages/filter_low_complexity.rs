@@ -22,7 +22,7 @@ use bijux_dna_domain_fastq::params::quality::filter_low_complexity::{
 use bijux_dna_domain_fastq::{
     FilterLowComplexityReportV1, PairedMode, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_filter_low_complexity_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::filter_low_complexity::{
     plan_low_complexity, LowComplexityPlanOptions,

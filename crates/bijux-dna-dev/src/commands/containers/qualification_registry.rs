@@ -28,8 +28,8 @@ fn derive(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
     else {
         anyhow::bail!(USAGE);
     };
-    let derived = bijux_dna_environment::api::derive_qualification_run_registry(
-        &bijux_dna_environment::api::QualificationRegistryDerivationRequest {
+    let derived = bijux_dna_containers::api::derive_qualification_run_registry(
+        &bijux_dna_containers::api::QualificationRegistryDerivationRequest {
             repository_root: workspace.root.clone(),
             current_runs_root: path_from_arg(workspace, runs_root),
             attempt_ledger_path: path_from_arg(workspace, attempt_ledger),
@@ -38,7 +38,7 @@ fn derive(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
         },
     )?;
     let registry =
-        bijux_dna_environment::api::render_qualification_run_registry(&derived.registry)?;
+        bijux_dna_containers::api::render_qualification_run_registry(&derived.registry)?;
     let audit = serde_json::to_string_pretty(&derived.audit)? + "\n";
     let registry_output = path_from_arg(workspace, registry_output);
     let audit_output = path_from_arg(workspace, audit_output);
@@ -67,8 +67,8 @@ fn derive(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
 
 fn generate_schemas(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let (registry, audit) = schema_paths(workspace, args)?;
-    bijux_dna_environment::api::write_qualification_run_registry_schema(&registry)?;
-    bijux_dna_environment::api::write_qualification_run_id_audit_schema(&audit)?;
+    bijux_dna_containers::api::write_qualification_run_registry_schema(&registry)?;
+    bijux_dna_containers::api::write_qualification_run_id_audit_schema(&audit)?;
     success_line(format!(
         "generated qualification registry schemas at {} and {}",
         registry.display(),
@@ -84,8 +84,8 @@ fn check_schemas(workspace: &Workspace, args: &[String]) -> Result<ContainerComm
         serde_json::from_str(&read_utf8(&workspace.path(REGISTRY_SCHEMA_PATH))?)?;
     let audit: serde_json::Value =
         serde_json::from_str(&read_utf8(&workspace.path(AUDIT_SCHEMA_PATH))?)?;
-    if registry != bijux_dna_environment::api::qualification_run_registry_schema()
-        || audit != bijux_dna_environment::api::qualification_run_id_audit_schema()
+    if registry != bijux_dna_containers::api::qualification_run_registry_schema()
+        || audit != bijux_dna_containers::api::qualification_run_id_audit_schema()
     {
         return Ok(ContainerCommandOutcome::failure(
             "qualification registry schemas drifted from Rust types\n",

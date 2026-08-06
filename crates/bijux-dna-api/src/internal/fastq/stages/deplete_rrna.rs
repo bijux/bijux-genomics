@@ -25,7 +25,7 @@ use bijux_dna_domain_fastq::params::screen::RrnaEffectiveParams;
 use bijux_dna_domain_fastq::{
     DepleteRrnaReportV1, PairedMode, DEPLETE_RRNA_REPORT_SCHEMA_VERSION, STAGE_DEPLETE_RRNA,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_rrna_tools;

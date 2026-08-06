@@ -1,7 +1,7 @@
 pub(crate) fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
-    platform: &bijux_dna_environment::api::PlatformSpec,
+    catalog: &std::collections::HashMap<String, bijux_dna_containers::api::ToolImageSpec, S>,
+    platform: &bijux_dna_containers::api::PlatformSpec,
     profile: &PipelineProfile,
     boundary: &AlignmentBoundary,
     out_dir: &Path,

@@ -56,7 +56,7 @@ fn policy__contracts__science_boundary_docs_policy__science_contract_links_bound
         "../domain/fastq/execution_support.yaml".to_string(),
         "../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
         "../configs/ci/registry/tool_registry.toml".to_string(),
-        "../crates/bijux-dna-environment/docs/ENV_REFERENCE.md".to_string(),
+        "../crates/bijux-dna-containers/docs/ENV_REFERENCE.md".to_string(),
         "docs/upstream/fastq/tools/EVIDENCE_MAP.tsv".to_string(),
         "docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
     ]);

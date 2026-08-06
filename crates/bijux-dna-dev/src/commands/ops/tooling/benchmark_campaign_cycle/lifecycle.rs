@@ -222,7 +222,7 @@ fn require_retry_source_ancestry(
     repository_root: &std::path::Path,
     prior_commit: &str,
 ) -> Result<()> {
-    if !bijux_dna_environment::api::repository_commit_is_ancestor_of_head(
+    if !bijux_dna_containers::api::repository_commit_is_ancestor_of_head(
         repository_root,
         prior_commit,
     )? {
@@ -335,7 +335,7 @@ mod tests {
         std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 1;\n")?;
         git(root, &["add", "source.rs"])?;
         git(root, &["commit", "--quiet", "-m", "initial source"])?;
-        let prior = bijux_dna_environment::api::repository_head_commit(root)?;
+        let prior = bijux_dna_containers::api::repository_head_commit(root)?;
 
         std::fs::write(root.join("source.rs"), b"const SOURCE: u8 = 2;\n")?;
         git(root, &["add", "source.rs"])?;

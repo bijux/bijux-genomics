@@ -35,7 +35,7 @@ use bijux_dna_domain_fastq::{
     },
     DetectAdaptersReportV1,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_detect_adapters_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::detect_adapters::plan;
@@ -615,7 +615,7 @@ mod tests {
     use bijux_dna_domain_fastq::{
         DetectAdaptersReportV1, PairedMode, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
     };
-    use bijux_dna_environment::api::RuntimeKind;
+    use bijux_dna_containers::api::RuntimeKind;
     use bijux_dna_runner::step_runner::StageResultV1;
 
     fn dummy_tool(tool_id: &'static str, threads: u32) -> ToolExecutionSpecV1 {

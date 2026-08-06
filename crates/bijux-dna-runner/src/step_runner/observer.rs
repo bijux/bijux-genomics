@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 
 use crate::command_runner::{run_command, run_command_with_context, CommandOutputV1};
 

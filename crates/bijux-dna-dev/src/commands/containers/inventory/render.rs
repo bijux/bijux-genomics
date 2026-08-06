@@ -1,4 +1,4 @@
-use bijux_dna_environment::evidence::{
+use bijux_dna_containers::evidence::{
     ContainerImageInventoryPublication, ContainerImageState, ContainerSupportDisposition,
 };
 
@@ -63,7 +63,7 @@ fn markdown_code(value: &str) -> String {
 mod tests {
     use std::collections::BTreeMap;
 
-    use bijux_dna_environment::evidence::{
+    use bijux_dna_containers::evidence::{
         ContainerImageInventoryPublication, ContainerImageInventorySummary,
         ContainerImageInventoryTool, ContainerImageState, ContainerSupportDisposition,
         ImageInventoryPublicationIdentity,

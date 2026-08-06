@@ -36,8 +36,8 @@ below planner, runner, engine, API, CLI, pipeline, and environment layers.
 - `bijux-dna-analyze`
 - `bijux-dna-api`
 - `bijux-dna-engine`
-- `bijux-dna-environment`
-- `bijux-dna-environment-qa`
+- `bijux-dna-containers`
+- `bijux-dna-containers-qa`
 - `bijux-dna-pipelines`
 - `bijux-dna-planner-*`
 - `bijux-dna-runner`

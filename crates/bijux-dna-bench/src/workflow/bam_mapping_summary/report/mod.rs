@@ -60,7 +60,7 @@ pub fn publish_bam_mapping_summary_stage_report(
     let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
     let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
     verify_campaign_plan_source(plan, &plan.repository_commit, &registry_sha256)?;
-    let repository_commit = bijux_dna_environment::api::repository_head_commit(&repository_root)?;
+    let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
     if repository_commit != plan.repository_commit {
         bail!("benchmark report source worktree differs from campaign plan");
     }

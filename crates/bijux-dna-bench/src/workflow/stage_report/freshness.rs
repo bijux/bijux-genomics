@@ -27,21 +27,21 @@ pub(super) fn report_source_is_current(
     report_commit: &str,
     current_commit: &str,
 ) -> Result<bool> {
-    let observed_head = bijux_dna_environment::api::repository_head_commit(repository_root)?;
+    let observed_head = bijux_dna_containers::api::repository_head_commit(repository_root)?;
     if observed_head != current_commit {
         bail!("benchmark freshness target differs from repository HEAD");
     }
     if report_commit == current_commit {
         return Ok(true);
     }
-    if !bijux_dna_environment::api::repository_commit_is_ancestor_of_head(
+    if !bijux_dna_containers::api::repository_commit_is_ancestor_of_head(
         repository_root,
         report_commit,
     )? {
         return Ok(false);
     }
     let changed =
-        bijux_dna_environment::api::repository_changed_paths_since(repository_root, report_commit)?;
+        bijux_dna_containers::api::repository_changed_paths_since(repository_root, report_commit)?;
     Ok(!changed.is_empty() && changed.iter().all(|path| is_governed_publication_path(path)))
 }
 
@@ -123,19 +123,19 @@ mod tests {
         std::fs::write(root.join("authority.toml"), b"version = 1\n")?;
         git(root, &["add", "authority.toml"])?;
         git(root, &["commit", "--quiet", "-m", "source authority"])?;
-        let source = bijux_dna_environment::api::repository_head_commit(root)?;
+        let source = bijux_dna_containers::api::repository_head_commit(root)?;
 
         std::fs::create_dir_all(root.join("benchmarks/reports"))?;
         std::fs::write(root.join("benchmarks/reports/run-2004-report.json"), b"{}\n")?;
         git(root, &["add", "benchmarks/reports/run-2004-report.json"])?;
         git(root, &["commit", "--quiet", "-m", "publish report"])?;
-        let publication = bijux_dna_environment::api::repository_head_commit(root)?;
+        let publication = bijux_dna_containers::api::repository_head_commit(root)?;
         assert!(report_source_is_current(root, &source, &publication)?);
 
         std::fs::write(root.join("authority.toml"), b"version = 2\n")?;
         git(root, &["add", "authority.toml"])?;
         git(root, &["commit", "--quiet", "-m", "change authority"])?;
-        let changed = bijux_dna_environment::api::repository_head_commit(root)?;
+        let changed = bijux_dna_containers::api::repository_head_commit(root)?;
         assert!(!report_source_is_current(root, &source, &changed)?);
         Ok(())
     }

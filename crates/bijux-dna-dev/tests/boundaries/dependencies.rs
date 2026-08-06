@@ -15,7 +15,7 @@ fn dependency_graph_matches_dev_boundary() {
         "bijux-dna-core",
         "bijux-dna-db-ena",
         "bijux-dna-db-ref",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
         "bijux-dna-infra",
         "bijux-dna-runtime",
         "bijux-dna-runner",

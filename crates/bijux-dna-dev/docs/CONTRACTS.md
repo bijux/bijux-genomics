@@ -12,7 +12,7 @@ This crate owns developer automation contracts, not production pipeline contract
 - Command execution must route through `src/application` and `src/commands`; `cli/` remains parsing and reporting only.
 - Command ids must be deterministic, unique within their command group, and stable unless a migration is documented.
 - `containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output>`
-  delegates all image admission and selection to `bijux-dna-environment`, preserves every source
+  delegates all image admission and selection to `bijux-dna-containers`, preserves every source
   root explicitly, and atomically refuses to replace either evidence document.
 - Image-inventory scan and publication schemas are generated and checked through native container
   commands backed by the persisted Rust environment types.

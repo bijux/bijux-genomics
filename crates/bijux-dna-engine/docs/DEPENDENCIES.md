@@ -39,7 +39,7 @@ Normal dependencies must not include:
 - Domain crates.
 - Stage crates.
 - `bijux-dna-runner`.
-- `bijux-dna-environment`.
+- `bijux-dna-containers`.
 - Benchmark crates.
 
 Those layers may call the engine, but the engine must not call back into them.

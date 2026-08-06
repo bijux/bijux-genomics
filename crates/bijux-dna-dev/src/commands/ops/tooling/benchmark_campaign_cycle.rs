@@ -498,7 +498,7 @@ fn read_plan(path: &Path) -> Result<bijux_dna_bench::BenchmarkCampaignPlan> {
 
 fn source_identity_at(repository_root: &Path) -> Result<(String, String)> {
     let repository_commit =
-        bijux_dna_environment::api::clean_repository_head_commit(repository_root)
+        bijux_dna_containers::api::clean_repository_head_commit(repository_root)
             .context("require a clean source tree for benchmark campaign operation")?;
     let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)

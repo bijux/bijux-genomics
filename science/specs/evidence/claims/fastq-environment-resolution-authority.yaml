@@ -4,7 +4,7 @@ statement: "FASTQ environment traceability in this slice is about deterministic 
 scope: "fastq pre-hpc environment slice"
 subject: "fastq_environment_resolution"
 predicate: "is_bounded_by"
-object: "crates/bijux-dna-environment/docs/ENV_REFERENCE.md"
+object: "crates/bijux-dna-containers/docs/ENV_REFERENCE.md"
 status: "accepted"
 owner: "bijux-genomics"
 review_due: "2026-10-01"

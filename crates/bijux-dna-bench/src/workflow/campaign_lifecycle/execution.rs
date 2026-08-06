@@ -20,7 +20,7 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry,
     BenchmarkStageInterfaceCatalog, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
 };
-use bijux_dna_environment::api::{ContainerCatalog, CurrentApptainerImage};
+use bijux_dna_containers::api::{ContainerCatalog, CurrentApptainerImage};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BenchmarkExecutionMaterial {

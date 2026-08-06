@@ -143,8 +143,8 @@ fn policy__contracts__policies__engine_does_not_depend_on_runner_or_environment(
         "bijux-dna-engine must not depend on bijux-dna-runner"
     );
     bijux_dna_policies::policy_assert!(
-        !deps.contains("bijux-dna-environment"),
-        "bijux-dna-engine must not depend on bijux-dna-environment"
+        !deps.contains("bijux-dna-containers"),
+        "bijux-dna-engine must not depend on bijux-dna-containers"
     );
 }
 
@@ -279,7 +279,7 @@ fn policy__contracts__policies__litmus_doc_exists_and_lists_rules() {
     bijux_dna_policies::policy_assert!(
         authority_map.contains("bijux-dna-engine")
             && authority_map.contains("bijux-dna-runner")
-            && authority_map.contains("bijux-dna-environment")
+            && authority_map.contains("bijux-dna-containers")
             && authority_map.contains("bijux-dna-planner-fastq")
             && authority_map.contains("bijux-dna-planner-bam")
             && authority_map.contains("bijux-dna-stages-fastq")

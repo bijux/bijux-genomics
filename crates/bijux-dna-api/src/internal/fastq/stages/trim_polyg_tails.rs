@@ -17,7 +17,7 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_domain_fastq::observer::{parse_bbduk_reads_removed, parse_fastp_metrics};
 use bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams;
 use bijux_dna_domain_fastq::TrimPolygReportV1;
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, polyx_bank_context, preflight_stage, FastqArtifactKind,

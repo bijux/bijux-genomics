@@ -11,7 +11,7 @@ use bijux_dna_bench::{
     BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkExecutionMaterial,
     BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
 };
-use bijux_dna_environment::api::{
+use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication, ContainerCatalog,
     CurrentApptainerImage,
 };

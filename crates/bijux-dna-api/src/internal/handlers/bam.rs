@@ -5,7 +5,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
-use bijux_dna_environment::api::{load_image_catalog, load_platform, RuntimeKind};
+use bijux_dna_containers::api::{load_image_catalog, load_platform, RuntimeKind};
 use bijux_dna_pipelines::registry;
 use bijux_dna_pipelines::Domain;
 use bijux_dna_planner_bam::stage_api::STAGE_PREFIX;

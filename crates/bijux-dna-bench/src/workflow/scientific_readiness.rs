@@ -19,7 +19,7 @@ use bijux_dna_bench_model::{
     BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
     BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceStatus,
 };
-use bijux_dna_environment::api::ContainerCatalog;
+use bijux_dna_containers::api::ContainerCatalog;
 
 use super::stage_coverage::retained_stage_tools;
 use super::{
@@ -296,7 +296,7 @@ pub fn publish_checked_in_scientific_readiness(
     mode: BenchmarkCoverageWriteMode,
 ) -> Result<BenchmarkScientificReadinessReport> {
     let catalog_validation =
-        bijux_dna_environment::api::validate_container_catalog(repository_root)?;
+        bijux_dna_containers::api::validate_container_catalog(repository_root)?;
     if !catalog_validation.is_valid() {
         bail!("container catalog validation failed: {:?}", catalog_validation.errors);
     }
@@ -314,8 +314,8 @@ pub fn publish_checked_in_scientific_readiness(
         &registry,
         &interfaces,
     )?;
-    let catalog = bijux_dna_environment::api::load_container_catalog(repository_root)?;
-    let repository_commit = bijux_dna_environment::api::repository_head_commit(repository_root)?;
+    let catalog = bijux_dna_containers::api::load_container_catalog(repository_root)?;
+    let repository_commit = bijux_dna_containers::api::repository_head_commit(repository_root)?;
     let current_report_sources = crate::workflow::stage_report::current_report_sources(
         repository_root,
         &reports,
@@ -591,7 +591,7 @@ mod tests {
             &root.join("benchmarks/contracts/stage-interfaces.toml"),
             &root,
         )?;
-        let catalog = bijux_dna_environment::api::load_container_catalog(&root)?;
+        let catalog = bijux_dna_containers::api::load_container_catalog(&root)?;
 
         let report = derive_scientific_readiness(
             &portfolio,

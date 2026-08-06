@@ -8,7 +8,7 @@ use bijux_dna_api::v1::api::qualification::{
     REQUIRED_EVIDENCE_DIMENSIONS,
 };
 use bijux_dna_bench::{AdmittedBenchmarkStageReport, BenchmarkReportVerdict};
-use bijux_dna_environment::evidence::{
+use bijux_dna_containers::evidence::{
     ContainerCatalogTool, ContainerEvidenceChain, ContainerImageInventoryTool,
 };
 use bijux_dna_runtime::{

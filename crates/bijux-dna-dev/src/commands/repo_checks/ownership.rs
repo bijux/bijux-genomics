@@ -21,7 +21,7 @@ const CRATE_SCOPES: [&str; 11] = [
     "crates/bijux-dna-bench/",
     "crates/bijux-dna-runtime/",
     "crates/bijux-dna-runner/",
-    "crates/bijux-dna-environment/",
+    "crates/bijux-dna-containers/",
     "crates/bijux-dna-stage-contract/",
     "crates/bijux-dna-science/",
     "crates/bijux-dna-policies/",
@@ -307,7 +307,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         || path.starts_with("crates/bijux-dna-bench/")
         || path.starts_with("crates/bijux-dna-runtime/")
         || path.starts_with("crates/bijux-dna-runner/")
-        || path.starts_with("crates/bijux-dna-environment/")
+        || path.starts_with("crates/bijux-dna-containers/")
         || path.starts_with("crates/bijux-dna-stage-contract/")
         || path.starts_with("crates/bijux-dna-science/")
         || path.starts_with("crates/bijux-dna-policies/")
@@ -398,7 +398,7 @@ fn target_owner(path: &str, classification: &str) -> String {
         return "bijux-dna-runner and bijux-dna-runtime".to_string();
     }
     if path.starts_with("containers/") || path.contains("image") || path.contains("container") {
-        return "bijux-dna-environment".to_string();
+        return "bijux-dna-containers".to_string();
     }
     if path.contains("science") || path.contains("metric") || path.contains("truth") {
         return "bijux-dna-science".to_string();

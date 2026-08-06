@@ -30,7 +30,7 @@ fn plan(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcom
     let study_root = path_from_arg(workspace, study_root);
     let source_root = path_from_arg(workspace, source_root);
     let active_root = path_from_arg(workspace, active_root);
-    let request = bijux_dna_environment::api::ImageActivationPlanRequest {
+    let request = bijux_dna_containers::api::ImageActivationPlanRequest {
         inventory_path: &inventory,
         study_root: &study_root,
         source_root: &source_root,
@@ -38,7 +38,7 @@ fn plan(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcom
         created_at_utc,
     };
     let output = path_from_arg(workspace, output);
-    let plan = bijux_dna_environment::api::create_image_activation_plan(&request, &output)?;
+    let plan = bijux_dna_containers::api::create_image_activation_plan(&request, &output)?;
     success_line(format!(
         "planned {} canonical image activations at {}",
         plan.file_count,
@@ -50,7 +50,7 @@ fn apply(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutco
     let [plan, source_root, active_root, observed_at_utc] = args else {
         anyhow::bail!(USAGE);
     };
-    let applied = bijux_dna_environment::api::apply_image_activation_plan(
+    let applied = bijux_dna_containers::api::apply_image_activation_plan(
         &path_from_arg(workspace, plan),
         &path_from_arg(workspace, source_root),
         &path_from_arg(workspace, active_root),
@@ -63,7 +63,7 @@ fn verify(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutc
     let [plan, source_root, active_root] = args else {
         anyhow::bail!(USAGE);
     };
-    let verified = bijux_dna_environment::api::verify_image_activation_plan(
+    let verified = bijux_dna_containers::api::verify_image_activation_plan(
         &path_from_arg(workspace, plan),
         &path_from_arg(workspace, source_root),
         &path_from_arg(workspace, active_root),
@@ -75,7 +75,7 @@ fn rollback(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOu
     let [plan, source_root, active_root, observed_at_utc] = args else {
         anyhow::bail!(USAGE);
     };
-    let rolled_back = bijux_dna_environment::api::rollback_image_activation_plan(
+    let rolled_back = bijux_dna_containers::api::rollback_image_activation_plan(
         &path_from_arg(workspace, plan),
         &path_from_arg(workspace, source_root),
         &path_from_arg(workspace, active_root),
@@ -90,7 +90,7 @@ fn generate_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerCo
         [output] => path_from_arg(workspace, output),
         _ => anyhow::bail!(USAGE),
     };
-    bijux_dna_environment::api::write_image_activation_plan_schema(&output)?;
+    bijux_dna_containers::api::write_image_activation_plan_schema(&output)?;
     success_line(format!("generated image-activation schema at {}", output.display()))
 }
 
@@ -100,7 +100,7 @@ fn check_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
     }
     let checked: serde_json::Value =
         serde_json::from_str(&read_utf8(&workspace.path(PLAN_SCHEMA_PATH))?)?;
-    if checked != bijux_dna_environment::api::image_activation_plan_schema() {
+    if checked != bijux_dna_containers::api::image_activation_plan_schema() {
         return Ok(ContainerCommandOutcome::failure(
             "image-activation schema drifted from Rust environment types\n",
         ));

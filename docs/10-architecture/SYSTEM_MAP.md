@@ -27,7 +27,7 @@ flowchart LR
 - Source inputs: `examples/`, `domain/*/fixtures/`, user manifests
 - Domain contracts: `domain/fastq`, `domain/bam`, `domain/vcf`, `bijux-dna-domain-*`
 - Workflow and plan contracts: `bijux-dna-stage-contract`, `bijux-dna-pipelines`, `bijux-dna-planner-*`
-- Execution: `bijux-dna-runtime`, `bijux-dna-runner`, `bijux-dna-engine`, `bijux-dna-environment`
+- Execution: `bijux-dna-runtime`, `bijux-dna-runner`, `bijux-dna-engine`, `bijux-dna-containers`
 - Artifact inventory and evidence: `bijux-dna-runtime`, `bijux-dna-analyze`, `bijux-dna-api`
 - Inspect surfaces: `bijux-dna-api` and `bijux-dna`
 

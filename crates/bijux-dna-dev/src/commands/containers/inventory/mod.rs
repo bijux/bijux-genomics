@@ -23,7 +23,7 @@ pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<Contain
     if scan_output.try_exists()? || publication_output.try_exists()? {
         anyhow::bail!("refusing to replace existing image-inventory evidence output");
     }
-    let evidence = bijux_dna_environment::evidence::derive_image_inventory_evidence(&request)?;
+    let evidence = bijux_dna_containers::evidence::derive_image_inventory_evidence(&request)?;
     bijux_dna_infra::atomic_create_json(&scan_output, &evidence.scan)?;
     bijux_dna_infra::atomic_create_json(&publication_output, &evidence.publication)?;
     success_line(format!(
@@ -38,7 +38,7 @@ fn parse_generate_args(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<(
-    bijux_dna_environment::evidence::ImageInventoryDerivationRequest,
+    bijux_dna_containers::evidence::ImageInventoryDerivationRequest,
     std::path::PathBuf,
     std::path::PathBuf,
 )> {
@@ -48,7 +48,7 @@ fn parse_generate_args(
         anyhow::bail!(GENERATE_USAGE);
     };
     Ok((
-        bijux_dna_environment::evidence::ImageInventoryDerivationRequest {
+        bijux_dna_containers::evidence::ImageInventoryDerivationRequest {
             repository_root: path_from_arg(workspace, repository_root),
             study_root: path_from_arg(workspace, study_root),
             image_root: path_from_arg(workspace, image_root),
@@ -69,7 +69,7 @@ pub(super) fn generate_scan_schema(
         return success_line(usage);
     }
     let output = out_path_arg(workspace, args, SCAN_SCHEMA_PATH, usage)?;
-    bijux_dna_environment::evidence::write_image_inventory_scan_schema(&output)?;
+    bijux_dna_containers::evidence::write_image_inventory_scan_schema(&output)?;
     success_line(format!("generated {}", output.display()))
 }
 
@@ -82,7 +82,7 @@ pub(super) fn generate_publication_schema(
         return success_line(usage);
     }
     let output = out_path_arg(workspace, args, PUBLICATION_SCHEMA_PATH, usage)?;
-    bijux_dna_environment::evidence::write_image_inventory_publication_schema(&output)?;
+    bijux_dna_containers::evidence::write_image_inventory_publication_schema(&output)?;
     success_line(format!("generated {}", output.display()))
 }
 
@@ -90,7 +90,7 @@ pub(super) fn check_scan_schema(workspace: &Workspace) -> Result<ContainerComman
     check_schema(
         workspace,
         SCAN_SCHEMA_PATH,
-        bijux_dna_environment::evidence::image_inventory_scan_schema(),
+        bijux_dna_containers::evidence::image_inventory_scan_schema(),
         "scan",
     )
 }
@@ -99,7 +99,7 @@ pub(super) fn check_publication_schema(workspace: &Workspace) -> Result<Containe
     check_schema(
         workspace,
         PUBLICATION_SCHEMA_PATH,
-        bijux_dna_environment::evidence::image_inventory_publication_schema(),
+        bijux_dna_containers::evidence::image_inventory_publication_schema(),
         "publication",
     )
 }
@@ -141,7 +141,7 @@ pub(super) fn generate_report(
         _ => anyhow::bail!(usage),
     };
     let publication =
-        bijux_dna_environment::evidence::load_image_inventory_publication(&publication_path)?;
+        bijux_dna_containers::evidence::load_image_inventory_publication(&publication_path)?;
     let report = render::markdown(&publication);
     bijux_dna_infra::atomic_write_bytes(&report_path, report.as_bytes())?;
     success_line(format!(
@@ -152,7 +152,7 @@ pub(super) fn generate_report(
 }
 
 pub(super) fn check_report(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let publication = bijux_dna_environment::evidence::load_image_inventory_publication(
+    let publication = bijux_dna_containers::evidence::load_image_inventory_publication(
         &workspace.path(PUBLICATION_PATH),
     )?;
     let expected = render::markdown(&publication);

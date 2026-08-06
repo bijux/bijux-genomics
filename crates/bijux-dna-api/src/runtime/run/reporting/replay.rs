@@ -2,7 +2,7 @@ use super::Result;
 use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_engine::Engine;
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_runner::{ApptainerRunner, DockerRunner, LocalRunner};
 use std::path::{Component, Path, PathBuf};
 

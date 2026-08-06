@@ -27,7 +27,7 @@ bijux-dna-domain-vcf.workspace = true
 bijux-dna-stage-contract.workspace = true
 bijux-dna-stages-vcf.workspace = true
 bijux-dna-engine.workspace = true
-bijux-dna-environment.workspace = true
+bijux-dna-containers.workspace = true
 bijux-dna-analyze = { workspace = true, features = ["sqlite"] }
 bijux-dna-planner-fastq.workspace = true
 bijux-dna-planner-bam.workspace = true

@@ -2,7 +2,7 @@ use super::{
     failure_lines, out_path_arg, read_utf8, sha256_hex, success_line, write_utf8,
     ContainerCommandOutcome, Result, Serialize, Workspace,
 };
-use bijux_dna_environment::evidence::ContainerCatalog;
+use bijux_dna_containers::evidence::ContainerCatalog;
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const LOCK_PATH: &str = "containers/contracts/catalog.lock.json";
@@ -54,7 +54,7 @@ fn is_placeholder_digest(value: &str) -> bool {
 }
 
 pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let validation = bijux_dna_environment::evidence::validate_container_catalog(&workspace.root)?;
+    let validation = bijux_dna_containers::evidence::validate_container_catalog(&workspace.root)?;
     if validation.is_valid() {
         return success_line(format!(
             "container contract catalog: OK ({} tools, {} source identities require production resolution)",
@@ -193,7 +193,7 @@ fn qualification_report(
     workspace: &Workspace,
 ) -> Result<bijux_dna_api::v1::api::qualification::QualificationReport> {
     let environment_evidence =
-        bijux_dna_environment::evidence::load_container_evidence_chain(&workspace.root)?;
+        bijux_dna_containers::evidence::load_container_evidence_chain(&workspace.root)?;
     let registry = bijux_dna_bench::load_stage_campaign_registry(
         &workspace.path("benchmarks/contracts/stage-campaigns.toml"),
     )?;

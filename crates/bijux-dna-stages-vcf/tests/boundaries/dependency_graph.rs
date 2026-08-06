@@ -23,8 +23,8 @@ const DEV_DEPS: &[&str] = &["bijux-dna-policies", "bijux-dna-testkit", "tempfile
 const FORBIDDEN_BIJUX_EDGES: &[&str] = &[
     "bijux-dna-api",
     "bijux-dna-engine",
-    "bijux-dna-environment",
-    "bijux-dna-environment-qa",
+    "bijux-dna-containers",
+    "bijux-dna-containers-qa",
     "bijux-dna-planner-bam",
     "bijux-dna-planner-fastq",
     "bijux-dna-planner-vcf",

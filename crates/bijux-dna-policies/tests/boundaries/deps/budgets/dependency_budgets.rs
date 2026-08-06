@@ -9,7 +9,7 @@ const BUDGETS: &[(&str, usize)] = &[
     ("bijux-dna-analyze", 35),
     ("bijux-dna-bench-model", 20),
     ("bijux-dna-infra", 20),
-    ("bijux-dna-environment-qa", 80),
+    ("bijux-dna-containers-qa", 80),
 ];
 
 #[test]

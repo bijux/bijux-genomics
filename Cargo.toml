@@ -14,8 +14,8 @@ members = ["crates/bijux-dna",
   "crates/bijux-dna-domain-fastq",
   "crates/bijux-dna-domain-vcf",
   "crates/bijux-dna-engine",
-  "crates/bijux-dna-environment",
-  "crates/bijux-dna-environment-qa",
+  "crates/bijux-dna-containers",
+  "crates/bijux-dna-containers-qa",
   "crates/bijux-dna-infra",
   "crates/bijux-dna-pipelines",
   "crates/bijux-dna-planner-bam",
@@ -89,7 +89,7 @@ bijux-dna-domain-compiler = { path = "crates/bijux-dna-domain-compiler" }
 bijux-dna-domain-fastq = { path = "crates/bijux-dna-domain-fastq" }
 bijux-dna-domain-vcf = { path = "crates/bijux-dna-domain-vcf" }
 bijux-dna-engine = { path = "crates/bijux-dna-engine" }
-bijux-dna-environment = { path = "crates/bijux-dna-environment" }
+bijux-dna-containers = { path = "crates/bijux-dna-containers" }
 bijux-dna-infra = { path = "crates/bijux-dna-infra" }
 bijux-dna-pipelines = { path = "crates/bijux-dna-pipelines" }
 bijux-dna-planner-bam = { path = "crates/bijux-dna-planner-bam" }

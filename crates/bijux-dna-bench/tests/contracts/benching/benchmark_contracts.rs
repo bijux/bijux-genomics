@@ -83,8 +83,8 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
         .find(|root| root.join(".git").exists())
         .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?
         .to_path_buf();
-    let catalog = bijux_dna_environment::api::load_container_catalog(&repository_root)?;
-    let current_commit = bijux_dna_environment::api::repository_head_commit(&repository_root)?;
+    let catalog = bijux_dna_containers::api::load_container_catalog(&repository_root)?;
+    let current_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
 
     let coverage =
         bijux_dna_bench::derive_stage_coverage(&registry, &catalog, &reports, &current_commit)?;

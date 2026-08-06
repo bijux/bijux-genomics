@@ -1,7 +1,7 @@
 use anyhow::Result;
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::prelude::hashing::run_id_from_hashes;
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 
 use super::artifacts::write_minimum_run_artifacts;
 use super::identity::{execution_pipeline_identity, execution_sample_identity};

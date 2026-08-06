@@ -33,7 +33,7 @@ fn db_ena_rejects_downstream_workspace_dependencies() {
         "bijux-dna-domain-fastq",
         "bijux-dna-domain-vcf",
         "bijux-dna-engine",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
         "bijux-dna-infra",
         "bijux-dna-pipelines",
         "bijux-dna-planner-bam",

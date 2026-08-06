@@ -19,7 +19,7 @@ use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_screen_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;

@@ -18,7 +18,7 @@ fn dependency_graph_matches_runner_boundary() {
             "anyhow",
             "bijux-dna-bench-model",
             "bijux-dna-core",
-            "bijux-dna-environment",
+            "bijux-dna-containers",
             "bijux-dna-infra",
             "bijux-dna-runtime",
             "serde",

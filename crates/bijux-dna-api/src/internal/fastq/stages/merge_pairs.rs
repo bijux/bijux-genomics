@@ -20,7 +20,7 @@ use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::metrics::ratio_u64;
 use bijux_dna_domain_fastq::params::merge::{MergeEffectiveParams, UnmergedReadPolicy};
 use bijux_dna_domain_fastq::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, ensure_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_merge_tools;

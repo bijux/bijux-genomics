@@ -17,7 +17,7 @@ use bijux_dna_domain_fastq::params::trim::{
     parse_terminal_damage_execution_policy, terminal_damage_execution_policy_label,
     TrimTerminalDamageParams,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::fastq::trim_terminal_damage::{
     plan_trim_terminal_damage_with_options, TrimTerminalDamagePlanOptions,

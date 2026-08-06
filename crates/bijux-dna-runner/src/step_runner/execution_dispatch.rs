@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 
 use super::apptainer_execution::execute_apptainer_step;
 use super::docker_execution::execute_docker_step;

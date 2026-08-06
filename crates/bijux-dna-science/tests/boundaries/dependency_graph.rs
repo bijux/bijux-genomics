@@ -50,7 +50,7 @@ fn dependency_graph_matches_science_boundary() {
         "bijux-dna-runner",
         "bijux-dna-engine",
         "bijux-dna-planner",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
     ] {
         assert!(
             !cargo_toml.contains(forbidden),

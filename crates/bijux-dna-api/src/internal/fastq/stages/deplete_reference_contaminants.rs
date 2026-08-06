@@ -29,7 +29,7 @@ use bijux_dna_domain_fastq::{
     stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS, DepleteReferenceContaminantsReportV1,
     DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;

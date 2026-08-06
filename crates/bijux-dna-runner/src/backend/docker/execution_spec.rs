@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
 };
-use bijux_dna_environment::api::{PlatformSpec, ToolImageCatalog};
+use bijux_dna_containers::api::{PlatformSpec, ToolImageCatalog};
 use serde::Deserialize;
 
 use crate::backend::docker::image_resolution::resolve_image_for_run;
