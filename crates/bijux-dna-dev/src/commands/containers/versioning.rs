@@ -2,51 +2,11 @@
 
 use super::{
     anyhow, append_toml_table, container_support_summary, container_version_deprecations_path,
-    env_or_empty, failure_lines, fs, git_last_modified_timestamp, governed_container_file_ids,
-    load_toml, lock_items_by_tool, out_path_arg, parse_date, read_lock_json, read_utf8, run_argv,
-    sha256_hex, success_line, table_string, tool_versions, write_utf8, BTreeMap, BTreeSet,
-    ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc, Workspace,
+    env_or_empty, failure_lines, governed_container_file_ids, load_toml, lock_items_by_tool,
+    out_path_arg, parse_date, read_utf8, run_argv, success_line, table_string, tool_versions,
+    write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc,
+    Workspace,
 };
-
-const VERSION_LOCK_GENERATOR_PATH: &str =
-    "crates/bijux-dna-dev/src/commands/containers/versioning.rs";
-
-fn choose_lock_build_date_utc(
-    git_timestamp: &str,
-    existing_lock: Option<&serde_json::Value>,
-    current_source_sha256: &str,
-) -> String {
-    if let Some(lock) = existing_lock {
-        let existing_source_sha256 = lock
-            .get("source_sha256")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim();
-        let existing_build_date_utc = lock
-            .get("build_date_utc")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim();
-        if existing_source_sha256 == current_source_sha256 && !existing_build_date_utc.is_empty() {
-            return existing_build_date_utc.to_string();
-        }
-    }
-    git_timestamp.to_string()
-}
-
-fn lock_build_date_utc(workspace: &Workspace, versions_path: &std::path::Path) -> Result<String> {
-    let source_sha256 = sha256_hex(
-        &fs::read(versions_path).with_context(|| format!("read {}", versions_path.display()))?,
-    );
-    let existing_lock = read_utf8(&workspace.path("containers/versions/lock.json"))
-        .ok()
-        .and_then(|payload| serde_json::from_str::<serde_json::Value>(&payload).ok());
-    Ok(choose_lock_build_date_utc(
-        &git_last_modified_timestamp(workspace, "containers/versions/versions.toml"),
-        existing_lock.as_ref(),
-        &source_sha256,
-    ))
-}
 
 pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<String> {
     bijux_dna_containers::api::render_container_version_map(&workspace.root)
@@ -119,7 +79,7 @@ pub(super) fn check_lock_change_discipline(
             "--",
             "containers/versions/versions.toml",
             "containers/versions/lock.json",
-            VERSION_LOCK_GENERATOR_PATH,
+            bijux_dna_containers::api::CONTAINER_VERSION_LOCK_GENERATOR_PATH,
         ])
         .output()
         .with_context(|| "inspect lock discipline diff".to_string())?;
@@ -127,7 +87,9 @@ pub(super) fn check_lock_change_discipline(
     let has_versions =
         changed.lines().any(|line| line.trim() == "containers/versions/versions.toml");
     let has_lock = changed.lines().any(|line| line.trim() == "containers/versions/lock.json");
-    let has_generator = changed.lines().any(|line| line.trim() == VERSION_LOCK_GENERATOR_PATH);
+    let has_generator = changed.lines().any(|line| {
+        line.trim() == bijux_dna_containers::api::CONTAINER_VERSION_LOCK_GENERATOR_PATH
+    });
     if (has_versions || has_generator) && !has_lock {
         return Ok(ContainerCommandOutcome::failure(
             "lock change discipline: version source or generator changed but lock.json did not\n",
@@ -142,66 +104,8 @@ pub(super) fn check_lock_change_discipline(
 }
 
 pub(super) fn check_lock_schema(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let lock = read_lock_json(workspace)?;
-    let mut errors = Vec::new();
-    for key in [
-        "schema_version",
-        "source",
-        "source_sha256",
-        "build_date_utc",
-        "builder_platform",
-        "generator_script",
-        "generator_sha256",
-        "items",
-    ] {
-        if lock.get(key).is_none() {
-            errors.push(format!("missing top-level key: {key}"));
-        }
-    }
-    if lock.get("schema_version").and_then(serde_json::Value::as_str)
-        != Some("bijux.container.version_lock.v4")
-    {
-        errors.push("schema_version must be bijux.container.version_lock.v4".to_string());
-    }
-    match lock.get("items").and_then(serde_json::Value::as_array) {
-        Some(items) if !items.is_empty() => {
-            let mut seen = BTreeSet::new();
-            for (index, row) in items.iter().enumerate() {
-                let Some(row_obj) = row.as_object() else {
-                    errors.push(format!("items[{index}] must be object"));
-                    continue;
-                };
-                for key in [
-                    "tool",
-                    "version",
-                    "source",
-                    "entry_sha256",
-                    "resolved_image_digest",
-                    "resolved_sif_sha256",
-                    "sif_digest_sha256",
-                    "frontend_resolved_sif_sha256",
-                    "frontend_sif_digest_sha256",
-                    "frontend_smoke_version_output_sha256",
-                ] {
-                    if !row_obj.contains_key(key) {
-                        errors.push(format!("items[{index}] missing key: {key}"));
-                    }
-                }
-                let tool =
-                    row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
-                if tool.is_empty() {
-                    errors.push(format!("items[{index}] has empty tool"));
-                } else if !seen.insert(tool.to_string()) {
-                    errors.push(format!("duplicate tool in lock items: {tool}"));
-                }
-            }
-        }
-        _ => errors.push("items must be non-empty list".to_string()),
-    }
-    if errors.is_empty() {
-        return success_line("lock schema: OK");
-    }
-    failure_lines("lock schema: failed", &errors)
+    bijux_dna_containers::api::load_container_version_lock(&workspace.root)?;
+    success_line("lock schema: OK")
 }
 
 pub(super) fn check_version_completeness(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
@@ -418,167 +322,7 @@ pub(super) fn check_version_deprecations(workspace: &Workspace) -> Result<Contai
 }
 
 pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
-    let version_map: serde_json::Value =
-        serde_json::from_str(&extract_version_map_content(workspace)?)?;
-    let generator_path = workspace.path(VERSION_LOCK_GENERATOR_PATH);
-    let versions_path = workspace.path("containers/versions/versions.toml");
-    let build_date_utc = lock_build_date_utc(workspace, &versions_path)?;
-
-    let manifest_candidates =
-        [workspace.path("artifacts/containers"), workspace.path("artifacts/containers/manifests")];
-    let mut docker_digest_by_tool = BTreeMap::new();
-    let mut apptainer_sif_sha256_by_tool = BTreeMap::new();
-    let mut frontend_sif_sha256_by_tool = BTreeMap::new();
-    let mut frontend_smoke_version_output_sha256_by_tool = BTreeMap::new();
-    let mut size_by_tool = BTreeMap::new();
-    let mut seen = BTreeSet::new();
-    for base in manifest_candidates {
-        if !base.exists() {
-            continue;
-        }
-        for entry in fs::read_dir(&base)
-            .with_context(|| format!("read {}", base.display()))?
-            .filter_map(std::result::Result::ok)
-        {
-            let path = entry.path();
-            if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
-                continue;
-            }
-            let name = path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
-            if matches!(name, "lock.json" | "summary.json" | "report.json")
-                || !seen.insert(path.clone())
-            {
-                continue;
-            }
-            let Ok(value) =
-                serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default())
-            else {
-                continue;
-            };
-            let tool = value
-                .get("tool")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default()
-                .trim()
-                .to_string();
-            let runtime = value
-                .get("runtime")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default()
-                .trim()
-                .to_string();
-            let digest = value
-                .get("resolved_image_digest")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default()
-                .trim()
-                .to_string();
-            let size =
-                value.get("image_size_bytes").and_then(serde_json::Value::as_i64).unwrap_or(0);
-            if tool.is_empty() {
-                continue;
-            }
-            if runtime.starts_with("docker") {
-                docker_digest_by_tool.insert(tool.clone(), digest);
-            } else if runtime == "apptainer" {
-                apptainer_sif_sha256_by_tool.insert(tool.clone(), digest);
-            }
-            if size > 0 {
-                size_by_tool.insert(tool, size);
-            }
-        }
-    }
-
-    let frontend_digests = workspace.path("artifacts/containers/hpc/frontend-sif-digests.json");
-    if frontend_digests.is_file() {
-        if let Ok(value) = serde_json::from_str::<serde_json::Value>(&read_utf8(&frontend_digests)?)
-        {
-            if let Some(items) = value.get("items").and_then(serde_json::Value::as_array) {
-                for row in items {
-                    let tool = row
-                        .get("tool")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or_default()
-                        .trim();
-                    let sha = row
-                        .get("sha256")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or_default()
-                        .trim();
-                    if !tool.is_empty() && !sha.is_empty() {
-                        frontend_sif_sha256_by_tool.insert(tool.to_string(), sha.to_string());
-                    }
-                }
-            }
-        }
-    }
-
-    let frontend_smoke_summary =
-        workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
-    if frontend_smoke_summary.is_file() {
-        if let Ok(value) =
-            serde_json::from_str::<serde_json::Value>(&read_utf8(&frontend_smoke_summary)?)
-        {
-            if let Some(items) = value.get("items").and_then(serde_json::Value::as_array) {
-                for row in items {
-                    let tool = row
-                        .get("tool")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or_default()
-                        .trim();
-                    let output = row
-                        .get("normalized_version_output")
-                        .and_then(serde_json::Value::as_str)
-                        .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
-                        .unwrap_or_default()
-                        .trim()
-                        .to_lowercase();
-                    if !tool.is_empty() && !output.is_empty() {
-                        frontend_smoke_version_output_sha256_by_tool
-                            .insert(tool.to_string(), sha256_hex(output.as_bytes()));
-                    }
-                }
-            }
-        }
-    }
-
-    let mut items = Vec::new();
-    for row in
-        version_map.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default()
-    {
-        let tool =
-            row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
-        let canonical = serde_json::to_string(&row)?;
-        items.push(serde_json::json!({
-            "tool": tool,
-            "version": row.get("version").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            "source": row.get("source").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            "source_sha256": row.get("source_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            "pinned_commit": row.get("pinned_commit").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            "resolved_image_digest": docker_digest_by_tool.get(&tool).cloned().unwrap_or_default(),
-            "resolved_sif_sha256": apptainer_sif_sha256_by_tool.get(&tool).cloned().unwrap_or_default(),
-            "sif_digest_sha256": apptainer_sif_sha256_by_tool.get(&tool).cloned().unwrap_or_default(),
-            "frontend_resolved_sif_sha256": frontend_sif_sha256_by_tool.get(&tool).cloned().unwrap_or_default(),
-            "frontend_sif_digest_sha256": frontend_sif_sha256_by_tool.get(&tool).cloned().unwrap_or_default(),
-            "frontend_smoke_version_output_sha256": frontend_smoke_version_output_sha256_by_tool.get(&tool).cloned().unwrap_or_default(),
-            "image_size_bytes": size_by_tool.get(&tool).copied().unwrap_or(0),
-            "entry_sha256": sha256_hex(canonical.as_bytes()),
-        }));
-    }
-
-    let output = serde_json::json!({
-        "schema_version": "bijux.container.version_lock.v4",
-        "source": "containers/versions/versions.toml",
-        "version_map_source": "artifacts/containers/version_map.json",
-        "build_manifests_source": "artifacts/containers/manifests/*.json",
-        "build_date_utc": build_date_utc,
-        "builder_platform": "arm64",
-        "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
-        "generator_sha256": sha256_hex(&fs::read(&generator_path).with_context(|| format!("read {}", generator_path.display()))?),
-        "source_sha256": sha256_hex(&fs::read(&versions_path).with_context(|| format!("read {}", versions_path.display()))?),
-        "items": items,
-    });
-    Ok(format!("{}\n", serde_json::to_string_pretty(&output)?))
+    bijux_dna_containers::api::render_container_version_lock(&workspace.root)
 }
 
 pub(super) fn generate_version_lock(
@@ -621,6 +365,9 @@ fn is_noncanonical_version_authority_path(rel: &str) -> bool {
     !matches!(
         rel,
         "containers/contracts/catalog.lock.json"
+            | "containers/contracts/schemas/catalog-lock.v1.json"
+            | "containers/contracts/schemas/version-lock.v4.json"
+            | "containers/contracts/schemas/version-map.v2.json"
             | "containers/versions/versions.toml"
             | "containers/versions/lock.json"
             | "containers/versions/LOCK.md"
@@ -648,61 +395,10 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
         return Ok(ContainerCommandOutcome::failure(stderr));
     }
 
-    let lock: serde_json::Value =
-        serde_json::from_str(&read_utf8(&workspace.path("containers/versions/lock.json"))?)?;
-    let versions_path = workspace.path("containers/versions/versions.toml");
-    let generator_path = workspace.path(VERSION_LOCK_GENERATOR_PATH);
     let mut errors = Vec::new();
-    if lock
-        .get("schema_version")
-        .and_then(serde_json::Value::as_str)
-        .is_none_or(|value| value != "bijux.container.version_lock.v4")
+    if let Err(error) = bijux_dna_containers::api::validate_container_version_lock(&workspace.root)
     {
-        errors
-            .push("- lock.json schema_version must be bijux.container.version_lock.v4".to_string());
-    }
-    if lock.get("source").and_then(serde_json::Value::as_str)
-        != Some("containers/versions/versions.toml")
-    {
-        errors.push("- lock.json source must be containers/versions/versions.toml".to_string());
-    }
-    if lock
-        .get("build_date_utc")
-        .and_then(serde_json::Value::as_str)
-        .unwrap_or_default()
-        .trim()
-        .is_empty()
-    {
-        errors.push("- lock.json must include build_date_utc".to_string());
-    }
-    if lock.get("builder_platform").and_then(serde_json::Value::as_str) != Some("arm64") {
-        errors.push("- lock.json builder_platform must be arm64".to_string());
-    }
-    if lock.get("generator_script").and_then(serde_json::Value::as_str)
-        != Some("cargo run -p bijux-dna-dev -- containers run generate-version-lock")
-    {
-        errors.push("- lock.json generator_script must reference bijux-dna-dev".to_string());
-    }
-    let expected_gen_sha = sha256_hex(
-        &fs::read(&generator_path).with_context(|| format!("read {}", generator_path.display()))?,
-    );
-    if lock.get("generator_sha256").and_then(serde_json::Value::as_str)
-        != Some(expected_gen_sha.as_str())
-    {
-        errors.push(
-            "- lock.json generator_sha256 does not match bijux-dna-dev container generator"
-                .to_string(),
-        );
-    }
-    let expected_sha = sha256_hex(
-        &fs::read(&versions_path).with_context(|| format!("read {}", versions_path.display()))?,
-    );
-    if lock.get("source_sha256").and_then(serde_json::Value::as_str) != Some(expected_sha.as_str())
-    {
-        errors.push("- lock.json source_sha256 does not match versions.toml".to_string());
-    }
-    if lock.get("items").and_then(serde_json::Value::as_array).is_none_or(std::vec::Vec::is_empty) {
-        errors.push("- lock.json items must be a non-empty list".to_string());
+        errors.push(format!("- version lock: {error:#}"));
     }
 
     let version_source_markers = [
@@ -902,7 +598,7 @@ pub(super) fn deprecate_version(
 
 #[cfg(test)]
 mod tests {
-    use super::{choose_lock_build_date_utc, is_noncanonical_version_authority_path};
+    use super::is_noncanonical_version_authority_path;
 
     #[test]
     fn distinguishes_run_evidence_locks_from_version_authorities() {
@@ -912,38 +608,5 @@ mod tests {
         assert!(is_noncanonical_version_authority_path(
             "containers/contracts/alternate-version-lock.json"
         ));
-    }
-
-    #[test]
-    fn preserves_existing_lock_date_when_source_is_unchanged() {
-        let current_source_sha256 = "abc123";
-        let existing_lock = serde_json::json!({
-            "source_sha256": current_source_sha256,
-            "build_date_utc": "2026-04-25T23:10:27+02:00"
-        });
-
-        let chosen = choose_lock_build_date_utc(
-            "2026-04-29T15:35:57+02:00",
-            Some(&existing_lock),
-            current_source_sha256,
-        );
-
-        assert_eq!(chosen, "2026-04-25T23:10:27+02:00");
-    }
-
-    #[test]
-    fn falls_back_to_git_timestamp_when_lock_is_stale() {
-        let existing_lock = serde_json::json!({
-            "source_sha256": "old-source",
-            "build_date_utc": "2026-04-25T23:10:27+02:00"
-        });
-
-        let chosen = choose_lock_build_date_utc(
-            "2026-04-29T15:35:57+02:00",
-            Some(&existing_lock),
-            "new-source",
-        );
-
-        assert_eq!(chosen, "2026-04-29T15:35:57+02:00");
     }
 }

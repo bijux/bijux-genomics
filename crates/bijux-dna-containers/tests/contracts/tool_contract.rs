@@ -197,6 +197,42 @@ fn version_index_is_model_owned_and_current() -> Result<()> {
 }
 
 #[test]
+fn version_lock_is_model_owned_complete_and_fail_closed() -> Result<()> {
+    let root = repository_root()?;
+    bijux_dna_containers::evidence::validate_container_version_lock(&root)?;
+    let lock = bijux_dna_containers::evidence::derive_container_version_lock(&root)?;
+    assert_eq!(lock.items.len(), 89);
+    assert!(lock.items.windows(2).all(|pair| pair[0].tool < pair[1].tool));
+    assert_eq!(
+        lock.generator_script,
+        bijux_dna_containers::evidence::CONTAINER_VERSION_LOCK_COMMAND
+    );
+    assert_eq!(lock.generator_sha256.len(), 64);
+    assert_eq!(lock.source_sha256.len(), 64);
+
+    let rendered = bijux_dna_containers::evidence::render_container_version_lock(&root)?;
+    let admitted: bijux_dna_containers::evidence::ContainerVersionLock =
+        serde_json::from_str(&rendered)?;
+    assert_eq!(admitted, lock);
+
+    let mut malformed = lock.clone();
+    malformed.generator_sha256 = "not-a-digest".to_string();
+    assert!(bijux_dna_containers::evidence::validate_container_version_lock_model(&malformed)
+        .is_err_and(|error| error.to_string().contains("generator_sha256")));
+    malformed = lock.clone();
+    let first_tool = malformed.items[0].tool.clone();
+    malformed.items[1].tool = first_tool;
+    assert!(bijux_dna_containers::evidence::validate_container_version_lock_model(&malformed)
+        .is_err_and(|error| error.to_string().contains("strictly sorted")));
+
+    let mut future = serde_json::to_value(lock)?;
+    future["schema_version"] = serde_json::json!("bijux.container.version_lock.v5");
+    assert!(serde_json::from_value::<bijux_dna_containers::evidence::ContainerVersionLock>(future)
+        .is_err());
+    Ok(())
+}
+
+#[test]
 fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
     let root = repository_root()?;
     let validation = validate_container_catalog(&root)?;

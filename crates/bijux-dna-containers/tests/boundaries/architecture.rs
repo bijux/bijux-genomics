@@ -54,6 +54,7 @@ fn source_tree_matches_architecture_contract() {
             "smoke.rs",
             "validation.rs",
             "version_catalog.rs",
+            "version_lock.rs",
         ]),
         "tool contracts must separate source, rendering, inspection, and admission concerns"
     );

@@ -188,6 +188,7 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let catalog = bijux_dna_containers::evidence::container_catalog_schema();
     let catalog_lock = bijux_dna_containers::evidence::container_catalog_lock_schema();
     let version_map = bijux_dna_containers::evidence::container_version_map_schema();
+    let version_lock = bijux_dna_containers::evidence::container_version_lock_schema();
     let tool_contract = bijux_dna_containers::evidence::tool_contract::tool_contract_schema();
     let build_evidence = bijux_dna_containers::api::container_build_evidence_schema();
     let campaign_plan = bijux_dna_containers::api::image_campaign_plan_schema();
@@ -200,6 +201,7 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     assert_eq!(catalog["title"], "ContainerCatalog");
     assert_eq!(catalog_lock["title"], "ContainerCatalogLock");
     assert_eq!(version_map["title"], "ContainerVersionMap");
+    assert_eq!(version_lock["title"], "ContainerVersionLock");
     assert_eq!(tool_contract["title"], "ContainerToolContract");
     assert_eq!(build_evidence["title"], "CanonicalApptainerImagePublication");
     assert_eq!(campaign_plan["title"], "ImageCampaignPlan");
@@ -418,5 +420,16 @@ fn checked_in_version_map_schema_matches_rust_type() -> Result<()> {
     }
     let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
     assert_eq!(checked_in, bijux_dna_containers::api::container_version_map_schema());
+    Ok(())
+}
+
+#[test]
+fn checked_in_version_lock_schema_matches_rust_type() -> Result<()> {
+    let path = repository_root()?.join("containers/contracts/schemas/version-lock.v4.json");
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        bijux_dna_containers::api::write_container_version_lock_schema(&path)?;
+    }
+    let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+    assert_eq!(checked_in, bijux_dna_containers::api::container_version_lock_schema());
     Ok(())
 }

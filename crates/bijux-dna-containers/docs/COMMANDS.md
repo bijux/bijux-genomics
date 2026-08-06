@@ -40,6 +40,9 @@ library can manage when callers invoke the matching API.
   after strict commit validation and hashes the exact historical catalog bytes.
 - `derive_container_catalog_lock()` and `load_container_catalog_lock()`: derive and admit the
   immutable lock only when the complete catalog and repository recipe closure validate.
+- `derive_container_version_lock()`: runs `git log -1 --format=%cI` for the governed version
+  source when no current lock date can be retained, then binds source, generator, and available
+  runtime evidence into the immutable version lock.
 - `apptainer_recipe_identity_at_commit()`: runs `git show --no-ext-diff` for one definition and
   `git rev-parse --verify` for each repository-owned `%files` source at an exact commit.
 - `repository_head_commit()`: runs `git rev-parse --verify HEAD^{commit}` and rejects abbreviated or
@@ -70,6 +73,8 @@ library can manage when callers invoke the matching API.
 - `src/evidence/tool_contract/catalog.rs`: exact-commit catalog materialization for evidence identity.
 - `src/evidence/tool_contract/recipe_identity.rs`: exact-commit definition and `%files` identity.
 - `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
+- `src/evidence/tool_contract/version_lock.rs`: committed version-source timestamp derivation for
+  deterministic immutable lock publication.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 - `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
   canonical image publication.

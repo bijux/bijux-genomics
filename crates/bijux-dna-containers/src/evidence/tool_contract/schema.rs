@@ -4,7 +4,7 @@ use schemars::schema_for;
 use serde_json::Value;
 
 use super::model::{ContainerToolContract, ToolImageIdentityEvidence};
-use super::{ContainerCatalog, ContainerCatalogLock, ContainerVersionMap};
+use super::{ContainerCatalog, ContainerCatalogLock, ContainerVersionLock, ContainerVersionMap};
 
 #[must_use]
 pub fn container_catalog_schema() -> Value {
@@ -20,6 +20,12 @@ pub fn container_catalog_lock_schema() -> Value {
 #[must_use]
 pub fn container_version_map_schema() -> Value {
     serde_json::to_value(schema_for!(ContainerVersionMap)).unwrap_or_else(|_| serde_json::json!({}))
+}
+
+#[must_use]
+pub fn container_version_lock_schema() -> Value {
+    serde_json::to_value(schema_for!(ContainerVersionLock))
+        .unwrap_or_else(|_| serde_json::json!({}))
 }
 
 #[must_use]
@@ -100,5 +106,14 @@ pub fn write_container_catalog_lock_schema(path: &Path) -> anyhow::Result<()> {
 /// Returns an error when the destination cannot be written.
 pub fn write_container_version_map_schema(path: &Path) -> anyhow::Result<()> {
     bijux_dna_infra::atomic_write_json(path, &container_version_map_schema())?;
+    Ok(())
+}
+
+/// Write the immutable container-version-lock schema atomically.
+///
+/// # Errors
+/// Returns an error when the destination cannot be written.
+pub fn write_container_version_lock_schema(path: &Path) -> anyhow::Result<()> {
+    bijux_dna_infra::atomic_write_json(path, &container_version_lock_schema())?;
     Ok(())
 }

@@ -75,19 +75,6 @@ pub(super) fn json_string_pretty(value: &serde_json::Value) -> Result<String> {
     Ok(format!("{}\n", serde_json::to_string_pretty(value)?))
 }
 
-pub(super) fn git_last_modified_timestamp(workspace: &Workspace, rel_path: &str) -> String {
-    std::process::Command::new("git")
-        .arg("-C")
-        .arg(&workspace.root)
-        .args(["log", "-1", "--format=%cI", "--", rel_path])
-        .output()
-        .ok()
-        .filter(|output| output.status.success())
-        .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string())
-}
-
 pub(super) fn out_path_arg(
     workspace: &Workspace,
     args: &[String],

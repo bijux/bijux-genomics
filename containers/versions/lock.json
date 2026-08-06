@@ -3,7 +3,7 @@
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
-  "generator_sha256": "42764c4d75b0c6d2be6fa1e54b47ff40c692012803519cb17e04b7cddb9e8825",
+  "generator_sha256": "e84f24f57c7dda1b9c90fefe809c8a815bbec7d5fce55de481908923d0007352",
   "items": [
     {
       "entry_sha256": "7cb10770c9e2147a7e0c9fafa324310dfd3d4361ad6612a41c4d5842d8a6261f",
