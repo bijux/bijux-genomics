@@ -1,8 +1,13 @@
-use bijux_dna_containers::evidence::{
+//! Deterministic human-readable rendering of admitted image inventory publications.
+
+use std::fmt::Write as _;
+
+use crate::evidence::{
     ContainerImageInventoryPublication, ContainerImageState, ContainerSupportDisposition,
 };
 
-pub(super) fn markdown(inventory: &ContainerImageInventoryPublication) -> String {
+#[must_use]
+pub fn render_image_inventory_markdown(inventory: &ContainerImageInventoryPublication) -> String {
     let summary = &inventory.summary;
     let states = summary
         .states
@@ -11,7 +16,7 @@ pub(super) fn markdown(inventory: &ContainerImageInventoryPublication) -> String
         .collect::<Vec<_>>()
         .join(", ");
     let mut output = format!(
-        "<!-- GENERATED FILE - DO NOT EDIT -->\n<!-- source: bijux-dna-dev containers generate-image-inventory-report -->\n# LUNARC Apptainer image inventory\n\nThis is an integrity and provenance inventory, not a release certificate.\nAn image is current only when its SIF hash, immutable filename, build evidence,\nrecipe-at-commit hash, and active recipe hash agree. Scientific and security\nqualification remain independent requirements.\n\n## Inventory summary\n\n- Catalog tools: **{}**\n- States: {}\n- Historical run dependencies: **{}**\n- Unknown immutable images: **{}**\n- Interrupted staged images: **{}**\n- Unreferenced obsolete images: **{}**\n\n## Catalog coverage\n\n| Tool | Version | Catalog disposition | Image state | Real-run references |\n|---|---|---|---|---:|\n",
+        "<!-- GENERATED FILE - DO NOT EDIT -->\n<!-- source: bijux-dna-containers image inventory publication -->\n# LUNARC Apptainer image inventory\n\nThis is an integrity and provenance inventory, not a release certificate.\nAn image is current only when its SIF hash, immutable filename, build evidence,\nrecipe-at-commit hash, and active recipe hash agree. Scientific and security\nqualification remain independent requirements.\n\n## Inventory summary\n\n- Catalog tools: **{}**\n- States: {}\n- Historical run dependencies: **{}**\n- Unknown immutable images: **{}**\n- Interrupted staged images: **{}**\n- Unreferenced obsolete images: **{}**\n\n## Catalog coverage\n\n| Tool | Version | Catalog disposition | Image state | Real-run references |\n|---|---|---|---|---:|\n",
         summary.tool_count,
         states,
         summary.historical_dependency_count,
@@ -22,13 +27,14 @@ pub(super) fn markdown(inventory: &ContainerImageInventoryPublication) -> String
     for tool in &inventory.tools {
         let references =
             tool.candidates.iter().map(|candidate| candidate.real_run_references).sum::<u64>();
-        output.push_str(&format!(
-            "| `{}` | `{}` | {} | **{}** | {references} |\n",
+        let _ = writeln!(
+            output,
+            "| `{}` | `{}` | {} | **{}** | {references} |",
             markdown_code(&tool.tool),
             markdown_code(&tool.version),
             support_disposition(&tool.support_disposition),
             image_state(&tool.state),
-        ));
+        );
     }
     output.push_str(
         "\n`missing` means no admitted SIF exists for the catalog version. `ambiguous`\nmeans admitted candidates exist but none can be selected uniquely. `historical`\nmeans one admitted image is selected but does not represent the active recipe.\n`unsupported` is an explicit catalog decision, not a failed build.\nA historical run dependency is preserved because a final governed run records\nits immutable path and digest; it is not current support or release evidence.\n\nThe machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).\n",
@@ -63,13 +69,13 @@ fn markdown_code(value: &str) -> String {
 mod tests {
     use std::collections::BTreeMap;
 
-    use bijux_dna_containers::evidence::{
+    use crate::evidence::{
         ContainerImageInventoryPublication, ContainerImageInventorySummary,
         ContainerImageInventoryTool, ContainerImageState, ContainerSupportDisposition,
         ImageInventoryPublicationIdentity,
     };
 
-    use super::markdown;
+    use super::render_image_inventory_markdown;
 
     #[test]
     fn report_separates_inventory_from_qualification() {
@@ -103,7 +109,7 @@ mod tests {
             staged_images: Vec::new(),
         };
 
-        let report = markdown(&publication);
+        let report = render_image_inventory_markdown(&publication);
 
         assert!(report.contains("not a release certificate"));
         assert!(report.contains("Scientific and security"));

@@ -36,9 +36,9 @@ pub use image_storage::{
     QuarantinedImageIdentity, IMAGE_STORAGE_PLAN_SCHEMA_V1, IMAGE_STORAGE_REPORT_SCHEMA_V1,
 };
 pub use inventory::{
-    derive_image_inventory_evidence, derive_image_inventory_publication, DerivedImageInventory,
-    ImageInventoryDerivationRequest, ImageInventoryScan, ImageInventoryScannedImage,
-    ImageInventorySourceFile,
+    derive_image_inventory_evidence, derive_image_inventory_publication,
+    render_image_inventory_markdown, DerivedImageInventory, ImageInventoryDerivationRequest,
+    ImageInventoryScan, ImageInventoryScannedImage, ImageInventorySourceFile,
 };
 pub use load::{
     load_image_inventory_publication, load_image_inventory_scan,

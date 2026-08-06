@@ -1,4 +1,4 @@
-mod render;
+//! Thin command adapter for model-owned image inventory workflows.
 
 use super::{
     out_path_arg, path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result,
@@ -142,7 +142,7 @@ pub(super) fn generate_report(
     };
     let publication =
         bijux_dna_containers::evidence::load_image_inventory_publication(&publication_path)?;
-    let report = render::markdown(&publication);
+    let report = bijux_dna_containers::evidence::render_image_inventory_markdown(&publication);
     bijux_dna_infra::atomic_write_bytes(&report_path, report.as_bytes())?;
     success_line(format!(
         "generated image-inventory report for {} tools at {}",
@@ -155,7 +155,7 @@ pub(super) fn check_report(workspace: &Workspace) -> Result<ContainerCommandOutc
     let publication = bijux_dna_containers::evidence::load_image_inventory_publication(
         &workspace.path(PUBLICATION_PATH),
     )?;
-    let expected = render::markdown(&publication);
+    let expected = bijux_dna_containers::evidence::render_image_inventory_markdown(&publication);
     if read_utf8(&workspace.path(REPORT_PATH))? != expected {
         return Ok(ContainerCommandOutcome::failure(format!(
             "{REPORT_PATH} drifted from {PUBLICATION_PATH}; regenerate it with the governed container command\n"

@@ -121,7 +121,7 @@ fn dev_tree_matches_architecture_contract() {
         "contracts.rs",
         "dispatch.rs",
         "image_activation.rs",
-        "inventory/",
+        "inventory.rs",
         "metadata.rs",
         "mod.rs",
         "qualification/",
@@ -148,14 +148,6 @@ fn dev_tree_matches_architecture_contract() {
     assert_eq!(
         qualification_entries, expected_qualification,
         "container qualification must separate evidence derivation from presentation"
-    );
-
-    let inventory_entries = dir_entries(&root.join("src/commands/containers/inventory"));
-    let expected_inventory: BTreeSet<_> =
-        ["mod.rs", "render.rs"].into_iter().map(str::to_string).collect();
-    assert_eq!(
-        inventory_entries, expected_inventory,
-        "container inventory must separate evidence workflows from presentation"
     );
 
     let container_runtime_entries = dir_entries(&root.join("src/commands/containers/runtime"));
