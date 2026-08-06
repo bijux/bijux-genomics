@@ -30,7 +30,7 @@ pub(super) fn measured_command(
         "set -eu\nmkdir -p /result/repetitions /scratch/detect-adapters\n\
          prefix=\"/result/repetitions/repetition-{repetition}\"\n\
          manifest=\"${prefix}.sample-manifest.tsv\"\n\
-         : > \"$manifest\"\n",
+         sh /repository/benchmarks/execution/fastq_detect_adapters.sh header > \"$manifest\"\n",
     );
     for (index, sample) in samples.iter().enumerate() {
         let sample_root = format!("/scratch/detect-adapters/sample-{index:02}");
@@ -132,6 +132,8 @@ fn shell_quote(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::process::Command;
+
     use super::{measured_command, negative_command, required_files, warmup_command};
     use crate::workflow::fastq_profile_reads::FastqCampaignSample;
 
@@ -157,12 +159,62 @@ mod tests {
         let negative = negative_command("fastqc")?;
         assert!(warmup[2].contains("sample-report"));
         assert!(warmup[2].contains("mkdir -p '/scratch/warmup/fastqc'"));
+        assert!(measured[2].contains("fastq_detect_adapters.sh header"));
         assert!(measured[2].contains("fastq_detect_adapters.sh metrics"));
         assert!(measured[2].contains("sample-19"));
         assert!(measured[2].contains("mkdir -p '/scratch/detect-adapters/sample-19/fastqc'"));
         assert!(negative[2].contains("missing.fastq.gz"));
         assert!(negative[2].contains("mkdir -p '/scratch/negative/fastqc'"));
         assert_eq!(required_files(3).len(), 18);
+        Ok(())
+    }
+
+    #[test]
+    fn sample_report_normalizer_runs_with_posix_awk() -> anyhow::Result<()> {
+        let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let temporary = bijux_dna_infra::temp_dir("fastq-detect-adapters-normalizer")?;
+        let report = temporary.path().join("report.json");
+        let summary = temporary.path().join("summary.tsv");
+        let evidence = temporary.path().join("evidence");
+        std::fs::create_dir(&evidence)?;
+        let status = Command::new("sh")
+            .arg(repository_root.join("benchmarks/execution/fastq_detect_adapters.sh"))
+            .args(["sample-report", "smoke", "single_end"])
+            .arg(&report)
+            .arg(&summary)
+            .arg(&evidence)
+            .args(["fastqc", "1"])
+            .arg(repository_root.join("assets/golden/smoke-inputs-v1/fastq/se/reads.fastq"))
+            .env("BIJUX_BENCHMARK_REPOSITORY_ROOT", &repository_root)
+            .status()?;
+        anyhow::ensure!(status.success(), "FASTQ adapter sample report failed");
+
+        let report = std::fs::read_to_string(report)?;
+        anyhow::ensure!(
+            report.contains("\"schema_version\": \"bijux.fastq.detect_adapters.report.v3\"")
+        );
+        let summary_row = std::fs::read(&summary)?;
+        let rows =
+            String::from_utf8_lossy(&summary_row).lines().map(str::to_owned).collect::<Vec<_>>();
+        anyhow::ensure!(rows.len() == 1 && rows[0].split('\t').count() == 19);
+
+        let script = repository_root.join("benchmarks/execution/fastq_detect_adapters.sh");
+        let header = Command::new("sh").arg(&script).arg("header").output()?;
+        anyhow::ensure!(header.status.success(), "FASTQ adapter header failed");
+        let manifest = temporary.path().join("manifest.tsv");
+        let mut manifest_bytes = header.stdout;
+        manifest_bytes.extend(summary_row);
+        std::fs::write(&manifest, manifest_bytes)?;
+        let normalized = Command::new("sh").arg(script).arg("normalize").arg(manifest).output()?;
+        anyhow::ensure!(normalized.status.success(), "FASTQ adapter normalization failed");
+        let normalized_rows = String::from_utf8(normalized.stdout)?;
+        let mut normalized_rows = normalized_rows.lines();
+        anyhow::ensure!(
+            normalized_rows.next().is_some_and(|row| row.starts_with("sample_id\t")),
+            "FASTQ adapter normalization did not preserve the governed header"
+        );
+        anyhow::ensure!(normalized_rows.next().is_some_and(|row| row.starts_with("smoke\t")));
+        anyhow::ensure!(normalized_rows.next().is_none());
         Ok(())
     }
 }
