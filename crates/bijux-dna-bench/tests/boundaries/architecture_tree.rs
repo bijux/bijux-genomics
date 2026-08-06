@@ -51,6 +51,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "bam_corpus_authority.rs",
             "corpus_authority.rs",
+            "data_index_authority.rs",
             "mod.rs",
             "repo_root.rs",
             "repository.rs",
