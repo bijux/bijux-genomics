@@ -12,6 +12,7 @@ mod bam_observation;
 mod campaign_lifecycle;
 mod campaign_material;
 mod evaluation;
+mod fastq_detect_adapters;
 mod fastq_expectations;
 mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
@@ -74,6 +75,11 @@ pub use campaign_material::{
     BenchmarkCampaignReportPublication,
 };
 pub use evaluation::{compare, gate};
+pub use fastq_detect_adapters::{
+    prepare_fastq_detect_adapters_material_from_expectations,
+    publish_fastq_detect_adapters_stage_report, render_fastq_detect_adapters_markdown,
+    FastqDetectAdaptersMaterial, FastqDetectAdaptersStageReportPublication,
+};
 pub use fastq_expectations::{
     ensure_fastq_profile_reads_expectations, ensure_fastq_read_length_expectations,
     FastqProfileReadsExpectationPublication, FastqProfileReadsExpectationSample,

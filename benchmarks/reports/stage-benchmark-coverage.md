@@ -8,13 +8,13 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **8**
-- Qualification-only campaigns: **5**
+- Defined campaigns: **9**
+- Qualification-only campaigns: **6**
 - Comparative campaigns: **3**
 - Admitted campaigns: **0**
 - Stale campaigns: **4**
 - Failed campaigns: **0**
-- Missing campaigns: **63**
+- Missing campaigns: **62**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -47,7 +47,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `fastq.deplete_host` | `bowtie2` | - | missing | not_defined |
 | `fastq.deplete_reference_contaminants` | `bowtie2` | - | missing | not_defined |
 | `fastq.deplete_rrna` | `sortmerna` | - | missing | not_defined |
-| `fastq.detect_adapters` | `fastqc` | - | missing | not_defined |
+| `fastq.detect_adapters` | `fastqc` | `run-2030` | qualification | not_admitted |
 | `fastq.detect_duplicates_premerge` | `bijux_dna` | - | missing | not_defined |
 | `fastq.estimate_library_complexity_prealign` | `bijux_dna` | - | missing | not_defined |
 | `fastq.extract_umis` | `umi_tools` | - | missing | not_defined |

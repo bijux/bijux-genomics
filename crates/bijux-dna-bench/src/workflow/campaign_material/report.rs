@@ -9,8 +9,9 @@ use bijux_dna_bench_model::BenchmarkCampaignPlan;
 use crate::workflow::{
     publish_bam_coverage_stage_report, publish_bam_duplication_metrics_stage_report,
     publish_bam_endogenous_content_stage_report, publish_bam_genotyping_stage_report,
-    publish_bam_mapping_summary_stage_report, publish_fastq_profile_read_lengths_stage_report,
-    publish_fastq_profile_reads_stage_report, publish_fastq_validate_reads_stage_report,
+    publish_bam_mapping_summary_stage_report, publish_fastq_detect_adapters_stage_report,
+    publish_fastq_profile_read_lengths_stage_report, publish_fastq_profile_reads_stage_report,
+    publish_fastq_validate_reads_stage_report,
 };
 
 /// Immutable publication identity shared by every governed campaign report.
@@ -69,6 +70,7 @@ pub fn publish_benchmark_campaign_report(
         "run-2003" => publish!(publish_bam_endogenous_content_stage_report),
         "run-2004" => publish!(publish_bam_mapping_summary_stage_report),
         "run-2011" => publish!(publish_bam_duplication_metrics_stage_report),
+        "run-2030" => publish!(publish_fastq_detect_adapters_stage_report),
         "run-2042" => publish!(publish_fastq_profile_read_lengths_stage_report),
         "run-2043" => publish!(publish_fastq_profile_reads_stage_report),
         "run-2051" => publish!(publish_fastq_validate_reads_stage_report),
@@ -89,6 +91,7 @@ mod tests {
                     | "run-2003"
                     | "run-2004"
                     | "run-2011"
+                    | "run-2030"
                     | "run-2042"
                     | "run-2043"
                     | "run-2051"

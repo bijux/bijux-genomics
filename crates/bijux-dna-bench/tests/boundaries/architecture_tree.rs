@@ -93,6 +93,7 @@ fn bench_tree_matches_architecture_contract() {
             "campaign_lifecycle/",
             "campaign_material/",
             "evaluation.rs",
+            "fastq_detect_adapters/",
             "fastq_expectations/",
             "fastq_profile_read_lengths/",
             "fastq_profile_reads/",
@@ -152,6 +153,16 @@ fn bench_tree_matches_architecture_contract() {
         "campaign lifecycle tree must separate source authority, planning, execution, and storage logic"
     );
 
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_detect_adapters")),
+        entries(["commands.rs", "mod.rs", "parameters.rs", "report/"]),
+        "FASTQ detect-adapters material must separate execution, parameters, and reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_detect_adapters/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "FASTQ detect-adapters reporting must separate evidence, science, and rendering"
+    );
     assert_eq!(
         dir_entries(&root.join("src/workflow/fastq_expectations")),
         entries(["mod.rs", "profile_reads.rs", "rendering.rs", "storage.rs"]),

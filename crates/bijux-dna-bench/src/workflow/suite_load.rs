@@ -290,7 +290,7 @@ mod tests {
             "checked-in benchmark portfolio must reserve all 71 stage run ids"
         );
         assert!(
-            registry.campaigns.len() >= 6,
+            registry.campaigns.len() >= 7,
             "checked-in benchmark registry must include the current seed campaign set"
         );
         let run_2042 = registry
@@ -301,7 +301,7 @@ mod tests {
         assert_eq!(run_2042.stage_id, "fastq.profile_read_lengths");
         assert!(matches!(run_2042.evidence_tier, BenchmarkEvidenceTier::Comparative));
         assert_eq!(run_2042.tool_ids, vec!["seqfu".to_string(), "seqkit".to_string()]);
-        assert_eq!(interfaces.interfaces.len(), 8);
+        assert_eq!(interfaces.interfaces.len(), 9);
         let validation = interfaces
             .interfaces
             .iter()

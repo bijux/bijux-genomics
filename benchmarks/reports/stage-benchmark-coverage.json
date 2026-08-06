@@ -2,13 +2,13 @@
   "schema_version": "bijux.benchmark.stage_coverage.v1",
   "summary": {
     "retained_stage_count": 71,
-    "defined_stage_count": 8,
-    "qualification_stage_count": 5,
+    "defined_stage_count": 9,
+    "qualification_stage_count": 6,
     "comparative_stage_count": 3,
     "admitted_stage_count": 0,
     "stale_stage_count": 4,
     "failed_stage_count": 0,
-    "missing_stage_count": 63
+    "missing_stage_count": 62
   },
   "stages": [
     {
@@ -282,8 +282,9 @@
       "retained_tools": [
         "fastqc"
       ],
-      "definition_status": "missing",
-      "execution_status": "not_defined"
+      "campaign_run_id": "run-2030",
+      "definition_status": "qualification",
+      "execution_status": "not_admitted"
     },
     {
       "stage_id": "fastq.detect_duplicates_premerge",

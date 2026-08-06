@@ -14,6 +14,7 @@ use super::{
     prepare_bam_duplication_metrics_material_from_corpus,
     prepare_bam_endogenous_content_material_from_corpus,
     prepare_bam_genotyping_material_from_corpus, prepare_bam_mapping_summary_material_from_corpus,
+    prepare_fastq_detect_adapters_material_from_expectations,
     prepare_fastq_profile_read_lengths_material_from_expectations,
     prepare_fastq_profile_reads_material_from_expectations,
     prepare_fastq_validate_reads_material_from_expectations, BenchmarkExecutionMaterial,
@@ -31,7 +32,8 @@ const FASTQ_EXPECTED_SAMPLE_COUNT: usize = 20;
 const FASTQ_EXPECTED_FILE_COUNT: usize = 30;
 
 const EXECUTABLE_CAMPAIGN_RUN_IDS: &[&str] = &[
-    "run-2001", "run-2002", "run-2003", "run-2004", "run-2011", "run-2042", "run-2043", "run-2051",
+    "run-2001", "run-2002", "run-2003", "run-2004", "run-2011", "run-2030", "run-2042", "run-2043",
+    "run-2051",
 ];
 
 /// Admitted evidence closure required to prepare one governed campaign.
@@ -80,7 +82,7 @@ pub fn admit_benchmark_campaign_evidence(
                 BAM_CORPUS_ID,
             )?))
         }
-        "run-2042" | "run-2043" | "run-2051" => {
+        "run-2030" | "run-2042" | "run-2043" | "run-2051" => {
             let read_lengths = super::ensure_fastq_read_length_expectations(
                 repository_root,
                 study_root,
@@ -143,7 +145,20 @@ pub fn prepare_benchmark_campaign_material(
             .execution)
         }
         BenchmarkCampaignEvidence::FastqProfileReads(expectations) => {
-            if request.identity.run.run_id == "run-2051" {
+            if request.identity.run.run_id == "run-2030" {
+                Ok(prepare_fastq_detect_adapters_material_from_expectations(
+                    request.repository_root,
+                    request.benchmark_root,
+                    request.identity,
+                    request.source_contract_sha256,
+                    request.operator,
+                    request.prepared_at_utc,
+                    request.account,
+                    request.partition,
+                    expectations,
+                )?
+                .execution)
+            } else if request.identity.run.run_id == "run-2051" {
                 Ok(prepare_fastq_validate_reads_material_from_expectations(
                     request.repository_root,
                     request.benchmark_root,

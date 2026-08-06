@@ -42,6 +42,13 @@
         "histogram_bins": 100
       }
     },
+    "fastq.detect_adapters": {
+      "parameter_schema_version": "bijux.fastq.params.detect_adapters.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults",
+      "overrides": {
+        "threads": 4
+      }
+    },
     "fastq.validate_reads": {
       "parameter_schema_version": "bijux.fastq.params.validate_reads.v1",
       "defaults_provider": "bijux_dna_domain_fastq::params::defaults::validate_defaults",
