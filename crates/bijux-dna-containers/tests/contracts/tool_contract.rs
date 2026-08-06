@@ -182,6 +182,21 @@ fn version_map_is_catalog_reconciled_and_fail_closed() -> Result<()> {
 }
 
 #[test]
+fn version_index_is_model_owned_and_current() -> Result<()> {
+    let root = repository_root()?;
+    let rendered = bijux_dna_containers::evidence::render_container_version_index(&root)?;
+    assert_eq!(
+        rendered,
+        fs::read_to_string(
+            root.join(bijux_dna_containers::evidence::CONTAINER_VERSION_INDEX_PATH)
+        )?
+    );
+    assert_eq!(rendered.lines().count(), 5);
+    assert!(rendered.lines().all(|line| !line.ends_with("index.sha256")));
+    Ok(())
+}
+
+#[test]
 fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
     let root = repository_root()?;
     let validation = validate_container_catalog(&root)?;

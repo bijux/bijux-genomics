@@ -49,6 +49,7 @@ pub use smoke::{
 };
 pub use validation::{validate_tool_contract, validate_tool_image_identity_evidence};
 pub use version_catalog::{
-    derive_container_version_map, render_container_version_map, ContainerVersionMap,
-    ContainerVersionMapItem, CONTAINER_VERSION_CATALOG_PATH, CONTAINER_VERSION_MAP_SCHEMA_V2,
+    derive_container_version_map, render_container_version_index, render_container_version_map,
+    ContainerVersionMap, ContainerVersionMapItem, CONTAINER_VERSION_CATALOG_PATH,
+    CONTAINER_VERSION_INDEX_PATH, CONTAINER_VERSION_MAP_SCHEMA_V2,
 };

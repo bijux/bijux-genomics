@@ -7,11 +7,13 @@ use std::path::Path;
 use anyhow::{ensure, Context, Result};
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
+use sha2::{Digest as _, Sha256};
 
 use super::load_container_catalog;
 
 pub const CONTAINER_VERSION_MAP_SCHEMA_V2: &str = "bijux.container.version_map.v2";
 pub const CONTAINER_VERSION_CATALOG_PATH: &str = "containers/versions/versions.toml";
+pub const CONTAINER_VERSION_INDEX_PATH: &str = "containers/versions/index.sha256";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -117,6 +119,46 @@ pub fn derive_container_version_map(repository_root: &Path) -> Result<ContainerV
 pub fn render_container_version_map(repository_root: &Path) -> Result<String> {
     let value = serde_json::to_value(derive_container_version_map(repository_root)?)?;
     Ok(format!("{}\n", serde_json::to_string_pretty(&value)?))
+}
+
+/// Render the sorted digest inventory for governed files in the container-version directory.
+///
+/// The index excludes itself so regeneration is stable and does not create a recursive digest.
+///
+/// # Errors
+/// Returns an error when the version directory or one of its governed files cannot be read.
+pub fn render_container_version_index(repository_root: &Path) -> Result<String> {
+    let versions_dir = repository_root.join("containers/versions");
+    let mut rows = Vec::new();
+    for entry in fs::read_dir(&versions_dir)
+        .with_context(|| format!("read container version directory {}", versions_dir.display()))?
+    {
+        let entry = entry.with_context(|| format!("read entry in {}", versions_dir.display()))?;
+        let path = entry.path();
+        if !path.is_file() || path == repository_root.join(CONTAINER_VERSION_INDEX_PATH) {
+            continue;
+        }
+        let name = path.file_name().and_then(|name| name.to_str()).with_context(|| {
+            format!("container version file name is not UTF-8: {}", path.display())
+        })?;
+        let bytes = fs::read(&path).with_context(|| format!("read {}", path.display()))?;
+        rows.push((name.to_string(), hex_digest(&Sha256::digest(bytes))));
+    }
+    rows.sort();
+    let payload = rows
+        .into_iter()
+        .map(|(name, digest)| format!("{digest}  {name}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok(format!("{payload}\n"))
+}
+
+fn hex_digest(bytes: &[u8]) -> String {
+    bytes.iter().fold(String::with_capacity(bytes.len() * 2), |mut output, byte| {
+        use std::fmt::Write as _;
+        let _ = write!(output, "{byte:02x}");
+        output
+    })
 }
 
 fn validate_source(tool_id: &str, source: &ContainerVersionSource) -> Result<()> {

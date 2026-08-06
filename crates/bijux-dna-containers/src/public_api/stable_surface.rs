@@ -18,7 +18,7 @@ pub use crate::evidence::tool_contract::{
     container_catalog_schema, container_version_map_schema, derive_apptainer_tool_contract,
     derive_container_catalog_lock, derive_container_version_map, load_container_catalog,
     load_container_catalog_lock, prepare_apptainer_tool_contract, render_container_catalog_lock,
-    render_container_version_map, repository_changed_paths_since,
+    render_container_version_index, render_container_version_map, repository_changed_paths_since,
     repository_commit_is_ancestor_of_head, repository_head_commit, retained_apptainer_tool_ids,
     run_apptainer_smoke, tool_contract_labels, tool_contract_schema,
     tool_image_identity_evidence_schema, validate_container_catalog,
@@ -34,7 +34,7 @@ pub use crate::evidence::tool_contract::{
     APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
     CONTAINER_CATALOG_LOCK_PATH, CONTAINER_CATALOG_LOCK_SCHEMA_V1, CONTAINER_CATALOG_PATH,
     CONTAINER_CATALOG_SCHEMA_V1, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
-    CONTAINER_VERSION_CATALOG_PATH, CONTAINER_VERSION_MAP_SCHEMA_V2,
+    CONTAINER_VERSION_CATALOG_PATH, CONTAINER_VERSION_INDEX_PATH, CONTAINER_VERSION_MAP_SCHEMA_V2,
     TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1,
 };
 pub use crate::evidence::{

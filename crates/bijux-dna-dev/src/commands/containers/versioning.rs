@@ -67,31 +67,7 @@ pub(super) fn extract_version_map(
 }
 
 pub(super) fn generate_versions_index_sha_content(workspace: &Workspace) -> Result<String> {
-    let versions_dir = workspace.path("containers/versions");
-    let mut rows = Vec::new();
-    for entry in fs::read_dir(&versions_dir)
-        .with_context(|| format!("read {}", versions_dir.display()))?
-        .filter_map(std::result::Result::ok)
-    {
-        let path = entry.path();
-        if !path.is_file() {
-            continue;
-        }
-        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
-        if name == "index.sha256" {
-            continue;
-        }
-        let digest =
-            sha256_hex(&fs::read(&path).with_context(|| format!("read {}", path.display()))?);
-        rows.push((name.to_string(), digest));
-    }
-    rows.sort();
-    let payload = rows
-        .into_iter()
-        .map(|(name, digest)| format!("{digest}  {name}"))
-        .collect::<Vec<_>>()
-        .join("\n");
-    Ok(format!("{payload}\n"))
+    bijux_dna_containers::api::render_container_version_index(&workspace.root)
 }
 
 pub(super) fn generate_versions_index_sha(
