@@ -7,6 +7,8 @@ mod mod_contracts_benchmark_interfaces_rs;
 mod mod_contracts_benchmark_lifecycle_rs;
 #[path = "contracts/benchmark_planning.rs"]
 mod mod_contracts_benchmark_planning_rs;
+#[path = "contracts/compatibility.rs"]
+mod mod_contracts_compatibility_rs;
 #[path = "contracts/data_index.rs"]
 mod mod_contracts_data_index_rs;
 #[path = "contracts/fastq_expectations.rs"]

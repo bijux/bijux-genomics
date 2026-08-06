@@ -356,6 +356,26 @@ pub struct BenchmarkCycleStatus {
     pub attempts: Vec<BenchmarkAttemptRecord>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BenchmarkAttemptDocument {
+    V1(BenchmarkAttemptRecord),
+    V2(BenchmarkAttemptRecordV2),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BenchmarkCycleDocument {
+    V1(BenchmarkCycleStatus),
+    V2(BenchmarkCycleStatusV2),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkAttemptV1MigrationContext {
+    pub observed_at_utc: String,
+    pub accounting: Vec<BenchmarkSchedulerAccounting>,
+    pub evidence: Vec<BenchmarkEvidenceReference>,
+    pub terminal_reason: Option<String>,
+}
+
 impl BenchmarkAttemptRecord {
     #[must_use]
     pub fn v1(

@@ -48,16 +48,16 @@ pub use interfaces::{
 pub use lifecycle::{
     benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
-    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
-    BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
-    BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
-    BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatus,
-    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
-    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
-    BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
-    BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
-    BenchmarkSchedulerTerminalState,
+    BenchmarkAttemptDisposition, BenchmarkAttemptDocument, BenchmarkAttemptIdentity,
+    BenchmarkAttemptMigrationEntry, BenchmarkAttemptMigrationExclusion,
+    BenchmarkAttemptMigrationLedger, BenchmarkAttemptMigrationLedgerEntry,
+    BenchmarkAttemptMigrationPlan, BenchmarkAttemptMigrationState, BenchmarkAttemptRecord,
+    BenchmarkAttemptRecordV2, BenchmarkAttemptTransition, BenchmarkAttemptV1MigrationContext,
+    BenchmarkCampaignPlan, BenchmarkCycleDocument, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
+    BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
+    BenchmarkSchedulerObservedState, BenchmarkSchedulerTerminalState,
 };
 #[allow(unused_imports)]
 pub use materialization::{
