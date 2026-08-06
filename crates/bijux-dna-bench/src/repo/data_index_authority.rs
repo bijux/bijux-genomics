@@ -362,7 +362,13 @@ fn file_contract(
 
 fn basename_index(data_root: &Path) -> Result<BTreeMap<String, Vec<PathBuf>>> {
     let mut index = BTreeMap::<String, Vec<PathBuf>>::new();
-    for entry in WalkDir::new(data_root).follow_links(false).sort_by_file_name() {
+    let evidence_root = data_root.join("evidence");
+    for entry in WalkDir::new(data_root)
+        .follow_links(false)
+        .sort_by_file_name()
+        .into_iter()
+        .filter_entry(|entry| entry.path() != evidence_root)
+    {
         let entry = entry.context("walk governed data root")?;
         if entry.file_type().is_symlink() {
             bail!("governed data root contains a symlink: {}", entry.path().display());

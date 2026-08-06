@@ -88,6 +88,28 @@ fn rejects_digest_drift_and_ambiguous_bare_names() -> Result<()> {
     Ok(())
 }
 
+#[cfg(unix)]
+#[test]
+fn excludes_operational_evidence_from_governed_file_discovery() -> Result<()> {
+    use std::os::unix::fs::symlink;
+
+    let fixture = data_index_fixture()?;
+    let evidence_root = fixture.data_root.join("evidence/source-checkouts/repository");
+    fs::create_dir_all(&evidence_root)?;
+    fs::copy(&fixture.governed_file, evidence_root.join("sample.bam"))?;
+    symlink(&fixture.governed_file, evidence_root.join("source-link.bam"))?;
+    let digest = bijux_dna_infra::hash_file_sha256(&fixture.governed_file)?;
+    let size = fs::metadata(&fixture.governed_file)?.len();
+    mutate_catalog(&fixture.catalog_path, |record| {
+        record["files"] = json!([{"name": "sample.bam", "sha256": digest, "size_bytes": size}]);
+    })?;
+
+    let index = build_benchmark_data_index(&request(&fixture))?;
+    assert_eq!(index.summary.file_count, 1);
+    assert_eq!(index.records[0].files[0].path, "study://data/corpora/horse/sample.bam");
+    Ok(())
+}
+
 #[test]
 fn derives_legacy_size_but_rejects_incomplete_identity() -> Result<()> {
     let fixture = data_index_fixture()?;
