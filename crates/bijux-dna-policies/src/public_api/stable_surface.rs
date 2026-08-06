@@ -1,7 +1,8 @@
 pub use crate::guardrails::{check, GuardrailConfig};
 pub use crate::policy_diagnostics;
 pub use crate::qualification::{
-    evaluate_publication_freshness, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
+    evaluate_publication_freshness, render_qualification_report_json,
+    render_qualification_report_markdown, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
     ImmutablePublicationIdentity, PublicationArtifactIdentity, PublicationAuthority,
     PublicationDisposition, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
     PublicationIdentityMismatch, QualificationAssessment, QualificationClaim,

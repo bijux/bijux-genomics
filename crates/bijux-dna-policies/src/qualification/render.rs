@@ -1,27 +1,33 @@
+use std::fmt::Write as _;
+
 use anyhow::Result;
-use bijux_dna_api::v1::api::qualification::{
+
+use super::{
     EvidenceDimension, EvidenceVerdict, QualificationClaim, QualificationReport,
     SupportDisposition, REQUIRED_EVIDENCE_DIMENSIONS,
 };
 
-use super::super::{read_utf8, Workspace};
-
-pub(in crate::commands::containers) fn qualification_json(
-    report: &QualificationReport,
-) -> Result<String> {
+/// Render a validated qualification report as deterministic JSON.
+///
+/// # Errors
+/// Returns an error when the report is invalid or cannot be serialized.
+pub fn render_qualification_report_json(report: &QualificationReport) -> Result<String> {
     report.validate()?;
     Ok(format!("{}\n", serde_json::to_string_pretty(report)?))
 }
 
-pub(in crate::commands::containers) fn qualification_markdown(
-    report: &QualificationReport,
-) -> Result<String> {
+/// Render a validated qualification report as deterministic reviewer-facing Markdown.
+///
+/// # Errors
+/// Returns an error when the report is invalid.
+pub fn render_qualification_report_markdown(report: &QualificationReport) -> Result<String> {
     report.validate()?;
     let summary = &report.summary;
     let mut output = String::from(
-        "<!-- GENERATED FILE - DO NOT EDIT -->\n<!-- source: bijux-dna-dev containers qualification -->\n# Container evidence qualification\n\n",
+        "<!-- GENERATED FILE - DO NOT EDIT -->\n<!-- source: bijux-dna-policies qualification report -->\n# Container evidence qualification\n\n",
     );
-    output.push_str(&format!(
+    write!(
+        output,
         "- Catalog tools: **{}**\n- Qualified: **{}**\n- Retained but unverified: **{}**\n- Unsupported: **{}**\n- Blocked: **{}**\n- Failed: **{}**\n\n",
         summary.tool_count,
         summary.qualified_count,
@@ -29,11 +35,11 @@ pub(in crate::commands::containers) fn qualification_markdown(
         summary.unsupported_count,
         summary.blocked_count,
         summary.failed_count,
-    ));
+    )?;
     output.push_str("## Dimension coverage\n\n| Dimension | Passing tools |\n|---|---:|\n");
     for dimension in REQUIRED_EVIDENCE_DIMENSIONS {
         let count = summary.dimension_passes.get(&dimension).copied().unwrap_or_default();
-        output.push_str(&format!("| `{}` | {count} |\n", dimension_name(dimension)));
+        writeln!(output, "| `{}` | {count} |", dimension_name(dimension))?;
     }
     output.push_str(
         "\n## Tool matrix\n\n| Tool | Disposition | Build | Runtime | Real data | Science | Benchmark | Security | Release | Qualification |\n|---|---|---|---|---|---|---|---|---|---|\n",
@@ -43,8 +49,7 @@ pub(in crate::commands::containers) fn qualification_markdown(
             assessment
                 .dimensions
                 .get(&dimension)
-                .map(|value| verdict_name(value.verdict))
-                .unwrap_or("invalid")
+                .map_or("invalid", |value| verdict_name(value.verdict))
         };
         let qualification = if assessment.claims.contains(&QualificationClaim::Qualified) {
             "qualified"
@@ -53,8 +58,9 @@ pub(in crate::commands::containers) fn qualification_markdown(
         } else {
             "unverified"
         };
-        output.push_str(&format!(
-            "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | **{}** |\n",
+        writeln!(
+            output,
+            "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | **{}** |",
             assessment.subject_id,
             disposition_name(assessment.support_disposition),
             decision(EvidenceDimension::Build),
@@ -65,7 +71,7 @@ pub(in crate::commands::containers) fn qualification_markdown(
             decision(EvidenceDimension::Security),
             decision(EvidenceDimension::Release),
             qualification,
-        ));
+        )?;
     }
     Ok(output)
 }
@@ -103,10 +109,58 @@ fn disposition_name(disposition: SupportDisposition) -> &'static str {
     }
 }
 
-pub(in crate::commands::containers) fn checked_report_matches(
-    workspace: &Workspace,
-    relative: &str,
-    expected: &str,
-) -> Result<bool> {
-    Ok(read_utf8(&workspace.path(relative))? == expected)
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use super::{render_qualification_report_json, render_qualification_report_markdown};
+    use crate::qualification::{
+        EvidenceDecision, EvidenceVerdict, PublicationDisposition, QualificationAssessment,
+        QualificationEvidenceSource, QualificationReport, SupportDisposition,
+        REQUIRED_EVIDENCE_DIMENSIONS,
+    };
+
+    fn report() -> anyhow::Result<QualificationReport> {
+        let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
+            .into_iter()
+            .map(|dimension| {
+                (
+                    dimension,
+                    EvidenceDecision {
+                        verdict: EvidenceVerdict::Passed,
+                        evidence_sha256: Some("a".repeat(64)),
+                        reasons: Vec::new(),
+                    },
+                )
+            })
+            .collect();
+        QualificationReport::v2(
+            BTreeMap::from([(
+                "catalog".to_string(),
+                QualificationEvidenceSource {
+                    uri: "repository://containers/contracts/catalog.toml".to_string(),
+                    sha256: "b".repeat(64),
+                },
+            )]),
+            vec![QualificationAssessment::v1(
+                "samtools".to_string(),
+                SupportDisposition::Retained,
+                PublicationDisposition::Current,
+                dimensions,
+            )?],
+        )
+    }
+
+    #[test]
+    fn renders_deterministic_validated_publications() -> anyhow::Result<()> {
+        let report = report()?;
+        let json = render_qualification_report_json(&report)?;
+        let markdown = render_qualification_report_markdown(&report)?;
+        assert_eq!(json, render_qualification_report_json(&report)?);
+        assert!(json.ends_with('\n'));
+        assert!(markdown.contains("<!-- source: bijux-dna-policies qualification report -->"));
+        assert!(markdown.contains("| `samtools` | retained"));
+        assert!(markdown.contains("**qualified**"));
+        Ok(())
+    }
 }

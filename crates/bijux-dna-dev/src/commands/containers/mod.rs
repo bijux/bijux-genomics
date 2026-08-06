@@ -19,7 +19,6 @@ mod dispatch;
 mod image_activation;
 mod inventory;
 mod metadata;
-mod qualification;
 mod qualification_registry;
 mod registry_catalog;
 mod runtime;

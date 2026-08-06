@@ -57,14 +57,16 @@ pub(super) fn check_evidence_qualification(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let report = qualification_report(workspace)?;
-    let expected_json = super::qualification::qualification_json(&report)?;
-    let expected_markdown = super::qualification::qualification_markdown(&report)?;
+    let expected_json =
+        bijux_dna_api::v1::api::qualification::render_qualification_report_json(&report)?;
+    let expected_markdown =
+        bijux_dna_api::v1::api::qualification::render_qualification_report_markdown(&report)?;
     let mut errors = Vec::new();
     for (path, expected) in [
         ("containers/reports/qualification.json", expected_json.as_str()),
         ("containers/reports/qualification.md", expected_markdown.as_str()),
     ] {
-        if !super::qualification::checked_report_matches(workspace, path, expected)? {
+        if read_utf8(&workspace.path(path))? != expected {
             errors.push(format!("generated qualification report is stale: {path}"));
         }
     }
@@ -81,8 +83,9 @@ pub(super) fn generate_evidence_qualification(
     let report = qualification_report(workspace)?;
     let json_path = workspace.path("containers/reports/qualification.json");
     let markdown_path = workspace.path("containers/reports/qualification.md");
-    let json = super::qualification::qualification_json(&report)?;
-    let markdown = super::qualification::qualification_markdown(&report)?;
+    let json = bijux_dna_api::v1::api::qualification::render_qualification_report_json(&report)?;
+    let markdown =
+        bijux_dna_api::v1::api::qualification::render_qualification_report_markdown(&report)?;
     bijux_dna_infra::atomic_write_bytes(&json_path, json.as_bytes())?;
     bijux_dna_infra::atomic_write_bytes(&markdown_path, markdown.as_bytes())?;
     success_line(format!(
@@ -113,8 +116,8 @@ fn qualification_report(
             "container qualification requires at least one Rust-admitted benchmark report"
         );
     }
-    super::qualification::derive_qualification_report(
-        workspace,
+    bijux_dna_api::v1::api::qualification::derive_container_qualification_report(
+        &workspace.root,
         &environment_evidence,
         &admitted_reports,
     )

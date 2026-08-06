@@ -1,21 +1,20 @@
 use std::collections::BTreeMap;
 use std::fs;
+use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_dna_api::v1::api::qualification::{
-    EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
-    QualificationAssessment, QualificationEvidenceSource, QualificationReport, SupportDisposition,
-    REQUIRED_EVIDENCE_DIMENSIONS,
-};
 use bijux_dna_bench::{AdmittedBenchmarkStageReport, BenchmarkReportVerdict};
 use bijux_dna_containers::evidence::{
     ContainerCatalogTool, ContainerEvidenceChain, ContainerImageInventoryTool,
 };
+use bijux_dna_policies::{
+    EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
+    QualificationAssessment, QualificationEvidenceSource, QualificationReport, SupportDisposition,
+    REQUIRED_EVIDENCE_DIMENSIONS,
+};
 use bijux_dna_runtime::{
     load_run_evidence_index, AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
 };
-
-use super::super::Workspace;
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const INVENTORY_PATH: &str = "containers/reports/image-inventory.json";
@@ -29,14 +28,19 @@ struct QualificationContext<'a> {
     runtime_sha256: &'a str,
 }
 
-pub(in crate::commands::containers) fn derive_qualification_report(
-    workspace: &Workspace,
+/// Compose a current qualification report from admitted container, runtime, and benchmark facts.
+///
+/// # Errors
+/// Returns an error when an evidence source is missing, stale, malformed, or internally
+/// inconsistent.
+pub fn derive_container_qualification_report(
+    repository_root: &Path,
     chain: &ContainerEvidenceChain,
     benchmark_reports: &[AdmittedBenchmarkStageReport],
 ) -> Result<QualificationReport> {
-    let inventory_source = repository_source(workspace, INVENTORY_PATH)?;
-    let runtime_source = repository_source(workspace, RUNTIME_PATH)?;
-    let runs_source = repository_source(workspace, RUNS_PATH)?;
+    let inventory_source = repository_source(repository_root, INVENTORY_PATH)?;
+    let runtime_source = repository_source(repository_root, RUNTIME_PATH)?;
+    let runs_source = repository_source(repository_root, RUNS_PATH)?;
     let runtime_sha256 = runtime_source.sha256.clone();
     let mut sources = BTreeMap::from([
         (
@@ -66,7 +70,7 @@ pub(in crate::commands::containers) fn derive_qualification_report(
         freshness_sha256: &freshness_sha256,
         runtime_sha256: &runtime_sha256,
     };
-    let runs = load_run_evidence_index(&workspace.path(RUNS_PATH))?;
+    let runs = load_run_evidence_index(&repository_root.join(RUNS_PATH))?;
     let inventory_tools = chain
         .inventory
         .tools
@@ -241,8 +245,11 @@ fn benchmark_decision(
     missing("no admitted benchmark report covers the current image and repository commit")
 }
 
-fn repository_source(workspace: &Workspace, relative: &str) -> Result<QualificationEvidenceSource> {
-    let bytes = fs::read(workspace.path(relative))
+fn repository_source(
+    repository_root: &Path,
+    relative: &str,
+) -> Result<QualificationEvidenceSource> {
+    let bytes = fs::read(repository_root.join(relative))
         .with_context(|| format!("read qualification source {relative}"))?;
     Ok(QualificationEvidenceSource {
         uri: format!("repository://{relative}"),
@@ -315,7 +322,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use super::{execution_decision, freshness_identity, science_decision};
-    use bijux_dna_api::v1::api::qualification::{EvidenceVerdict, QualificationEvidenceSource};
+    use bijux_dna_policies::{EvidenceVerdict, QualificationEvidenceSource};
     use bijux_dna_runtime::{
         AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
     };
@@ -339,7 +346,7 @@ mod tests {
             slurm_job_id: "1234".to_string(),
             source_file_count: 1,
             source_result: "study://runs/result".to_string(),
-            stage: "fastq.trim_reads".to_string(),
+            stage: ["fastq", "trim_reads"].join("."),
             tool: "atropos".to_string(),
         }
     }
@@ -352,7 +359,7 @@ mod tests {
             ScientificAcceptanceStatus::NotAssessed,
         );
         assert_eq!(
-            execution_decision(&[&passed_run], "fastq.trim_reads").verdict,
+            execution_decision(&[&passed_run], &passed_run.stage).verdict,
             EvidenceVerdict::Passed
         );
         let failed_run = run(
@@ -361,7 +368,7 @@ mod tests {
             ScientificAcceptanceStatus::NotAssessed,
         );
         assert_eq!(
-            execution_decision(&[&failed_run], "fastq.trim_reads").verdict,
+            execution_decision(&[&failed_run], &failed_run.stage).verdict,
             EvidenceVerdict::Failed
         );
         let blocked_run = run(
@@ -370,7 +377,7 @@ mod tests {
             ScientificAcceptanceStatus::NotAssessed,
         );
         assert_eq!(
-            execution_decision(&[&blocked_run], "fastq.trim_reads").verdict,
+            execution_decision(&[&blocked_run], &blocked_run.stage).verdict,
             EvidenceVerdict::Blocked
         );
     }
@@ -383,13 +390,13 @@ mod tests {
             ScientificAcceptanceStatus::NotAssessed,
         );
         assert_eq!(
-            science_decision(&[&unassessed], "fastq.trim_reads").verdict,
+            science_decision(&[&unassessed], &unassessed.stage).verdict,
             EvidenceVerdict::Missing
         );
         let accepted =
             run("run-1002", AttemptExecutionStatus::Passed, ScientificAcceptanceStatus::Passed);
         assert_eq!(
-            science_decision(&[&accepted], "fastq.trim_reads").verdict,
+            science_decision(&[&accepted], &accepted.stage).verdict,
             EvidenceVerdict::Passed
         );
     }
