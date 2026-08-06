@@ -6,8 +6,9 @@ pub use crate::contract;
 pub use crate::contract::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
     validate_attempt_identity, validate_attempt_record_v2, validate_attempt_transition,
-    validate_benchmark_data_index, validate_campaign_plan, validate_corpus_acquisition_plan,
-    validate_cycle_status_v2, validate_execution_spec, validate_fastq_read_length_expectations,
+    validate_benchmark_data_index, validate_benchmark_stage_result_manifest,
+    validate_campaign_plan, validate_corpus_acquisition_plan, validate_cycle_status_v2,
+    validate_execution_spec, validate_fastq_read_length_expectations,
     validate_governed_data_catalog, validate_scheduler_observation, validate_scientific_readiness,
     validate_utc_timestamp, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
@@ -18,10 +19,10 @@ pub use crate::contract::{
     BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
-    BENCHMARK_STAGE_REPORT_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    BENCHMARK_STAGE_REPORT_SCHEMA_V1, BENCHMARK_STAGE_RESULT_SCHEMA_V2, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use crate::diagnostics::BenchError;
 pub use crate::model::execution::{
@@ -84,6 +85,12 @@ pub use crate::model::report::{
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
     BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
     BenchmarkStageReportDesign, BenchmarkToolReport,
+};
+pub use crate::model::stage_result::{
+    benchmark_stage_result_schema, BenchmarkStageResultCommand, BenchmarkStageResultManifest,
+    BenchmarkStageResultOutput, BenchmarkStageResultResourceMetricSource,
+    BenchmarkStageResultResourceMetrics, BenchmarkStageResultRuntime, BenchmarkStageResultStatus,
+    BenchmarkStageResultTool,
 };
 pub use crate::model::suite::{
     benchmark_suite_spec_schema, AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec,

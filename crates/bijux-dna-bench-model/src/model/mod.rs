@@ -11,6 +11,7 @@ pub mod materialization;
 pub mod observation;
 pub mod planning;
 pub mod report;
+pub mod stage_result;
 pub mod suite;
 pub mod summary;
 
@@ -87,6 +88,13 @@ pub use report::{
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
     BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
     BenchmarkStageReportDesign, BenchmarkToolReport,
+};
+#[allow(unused_imports)]
+pub use stage_result::{
+    benchmark_stage_result_schema, BenchmarkStageResultCommand, BenchmarkStageResultManifest,
+    BenchmarkStageResultOutput, BenchmarkStageResultResourceMetricSource,
+    BenchmarkStageResultResourceMetrics, BenchmarkStageResultRuntime, BenchmarkStageResultStatus,
+    BenchmarkStageResultTool,
 };
 #[allow(unused_imports)]
 pub use suite::{

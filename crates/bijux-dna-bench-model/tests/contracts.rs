@@ -13,5 +13,7 @@ mod mod_contracts_data_index_rs;
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/materialization.rs"]
 mod mod_contracts_materialization_rs;
+#[path = "contracts/stage_result.rs"]
+mod mod_contracts_stage_result_rs;
 #[path = "contracts/suite_validation.rs"]
 mod mod_contracts_suite_validation_rs;
