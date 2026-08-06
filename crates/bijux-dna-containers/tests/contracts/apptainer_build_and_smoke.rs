@@ -22,6 +22,22 @@ fn shell_literal(path: &Path) -> String {
     format!("'{}'", path.display().to_string().replace('\'', "'\\''"))
 }
 
+#[test]
+fn seqpurge_recipe_runs_help_probe_from_private_writable_directory() -> anyhow::Result<()> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let recipe = std::fs::read_to_string(workspace.join("containers/apptainer/seqpurge.def"))?;
+    let test_section = recipe
+        .split_once("%test\n")
+        .map(|(_, section)| section.split_once("\n%help").map_or(section, |(body, _)| body))
+        .ok_or_else(|| anyhow::anyhow!("SeqPurge recipe must retain a test section"))?;
+
+    assert!(test_section.contains("mktemp -d /tmp/bijux-seqpurge-test.XXXXXX"));
+    assert!(test_section.contains("cd \"$seqpurge_test_dir\""));
+    assert!(test_section.contains("seqpurge --help >/dev/null"));
+    assert!(!test_section.contains("|| true"));
+    Ok(())
+}
+
 fn build_request(
     temp: &tempfile::TempDir,
     executable: PathBuf,
