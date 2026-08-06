@@ -3,7 +3,10 @@
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::{BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1};
+use crate::contract::{
+    BENCHMARK_CITATION_RECORD_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
+    BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1,
+};
 
 use super::{BenchmarkAttemptIdentity, BenchmarkEvidenceReference, BenchmarkRunIdentity};
 
@@ -64,6 +67,48 @@ pub struct BenchmarkEvidenceBook {
     pub limitations: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCitationToolIdentity {
+    pub tool_id: String,
+    pub tool_version: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub image_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCitationAssetIdentity {
+    pub role: String,
+    pub asset_id: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCitationRecord {
+    #[schemars(schema_with = "benchmark_citation_record_schema_version")]
+    pub schema_version: String,
+    pub citation_key: String,
+    pub run: BenchmarkRunIdentity,
+    pub protocol_title: String,
+    pub protocol_version: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub protocol_sha256: String,
+    pub publication_id: String,
+    pub selected_attempts: Vec<BenchmarkAttemptIdentity>,
+    #[schemars(schema_with = "repository_commit_schema")]
+    pub repository_commit: String,
+    pub tools: Vec<BenchmarkCitationToolIdentity>,
+    pub assets: Vec<BenchmarkCitationAssetIdentity>,
+    pub report: BenchmarkEvidenceReference,
+    pub evidence_book: BenchmarkEvidenceReference,
+    pub publication_receipt: BenchmarkEvidenceReference,
+    pub limitations: Vec<String>,
+    pub access_statement: String,
+}
+
 #[must_use]
 pub fn benchmark_publication_receipt_schema() -> Schema {
     schemars::schema_for!(BenchmarkPublicationReceipt)
@@ -72,6 +117,11 @@ pub fn benchmark_publication_receipt_schema() -> Schema {
 #[must_use]
 pub fn benchmark_evidence_book_schema() -> Schema {
     schemars::schema_for!(BenchmarkEvidenceBook)
+}
+
+#[must_use]
+pub fn benchmark_citation_record_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCitationRecord)
 }
 
 fn benchmark_publication_receipt_schema_version(_: &mut SchemaGenerator) -> Schema {
@@ -85,6 +135,13 @@ fn benchmark_evidence_book_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
+    })
+}
+
+fn benchmark_citation_record_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_CITATION_RECORD_SCHEMA_V1,
     })
 }
 

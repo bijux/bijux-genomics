@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkEvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uri": {
+          "pattern": "^study://[^/].+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReplayOutcome": {
+      "enum": [
+        "exact_match",
+        "mismatch",
+        "blocked"
+      ],
+      "type": "string"
+    },
+    "BenchmarkReplaySemanticIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "evidence_book_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "report_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision_sha256",
+        "report_sha256",
+        "evidence_book_sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_definitions": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkEvidenceReference"
+      },
+      "type": "array"
+    },
+    "differences": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "expected": {
+      "$ref": "#/$defs/BenchmarkReplaySemanticIdentity"
+    },
+    "immutable_inputs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkEvidenceReference"
+      },
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "observed": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkReplaySemanticIdentity"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "outcome": {
+      "$ref": "#/$defs/BenchmarkReplayOutcome"
+    },
+    "publication_id": {
+      "type": "string"
+    },
+    "replay_id": {
+      "type": "string"
+    },
+    "replay_repository_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "replayed_at_utc": {
+      "type": "string"
+    },
+    "run": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "run_definition": {
+      "$ref": "#/$defs/BenchmarkEvidenceReference"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.replay_receipt.v1",
+      "type": "string"
+    },
+    "selected_attempts": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkAttemptIdentity"
+      },
+      "type": "array"
+    },
+    "source_publication": {
+      "$ref": "#/$defs/BenchmarkEvidenceReference"
+    },
+    "source_repository_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "replay_id",
+    "replayed_at_utc",
+    "run",
+    "publication_id",
+    "selected_attempts",
+    "source_repository_commit",
+    "replay_repository_commit",
+    "source_publication",
+    "run_definition",
+    "case_definitions",
+    "immutable_inputs",
+    "expected",
+    "outcome",
+    "differences",
+    "limitations"
+  ],
+  "title": "BenchmarkReplayReceipt",
+  "type": "object"
+}

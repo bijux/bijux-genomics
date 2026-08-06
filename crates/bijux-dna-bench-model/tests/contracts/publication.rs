@@ -1,9 +1,11 @@
 use bijux_dna_bench_model::{
-    benchmark_evidence_book_schema, benchmark_publication_receipt_schema,
+    benchmark_citation_record_schema, benchmark_evidence_book_schema,
+    benchmark_publication_receipt_schema, validate_benchmark_citation_record,
     validate_benchmark_evidence_book, validate_benchmark_publication_receipt,
-    BenchmarkAttemptIdentity, BenchmarkEvidenceBook, BenchmarkEvidenceBookEntry,
+    BenchmarkAttemptIdentity, BenchmarkCitationAssetIdentity, BenchmarkCitationRecord,
+    BenchmarkCitationToolIdentity, BenchmarkEvidenceBook, BenchmarkEvidenceBookEntry,
     BenchmarkEvidenceBookStatus, BenchmarkEvidenceReference, BenchmarkPublicationReceipt,
-    BenchmarkRunIdentity, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
+    BenchmarkRunIdentity, BENCHMARK_CITATION_RECORD_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
     BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1,
 };
 
@@ -84,6 +86,47 @@ fn book() -> BenchmarkEvidenceBook {
     }
 }
 
+fn citation() -> BenchmarkCitationRecord {
+    let receipt = publication();
+    BenchmarkCitationRecord {
+        schema_version: BENCHMARK_CITATION_RECORD_SCHEMA_V1.to_string(),
+        citation_key: "run-2042-fastq-profile-read-lengths".to_string(),
+        run: receipt.run,
+        protocol_title: "FASTQ read-length profiling benchmark".to_string(),
+        protocol_version: "1.0.0".to_string(),
+        protocol_sha256: "4".repeat(64),
+        publication_id: receipt.publication_id,
+        selected_attempts: receipt.selected_attempts,
+        repository_commit: receipt.repository_commit,
+        tools: vec![
+            BenchmarkCitationToolIdentity {
+                tool_id: "seqfu".to_string(),
+                tool_version: "1.22.3".to_string(),
+                image_sha256: "5".repeat(64),
+            },
+            BenchmarkCitationToolIdentity {
+                tool_id: "seqkit".to_string(),
+                tool_version: "2.10.0".to_string(),
+                image_sha256: "6".repeat(64),
+            },
+        ],
+        assets: vec![BenchmarkCitationAssetIdentity {
+            role: "comparative_cohort".to_string(),
+            asset_id: "ancient-dna-fastq-cohort".to_string(),
+            sha256: "7".repeat(64),
+        }],
+        report: receipt.report,
+        evidence_book: reference("study://evidence/benchmarks/evidence-book.json", '8'),
+        publication_receipt: reference(
+            "study://evidence/benchmarks/run-2042/publication-receipt.json",
+            '9',
+        ),
+        limitations: receipt.limitations,
+        access_statement: "Controlled corpus access is governed by the source data agreements."
+            .to_string(),
+    }
+}
+
 #[test]
 fn publication_and_book_validate_and_round_trip() -> anyhow::Result<()> {
     let receipt = publication();
@@ -97,6 +140,12 @@ fn publication_and_book_validate_and_round_trip() -> anyhow::Result<()> {
     let actual: BenchmarkEvidenceBook =
         serde_json::from_slice(&serde_json::to_vec(&evidence_book)?)?;
     assert_eq!(actual, evidence_book);
+
+    let citation_record = citation();
+    validate_benchmark_citation_record(&citation_record)?;
+    let actual: BenchmarkCitationRecord =
+        serde_json::from_slice(&serde_json::to_vec(&citation_record)?)?;
+    assert_eq!(actual, citation_record);
     Ok(())
 }
 
@@ -109,6 +158,10 @@ fn publication_and_book_reject_unknown_fields_and_states() -> anyhow::Result<()>
     let mut value = serde_json::to_value(book())?;
     value["status"] = serde_json::json!("invented");
     assert!(serde_json::from_value::<BenchmarkEvidenceBook>(value).is_err());
+
+    let mut value = serde_json::to_value(citation())?;
+    value["tools"][0]["invented"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<BenchmarkCitationRecord>(value).is_err());
     Ok(())
 }
 
@@ -125,6 +178,14 @@ fn publication_and_book_reject_ambiguous_selection() {
     let mut evidence_book = book();
     evidence_book.status = BenchmarkEvidenceBookStatus::Complete;
     assert!(validate_benchmark_evidence_book(&evidence_book).is_err());
+
+    let mut citation_record = citation();
+    citation_record.tools.swap(0, 1);
+    assert!(validate_benchmark_citation_record(&citation_record).is_err());
+
+    let mut citation_record = citation();
+    citation_record.evidence_book = citation_record.report.clone();
+    assert!(validate_benchmark_citation_record(&citation_record).is_err());
 }
 
 #[test]
@@ -139,6 +200,7 @@ fn checked_publication_schemas_match_model_authority() -> anyhow::Result<()> {
             serde_json::to_value(benchmark_publication_receipt_schema())?,
         ),
         ("evidence-book.schema.json", serde_json::to_value(benchmark_evidence_book_schema())?),
+        ("citation-record.schema.json", serde_json::to_value(benchmark_citation_record_schema())?),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
     for (name, generated) in schemas {

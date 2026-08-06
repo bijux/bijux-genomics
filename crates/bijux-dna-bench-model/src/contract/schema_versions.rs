@@ -24,6 +24,8 @@ pub const BENCHMARK_RUN_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.run_defini
 pub const BENCHMARK_CASE_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.case_definition.v1";
 pub const BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.publication_receipt.v1";
 pub const BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1: &str = "bijux.benchmark.evidence_book.v1";
+pub const BENCHMARK_CITATION_RECORD_SCHEMA_V1: &str = "bijux.benchmark.citation_record.v1";
+pub const BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.replay_receipt.v1";
 pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
 pub const BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1: &str =
     "bijux.benchmark.scheduler_observation.v1";

@@ -6,13 +6,14 @@ use chrono::DateTime;
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkEvidenceBook, BenchmarkEvidenceBookStatus, BenchmarkEvidenceReference,
-    BenchmarkPublicationReceipt,
+    BenchmarkAttemptIdentity, BenchmarkCitationRecord, BenchmarkEvidenceBook,
+    BenchmarkEvidenceBookStatus, BenchmarkEvidenceReference, BenchmarkPublicationReceipt,
+    BenchmarkRunIdentity,
 };
 
 use super::{
-    benchmark_run_directory_name, validate_attempt_identity, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
-    BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1,
+    benchmark_run_directory_name, validate_attempt_identity, BENCHMARK_CITATION_RECORD_SCHEMA_V1,
+    BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1,
 };
 
 /// Validate one immutable publication selection and its full source/evidence closure.
@@ -38,7 +39,7 @@ pub fn validate_benchmark_publication_receipt(
         validate_digest(digest)?;
     }
     validate_sorted_components(&receipt.case_ids, "case_ids", false)?;
-    validate_selected_attempts(receipt)?;
+    validate_attempt_selection(&receipt.run, &receipt.selected_attempts, "publication")?;
     validate_evidence_reference(&receipt.report)?;
     validate_evidence_reference(&receipt.decision)?;
     if receipt.report.uri == receipt.decision.uri {
@@ -46,6 +47,45 @@ pub fn validate_benchmark_publication_receipt(
     }
     validate_evidence_set(&receipt.evidence)?;
     validate_limitations(&receipt.limitations)?;
+    Ok(())
+}
+
+/// Validate one stable paper-facing benchmark citation.
+///
+/// # Errors
+/// Returns an error when protocol, publication, attempt, tool/image, asset, evidence, limitation,
+/// or access identity is incomplete or inconsistent.
+pub fn validate_benchmark_citation_record(
+    record: &BenchmarkCitationRecord,
+) -> Result<(), BenchError> {
+    if record.schema_version != BENCHMARK_CITATION_RECORD_SCHEMA_V1 {
+        return Err(invalid("benchmark citation-record schema mismatch"));
+    }
+    benchmark_run_directory_name(&record.run)?;
+    validate_component(&record.citation_key, "citation_key")?;
+    validate_component(&record.publication_id, "publication_id")?;
+    require_text(&record.protocol_title, "protocol_title", 10)?;
+    require_text(&record.protocol_version, "protocol_version", 1)?;
+    validate_digest(&record.protocol_sha256)?;
+    validate_commit(&record.repository_commit)?;
+    validate_attempt_selection(&record.run, &record.selected_attempts, "citation")?;
+    validate_citation_tools(record)?;
+    validate_citation_assets(record)?;
+    for reference in [&record.report, &record.evidence_book, &record.publication_receipt] {
+        validate_evidence_reference(reference)?;
+    }
+    let evidence_uris = [
+        record.report.uri.as_str(),
+        record.evidence_book.uri.as_str(),
+        record.publication_receipt.uri.as_str(),
+    ];
+    if evidence_uris.windows(2).any(|pair| pair[0] == pair[1])
+        || evidence_uris[0] == evidence_uris[2]
+    {
+        return Err(invalid("benchmark citation reuses one URI for distinct evidence roles"));
+    }
+    validate_limitations(&record.limitations)?;
+    require_text(&record.access_statement, "access_statement", 20)?;
     Ok(())
 }
 
@@ -99,35 +139,81 @@ pub fn validate_benchmark_evidence_book(book: &BenchmarkEvidenceBook) -> Result<
     Ok(())
 }
 
-fn validate_selected_attempts(receipt: &BenchmarkPublicationReceipt) -> Result<(), BenchError> {
-    if receipt.selected_attempts.is_empty() {
-        return Err(invalid("benchmark publication selects no attempts"));
+pub(super) fn validate_attempt_selection(
+    run: &BenchmarkRunIdentity,
+    attempts: &[BenchmarkAttemptIdentity],
+    context: &str,
+) -> Result<(), BenchError> {
+    if attempts.is_empty() {
+        return Err(invalid(format!("benchmark {context} selects no attempts")));
     }
     let mut tools = BTreeSet::new();
     let mut previous_tool = None;
     let mut campaign_id = None;
-    for attempt in &receipt.selected_attempts {
+    for attempt in attempts {
         validate_attempt_identity(attempt)?;
-        if attempt.run != receipt.run {
-            return Err(invalid("benchmark publication attempt belongs to a different run"));
+        if attempt.run != *run {
+            return Err(invalid(format!("benchmark {context} attempt belongs to a different run")));
         }
         if campaign_id.is_some_and(|campaign| campaign != attempt.campaign_id.as_str()) {
-            return Err(invalid("benchmark publication attempts belong to different campaigns"));
+            return Err(invalid(format!(
+                "benchmark {context} attempts belong to different campaigns"
+            )));
         }
         campaign_id = Some(attempt.campaign_id.as_str());
         if previous_tool.is_some_and(|tool| tool >= attempt.tool_id.as_str())
             || !tools.insert(attempt.tool_id.as_str())
         {
-            return Err(invalid(
-                "benchmark publication attempts must be tool-sorted with one attempt per tool",
-            ));
+            return Err(invalid(format!(
+                "benchmark {context} attempts must be tool-sorted with one attempt per tool"
+            )));
         }
         previous_tool = Some(attempt.tool_id.as_str());
     }
     Ok(())
 }
 
-fn validate_evidence_set(evidence: &[BenchmarkEvidenceReference]) -> Result<(), BenchError> {
+fn validate_citation_tools(record: &BenchmarkCitationRecord) -> Result<(), BenchError> {
+    if record.tools.len() != record.selected_attempts.len() {
+        return Err(invalid("benchmark citation tool closure differs from selected attempts"));
+    }
+    for (tool, attempt) in record.tools.iter().zip(&record.selected_attempts) {
+        validate_component(&tool.tool_id, "tool_id")?;
+        require_text(&tool.tool_version, "tool_version", 1)?;
+        validate_digest(&tool.image_sha256)?;
+        if tool.tool_id != attempt.tool_id {
+            return Err(invalid(
+                "benchmark citation tools do not align with selected attempt order",
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_citation_assets(record: &BenchmarkCitationRecord) -> Result<(), BenchError> {
+    if record.assets.is_empty() {
+        return Err(invalid("benchmark citation contains no immutable data assets"));
+    }
+    let mut assets = BTreeSet::new();
+    let mut previous = None;
+    for asset in &record.assets {
+        validate_component(&asset.role, "asset role")?;
+        validate_component(&asset.asset_id, "asset_id")?;
+        validate_digest(&asset.sha256)?;
+        let identity = (asset.role.as_str(), asset.asset_id.as_str());
+        if previous.is_some_and(|value| value >= identity) || !assets.insert(identity) {
+            return Err(invalid(
+                "benchmark citation assets must be role-and-identity sorted and unique",
+            ));
+        }
+        previous = Some(identity);
+    }
+    Ok(())
+}
+
+pub(super) fn validate_evidence_set(
+    evidence: &[BenchmarkEvidenceReference],
+) -> Result<(), BenchError> {
     if evidence.is_empty() {
         return Err(invalid("benchmark publication contains no supporting evidence"));
     }
@@ -145,7 +231,9 @@ fn validate_evidence_set(evidence: &[BenchmarkEvidenceReference]) -> Result<(), 
     Ok(())
 }
 
-fn validate_evidence_reference(reference: &BenchmarkEvidenceReference) -> Result<(), BenchError> {
+pub(super) fn validate_evidence_reference(
+    reference: &BenchmarkEvidenceReference,
+) -> Result<(), BenchError> {
     validate_study_uri(&reference.uri)?;
     validate_digest(&reference.sha256)?;
     if reference.size_bytes == 0 {
@@ -174,7 +262,7 @@ fn validate_run_ids(run_ids: &[String], published: &BTreeSet<&str>) -> Result<()
     Ok(())
 }
 
-fn validate_limitations(limitations: &[String]) -> Result<(), BenchError> {
+pub(super) fn validate_limitations(limitations: &[String]) -> Result<(), BenchError> {
     if limitations.is_empty()
         || limitations.iter().any(|value| value.trim().len() < 10 || value != value.trim())
     {
@@ -200,7 +288,7 @@ fn validate_sorted_components(
     Ok(())
 }
 
-fn validate_component(value: &str, field: &str) -> Result<(), BenchError> {
+pub(super) fn validate_component(value: &str, field: &str) -> Result<(), BenchError> {
     if value.is_empty()
         || !value.bytes().all(|byte| {
             byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'-' | b'_')
@@ -228,7 +316,7 @@ fn validate_study_uri(uri: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_digest(value: &str) -> Result<(), BenchError> {
+pub(super) fn validate_digest(value: &str) -> Result<(), BenchError> {
     if value.len() != 64
         || !value.bytes().all(|byte| byte.is_ascii_hexdigit())
         || value.bytes().any(|byte| byte.is_ascii_uppercase())
@@ -239,7 +327,7 @@ fn validate_digest(value: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_commit(value: &str) -> Result<(), BenchError> {
+pub(super) fn validate_commit(value: &str) -> Result<(), BenchError> {
     if value.len() != 40
         || !value.bytes().all(|byte| byte.is_ascii_hexdigit())
         || value.bytes().any(|byte| byte.is_ascii_uppercase())
@@ -250,11 +338,18 @@ fn validate_commit(value: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_utc_timestamp(value: &str, field: &str) -> Result<(), BenchError> {
+pub(super) fn validate_utc_timestamp(value: &str, field: &str) -> Result<(), BenchError> {
     let timestamp = DateTime::parse_from_rfc3339(value)
         .map_err(|_| invalid(format!("benchmark publication {field} is not RFC 3339")))?;
     if timestamp.offset().local_minus_utc() != 0 {
         return Err(invalid(format!("benchmark publication {field} is not UTC")));
+    }
+    Ok(())
+}
+
+fn require_text(value: &str, field: &str, minimum_length: usize) -> Result<(), BenchError> {
+    if value.trim().len() < minimum_length || value != value.trim() {
+        return Err(invalid(format!("benchmark citation {field} is absent or malformed")));
     }
     Ok(())
 }

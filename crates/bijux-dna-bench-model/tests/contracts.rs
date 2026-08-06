@@ -19,6 +19,8 @@ mod mod_contracts_materialization_rs;
 mod mod_contracts_protocol_rs;
 #[path = "contracts/publication.rs"]
 mod mod_contracts_publication_rs;
+#[path = "contracts/replay.rs"]
+mod mod_contracts_replay_rs;
 #[path = "contracts/stage_result.rs"]
 mod mod_contracts_stage_result_rs;
 #[path = "contracts/suite_validation.rs"]

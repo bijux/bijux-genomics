@@ -1,0 +1,201 @@
+{
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCitationAssetIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "asset_id",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCitationToolIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "image_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "tool_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "tool_version",
+        "image_sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkEvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uri": {
+          "pattern": "^study://[^/].+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "access_statement": {
+      "type": "string"
+    },
+    "assets": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCitationAssetIdentity"
+      },
+      "type": "array"
+    },
+    "citation_key": {
+      "type": "string"
+    },
+    "evidence_book": {
+      "$ref": "#/$defs/BenchmarkEvidenceReference"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "protocol_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "protocol_title": {
+      "type": "string"
+    },
+    "protocol_version": {
+      "type": "string"
+    },
+    "publication_id": {
+      "type": "string"
+    },
+    "publication_receipt": {
+      "$ref": "#/$defs/BenchmarkEvidenceReference"
+    },
+    "report": {
+      "$ref": "#/$defs/BenchmarkEvidenceReference"
+    },
+    "repository_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "run": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.citation_record.v1",
+      "type": "string"
+    },
+    "selected_attempts": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkAttemptIdentity"
+      },
+      "type": "array"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCitationToolIdentity"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "citation_key",
+    "run",
+    "protocol_title",
+    "protocol_version",
+    "protocol_sha256",
+    "publication_id",
+    "selected_attempts",
+    "repository_commit",
+    "tools",
+    "assets",
+    "report",
+    "evidence_book",
+    "publication_receipt",
+    "limitations",
+    "access_statement"
+  ],
+  "title": "BenchmarkCitationRecord",
+  "type": "object"
+}
