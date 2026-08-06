@@ -10,6 +10,7 @@ pub mod lifecycle;
 pub mod materialization;
 pub mod observation;
 pub mod planning;
+pub mod protocol;
 pub mod report;
 pub mod stage_result;
 pub mod suite;
@@ -79,6 +80,12 @@ pub use planning::{
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
     BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
     BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
+};
+#[allow(unused_imports)]
+pub use protocol::{
+    benchmark_case_definition_schema, benchmark_run_definition_schema, BenchmarkCaseDefinition,
+    BenchmarkCaseInputLock, BenchmarkCaseQualificationReceipt, BenchmarkContractLock,
+    BenchmarkCorpusRole, BenchmarkRunDefinition, BenchmarkRunState,
 };
 #[allow(unused_imports)]
 pub use report::{
