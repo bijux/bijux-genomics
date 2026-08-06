@@ -5,8 +5,18 @@ use std::path::Path;
 fn normal_dependency_graph_matches_db_ena_boundary() {
     let manifest = read_manifest();
     let dependencies = dependency_names(&manifest, "dependencies");
-    let expected =
-        entries(["anyhow", "clap", "rayon", "reqwest", "serde", "serde_json", "thiserror"]);
+    let expected = entries([
+        "anyhow",
+        "clap",
+        "md5",
+        "rayon",
+        "reqwest",
+        "serde",
+        "serde_json",
+        "sha2",
+        "tempfile",
+        "thiserror",
+    ]);
 
     assert_eq!(dependencies, expected, "normal dependencies must match docs/DEPENDENCIES.md");
 }

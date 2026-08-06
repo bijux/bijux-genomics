@@ -11,9 +11,14 @@ The crate root preserves stable module paths for downstream callers:
 
 - `EnaClient`
 - `download_tasks`
+- `download_verified_file`
+- `download_verified_files`
 - `DownloadConfig`
 - `DownloadReport`
 - `DownloadTask`
+- `VerifiedDownloadDisposition`
+- `VerifiedDownloadOutcome`
+- `VerifiedDownloadRequest`
 - `EnaFileSource`
 - `EnaQuery`
 - `EnaRecord`
