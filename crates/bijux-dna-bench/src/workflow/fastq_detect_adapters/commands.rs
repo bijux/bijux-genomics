@@ -94,7 +94,8 @@ fn sample_command(
     let report_json = format!("{output_root}/adapter_report.json");
     let summary_tsv = format!("{output_root}/sample-summary.tsv");
     let mut command = format!(
-        "fastqc --extract --outdir {} --threads 4 {}",
+        "mkdir -p {}\nfastqc --extract --outdir {} --threads 4 {}",
+        shell_quote(&fastqc_root),
         shell_quote(&fastqc_root),
         shell_quote(&sample.mounted_fastq[0]),
     );
@@ -155,9 +156,12 @@ mod tests {
         let measured = measured_command("fastqc", &samples, 42)?;
         let negative = negative_command("fastqc")?;
         assert!(warmup[2].contains("sample-report"));
+        assert!(warmup[2].contains("mkdir -p '/scratch/warmup/fastqc'"));
         assert!(measured[2].contains("fastq_detect_adapters.sh metrics"));
         assert!(measured[2].contains("sample-19"));
+        assert!(measured[2].contains("mkdir -p '/scratch/detect-adapters/sample-19/fastqc'"));
         assert!(negative[2].contains("missing.fastq.gz"));
+        assert!(negative[2].contains("mkdir -p '/scratch/negative/fastqc'"));
         assert_eq!(required_files(3).len(), 18);
         Ok(())
     }
