@@ -104,3 +104,28 @@ fn write_local_estimate_library_complexity_prealign_smoke_report_materializes_go
 
     Ok(())
 }
+
+#[test]
+fn estimate_library_complexity_prealign_report_accepts_explicit_inputs_and_output() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let r1 = temp.path().join("reads.fastq");
+    let report_path = temp.path().join("reports/library-complexity.json");
+    std::fs::write(&r1, b"@read-1\nACGTACGT\n+\nIIIIIIII\n@read-2\nACGTACGT\n+\nIIIIIIII\n")?;
+
+    let report = bijux_dna_api::v1::api::fastq::estimate_library_complexity_prealign_report(
+        &r1,
+        None,
+        Some(4),
+        &report_path,
+    )?;
+
+    assert_eq!(report.stage_id, "fastq.estimate_library_complexity_prealign");
+    assert_eq!(report.tool_id, "bijux_dna");
+    assert_eq!(report.reads_in, 2);
+    assert_eq!(report.estimated_duplicate_fraction, 0.5);
+    assert_eq!(report.kmer_size, Some(4));
+    let written: bijux_dna_domain_fastq::EstimateLibraryComplexityPrealignReportV1 =
+        serde_json::from_slice(&std::fs::read(report_path)?)?;
+    assert_eq!(written, report);
+    Ok(())
+}

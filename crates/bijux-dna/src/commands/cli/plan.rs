@@ -58,6 +58,11 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
                 ToolId::from_static(TOOL_SEQKIT_STATS),
                 common.clone(),
             ),
+            FastqCommand::EstimateLibraryComplexityPrealign(_) => (
+                StageId::from_static("fastq.estimate_library_complexity_prealign"),
+                ToolId::from_static("bijux_dna"),
+                CommonArgs::default(),
+            ),
             FastqCommand::Filter(args) => (
                 StageId::from_static("fastq.filter_reads"),
                 ToolId::from_static(TOOL_FASTP),
@@ -762,6 +767,19 @@ mod tests {
                     command: FastqCommand::Qc(CommonArgs::default()),
                 }),
                 "fastq.report_qc",
+            ),
+            (
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::EstimateLibraryComplexityPrealign(
+                        crate::commands::cli::parse::FastqEstimateLibraryComplexityPrealignArgs {
+                            r1: PathBuf::from("reads.fastq"),
+                            r2: None,
+                            out: PathBuf::from("library-complexity.json"),
+                            kmer_size: 31,
+                        },
+                    ),
+                }),
+                "fastq.estimate_library_complexity_prealign",
             ),
             (
                 DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {

@@ -149,6 +149,37 @@ fastp = { version = "99.99.99+fixture" }
 }
 
 #[test]
+fn cli_estimates_library_complexity_through_the_domain_api() {
+    let workspace = CliWorkspace::new();
+    let r1 = workspace.path().join("reads.fastq");
+    let report = workspace.path().join("artifacts/library-complexity.json");
+    std::fs::write(&r1, b"@read-1\nACGTACGT\n+\nIIIIIIII\n@read-2\nACGTACGT\n+\nIIIIIIII\n")
+        .expect("write FASTQ fixture");
+
+    run_cli(
+        &workspace,
+        &[
+            "run",
+            "estimate-library-complexity-prealign",
+            "--r1",
+            r1.to_str().expect("UTF-8 input path"),
+            "--out",
+            report.to_str().expect("UTF-8 output path"),
+            "--kmer-size",
+            "4",
+        ],
+    )
+    .expect("complexity command succeeds");
+
+    let payload: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(report).expect("read complexity report"))
+            .expect("parse complexity report");
+    assert_eq!(payload["stage_id"], "fastq.estimate_library_complexity_prealign");
+    assert_eq!(payload["tool_id"], "bijux_dna");
+    assert_eq!(payload["estimated_duplicate_fraction"], 0.5);
+}
+
+#[test]
 fn cli_pipelines_list_includes_default_fastq() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(&workspace, &["dna", "pipelines", "list"], "pipelines");

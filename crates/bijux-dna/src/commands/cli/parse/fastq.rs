@@ -169,6 +169,18 @@ pub struct FastqCompareArgs {
     pub baseline: Option<String>,
 }
 
+#[derive(Debug, Args, Clone)]
+pub struct FastqEstimateLibraryComplexityPrealignArgs {
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long, value_name = "REPORT_JSON")]
+    pub out: PathBuf,
+    #[arg(long, default_value_t = 31)]
+    pub kmer_size: u32,
+}
+
 #[derive(Debug, Subcommand)]
 pub enum FastqCommand {
     #[command(about = "List FASTQ stages.")]
@@ -232,6 +244,11 @@ pub enum FastqCommand {
     ValidateReads(FastqValidateArgs),
     #[command(about = "Compare two FASTQ runs.")]
     Compare(FastqCompareArgs),
+    #[command(
+        name = "estimate-library-complexity-prealign",
+        about = "Estimate pre-alignment FASTQ library complexity without modifying reads."
+    )]
+    EstimateLibraryComplexityPrealign(FastqEstimateLibraryComplexityPrealignArgs),
     Align(CommonArgs),
 }
 
