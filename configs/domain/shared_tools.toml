@@ -19,9 +19,15 @@ upstream = "https://github.com/BenLangmead/bowtie2"
 
 [shared_tools.angsd]
 domains = ["bam", "vcf"]
-default_version = "0.940"
-license = "GPL-3.0"
+default_version = "0.941"
+license = "NOASSERTION"
 upstream = "https://github.com/ANGSD/angsd"
+
+[shared_tools.bcftools]
+domains = ["bam", "vcf"]
+default_version = "1.20"
+license = "MIT"
+upstream = "https://github.com/samtools/bcftools"
 
 [shared_tools.multiqc]
 domains = ["fastq", "bam"]
