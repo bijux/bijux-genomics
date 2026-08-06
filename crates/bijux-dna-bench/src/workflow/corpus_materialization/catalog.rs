@@ -1,6 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Deterministic projection from verified source bytes into the governed data catalog.
 
+use anyhow::{bail, Result};
 use bijux_dna_bench_model::{
     CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusMaterializationDisposition,
     GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
@@ -80,6 +81,60 @@ pub(super) fn build_catalog(
                 .to_string(),
         ],
     }
+}
+
+pub(super) fn validate_existing_catalog(
+    catalog: &GovernedDataCatalog,
+    plan: &CorpusAcquisitionPlan,
+    targets: &[MaterializationTarget],
+    fastq: &[FastqIdentity],
+    transfers: &[VerifiedDownloadOutcome],
+    source_record: &str,
+    source_record_sha256: &str,
+) -> Result<()> {
+    let expected_samples = plan.samples.iter().map(catalog_sample).collect::<Vec<_>>();
+    if catalog.id != plan.portfolio_id
+        || catalog.source != plan.source_authority
+        || catalog.source_record != source_record
+        || catalog.source_record_sha256 != source_record_sha256
+        || catalog.scientific_name != plan.species
+        || catalog.samples != expected_samples
+        || catalog.files.len() != targets.len()
+        || fastq.len() != targets.len()
+        || transfers.len() != targets.len()
+    {
+        bail!("existing governed catalog differs from acquisition plan identity");
+    }
+    for (((file, target), observed), transfer) in
+        catalog.files.iter().zip(targets).zip(fastq).zip(transfers)
+    {
+        let sample = &plan.samples[target.sample_index];
+        let source = &sample.files[target.file_index];
+        if file.path != target.path.display().to_string()
+            || file.sha256 != transfer.sha256
+            || file.size_bytes != source.size_bytes
+            || file.size_bytes != transfer.size_bytes
+            || file.source_md5 != transfer.md5
+            || file.kind != "raw-fastq"
+            || file.accession != sample.accession
+            || file.study_accession != sample.study_accession
+            || file.sample_accession != sample.sample_accession
+            || file.experiment_accession != sample.experiment_accession
+            || file.era != sample.era
+            || file.layout != sample.layout
+            || file.mate != source.mate
+            || file.read_count != observed.read_count
+            || file.base_count != observed.base_count
+            || file.source_url != source.source_url
+            || file.source_md5 != source.source_md5
+        {
+            bail!(
+                "existing governed catalog file differs from acquisition plan or FASTQ: {}",
+                target.path.display()
+            );
+        }
+    }
+    Ok(())
 }
 
 fn catalog_sample(sample: &CorpusAcquisitionSample) -> GovernedDataCatalogSample {

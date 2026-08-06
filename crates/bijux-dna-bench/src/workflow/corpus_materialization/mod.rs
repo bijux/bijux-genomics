@@ -12,7 +12,8 @@ use bijux_dna_bench_model::{
     GovernedDataCatalog,
 };
 use bijux_dna_db_ena::{
-    download_verified_files, VerifiedDownloadDisposition, VerifiedDownloadRequest,
+    download_verified_files, verify_existing_files, VerifiedDownloadDisposition,
+    VerifiedDownloadRequest,
 };
 use serde::{Deserialize, Serialize};
 
@@ -75,9 +76,18 @@ pub fn materialize_fastq_corpus(
         .join(format!("{}.lock", plan.portfolio_id));
     let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, Duration::from_secs(30))
         .context("acquire corpus materialization lock")?;
-    let catalog_path = data_root.join("catalog").join(format!("{}.json", plan.portfolio_id));
-    require_absent(&catalog_path, "admitted data catalog")?;
     let targets = materialization_targets(&data_root, &plan);
+    let catalog_path = data_root.join("catalog").join(format!("{}.json", plan.portfolio_id));
+    if let Some(catalog) = load_existing_catalog(&catalog_path)? {
+        return revalidate_existing_catalog(
+            request,
+            &plan,
+            &plan_path,
+            &catalog_path,
+            catalog,
+            &targets,
+        );
+    }
     let download_requests = download_requests(request, &plan, &targets)?;
     let transfers = download_verified_files(&download_requests, request.maximum_parallelism)
         .context("transfer checksum-pinned corpus files")?;
@@ -122,6 +132,96 @@ pub fn materialize_fastq_corpus(
         catalog_sha256,
         downloaded_files,
         verified_existing_files,
+        catalog,
+    })
+}
+
+fn load_existing_catalog(path: &Path) -> Result<Option<GovernedDataCatalog>> {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+        Err(error) => {
+            return Err(error)
+                .with_context(|| format!("inspect admitted catalog {}", path.display()))
+        }
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("admitted data catalog is not a regular non-symlink file: {}", path.display());
+    }
+    let canonical = path
+        .canonicalize()
+        .with_context(|| format!("canonicalize admitted catalog {}", path.display()))?;
+    if canonical != path {
+        bail!("admitted data catalog path is not canonical: {}", path.display());
+    }
+    let bytes = bijux_dna_infra::read_to_end_bounded(path, MAX_ACQUISITION_PLAN_BYTES)
+        .with_context(|| format!("read admitted catalog {}", path.display()))?;
+    let catalog = serde_json::from_slice(&bytes)
+        .with_context(|| format!("parse admitted catalog {}", path.display()))?;
+    Ok(Some(catalog))
+}
+
+fn revalidate_existing_catalog(
+    request: &CorpusMaterializationRequest,
+    plan: &CorpusAcquisitionPlan,
+    plan_path: &Path,
+    catalog_path: &Path,
+    catalog: GovernedDataCatalog,
+    targets: &[MaterializationTarget],
+) -> Result<CorpusMaterializationPublication> {
+    validate_governed_data_catalog(&catalog).context("validate existing governed data catalog")?;
+    for target in targets {
+        let metadata = fs::symlink_metadata(&target.path)
+            .with_context(|| format!("inspect admitted FASTQ {}", target.path.display()))?;
+        if metadata.file_type().is_symlink() || !metadata.is_file() {
+            bail!("admitted FASTQ is not a regular non-symlink file: {}", target.path.display());
+        }
+        let canonical = target
+            .path
+            .canonicalize()
+            .with_context(|| format!("canonicalize admitted FASTQ {}", target.path.display()))?;
+        if canonical != target.path {
+            bail!("admitted FASTQ path is not canonical: {}", target.path.display());
+        }
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            if metadata.permissions().mode() & 0o222 != 0 {
+                bail!("admitted FASTQ remains writable: {}", target.path.display());
+            }
+        }
+    }
+    let requests = download_requests(request, plan, targets)?;
+    let transfers = verify_existing_files(&requests, request.maximum_parallelism)
+        .context("reverify checksum-pinned corpus files")?;
+    ensure_transfer_order(targets, &transfers)?;
+    let paths = targets.iter().map(|target| target.path.clone()).collect::<Vec<_>>();
+    let fastq = fastq::validate_fastq_files(&paths, request.maximum_parallelism)?;
+    let relative_plan = plan_path
+        .strip_prefix(&request.data_root)
+        .context("acquisition plan is outside governed data root")?;
+    let source_record = format!("study://data/{}", portable_relative_path(relative_plan)?);
+    let source_record_sha256 =
+        bijux_dna_infra::hash_file_sha256(plan_path).context("hash acquisition plan")?;
+    catalog::validate_existing_catalog(
+        &catalog,
+        plan,
+        targets,
+        &fastq,
+        &transfers,
+        &source_record,
+        &source_record_sha256,
+    )?;
+    let catalog_sha256 =
+        bijux_dna_infra::hash_file_sha256(catalog_path).context("hash admitted catalog")?;
+    Ok(CorpusMaterializationPublication {
+        catalog_path: catalog_path.to_path_buf(),
+        catalog_sha256,
+        downloaded_files: 0,
+        verified_existing_files: count_disposition(
+            &transfers,
+            VerifiedDownloadDisposition::VerifiedExisting,
+        )?,
         catalog,
     })
 }
@@ -229,14 +329,6 @@ fn portable_relative_path(path: &Path) -> Result<String> {
         bail!("governed relative path contains a non-normal component");
     }
     Ok(path.to_string_lossy().replace('\\', "/"))
-}
-
-fn require_absent(path: &Path, label: &str) -> Result<()> {
-    match fs::symlink_metadata(path) {
-        Ok(_) => bail!("refusing to replace {label}: {}", path.display()),
-        Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(error).with_context(|| format!("inspect {label} {}", path.display())),
-    }
 }
 
 fn make_read_only(path: &Path) -> Result<()> {

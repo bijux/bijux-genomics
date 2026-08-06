@@ -14,8 +14,8 @@ pub use config::{DownloadConfig, DEFAULT_DOWNLOAD_JOBS, DEFAULT_DOWNLOAD_RETRIES
 pub use report::DownloadReport;
 pub use task::DownloadTask;
 pub use verified_transfer::{
-    download_verified_file, download_verified_files, VerifiedDownloadDisposition,
-    VerifiedDownloadOutcome, VerifiedDownloadRequest,
+    download_verified_file, download_verified_files, verify_existing_file, verify_existing_files,
+    VerifiedDownloadDisposition, VerifiedDownloadOutcome, VerifiedDownloadRequest,
 };
 
 #[must_use]

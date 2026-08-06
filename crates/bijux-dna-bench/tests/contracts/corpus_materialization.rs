@@ -88,8 +88,56 @@ fn existing_catalog_is_preserved_without_materialization() -> anyhow::Result<()>
         anyhow::bail!("existing catalog authority must reject replacement");
     };
 
-    assert!(format!("{error:#}").contains("refusing to replace"));
+    assert!(format!("{error:#}").contains("parse admitted catalog"));
     assert_eq!(fs::read(catalog_path)?, b"existing authority");
+    Ok(())
+}
+
+#[test]
+fn existing_valid_catalog_is_revalidated_without_mutation() -> anyhow::Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let data_root = temporary.path().canonicalize()?.join("data");
+    fs::create_dir(&data_root)?;
+    let data_root = data_root.canonicalize()?;
+    let fastq_bytes = compressed_fastq()?;
+    let plan_path = write_plan_and_fastq(&data_root, &fastq_bytes)?;
+    let initial = materialize_fastq_corpus(&request(plan_path.clone(), data_root.clone()))?;
+    let mut enriched = initial.catalog.clone();
+    enriched.retrieved_at_utc = "2026-08-05T23:00:00+00:00".to_string();
+    fs::write(&initial.catalog_path, serde_json::to_vec_pretty(&enriched)?)?;
+    let catalog_bytes = fs::read(&initial.catalog_path)?;
+
+    let mut replay = request(plan_path, data_root);
+    replay.admitted_at_utc = "2026-08-06T02:00:00+00:00".to_string();
+    let publication = materialize_fastq_corpus(&replay)?;
+
+    assert_eq!(publication.downloaded_files, 0);
+    assert_eq!(publication.verified_existing_files, 1);
+    assert_eq!(publication.catalog, enriched);
+    assert_eq!(fs::read(publication.catalog_path)?, catalog_bytes);
+    Ok(())
+}
+
+#[test]
+fn existing_catalog_source_drift_is_preserved_and_rejected() -> anyhow::Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let data_root = temporary.path().canonicalize()?.join("data");
+    fs::create_dir(&data_root)?;
+    let data_root = data_root.canonicalize()?;
+    let fastq_bytes = compressed_fastq()?;
+    let plan_path = write_plan_and_fastq(&data_root, &fastq_bytes)?;
+    let publication = materialize_fastq_corpus(&request(plan_path.clone(), data_root.clone()))?;
+    let mut drifted = publication.catalog;
+    drifted.files[0].source_url = "https://archive.example/drift.fastq.gz".to_string();
+    let drifted_bytes = serde_json::to_vec_pretty(&drifted)?;
+    fs::write(&publication.catalog_path, &drifted_bytes)?;
+
+    let Err(error) = materialize_fastq_corpus(&request(plan_path, data_root)) else {
+        anyhow::bail!("catalog source drift must fail replay admission");
+    };
+
+    assert!(format!("{error:#}").contains("differs from acquisition plan or FASTQ"));
+    assert_eq!(fs::read(publication.catalog_path)?, drifted_bytes);
     Ok(())
 }
 

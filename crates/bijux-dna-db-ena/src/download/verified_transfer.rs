@@ -94,6 +94,46 @@ pub fn download_verified_files(
     requests: &[VerifiedDownloadRequest],
     maximum_parallelism: usize,
 ) -> Result<Vec<VerifiedDownloadOutcome>> {
+    validate_batch(requests, maximum_parallelism)?;
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(maximum_parallelism)
+        .build()
+        .context("create verified ENA transfer pool")?;
+    pool.install(|| requests.par_iter().map(download_verified_file).collect())
+}
+
+/// Re-hash an existing HTTPS acquisition output without downloading or changing it.
+///
+/// # Errors
+/// Returns an error when the request is invalid, the output is absent or unsafe, or its exact size
+/// and MD5 identity differ from the declared source.
+pub fn verify_existing_file(request: &VerifiedDownloadRequest) -> Result<VerifiedDownloadOutcome> {
+    validate_request(request)?;
+    verify_existing(request)?.with_context(|| {
+        format!("verified transfer output is absent: {}", request.output.display())
+    })
+}
+
+/// Re-hash a unique existing acquisition set with bounded parallelism and no network access.
+///
+/// Returned outcomes preserve request order and always have the `verified_existing` disposition.
+///
+/// # Errors
+/// Returns an error when the batch contract is invalid or any existing output fails exact source
+/// identity verification.
+pub fn verify_existing_files(
+    requests: &[VerifiedDownloadRequest],
+    maximum_parallelism: usize,
+) -> Result<Vec<VerifiedDownloadOutcome>> {
+    validate_batch(requests, maximum_parallelism)?;
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(maximum_parallelism)
+        .build()
+        .context("create existing ENA verification pool")?;
+    pool.install(|| requests.par_iter().map(verify_existing_file).collect())
+}
+
+fn validate_batch(requests: &[VerifiedDownloadRequest], maximum_parallelism: usize) -> Result<()> {
     if requests.is_empty() {
         bail!("verified download batch is empty");
     }
@@ -107,11 +147,7 @@ pub fn download_verified_files(
             bail!("verified download output repeats: {}", request.output.display());
         }
     }
-    let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(maximum_parallelism)
-        .build()
-        .context("create verified ENA transfer pool")?;
-    pool.install(|| requests.par_iter().map(download_verified_file).collect())
+    Ok(())
 }
 
 fn publish_reader(
@@ -323,6 +359,24 @@ mod tests {
 
         assert!(download_verified_files(&[request.clone(), request], 2)
             .is_err_and(|error| format!("{error:#}").contains("output repeats")));
+        Ok(())
+    }
+
+    #[test]
+    fn existing_batch_verification_never_materializes_absent_outputs() -> Result<()> {
+        let directory = tempfile::tempdir()?;
+        let existing = directory.path().canonicalize()?.join("existing.fastq.gz");
+        let absent = directory.path().canonicalize()?.join("absent.fastq.gz");
+        fs::write(&existing, b"governed-fastq")?;
+        let requests =
+            [request(existing, b"governed-fastq")?, request(absent.clone(), b"governed-fastq")?];
+
+        let Err(error) = verify_existing_files(&requests, 2) else {
+            bail!("an absent existing output must fail verification");
+        };
+
+        assert!(format!("{error:#}").contains("output is absent"));
+        assert!(!absent.exists());
         Ok(())
     }
 
