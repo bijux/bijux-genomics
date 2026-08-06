@@ -10,4 +10,13 @@ pub use super::contracts::{
     SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
     SLURM_JOB_HANDLE_SCHEMA_V1,
 };
+pub use super::corpus_materialization::{
+    collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_job_handle,
+    observe_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
+    submit_prepared_corpus_materialization_job, CorpusMaterializationCollection,
+    CorpusMaterializationEvidence, CorpusMaterializationEvidenceStatus,
+    CorpusMaterializationSlurmResources, CorpusMaterializationSlurmSpec,
+    PreparedCorpusMaterializationSlurmJob, CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
+};
 pub use super::submission::{load_benchmark_slurm_job_handle, submit_prepared_benchmark_job};

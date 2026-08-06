@@ -27,7 +27,9 @@ pub use lifecycle::{
     validate_attempt_identity, validate_attempt_record_v2, validate_attempt_transition,
     validate_campaign_plan, validate_cycle_status_v2, validate_scheduler_observation,
 };
-pub use materialization::{validate_corpus_acquisition_plan, validate_governed_data_catalog};
+pub use materialization::{
+    validate_corpus_acquisition_plan, validate_governed_data_catalog, validate_utc_timestamp,
+};
 pub use planning::{
     validate_benchmark_portfolio, validate_defined_campaign_portfolio_alignment,
     validate_portfolio_campaign_alignment, validate_scientific_readiness,

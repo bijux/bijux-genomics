@@ -318,7 +318,11 @@ fn is_lower_hex(value: &str, length: usize) -> bool {
         && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-fn validate_utc_timestamp(value: &str, label: &str) -> Result<(), BenchError> {
+/// Validate one RFC 3339 timestamp with a zero UTC offset.
+///
+/// # Errors
+/// Returns an error when the value is malformed or carries a non-UTC offset.
+pub fn validate_utc_timestamp(value: &str, label: &str) -> Result<(), BenchError> {
     let parsed = DateTime::<FixedOffset>::parse_from_rfc3339(value)
         .map_err(|_| invalid(&format!("{label} timestamp is not RFC 3339")))?;
     if parsed.offset().local_minus_utc() != 0 {

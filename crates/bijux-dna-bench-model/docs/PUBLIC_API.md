@@ -136,6 +136,7 @@ Schema derivation:
 - `validate_execution_spec`
 - `validate_corpus_acquisition_plan`
 - `validate_governed_data_catalog`
+- `validate_utc_timestamp`
 
 Namespaces:
 
