@@ -98,6 +98,20 @@ pub(crate) fn handle_meta_commands(
                     println!("index={}", args.output.display());
                     println!("report={}", args.report.display());
                 }
+                BenchCommand::MaterializeFastqCorpus(args) => {
+                    let publication =
+                        bijux_dna_api::v1::api::bench::materialize_fastq_corpus(
+                            &bijux_dna_api::v1::api::bench::CorpusMaterializationRequest {
+                                plan_path: args.plan.clone(),
+                                data_root: args.data_root.clone(),
+                                maximum_parallelism: args.jobs,
+                                retries: args.retries,
+                                timeout_seconds: args.timeout_seconds,
+                                admitted_at_utc: args.admitted_at_utc.clone(),
+                            },
+                        )?;
+                    crate::commands::cli::render::json::print_pretty(&publication)?;
+                }
                 BenchCommand::Status => {
                     let cwd = std::env::current_dir()?;
                     let status = crate::commands::bench_suite::bench_status(&cwd);

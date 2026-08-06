@@ -220,6 +220,7 @@ Visible aliases are part of the operator surface:
   outside `benchmarks/`.
 - `bijux-dna bench run`
 - `bijux-dna bench run-micro`
+- `bijux-dna bench materialize-fastq-corpus`
   `run-micro` writes `runs/bench/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
   for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`, and
   also writes the governed Markdown and JSON micro benchmark report pair

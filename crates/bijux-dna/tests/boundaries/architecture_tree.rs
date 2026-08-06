@@ -306,8 +306,10 @@ fn dna_tree_matches_architecture_contract() {
         "active_scope.rs",
         "config.rs",
         "corpus_fastq.rs",
+        "data_index.rs",
         "fastq/",
         "local.rs",
+        "materialization.rs",
         "matrix.rs",
         "micro.rs",
         "mod.rs",
@@ -322,7 +324,7 @@ fn dna_tree_matches_architecture_contract() {
     .collect();
     assert_eq!(
         bench_parse_entries, expected_bench_parse,
-        "bench parse tree must keep config, publication, suite, and fastq parsing separate"
+        "bench parse tree must keep data, config, publication, suite, and fastq parsing separate"
     );
 
     let bench_fastq_parse_entries = dir_entries(&root.join("src/commands/cli/parse/bench/fastq"));

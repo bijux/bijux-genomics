@@ -8,6 +8,7 @@ mod corpus_fastq;
 mod data_index;
 mod fastq;
 mod local;
+mod materialization;
 mod matrix;
 mod micro;
 mod paths;
@@ -87,6 +88,7 @@ pub use self::local::{
     BenchLocalValidateVcfReferenceCompatibilityArgs, BenchLocalValidateVcfSampleCompatibilityArgs,
     BenchLocalValidateVcfSmokeSuiteReadyArgs, BenchLocalValidateVcfStageCatalogReadyArgs,
 };
+pub use self::materialization::BenchMaterializeFastqCorpusArgs;
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::micro::BenchRunMicroArgs;
 pub use self::paths::{BenchPathsCleanupProofArgs, BenchPathsCommand, BenchPathsValidateArgs};
@@ -231,6 +233,8 @@ pub enum BenchCommand {
     RunMicro(BenchRunMicroArgs),
     #[command(name = "data-index")]
     DataIndex(BenchDataIndexArgs),
+    #[command(name = "materialize-fastq-corpus")]
+    MaterializeFastqCorpus(BenchMaterializeFastqCorpusArgs),
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),
