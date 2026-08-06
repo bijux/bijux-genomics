@@ -140,6 +140,28 @@ fn canonical_catalog_loader_preserves_the_complete_contract_and_rejects_unknown_
 }
 
 #[test]
+fn catalog_lock_is_model_owned_current_and_fail_closed() -> Result<()> {
+    let root = repository_root()?;
+    let rendered = bijux_dna_containers::evidence::render_container_catalog_lock(&root)?;
+    assert_eq!(rendered, fs::read_to_string(root.join("containers/contracts/catalog.lock.json"))?);
+
+    let lock = bijux_dna_containers::evidence::load_container_catalog_lock(&root)?;
+    assert_eq!(lock.tools.len(), 89);
+    assert!(lock.tools.windows(2).all(|pair| pair[0].id < pair[1].id));
+
+    let mut stale = lock.clone();
+    stale.source_sha256 = "f".repeat(64);
+    assert!(bijux_dna_containers::evidence::validate_container_catalog_lock(&root, &stale)
+        .is_err_and(|error| error.to_string().contains("differs")));
+
+    let mut future = serde_json::to_value(lock)?;
+    future["schema_version"] = serde_json::json!("bijux.container.catalog_lock.v2");
+    assert!(serde_json::from_value::<bijux_dna_containers::evidence::ContainerCatalogLock>(future)
+        .is_err());
+    Ok(())
+}
+
+#[test]
 fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
     let root = repository_root()?;
     let validation = validate_container_catalog(&root)?;

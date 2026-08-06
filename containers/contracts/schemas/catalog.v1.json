@@ -1,0 +1,184 @@
+{
+  "$defs": {
+    "ContainerCatalogTool": {
+      "additionalProperties": false,
+      "properties": {
+        "apptainer_definition": {
+          "type": "string"
+        },
+        "apptainer_supported": {
+          "type": "boolean"
+        },
+        "build_network": {
+          "type": "boolean"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "docker_arm64_reason": {
+          "default": "",
+          "type": "string"
+        },
+        "docker_arm64_supported": {
+          "type": "boolean"
+        },
+        "dockerfile": {
+          "type": "string"
+        },
+        "documentation": {
+          "type": "string"
+        },
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "expected_bin": {
+          "type": "string"
+        },
+        "expected_version_regex": {
+          "type": "string"
+        },
+        "help_command": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "pinned_commit": {
+          "default": "",
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "real_test_input_kind": {
+          "type": "string"
+        },
+        "real_test_stage": {
+          "type": "string"
+        },
+        "runtime_network": {
+          "type": "boolean"
+        },
+        "source_sha256": {
+          "default": "",
+          "type": "string"
+        },
+        "stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "support_disposition": {
+          "type": "string"
+        },
+        "support_reason": {
+          "default": "",
+          "type": "string"
+        },
+        "upstream": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "version_command": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "purpose",
+        "version",
+        "support_disposition",
+        "upstream",
+        "documentation",
+        "license",
+        "domains",
+        "stage_ids",
+        "expected_bin",
+        "version_command",
+        "help_command",
+        "expected_version_regex",
+        "apptainer_definition",
+        "apptainer_supported",
+        "dockerfile",
+        "docker_arm64_supported",
+        "build_network",
+        "runtime_network",
+        "real_test_stage",
+        "real_test_input_kind"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "apptainer_architecture": {
+      "type": "string"
+    },
+    "contact": {
+      "type": "string"
+    },
+    "docker_architecture": {
+      "type": "string"
+    },
+    "evidence_dimensions": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "evidence_schema": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "recipe_license": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "required_checks": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.container.catalog.v1",
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/ContainerCatalogTool"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "owner",
+    "contact",
+    "repository",
+    "apptainer_architecture",
+    "docker_architecture",
+    "evidence_schema",
+    "recipe_license",
+    "required_checks",
+    "evidence_dimensions",
+    "tools"
+  ],
+  "title": "ContainerCatalog",
+  "type": "object"
+}

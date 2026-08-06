@@ -1,8 +1,7 @@
 use super::{
-    failure_lines, out_path_arg, read_utf8, sha256_hex, success_line, write_utf8,
-    ContainerCommandOutcome, Result, Serialize, Workspace,
+    failure_lines, out_path_arg, read_utf8, success_line, write_utf8, ContainerCommandOutcome,
+    Result, Workspace,
 };
-use bijux_dna_containers::evidence::ContainerCatalog;
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const LOCK_PATH: &str = "containers/contracts/catalog.lock.json";
@@ -10,48 +9,6 @@ const QUALIFICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-assessment.v1.json";
 const QUALIFICATION_REPORT_SCHEMA_PATH: &str =
     "containers/contracts/schemas/qualification-report.v2.json";
-
-#[derive(Serialize)]
-struct ContractLock<'a> {
-    schema_version: &'static str,
-    source: &'static str,
-    source_sha256: String,
-    owner: &'a str,
-    contact: &'a str,
-    repository: &'a str,
-    apptainer_architecture: &'a str,
-    docker_architecture: &'a str,
-    evidence_schema: &'a str,
-    recipe_license: &'a str,
-    required_checks: &'a [String],
-    evidence_dimensions: &'a [String],
-    tools: Vec<ContractLockTool<'a>>,
-}
-
-#[derive(Serialize)]
-struct ContractLockTool<'a> {
-    id: &'a str,
-    display_name: &'a str,
-    version: &'a str,
-    support_disposition: &'a str,
-    support_reason: &'a str,
-    upstream: &'a str,
-    license: &'a str,
-    source_sha256: &'a str,
-    pinned_commit: &'a str,
-    apptainer_definition: &'a str,
-    dockerfile: &'a str,
-    contract_sha256: String,
-}
-
-fn is_zero_digest(value: &str) -> bool {
-    !value.is_empty() && value.bytes().all(|byte| byte == b'0')
-}
-
-fn is_placeholder_digest(value: &str) -> bool {
-    is_zero_digest(value)
-        || value.bytes().next().is_some_and(|first| value.bytes().all(|byte| byte == first))
-}
 
 pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let validation = bijux_dna_containers::evidence::validate_container_catalog(&workspace.root)?;
@@ -65,62 +22,7 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
 }
 
 fn contract_lock_content(workspace: &Workspace) -> Result<String> {
-    let source = read_utf8(&workspace.path(CATALOG_PATH))?;
-    let catalog: ContainerCatalog = toml::from_str(&source)?;
-    let unresolved = catalog
-        .tools
-        .iter()
-        .filter(|tool| tool.support_disposition == "retained")
-        .filter(|tool| {
-            (tool.source_sha256.is_empty() || is_placeholder_digest(&tool.source_sha256))
-                && (tool.pinned_commit.is_empty() || is_placeholder_digest(&tool.pinned_commit))
-        })
-        .map(|tool| tool.id.as_str())
-        .collect::<Vec<_>>();
-    if !unresolved.is_empty() {
-        anyhow::bail!(
-            "refusing release lock with unresolved source identities: {}",
-            unresolved.join(", ")
-        );
-    }
-    let mut tools = catalog.tools.iter().collect::<Vec<_>>();
-    tools.sort_by(|left, right| left.id.cmp(&right.id));
-    let locked_tools = tools
-        .into_iter()
-        .map(|tool| {
-            let serialized = serde_json::to_vec(tool)?;
-            Ok(ContractLockTool {
-                id: &tool.id,
-                display_name: &tool.display_name,
-                version: &tool.version,
-                support_disposition: &tool.support_disposition,
-                support_reason: &tool.support_reason,
-                upstream: &tool.upstream,
-                license: &tool.license,
-                source_sha256: &tool.source_sha256,
-                pinned_commit: &tool.pinned_commit,
-                apptainer_definition: &tool.apptainer_definition,
-                dockerfile: &tool.dockerfile,
-                contract_sha256: sha256_hex(&serialized),
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
-    let lock = ContractLock {
-        schema_version: "bijux.container.catalog_lock.v1",
-        source: CATALOG_PATH,
-        source_sha256: sha256_hex(source.as_bytes()),
-        owner: &catalog.owner,
-        contact: &catalog.contact,
-        repository: &catalog.repository,
-        apptainer_architecture: &catalog.apptainer_architecture,
-        docker_architecture: &catalog.docker_architecture,
-        evidence_schema: &catalog.evidence_schema,
-        recipe_license: &catalog.recipe_license,
-        required_checks: &catalog.required_checks,
-        evidence_dimensions: &catalog.evidence_dimensions,
-        tools: locked_tools,
-    };
-    Ok(format!("{}\n", serde_json::to_string_pretty(&lock)?))
+    bijux_dna_containers::evidence::render_container_catalog_lock(&workspace.root)
 }
 
 pub(super) fn generate_contract_lock(

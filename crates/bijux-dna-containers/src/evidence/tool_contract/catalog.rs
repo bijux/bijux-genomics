@@ -4,11 +4,16 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::{bail, Context, Result};
-use serde::{Deserialize, Serialize};
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+pub const CONTAINER_CATALOG_SCHEMA_V1: &str = "bijux.container.catalog.v1";
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ContainerCatalog {
+    #[serde(deserialize_with = "deserialize_catalog_schema_version")]
+    #[schemars(schema_with = "catalog_schema_version")]
     pub schema_version: String,
     pub owner: String,
     pub contact: String,
@@ -22,7 +27,7 @@ pub struct ContainerCatalog {
     pub tools: Vec<ContainerCatalogTool>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 // These independent capability and network-policy fields mirror the governed TOML contract.
 #[allow(clippy::struct_excessive_bools)]
@@ -76,7 +81,7 @@ pub fn load_container_catalog(repository_root: &Path) -> Result<ContainerCatalog
         .with_context(|| format!("read container catalog {}", catalog_path.display()))?;
     let catalog: ContainerCatalog = toml::from_slice(&catalog_bytes)
         .with_context(|| format!("parse container catalog {}", catalog_path.display()))?;
-    if catalog.schema_version != "bijux.container.catalog.v1" {
+    if catalog.schema_version != CONTAINER_CATALOG_SCHEMA_V1 {
         bail!("unsupported container catalog schema: {}", catalog.schema_version);
     }
     Ok(catalog)
@@ -160,7 +165,7 @@ pub(super) fn load_retained_tool(
 }
 
 fn validate_catalog_header(catalog: &ContainerCatalog, architecture: &str) -> Result<()> {
-    if catalog.schema_version != "bijux.container.catalog.v1" {
+    if catalog.schema_version != CONTAINER_CATALOG_SCHEMA_V1 {
         bail!("unsupported container catalog schema: {}", catalog.schema_version);
     }
     if architecture != catalog.apptainer_architecture {
@@ -170,6 +175,25 @@ fn validate_catalog_header(catalog: &ContainerCatalog, architecture: &str) -> Re
         );
     }
     Ok(())
+}
+
+fn catalog_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": CONTAINER_CATALOG_SCHEMA_V1,
+    })
+}
+
+fn deserialize_catalog_schema_version<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    if value == CONTAINER_CATALOG_SCHEMA_V1 {
+        Ok(value)
+    } else {
+        Err(D::Error::custom(format!("unsupported container catalog schema: {value}")))
+    }
 }
 
 pub(super) fn validate_commit_identity(commit: &str) -> Result<()> {

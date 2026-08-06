@@ -42,6 +42,7 @@ fn source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/evidence/tool_contract")),
         btree_set(&[
             "catalog.rs",
+            "catalog_lock.rs",
             "catalog_validation.rs",
             "inspection.rs",
             "labels.rs",

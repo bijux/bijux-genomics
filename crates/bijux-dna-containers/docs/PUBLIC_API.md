@@ -14,7 +14,8 @@
   failure classification, bounded build execution, and canonical study image/evidence publication.
 - `evidence`: typed container image-inventory and runtime-verification publications; strict embedded
   tool contracts; the complete canonical `ContainerCatalog` and `ContainerCatalogTool` model;
-  `validate_container_catalog` roster and recipe closure; catalog-derived Apptainer build
+  `validate_container_catalog` roster and recipe closure; model-owned `ContainerCatalogLock`
+  derivation and admission; catalog-derived Apptainer build
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
   execution with bounded immutable streams; catalog-wide parallel runtime verification and
   portable report publication; exact-commit catalog and Apptainer recipe identity;

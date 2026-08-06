@@ -38,6 +38,8 @@ library can manage when callers invoke the matching API.
   version/help smoke workers before publishing manifest-bound portable evidence.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
+- `derive_container_catalog_lock()` and `load_container_catalog_lock()`: derive and admit the
+  immutable lock only when the complete catalog and repository recipe closure validate.
 - `apptainer_recipe_identity_at_commit()`: runs `git show --no-ext-diff` for one definition and
   `git rev-parse --verify` for each repository-owned `%files` source at an exact commit.
 - `repository_head_commit()`: runs `git rev-parse --verify HEAD^{commit}` and rejects abbreviated or

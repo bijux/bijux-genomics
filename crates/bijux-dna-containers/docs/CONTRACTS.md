@@ -30,6 +30,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
   build evidence matches only when status, commit, definition, and complete context agree.
 - `ContainerCatalog` and `ContainerCatalogTool`: the complete fail-closed model loaded from
   `containers/contracts/catalog.toml`; consumers must not define reduced or competing projections.
+- `ContainerCatalogLock`: exact catalog-byte identity and per-tool contract digests derived by this
+  crate; unknown, stale, future-version, or unresolved-source locks fail admission.
 - `ContainerCatalogValidation`: exact 89-tool/85-retained/four-unsupported roster and bidirectional
   catalog-to-Apptainer/Docker recipe closure.
 - `ContainerEvidenceChain`: admitted catalog, image-inventory, and runtime publications with exact

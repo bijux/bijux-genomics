@@ -1,6 +1,7 @@
 //! Runtime-readable identity contracts for governed tool images.
 
 mod catalog;
+mod catalog_lock;
 mod catalog_validation;
 mod inspection;
 mod labels;
@@ -13,7 +14,12 @@ mod validation;
 
 pub use catalog::{
     catalog_identity_at_commit, load_container_catalog, retained_apptainer_tool_ids,
-    ContainerCatalog, ContainerCatalogTool,
+    ContainerCatalog, ContainerCatalogTool, CONTAINER_CATALOG_SCHEMA_V1,
+};
+pub use catalog_lock::{
+    derive_container_catalog_lock, load_container_catalog_lock, render_container_catalog_lock,
+    validate_container_catalog_lock, ContainerCatalogLock, ContainerCatalogLockTool,
+    CONTAINER_CATALOG_LOCK_PATH, CONTAINER_CATALOG_LOCK_SCHEMA_V1, CONTAINER_CATALOG_PATH,
 };
 pub use catalog_validation::{validate_container_catalog, ContainerCatalogValidation};
 
@@ -31,7 +37,9 @@ pub use recipe_identity::{
     repository_commit_is_ancestor_of_head, repository_head_commit, ApptainerRecipeIdentity,
 };
 pub use schema::{
-    tool_contract_schema, tool_image_identity_evidence_schema, write_tool_contract_schema,
+    container_catalog_lock_schema, container_catalog_schema, tool_contract_schema,
+    tool_image_identity_evidence_schema, write_container_catalog_lock_schema,
+    write_container_catalog_schema, write_tool_contract_schema,
     write_tool_image_identity_evidence_schema,
 };
 pub use smoke::{

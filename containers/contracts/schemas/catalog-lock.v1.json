@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "ContainerCatalogLockTool": {
+      "additionalProperties": false,
+      "properties": {
+        "apptainer_definition": {
+          "type": "string"
+        },
+        "contract_sha256": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "dockerfile": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "pinned_commit": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": "string"
+        },
+        "support_disposition": {
+          "type": "string"
+        },
+        "support_reason": {
+          "type": "string"
+        },
+        "upstream": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "version",
+        "support_disposition",
+        "support_reason",
+        "upstream",
+        "license",
+        "source_sha256",
+        "pinned_commit",
+        "apptainer_definition",
+        "dockerfile",
+        "contract_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "apptainer_architecture": {
+      "type": "string"
+    },
+    "contact": {
+      "type": "string"
+    },
+    "docker_architecture": {
+      "type": "string"
+    },
+    "evidence_dimensions": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "evidence_schema": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "recipe_license": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "required_checks": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.container.catalog_lock.v1",
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "source_sha256": {
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/ContainerCatalogLockTool"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "source",
+    "source_sha256",
+    "owner",
+    "contact",
+    "repository",
+    "apptainer_architecture",
+    "docker_architecture",
+    "evidence_schema",
+    "recipe_license",
+    "required_checks",
+    "evidence_dimensions",
+    "tools"
+  ],
+  "title": "ContainerCatalogLock",
+  "type": "object"
+}

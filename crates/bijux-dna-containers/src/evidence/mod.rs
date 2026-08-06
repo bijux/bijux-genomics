@@ -78,8 +78,13 @@ pub use schema::{
 pub use selection::{resolve_current_apptainer_image, CurrentApptainerImage};
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
-    load_container_catalog, repository_head_commit, validate_container_catalog,
-    ApptainerRecipeIdentity, ContainerCatalog, ContainerCatalogTool, ContainerCatalogValidation,
+    container_catalog_lock_schema, container_catalog_schema, derive_container_catalog_lock,
+    load_container_catalog, load_container_catalog_lock, render_container_catalog_lock,
+    repository_head_commit, validate_container_catalog, validate_container_catalog_lock,
+    write_container_catalog_lock_schema, write_container_catalog_schema, ApptainerRecipeIdentity,
+    ContainerCatalog, ContainerCatalogLock, ContainerCatalogLockTool, ContainerCatalogTool,
+    ContainerCatalogValidation, CONTAINER_CATALOG_LOCK_PATH, CONTAINER_CATALOG_LOCK_SCHEMA_V1,
+    CONTAINER_CATALOG_PATH, CONTAINER_CATALOG_SCHEMA_V1,
 };
 pub use validation::{
     validate_image_inventory_evidence, validate_image_inventory_publication,

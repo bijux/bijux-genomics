@@ -46,7 +46,7 @@ fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Resul
     )?;
     let runtime = runtime_publication_for_chain(
         bijux_dna_containers::evidence::load_runtime_verification_publication(
-        &root.join("containers/reports/runtime-verification.json"),
+            &root.join("containers/reports/runtime-verification.json"),
         )?,
     );
     bijux_dna_containers::evidence::validate_container_evidence_chain(
@@ -185,6 +185,8 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let runtime = bijux_dna_containers::evidence::runtime_verification_publication_schema();
     let storage_plan = bijux_dna_containers::evidence::image_storage_plan_schema();
     let storage_report = bijux_dna_containers::evidence::image_storage_report_schema();
+    let catalog = bijux_dna_containers::evidence::container_catalog_schema();
+    let catalog_lock = bijux_dna_containers::evidence::container_catalog_lock_schema();
     let tool_contract = bijux_dna_containers::evidence::tool_contract::tool_contract_schema();
     let build_evidence = bijux_dna_containers::api::container_build_evidence_schema();
     let campaign_plan = bijux_dna_containers::api::image_campaign_plan_schema();
@@ -194,6 +196,8 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     assert_eq!(runtime["title"], "RuntimeVerificationPublication");
     assert_eq!(storage_plan["title"], "ImageStoragePlan");
     assert_eq!(storage_report["title"], "ImageStorageReport");
+    assert_eq!(catalog["title"], "ContainerCatalog");
+    assert_eq!(catalog_lock["title"], "ContainerCatalogLock");
     assert_eq!(tool_contract["title"], "ContainerToolContract");
     assert_eq!(build_evidence["title"], "CanonicalApptainerImagePublication");
     assert_eq!(campaign_plan["title"], "ImageCampaignPlan");
@@ -322,6 +326,8 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");
     let campaign_execution_path =
         root.join("containers/contracts/schemas/image-campaign-execution.v1.json");
+    let catalog_path = root.join("containers/contracts/schemas/catalog.v1.json");
+    let catalog_lock_path = root.join("containers/contracts/schemas/catalog-lock.v1.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_containers::evidence::write_image_inventory_publication_schema(&inventory_path)?;
         bijux_dna_containers::evidence::write_image_inventory_scan_schema(&scan_path)?;
@@ -344,9 +350,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         )?;
         bijux_dna_containers::api::write_container_build_evidence_schema(&build_evidence_path)?;
         bijux_dna_containers::api::write_image_campaign_plan_schema(&campaign_plan_path)?;
-        bijux_dna_containers::api::write_image_campaign_execution_schema(
-            &campaign_execution_path,
-        )?;
+        bijux_dna_containers::api::write_image_campaign_execution_schema(&campaign_execution_path)?;
+        bijux_dna_containers::api::write_container_catalog_schema(&catalog_path)?;
+        bijux_dna_containers::api::write_container_catalog_lock_schema(&catalog_lock_path)?;
     }
     let inventory: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(inventory_path)?)?;
@@ -370,6 +376,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         serde_json::from_str(&std::fs::read_to_string(campaign_plan_path)?)?;
     let campaign_execution: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(campaign_execution_path)?)?;
+    let catalog: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(catalog_path)?)?;
+    let catalog_lock: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(catalog_lock_path)?)?;
     assert_eq!(inventory, bijux_dna_containers::evidence::image_inventory_publication_schema());
     assert_eq!(scan, bijux_dna_containers::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_containers::evidence::runtime_verification_publication_schema());
@@ -394,5 +403,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(build_evidence, bijux_dna_containers::api::container_build_evidence_schema());
     assert_eq!(campaign_plan, bijux_dna_containers::api::image_campaign_plan_schema());
     assert_eq!(campaign_execution, bijux_dna_containers::api::image_campaign_execution_schema());
+    assert_eq!(catalog, bijux_dna_containers::api::container_catalog_schema());
+    assert_eq!(catalog_lock, bijux_dna_containers::api::container_catalog_lock_schema());
     Ok(())
 }
