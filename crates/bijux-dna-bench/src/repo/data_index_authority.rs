@@ -438,9 +438,19 @@ fn source_identities(record: &Map<String, Value>) -> Result<Vec<String>> {
     if let Some(parents) = record.get("parents") {
         let parents = parents.as_array().context("data catalog parents must be an array")?;
         for parent in parents {
-            let parent = parent.as_str().context("data catalog parent identity must be text")?;
-            if !parent.is_empty() {
-                identities.push(format!("parent:{parent}"));
+            let identity = if let Some(parent) = parent.as_str() {
+                parent
+            } else {
+                let parent = parent
+                    .as_object()
+                    .context("data catalog parent identity must be text or an object")?;
+                ["path", "governed_path", "derived_path", "name"]
+                    .into_iter()
+                    .find_map(|field| parent.get(field).and_then(Value::as_str))
+                    .context("structured data catalog parent lacks a text path or name")?
+            };
+            if !identity.is_empty() {
+                identities.push(format!("parent:{identity}"));
             }
         }
     }

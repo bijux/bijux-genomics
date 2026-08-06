@@ -111,6 +111,27 @@ fn excludes_operational_evidence_from_governed_file_discovery() -> Result<()> {
 }
 
 #[test]
+fn admits_structured_parent_file_identity_and_provenance() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let parent = fixture.data_root.join("corpora/horse/source.cram");
+    fs::write(&parent, b"governed-parent")?;
+    let digest = bijux_dna_infra::hash_file_sha256(&parent)?;
+    let size = fs::metadata(&parent)?.len();
+    mutate_catalog(&fixture.catalog_path, |record| {
+        record["parents"] = json!([{"path": parent, "sha256": digest, "size_bytes": size}]);
+    })?;
+
+    let index = build_benchmark_data_index(&request(&fixture))?;
+    assert_eq!(index.summary.file_count, 2);
+    assert!(index.records[0]
+        .source_identities
+        .iter()
+        .any(|identity| identity.ends_with("/corpora/horse/source.cram")));
+    assert!(index.records[0].files.iter().any(|file| file.path.ends_with("source.cram")));
+    Ok(())
+}
+
+#[test]
 fn derives_legacy_size_but_rejects_incomplete_identity() -> Result<()> {
     let fixture = data_index_fixture()?;
     let parent = fixture.data_root.join("corpora/horse/source.cram");
