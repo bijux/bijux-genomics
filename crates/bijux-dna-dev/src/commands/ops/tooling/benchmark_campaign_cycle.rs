@@ -30,13 +30,7 @@ const USAGE: &str = concat!(
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-coverage --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-duplication-metrics --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-endogenous-content --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-genotyping --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-mapping-summary --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-profile-reads --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
 );
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
@@ -179,13 +173,7 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "submit" => submit_campaign(workspace, &options),
         "reconcile" => reconcile_campaign(workspace, &options),
         "admit" => admit_campaign(workspace, &options),
-        "publish-bam-coverage" => publish_bam_coverage(workspace, &options),
-        "publish-bam-duplication-metrics" => publish_bam_duplication_metrics(workspace, &options),
-        "publish-bam-endogenous-content" => publish_bam_endogenous_content(workspace, &options),
-        "publish-bam-genotyping" => publish_bam_genotyping(workspace, &options),
-        "publish-bam-mapping-summary" => publish_bam_mapping_summary(workspace, &options),
-        "publish-fastq-read-lengths" => publish_fastq_read_lengths(workspace, &options),
-        "publish-fastq-profile-reads" => publish_fastq_profile_reads(workspace, &options),
+        "publish" => publish_campaign(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
 }
@@ -474,37 +462,7 @@ fn admit_campaign(
     )))
 }
 
-fn publish_fastq_read_lengths(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    require_exact_options(
-        options,
-        &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
-    )?;
-    let plan_path = resolve_path(workspace, required(options, "--plan")?);
-    let plan = read_plan(&plan_path)?;
-    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?);
-    let repository_root = resolve_path(workspace, required(options, "--repository-root")?);
-    let study_root = resolve_path(workspace, required(options, "--study-root")?);
-    let output_root = resolve_path(workspace, required(options, "--output-root")?);
-    let publication = bijux_dna_bench::publish_fastq_profile_read_lengths_stage_report(
-        &repository_root,
-        &study_root,
-        &benchmark_root,
-        &plan,
-        &output_root,
-    )?;
-    Ok(OpsCommandOutcome::success(format!(
-        "published admitted FASTQ read-length stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
-        publication.report_path.display(),
-        publication.report_sha256,
-        publication.markdown_path.display(),
-        publication.markdown_sha256,
-    )))
-}
-
-fn publish_fastq_profile_reads(
+fn publish_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
@@ -513,7 +471,7 @@ fn publish_fastq_profile_reads(
         &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
     )?;
     let plan = read_plan(&resolve_path(workspace, required(options, "--plan")?))?;
-    let publication = bijux_dna_bench::publish_fastq_profile_reads_stage_report(
+    let publication = bijux_dna_bench::publish_benchmark_campaign_report(
         &resolve_path(workspace, required(options, "--repository-root")?),
         &resolve_path(workspace, required(options, "--study-root")?),
         &resolve_path(workspace, required(options, "--benchmark-root")?),
@@ -521,146 +479,14 @@ fn publish_fastq_profile_reads(
         &resolve_path(workspace, required(options, "--output-root")?),
     )?;
     Ok(OpsCommandOutcome::success(format!(
-        "published admitted FASTQ profile stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
+        "published admitted benchmark campaign report\nrun\t{}\nstage\t{}\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
+        publication.run_id,
+        publication.stage_id,
         publication.report_path.display(),
         publication.report_sha256,
         publication.markdown_path.display(),
         publication.markdown_sha256,
     )))
-}
-
-fn publish_bam_mapping_summary(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    require_exact_options(
-        options,
-        &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
-    )?;
-    let plan_path = resolve_path(workspace, required(options, "--plan")?);
-    let plan = read_plan(&plan_path)?;
-    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?);
-    let repository_root = resolve_path(workspace, required(options, "--repository-root")?);
-    let study_root = resolve_path(workspace, required(options, "--study-root")?);
-    let output_root = resolve_path(workspace, required(options, "--output-root")?);
-    let publication = bijux_dna_bench::publish_bam_mapping_summary_stage_report(
-        &repository_root,
-        &study_root,
-        &benchmark_root,
-        &plan,
-        &output_root,
-    )?;
-    Ok(OpsCommandOutcome::success(format!(
-        "published admitted BAM mapping-summary stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
-        publication.report_path.display(),
-        publication.report_sha256,
-        publication.markdown_path.display(),
-        publication.markdown_sha256,
-    )))
-}
-
-fn publish_bam_genotyping(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    let arguments = report_arguments(workspace, options)?;
-    let publication = bijux_dna_bench::publish_bam_genotyping_stage_report(
-        &arguments.repository_root,
-        &arguments.study_root,
-        &arguments.benchmark_root,
-        &arguments.plan,
-        &arguments.output_root,
-    )?;
-    Ok(OpsCommandOutcome::success(format!(
-        "published admitted BAM genotyping stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
-        publication.report_path.display(),
-        publication.report_sha256,
-        publication.markdown_path.display(),
-        publication.markdown_sha256,
-    )))
-}
-
-fn publish_bam_coverage(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    let arguments = report_arguments(workspace, options)?;
-    let publication = bijux_dna_bench::publish_bam_coverage_stage_report(
-        &arguments.repository_root,
-        &arguments.study_root,
-        &arguments.benchmark_root,
-        &arguments.plan,
-        &arguments.output_root,
-    )?;
-    Ok(bam_observation_report_outcome("BAM coverage", &publication))
-}
-
-fn publish_bam_endogenous_content(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    let arguments = report_arguments(workspace, options)?;
-    let publication = bijux_dna_bench::publish_bam_endogenous_content_stage_report(
-        &arguments.repository_root,
-        &arguments.study_root,
-        &arguments.benchmark_root,
-        &arguments.plan,
-        &arguments.output_root,
-    )?;
-    Ok(bam_observation_report_outcome("BAM endogenous-content", &publication))
-}
-
-fn publish_bam_duplication_metrics(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    let arguments = report_arguments(workspace, options)?;
-    let publication = bijux_dna_bench::publish_bam_duplication_metrics_stage_report(
-        &arguments.repository_root,
-        &arguments.study_root,
-        &arguments.benchmark_root,
-        &arguments.plan,
-        &arguments.output_root,
-    )?;
-    Ok(bam_observation_report_outcome("BAM duplication-metrics", &publication))
-}
-
-struct StageReportArguments {
-    repository_root: PathBuf,
-    study_root: PathBuf,
-    benchmark_root: PathBuf,
-    output_root: PathBuf,
-    plan: bijux_dna_bench::BenchmarkCampaignPlan,
-}
-
-fn report_arguments(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<StageReportArguments> {
-    require_exact_options(
-        options,
-        &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
-    )?;
-    Ok(StageReportArguments {
-        repository_root: resolve_path(workspace, required(options, "--repository-root")?),
-        study_root: resolve_path(workspace, required(options, "--study-root")?),
-        benchmark_root: resolve_path(workspace, required(options, "--benchmark-root")?),
-        output_root: resolve_path(workspace, required(options, "--output-root")?),
-        plan: read_plan(&resolve_path(workspace, required(options, "--plan")?))?,
-    })
-}
-
-fn bam_observation_report_outcome(
-    name: &str,
-    publication: &bijux_dna_bench::BamCoverageStageReportPublication,
-) -> OpsCommandOutcome {
-    OpsCommandOutcome::success(format!(
-        "published admitted {name} stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
-        publication.report_path.display(),
-        publication.report_sha256,
-        publication.markdown_path.display(),
-        publication.markdown_sha256,
-    ))
 }
 
 fn read_plan(path: &Path) -> Result<bijux_dna_bench::BenchmarkCampaignPlan> {

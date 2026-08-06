@@ -69,7 +69,8 @@ pub use campaign_lifecycle::{
 };
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
-    BenchmarkCampaignEvidence, BenchmarkCampaignMaterialRequest,
+    publish_benchmark_campaign_report, BenchmarkCampaignEvidence, BenchmarkCampaignMaterialRequest,
+    BenchmarkCampaignReportPublication,
 };
 pub use evaluation::{compare, gate};
 pub use fastq_expectations::{

@@ -1,6 +1,8 @@
 //! Owner: bijux-dna-bench
 //! Evidence admission and executable material generation for governed benchmark campaigns.
 
+mod report;
+
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -19,6 +21,8 @@ use super::{
 use crate::repo::{
     admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, AdmittedBamGenotypingCorpus,
 };
+
+pub use report::{publish_benchmark_campaign_report, BenchmarkCampaignReportPublication};
 
 const BAM_CORPUS_ID: &str = "ena-prjeb22390-err2112767-bam";
 const FASTQ_CORPUS_ID: &str = "human-short-read-diversity";
