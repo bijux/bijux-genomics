@@ -22,37 +22,6 @@ pub(super) fn container_version_deprecations_path(workspace: &Workspace) -> Path
     workspace.path("containers/versions/deprecations.toml")
 }
 
-pub(super) fn lock_json_path(workspace: &Workspace) -> PathBuf {
-    workspace.path("containers/versions/lock.json")
-}
-
-pub(super) fn read_lock_json(workspace: &Workspace) -> Result<serde_json::Value> {
-    serde_json::from_str(&read_utf8(&lock_json_path(workspace))?)
-        .with_context(|| "parse lock.json".to_string())
-}
-
-pub(super) fn lock_items_by_tool(
-    workspace: &Workspace,
-) -> Result<BTreeMap<String, serde_json::Value>> {
-    let mut rows = BTreeMap::new();
-    if let Some(items) =
-        read_lock_json(workspace)?.get("items").and_then(serde_json::Value::as_array)
-    {
-        for row in items {
-            let tool = row
-                .get("tool")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default()
-                .trim()
-                .to_string();
-            if !tool.is_empty() {
-                rows.insert(tool, row.clone());
-            }
-        }
-    }
-    Ok(rows)
-}
-
 pub(super) fn parse_date(value: &str, field_name: &str) -> Result<NaiveDate> {
     NaiveDate::parse_from_str(value, "%Y-%m-%d")
         .with_context(|| format!("invalid {field_name}: {value}"))

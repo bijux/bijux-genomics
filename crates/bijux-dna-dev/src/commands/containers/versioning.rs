@@ -2,10 +2,9 @@
 
 use super::{
     anyhow, append_toml_table, container_support_summary, container_version_deprecations_path,
-    env_or_empty, failure_lines, governed_container_file_ids, load_toml, lock_items_by_tool,
-    out_path_arg, parse_date, read_utf8, run_argv, success_line, table_string, tool_versions,
-    write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc,
-    Workspace,
+    env_or_empty, failure_lines, governed_container_file_ids, load_toml, out_path_arg, parse_date,
+    read_utf8, run_argv, success_line, table_string, tool_versions, write_utf8, BTreeMap, BTreeSet,
+    ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc, Workspace,
 };
 
 pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<String> {
@@ -233,7 +232,11 @@ pub(super) fn check_version_immutability(workspace: &Workspace) -> Result<Contai
 pub(super) fn check_version_deprecations(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let versions = tool_versions(workspace)?;
     let deps_path = container_version_deprecations_path(workspace);
-    let lock_tools = lock_items_by_tool(workspace)?.into_keys().collect::<BTreeSet<_>>();
+    let lock_tools = bijux_dna_containers::api::load_container_version_lock(&workspace.root)?
+        .items
+        .into_iter()
+        .map(|item| item.tool)
+        .collect::<BTreeSet<_>>();
     let today = Local::now().date_naive();
     let mut errors = Vec::new();
     if deps_path.exists() {

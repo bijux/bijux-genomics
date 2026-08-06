@@ -2,10 +2,10 @@
 
 use super::{
     anyhow, apptainer_def_paths, command_exists, env_or_default, env_or_empty, failure_lines, fs,
-    iso_root_path, iso_run_id, load_toml, lock_items_by_tool, lock_json_path, path_from_arg,
-    policy_path, read_json, run_program_with_env, sha256_hex, success_line, table_string,
-    tool_versions, validation, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context,
-    Path, PathBuf, Result, WalkDir, Workspace,
+    iso_root_path, iso_run_id, load_toml, path_from_arg, policy_path, read_json,
+    run_program_with_env, sha256_hex, success_line, table_string, tool_versions, validation,
+    write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path, PathBuf, Result,
+    WalkDir, Workspace,
 };
 
 pub(crate) fn check_apptainer_frontend_reproducibility(
@@ -262,7 +262,7 @@ pub(crate) fn check_apptainer_frontend_version_output_lock(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let summary_path = workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
-    let lock_path = lock_json_path(workspace);
+    let lock_path = workspace.path(bijux_dna_containers::api::CONTAINER_VERSION_LOCK_PATH);
     if !lock_path.exists() {
         return Ok(ContainerCommandOutcome::failure(
             "frontend version-output lock check: missing lock.json\n",
@@ -279,7 +279,7 @@ pub(crate) fn check_apptainer_frontend_version_output_lock(
         );
     }
     let summary = read_json(&summary_path)?;
-    let lock_rows = lock_items_by_tool(workspace)?;
+    let lock = bijux_dna_containers::api::load_container_version_lock(&workspace.root)?;
     let mut errors = Vec::new();
     for row in
         summary.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default()
@@ -310,13 +310,12 @@ pub(crate) fn check_apptainer_frontend_version_output_lock(
             continue;
         }
         let current = sha256_hex(output.as_bytes());
-        let locked = lock_rows
-            .get(&tool)
-            .and_then(|row| row.get("frontend_smoke_version_output_sha256"))
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
+        let locked = lock
+            .items
+            .iter()
+            .find(|item| item.tool == tool)
+            .map(|item| item.frontend_smoke_version_output_sha256.trim())
+            .unwrap_or_default();
         if locked.is_empty() {
             errors.push(format!("{tool}: missing frontend_smoke_version_output_sha256 in lock"));
         } else if current != locked {

@@ -58,8 +58,7 @@ use self::runtime::{
     run_runtime_smoke_contract,
 };
 use self::version_state::{
-    append_toml_table, container_version_deprecations_path, lock_items_by_tool, lock_json_path,
-    parse_date, tool_versions,
+    append_toml_table, container_version_deprecations_path, parse_date, tool_versions,
 };
 
 pub fn run_native_container_command(
