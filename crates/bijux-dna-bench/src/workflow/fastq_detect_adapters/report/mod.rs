@@ -27,9 +27,6 @@ pub(super) use crate::workflow::stage_report::{read_json, MAX_REPORT_INPUT_BYTES
 
 pub(super) const RUN_ID: &str = "run-2030";
 pub(super) const STAGE_ID: &str = "fastq.detect_adapters";
-pub(super) const BUNDLE_SCHEMA: &str = "bijux.benchmark.fastq.detect_adapters.bundle.v1";
-pub(super) const METRICS_SCHEMA: &str = "bijux.benchmark.fastq.detect_adapters.metrics.v1";
-pub(super) const PROBE_SCHEMA: &str = "bijux.benchmark.fastq.detect_adapters.probe.v1";
 const REPORT_FILE_STEM: &str = "run-2030-fastq-detect-adapters";
 
 #[derive(Debug, Clone, PartialEq)]

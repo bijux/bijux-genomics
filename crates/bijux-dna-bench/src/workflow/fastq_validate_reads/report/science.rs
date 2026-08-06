@@ -5,14 +5,20 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::fastq::{
+    BenchmarkFastqValidationMetrics as ValidationMetrics,
+    BenchmarkFastqValidationProbe as ValidationProbe,
+    BenchmarkFastqValidationResult as ValidationBundle,
+    FASTQ_VALIDATE_READS_METRICS_SCHEMA_V1 as METRICS_SCHEMA,
+    FASTQ_VALIDATE_READS_PROBE_SCHEMA_V1 as PROBE_SCHEMA,
+    FASTQ_VALIDATE_READS_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+    FASTQ_VALIDATE_READS_STAGE_ID as STAGE_ID,
+};
 use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
 };
-use serde::Deserialize;
 
-use super::{
-    read_json, BUNDLE_SCHEMA, MAX_REPORT_INPUT_BYTES, METRICS_SCHEMA, PROBE_SCHEMA, STAGE_ID,
-};
+use super::{read_json, MAX_REPORT_INPUT_BYTES};
 use crate::workflow::stage_report::{distribution, ResourceObservation};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -25,40 +31,6 @@ struct ValidationRow {
     strict_pass: bool,
     pair_sync_checked: bool,
     pair_sync_pass: Option<bool>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ValidationAggregate {
-    schema_version: String,
-    #[serde(default)]
-    stage_id: Option<String>,
-    #[serde(default)]
-    tool_id: Option<String>,
-    sample_count: u64,
-    file_count: u64,
-    expected_read_count: u64,
-    validated_read_count: u64,
-    strict_pass_count: u64,
-    pair_sync_checked_count: u64,
-    pair_sync_failure_count: u64,
-    #[serde(default)]
-    input_bytes: Option<u64>,
-    #[serde(default)]
-    output_bytes: Option<u64>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ValidationProbe {
-    schema_version: String,
-    consumer_stage_id: String,
-    input_contract: String,
-    sample_count: u64,
-    file_count: u64,
-    validated_read_count: u64,
-    strict_pass_count: u64,
-    pair_sync_failure_count: u64,
 }
 
 pub(super) struct ScientificObservation {
@@ -74,28 +46,24 @@ pub(super) fn derive_scientific_observation(
 ) -> Result<ScientificObservation> {
     let root = Path::new(&spec.outputs.result_root);
     let prefix = format!("repetitions/repetition-{repetition}");
-    let metrics: ValidationAggregate = read_json(&root.join(format!("{prefix}.metrics.json")))?;
-    let bundle: ValidationAggregate =
+    let metrics: ValidationMetrics = read_json(&root.join(format!("{prefix}.metrics.json")))?;
+    let bundle: ValidationBundle =
         read_json(&root.join(format!("{prefix}.validation-bundle.json")))?;
     let probe: ValidationProbe = read_json(&root.join(format!("{prefix}.report-qc.json")))?;
     let summary_path = root.join(format!("{prefix}.validation-summary.tsv"));
     let observed = aggregate(&read_summary(&summary_path)?)?;
-    let metric_values = aggregate_tuple(&metrics);
+    let metric_values = metrics_tuple(&metrics);
     if metrics.schema_version != METRICS_SCHEMA
-        || metrics.stage_id.is_some()
-        || metrics.tool_id.is_some()
-        || metrics.input_bytes.is_none_or(|value| value == 0)
-        || metrics.output_bytes.is_none_or(|value| value == 0)
+        || metrics.input_bytes == 0
+        || metrics.output_bytes == 0
         || observed != metric_values
     {
         bail!("FASTQ validation metrics are not admissible");
     }
     if bundle.schema_version != BUNDLE_SCHEMA
-        || bundle.stage_id.as_deref() != Some(STAGE_ID)
-        || bundle.tool_id.as_deref() != Some(&spec.identity.tool_id)
-        || bundle.input_bytes.is_some()
-        || bundle.output_bytes.is_some()
-        || observed != aggregate_tuple(&bundle)
+        || bundle.stage_id != STAGE_ID
+        || bundle.tool_id != spec.identity.tool_id
+        || observed != bundle_tuple(&bundle)
     {
         bail!("FASTQ validation bundle differs from normalized evidence");
     }
@@ -124,8 +92,8 @@ pub(super) fn derive_scientific_observation(
             ("pair_sync_checked_count".to_string(), number(observed.5)),
             ("pair_sync_failure_count".to_string(), number(observed.6)),
         ]),
-        input_bytes: metrics.input_bytes.unwrap_or_default(),
-        output_bytes: metrics.output_bytes.unwrap_or_default(),
+        input_bytes: metrics.input_bytes,
+        output_bytes: metrics.output_bytes,
         summary_sha256: bijux_dna_infra::hash_file_sha256(&summary_path)?,
     })
 }
@@ -200,7 +168,19 @@ fn aggregate(rows: &[ValidationRow]) -> Result<Aggregate> {
     Ok(totals)
 }
 
-fn aggregate_tuple(value: &ValidationAggregate) -> Aggregate {
+fn metrics_tuple(value: &ValidationMetrics) -> Aggregate {
+    (
+        value.sample_count,
+        value.file_count,
+        value.expected_read_count,
+        value.validated_read_count,
+        value.strict_pass_count,
+        value.pair_sync_checked_count,
+        value.pair_sync_failure_count,
+    )
+}
+
+fn bundle_tuple(value: &ValidationBundle) -> Aggregate {
     (
         value.sample_count,
         value.file_count,

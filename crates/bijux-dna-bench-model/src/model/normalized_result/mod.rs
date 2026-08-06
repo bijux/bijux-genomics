@@ -1,6 +1,7 @@
 //! Canonical persisted normalized result records grouped by benchmark domain.
 
 pub mod bam;
+pub mod fastq;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

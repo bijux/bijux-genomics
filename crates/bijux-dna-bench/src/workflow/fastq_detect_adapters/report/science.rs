@@ -5,14 +5,19 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::fastq::{
+    BenchmarkFastqAdapterMetrics as Metrics, BenchmarkFastqAdapterProbe as Probe,
+    BenchmarkFastqAdapterResult as Bundle, BenchmarkFastqAdapterResultRow as BundleRow,
+    FASTQ_DETECT_ADAPTERS_METRICS_SCHEMA_V1 as METRICS_SCHEMA,
+    FASTQ_DETECT_ADAPTERS_PROBE_SCHEMA_V1 as PROBE_SCHEMA,
+    FASTQ_DETECT_ADAPTERS_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+    FASTQ_DETECT_ADAPTERS_STAGE_ID as STAGE_ID,
+};
 use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
 };
-use serde::Deserialize;
 
-use super::{
-    read_json, BUNDLE_SCHEMA, MAX_REPORT_INPUT_BYTES, METRICS_SCHEMA, PROBE_SCHEMA, STAGE_ID,
-};
+use super::{read_json, MAX_REPORT_INPUT_BYTES};
 use crate::workflow::stage_report::{distribution, ResourceObservation};
 
 const FLOAT_TOLERANCE: f64 = 1e-9;
@@ -38,77 +43,6 @@ struct SummaryRow {
     n_rate: f64,
     kmer_warning_count: u64,
     overrepresented_sequence_count: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Bundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    results: Vec<BundleRow>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct BundleRow {
-    sample_id: String,
-    input_layout: String,
-    file_count: u64,
-    reads_in: u64,
-    reads_out: u64,
-    bases_in: u64,
-    bases_out: u64,
-    mean_q: f64,
-    candidate_adapter_count: u64,
-    detected_adapter_ids: Vec<String>,
-    detection_confidence: Option<f64>,
-    detection_threshold: f64,
-    adapter_trimmed_fraction: f64,
-    adapter_content_max: f64,
-    adapter_content_mean: f64,
-    duplication_rate: f64,
-    n_rate: f64,
-    kmer_warning_count: u64,
-    overrepresented_sequence_count: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Metrics {
-    schema_version: String,
-    sample_count: u64,
-    file_count: u64,
-    reads_in: u64,
-    reads_out: u64,
-    bases_in: u64,
-    bases_out: u64,
-    mean_q_mean: f64,
-    candidate_adapter_count_total: u64,
-    samples_with_detected_adapters: u64,
-    max_detection_confidence: f64,
-    max_adapter_content_max: f64,
-    adapter_content_mean_mean: f64,
-    duplication_rate_mean: f64,
-    n_rate_mean: f64,
-    kmer_warning_count: u64,
-    overrepresented_sequence_count: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Probe {
-    schema_version: String,
-    consumer_stage_id: String,
-    input_contract: String,
-    sample_count: u64,
-    file_count: u64,
-    reads_in: u64,
-    candidate_adapter_count_total: u64,
-    samples_with_detected_adapters: u64,
-    max_detection_confidence: f64,
 }
 
 pub(super) struct ScientificObservation {

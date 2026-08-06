@@ -5,65 +5,20 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::fastq::{
+    BenchmarkFastqProfileMetrics as ProfileMetrics, BenchmarkFastqProfileProbe as ProfileProbe,
+    BenchmarkFastqProfileResult as ProfileBundle, BenchmarkFastqProfileResultRow as ProfileRow,
+    FASTQ_PROFILE_READS_METRICS_SCHEMA_V1 as METRICS_SCHEMA,
+    FASTQ_PROFILE_READS_PROBE_SCHEMA_V1 as PROBE_SCHEMA,
+    FASTQ_PROFILE_READS_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+    FASTQ_PROFILE_READS_STAGE_ID as STAGE_ID,
+};
 use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
 };
-use serde::Deserialize;
 
-use super::{
-    read_json, BUNDLE_SCHEMA, MAX_REPORT_INPUT_BYTES, METRICS_SCHEMA, PROBE_SCHEMA, STAGE_ID,
-};
+use super::{read_json, MAX_REPORT_INPUT_BYTES};
 use crate::workflow::stage_report::{distribution, ResourceObservation};
-
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-struct ProfileRow {
-    sample_id: String,
-    input_layout: String,
-    file_count: u64,
-    read_count: u64,
-    base_count: u64,
-    minimum_read_length: u64,
-    maximum_read_length: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ProfileBundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    results: Vec<ProfileRow>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ProfileMetrics {
-    schema_version: String,
-    sample_count: u64,
-    file_count: u64,
-    read_count: u64,
-    base_count: u64,
-    minimum_read_length: u64,
-    maximum_read_length: u64,
-    admission_mismatch_count: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ProfileProbe {
-    schema_version: String,
-    consumer_stage_id: String,
-    input_contract: String,
-    sample_count: u64,
-    file_count: u64,
-    read_count: u64,
-    base_count: u64,
-    minimum_read_length: u64,
-    maximum_read_length: u64,
-}
 
 pub(super) struct ScientificObservation {
     pub(super) values: BTreeMap<String, BenchmarkScientificValue>,

@@ -27,9 +27,6 @@ pub(super) use crate::workflow::stage_report::{read_json, MAX_REPORT_INPUT_BYTES
 
 pub(super) const RUN_ID: &str = "run-2051";
 pub(super) const STAGE_ID: &str = "fastq.validate_reads";
-pub(super) const BUNDLE_SCHEMA: &str = "bijux.benchmark.fastq.validate_reads.bundle.v1";
-pub(super) const METRICS_SCHEMA: &str = "bijux.benchmark.fastq.validate_reads.metrics.v1";
-pub(super) const PROBE_SCHEMA: &str = "bijux.benchmark.fastq.report_qc.validation_probe.v1";
 const REPORT_FILE_STEM: &str = "run-2051-fastq-validate-reads";
 
 #[derive(Debug, Clone, PartialEq)]

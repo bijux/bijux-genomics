@@ -5,59 +5,23 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::fastq::{
+    BenchmarkFastqReadLengthMetrics as ReadLengthMetrics,
+    BenchmarkFastqReadLengthResult as ReadLengthBundle,
+    FASTQ_PROFILE_READ_LENGTHS_METRICS_SCHEMA_V1 as METRICS_SCHEMA,
+    FASTQ_PROFILE_READ_LENGTHS_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+    FASTQ_PROFILE_READ_LENGTHS_STAGE_ID as STAGE_ID,
+};
 use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
     BenchmarkStageCampaignSpec,
 };
 use bijux_dna_science::evidence::{summarize_fastq_read_length_histogram, FastqReadLengthSummary};
-use serde::{Deserialize, Serialize};
 
-use super::{
-    hash_json, read_json, BUNDLE_SCHEMA, MAX_REPORT_INPUT_BYTES, METRICS_SCHEMA, STAGE_ID,
-};
+use super::{hash_json, read_json, MAX_REPORT_INPUT_BYTES};
 use crate::workflow::stage_report::{distribution, ResourceObservation};
 
 const SCIENTIFIC_FLOAT_TOLERANCE: f64 = 1e-9;
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct ReadLengthBundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    results: Vec<ReadLengthBundleRow>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct ReadLengthBundleRow {
-    sample_id: String,
-    input_layout: String,
-    file_count: u64,
-    read_count: u64,
-    minimum_read_length: u64,
-    mean_read_length: f64,
-    median_read_length: f64,
-    maximum_read_length: u64,
-    distinct_read_lengths: u64,
-    histogram_artifact: String,
-    histogram_sha256: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ReadLengthMetrics {
-    schema_version: String,
-    sample_count: u64,
-    file_count: u64,
-    read_count: u64,
-    minimum_read_length: u64,
-    maximum_read_length: u64,
-    exact_observation_mismatch_count: u64,
-    histogram_mismatch_count: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
 
 #[derive(Debug, Clone)]
 pub(super) struct ScientificObservation {

@@ -5,6 +5,11 @@ use bijux_dna_bench_model::normalized_result::bam::{
     BenchmarkBamDuplicationMetricsResult, BenchmarkBamEndogenousContentResult,
     BenchmarkBamGenotypingResult, BenchmarkBamMappingSummaryResult,
 };
+use bijux_dna_bench_model::normalized_result::fastq::{
+    fastq_detect_adapters_result_schema, fastq_profile_read_lengths_result_schema,
+    fastq_profile_reads_result_schema, fastq_validate_reads_result_schema,
+    BenchmarkFastqProfileResult,
+};
 
 #[test]
 fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::Result<()> {
@@ -111,6 +116,66 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
         }
         let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
         assert_eq!(checked, generated, "normalized BAM schema drifted: {name}");
+    }
+    Ok(())
+}
+
+#[test]
+fn normalized_fastq_results_reject_unknown_fields() -> anyhow::Result<()> {
+    let mut value = serde_json::json!({
+        "schema_version": "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "stage_id": "fastq.profile_reads",
+        "tool_id": "seqkit",
+        "results": [{
+            "sample_id": "ERR2112767",
+            "input_layout": "single_end",
+            "file_count": 1,
+            "read_count": 10,
+            "base_count": 100,
+            "minimum_read_length": 10,
+            "maximum_read_length": 10
+        }]
+    });
+    serde_json::from_value::<BenchmarkFastqProfileResult>(value.clone())?;
+    value["results"][0]["invented"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<BenchmarkFastqProfileResult>(value).is_err());
+    Ok(())
+}
+
+#[test]
+fn checked_normalized_fastq_schemas_match_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let schemas = [
+        (
+            "fastq-detect-adapters-result.schema.json",
+            serde_json::to_value(fastq_detect_adapters_result_schema())?,
+        ),
+        (
+            "fastq-profile-read-lengths-result.schema.json",
+            serde_json::to_value(fastq_profile_read_lengths_result_schema())?,
+        ),
+        (
+            "fastq-profile-reads-result.schema.json",
+            serde_json::to_value(fastq_profile_reads_result_schema())?,
+        ),
+        (
+            "fastq-validate-reads-result.schema.json",
+            serde_json::to_value(fastq_validate_reads_result_schema())?,
+        ),
+    ];
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    for (name, generated) in schemas {
+        let path = schema_root.join(name);
+        if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+            let mut bytes = serde_json::to_vec_pretty(&generated)?;
+            bytes.push(b'\n');
+            std::fs::write(&path, bytes)?;
+        }
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(checked, generated, "normalized FASTQ schema drifted: {name}");
     }
     Ok(())
 }

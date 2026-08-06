@@ -27,8 +27,6 @@ pub(super) use crate::workflow::stage_report::{hash_json, read_json, MAX_REPORT_
 
 pub(super) const RUN_ID: &str = "run-2042";
 pub(super) const STAGE_ID: &str = "fastq.profile_read_lengths";
-pub(super) const BUNDLE_SCHEMA: &str = "bijux.benchmark.fastq.profile_read_lengths.bundle.v1";
-pub(super) const METRICS_SCHEMA: &str = "bijux.benchmark.fastq.profile_read_lengths.metrics.v1";
 const REPORT_FILE_STEM: &str = "run-2042-fastq-profile-read-lengths";
 
 #[derive(Debug, Clone, PartialEq)]
