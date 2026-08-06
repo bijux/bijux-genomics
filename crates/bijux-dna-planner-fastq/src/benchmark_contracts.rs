@@ -107,3 +107,76 @@ pub fn profile_read_lengths_benchmark_contract(
         tools,
     })
 }
+
+/// Resolve the complete retained-tool planner contract for strict read validation.
+///
+/// The returned plans use stable path sentinels so benchmark execution can bind admitted inputs
+/// without owning backend argv or canonical validation-report construction.
+///
+/// # Errors
+/// Returns an error if a retained validation tool cannot be loaded or planned for both layouts.
+pub fn validate_reads_benchmark_contract(
+    repo_root: &Path,
+    threads_override: Option<u32>,
+) -> Result<BenchmarkStageContractV1> {
+    use crate::tool_adapters::fastq::validate_reads::ValidateReadsPlanOptions;
+    use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
+
+    let stage_id = &bijux_dna_domain_fastq::stages::ids::STAGE_VALIDATE_READS;
+    let tools = crate::selection::allowed_tools_for_stage(stage_id)
+        .into_iter()
+        .map(|tool_id| {
+            let tool = crate::selection::load_fastq_domain_tool_execution_spec(
+                repo_root, stage_id, &tool_id,
+            )?;
+            let single_end = crate::tool_adapters::fastq::validate_reads::plan_with_options(
+                &tool,
+                Path::new(READS_R1_PLACEHOLDER),
+                None,
+                Path::new(RESULT_ROOT_PLACEHOLDER),
+                &ValidateReadsPlanOptions {
+                    threads: threads_override,
+                    validation_mode: ValidationMode::Strict,
+                    pair_sync_policy: PairSyncPolicy::NotApplicable,
+                },
+            )?;
+            let paired_end = crate::tool_adapters::fastq::validate_reads::plan_with_options(
+                &tool,
+                Path::new(READS_R1_PLACEHOLDER),
+                Some(Path::new(READS_R2_PLACEHOLDER)),
+                Path::new(RESULT_ROOT_PLACEHOLDER),
+                &ValidateReadsPlanOptions {
+                    threads: threads_override,
+                    validation_mode: ValidationMode::Strict,
+                    pair_sync_policy: PairSyncPolicy::RequireHeaderSync,
+                },
+            )?;
+            Ok(BenchmarkToolPlansV1 {
+                tool_id: tool_id.as_str().to_string(),
+                single_end,
+                paired_end,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    Ok(BenchmarkStageContractV1 {
+        schema_version: BENCHMARK_STAGE_CONTRACT_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.as_str().to_string(),
+        parameter_schema_version: bijux_dna_domain_fastq::params::validate::VALIDATE_SCHEMA_VERSION
+            .to_string(),
+        default_provider: "bijux_dna_domain_fastq::params::defaults::validate_defaults".to_string(),
+        output_contract: bijux_dna_domain_fastq::VALIDATION_REPORT_SCHEMA_VERSION.to_string(),
+        observation_authority: "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+            .to_string(),
+        result_attribution: "backend_execution_with_shared_strict_stream_validation".to_string(),
+        domain_defaults: BenchmarkLayoutDefaultsV1 {
+            single_end: serde_json::to_value(
+                bijux_dna_domain_fastq::params::defaults::validate_defaults(false),
+            )?,
+            paired_end: serde_json::to_value(
+                bijux_dna_domain_fastq::params::defaults::validate_defaults(true),
+            )?,
+        },
+        tools,
+    })
+}

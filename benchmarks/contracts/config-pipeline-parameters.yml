@@ -41,6 +41,15 @@
         "threads": 4,
         "histogram_bins": 100
       }
+    },
+    "fastq.validate_reads": {
+      "parameter_schema_version": "bijux.fastq.params.validate_reads.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::validate_defaults",
+      "overrides": {
+        "threads": 4,
+        "validation_mode": "strict",
+        "pair_sync_policy": "layout_derived"
+      }
     }
   }
 }
