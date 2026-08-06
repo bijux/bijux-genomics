@@ -19,6 +19,8 @@ mod mod_contracts_image_storage_reconciliation_rs;
 mod mod_contracts_matrix_rs;
 #[path = "contracts/qualification_run_registry.rs"]
 mod mod_contracts_qualification_run_registry_rs;
+#[path = "contracts/registry_projection.rs"]
+mod mod_contracts_registry_projection_rs;
 #[path = "contracts/resolve_runtime.rs"]
 mod mod_contracts_resolve_runtime_rs;
 #[path = "contracts/run_shell_capture.rs"]

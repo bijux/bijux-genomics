@@ -50,6 +50,7 @@ fn source_tree_matches_architecture_contract() {
             "model.rs",
             "preparation.rs",
             "recipe_identity.rs",
+            "registry_projection.rs",
             "schema.rs",
             "smoke.rs",
             "validation.rs",
