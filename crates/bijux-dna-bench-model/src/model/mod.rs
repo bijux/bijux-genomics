@@ -15,11 +15,14 @@ pub mod summary;
 
 #[allow(unused_imports)]
 pub use corpus::{
-    benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema, AdmittedBamCorpus,
-    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
-    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkFastqLayout,
-    CorpusDatasetSpec, CorpusDomain, CorpusScale, DriftScenarioSpec,
-    FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+    benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
+    benchmark_data_index_schema, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BackendComparisonSpec,
+    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex, BenchmarkDataIndexFile,
+    BenchmarkDataIndexRecord, BenchmarkDataIndexSummary, BenchmarkEligibility,
+    BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec, CorpusDomain,
+    CorpusScale, DataIntegrityStatus, DriftScenarioSpec, FastqReadLengthExpectationSample,
+    FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
 #[allow(unused_imports)]
 pub use execution::{

@@ -1,10 +1,86 @@
 //! Owner: bijux-dna-bench-model
 //! Typed benchmark corpus contracts for deterministic fixture catalogs.
 
+use std::collections::BTreeMap;
+
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::{BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1};
+use crate::contract::{BENCHMARK_DATA_INDEX_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1};
+
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkEligibility {
+    Eligible,
+    Incomplete,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum DataIntegrityStatus {
+    Verified,
+    Unverified,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndexFile {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+    pub role: String,
+    pub legacy_fields: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkTemporalProvenance {
+    pub field: Option<String>,
+    pub timestamp: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndexRecord {
+    pub id: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub purpose: String,
+    pub source_identities: Vec<String>,
+    pub access_classification: String,
+    pub redistribution_classification: String,
+    pub scientific_name: Option<String>,
+    pub reference_assembly: Option<String>,
+    pub temporal_provenance: BenchmarkTemporalProvenance,
+    pub files: Vec<BenchmarkDataIndexFile>,
+    pub known_limitations: Vec<String>,
+    pub integrity_status: DataIntegrityStatus,
+    pub benchmark_eligibility: BenchmarkEligibility,
+    pub missing_provenance: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndexSummary {
+    pub record_count: u64,
+    pub file_count: u64,
+    pub size_bytes: u64,
+    pub integrity_verified_count: u64,
+    pub benchmark_eligibility: BTreeMap<BenchmarkEligibility, u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndex {
+    #[schemars(schema_with = "benchmark_data_index_schema_version")]
+    pub schema_version: String,
+    pub created_at_utc: String,
+    pub data_root: String,
+    pub summary: BenchmarkDataIndexSummary,
+    pub records: Vec<BenchmarkDataIndexRecord>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
@@ -199,6 +275,15 @@ pub fn benchmark_corpus_manifest_schema() -> Schema {
 #[must_use]
 pub fn benchmark_bundle_manifest_schema() -> Schema {
     schemars::schema_for!(BenchmarkBundleManifest)
+}
+
+#[must_use]
+pub fn benchmark_data_index_schema() -> Schema {
+    schemars::schema_for!(BenchmarkDataIndex)
+}
+
+fn benchmark_data_index_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": BENCHMARK_DATA_INDEX_SCHEMA_V1})
 }
 
 fn benchmark_corpus_schema_version(_: &mut SchemaGenerator) -> Schema {

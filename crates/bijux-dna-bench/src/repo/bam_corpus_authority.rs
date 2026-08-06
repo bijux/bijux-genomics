@@ -5,10 +5,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::{AdmittedBamCorpus, AdmittedBamCorpusFile};
+use bijux_dna_bench_model::{
+    validate_benchmark_data_index, AdmittedBamCorpus, AdmittedBamCorpusFile, BenchmarkDataIndex,
+    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility, DataIntegrityStatus,
+};
 use serde::Deserialize;
 
-const DATA_INDEX_SCHEMA: &str = "bijux.data_index.v1";
 const DATA_CATALOG_SCHEMA: &str = "bijux.data_catalog.v1";
 const BAM_ROLE: &str = "coordinate-sorted-deduplicated-bam";
 const BAI_ROLE: &str = "bam-index";
@@ -30,30 +32,6 @@ pub struct AdmittedBamGenotypingCorpus {
     pub reference_input_bytes: u64,
     pub database_input_bytes: u64,
     pub input_bytes: u64,
-}
-
-#[derive(Debug, Deserialize)]
-struct DataIndex {
-    schema_version: String,
-    records: Vec<DataIndexRecord>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DataIndexRecord {
-    id: String,
-    benchmark_eligibility: String,
-    integrity_status: String,
-    catalog_path: String,
-    catalog_sha256: String,
-    files: Vec<AuthorityFile>,
-}
-
-#[derive(Debug, Deserialize)]
-struct AuthorityFile {
-    path: String,
-    role: String,
-    sha256: String,
-    size_bytes: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -110,17 +88,17 @@ pub fn admit_bam_benchmark_corpus(
     let data_index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
     let data_index_bytes = read_authority(&data_index_path, "data index")?;
     let data_index_sha256 = bijux_dna_infra::hash_bytes_sha256(&data_index_bytes);
-    let index: DataIndex = serde_json::from_slice(&data_index_bytes)
+    let index: BenchmarkDataIndex = serde_json::from_slice(&data_index_bytes)
         .with_context(|| format!("parse data index {}", data_index_path.display()))?;
-    if index.schema_version != DATA_INDEX_SCHEMA {
-        bail!("data index schema is unsupported: {}", index.schema_version);
-    }
+    validate_benchmark_data_index(&index).context("validate benchmark data index")?;
     let mut records = index.records.into_iter().filter(|record| record.id == corpus_id);
     let record = records.next().with_context(|| format!("data index lacks corpus {corpus_id}"))?;
     if records.next().is_some() {
         bail!("data index corpus identity is not unique: {corpus_id}");
     }
-    if record.benchmark_eligibility != "eligible" || record.integrity_status != "verified" {
+    if record.benchmark_eligibility != BenchmarkEligibility::Eligible
+        || record.integrity_status != DataIntegrityStatus::Verified
+    {
         bail!("BAM corpus is not eligible with verified integrity: {corpus_id}");
     }
     validate_sha256(&record.catalog_sha256, "catalog")?;
@@ -190,11 +168,10 @@ pub fn admit_bam_genotyping_corpus(
         admit_bam_benchmark_corpus(study_root, data_index_path, "ena-prjeb22390-err2112767-bam")?;
     let study_root = std::fs::canonicalize(study_root).context("resolve genotyping STUDY root")?;
     let data_index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
-    let index: DataIndex = serde_json::from_slice(&read_authority(&data_index_path, "data index")?)
-        .context("parse genotyping data index")?;
-    if index.schema_version != DATA_INDEX_SCHEMA {
-        bail!("data index schema is unsupported: {}", index.schema_version);
-    }
+    let index: BenchmarkDataIndex =
+        serde_json::from_slice(&read_authority(&data_index_path, "data index")?)
+            .context("parse genotyping data index")?;
+    validate_benchmark_data_index(&index).context("validate genotyping data index")?;
 
     let reference_record = unique_record(&index, "equcab3-gcf-002863925.1")?;
     let known_sites_record = unique_record(&index, "ensembl-113-equcab3-refseq-known-sites-10mb")?;
@@ -241,13 +218,18 @@ pub fn admit_bam_genotyping_corpus(
     })
 }
 
-fn unique_record<'a>(index: &'a DataIndex, id: &str) -> Result<&'a DataIndexRecord> {
+fn unique_record<'a>(
+    index: &'a BenchmarkDataIndex,
+    id: &str,
+) -> Result<&'a BenchmarkDataIndexRecord> {
     let mut matches = index.records.iter().filter(|record| record.id == id);
     let record = matches.next().with_context(|| format!("data index lacks record {id}"))?;
     if matches.next().is_some() {
         bail!("data index record identity is not unique: {id}");
     }
-    if record.benchmark_eligibility != "eligible" || record.integrity_status != "verified" {
+    if record.benchmark_eligibility != BenchmarkEligibility::Eligible
+        || record.integrity_status != DataIntegrityStatus::Verified
+    {
         bail!("genotyping input is not eligible with verified integrity: {id}");
     }
     Ok(record)
@@ -255,7 +237,7 @@ fn unique_record<'a>(index: &'a DataIndex, id: &str) -> Result<&'a DataIndexReco
 
 fn admit_record_catalog(
     study_root: &Path,
-    record: &DataIndexRecord,
+    record: &BenchmarkDataIndexRecord,
 ) -> Result<AdmittedBamCorpusFile> {
     validate_sha256(&record.catalog_sha256, "catalog")?;
     let path = resolve_study_uri(study_root, &record.catalog_path, "catalog")?;
@@ -279,7 +261,7 @@ fn admit_record_catalog(
 
 fn validate_record_catalog_closure(
     study_root: &Path,
-    record: &DataIndexRecord,
+    record: &BenchmarkDataIndexRecord,
     catalog_files: &[GenericCatalogFile],
 ) -> Result<()> {
     if record.files.len() != catalog_files.len() {
@@ -352,7 +334,7 @@ fn resolve_catalog_path(study_root: &Path, value: &str, label: &str) -> Result<P
 
 fn admit_record_role(
     study_root: &Path,
-    record: &DataIndexRecord,
+    record: &BenchmarkDataIndexRecord,
     role: &str,
 ) -> Result<AdmittedBamCorpusFile> {
     let mut matches = record.files.iter().filter(|file| file.role == role);
@@ -371,9 +353,9 @@ fn checked_sum(values: &[u64]) -> Result<u64> {
 }
 
 fn files_by_role(
-    files: Vec<AuthorityFile>,
+    files: Vec<BenchmarkDataIndexFile>,
     authority: &str,
-) -> Result<BTreeMap<String, AuthorityFile>> {
+) -> Result<BTreeMap<String, BenchmarkDataIndexFile>> {
     let mut indexed = BTreeMap::new();
     for file in files {
         validate_sha256(&file.sha256, authority)?;
@@ -396,15 +378,15 @@ fn catalog_files_by_role(files: Vec<CatalogFile>) -> Result<BTreeMap<String, Cat
 }
 
 fn required_role<'a>(
-    files: &'a BTreeMap<String, AuthorityFile>,
+    files: &'a BTreeMap<String, BenchmarkDataIndexFile>,
     role: &str,
-) -> Result<&'a AuthorityFile> {
+) -> Result<&'a BenchmarkDataIndexFile> {
     files.get(role).with_context(|| format!("BAM corpus lacks required role {role}"))
 }
 
 fn admit_materialized_file(
     study_root: &Path,
-    file: &AuthorityFile,
+    file: &BenchmarkDataIndexFile,
     role: &str,
 ) -> Result<AdmittedBamCorpusFile> {
     let path = resolve_study_uri(study_root, &file.path, role)?;
