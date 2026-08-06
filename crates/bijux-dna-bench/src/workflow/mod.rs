@@ -15,6 +15,7 @@ mod evaluation;
 mod fastq_expectations;
 mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
+mod fastq_validate_reads;
 mod options;
 mod report_load;
 mod run_suite;
@@ -88,6 +89,9 @@ pub use fastq_profile_reads::{
     prepare_fastq_profile_reads_material, prepare_fastq_profile_reads_material_from_expectations,
     publish_fastq_profile_reads_stage_report, render_fastq_profile_reads_markdown,
     FastqProfileReadsMaterial, FastqProfileReadsStageReportPublication,
+};
+pub use fastq_validate_reads::{
+    prepare_fastq_validate_reads_material_from_expectations, FastqValidateReadsMaterial,
 };
 pub use options::BenchRunOptions;
 pub use report_load::{

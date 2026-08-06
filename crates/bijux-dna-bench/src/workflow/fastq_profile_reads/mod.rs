@@ -17,7 +17,8 @@ use bijux_dna_bench_model::{
 };
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
-use self::inputs::execution_inputs;
+use self::inputs::profile_execution_inputs;
+pub(in crate::workflow) use self::inputs::{campaign_execution_inputs, FastqCampaignSample};
 use self::parameters::ensure_parameter_evidence;
 use super::{
     ensure_fastq_profile_reads_expectations, ensure_fastq_read_length_expectations,
@@ -120,7 +121,7 @@ pub fn prepare_fastq_profile_reads_material_from_expectations(
         &attempt_directory,
         &expectations.admitted_corpus,
     )?;
-    let (inputs, mounted_fastq) = execution_inputs(expectations)?;
+    let (inputs, mounted_fastq) = profile_execution_inputs(expectations)?;
     let measured_repetitions = 3;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),

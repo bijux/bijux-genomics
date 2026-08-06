@@ -96,6 +96,7 @@ fn bench_tree_matches_architecture_contract() {
             "fastq_expectations/",
             "fastq_profile_read_lengths/",
             "fastq_profile_reads/",
+            "fastq_validate_reads/",
             "mod.rs",
             "options.rs",
             "report_load.rs",
@@ -176,6 +177,11 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/fastq_profile_reads/report")),
         entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
         "FASTQ profile reporting must separate evidence, science, and rendering"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_validate_reads")),
+        entries(["commands.rs", "mod.rs", "parameters.rs", "planner_contract.rs"]),
+        "FASTQ validation material must separate planner projection, execution, and parameters"
     );
 
     assert_eq!(
