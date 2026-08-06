@@ -7,8 +7,8 @@ mod workflow;
 
 pub use model::{
     QualificationHistoricalRunIdentity, QualificationRunIdAudit, QualificationRunIdAuditRow,
-    QualificationRunRegistry, QualificationRunRegistryEntry, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V1,
-    QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+    QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
+    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use schema::{
     qualification_run_id_audit_schema, qualification_run_registry_schema,

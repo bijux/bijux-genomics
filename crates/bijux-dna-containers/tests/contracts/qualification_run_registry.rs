@@ -21,6 +21,10 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(first.audit.unsupported_tool_count, 4);
     assert_eq!(first.audit.allocated_mapping_count, 17);
     assert_eq!(first.audit.historical_identities.len(), 138);
+    assert_eq!(first.audit.reserved_run_count, 2);
+    assert_eq!(first.audit.reserved_run_ids.len(), 2);
+    assert_eq!(first.audit.reserved_run_ids[0].run_id, "run-1081");
+    assert_eq!(first.audit.reserved_run_ids[1].run_id, "run-1085");
     assert_eq!(first.audit.historical_max_run_number, 1140);
     assert_eq!(run_id(&first, "adapterremoval"), Some("run-1002"));
     assert_eq!(run_id(&first, "bijux_dna"), Some("run-1141"));
@@ -105,7 +109,7 @@ fn derivation_rejects_cross_tool_history_and_nonpassing_final_runs() -> Result<(
     let untrusted_history = directory.path().join("qualification-run-history.toml");
     fs::write(
         &untrusted_history,
-        r#"schema_version = "bijux.container.qualification_run_history.v1"
+        r#"schema_version = "bijux.container.qualification_run_history.v2"
 [[identities]]
 run_id = "run-1126"
 tool_id = "multiqc"
@@ -119,10 +123,29 @@ sha256 = "0ac7162d4d73f760ca005701a05e96583b1a778a15e9a475d2c9b9340a9f776e"
         repository_root: root.clone(),
         current_runs_root: root.join("containers/runs"),
         attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
-        supplemental_history_path: untrusted_history,
+        supplemental_history_path: untrusted_history.clone(),
         existing_registry_path: None,
     };
     assert!(derive_qualification_run_registry(&untrusted).is_err());
+
+    fs::write(
+        &untrusted_history,
+        r#"schema_version = "bijux.container.qualification_run_history.v2"
+identities = []
+[[tombstones]]
+run_id = "run-1081"
+disposition = "reusable"
+reason = "invalid disposition"
+"#,
+    )?;
+    let malformed_tombstone = QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: untrusted_history,
+        existing_registry_path: None,
+    };
+    assert!(derive_qualification_run_registry(&malformed_tombstone).is_err());
     Ok(())
 }
 
@@ -153,6 +176,33 @@ fn checked_in_reservations_survive_out_of_order_attempts() -> Result<()> {
     assert_eq!(run_id(&derived, "bijux_dna"), Some("run-1141"));
     assert_eq!(run_id(&derived, "fastq_screen"), Some("run-1142"));
     assert_eq!(run_id(&derived, "yleaf"), Some("run-1157"));
+    Ok(())
+}
+
+#[test]
+fn tombstones_cannot_be_reused_by_checked_in_reservations() -> Result<()> {
+    let root = repository_root()?;
+    let directory = tempfile::tempdir()?;
+    let history_path = directory.path().join("qualification-run-history.toml");
+    fs::write(
+        &history_path,
+        r#"schema_version = "bijux.container.qualification_run_history.v2"
+identities = []
+[[tombstones]]
+run_id = "run-1141"
+disposition = "reserved_never_reuse"
+reason = "exercise collision rejection"
+"#,
+    )?;
+    let request = QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: history_path,
+        existing_registry_path: Some(root.join("containers/contracts/qualification-runs.toml")),
+    };
+
+    assert!(derive_qualification_run_registry(&request).is_err());
     Ok(())
 }
 

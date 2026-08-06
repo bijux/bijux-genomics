@@ -65,13 +65,14 @@ pub use crate::evidence::{
     ImageStorageRecovery, ImageStorageReport, ImageStorageReportSource, ImageStorageReportSources,
     ImageStorageVerdict, QualificationHistoricalRunIdentity,
     QualificationRegistryDerivationRequest, QualificationRunIdAudit, QualificationRunIdAuditRow,
-    QualificationRunRegistry, QualificationRunRegistryEntry, QuarantinedImageIdentity,
-    RuntimeEvidenceStatus, RuntimeVerificationPublication, RuntimeVerificationRequest,
-    RuntimeVerificationResult, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
+    QuarantinedImageIdentity, RuntimeEvidenceStatus, RuntimeVerificationPublication,
+    RuntimeVerificationRequest, RuntimeVerificationResult,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2, IMAGE_ACTIVATION_PLAN_SCHEMA_V1,
     IMAGE_STORAGE_PLAN_SCHEMA_V1, IMAGE_STORAGE_REPORT_SCHEMA_V1,
-    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V1, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use crate::resolve::*;

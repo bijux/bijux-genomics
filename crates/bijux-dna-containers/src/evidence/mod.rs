@@ -63,8 +63,8 @@ pub use qualification_registry::{
     write_qualification_run_id_audit_schema, write_qualification_run_registry_schema,
     DerivedQualificationRunRegistry, QualificationHistoricalRunIdentity,
     QualificationRegistryDerivationRequest, QualificationRunIdAudit, QualificationRunIdAuditRow,
-    QualificationRunRegistry, QualificationRunRegistryEntry, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V1,
-    QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+    QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
+    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use runtime_verification::{
     execute_runtime_verification, render_runtime_verification_markdown,

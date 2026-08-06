@@ -10,8 +10,8 @@ use serde::Deserialize;
 
 use super::{
     QualificationHistoricalRunIdentity, QualificationRunIdAudit, QualificationRunIdAuditRow,
-    QualificationRunRegistry, QualificationRunRegistryEntry, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V1,
-    QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+    QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
+    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 use crate::evidence::tool_contract::{load_container_catalog, ContainerCatalog};
 
@@ -69,6 +69,8 @@ struct AttemptLedgerRow {
 struct SupplementalRunHistory {
     schema_version: String,
     identities: Vec<SupplementalRunIdentity>,
+    #[serde(default)]
+    tombstones: Vec<QualificationRunIdTombstone>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,8 +103,17 @@ pub fn derive_qualification_run_registry(
     let mut historical = BTreeMap::new();
     let current = scan_current_runs(&request.current_runs_root, &mut historical)?;
     scan_attempt_ledger(&request.attempt_ledger_path, &mut historical)?;
-    scan_supplemental_history(&request.supplemental_history_path, &mut historical)?;
-    let historical_max_run_number = historical.keys().next_back().copied().unwrap_or(0);
+    let tombstones =
+        scan_supplemental_history(&request.supplemental_history_path, &mut historical)?;
+    let historical_max_run_number = historical.keys().next_back().copied().unwrap_or(0).max(
+        tombstones
+            .iter()
+            .map(|tombstone| parse_run_id(&tombstone.run_id))
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .max()
+            .unwrap_or(0),
+    );
     let existing = request
         .existing_registry_path
         .as_deref()
@@ -137,9 +148,9 @@ pub fn derive_qualification_run_registry(
         tools: derived_rows.entries,
     };
     validate_qualification_run_registry(&catalog, &registry)?;
-    validate_historical_ownership(&registry, &historical)?;
+    validate_historical_ownership(&registry, &historical, &tombstones)?;
     let audit = QualificationRunIdAudit {
-        schema_version: QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V1.to_string(),
+        schema_version: QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2.to_string(),
         catalog_sha256,
         current_run_root: portable_repository_path(
             &request.current_runs_root,
@@ -154,6 +165,7 @@ pub fn derive_qualification_run_registry(
             &request.repository_root,
         )?,
         observed_historical_run_count: historical.len(),
+        reserved_run_count: tombstones.len(),
         historical_max_run_number,
         retained_mapping_count: registry.tools.iter().filter(|row| row.run_id.is_some()).count(),
         unsupported_tool_count: registry.tools.iter().filter(|row| row.run_id.is_none()).count(),
@@ -165,6 +177,7 @@ pub fn derive_qualification_run_registry(
                 tool_id: tool_id.clone(),
             })
             .collect(),
+        reserved_run_ids: tombstones,
         rows: derived_rows.audit_rows,
     };
     Ok(DerivedQualificationRunRegistry { registry, audit })
@@ -412,10 +425,13 @@ fn scan_attempt_ledger(path: &Path, historical: &mut BTreeMap<u64, String>) -> R
     Ok(())
 }
 
-fn scan_supplemental_history(path: &Path, historical: &mut BTreeMap<u64, String>) -> Result<()> {
+fn scan_supplemental_history(
+    path: &Path,
+    historical: &mut BTreeMap<u64, String>,
+) -> Result<Vec<QualificationRunIdTombstone>> {
     let history: SupplementalRunHistory = toml::from_slice(&fs::read(path)?)
         .with_context(|| format!("parse supplemental qualification history {}", path.display()))?;
-    if history.schema_version != "bijux.container.qualification_run_history.v1" {
+    if history.schema_version != "bijux.container.qualification_run_history.v2" {
         bail!("unsupported supplemental qualification history schema");
     }
     let mut seen_identities = BTreeSet::new();
@@ -443,7 +459,21 @@ fn scan_supplemental_history(path: &Path, historical: &mut BTreeMap<u64, String>
         }
         insert_historical(historical, number, &identity.tool_id)?;
     }
-    Ok(())
+    let mut seen_tombstones = BTreeSet::new();
+    for tombstone in &history.tombstones {
+        let number = parse_run_id(&tombstone.run_id)?;
+        if !(1000..2000).contains(&number)
+            || tombstone.disposition != "reserved_never_reuse"
+            || tombstone.reason.trim().is_empty()
+            || !seen_tombstones.insert(number)
+        {
+            bail!("supplemental qualification run-ID tombstone is malformed");
+        }
+        if historical.contains_key(&number) {
+            bail!("supplemental qualification run-ID tombstone conflicts with a real run");
+        }
+    }
+    Ok(history.tombstones)
 }
 
 fn insert_historical(
@@ -462,12 +492,20 @@ fn insert_historical(
 fn validate_historical_ownership(
     registry: &QualificationRunRegistry,
     historical: &BTreeMap<u64, String>,
+    tombstones: &[QualificationRunIdTombstone],
 ) -> Result<()> {
+    let reserved = tombstones
+        .iter()
+        .map(|tombstone| parse_run_id(&tombstone.run_id))
+        .collect::<Result<BTreeSet<_>>>()?;
     for row in &registry.tools {
         let Some(run_id) = &row.run_id else {
             continue;
         };
         let number = parse_run_id(run_id)?;
+        if reserved.contains(&number) {
+            bail!("{run_id} is permanently reserved by a qualification run-ID tombstone");
+        }
         if let Some(owner) = historical.get(&number) {
             if owner != &row.tool_id {
                 bail!("{run_id} historically belongs to {owner}, not {}", row.tool_id);
