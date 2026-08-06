@@ -145,6 +145,7 @@ mod tests {
             .insert(["tool", "id"].join("_"), serde_json::json!("samtools"));
         let bundle: DuplicationBundle = serde_json::from_value(document)?;
         let metrics: DuplicationMetrics = serde_json::from_value(serde_json::json!({
+            "schema_version": "bijux.benchmark.bam.duplication_metrics.metrics.v1",
             "examined_reads": 10,
             "duplicate_reads": 2,
             "duplication_fraction": 0.2,

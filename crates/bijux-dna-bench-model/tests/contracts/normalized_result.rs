@@ -1,14 +1,20 @@
 use bijux_dna_bench_model::normalized_result::bam::{
-    bam_coverage_result_schema, bam_duplication_metrics_result_schema,
-    bam_endogenous_content_result_schema, bam_genotyping_result_schema,
-    bam_mapping_summary_result_schema, BenchmarkBamCoverageResult,
-    BenchmarkBamDuplicationMetricsResult, BenchmarkBamEndogenousContentResult,
-    BenchmarkBamGenotypingResult, BenchmarkBamMappingSummaryResult,
+    bam_coverage_metrics_schema, bam_coverage_result_schema,
+    bam_duplication_metrics_measurements_schema, bam_duplication_metrics_result_schema,
+    bam_endogenous_content_metrics_schema, bam_endogenous_content_result_schema,
+    bam_genotyping_metrics_schema, bam_genotyping_result_schema,
+    bam_mapping_summary_metrics_schema, bam_mapping_summary_result_schema,
+    BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult, BenchmarkBamDuplicationMetricsResult,
+    BenchmarkBamEndogenousContentResult, BenchmarkBamGenotypingResult,
+    BenchmarkBamMappingSummaryResult,
 };
 use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_detect_adapters_result_schema, fastq_profile_read_lengths_result_schema,
     fastq_profile_reads_result_schema, fastq_validate_reads_result_schema,
     BenchmarkFastqProfileResult,
+};
+use bijux_dna_bench_model::normalized_result::{
+    bam_downstream_probe_schema, BenchmarkDownstreamProbeRecord,
 };
 
 #[test]
@@ -89,22 +95,40 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
         .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
     let schemas = [
         ("bam-coverage-result.schema.json", serde_json::to_value(bam_coverage_result_schema())?),
+        ("bam-coverage-metrics.schema.json", serde_json::to_value(bam_coverage_metrics_schema())?),
         (
             "bam-duplication-metrics-result.schema.json",
             serde_json::to_value(bam_duplication_metrics_result_schema())?,
+        ),
+        (
+            "bam-duplication-metrics-measurements.schema.json",
+            serde_json::to_value(bam_duplication_metrics_measurements_schema())?,
         ),
         (
             "bam-endogenous-content-result.schema.json",
             serde_json::to_value(bam_endogenous_content_result_schema())?,
         ),
         (
+            "bam-endogenous-content-metrics.schema.json",
+            serde_json::to_value(bam_endogenous_content_metrics_schema())?,
+        ),
+        (
             "bam-genotyping-result.schema.json",
             serde_json::to_value(bam_genotyping_result_schema())?,
+        ),
+        (
+            "bam-genotyping-metrics.schema.json",
+            serde_json::to_value(bam_genotyping_metrics_schema())?,
         ),
         (
             "bam-mapping-summary-result.schema.json",
             serde_json::to_value(bam_mapping_summary_result_schema())?,
         ),
+        (
+            "bam-mapping-summary-metrics.schema.json",
+            serde_json::to_value(bam_mapping_summary_metrics_schema())?,
+        ),
+        ("bam-downstream-probe.schema.json", serde_json::to_value(bam_downstream_probe_schema())?),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
     for (name, generated) in schemas {
@@ -117,6 +141,38 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
         let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
         assert_eq!(checked, generated, "normalized BAM schema drifted: {name}");
     }
+    Ok(())
+}
+
+#[test]
+fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
+    let metrics = serde_json::json!({
+        "schema_version": "bijux.benchmark.bam.coverage.metrics.v1",
+        "reference_bases": 10,
+        "covered_bases": 6,
+        "coverage_fraction": 0.6,
+        "mean_depth": 1.2,
+        "bam_input_bytes": 100,
+        "bam_index_input_bytes": 10,
+        "input_bytes": 110,
+        "output_bytes": 20
+    });
+    serde_json::from_value::<BenchmarkBamCoverageMetrics>(metrics.clone())?;
+    let mut unsupported_metrics = metrics;
+    unsupported_metrics["schema_version"] =
+        serde_json::json!("bijux.benchmark.bam.coverage.metrics.v2");
+    assert!(serde_json::from_value::<BenchmarkBamCoverageMetrics>(unsupported_metrics).is_err());
+
+    let probe = serde_json::json!({
+        "schema_version": "bijux.benchmark.downstream_probe.v1",
+        "stage_id": "benchmark.bam.coverage.compare",
+        "input_contract": "bijux.benchmark.bam.coverage.bundle.v1",
+        "complete": true
+    });
+    serde_json::from_value::<BenchmarkDownstreamProbeRecord>(probe.clone())?;
+    let mut unsupported_probe = probe;
+    unsupported_probe["stage_id"] = serde_json::json!("benchmark.bam.invented.consume");
+    assert!(serde_json::from_value::<BenchmarkDownstreamProbeRecord>(unsupported_probe).is_err());
     Ok(())
 }
 

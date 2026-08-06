@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "bam_index_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "bam_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "duplicate_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "duplication_fraction": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "examined_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.duplication_metrics.metrics.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "examined_reads",
+    "duplicate_reads",
+    "duplication_fraction",
+    "bam_input_bytes",
+    "bam_index_input_bytes",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamDuplicationMetricsMeasurements",
+  "type": "object"
+}

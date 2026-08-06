@@ -60,7 +60,7 @@ END {
     complete = (value["reference_bases"] > 0 && value["covered_bases"] > 0 && value["mean_depth"] > 0) ? "true" : "false"
     printf "{\"schema_version\":\"bijux.benchmark.downstream_probe.v1\",\"stage_id\":\"benchmark.bam.coverage.compare\",\"input_contract\":\"bijux.benchmark.bam.coverage.bundle.v1\",\"complete\":%s}\n", complete
   } else if (mode == "metrics") {
-    printf "{\"reference_bases\":%s,\"covered_bases\":%s,\"coverage_fraction\":%s,\"mean_depth\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", value["reference_bases"], value["covered_bases"], value["coverage_fraction"], value["mean_depth"], bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
+    printf "{\"schema_version\":\"bijux.benchmark.bam.coverage.metrics.v1\",\"reference_bases\":%s,\"covered_bases\":%s,\"coverage_fraction\":%s,\"mean_depth\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", value["reference_bases"], value["covered_bases"], value["coverage_fraction"], value["mean_depth"], bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
   } else {
     exit 2
   }

@@ -165,6 +165,7 @@ mod tests {
             .insert(["tool", "id"].join("_"), serde_json::json!("samtools"));
         let bundle: CoverageBundle = serde_json::from_value(document)?;
         let metrics: CoverageMetrics = serde_json::from_value(serde_json::json!({
+            "schema_version": "bijux.benchmark.bam.coverage.metrics.v1",
             "reference_bases": 10,
             "covered_bases": 6,
             "coverage_fraction": 0.6,

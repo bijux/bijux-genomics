@@ -155,6 +155,7 @@ mod tests {
             .insert(["tool", "id"].join("_"), serde_json::json!("samtools"));
         let bundle: EndogenousBundle = serde_json::from_value(document)?;
         let metrics: EndogenousMetrics = serde_json::from_value(serde_json::json!({
+            "schema_version": "bijux.benchmark.bam.endogenous_content.metrics.v1",
             "total_primary_reads": 10,
             "mapped_primary_reads": 8,
             "mapped_fraction": 0.8,

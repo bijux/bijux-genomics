@@ -26,7 +26,7 @@ END {
   } else if (mode == "probe") {
     printf "{\"schema_version\":\"bijux.benchmark.downstream_probe.v1\",\"stage_id\":\"benchmark.bam.endogenous_content.consume\",\"input_contract\":\"bijux.benchmark.bam.endogenous_content.bundle.v1\",\"complete\":true}\n"
   } else if (mode == "metrics") {
-    printf "{\"total_primary_reads\":%s,\"mapped_primary_reads\":%s,\"mapped_fraction\":%.12f,\"mapped_nonduplicate_primary_reads\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", total, mapped, fraction, nonduplicate, bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
+    printf "{\"schema_version\":\"bijux.benchmark.bam.endogenous_content.metrics.v1\",\"total_primary_reads\":%s,\"mapped_primary_reads\":%s,\"mapped_fraction\":%.12f,\"mapped_nonduplicate_primary_reads\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", total, mapped, fraction, nonduplicate, bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
   } else {
     exit 2
   }

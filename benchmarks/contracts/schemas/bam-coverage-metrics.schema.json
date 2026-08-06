@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "bam_index_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "bam_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "coverage_fraction": {
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "type": "number"
+    },
+    "covered_bases": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "mean_depth": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "reference_bases": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.coverage.metrics.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "reference_bases",
+    "covered_bases",
+    "coverage_fraction",
+    "mean_depth",
+    "bam_input_bytes",
+    "bam_index_input_bytes",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamCoverageMetrics",
+  "type": "object"
+}

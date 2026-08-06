@@ -39,7 +39,7 @@ END {
     complete = (metric_value["examined_reads"] > 0 && metric_value["duplicate_reads"] >= 0) ? "true" : "false"
     printf "{\"schema_version\":\"bijux.benchmark.downstream_probe.v1\",\"stage_id\":\"benchmark.bam.duplication_metrics.compare\",\"input_contract\":\"bijux.benchmark.bam.duplication_metrics.bundle.v1\",\"complete\":%s}\n", complete
   } else if (mode == "metrics") {
-    printf "{\"examined_reads\":%s,\"duplicate_reads\":%s,\"duplication_fraction\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", metric_value["examined_reads"], metric_value["duplicate_reads"], metric_value["duplication_fraction"], bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
+    printf "{\"schema_version\":\"bijux.benchmark.bam.duplication_metrics.metrics.v1\",\"examined_reads\":%s,\"duplicate_reads\":%s,\"duplication_fraction\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", metric_value["examined_reads"], metric_value["duplicate_reads"], metric_value["duplication_fraction"], bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
   } else {
     exit 2
   }
