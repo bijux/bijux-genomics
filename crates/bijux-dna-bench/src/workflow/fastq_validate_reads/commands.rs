@@ -8,6 +8,9 @@ use anyhow::{bail, Context, Result};
 use super::super::fastq_profile_reads::FastqCampaignSample;
 use super::planner_contract::{load_validation_planner_contract, PlannerToolContract};
 
+const WARMUP_ROOT: &str = "/scratch/warmup";
+const NEGATIVE_ROOT: &str = "/scratch/negative";
+
 pub(super) fn warmup_command(
     repository_root: &Path,
     tool_id: &str,
@@ -15,7 +18,7 @@ pub(super) fn warmup_command(
 ) -> Result<Vec<String>> {
     let sample = samples.first().context("FASTQ validation campaign has no samples")?;
     let contract = load_validation_planner_contract(repository_root)?;
-    let command = planned_sample_command(contract.tool(tool_id)?, sample, "/scratch/warmup")?;
+    let command = planned_sample_command(contract.tool(tool_id)?, sample, WARMUP_ROOT)?;
     Ok(shell(format!("set -eu; mkdir -p /scratch/warmup; {command}")))
 }
 
@@ -69,7 +72,7 @@ pub(super) fn negative_command(repository_root: &Path, tool_id: &str) -> Result<
         expected_read_count: 1,
     };
     let contract = load_validation_planner_contract(repository_root)?;
-    let command = planned_sample_command(contract.tool(tool_id)?, &sample, "/scratch/negative")?;
+    let command = planned_sample_command(contract.tool(tool_id)?, &sample, NEGATIVE_ROOT)?;
     Ok(shell(format!("mkdir -p /scratch/negative; {command}")))
 }
 

@@ -369,3 +369,62 @@ limitations = [
   "Warm-cache repetitions characterize stable parsing after one warmup and do not measure cold shared-filesystem startup.",
   "The campaign covers the admitted gzip-compressed Illumina FASTQ files and does not generalize to every valid FASTQ encoding or compression format.",
 ]
+
+[[campaigns]]
+run_id = "run-2051"
+slug = "fastq-validate-reads"
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+evidence_tier = "comparative"
+profile_id = "fastq-observational-qc"
+corpus_ids = ["human-short-read-diversity"]
+scientific_question = "Do all retained FASTQ validation backends complete the same canonical strict-validation contract over every independently admitted file in the real human short-read diversity cohort, including paired-header synchronization?"
+comparison_scope = "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end layouts"
+tool_ids = ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
+corpus_catalog_ids = ["human-short-read-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["fastq_input_bytes"]
+result_artifact = "validation-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "canonical_strict_validation_concordance_on_independently_admitted_valid_fastq"
+interpretation = "Exact completion across the independently admitted cohort establishes that each retained backend can participate in the governed strict-validation stage for these valid files. It does not establish equal native malformed-input sensitivity because canonical structural and pair-synchronization checks supplement every backend."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "sample_count",
+  "file_count",
+  "validated_read_count",
+  "strict_pass_count",
+  "pair_sync_checked_count",
+  "pair_sync_failure_count",
+]
+comparison_metrics = [
+  {id = "sample_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "file_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "validated_read_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "strict_pass_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "pair_sync_failure_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+]
+limitations = [
+  "The cohort contains valid gzip-compressed Illumina FASTQ inputs; malformed-input sensitivity and compression-format breadth require separate challenge campaigns.",
+  "The governed stage combines each native backend with the same crate-owned strict stream and paired-header checks, so this campaign compares complete stage implementations rather than isolated native validators.",
+  "Successful validation establishes structural acceptance and pair synchronization, not biological sequence correctness or sample identity.",
+  "Warm-cache repetitions characterize stable validation after one warmup and exclude cold shared-filesystem startup.",
+]

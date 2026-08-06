@@ -301,7 +301,16 @@ mod tests {
         assert_eq!(run_2042.stage_id, "fastq.profile_read_lengths");
         assert!(matches!(run_2042.evidence_tier, BenchmarkEvidenceTier::Comparative));
         assert_eq!(run_2042.tool_ids, vec!["seqfu".to_string(), "seqkit".to_string()]);
-        assert_eq!(interfaces.interfaces.len(), 7);
+        assert_eq!(interfaces.interfaces.len(), 8);
+        let validation = interfaces
+            .interfaces
+            .iter()
+            .find(|interface| interface.stage_id == "fastq.validate_reads")
+            .context("find FASTQ validation stage interface")?;
+        assert_eq!(
+            validation.tool_ids,
+            ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
+        );
         Ok(())
     }
 }

@@ -10,7 +10,7 @@ use crate::workflow::{
     publish_bam_coverage_stage_report, publish_bam_duplication_metrics_stage_report,
     publish_bam_endogenous_content_stage_report, publish_bam_genotyping_stage_report,
     publish_bam_mapping_summary_stage_report, publish_fastq_profile_read_lengths_stage_report,
-    publish_fastq_profile_reads_stage_report,
+    publish_fastq_profile_reads_stage_report, publish_fastq_validate_reads_stage_report,
 };
 
 /// Immutable publication identity shared by every governed campaign report.
@@ -71,6 +71,7 @@ pub fn publish_benchmark_campaign_report(
         "run-2011" => publish!(publish_bam_duplication_metrics_stage_report),
         "run-2042" => publish!(publish_fastq_profile_read_lengths_stage_report),
         "run-2043" => publish!(publish_fastq_profile_reads_stage_report),
+        "run-2051" => publish!(publish_fastq_validate_reads_stage_report),
         _ => bail!("benchmark campaign has no crate-owned report publisher: {run_id}"),
     };
     Ok(publication)
@@ -90,6 +91,7 @@ mod tests {
                     | "run-2011"
                     | "run-2042"
                     | "run-2043"
+                    | "run-2051"
             ));
         }
     }

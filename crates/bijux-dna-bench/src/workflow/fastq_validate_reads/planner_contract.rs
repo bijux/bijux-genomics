@@ -4,7 +4,7 @@
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const CONTRACT_PATH: &str =
     "benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json";
@@ -24,8 +24,18 @@ pub(super) struct ValidationPlannerContract {
 
 #[derive(Debug, Clone, Deserialize)]
 pub(super) struct PlannerLayoutDefaults {
-    pub single_end: serde_json::Value,
-    pub paired_end: serde_json::Value,
+    pub single_end: PlannerEffectiveParameters,
+    pub paired_end: PlannerEffectiveParameters,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct PlannerEffectiveParameters {
+    pub schema_version: String,
+    pub threads: u64,
+    pub validation_mode: String,
+    pub paired_mode: String,
+    pub pair_sync_policy: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -38,7 +48,7 @@ pub(super) struct PlannerToolContract {
 #[derive(Debug, Clone, Deserialize)]
 struct PlannerStagePlan {
     command: PlannerCommand,
-    effective_params: serde_json::Value,
+    effective_params: PlannerEffectiveParameters,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -73,7 +83,7 @@ impl ValidationPlannerContract {
         self.tools
             .iter()
             .find(|tool| tool.tool_id == tool_id)
-            .with_context(|| format!("planner contract omits FASTQ validation tool {tool_id}"))
+            .context("planner contract omits requested FASTQ validation backend")
     }
 }
 
@@ -93,8 +103,8 @@ impl PlannerToolContract {
         if plan.command.template.len() != 3
             || plan.command.template[0] != "sh"
             || plan.command.template[1] != "-lc"
-            || plan.effective_params["validation_mode"] != "strict"
-            || plan.effective_params["threads"] != 4
+            || plan.effective_params.validation_mode != "strict"
+            || plan.effective_params.threads != 4
         {
             bail!("FASTQ validation planner command or effective parameters are invalid");
         }

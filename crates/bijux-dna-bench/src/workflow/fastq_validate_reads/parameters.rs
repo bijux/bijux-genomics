@@ -12,7 +12,7 @@ use bijux_dna_bench_model::{
 use serde::Serialize;
 
 use super::super::fastq_profile_reads::FastqCampaignSample;
-use super::planner_contract::load_validation_planner_contract;
+use super::planner_contract::{load_validation_planner_contract, PlannerEffectiveParameters};
 
 const STAGE_ID: &str = "fastq.validate_reads";
 const PARAMETER_SCHEMA: &str = "bijux.fastq.params.validate_reads.v1";
@@ -25,7 +25,7 @@ struct EffectiveParameters {
     parameter_schema_version: &'static str,
     defaults_provider: &'static str,
     overrides: BTreeMap<&'static str, BenchmarkParameterValue>,
-    resolved_by_sample: BTreeMap<String, serde_json::Value>,
+    resolved_by_sample: BTreeMap<String, PlannerEffectiveParameters>,
 }
 
 pub(super) fn ensure_parameter_evidence(
@@ -43,10 +43,6 @@ pub(super) fn ensure_parameter_evidence(
     let expected_overrides = BTreeMap::from([
         ("threads".to_string(), BenchmarkParameterValue::Integer(4)),
         ("validation_mode".to_string(), BenchmarkParameterValue::Text("strict".to_string())),
-        (
-            "pair_sync_policy".to_string(),
-            BenchmarkParameterValue::Text("layout_derived".to_string()),
-        ),
     ]);
     if stage.parameter_schema_version != PARAMETER_SCHEMA
         || stage.defaults_provider != DEFAULTS_PROVIDER
@@ -71,20 +67,18 @@ pub(super) fn ensure_parameter_evidence(
         overrides: BTreeMap::from([
             ("threads", BenchmarkParameterValue::Integer(4)),
             ("validation_mode", BenchmarkParameterValue::Text("strict".to_string())),
-            ("pair_sync_policy", BenchmarkParameterValue::Text("layout_derived".to_string())),
         ]),
         resolved_by_sample: samples
             .iter()
             .map(|sample| {
-                let mut parameters = if sample.input_layout == "paired_end" {
+                let parameters = if sample.input_layout == "paired_end" {
                     planner.domain_defaults.paired_end.clone()
                 } else {
                     planner.domain_defaults.single_end.clone()
                 };
-                let object = parameters
-                    .as_object_mut()
-                    .context("planner validation defaults are not an object")?;
-                object.insert("threads".to_string(), serde_json::json!(4));
+                if parameters.threads != 4 || parameters.validation_mode != "strict" {
+                    bail!("planner validation defaults differ from campaign policy");
+                }
                 Ok((sample.sample_id.clone(), parameters))
             })
             .collect::<Result<BTreeMap<_, _>>>()?,

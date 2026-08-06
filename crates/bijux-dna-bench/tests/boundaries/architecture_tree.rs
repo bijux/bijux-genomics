@@ -180,8 +180,13 @@ fn bench_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/workflow/fastq_validate_reads")),
-        entries(["commands.rs", "mod.rs", "parameters.rs", "planner_contract.rs"]),
+        entries(["commands.rs", "mod.rs", "parameters.rs", "planner_contract.rs", "report/"]),
         "FASTQ validation material must separate planner projection, execution, and parameters"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_validate_reads/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "FASTQ validation reporting must separate evidence, science, and rendering"
     );
 
     assert_eq!(

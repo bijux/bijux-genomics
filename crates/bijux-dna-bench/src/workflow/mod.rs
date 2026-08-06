@@ -91,7 +91,9 @@ pub use fastq_profile_reads::{
     FastqProfileReadsMaterial, FastqProfileReadsStageReportPublication,
 };
 pub use fastq_validate_reads::{
-    prepare_fastq_validate_reads_material_from_expectations, FastqValidateReadsMaterial,
+    prepare_fastq_validate_reads_material_from_expectations,
+    publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
+    FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
 };
 pub use options::BenchRunOptions;
 pub use report_load::{

@@ -4,6 +4,7 @@
 mod commands;
 mod parameters;
 mod planner_contract;
+mod report;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -21,6 +22,11 @@ use self::planner_contract::validation_planner_contract_sha256;
 use super::{
     fastq_profile_reads::campaign_execution_inputs, load_attempt_lifecycle,
     BenchmarkExecutionMaterial, FastqProfileReadsExpectationPublication,
+};
+
+pub use report::{
+    publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
+    FastqValidateReadsStageReportPublication,
 };
 
 const RUN_ID: &str = "run-2051";

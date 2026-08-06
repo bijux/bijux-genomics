@@ -47,8 +47,7 @@
       "defaults_provider": "bijux_dna_domain_fastq::params::defaults::validate_defaults",
       "overrides": {
         "threads": 4,
-        "validation_mode": "strict",
-        "pair_sync_policy": "layout_derived"
+        "validation_mode": "strict"
       }
     }
   }

@@ -258,3 +258,46 @@ assertions = [
   "every normalized bundle contributes the same required comparison fields",
   "the comparison consumer accepts each tool result without tool-specific branching",
 ]
+
+[[interfaces]]
+stage_id = "fastq.validate_reads"
+accepted_input_contracts = [
+  "bijux.fastq.artifact.single_end.v1",
+  "bijux.fastq.artifact.paired_end.v1",
+]
+output_contract = "bijux.benchmark.fastq.validate_reads.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-validate-reads-result.schema.json"
+parameter_schema_version = "bijux.fastq.params.validate_reads.v1"
+default_provider = "bijux_dna_domain_fastq::params::defaults::validate_defaults"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+planner_contract = "benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json"
+operator_override_keys = ["threads", "validation_mode"]
+input_derived_parameters = ["paired_mode", "pair_sync_policy"]
+immutable_parameters = ["schema_version"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
+provenance_sources = [
+  "domain/fastq/stages/validate_reads.yaml",
+  "crates/bijux-dna-domain-fastq/src/params/quality/validate.rs",
+  "crates/bijux-dna-domain-fastq/src/params/defaults/quality.rs",
+  "crates/bijux-dna-domain-fastq/src/artifacts/validate_reads.rs",
+  "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/validate_reads.rs",
+  "benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json",
+]
+
+[interfaces.adapters]
+fastq_scan = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+fastqc = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+fastqvalidator = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+fqtools = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+seqtk = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.fastq.validate_reads.compare"
+input_contract = "bijux.benchmark.fastq.validate_reads.bundle.v1"
+source = "benchmarks/execution/fastq_validate_reads.awk"
+assertions = [
+  "every retained backend completes the same strict validation and lineage contract",
+  "validated read counts exactly equal independently admitted read counts",
+  "paired samples complete canonical normalized-header synchronization without failure",
+]

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-fastq-validate-reads-result-v1.json",
+  "title": "Normalized FASTQ validation benchmark bundle",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_count",
+    "file_count",
+    "expected_read_count",
+    "validated_read_count",
+    "strict_pass_count",
+    "pair_sync_checked_count",
+    "pair_sync_failure_count"
+  ],
+  "properties": {
+    "schema_version": {"const": "bijux.benchmark.fastq.validate_reads.bundle.v1"},
+    "stage_id": {"const": "fastq.validate_reads"},
+    "tool_id": {"enum": ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]},
+    "sample_count": {"type": "integer", "const": 20},
+    "file_count": {"type": "integer", "const": 30},
+    "expected_read_count": {"type": "integer", "minimum": 1},
+    "validated_read_count": {"type": "integer", "minimum": 1},
+    "strict_pass_count": {"type": "integer", "const": 20},
+    "pair_sync_checked_count": {"type": "integer", "minimum": 1, "maximum": 20},
+    "pair_sync_failure_count": {"type": "integer", "const": 0}
+  },
+  "additionalProperties": false
+}

@@ -12,7 +12,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
         "the checked-in stage campaign registry must include the audited seed campaign set"
     );
     assert_eq!(interfaces.schema_version, bijux_dna_bench::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1);
-    assert_eq!(interfaces.interfaces.len(), 7);
+    assert_eq!(interfaces.interfaces.len(), 8);
     Ok(())
 }
 
@@ -90,7 +90,7 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
         bijux_dna_bench::derive_stage_coverage(&registry, &catalog, &reports, &current_commit)?;
 
     assert_eq!(coverage.summary.retained_stage_count, 71);
-    assert_eq!(coverage.summary.defined_stage_count, 7);
+    assert_eq!(coverage.summary.defined_stage_count, 8);
     assert_eq!(coverage.summary.failed_stage_count, 0);
     assert!(
         coverage.summary.admitted_stage_count
