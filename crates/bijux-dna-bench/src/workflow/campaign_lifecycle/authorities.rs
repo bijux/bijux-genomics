@@ -127,17 +127,39 @@ pub fn load_execution_authorities(
     validate_container_inventory_catalog(&container_catalog_sha256, &catalog, &image_inventory)
         .context("validate execution image inventory against container catalog")?;
 
+    let mut source_contract_sha256 = BTreeMap::from([
+        ("campaign_registry".to_string(), campaign_registry_sha256),
+        ("container_catalog".to_string(), container_catalog_sha256),
+        ("image_inventory".to_string(), image_inventory_sha256),
+        ("stage_interface_registry".to_string(), stage_interface_registry_sha256),
+    ]);
+    let stage_id = plan
+        .cycle
+        .attempts
+        .first()
+        .context("benchmark campaign plan has no attempts")?
+        .identity
+        .run
+        .stage_id
+        .as_str();
+    let interface = interfaces
+        .interfaces
+        .iter()
+        .find(|interface| interface.stage_id == stage_id)
+        .context("campaign stage has no loaded interface authority")?;
+    if let Some(relative) = &interface.planner_contract {
+        let planner_contract = repository_path.join(relative);
+        require_source_file(&planner_contract)?;
+        source_contract_sha256
+            .insert("planner_contract".to_string(), source_digest(&planner_contract)?);
+    }
+
     Ok(BenchmarkExecutionAuthorities {
         repository_path,
         registry,
         interfaces,
         catalog,
-        source_contract_sha256: BTreeMap::from([
-            ("campaign_registry".to_string(), campaign_registry_sha256),
-            ("container_catalog".to_string(), container_catalog_sha256),
-            ("image_inventory".to_string(), image_inventory_sha256),
-            ("stage_interface_registry".to_string(), stage_interface_registry_sha256),
-        ]),
+        source_contract_sha256,
         image_inventory,
     })
 }
