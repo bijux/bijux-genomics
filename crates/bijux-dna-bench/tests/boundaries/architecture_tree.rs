@@ -93,6 +93,7 @@ fn bench_tree_matches_architecture_contract() {
             "bam_observation/",
             "campaign_lifecycle/",
             "campaign_material/",
+            "corpus_materialization/",
             "evaluation.rs",
             "fastq_detect_adapters/",
             "fastq_expectations/",
@@ -113,6 +114,12 @@ fn bench_tree_matches_architecture_contract() {
             "summary_statistics.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/corpus_materialization")),
+        entries(["catalog.rs", "fastq.rs", "mod.rs"]),
+        "corpus materialization must separate transfer orchestration, FASTQ validation, and catalog projection"
     );
 
     assert_eq!(

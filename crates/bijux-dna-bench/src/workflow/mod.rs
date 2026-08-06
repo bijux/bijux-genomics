@@ -11,6 +11,7 @@ mod bam_mapping_summary;
 mod bam_observation;
 mod campaign_lifecycle;
 mod campaign_material;
+mod corpus_materialization;
 mod evaluation;
 mod fastq_detect_adapters;
 mod fastq_expectations;
@@ -73,6 +74,9 @@ pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
     publish_benchmark_campaign_report, BenchmarkCampaignEvidence, BenchmarkCampaignMaterialRequest,
     BenchmarkCampaignReportPublication,
+};
+pub use corpus_materialization::{
+    materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
 };
 pub use evaluation::{compare, gate};
 pub use fastq_detect_adapters::{

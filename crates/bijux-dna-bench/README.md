@@ -18,7 +18,8 @@ This crate owns:
 - Reading runtime/analyze artifacts that are already materialized.
 - Writing deterministic benchmark artifacts under declared output roots.
 - Persisting and reconstructing append-only permanent attempt lifecycle evidence.
-- Admitting checksummed benchmark corpora and publishing immutable scientific expectations.
+- Materializing checksum-pinned real FASTQ corpora, admitting checksummed benchmark corpora,
+  and publishing immutable scientific expectations.
 - Resolving crate-owned benchmark data and suite directories.
 
 This crate does not plan workflows, execute tools, choose runner backends, or own
@@ -34,6 +35,7 @@ The SSOT for callable operations is `docs/COMMANDS.md`.
 - `load-corpus-catalog`
 - `load-bundle-manifest`
 - `load-bundle-catalog`
+- `materialize-fastq-corpus`
 - `summarize`
 - `compare`
 - `gate`

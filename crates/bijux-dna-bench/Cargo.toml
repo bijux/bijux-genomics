@@ -16,15 +16,19 @@ bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-science.workspace = true
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model" }
 chrono.workspace = true
+flate2.workspace = true
+rayon.workspace = true
 toml = { workspace = true }
 serde_yaml = { workspace = true }
 walkdir.workspace = true
+bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
 
 [dev-dependencies]
 bijux-dna-analyze = { path = "../bijux-dna-analyze" }
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 insta = { version = "1", features = ["json"] }
 tempfile = { workspace = true }
+md5.workspace = true
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
