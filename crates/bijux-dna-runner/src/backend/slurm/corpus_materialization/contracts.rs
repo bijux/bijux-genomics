@@ -9,6 +9,8 @@ use super::super::{SlurmAccounting, SlurmJobObservation, SlurmSubmitRequest};
 
 pub const CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_slurm_spec.v1";
+pub const CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1: &str =
+    "bijux.runner.corpus_materialization_prepared_job.v1";
 pub const CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_evidence.v1";
 
@@ -44,8 +46,10 @@ pub struct CorpusMaterializationSlurmSpec {
     pub admitted_at_utc: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct PreparedCorpusMaterializationSlurmJob {
+    pub schema_version: String,
     pub request: SlurmSubmitRequest,
     pub specification_sha256: String,
     pub script_sha256: String,

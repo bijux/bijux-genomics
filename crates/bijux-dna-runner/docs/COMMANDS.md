@@ -36,9 +36,11 @@ inside runner-owned evidence contracts.
 
 `prepare_corpus_materialization_slurm_job` publishes an immutable specification and script that
 bind the frozen repository commit, executable digest, acquisition-plan digest, data root, resource
-policy, and admission timestamp. `submit_prepared_corpus_materialization_job` persists intent before
-the scheduler effect. The observe operation is one-shot and non-mutating; terminal collection
-re-hashes the admitted catalog closure and publishes immutable pass/fail evidence.
+policy, and admission timestamp. It also persists `prepared-job.json`, allowing a separate process
+to recover the exact submission request through `load_prepared_corpus_materialization_slurm_job`.
+`submit_prepared_corpus_materialization_job` persists intent before the scheduler effect. The
+observe operation is one-shot and non-mutating; terminal collection re-hashes the admitted catalog
+closure and publishes immutable pass/fail evidence.
 
 Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, and `awk`
 only for source validation, byte-identity checks, and acceptance checks. The Slurm host requires

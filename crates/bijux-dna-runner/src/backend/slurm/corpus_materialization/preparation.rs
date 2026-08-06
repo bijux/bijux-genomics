@@ -8,7 +8,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 
-use super::contracts::{CorpusMaterializationSlurmSpec, PreparedCorpusMaterializationSlurmJob};
+use super::contracts::{
+    CorpusMaterializationSlurmSpec, PreparedCorpusMaterializationSlurmJob,
+    CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
+};
 use super::validation::{
     canonical_directory, ensure_json_identity, require_utc_timestamp, validate_specification,
 };
@@ -42,7 +45,8 @@ pub fn prepare_corpus_materialization_slurm_job(
     let script_sha256 =
         bijux_dna_infra::hash_file_sha256(&script_path).context("hash materialization script")?;
 
-    Ok(PreparedCorpusMaterializationSlurmJob {
+    let prepared = PreparedCorpusMaterializationSlurmJob {
+        schema_version: CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1.to_string(),
         request: SlurmSubmitRequest {
             run_id: format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id),
             script_path,
@@ -53,7 +57,9 @@ pub fn prepare_corpus_materialization_slurm_job(
         },
         specification_sha256,
         script_sha256,
-    })
+    };
+    ensure_json_identity(&scheduler_root.join("prepared-job.json"), &prepared)?;
+    Ok(prepared)
 }
 
 fn render_script(spec: &CorpusMaterializationSlurmSpec, specification_sha256: &str) -> String {

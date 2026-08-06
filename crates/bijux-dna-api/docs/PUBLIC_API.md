@@ -27,6 +27,8 @@ enter through `bijux_dna_api::v1::api`.
 - The `bench` namespace composes benchmark-owned corpus materialization through
   `materialize_fastq_corpus(CorpusMaterializationRequest)` without moving acquisition IO
   into the API or CLI crates.
+- The `bench` namespace composes runner-owned corpus materialization Slurm preparation,
+  submission, one-shot observation, and terminal collection without owning scheduler state.
 
 ## Export Policy
 

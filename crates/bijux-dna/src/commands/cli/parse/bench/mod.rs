@@ -88,7 +88,12 @@ pub use self::local::{
     BenchLocalValidateVcfReferenceCompatibilityArgs, BenchLocalValidateVcfSampleCompatibilityArgs,
     BenchLocalValidateVcfSmokeSuiteReadyArgs, BenchLocalValidateVcfStageCatalogReadyArgs,
 };
-pub use self::materialization::BenchMaterializeFastqCorpusArgs;
+pub use self::materialization::{
+    BenchCorpusMaterializationCollectArgs, BenchCorpusMaterializationCommand,
+    BenchCorpusMaterializationPrepareArgs, BenchCorpusMaterializationSlurmArgs,
+    BenchCorpusMaterializationStatusArgs, BenchCorpusMaterializationSubmitArgs,
+    BenchMaterializeFastqCorpusArgs,
+};
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::micro::BenchRunMicroArgs;
 pub use self::paths::{BenchPathsCleanupProofArgs, BenchPathsCommand, BenchPathsValidateArgs};
@@ -235,6 +240,11 @@ pub enum BenchCommand {
     DataIndex(BenchDataIndexArgs),
     #[command(name = "materialize-fastq-corpus")]
     MaterializeFastqCorpus(BenchMaterializeFastqCorpusArgs),
+    #[command(name = "corpus-materialization")]
+    CorpusMaterialization {
+        #[command(subcommand)]
+        command: BenchCorpusMaterializationCommand,
+    },
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),

@@ -17,6 +17,18 @@ use super::contracts::{
 
 pub(super) const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
 
+/// Load and validate one governed corpus materialization scheduler specification.
+///
+/// # Errors
+/// Returns an error when the JSON is unsafe, malformed, or fails any source or policy contract.
+pub fn load_corpus_materialization_slurm_spec(
+    path: &Path,
+) -> Result<CorpusMaterializationSlurmSpec> {
+    let spec = read_json(path)?;
+    validate_specification(&spec)?;
+    Ok(spec)
+}
+
 pub(super) fn validate_specification(
     spec: &CorpusMaterializationSlurmSpec,
 ) -> Result<CorpusAcquisitionPlan> {

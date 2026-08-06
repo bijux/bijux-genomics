@@ -6,7 +6,8 @@ use bijux_dna_bench_model::{
     GovernedDataCatalogSample, CORPUS_ACQUISITION_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
 };
 use bijux_dna_runner::api::{
-    collect_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
+    collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_spec,
+    load_prepared_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
     submit_prepared_corpus_materialization_job, CorpusMaterializationEvidenceStatus,
     CorpusMaterializationSlurmResources, CorpusMaterializationSlurmSpec, SlurmClientPaths,
     CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
@@ -28,6 +29,11 @@ fn preparation_binds_exact_authorities_and_renders_rust_cli() -> anyhow::Result<
     assert!(script.contains(&fixture.spec.plan_sha256));
     assert!(!script.contains("python"));
     assert!(fixture.spec.evidence_root.join("materialization-spec.json").is_file());
+    assert!(fixture.spec.evidence_root.join("scheduler/prepared-job.json").is_file());
+    assert_eq!(load_prepared_corpus_materialization_slurm_job(&fixture.spec)?, prepared);
+    let input_spec = fixture.root.path().join("input-spec.json");
+    fs::write(&input_spec, serde_json::to_vec_pretty(&fixture.spec)?)?;
+    assert_eq!(load_corpus_materialization_slurm_spec(&input_spec)?, fixture.spec);
     assert_eq!(
         prepared,
         prepare_corpus_materialization_slurm_job(&fixture.spec, "2026-08-06T10:20:00Z")?
@@ -53,7 +59,8 @@ fn preparation_rejects_scheduler_injection_and_authority_drift() -> anyhow::Resu
 #[test]
 fn submission_is_duplicate_safe_and_terminal_collection_verifies_catalog() -> anyhow::Result<()> {
     let fixture = fixture()?;
-    let prepared = prepare_corpus_materialization_slurm_job(&fixture.spec, "2026-08-06T10:20:00Z")?;
+    prepare_corpus_materialization_slurm_job(&fixture.spec, "2026-08-06T10:20:00Z")?;
+    let prepared = load_prepared_corpus_materialization_slurm_job(&fixture.spec)?;
     let calls = fixture.root.path().join("sbatch.calls");
     let scheduler = scheduler_client(
         fixture.root.path(),

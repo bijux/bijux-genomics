@@ -13,6 +13,7 @@ use super::contracts::{
     CorpusMaterializationCollection, CorpusMaterializationEvidence,
     CorpusMaterializationEvidenceStatus, CorpusMaterializationSlurmSpec,
     PreparedCorpusMaterializationSlurmJob, CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
     canonical_directory, ensure_json_identity, read_json, require_utc_timestamp,
@@ -75,6 +76,11 @@ pub fn submit_prepared_corpus_materialization_job(
 ) -> Result<SlurmJobHandle> {
     let scheduler_root = scheduler_root(&prepared.request)?;
     recheck_prepared(prepared, &scheduler_root)?;
+    let persisted_prepared: PreparedCorpusMaterializationSlurmJob =
+        read_json(&scheduler_root.join("prepared-job.json"))?;
+    if persisted_prepared != *prepared {
+        bail!("prepared corpus materialization job conflicts with immutable scheduler evidence");
+    }
     let intent = submission_intent(prepared);
     let intent_path = scheduler_root.join("submission-intent.json");
     let handle_path = scheduler_root.join("job-handle.json");
@@ -109,13 +115,13 @@ pub fn submit_prepared_corpus_materialization_job(
     Ok(handle)
 }
 
-/// Load the persisted scheduler handle after revalidating specification and script identity.
+/// Load the immutable prepared job after revalidating its specification and scheduler material.
 ///
 /// # Errors
-/// Returns an error for missing, changed, or conflicting scheduler evidence.
-pub fn load_corpus_materialization_slurm_job_handle(
+/// Returns an error for missing, changed, or conflicting preparation evidence.
+pub fn load_prepared_corpus_materialization_slurm_job(
     spec: &CorpusMaterializationSlurmSpec,
-) -> Result<SlurmJobHandle> {
+) -> Result<PreparedCorpusMaterializationSlurmJob> {
     validate_specification(spec)?;
     let evidence_root =
         canonical_directory(&spec.evidence_root, "corpus materialization evidence root")?;
@@ -126,25 +132,36 @@ pub fn load_corpus_materialization_slurm_job_handle(
     }
     let scheduler_root =
         canonical_directory(&evidence_root.join("scheduler"), "materialization scheduler root")?;
+    let prepared: PreparedCorpusMaterializationSlurmJob =
+        read_json(&scheduler_root.join("prepared-job.json"))?;
+    require_utc_timestamp(&prepared.request.submitted_at_utc, "submission timestamp")?;
+    if prepared.schema_version != CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1
+        || prepared.request.run_id
+            != format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id)
+        || prepared.request.script_path != scheduler_root.join("job.sbatch")
+        || prepared.request.working_directory != spec.repository_path
+        || prepared.request.stdout_path != scheduler_root.join("stdout.log")
+        || prepared.request.stderr_path != scheduler_root.join("stderr.log")
+    {
+        bail!("prepared materialization job conflicts with requested specification");
+    }
+    recheck_prepared(&prepared, &scheduler_root)?;
+    Ok(prepared)
+}
+
+/// Load the persisted scheduler handle after revalidating specification and script identity.
+///
+/// # Errors
+/// Returns an error for missing, changed, or conflicting scheduler evidence.
+pub fn load_corpus_materialization_slurm_job_handle(
+    spec: &CorpusMaterializationSlurmSpec,
+) -> Result<SlurmJobHandle> {
+    let prepared = load_prepared_corpus_materialization_slurm_job(spec)?;
+    let scheduler_root = scheduler_root(&prepared.request)?;
     let intent: SubmissionIntent = read_json(&scheduler_root.join("submission-intent.json"))?;
-    let prepared = PreparedCorpusMaterializationSlurmJob {
-        request: SlurmSubmitRequest {
-            run_id: format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id),
-            script_path: scheduler_root.join("job.sbatch"),
-            working_directory: spec.repository_path.clone(),
-            stdout_path: scheduler_root.join("stdout.log"),
-            stderr_path: scheduler_root.join("stderr.log"),
-            submitted_at_utc: intent.submitted_at_utc.clone(),
-        },
-        specification_sha256: bijux_dna_infra::hash_file_sha256(
-            &evidence_root.join("materialization-spec.json"),
-        )?,
-        script_sha256: bijux_dna_infra::hash_file_sha256(&scheduler_root.join("job.sbatch"))?,
-    };
     if submission_intent(&prepared) != intent {
         bail!("persisted materialization submission intent conflicts with scheduler material");
     }
-    recheck_prepared(&prepared, &scheduler_root)?;
     load_matching_handle(&scheduler_root.join("job-handle.json"), &prepared.request)
 }
 
@@ -336,6 +353,7 @@ fn prepared_from_evidence(
     handle: &SlurmJobHandle,
 ) -> Result<PreparedCorpusMaterializationSlurmJob> {
     Ok(PreparedCorpusMaterializationSlurmJob {
+        schema_version: CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1.to_string(),
         request: SlurmSubmitRequest {
             run_id: handle.run_id.clone(),
             script_path: handle.script_path.clone(),

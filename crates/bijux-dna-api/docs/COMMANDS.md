@@ -32,6 +32,11 @@ The public front door also exposes curated v1 namespaces:
 - `api::bench` for benchmark helper exports.
   Corpus acquisition operations include `materialize_fastq_corpus` and its typed
   `CorpusMaterializationRequest` and `CorpusMaterializationPublication` contracts.
+  Scheduler operations include `prepare_corpus_materialization_slurm_job`,
+  `load_prepared_corpus_materialization_slurm_job`,
+  `submit_prepared_corpus_materialization_job`,
+  `observe_corpus_materialization_slurm_job`, and
+  `collect_corpus_materialization_slurm_job` over runner-owned typed contracts.
   Benchmark lifecycle schema operations now include `render_benchmark_attempt_schema`,
   `write_benchmark_attempt_schema`, `render_benchmark_cycle_status_schema`, and
   `write_benchmark_cycle_status_schema`.

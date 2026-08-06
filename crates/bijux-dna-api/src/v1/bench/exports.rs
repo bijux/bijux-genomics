@@ -26,6 +26,17 @@ pub use bijux_dna_bench::{
     BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
     BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
+pub use bijux_dna_runner::api::{
+    collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_job_handle,
+    load_corpus_materialization_slurm_spec, load_prepared_corpus_materialization_slurm_job,
+    observe_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
+    submit_prepared_corpus_materialization_job, CorpusMaterializationCollection,
+    CorpusMaterializationEvidence, CorpusMaterializationEvidenceStatus,
+    CorpusMaterializationSlurmResources, CorpusMaterializationSlurmSpec,
+    PreparedCorpusMaterializationSlurmJob, SlurmClientPaths, SlurmJobHandle, SlurmJobObservation,
+    CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1, CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
+};
 
 pub use crate::internal::public_surface::handlers::bam::BamBenchOutcome;
 pub use crate::internal::public_surface::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
