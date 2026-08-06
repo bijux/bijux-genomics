@@ -15,6 +15,7 @@ const NORMAL_DEPS: &[&str] = &[
     "bijux-dna-pipelines",
     "bijux-dna-planner-bam",
     "bijux-dna-planner-fastq",
+    "bijux-dna-policies",
     "bijux-dna-runner",
     "bijux-dna-runtime",
     "bijux-dna-stage-contract",
@@ -33,7 +34,7 @@ const NORMAL_DEPS: &[&str] = &[
     "walkdir",
 ];
 
-const DEV_DEPS: &[&str] = &["bijux-dna-policies", "bijux-dna-testkit", "insta", "nix", "tempfile"];
+const DEV_DEPS: &[&str] = &["bijux-dna-testkit", "insta", "nix", "tempfile"];
 
 #[test]
 fn normal_dependency_graph_matches_api_integration_boundary() {

@@ -151,6 +151,7 @@ fn assert_v1_tree(root: &std::path::Path) {
             "mod.rs",
             "pipelines/",
             "plan.rs",
+            "qualification.rs",
             "report/",
             "run/",
             "shared.rs",

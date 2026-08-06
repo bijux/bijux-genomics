@@ -122,7 +122,7 @@ fn estimate_library_complexity_prealign_report_accepts_explicit_inputs_and_outpu
     assert_eq!(report.stage_id, "fastq.estimate_library_complexity_prealign");
     assert_eq!(report.tool_id, "bijux_dna");
     assert_eq!(report.reads_in, 2);
-    assert_eq!(report.estimated_duplicate_fraction, 0.5);
+    assert!((report.estimated_duplicate_fraction - 0.5).abs() < f64::EPSILON);
     assert_eq!(report.kmer_size, Some(4));
     let written: bijux_dna_domain_fastq::EstimateLibraryComplexityPrealignReportV1 =
         serde_json::from_slice(&std::fs::read(report_path)?)?;

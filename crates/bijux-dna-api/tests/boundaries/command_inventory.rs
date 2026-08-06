@@ -21,6 +21,7 @@ const API_COMMANDS: &[&str] = &[
 const API_NAMESPACES: &[&str] = &[
     "api::bench",
     "api::plan",
+    "api::qualification",
     "api::run",
     "api::report",
     "api::bam",
