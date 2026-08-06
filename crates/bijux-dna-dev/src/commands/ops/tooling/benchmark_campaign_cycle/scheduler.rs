@@ -134,6 +134,7 @@ pub(super) fn lifecycle_status(status: bijux_dna_bench::BenchmarkLifecycleStatus
         bijux_dna_bench::BenchmarkLifecycleStatus::Collecting => "collecting",
         bijux_dna_bench::BenchmarkLifecycleStatus::Passed => "passed",
         bijux_dna_bench::BenchmarkLifecycleStatus::Failed => "failed",
+        bijux_dna_bench::BenchmarkLifecycleStatus::Cancelled => "cancelled",
         bijux_dna_bench::BenchmarkLifecycleStatus::Superseded => "superseded",
         bijux_dna_bench::BenchmarkLifecycleStatus::BlockedExternal => "blocked_external",
     }

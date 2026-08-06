@@ -61,23 +61,25 @@ fn job() -> BenchmarkJobReference {
 }
 
 fn accounting(state: BenchmarkSchedulerTerminalState) -> BenchmarkSchedulerAccounting {
+    let (raw_state, reason) = match state {
+        BenchmarkSchedulerTerminalState::Completed => ("COMPLETED", None),
+        BenchmarkSchedulerTerminalState::Cancelled => {
+            ("CANCELLED", Some("operator requested scheduler cancellation".to_string()))
+        }
+        _ => ("TIMEOUT", Some("scheduler wall-time limit was exceeded".to_string())),
+    };
     BenchmarkSchedulerAccounting {
         scheduler: "slurm".to_string(),
         job_id: "3461001".to_string(),
         state,
-        raw_state: if state == BenchmarkSchedulerTerminalState::Completed {
-            "COMPLETED".to_string()
-        } else {
-            "TIMEOUT".to_string()
-        },
+        raw_state: raw_state.to_string(),
         exit_code: i32::from(state != BenchmarkSchedulerTerminalState::Completed),
         signal: 0,
         elapsed_seconds: 125,
         total_cpu_seconds: 90,
         max_rss_bytes: Some(2 * 1024 * 1024),
         node_list: "n001".to_string(),
-        reason: (state != BenchmarkSchedulerTerminalState::Completed)
-            .then(|| "scheduler wall-time limit was exceeded".to_string()),
+        reason,
     }
 }
 
@@ -369,6 +371,42 @@ fn evidence_operations_retain_running_and_failed_scheduler_evidence() -> anyhow:
         Some("scheduler wall-time limit was exceeded")
     );
     assert_eq!(failed.transitions.last().map(|event| event.accounting.len()), Some(1));
+    Ok(())
+}
+
+#[test]
+fn evidence_operations_retain_cancelled_scheduler_evidence() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-attempt-evidence-cancelled");
+    let initial = planned("attempt-001");
+    initialize_attempt_lifecycle(temporary.path(), &initial)?;
+    record_attempt_ready(temporary.path(), &initial.identity, "2026-08-04T08:01:00Z")?;
+    record_attempt_submission(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:02:00Z",
+        vec![job()],
+    )?;
+
+    let accounting = accounting(BenchmarkSchedulerTerminalState::Cancelled);
+    let cancelled = record_attempt_accounting(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:03:00Z",
+        accounting.clone(),
+    )?;
+    let repeated = record_attempt_accounting(
+        temporary.path(),
+        &initial.identity,
+        "2026-08-04T08:04:00Z",
+        accounting,
+    )?;
+
+    assert_eq!(cancelled, repeated);
+    assert_eq!(cancelled.current_status(), Some(BenchmarkLifecycleStatus::Cancelled));
+    assert_eq!(
+        cancelled.transitions.last().and_then(|event| event.reason.as_deref()),
+        Some("operator requested scheduler cancellation")
+    );
     Ok(())
 }
 

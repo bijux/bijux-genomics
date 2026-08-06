@@ -213,6 +213,7 @@ fn is_terminal_history(attempt: &BenchmarkAttemptRecordV2) -> bool {
         Some(
             BenchmarkLifecycleStatus::Passed
                 | BenchmarkLifecycleStatus::Failed
+                | BenchmarkLifecycleStatus::Cancelled
                 | BenchmarkLifecycleStatus::Superseded
                 | BenchmarkLifecycleStatus::BlockedExternal
         )

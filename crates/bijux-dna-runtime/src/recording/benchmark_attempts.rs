@@ -370,10 +370,11 @@ pub fn record_attempt_running(
     })
 }
 
-/// Derive collecting or failed state from terminal scheduler accounting.
+/// Derive collecting, cancelled, or failed state from terminal scheduler accounting.
 ///
-/// Completed accounting enters collection. Every other terminal state fails the attempt while
-/// preserving raw state, exit data, resource accounting, node identity, and scheduler reason.
+/// Completed accounting enters collection, cancellation remains distinct, and every other
+/// terminal state fails the attempt while preserving raw state, exit data, resource accounting,
+/// node identity, and scheduler reason.
 /// Repeating collection with byte-equivalent accounting is idempotent.
 ///
 /// # Errors
@@ -400,13 +401,18 @@ pub fn record_attempt_accounting(
         {
             bail!("benchmark scheduler accounting has no retained job identity");
         }
-        let status = if accounting.state == BenchmarkSchedulerTerminalState::Completed {
-            BenchmarkLifecycleStatus::Collecting
-        } else {
-            BenchmarkLifecycleStatus::Failed
+        let status = match accounting.state {
+            BenchmarkSchedulerTerminalState::Completed => BenchmarkLifecycleStatus::Collecting,
+            BenchmarkSchedulerTerminalState::Cancelled => BenchmarkLifecycleStatus::Cancelled,
+            BenchmarkSchedulerTerminalState::Failed
+            | BenchmarkSchedulerTerminalState::Timeout
+            | BenchmarkSchedulerTerminalState::Preempted
+            | BenchmarkSchedulerTerminalState::NodeFailure
+            | BenchmarkSchedulerTerminalState::OutOfMemory => BenchmarkLifecycleStatus::Failed,
         };
         let mut transition = next_transition(record, status, observed_at_utc)?;
-        if status == BenchmarkLifecycleStatus::Failed {
+        if matches!(status, BenchmarkLifecycleStatus::Failed | BenchmarkLifecycleStatus::Cancelled)
+        {
             transition.reason = Some(accounting.reason.clone().unwrap_or_else(|| {
                 format!("scheduler reported terminal state {}", accounting.raw_state)
             }));
@@ -579,6 +585,7 @@ fn is_terminal_status(status: BenchmarkLifecycleStatus) -> bool {
         status,
         BenchmarkLifecycleStatus::Passed
             | BenchmarkLifecycleStatus::Failed
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Superseded
             | BenchmarkLifecycleStatus::BlockedExternal
     )

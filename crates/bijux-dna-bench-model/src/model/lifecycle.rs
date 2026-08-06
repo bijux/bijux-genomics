@@ -24,6 +24,7 @@ pub enum BenchmarkLifecycleStatus {
     Collecting,
     Passed,
     Failed,
+    Cancelled,
     Superseded,
     BlockedExternal,
 }

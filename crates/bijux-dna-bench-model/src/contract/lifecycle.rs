@@ -144,9 +144,13 @@ pub fn validate_attempt_record_v2(record: &BenchmarkAttemptRecordV2) -> Result<(
     if status == BenchmarkLifecycleStatus::Collecting && !has_completed_accounting {
         return Err(invalid("collecting benchmark attempt requires completed accounting"));
     }
-    if status == BenchmarkLifecycleStatus::Failed && !jobs.is_empty() && accounting_jobs.is_empty()
+    if matches!(status, BenchmarkLifecycleStatus::Failed | BenchmarkLifecycleStatus::Cancelled)
+        && !jobs.is_empty()
+        && accounting_jobs.is_empty()
     {
-        return Err(invalid("failed submitted benchmark attempt requires terminal accounting"));
+        return Err(invalid(
+            "unsuccessful submitted benchmark attempt requires terminal accounting",
+        ));
     }
     if status == BenchmarkLifecycleStatus::Passed
         && (evidence.is_empty() || !has_completed_accounting)
@@ -265,6 +269,7 @@ pub fn validate_attempt_transition(
     let reason_required = matches!(
         transition.to_status,
         BenchmarkLifecycleStatus::Failed
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Superseded
             | BenchmarkLifecycleStatus::BlockedExternal
     );
@@ -444,12 +449,14 @@ fn allowed_transition(from: BenchmarkLifecycleStatus, to: BenchmarkLifecycleStat
             BenchmarkLifecycleStatus::Running
                 | BenchmarkLifecycleStatus::Collecting
                 | BenchmarkLifecycleStatus::Failed
+                | BenchmarkLifecycleStatus::Cancelled
                 | BenchmarkLifecycleStatus::BlockedExternal
                 | BenchmarkLifecycleStatus::Superseded
         ) | (
             BenchmarkLifecycleStatus::Running,
             BenchmarkLifecycleStatus::Collecting
                 | BenchmarkLifecycleStatus::Failed
+                | BenchmarkLifecycleStatus::Cancelled
                 | BenchmarkLifecycleStatus::BlockedExternal
                 | BenchmarkLifecycleStatus::Superseded
         ) | (
@@ -485,8 +492,9 @@ fn validate_scheduler_accounting(
                 BenchmarkLifecycleStatus::Collecting | BenchmarkLifecycleStatus::Passed
             ) && accounting.exit_code == 0
                 && accounting.signal == 0 => {}
+        BenchmarkSchedulerTerminalState::Cancelled
+            if transition_status == BenchmarkLifecycleStatus::Cancelled => {}
         BenchmarkSchedulerTerminalState::Failed
-        | BenchmarkSchedulerTerminalState::Cancelled
         | BenchmarkSchedulerTerminalState::Timeout
         | BenchmarkSchedulerTerminalState::Preempted
         | BenchmarkSchedulerTerminalState::NodeFailure
@@ -565,6 +573,7 @@ fn requires_scheduler_job(status: BenchmarkLifecycleStatus) -> bool {
         BenchmarkLifecycleStatus::Submitted
             | BenchmarkLifecycleStatus::Running
             | BenchmarkLifecycleStatus::Collecting
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Passed
     )
 }
@@ -574,6 +583,7 @@ fn is_terminal(status: BenchmarkLifecycleStatus) -> bool {
         status,
         BenchmarkLifecycleStatus::Passed
             | BenchmarkLifecycleStatus::Failed
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Superseded
             | BenchmarkLifecycleStatus::BlockedExternal
     )

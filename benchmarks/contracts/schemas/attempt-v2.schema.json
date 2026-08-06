@@ -129,6 +129,7 @@
         "collecting",
         "passed",
         "failed",
+        "cancelled",
         "superseded",
         "blocked_external"
       ],
