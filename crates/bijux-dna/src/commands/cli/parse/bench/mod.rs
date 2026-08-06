@@ -5,6 +5,7 @@ use super::BenchBamCommand;
 mod active_scope;
 mod config;
 mod corpus_fastq;
+mod data_index;
 mod fastq;
 mod local;
 mod matrix;
@@ -22,6 +23,7 @@ pub use self::config::{
     BenchWriteScreenTaxonomyDatabaseLineageArgs,
 };
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
+pub use self::data_index::BenchDataIndexArgs;
 pub use self::fastq::BenchFastqCommand;
 pub use self::fastq::{
     BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDepleteHostArgs,
@@ -227,6 +229,8 @@ pub enum BenchCommand {
     Run(BenchRunArgs),
     #[command(name = "run-micro")]
     RunMicro(BenchRunMicroArgs),
+    #[command(name = "data-index")]
+    DataIndex(BenchDataIndexArgs),
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),

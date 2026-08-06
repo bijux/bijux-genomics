@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
+pub use bijux_dna_bench::publish_benchmark_data_index;
 use bijux_dna_bench::{
     admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
     benchmark_attempt_schema, benchmark_cycle_status_schema,
@@ -17,12 +18,12 @@ use bijux_dna_bench::{
 };
 pub use bijux_dna_bench::{
     AdmittedBenchmarkStageReport, BenchmarkAttemptArchive, BenchmarkAttemptRecord,
-    BenchmarkCycleStatus, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BenchmarkPipelineParameterConfig, BenchmarkStageInterfaceCatalog, BenchmarkStageReport,
-    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
-    BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
-    BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    BenchmarkCycleStatus, BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkPipelineParameterConfig,
+    BenchmarkStageInterfaceCatalog, BenchmarkStageReport, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
 
 pub use crate::internal::public_surface::handlers::bam::BamBenchOutcome;

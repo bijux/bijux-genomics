@@ -18,12 +18,6 @@ assert SPEC is not None and SPEC.loader is not None
 materialization = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = materialization
 SPEC.loader.exec_module(materialization)
-CATALOG_SPEC = importlib.util.spec_from_file_location(
-    "benchmark_data_catalog", BENCHMARKS / "data_catalog.py"
-)
-assert CATALOG_SPEC is not None and CATALOG_SPEC.loader is not None
-data_catalog = importlib.util.module_from_spec(CATALOG_SPEC)
-CATALOG_SPEC.loader.exec_module(data_catalog)
 
 
 class CorpusMaterializationTests(unittest.TestCase):
@@ -111,8 +105,6 @@ class CorpusMaterializationTests(unittest.TestCase):
             self.assertTrue(
                 (data_root / "catalog" / "human-short-read-diversity.json").is_file()
             )
-            index = data_catalog.build_index(data_root / "catalog", data_root)
-            self.assertEqual(index["summary"]["benchmark_eligibility"], {"eligible": 1})
 
     def test_existing_file_must_match_source_identity(self) -> None:
         payload = self.fastq_bytes()

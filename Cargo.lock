@@ -352,6 +352,7 @@ dependencies = [
  "bijux-dna-runtime",
  "bijux-dna-science",
  "bijux-dna-testkit",
+ "chrono",
  "insta",
  "serde",
  "serde_json",

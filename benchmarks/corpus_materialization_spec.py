@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
 import json
 import re
@@ -317,9 +318,8 @@ def verify_materialization(pipeline: dict[str, Any]) -> dict[str, Any]:
 def collect(specification: Path) -> Path:
     try:
         import yaml
-        import data_catalog
     except ImportError as exc:
-        raise SpecificationError("PyYAML and benchmark data catalog are required") from exc
+        raise SpecificationError("PyYAML is required") from exc
     specification = specification.resolve()
     collector_repository = Path(__file__).resolve().parents[1]
     collector_commit = validate_repository(collector_repository)
@@ -382,16 +382,39 @@ def collect(specification: Path) -> Path:
         index_root = data_root / "evidence" / "indexes" / repository_commit
         index_path = index_root / "data-index.json"
         report_path = index_root / "data-index.md"
-        if index_path.exists() or report_path.exists():
-            raise SpecificationError("refusing to replace governed data index")
-        try:
-            index = data_catalog.build_index(data_root / "catalog", data_root)
-            data_catalog.write_json(index_path, index)
-            report_path.parent.mkdir(parents=True, exist_ok=True)
-            report_path.write_text(data_catalog.render_report(index), encoding="utf-8")
-        except data_catalog.DataCatalogError as exc:
+        completed = subprocess.run(
+            [
+                "cargo",
+                "run",
+                "-q",
+                "-p",
+                "bijux-dna",
+                "--",
+                "bench",
+                "data-index",
+                "--catalog-root",
+                str(data_root / "catalog"),
+                "--data-root",
+                str(data_root),
+                "--output",
+                str(index_path),
+                "--report",
+                str(report_path),
+                "--created-at-utc",
+                dt.datetime.now(dt.timezone.utc).isoformat(),
+            ],
+            cwd=collector_repository,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode != 0:
             passed = False
-            failure = str(exc)
+            failure = (
+                completed.stderr.strip()
+                or completed.stdout.strip()
+                or f"data-index command failed with exit code {completed.returncode}"
+            )
             verified = None
     accounting_path.write_text(json.dumps(accounting, indent=2, sort_keys=True) + "\n")
     evidence = {

@@ -81,6 +81,23 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::DataIndex(args) => {
+                    let index = bijux_dna_api::v1::api::bench::publish_benchmark_data_index(
+                        &bijux_dna_api::v1::api::bench::BenchmarkDataIndexPublicationRequest {
+                            index: bijux_dna_api::v1::api::bench::BenchmarkDataIndexRequest {
+                                catalog_root: args.catalog_root.clone(),
+                                data_root: args.data_root.clone(),
+                                created_at_utc: args.created_at_utc.clone(),
+                            },
+                            index_path: args.output.clone(),
+                            report_path: args.report.clone(),
+                        },
+                    )?;
+                    println!("records={}", index.summary.record_count);
+                    println!("files={}", index.summary.file_count);
+                    println!("index={}", args.output.display());
+                    println!("report={}", args.report.display());
+                }
                 BenchCommand::Status => {
                     let cwd = std::env::current_dir()?;
                     let status = crate::commands::bench_suite::bench_status(&cwd);

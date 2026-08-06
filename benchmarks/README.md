@@ -140,17 +140,18 @@ data index from the study catalog:
 ```console
 commit=$(git rev-parse HEAD)
 evidence="$STUDY/data/evidence/indexes/$commit"
-python3 -B benchmarks/data_catalog.py \
+cargo run -q -p bijux-dna -- bench data-index \
   --catalog-root "$STUDY/data/catalog" \
   --data-root "$STUDY/data" \
   --output "$evidence/data-index.json" \
-  --report "$evidence/data-index.md"
+  --report "$evidence/data-index.md" \
+  --created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
-The index re-hashes every admitted file and publishes only `study://data/...`
-identities. A record remains ineligible when file integrity, source identity,
-retrieval or admission time, access classification, redistribution policy, or
-known limitations are missing.
+The `bijux-dna-bench` authority re-hashes every admitted file and publishes
+only `study://data/...` identities. A record remains ineligible when file
+integrity, source identity, retrieval or admission time, access classification,
+redistribution policy, or known limitations are missing.
 
 [`contracts/stage-campaigns.toml`](contracts/stage-campaigns.toml) assigns stable `run-2001+` campaign
 identities and labels each execution as `qualification` or `comparative`.

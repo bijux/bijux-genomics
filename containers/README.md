@@ -279,18 +279,19 @@ The validator re-hashes every declared input, image, and frozen repository
 before submission. A missing file or checksum mismatch is a hard failure; the
 executor never substitutes a fixture.
 
-Scientific data selection and admission belong to the root benchmark authority,
-not to container runtime contracts. Container runs consume its verified index
+Scientific data selection and admission belong to `bijux-dna-bench`, not to
+container runtime contracts. Container runs consume its verified index
 instead of encoding knowledge of individual catalog shapes:
 
 ```console
 study=/home/bijan/lu2024-12-24/Dardel/STUDY
 evidence="$study/data/evidence/indexes/$(git rev-parse HEAD)"
-python3 -B benchmarks/data_catalog.py \
+cargo run -q -p bijux-dna -- bench data-index \
   --catalog-root "$study/data/catalog" \
   --data-root "$study/data" \
   --output "$evidence/data-index.json" \
-  --report "$evidence/data-index.md"
+  --report "$evidence/data-index.md" \
+  --created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 The benchmark-owned index recalculates every governed file SHA-256, replaces execution-site
