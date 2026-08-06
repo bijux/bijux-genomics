@@ -2,6 +2,7 @@
 //! Typed models for bench (suite, observation, summary, decision).
 //! Must not perform IO or depend on repo/policy/compare logic.
 
+pub mod admission;
 pub mod corpus;
 pub mod execution;
 pub mod graph;
@@ -20,24 +21,31 @@ pub mod suite;
 pub mod summary;
 
 #[allow(unused_imports)]
+pub use admission::{
+    benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
+    BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+#[allow(unused_imports)]
 pub use corpus::{
     benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
-    benchmark_data_index_schema, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
-    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BackendComparisonSpec,
-    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex, BenchmarkDataIndexFile,
-    BenchmarkDataIndexRecord, BenchmarkDataIndexSummary, BenchmarkEligibility,
-    BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec, CorpusDomain,
-    CorpusScale, DataIntegrityStatus, DriftScenarioSpec, FastqReadLengthExpectationSample,
+    benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCorpus,
+    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
+    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
+    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec,
+    CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
+    FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
 #[allow(unused_imports)]
 pub use execution::{
-    benchmark_execution_spec_schema, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
-    BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
-    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
-    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
-    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
-    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
+    benchmark_effective_parameters_schema, benchmark_execution_spec_schema,
+    BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
+    BenchmarkEffectiveParameterValue, BenchmarkEffectiveParameters, BenchmarkExecutionAcceptance,
+    BenchmarkExecutionCachePolicy, BenchmarkExecutionCommands, BenchmarkExecutionDeterminism,
+    BenchmarkExecutionDownstreamProbe, BenchmarkExecutionImage, BenchmarkExecutionInput,
+    BenchmarkExecutionInputKind, BenchmarkExecutionInterface, BenchmarkExecutionMeasurement,
+    BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
     BenchmarkExecutionSpec,
 };
@@ -50,14 +58,16 @@ pub use interfaces::{
 };
 #[allow(unused_imports)]
 pub use lifecycle::{
-    benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
-    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
-    BenchmarkAttemptDisposition, BenchmarkAttemptDocument, BenchmarkAttemptIdentity,
-    BenchmarkAttemptMigrationEntry, BenchmarkAttemptMigrationExclusion,
-    BenchmarkAttemptMigrationLedger, BenchmarkAttemptMigrationLedgerEntry,
-    BenchmarkAttemptMigrationPlan, BenchmarkAttemptMigrationState, BenchmarkAttemptRecord,
-    BenchmarkAttemptRecordV2, BenchmarkAttemptTransition, BenchmarkAttemptV1MigrationContext,
-    BenchmarkCampaignPlan, BenchmarkCycleDocument, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
+    benchmark_attempt_migration_verification_schema, benchmark_campaign_plan_schema,
+    benchmark_scheduler_observation_schema, BenchmarkArchiveFileRecord,
+    BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
+    BenchmarkAttemptDocument, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
+    BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
+    BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
+    BenchmarkAttemptMigrationState, BenchmarkAttemptMigrationVerification,
+    BenchmarkAttemptMigrationVerificationEntry, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
+    BenchmarkAttemptTransition, BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan,
+    BenchmarkCycleDocument, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
     BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
     BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
     BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
@@ -65,9 +75,10 @@ pub use lifecycle::{
 };
 #[allow(unused_imports)]
 pub use materialization::{
-    corpus_acquisition_plan_schema, governed_data_catalog_schema, CorpusAcquisitionFile,
-    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, GovernedDataCatalog, GovernedDataCatalogFile,
+    corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
+    governed_data_catalog_schema, CorpusAcquisitionFile, CorpusAcquisitionLayout,
+    CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusMaterializationDisposition,
+    CorpusMaterializationPublication, GovernedDataCatalog, GovernedDataCatalogFile,
     GovernedDataCatalogSample,
 };
 pub use observation::BenchmarkObservation;

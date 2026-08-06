@@ -11,7 +11,8 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_attempt_identity, AdmittedBamCorpus, BenchmarkAcceptanceExpectedValue,
     BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator, BenchmarkAttemptIdentity,
-    BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
+    BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkExecutionAcceptance,
+    BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
@@ -110,13 +111,22 @@ pub fn prepare_bam_endogenous_content_material_from_corpus(
             defaults_provider:
                 "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)",
         },
-        serde_json::json!({
-            "schema_version": "bijux.bam.params.endogenous_content.v1",
-            "primary_exclude_flags": 2304,
-            "mapped_primary_exclude_flags": 2308,
-            "mapped_nonduplicate_primary_exclude_flags": 3332,
-            "host_reference_scope": "bam_header_equcab3",
-        }),
+        BTreeMap::from([
+            (
+                "schema_version".to_string(),
+                EffectiveValue::Text("bijux.bam.params.endogenous_content.v1".to_string()),
+            ),
+            ("primary_exclude_flags".to_string(), EffectiveValue::Integer(2304)),
+            ("mapped_primary_exclude_flags".to_string(), EffectiveValue::Integer(2308)),
+            (
+                "mapped_nonduplicate_primary_exclude_flags".to_string(),
+                EffectiveValue::Integer(3332),
+            ),
+            (
+                "host_reference_scope".to_string(),
+                EffectiveValue::Text("bam_header_equcab3".to_string()),
+            ),
+        ]),
     )?;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),

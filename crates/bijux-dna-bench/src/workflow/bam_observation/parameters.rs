@@ -7,9 +7,10 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_pipeline_parameter_config;
 use bijux_dna_bench_model::{
+    BenchmarkEffectiveParameterValue, BenchmarkEffectiveParameters,
     BenchmarkExecutionParameterEvidence, BenchmarkPipelineParameterConfig,
+    BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
 };
-use serde::Serialize;
 
 pub(in crate::workflow) struct BamParameterPolicy<'a> {
     pub(in crate::workflow) stage_id: &'a str,
@@ -17,22 +18,12 @@ pub(in crate::workflow) struct BamParameterPolicy<'a> {
     pub(in crate::workflow) defaults_provider: &'a str,
 }
 
-#[derive(Serialize)]
-struct EffectiveParameters<'a, T> {
-    schema_version: &'static str,
-    stage_id: &'a str,
-    parameter_schema_version: &'a str,
-    defaults_provider: &'a str,
-    overrides: BTreeMap<String, String>,
-    resolved_by_sample: BTreeMap<&'a str, T>,
-}
-
 pub(in crate::workflow) fn ensure_parameter_evidence(
     repository_root: &Path,
     attempt_directory: &Path,
     sample_id: &str,
     policy: BamParameterPolicy<'_>,
-    resolved: impl Serialize,
+    resolved: BTreeMap<String, BenchmarkEffectiveParameterValue>,
 ) -> Result<BenchmarkExecutionParameterEvidence> {
     let source = repository_root.join("benchmarks/contracts/config-pipeline-parameters.yml");
     let source_bytes = bijux_dna_infra::read_to_end_bounded(&source, 16 * 1024 * 1024)
@@ -53,13 +44,13 @@ pub(in crate::workflow) fn ensure_parameter_evidence(
 
     let overrides_path = attempt_directory.join("config-pipeline-parameters.yml");
     ensure_bytes(&overrides_path, &source_bytes)?;
-    let effective = EffectiveParameters {
-        schema_version: "bijux.benchmark.effective_parameters.v1",
-        stage_id: policy.stage_id,
-        parameter_schema_version: policy.schema_version,
-        defaults_provider: policy.defaults_provider,
+    let effective = BenchmarkEffectiveParameters {
+        schema_version: BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1.to_string(),
+        stage_id: policy.stage_id.to_string(),
+        parameter_schema_version: policy.schema_version.to_string(),
+        defaults_provider: policy.defaults_provider.to_string(),
         overrides: BTreeMap::new(),
-        resolved_by_sample: BTreeMap::from([(sample_id, resolved)]),
+        resolved_by_sample: BTreeMap::from([(sample_id.to_string(), resolved)]),
     };
     let mut effective_bytes = serde_json::to_vec_pretty(&effective)?;
     effective_bytes.push(b'\n');

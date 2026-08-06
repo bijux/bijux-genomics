@@ -2,13 +2,15 @@ use bijux_dna_bench_model::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
     validate_attempt_record_v2, validate_cycle_status_v2, validate_scheduler_observation,
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
-    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
-    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
-    BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
-    BenchmarkSchedulerObservedState, BenchmarkSchedulerTerminalState,
-    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationState,
+    BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
+    BenchmarkAttemptRecordV2, BenchmarkAttemptTransition, BenchmarkCampaignPlan,
+    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
+    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
+    BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
+    BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
+    BenchmarkSchedulerTerminalState, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
 };
 
 fn run_identity() -> BenchmarkRunIdentity {
@@ -218,6 +220,12 @@ fn checked_lifecycle_schemas_match_model_authority() -> anyhow::Result<()> {
             )?,
         ),
         (
+            "attempt-migration-verification.schema.json",
+            serde_json::to_value(
+                bijux_dna_bench_model::benchmark_attempt_migration_verification_schema(),
+            )?,
+        ),
+        (
             "cycle-status-v1.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_status_schema())?,
         ),
@@ -237,6 +245,36 @@ fn checked_lifecycle_schemas_match_model_authority() -> anyhow::Result<()> {
         let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
         assert_eq!(checked, generated, "lifecycle schema drifted: {name}");
     }
+    Ok(())
+}
+
+#[test]
+fn migration_verification_round_trips_and_rejects_schema_drift() -> anyhow::Result<()> {
+    let verification = BenchmarkAttemptMigrationVerification {
+        schema_version: BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1.to_string(),
+        plan_id: "1".repeat(64),
+        entries: vec![BenchmarkAttemptMigrationVerificationEntry {
+            source: "study://containers/evidence/failures/run-2042".to_string(),
+            target: "study://results/benchmark-attempts/failures/run-2042/attempt-001".to_string(),
+            state: BenchmarkAttemptMigrationState::Applied,
+            current_location: "study://results/benchmark-attempts/failures/run-2042/attempt-001"
+                .to_string(),
+            files: vec![BenchmarkArchiveFileRecord {
+                path: "archive.json".to_string(),
+                size_bytes: 1,
+                sha256: "2".repeat(64),
+            }],
+        }],
+    };
+    let value = serde_json::to_value(&verification)?;
+    assert_eq!(
+        serde_json::from_value::<BenchmarkAttemptMigrationVerification>(value.clone())?,
+        verification
+    );
+    let mut unsupported = value;
+    unsupported["schema_version"] =
+        serde_json::json!("bijux.benchmark.attempt_migration_verification.v2");
+    assert!(serde_json::from_value::<BenchmarkAttemptMigrationVerification>(unsupported).is_err());
     Ok(())
 }
 

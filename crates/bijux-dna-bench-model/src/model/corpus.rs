@@ -4,9 +4,12 @@
 use std::collections::BTreeMap;
 
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
-use serde::{Deserialize, Serialize};
+use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
-use crate::contract::{BENCHMARK_DATA_INDEX_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1};
+use crate::contract::{
+    BENCHMARK_DATA_INDEX_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1,
+    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+};
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
@@ -267,6 +270,21 @@ pub struct FastqReadLengthExpectations {
     pub samples: Vec<FastqReadLengthExpectationSample>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqProfileReadsExpectationsProvenance {
+    #[serde(deserialize_with = "deserialize_profile_reads_expectations_schema_version")]
+    #[schemars(schema_with = "profile_reads_expectations_schema_version")]
+    pub schema_version: String,
+    pub corpus_id: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub data_index_sha256: String,
+    pub catalog_sha256: String,
+    pub read_length_derivation_sha256: String,
+    pub expected_profile_sha256: String,
+}
+
 #[must_use]
 pub fn benchmark_corpus_manifest_schema() -> Schema {
     schemars::schema_for!(BenchmarkCorpusManifest)
@@ -282,6 +300,11 @@ pub fn benchmark_data_index_schema() -> Schema {
     schemars::schema_for!(BenchmarkDataIndex)
 }
 
+#[must_use]
+pub fn fastq_profile_reads_expectations_schema() -> Schema {
+    schemars::schema_for!(FastqProfileReadsExpectationsProvenance)
+}
+
 fn benchmark_data_index_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "const": BENCHMARK_DATA_INDEX_SCHEMA_V1})
 }
@@ -292,4 +315,22 @@ fn benchmark_corpus_schema_version(_: &mut SchemaGenerator) -> Schema {
 
 fn benchmark_bundle_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "const": BUNDLE_SCHEMA_V1})
+}
+
+fn profile_reads_expectations_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1})
+}
+
+fn deserialize_profile_reads_expectations_schema_version<'de, D>(
+    deserializer: D,
+) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    if value == FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1 {
+        Ok(value)
+    } else {
+        Err(D::Error::custom(format!("unsupported FASTQ profile expectation: {value}")))
+    }
 }

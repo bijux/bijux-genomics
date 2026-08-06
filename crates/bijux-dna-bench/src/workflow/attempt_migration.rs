@@ -6,7 +6,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use walkdir::WalkDir;
 
 use bijux_dna_bench_model::{
@@ -14,28 +14,11 @@ use bijux_dna_bench_model::{
     BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
     BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
     BenchmarkAttemptMigrationState, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
 };
-
-const VERIFICATION_SCHEMA_V1: &str = "bijux.benchmark.attempt_migration_verification.v1";
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkAttemptMigrationVerificationEntry {
-    pub source: String,
-    pub target: String,
-    pub state: BenchmarkAttemptMigrationState,
-    pub current_location: String,
-    pub files: Vec<BenchmarkArchiveFileRecord>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkAttemptMigrationVerification {
-    pub schema_version: String,
-    pub plan_id: String,
-    pub entries: Vec<BenchmarkAttemptMigrationVerificationEntry>,
-}
+pub use bijux_dna_bench_model::{
+    BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
+};
 
 #[derive(Debug, Deserialize)]
 struct PipelineContract {
@@ -214,7 +197,7 @@ pub fn verify_attempt_migration(
         });
     }
     Ok(BenchmarkAttemptMigrationVerification {
-        schema_version: VERIFICATION_SCHEMA_V1.to_string(),
+        schema_version: BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1.to_string(),
         plan_id: plan.plan_id,
         entries,
     })

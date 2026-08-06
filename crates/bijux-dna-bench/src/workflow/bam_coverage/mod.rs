@@ -11,7 +11,8 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_attempt_identity, AdmittedBamCorpus, BenchmarkAcceptanceExpectedValue,
     BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator, BenchmarkAttemptIdentity,
-    BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
+    BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkExecutionAcceptance,
+    BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
@@ -93,12 +94,22 @@ pub fn prepare_bam_coverage_material_from_corpus(
             schema_version: "bijux.bam.params.coverage.v1",
             defaults_provider: "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)",
         },
-        serde_json::json!({
-            "schema_version": "bijux.bam.params.coverage.v1",
-            "regions": null,
-            "depth_thresholds": [1, 3, 5],
-            "regime_mode": "advisory_and_enforced",
-        }),
+        BTreeMap::from([
+            (
+                "schema_version".to_string(),
+                EffectiveValue::Text("bijux.bam.params.coverage.v1".to_string()),
+            ),
+            ("regions".to_string(), EffectiveValue::Null),
+            (
+                "depth_thresholds".to_string(),
+                EffectiveValue::List(vec![
+                    EffectiveValue::Integer(1),
+                    EffectiveValue::Integer(3),
+                    EffectiveValue::Integer(5),
+                ]),
+            ),
+            ("regime_mode".to_string(), EffectiveValue::Text("advisory_and_enforced".to_string())),
+        ]),
     )?;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),

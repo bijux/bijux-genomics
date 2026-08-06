@@ -6,6 +6,8 @@ pub const CORPUS_SCHEMA_V1: &str = "bijux.bench.corpus.v1";
 pub const BUNDLE_SCHEMA_V1: &str = "bijux.bench.bundle.v1";
 pub const BENCHMARK_DATA_INDEX_SCHEMA_V1: &str = "bijux.data_index.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V1: &str = "bijux.benchmark.corpus_acquisition.v1";
+pub const BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1: &str =
+    "bijux.benchmark.corpus_materialization_publication.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
 pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
@@ -17,6 +19,8 @@ pub const BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1: &str =
     "bijux.benchmark.attempt_migration_plan.v1";
 pub const BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1: &str =
     "bijux.benchmark.attempt_migration_ledger.v1";
+pub const BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1: &str =
+    "bijux.benchmark.attempt_migration_verification.v1";
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V1: &str = "bijux.benchmark.cycle_status.v1";
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V2: &str = "bijux.benchmark.cycle_status.v2";
 pub const BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.benchmark.campaign_plan.v1";
@@ -27,6 +31,9 @@ pub const BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1: &str = "bijux.benchmark.evidence_bo
 pub const BENCHMARK_CITATION_RECORD_SCHEMA_V1: &str = "bijux.benchmark.citation_record.v1";
 pub const BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.replay_receipt.v1";
 pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
+pub const BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.execution_admission.v1";
+pub const BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1: &str =
+    "bijux.benchmark.effective_parameters.v1";
 pub const BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1: &str =
     "bijux.benchmark.scheduler_observation.v1";
 pub const BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1: &str = "bijux.benchmark.stage_campaigns.v1";
@@ -43,3 +50,5 @@ pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.profile_read_lengths.expectations.v1";
 pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2: &str =
     "bijux.benchmark.fastq.profile_read_lengths.expectations.v2";
+pub const FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1: &str =
+    "bijux.benchmark.fastq.profile_reads.expectations.v1";

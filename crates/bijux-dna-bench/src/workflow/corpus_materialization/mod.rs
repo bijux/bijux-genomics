@@ -7,16 +7,15 @@ use std::path::{Component, Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
+pub use bijux_dna_bench_model::CorpusMaterializationPublication;
 use bijux_dna_bench_model::{
     validate_corpus_acquisition_plan, validate_governed_data_catalog, CorpusAcquisitionPlan,
-    GovernedDataCatalog,
+    GovernedDataCatalog, BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1,
 };
 use bijux_dna_db_ena::{
     download_verified_files, verify_existing_files, VerifiedDownloadDisposition,
     VerifiedDownloadRequest,
 };
-use serde::{Deserialize, Serialize};
-
 use chrono::{DateTime, FixedOffset};
 
 mod catalog;
@@ -32,16 +31,6 @@ pub struct CorpusMaterializationRequest {
     pub retries: usize,
     pub timeout_seconds: u64,
     pub admitted_at_utc: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct CorpusMaterializationPublication {
-    pub catalog_path: PathBuf,
-    pub catalog_sha256: String,
-    pub downloaded_files: u64,
-    pub verified_existing_files: u64,
-    pub catalog: GovernedDataCatalog,
 }
 
 #[derive(Debug, Clone)]
@@ -128,6 +117,7 @@ pub fn materialize_fastq_corpus(
     let verified_existing_files =
         count_disposition(&transfers, VerifiedDownloadDisposition::VerifiedExisting)?;
     Ok(CorpusMaterializationPublication {
+        schema_version: BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1.to_string(),
         catalog_path,
         catalog_sha256,
         downloaded_files,
@@ -215,6 +205,7 @@ fn revalidate_existing_catalog(
     let catalog_sha256 =
         bijux_dna_infra::hash_file_sha256(catalog_path).context("hash admitted catalog")?;
     Ok(CorpusMaterializationPublication {
+        schema_version: BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1.to_string(),
         catalog_path: catalog_path.to_path_buf(),
         catalog_sha256,
         downloaded_files: 0,

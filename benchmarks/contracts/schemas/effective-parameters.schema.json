@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "BenchmarkEffectiveParameterValue": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/BenchmarkEffectiveParameterValue"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/BenchmarkEffectiveParameterValue"
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "BenchmarkParameterValue": {
+      "anyOf": [
+        {
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "defaults_provider": {
+      "type": "string"
+    },
+    "overrides": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BenchmarkParameterValue"
+      },
+      "type": "object"
+    },
+    "parameter_schema_version": {
+      "type": "string"
+    },
+    "resolved_by_sample": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "$ref": "#/$defs/BenchmarkEffectiveParameterValue"
+        },
+        "type": "object"
+      },
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.effective_parameters.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "parameter_schema_version",
+    "defaults_provider",
+    "overrides",
+    "resolved_by_sample"
+  ],
+  "title": "BenchmarkEffectiveParameters",
+  "type": "object"
+}

@@ -1,10 +1,15 @@
 //! Owner: bijux-dna-bench-model
 //! Typed source-acquisition and admitted-catalog contracts for real benchmark corpora.
 
-use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
-use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
-use crate::contract::{CORPUS_ACQUISITION_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1};
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
+
+use crate::contract::{
+    BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1,
+};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -138,6 +143,19 @@ pub struct GovernedDataCatalog {
     pub known_limitations: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CorpusMaterializationPublication {
+    #[serde(deserialize_with = "deserialize_materialization_publication_schema_version")]
+    #[schemars(schema_with = "materialization_publication_schema_version")]
+    pub schema_version: String,
+    pub catalog_path: PathBuf,
+    pub catalog_sha256: String,
+    pub downloaded_files: u64,
+    pub verified_existing_files: u64,
+    pub catalog: GovernedDataCatalog,
+}
+
 #[must_use]
 pub fn corpus_acquisition_plan_schema() -> Schema {
     schemars::schema_for!(CorpusAcquisitionPlan)
@@ -148,10 +166,36 @@ pub fn governed_data_catalog_schema() -> Schema {
     schemars::schema_for!(GovernedDataCatalog)
 }
 
+#[must_use]
+pub fn corpus_materialization_publication_schema() -> Schema {
+    schemars::schema_for!(CorpusMaterializationPublication)
+}
+
 fn corpus_acquisition_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "const": CORPUS_ACQUISITION_SCHEMA_V1})
 }
 
 fn governed_data_catalog_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "const": GOVERNED_DATA_CATALOG_SCHEMA_V1})
+}
+
+fn materialization_publication_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1
+    })
+}
+
+fn deserialize_materialization_publication_schema_version<'de, D>(
+    deserializer: D,
+) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    if value == BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1 {
+        Ok(value)
+    } else {
+        Err(D::Error::custom(format!("unsupported corpus materialization publication: {value}")))
+    }
 }

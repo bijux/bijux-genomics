@@ -10,7 +10,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_attempt_identity, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
-    BenchmarkAcceptanceOperator, BenchmarkAttemptIdentity, BenchmarkExecutionAcceptance,
+    BenchmarkAcceptanceOperator, BenchmarkAttemptIdentity,
+    BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkExecutionAcceptance,
     BenchmarkExecutionDeterminism, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
     BenchmarkLifecycleStatus,
 };
@@ -111,12 +112,15 @@ pub fn prepare_bam_genotyping_material_from_corpus(
             defaults_provider:
                 "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",
         },
-        serde_json::json!({
-            "schema_version": "bijux.bam.params.genotyping.v1",
-            "caller": "bcftools",
-            "min_posterior": 0.8,
-            "min_call_rate": 0.7,
-        }),
+        BTreeMap::from([
+            (
+                "schema_version".to_string(),
+                EffectiveValue::Text("bijux.bam.params.genotyping.v1".to_string()),
+            ),
+            ("caller".to_string(), EffectiveValue::Text("bcftools".to_string())),
+            ("min_posterior".to_string(), EffectiveValue::Number(0.8)),
+            ("min_call_rate".to_string(), EffectiveValue::Number(0.7)),
+        ]),
     )?;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),

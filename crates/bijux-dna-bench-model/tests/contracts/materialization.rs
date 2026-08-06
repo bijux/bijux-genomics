@@ -1,8 +1,10 @@
 use bijux_dna_bench_model::{
     validate_corpus_acquisition_plan, validate_governed_data_catalog, CorpusAcquisitionFile,
     CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, GovernedDataCatalog, GovernedDataCatalogFile,
-    GovernedDataCatalogSample, CORPUS_ACQUISITION_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    CorpusMaterializationDisposition, CorpusMaterializationPublication, GovernedDataCatalog,
+    GovernedDataCatalogFile, GovernedDataCatalogSample,
+    BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1,
 };
 
 #[test]
@@ -58,6 +60,44 @@ fn persisted_contracts_reject_unknown_fields() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("serialized catalog is not an object"))?
         .insert("unowned".to_string(), true.into());
     assert!(serde_json::from_value::<GovernedDataCatalog>(catalog).is_err());
+    Ok(())
+}
+
+#[test]
+fn materialization_publication_round_trips_and_matches_generated_schema() -> anyhow::Result<()> {
+    let publication = CorpusMaterializationPublication {
+        schema_version: BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1.to_string(),
+        catalog_path: "/study/data/catalog/human-short-read-diversity.json".into(),
+        catalog_sha256: "e".repeat(64),
+        downloaded_files: 1,
+        verified_existing_files: 0,
+        catalog: catalog(),
+    };
+    let value = serde_json::to_value(&publication)?;
+    assert_eq!(
+        serde_json::from_value::<CorpusMaterializationPublication>(value.clone())?,
+        publication
+    );
+    let mut unsupported = value;
+    unsupported["schema_version"] =
+        serde_json::json!("bijux.benchmark.corpus_materialization_publication.v2");
+    assert!(serde_json::from_value::<CorpusMaterializationPublication>(unsupported).is_err());
+
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let path = repository_root
+        .join("benchmarks/contracts/schemas/corpus-materialization-publication.schema.json");
+    let generated =
+        serde_json::to_value(bijux_dna_bench_model::corpus_materialization_publication_schema())?;
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(&generated)?;
+        bytes.push(b'\n');
+        std::fs::write(&path, bytes)?;
+    }
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+    assert_eq!(checked, generated);
     Ok(())
 }
 

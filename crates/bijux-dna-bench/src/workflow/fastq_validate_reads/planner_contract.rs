@@ -4,7 +4,7 @@
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 const CONTRACT_PATH: &str =
     "benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json";
@@ -28,7 +28,7 @@ pub(super) struct PlannerLayoutDefaults {
     pub paired_end: PlannerEffectiveParameters,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct PlannerEffectiveParameters {
     pub schema_version: String,

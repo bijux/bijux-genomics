@@ -7,9 +7,10 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_pipeline_parameter_config;
 use bijux_dna_bench_model::{
+    BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkEffectiveParameters,
     BenchmarkExecutionParameterEvidence, BenchmarkParameterValue, BenchmarkPipelineParameterConfig,
+    BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
 };
-use serde::Serialize;
 
 use super::super::fastq_profile_reads::FastqCampaignSample;
 use super::planner_contract::{load_validation_planner_contract, PlannerEffectiveParameters};
@@ -17,16 +18,6 @@ use super::planner_contract::{load_validation_planner_contract, PlannerEffective
 const STAGE_ID: &str = "fastq.validate_reads";
 const PARAMETER_SCHEMA: &str = "bijux.fastq.params.validate_reads.v1";
 const DEFAULTS_PROVIDER: &str = "bijux_dna_domain_fastq::params::defaults::validate_defaults";
-
-#[derive(Serialize)]
-struct EffectiveParameters {
-    schema_version: &'static str,
-    stage_id: &'static str,
-    parameter_schema_version: &'static str,
-    defaults_provider: &'static str,
-    overrides: BTreeMap<&'static str, BenchmarkParameterValue>,
-    resolved_by_sample: BTreeMap<String, PlannerEffectiveParameters>,
-}
 
 pub(super) fn ensure_parameter_evidence(
     repository_root: &Path,
@@ -59,14 +50,14 @@ pub(super) fn ensure_parameter_evidence(
 
     let overrides_path = attempt_directory.join("config-pipeline-parameters.yml");
     ensure_bytes(&overrides_path, &source_bytes)?;
-    let effective = EffectiveParameters {
-        schema_version: "bijux.benchmark.effective_parameters.v1",
-        stage_id: STAGE_ID,
-        parameter_schema_version: PARAMETER_SCHEMA,
-        defaults_provider: DEFAULTS_PROVIDER,
+    let effective = BenchmarkEffectiveParameters {
+        schema_version: BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        parameter_schema_version: PARAMETER_SCHEMA.to_string(),
+        defaults_provider: DEFAULTS_PROVIDER.to_string(),
         overrides: BTreeMap::from([
-            ("threads", BenchmarkParameterValue::Integer(4)),
-            ("validation_mode", BenchmarkParameterValue::Text("strict".to_string())),
+            ("threads".to_string(), BenchmarkParameterValue::Integer(4)),
+            ("validation_mode".to_string(), BenchmarkParameterValue::Text("strict".to_string())),
         ]),
         resolved_by_sample: samples
             .iter()
@@ -79,7 +70,7 @@ pub(super) fn ensure_parameter_evidence(
                 if parameters.threads != 4 || parameters.validation_mode != "strict" {
                     bail!("planner validation defaults differ from campaign policy");
                 }
-                Ok((sample.sample_id.clone(), parameters))
+                Ok((sample.sample_id.clone(), effective_parameter_values(&parameters)))
             })
             .collect::<Result<BTreeMap<_, _>>>()?,
     };
@@ -96,6 +87,18 @@ pub(super) fn ensure_parameter_evidence(
         effective_path: "effective-parameters.json".to_string(),
         effective_sha256: bijux_dna_infra::hash_bytes_sha256(&effective_bytes),
     })
+}
+
+fn effective_parameter_values(
+    parameters: &PlannerEffectiveParameters,
+) -> BTreeMap<String, EffectiveValue> {
+    BTreeMap::from([
+        ("schema_version".to_string(), EffectiveValue::Text(parameters.schema_version.clone())),
+        ("threads".to_string(), EffectiveValue::Integer(parameters.threads.cast_signed())),
+        ("validation_mode".to_string(), EffectiveValue::Text(parameters.validation_mode.clone())),
+        ("paired_mode".to_string(), EffectiveValue::Text(parameters.paired_mode.clone())),
+        ("pair_sync_policy".to_string(), EffectiveValue::Text(parameters.pair_sync_policy.clone())),
+    ])
 }
 
 fn ensure_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
