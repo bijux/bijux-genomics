@@ -41,6 +41,9 @@ pub(super) fn validate_specification(
     require_git_commit(&spec.repository_commit)?;
     require_sha256(&spec.executable_sha256, "executable SHA-256")?;
     require_sha256(&spec.plan_sha256, "plan SHA-256")?;
+    if let Some(sha256) = &spec.existing_catalog_sha256 {
+        require_sha256(sha256, "existing catalog SHA-256")?;
+    }
     require_scheduler_token(&spec.resources.account, "account")?;
     require_scheduler_token(&spec.resources.partition, "partition")?;
     require_walltime(&spec.resources.walltime)?;
@@ -94,6 +97,18 @@ pub(super) fn validate_specification(
         bail!("corpus materialization evidence root must identify one immutable run");
     }
     Ok(plan)
+}
+
+pub(super) fn validate_catalog_precondition(spec: &CorpusMaterializationSlurmSpec) -> Result<()> {
+    let data_root = canonical_directory(&spec.data_root, "governed data root")?;
+    let catalog_path = data_root.join("catalog").join(format!("{}.json", spec.portfolio_id));
+    match &spec.existing_catalog_sha256 {
+        Some(sha256) => {
+            require_exact_file(&catalog_path, sha256, "existing governed data catalog")?;
+        }
+        None => require_absent(&catalog_path, "governed data catalog")?,
+    }
+    Ok(())
 }
 
 pub(super) fn validate_catalog_closure(
@@ -224,6 +239,14 @@ pub(super) fn canonical_directory(path: &Path, label: &str) -> Result<PathBuf> {
         bail!("{label} path is not canonical");
     }
     Ok(canonical)
+}
+
+fn require_absent(path: &Path, label: &str) -> Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(_) => bail!("{label} already exists: {}", path.display()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error).with_context(|| format!("inspect {label} {}", path.display())),
+    }
 }
 
 fn require_run_id(value: &str) -> Result<()> {

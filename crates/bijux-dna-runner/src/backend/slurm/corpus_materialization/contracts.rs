@@ -37,6 +37,8 @@ pub struct CorpusMaterializationSlurmSpec {
     pub executable_sha256: String,
     pub plan_path: PathBuf,
     pub plan_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub existing_catalog_sha256: Option<String>,
     pub data_root: PathBuf,
     pub evidence_root: PathBuf,
     pub resources: CorpusMaterializationSlurmResources,

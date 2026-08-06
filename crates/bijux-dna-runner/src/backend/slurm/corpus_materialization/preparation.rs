@@ -13,7 +13,8 @@ use super::contracts::{
     CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
-    canonical_directory, ensure_json_identity, require_utc_timestamp, validate_specification,
+    canonical_directory, ensure_json_identity, require_utc_timestamp,
+    validate_catalog_precondition, validate_specification,
 };
 use crate::backend::slurm::SlurmSubmitRequest;
 
@@ -21,15 +22,14 @@ use crate::backend::slurm::SlurmSubmitRequest;
 ///
 /// # Errors
 /// Returns an error for authority drift, unsafe paths, conflicting evidence, invalid resources,
-/// an existing admitted catalog, or an invalid submission timestamp.
+/// catalog precondition drift, or an invalid submission timestamp.
 pub fn prepare_corpus_materialization_slurm_job(
     spec: &CorpusMaterializationSlurmSpec,
     submitted_at_utc: &str,
 ) -> Result<PreparedCorpusMaterializationSlurmJob> {
-    let plan = validate_specification(spec)?;
+    validate_specification(spec)?;
+    validate_catalog_precondition(spec)?;
     require_utc_timestamp(submitted_at_utc, "submission timestamp")?;
-    let catalog_path = spec.data_root.join("catalog").join(format!("{}.json", plan.portfolio_id));
-    require_absent(&catalog_path, "governed data catalog")?;
 
     let evidence_root = ensure_evidence_root(&spec.evidence_root)?;
     let specification_path = evidence_root.join("materialization-spec.json");
@@ -67,6 +67,15 @@ fn render_script(spec: &CorpusMaterializationSlurmSpec, specification_sha256: &s
     let publication = spec.evidence_root.join("materialization-publication.json");
     let completion = scheduler_root.join("completed.json");
     let catalog = spec.data_root.join("catalog").join(format!("{}.json", spec.portfolio_id));
+    let catalog_precondition = spec.existing_catalog_sha256.as_ref().map_or_else(
+        || "test ! -e \"${CATALOG}\" && test ! -L \"${CATALOG}\"".to_string(),
+        |sha256| {
+            format!(
+                "test -f \"${{CATALOG}}\" && test ! -L \"${{CATALOG}}\" && test \"$(sha256sum \"${{CATALOG}}\" | awk '{{print $1}}')\" = {}",
+                shell_quote(sha256)
+            )
+        },
+    );
     let command = [
         shell_quote(&spec.executable_path),
         "'bench'".to_string(),
@@ -129,7 +138,7 @@ fn render_script(spec: &CorpusMaterializationSlurmSpec, specification_sha256: &s
             "test \"$(sha256sum \"${{SPECIFICATION}}\" | awk '{{print $1}}')\" = {}",
             shell_quote(specification_sha256)
         ),
-        "test ! -e \"${CATALOG}\" && test ! -L \"${CATALOG}\"".to_string(),
+        catalog_precondition,
         "test ! -e \"${PUBLICATION}\" && test ! -L \"${PUBLICATION}\""
             .to_string(),
         format!("{command} > \"${{PUBLICATION}}.partial\""),
@@ -161,14 +170,6 @@ fn ensure_directory(path: &Path) -> Result<PathBuf> {
         Err(error) => return Err(error).with_context(|| format!("create {}", path.display())),
     }
     canonical_directory(path, "corpus materialization scheduler directory")
-}
-
-fn require_absent(path: &Path, label: &str) -> Result<()> {
-    match fs::symlink_metadata(path) {
-        Ok(_) => bail!("{label} already exists: {}", path.display()),
-        Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(error).with_context(|| format!("inspect {label} {}", path.display())),
-    }
 }
 
 fn ensure_bytes_identity(path: &Path, expected: &[u8]) -> Result<()> {

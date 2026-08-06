@@ -42,6 +42,36 @@ fn preparation_binds_exact_authorities_and_renders_rust_cli() -> anyhow::Result<
 }
 
 #[test]
+fn preparation_binds_an_existing_catalog_for_idempotent_replay() -> anyhow::Result<()> {
+    let mut fixture = fixture()?;
+    publish_catalog(&fixture)?;
+    let catalog_path =
+        fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
+    fixture.spec.existing_catalog_sha256 = Some(catalog_sha256.clone());
+
+    let prepared = prepare_corpus_materialization_slurm_job(&fixture.spec, "2026-08-06T10:20:00Z")?;
+    let script = fs::read_to_string(&prepared.request.script_path)?;
+
+    assert!(script.contains(&catalog_sha256));
+    assert!(script.contains("sha256sum \"${CATALOG}\""));
+    assert!(!script.contains("test ! -e \"${CATALOG}\""));
+    Ok(())
+}
+
+#[test]
+fn preparation_rejects_existing_catalog_digest_drift() -> anyhow::Result<()> {
+    let mut fixture = fixture()?;
+    publish_catalog(&fixture)?;
+    fixture.spec.existing_catalog_sha256 = Some("d".repeat(64));
+
+    assert!(prepare_corpus_materialization_slurm_job(&fixture.spec, "2026-08-06T10:20:00Z")
+        .is_err_and(|error| error.to_string().contains("digest differs")));
+    assert!(!fixture.spec.evidence_root.exists());
+    Ok(())
+}
+
+#[test]
 fn preparation_rejects_scheduler_injection_and_authority_drift() -> anyhow::Result<()> {
     let mut injected = fixture()?;
     injected.spec.resources.partition = "compute\n#SBATCH --exclusive".to_string();
@@ -185,6 +215,7 @@ fn fixture() -> anyhow::Result<Fixture> {
         executable_path: executable,
         plan_sha256: bijux_dna_infra::hash_file_sha256(&plan_path)?,
         plan_path,
+        existing_catalog_sha256: None,
         data_root: data_root.clone(),
         evidence_root: data_root.join("evidence/materializations/run-2042"),
         resources: CorpusMaterializationSlurmResources {

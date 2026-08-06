@@ -90,7 +90,9 @@ For a queued materialization, author one
 typed contract binds the permanent run and attempt identities, clean frozen
 repository path and commit, Linux `bijux-dna` executable path and SHA-256,
 acquisition plan path and SHA-256, governed data and evidence roots, scheduler
-resources, transfer limits, and admission timestamp.
+resources, transfer limits, and admission timestamp. For an idempotent replay
+of an admitted corpus, `existing_catalog_sha256` binds the exact governed
+catalog that must already exist; omit it only for first admission.
 
 Prepare immutable scheduler material from that specification, then submit it
 exactly once without waiting:
