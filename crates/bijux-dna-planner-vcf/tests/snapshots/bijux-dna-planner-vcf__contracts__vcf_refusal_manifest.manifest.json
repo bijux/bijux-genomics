@@ -12,6 +12,7 @@
     },
     "inputs": [
       {
+        "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
         "artifact_id": "vcf",
         "format_id": "vcf.gz",
         "path": "sample.vcf.gz",

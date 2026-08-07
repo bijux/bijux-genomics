@@ -110,6 +110,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "reference_panel_vcf",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
@@ -118,12 +119,14 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "prepared_panel",
             "optional": false,
             "path": "out/prepared_panel.vcf.gz",
             "role": "variant"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "chunks_json",
             "optional": false,
             "path": "out/chunks.json",
@@ -224,6 +227,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
             "name": "input_bam",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
@@ -236,6 +240,7 @@
             "role": "index"
           },
           {
+            "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
             "name": "reference_fasta",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
@@ -244,6 +249,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "diploid_vcf",
             "optional": false,
             "path": "out/diploid_vcf.vcf.gz",
@@ -344,6 +350,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/diploid_vcf.vcf.gz",
@@ -352,6 +359,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "damage_filtered_vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
@@ -454,6 +462,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
@@ -462,6 +471,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "filtered_vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
@@ -1191,18 +1201,21 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
             "role": "variant"
           },
           {
+            "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
             "name": "genetic_map_tsv",
             "optional": false,
             "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
             "role": "reference"
           },
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "reference_panel_vcf",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
@@ -1211,6 +1224,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "phased_vcf",
             "optional": false,
             "path": "out/phased_vcf.vcf.gz",
@@ -2596,24 +2610,28 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/phased_vcf.vcf.gz",
             "role": "variant"
           },
           {
+            "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
             "name": "genetic_map_tsv",
             "optional": false,
             "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
             "role": "reference"
           },
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "reference_panel_vcf",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
             "role": "variant"
           },
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "reference_panel_m3vcf",
             "optional": false,
             "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/panels/1000g_phase3/panel.m3vcf.gz",
@@ -2622,6 +2640,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "imputed_vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
@@ -3374,6 +3393,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
@@ -3382,6 +3402,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "postprocess_vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
@@ -3500,6 +3521,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
@@ -3508,6 +3530,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "population_structure_report",
             "optional": false,
             "path": "out/population_structure_report.json",
@@ -3626,6 +3649,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
@@ -3634,6 +3658,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "roh_report",
             "optional": false,
             "path": "out/roh_report.json",
@@ -3734,12 +3759,14 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
             "role": "variant"
           },
           {
+            "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
             "name": "genetic_map_tsv",
             "optional": false,
             "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
@@ -3748,6 +3775,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "ibd_segments",
             "optional": false,
             "path": "out/ibd_segments.tsv",
@@ -3847,12 +3875,14 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "ibd_segments",
             "optional": false,
             "path": "out/ibd_segments.tsv",
             "role": "summary_tsv"
           },
           {
+            "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
             "name": "genetic_map_tsv",
             "optional": false,
             "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
@@ -3861,6 +3891,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "demography_report",
             "optional": false,
             "path": "out/demography_report.json",
@@ -3962,6 +3993,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
@@ -3970,6 +4002,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "stats_json",
             "optional": false,
             "path": "out/stats_json.json",
