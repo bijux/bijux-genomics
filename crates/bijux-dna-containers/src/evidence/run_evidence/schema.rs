@@ -7,6 +7,12 @@ use schemars::Schema;
 
 use super::{ResultLayoutPlan, RunEvidenceIndex, SupersededResultArchivePlan};
 
+/// Return the shared immutable attempt-layout schema owned by infrastructure.
+#[must_use]
+pub fn container_attempt_layout_schema() -> serde_json::Value {
+    bijux_dna_infra::attempt_layout_schema()
+}
+
 #[must_use]
 pub fn run_evidence_index_schema() -> Schema {
     schemars::schema_for!(RunEvidenceIndex)

@@ -13,6 +13,14 @@ pub const CONTAINER_RESULT_LAYOUT_PLAN_SCHEMA_V1: &str = "bijux.container.result
 pub const CONTAINER_SUPERSEDED_RESULT_ARCHIVE_SCHEMA_V1: &str =
     "bijux.container.superseded_result_archive.v1";
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContainerAttemptIdentity {
+    pub run_directory: String,
+    pub tool_id: String,
+    pub campaign_id: String,
+    pub attempt_id: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct ResultLayoutPlanRequest {
     pub runs_root: PathBuf,

@@ -9,11 +9,12 @@ use anyhow::{bail, Context, Result};
 use super::validation::{run_directory_identity, run_number, validate_run_attempt_ledger_value};
 use super::{
     render_run_evidence_markdown, validate_run_attempt_ledger, validate_run_evidence_index,
-    validate_run_evidence_root, AttemptExecutionStatus, FinalRunEvidencePlan, RunAttemptLedger,
-    RunAttemptLedgerRow, RunAttemptLedgerSummary, RunEvidenceFileIdentity,
-    RunEvidenceImportRequest, RunEvidenceIndex, RunEvidenceLock, RunEvidenceRecord,
-    RunEvidenceSummary, ScientificAcceptanceStatus, CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1,
-    CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2, CONTAINER_RUN_EVIDENCE_LOCK_SCHEMA_V1,
+    validate_run_evidence_root, AttemptExecutionStatus, ContainerAttemptIdentity,
+    FinalRunEvidencePlan, RunAttemptLedger, RunAttemptLedgerRow, RunAttemptLedgerSummary,
+    RunEvidenceFileIdentity, RunEvidenceImportRequest, RunEvidenceIndex, RunEvidenceLock,
+    RunEvidenceRecord, RunEvidenceSummary, ScientificAcceptanceStatus,
+    CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
+    CONTAINER_RUN_EVIDENCE_LOCK_SCHEMA_V1,
 };
 
 const COPIED_EVIDENCE: [&str; 5] = [
@@ -23,6 +24,35 @@ const COPIED_EVIDENCE: [&str; 5] = [
     "evidence.json",
     "slurm-accounting.json",
 ];
+
+/// Create or recover one immutable container-owned attempt layout.
+///
+/// Container and benchmark roots are validated together before any path is created, preventing
+/// the two evidence owners from sharing or nesting their permanent attempt histories.
+///
+/// # Errors
+/// Returns an error when owner roots overlap, identity segments are unsafe, or layout publication
+/// or recovery fails.
+pub fn ensure_container_attempt_layout(
+    container_root: &Path,
+    benchmark_root: &Path,
+    identity: &ContainerAttemptIdentity,
+) -> Result<bijux_dna_infra::AttemptLayoutPaths> {
+    bijux_dna_infra::validate_attempt_owner_roots(container_root, benchmark_root)
+        .context("validate container and benchmark attempt roots")?;
+    let shared_identity = bijux_dna_infra::AttemptLayoutIdentity {
+        run_directory: identity.run_directory.clone(),
+        tool_id: identity.tool_id.clone(),
+        campaign_id: identity.campaign_id.clone(),
+        attempt_id: identity.attempt_id.clone(),
+    };
+    bijux_dna_infra::ensure_attempt_layout(
+        container_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &shared_identity,
+    )
+    .context("ensure governed container attempt layout")
+}
 
 /// Import immutable result evidence without replacing an existing selected-run directory.
 ///

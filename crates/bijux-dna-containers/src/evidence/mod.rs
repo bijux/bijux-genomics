@@ -17,8 +17,8 @@ pub mod tool_contract;
 mod validation;
 
 pub use chain::{
-    load_container_evidence_chain, validate_container_evidence_chain,
-    resolve_current_apptainer_contract_commit, validate_container_inventory_catalog,
+    load_container_evidence_chain, resolve_current_apptainer_contract_commit,
+    validate_container_evidence_chain, validate_container_inventory_catalog,
     validate_container_recipe_evidence_chain, ContainerEvidenceChain,
 };
 pub use external_artifact::{
@@ -79,23 +79,23 @@ pub use qualification_registry::{
 };
 pub use run_evidence::{
     apply_final_run_evidence_plan, apply_result_layout, apply_superseded_result_archive,
-    derive_result_layout_plan, derive_run_evidence_index, derive_superseded_result_archive_plan,
-    import_run_evidence, load_run_evidence_index, plan_final_run_evidence,
-    render_run_evidence_markdown, result_layout_plan_schema, rollback_result_layout,
-    rollback_superseded_result_archive, run_evidence_index_schema,
-    superseded_result_archive_plan_schema, validate_run_attempt_ledger,
+    container_attempt_layout_schema, derive_result_layout_plan, derive_run_evidence_index,
+    derive_superseded_result_archive_plan, ensure_container_attempt_layout, import_run_evidence,
+    load_run_evidence_index, plan_final_run_evidence, render_run_evidence_markdown,
+    result_layout_plan_schema, rollback_result_layout, rollback_superseded_result_archive,
+    run_evidence_index_schema, superseded_result_archive_plan_schema, validate_run_attempt_ledger,
     validate_run_evidence_index, validate_run_evidence_root, verify_result_layout,
     verify_run_evidence_publication, verify_superseded_result_archive,
     write_result_movement_schemas, write_run_evidence_index_schema, ArchivedResultCategory,
-    AttemptExecutionStatus, FinalRunEvidencePlan, ResultFileIdentity, ResultLayoutMove,
-    ResultLayoutPlan, ResultLayoutPlanRequest, ResultMovementState, RunAttemptLedger,
-    RunAttemptLedgerRow, RunAttemptLedgerSummary, RunEvidenceFileIdentity,
+    AttemptExecutionStatus, ContainerAttemptIdentity, FinalRunEvidencePlan, ResultFileIdentity,
+    ResultLayoutMove, ResultLayoutPlan, ResultLayoutPlanRequest, ResultMovementState,
+    RunAttemptLedger, RunAttemptLedgerRow, RunAttemptLedgerSummary, RunEvidenceFileIdentity,
     RunEvidenceImportRequest, RunEvidenceIndex, RunEvidenceLock, RunEvidenceRecord,
     RunEvidenceSummary, ScientificAcceptanceStatus, SupersededResultArchivePlan,
     SupersededResultArchivePlanRequest, SupersededResultMove,
-    CONTAINER_RESULT_LAYOUT_PLAN_SCHEMA_V1,
-    CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
-    CONTAINER_RUN_EVIDENCE_LOCK_SCHEMA_V1, CONTAINER_SUPERSEDED_RESULT_ARCHIVE_SCHEMA_V1,
+    CONTAINER_RESULT_LAYOUT_PLAN_SCHEMA_V1, CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1,
+    CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2, CONTAINER_RUN_EVIDENCE_LOCK_SCHEMA_V1,
+    CONTAINER_SUPERSEDED_RESULT_ARCHIVE_SCHEMA_V1,
 };
 pub use runtime_verification::{
     execute_runtime_verification, render_runtime_verification_markdown,

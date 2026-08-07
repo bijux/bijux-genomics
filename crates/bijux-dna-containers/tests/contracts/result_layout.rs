@@ -4,10 +4,70 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_dna_containers::api::{
     apply_result_layout, apply_superseded_result_archive, derive_result_layout_plan,
-    derive_superseded_result_archive_plan, rollback_result_layout,
+    derive_superseded_result_archive_plan, ensure_container_attempt_layout, rollback_result_layout,
     rollback_superseded_result_archive, verify_result_layout, verify_superseded_result_archive,
-    ResultLayoutPlanRequest, SupersededResultArchivePlanRequest,
+    ContainerAttemptIdentity, ResultLayoutPlanRequest, SupersededResultArchivePlanRequest,
 };
+
+fn container_attempt_identity() -> ContainerAttemptIdentity {
+    ContainerAttemptIdentity {
+        run_directory: "run-2050-fastq-trim-reads".to_string(),
+        tool_id: "fastp".to_string(),
+        campaign_id: "retained-tools-20260807".to_string(),
+        attempt_id: "attempt-001".to_string(),
+    }
+}
+
+#[test]
+fn container_attempt_layout_uses_shared_owner_separated_contract() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let container_root = temp.path().join("container-attempts");
+    let benchmark_root = temp.path().join("benchmark-attempts");
+    let identity = container_attempt_identity();
+
+    let first = ensure_container_attempt_layout(&container_root, &benchmark_root, &identity)?;
+    assert_eq!(
+        first.attempt_dir.strip_prefix(&container_root)?,
+        Path::new("run-2050-fastq-trim-reads/fastp/attempts/retained-tools-20260807/attempt-001")
+    );
+    for directory in [
+        &first.manifests_dir,
+        &first.logs_dir,
+        &first.outputs_dir,
+        &first.accounting_dir,
+        &first.validation_dir,
+        &first.science_dir,
+        &first.receipts_dir,
+    ] {
+        assert!(directory.is_dir());
+    }
+    let manifest: bijux_dna_infra::AttemptLayoutManifestV1 =
+        serde_json::from_slice(&fs::read(&first.layout_manifest_path)?)?;
+    assert_eq!(manifest.owner, bijux_dna_infra::AttemptEvidenceOwner::Containers);
+    assert_eq!(
+        bijux_dna_containers::api::container_attempt_layout_schema(),
+        bijux_dna_infra::attempt_layout_schema()
+    );
+
+    fs::write(first.outputs_dir.join("image.sif.sha256"), b"immutable")?;
+    let recovered = ensure_container_attempt_layout(&container_root, &benchmark_root, &identity)?;
+    assert_eq!(recovered, first);
+    assert_eq!(fs::read(recovered.outputs_dir.join("image.sif.sha256"))?, b"immutable");
+    Ok(())
+}
+
+#[test]
+fn container_attempt_layout_refuses_owner_overlap_before_mutation() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let shared_root = temp.path().join("shared-attempts");
+    let identity = container_attempt_identity();
+
+    let error = ensure_container_attempt_layout(&shared_root, &shared_root, &identity)
+        .expect_err("shared evidence ownership must be refused");
+    assert!(format!("{error:#}").contains("separate"));
+    assert!(!shared_root.exists());
+    Ok(())
+}
 
 #[test]
 fn flat_layout_plan_apply_verify_and_rollback_preserve_bytes() -> Result<()> {
