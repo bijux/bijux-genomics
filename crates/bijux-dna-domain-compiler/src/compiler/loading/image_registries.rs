@@ -45,12 +45,11 @@ pub(super) fn build_images_toml(
             .and_modify(|(_, enabled)| *enabled = *enabled || (*domain_enabled && retained))
             .or_insert((version, *domain_enabled && retained));
     }
-    for planned_only in ["shapeit"] {
-        let version = container_catalog
-            .get(planned_only)
-            .map_or_else(|| "planned".to_string(), |contract| contract.version.clone());
-        image_versions.entry(planned_only.to_string()).or_insert((version, false));
-    }
+    let planned_only = "shapeit";
+    let version = container_catalog
+        .get(planned_only)
+        .map_or_else(|| "planned".to_string(), |contract| contract.version.clone());
+    image_versions.entry(planned_only.to_string()).or_insert((version, false));
     for (tool_id, (version, enabled)) in image_versions {
         let _ = writeln!(images_toml, "[{tool_id}]");
         let _ = writeln!(images_toml, "version = \"{version}\"");
