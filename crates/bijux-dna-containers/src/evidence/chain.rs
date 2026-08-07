@@ -4,13 +4,14 @@ use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 
+use super::tool_contract::repository_commit_is_ancestor_of_head;
 use super::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
     load_container_catalog, load_image_inventory_publication,
     load_runtime_verification_publication, repository_head_commit, validate_container_catalog,
     validate_image_inventory_publication, validate_runtime_verification_publication,
-    ContainerCatalog, ContainerImageInventoryPublication, ContainerSupportDisposition,
-    RuntimeEvidenceStatus, RuntimeVerificationPublication,
+    BuildEvidenceStatus, ContainerCatalog, ContainerImageInventoryPublication,
+    ContainerSupportDisposition, RuntimeEvidenceStatus, RuntimeVerificationPublication,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 
@@ -58,7 +59,8 @@ pub fn load_container_evidence_chain(repository_root: &Path) -> Result<Container
 ///
 /// # Errors
 /// Returns an error when inventory provenance is stale, a retained image is missing, or no
-/// built/passed evidence matches the exact definition and ordered `%files` context.
+/// built/passed evidence from an ancestor commit matches the exact current definition and ordered
+/// `%files` context.
 pub fn validate_container_recipe_evidence_chain(
     repository_root: &Path,
     repository_commit: &str,
@@ -94,12 +96,30 @@ pub fn validate_container_recipe_evidence_chain(
             repository_commit,
             &tool.apptainer_definition,
         )?;
-        let recipe_matches = selected
-            .build_evidence
-            .iter()
-            .any(|evidence| container_build_evidence_matches_recipe(evidence, &recipe));
+        let mut recipe_matches = false;
+        for evidence in &selected.build_evidence {
+            if !matches!(evidence.status, BuildEvidenceStatus::Built | BuildEvidenceStatus::Passed)
+                || !repository_commit_is_ancestor_of_head(
+                    repository_root,
+                    &evidence.repository_commit,
+                )?
+            {
+                continue;
+            }
+            let built_recipe = apptainer_recipe_identity_at_commit(
+                repository_root,
+                &evidence.repository_commit,
+                &tool.apptainer_definition,
+            )?;
+            recipe_matches = container_build_evidence_matches_recipe(evidence, &built_recipe)
+                && evidence.definition_sha256 == recipe.definition_sha256
+                && evidence.build_context.as_deref().unwrap_or_default() == recipe.build_context;
+            if recipe_matches {
+                break;
+            }
+        }
         if !recipe_matches || !selected.current_recipe {
-            bail!("selected image for {} lacks exact current recipe build evidence", tool.id);
+            bail!("selected image for {} lacks current recipe build evidence", tool.id);
         }
     }
     Ok(())

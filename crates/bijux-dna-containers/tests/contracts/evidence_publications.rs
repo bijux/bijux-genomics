@@ -164,6 +164,30 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
         &root, &commit, &catalog, &inventory,
     )?;
 
+    let parent_output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["rev-parse", &format!("{commit}^")])
+        .output()?;
+    assert!(parent_output.status.success());
+    let parent_commit = String::from_utf8(parent_output.stdout)?.trim().to_string();
+    let parent_recipe = bijux_dna_containers::evidence::apptainer_recipe_identity_at_commit(
+        &root,
+        &parent_commit,
+        &tool.apptainer_definition,
+    )?;
+    let selected = inventory.tools[0]
+        .candidates
+        .iter_mut()
+        .find(|candidate| candidate.sha256 == selected_sha256)
+        .context("ibdhap inventory omits selected candidate")?;
+    selected.build_evidence[0].repository_commit = parent_commit;
+    selected.build_evidence[0].definition_sha256 = parent_recipe.definition_sha256;
+    selected.build_evidence[0].build_context = Some(parent_recipe.build_context);
+    bijux_dna_containers::evidence::validate_container_recipe_evidence_chain(
+        &root, &commit, &catalog, &inventory,
+    )?;
+
     inventory.tools[0]
         .candidates
         .iter_mut()
@@ -174,7 +198,7 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
     assert!(bijux_dna_containers::evidence::validate_container_recipe_evidence_chain(
         &root, &commit, &catalog, &inventory,
     )
-    .is_err_and(|error| error.to_string().contains("lacks exact current recipe")));
+    .is_err_and(|error| error.to_string().contains("lacks current recipe")));
     Ok(())
 }
 
