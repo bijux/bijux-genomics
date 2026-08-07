@@ -37,6 +37,7 @@ pub enum ContainerPipelineCurrentizationDisposition {
     Currentized,
     AlreadyCurrent,
     ExternalArtifactRequired,
+    PublishedEvidence,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -140,29 +141,27 @@ fn render_currentization(
             .with_context(|| format!("read pipeline declaration {}", path.display()))?;
         let contract = parse_container_pipeline_document(&source, &path.display().to_string())?;
         let (run_id, tool_id) = pipeline_identity(&contract);
-        let source_sha256 = bijux_dna_infra::hash_bytes_sha256(source.as_bytes());
+        if path.parent().is_some_and(|parent| parent.join("evidence.lock.json").is_file()) {
+            rendered.push(preserve_pipeline_document(
+                path,
+                source,
+                &contract,
+                ContainerPipelineCurrentizationDisposition::PublishedEvidence,
+            ));
+            continue;
+        }
         let inventory_tool = inventory
             .tools
             .iter()
             .find(|tool| tool.tool == tool_id)
             .with_context(|| format!("image inventory does not declare tool {tool_id}"))?;
         if inventory_tool.support_disposition == ContainerSupportDisposition::Unsupported {
-            let (image_path, image_sha256) = pipeline_image_identity(&contract);
-            rendered.push(RenderedPipeline {
-                entry: ContainerPipelineCurrentizationEntry {
-                    path,
-                    run_id: run_id.to_owned(),
-                    tool_id: tool_id.to_owned(),
-                    source_sha256: source_sha256.clone(),
-                    current_sha256: source_sha256,
-                    image_path: image_path.to_path_buf(),
-                    image_sha256: image_sha256.to_owned(),
-                    disposition:
-                        ContainerPipelineCurrentizationDisposition::ExternalArtifactRequired,
-                    changed: false,
-                },
-                bytes: source.into_bytes(),
-            });
+            rendered.push(preserve_pipeline_document(
+                path,
+                source,
+                &contract,
+                ContainerPipelineCurrentizationDisposition::ExternalArtifactRequired,
+            ));
             continue;
         }
         ensure!(
@@ -182,6 +181,7 @@ fn render_currentization(
             &image.sha256,
         )?;
         parse_container_pipeline_document(&current, &format!("rendered {}", path.display()))?;
+        let source_sha256 = bijux_dna_infra::hash_bytes_sha256(source.as_bytes());
         let current_sha256 = bijux_dna_infra::hash_bytes_sha256(current.as_bytes());
         let changed = source_sha256 != current_sha256;
         rendered.push(RenderedPipeline {
@@ -204,6 +204,31 @@ fn render_currentization(
         });
     }
     Ok(rendered)
+}
+
+fn preserve_pipeline_document(
+    path: PathBuf,
+    source: String,
+    contract: &ContainerPipelineContract,
+    disposition: ContainerPipelineCurrentizationDisposition,
+) -> RenderedPipeline {
+    let (run_id, tool_id) = pipeline_identity(contract);
+    let (image_path, image_sha256) = pipeline_image_identity(contract);
+    let source_sha256 = bijux_dna_infra::hash_bytes_sha256(source.as_bytes());
+    RenderedPipeline {
+        entry: ContainerPipelineCurrentizationEntry {
+            path,
+            run_id: run_id.to_owned(),
+            tool_id: tool_id.to_owned(),
+            source_sha256: source_sha256.clone(),
+            current_sha256: source_sha256,
+            image_path: image_path.to_path_buf(),
+            image_sha256: image_sha256.to_owned(),
+            disposition,
+            changed: false,
+        },
+        bytes: source.into_bytes(),
+    }
 }
 
 fn plan_from_rendered(

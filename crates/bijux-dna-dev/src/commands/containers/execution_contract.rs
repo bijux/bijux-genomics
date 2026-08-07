@@ -144,11 +144,19 @@ fn currentize_pipelines(workspace: &Workspace, args: &[String]) -> Result<Contai
                 == bijux_dna_containers::api::ContainerPipelineCurrentizationDisposition::ExternalArtifactRequired
         })
         .count();
+    let published_evidence = plan
+        .entries
+        .iter()
+        .filter(|entry| {
+            entry.disposition
+                == bijux_dna_containers::api::ContainerPipelineCurrentizationDisposition::PublishedEvidence
+        })
+        .count();
     if apply {
         bijux_dna_containers::api::apply_container_pipeline_currentization(&request, &plan)?;
     }
     success_line(format!(
-        "{} {changed} changes across {} pipeline declarations ({external_artifacts} external-artifact required) at inventory {}",
+        "{} {changed} changes across {} pipeline declarations ({external_artifacts} external-artifact required, {published_evidence} published evidence immutable) at inventory {}",
         if apply { "currentized" } else { "planned" },
         plan.entries.len(),
         plan.inventory_sha256

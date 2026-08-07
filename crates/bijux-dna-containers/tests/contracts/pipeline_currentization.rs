@@ -267,6 +267,35 @@ fn currentization_refuses_source_drift_after_planning() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn currentization_preserves_published_run_evidence() -> Result<()> {
+    let fixture = CurrentizationFixture::new()?;
+    std::fs::write(
+        fixture
+            .pipeline_path
+            .parent()
+            .context("pipeline has no parent")?
+            .join("evidence.lock.json"),
+        b"{}\n",
+    )?;
+
+    let plan = derive_container_pipeline_currentization(&fixture.request)?;
+    let published = plan
+        .entries
+        .iter()
+        .find(|entry| entry.path == fixture.pipeline_path)
+        .context("missing published pipeline plan entry")?;
+    assert_eq!(
+        published.disposition,
+        ContainerPipelineCurrentizationDisposition::PublishedEvidence
+    );
+    assert!(!published.changed);
+
+    apply_container_pipeline_currentization(&fixture.request, &plan)?;
+    assert_eq!(std::fs::read_to_string(&fixture.pipeline_path)?, fixture.source);
+    Ok(())
+}
+
 fn repository_root() -> Result<PathBuf> {
     Ok(Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?)
 }
