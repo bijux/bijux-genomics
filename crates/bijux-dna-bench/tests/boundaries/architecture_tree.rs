@@ -93,6 +93,7 @@ fn bench_tree_matches_architecture_contract() {
             "bam_mapping_summary/",
             "bam_observation/",
             "campaign_lifecycle/",
+            "campaign_engine/",
             "campaign_material/",
             "corpus_acquisition.rs",
             "corpus_materialization/",
@@ -156,6 +157,12 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/bam_mapping_summary/report")),
         entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
         "BAM report derivation must separate attempt evidence, science, and rendering"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/campaign_engine")),
+        entries(["mod.rs", "model.rs", "planning.rs"]),
+        "campaign engine must separate persistent case models from authority planning"
     );
 
     assert_eq!(

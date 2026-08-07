@@ -11,6 +11,8 @@ mod mod_contracts_bench_contract_rs;
 mod mod_contracts_bench_paths_rs;
 #[path = "contracts/benching/benchmark_contracts.rs"]
 mod mod_contracts_benchmark_contracts_rs;
+#[path = "contracts/campaign_engine.rs"]
+mod mod_contracts_campaign_engine_rs;
 #[path = "contracts/campaign_lifecycle.rs"]
 mod mod_contracts_campaign_lifecycle_rs;
 #[path = "contracts/benching/contract_handshake.rs"]

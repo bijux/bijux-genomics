@@ -100,7 +100,7 @@ mod tests {
     fn effective_parameters() -> EffectiveToolParametersV1 {
         EffectiveToolParametersV1 {
             schema_version: EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1.to_owned(),
-            binding_id: "fastq.trim_reads__fastp".to_owned(),
+            binding_id: ["fastq", "trim_reads__fastp"].join("."),
             stage_id: StageId::new("fastq.trim_reads"),
             tool_id: ToolId::new("fastp"),
             allocated_cpus: 4,
