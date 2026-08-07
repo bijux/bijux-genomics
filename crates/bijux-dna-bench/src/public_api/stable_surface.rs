@@ -2,9 +2,10 @@
 //! Stable public benchmark surface re-exported by the crate root.
 
 pub use crate::artifacts::{
-    admit_benchmark_execution_outputs, BenchmarkExecutionAdmission,
-    BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
-    BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1,
+    admit_benchmark_execution_outputs, archive_effective_tool_parameters,
+    BenchmarkExecutionAdmission, BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment,
+    BenchmarkOutputFileEvidence, EffectiveToolParametersPublication,
+    BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, EFFECTIVE_TOOL_PARAMETERS_FILE,
 };
 pub use crate::repo::{
     admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, admit_fastq_benchmark_corpus,

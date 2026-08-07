@@ -32,6 +32,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/artifacts/writer")),
         entries([
+            "effective_parameters.rs",
             "mod.rs",
             "observation_reader.rs",
             "observation_writer.rs",

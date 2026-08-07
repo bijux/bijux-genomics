@@ -9,8 +9,9 @@ pub use model::{
     ToolBinding, ToolBindingRenderContext, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };
 pub use projection::{
-    project_tool_parameters, EffectiveToolParameterSourceV1, EffectiveToolParameterV1,
-    EffectiveToolParametersV1, ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
+    project_tool_parameters, validate_effective_tool_parameters, EffectiveToolParameterSourceV1,
+    EffectiveToolParameterV1, EffectiveToolParametersV1, ToolParameterProjectionRequest,
+    EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
 };
 pub use registry::ToolBindingRegistry;
 pub use rendering::render_tool_command;

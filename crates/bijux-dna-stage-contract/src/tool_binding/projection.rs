@@ -110,7 +110,7 @@ pub fn project_tool_parameters(
             bail!("rendered threads differ from allocated CPUs");
         }
     }
-    Ok(EffectiveToolParametersV1 {
+    let effective = EffectiveToolParametersV1 {
         schema_version: EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1.to_owned(),
         binding_id: request.binding.binding_id().to_owned(),
         stage_id: request.binding.stage_id().clone(),
@@ -118,7 +118,46 @@ pub fn project_tool_parameters(
         allocated_cpus: request.allocated_cpus,
         resources: request.binding.resources().clone(),
         parameters,
-    })
+    };
+    validate_effective_tool_parameters(&effective)?;
+    Ok(effective)
+}
+
+/// Validate a projected artifact before persistence or command rendering.
+///
+/// # Errors
+/// Returns an error when schema identity, resource fairness, parameter identity, or rendered thread
+/// projection is invalid.
+pub fn validate_effective_tool_parameters(effective: &EffectiveToolParametersV1) -> Result<()> {
+    if effective.schema_version != EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1 {
+        bail!("effective tool parameter schema is unsupported");
+    }
+    if effective.binding_id.trim().is_empty()
+        || effective.stage_id.to_string().trim().is_empty()
+        || effective.tool_id.to_string().trim().is_empty()
+    {
+        bail!("effective tool parameter identity is empty");
+    }
+    if effective.allocated_cpus == 0
+        || effective.resources.threads != effective.allocated_cpus
+        || effective.resources.mem_gb == 0
+        || effective.resources.tmp_gb == 0
+        || effective.resources.runtime.trim().is_empty()
+    {
+        bail!("effective tool parameter resources are invalid");
+    }
+    for (name, parameter) in &effective.parameters {
+        if name.trim().is_empty() || parameter.value.trim().is_empty() {
+            bail!("effective tool parameter identity or value is empty");
+        }
+    }
+    if let Some(threads) = effective.parameters.get("threads") {
+        let rendered_threads = threads.value.parse::<u32>().context("parse projected threads")?;
+        if rendered_threads != effective.allocated_cpus {
+            bail!("rendered threads differ from allocated CPUs");
+        }
+    }
+    Ok(())
 }
 
 fn validate_parameter_names(

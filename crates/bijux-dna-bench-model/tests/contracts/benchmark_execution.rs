@@ -142,6 +142,15 @@ fn execution_spec_validates_and_round_trips() -> anyhow::Result<()> {
 }
 
 #[test]
+fn execution_spec_rejects_idle_cpu_allocation() {
+    let mut spec = specification();
+    spec.runtime.threads = spec.resources.cpus - 1;
+
+    assert!(validate_execution_spec(&spec)
+        .is_err_and(|error| error.to_string().contains("runtime policy")));
+}
+
+#[test]
 fn execution_spec_schema_freezes_version_and_source_identities() -> anyhow::Result<()> {
     let schema = serde_json::to_value(benchmark_execution_spec_schema())?;
     assert_eq!(

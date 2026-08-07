@@ -153,6 +153,30 @@ fn parameter_projection_records_provenance_and_cpu_fairness() -> Result<()> {
 }
 
 #[test]
+fn parameter_projection_records_precedence() -> Result<()> {
+    let binding = binding("fastq.trim_reads", catalog_source());
+    let defaults = BTreeMap::from([("threads".to_owned(), "2".to_owned())]);
+    let input_derived = BTreeMap::from([("threads".to_owned(), "4".to_owned())]);
+    let overrides = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &input_derived,
+        operator_overrides: &overrides,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+
+    assert_eq!(effective.parameters["threads"].value, "8");
+    assert_eq!(
+        effective.parameters["threads"].source,
+        EffectiveToolParameterSourceV1::OperatorOverride
+    );
+    Ok(())
+}
+
+#[test]
 fn parameter_projection_rejects_immutable_overrides_and_thread_drift() -> Result<()> {
     let binding = binding("fastq.trim_reads", catalog_source());
     let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
