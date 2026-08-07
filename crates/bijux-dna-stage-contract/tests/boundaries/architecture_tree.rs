@@ -88,8 +88,15 @@ fn assert_source_layout(root: &Path) {
     );
     assert_eq!(
         dir_entries(&root.join("src/tool_binding")),
-        entries(["mod.rs", "model.rs", "registry.rs", "rendering.rs", "validation.rs"]),
-        "tool_binding must separate model, registry, rendering, and validation"
+        entries([
+            "mod.rs",
+            "model.rs",
+            "projection.rs",
+            "registry.rs",
+            "rendering.rs",
+            "validation.rs",
+        ]),
+        "tool_binding must separate model, projection, registry, rendering, and validation"
     );
 }
 

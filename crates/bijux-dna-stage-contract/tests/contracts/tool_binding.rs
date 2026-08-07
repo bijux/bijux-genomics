@@ -1,12 +1,13 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
 use bijux_dna_core::contract::ToolConstraints;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
-    BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry,
-    ToolBindingRenderContext, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
+    project_tool_parameters, render_tool_command, validate_tool_binding, BindingInputV1,
+    BindingOutputV1, BindingParameterV1, EffectiveToolParameterSourceV1, OutputDiscoveryV1,
+    ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1,
+    ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
 };
 
 #[test]
@@ -113,6 +114,76 @@ fn undeclared_command_projection_fails_conformance() -> Result<()> {
         anyhow::bail!("undeclared projection was accepted");
     };
     assert!(error.to_string().contains("undeclared input `reference`"));
+    Ok(())
+}
+
+#[test]
+fn parameter_projection_records_provenance_and_cpu_fairness() -> Result<()> {
+    let binding = binding("fastq.trim_reads", catalog_source());
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let input_derived = BTreeMap::new();
+    let overrides = BTreeMap::new();
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &input_derived,
+        operator_overrides: &overrides,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+
+    assert_eq!(effective.schema_version, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1);
+    assert_eq!(effective.resources.threads, effective.allocated_cpus);
+    assert_eq!(
+        effective.parameters["threads"].source,
+        EffectiveToolParameterSourceV1::ScientificDefault
+    );
+    let command = render_tool_command(
+        &binding,
+        &ToolBindingRenderContext {
+            executable: "/images/fastp.sif".to_owned(),
+            inputs: BTreeMap::from([("reads".to_owned(), "reads.fastq.gz".to_owned())]),
+            parameters: effective.render_values(),
+            outputs: BTreeMap::from([("trimmed".to_owned(), "trimmed.fastq.gz".to_owned())]),
+        },
+    )?;
+    assert_eq!(command.last().map(String::as_str), Some("8"));
+    Ok(())
+}
+
+#[test]
+fn parameter_projection_rejects_immutable_overrides_and_thread_drift() -> Result<()> {
+    let binding = binding("fastq.trim_reads", catalog_source());
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let input_derived = BTreeMap::new();
+    let overrides = BTreeMap::from([("threads".to_owned(), "4".to_owned())]);
+    let immutable = BTreeSet::from(["threads".to_owned()]);
+    let request = ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &input_derived,
+        operator_overrides: &overrides,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    };
+    let error = project_tool_parameters(&request)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("immutable override was accepted"))?;
+    assert!(error.to_string().contains("immutable parameter"));
+
+    let no_overrides = BTreeMap::new();
+    let no_immutable = BTreeSet::new();
+    let cpu_drift = ToolParameterProjectionRequest {
+        operator_overrides: &no_overrides,
+        immutable_parameters: &no_immutable,
+        allocated_cpus: 4,
+        ..request
+    };
+    let error = project_tool_parameters(&cpu_drift)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("CPU drift was accepted"))?;
+    assert!(error.to_string().contains("binding threads"));
     Ok(())
 }
 
