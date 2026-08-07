@@ -15,6 +15,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ReferenceBuildRequest`: explicit switches for optional reference indexes.
 - `ContainerCredentialReference`: strict no-secret credential metadata with an explicit
   no-publication rule, consistent requirement flag, unique reference IDs, and generated schema.
+- `ContainerPipelineContract`: strict version-dispatched admission for immutable v1 history and
+  current v2 declarations. Unknown and cross-version fields fail before execution-site effects.
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
 - `CurrentApptainerImage`: absolute current retained SIF identity reverified against the selected
   inventory candidate at consumption time.

@@ -438,30 +438,36 @@ struct PipelineIdentity {
 }
 
 fn pipeline_identity(path: &Path) -> Result<PipelineIdentity> {
-    let raw = fs::read_to_string(path)
-        .with_context(|| format!("read archived pipeline {}", path.display()))?;
-    let value: serde_json::Value = bijux_dna_infra::formats::yaml::parse_yaml(&raw)
-        .with_context(|| format!("parse archived pipeline {}", path.display()))?;
-    Ok(PipelineIdentity {
-        pipeline_schema_version: required_pointer(&value, "/schema_version", path)?,
-        run_id: required_pointer(&value, "/run/id", path)?,
-        campaign: required_pointer(&value, "/run/campaign", path)?,
-        corpus: required_pointer(&value, "/run/corpus", path)?,
-        sample: required_pointer(&value, "/run/sample", path)?,
-        domain: required_pointer(&value, "/run/domain", path)?,
-        stage: required_pointer(&value, "/run/stage", path)?,
-        tool: required_pointer(&value, "/run/tool", path)?,
-        repository_commit: required_pointer(&value, "/repository/commit", path)?,
-    })
-}
-
-fn required_pointer(value: &serde_json::Value, pointer: &str, path: &Path) -> Result<String> {
-    value
-        .pointer(pointer)
-        .and_then(serde_json::Value::as_str)
-        .filter(|value| !value.is_empty())
-        .map(str::to_string)
-        .with_context(|| format!("archived pipeline lacks {pointer}: {}", path.display()))
+    let contract = crate::execution_contract::load_container_pipeline(path)?;
+    let identity = match contract {
+        crate::execution_contract::ContainerPipelineContract::Legacy(pipeline) => {
+            PipelineIdentity {
+                pipeline_schema_version: pipeline.schema_version,
+                run_id: pipeline.run.id,
+                campaign: pipeline.run.campaign,
+                corpus: pipeline.run.corpus,
+                sample: pipeline.run.sample,
+                domain: pipeline.run.domain,
+                stage: pipeline.run.stage,
+                tool: pipeline.run.tool,
+                repository_commit: pipeline.repository.commit,
+            }
+        }
+        crate::execution_contract::ContainerPipelineContract::Current(pipeline) => {
+            PipelineIdentity {
+                pipeline_schema_version: pipeline.schema_version,
+                run_id: pipeline.run.id,
+                campaign: pipeline.run.campaign,
+                corpus: pipeline.run.corpus,
+                sample: pipeline.run.sample,
+                domain: pipeline.run.domain,
+                stage: pipeline.run.stage,
+                tool: pipeline.run.tool,
+                repository_commit: pipeline.repository.commit,
+            }
+        }
+    };
+    Ok(identity)
 }
 
 fn optional_json_object(path: &Path) -> Result<serde_json::Map<String, serde_json::Value>> {

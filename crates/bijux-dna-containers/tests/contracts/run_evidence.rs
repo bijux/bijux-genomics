@@ -102,8 +102,10 @@ fn make_result(root: &Path, run_id: &str, status: &str) -> Result<()> {
     fs::write(
         result.join("config-pipeline.yml"),
         format!(
-            "schema_version: bijux.container.pipeline.v1\nrun:\n  id: {run_id}\n  campaign: public-read-trimming\n  corpus: ena-public-reads\n  sample: ERR000001\n  domain: fastq\n  stage: fastq.trim_reads\n  tool: adapterremoval\nrepository:\n  commit: {}\n",
-            "a".repeat(40)
+            "schema_version: bijux.container.pipeline.v1\nrun:\n  id: {run_id}\n  campaign: public-read-trimming\n  corpus: ena-public-reads\n  sample: ERR000001\n  domain: fastq\n  stage: fastq.trim_reads\n  tool: adapterremoval\n  operator: test\nrepository:\n  path: /repository\n  commit: {}\n  clean: true\nimage:\n  path: /images/adapterremoval.sif\n  sha256: {}\ndata:\n  inputs:\n    - id: reads\n      kind: data\n      path: /data/reads.fastq.gz\n      sha256: {}\ncommands:\n  version: [AdapterRemoval, --version]\n  help: [AdapterRemoval, --help]\n  real: [AdapterRemoval, --file1, /data/reads.fastq.gz]\n  negative: [AdapterRemoval, --invalid]\noutputs:\n  result_root: /results/adapterremoval/{run_id}\n  required_files: [real.stdout.log]\nresources:\n  account: science\n  partition: compute\n  cpus: 1\n  memory_mb: 1024\n  walltime: '00:05:00'\n  scratch_mb: 1024\nexecution:\n  locale: C\n  timezone: UTC\n  runtime_network: false\nacceptance:\n  version_regex: '^2[.]3[.]3$'\n  negative_exit_nonzero: true\n",
+            "a".repeat(40),
+            "b".repeat(64),
+            "c".repeat(64)
         ),
     )?;
     fs::write(

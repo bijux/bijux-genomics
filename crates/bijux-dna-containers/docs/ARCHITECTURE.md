@@ -9,7 +9,8 @@ CLI, runner, planner, stage, and domain crates.
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
 - `src/execution_contract/`: strict typed admission for container execution declarations that
-  describe credentials and, as ownership migrates, pipeline inputs without owning runner effects.
+  describe credentials and dual-version pipeline inputs without owning runner effects. Pipeline
+  wire models and semantic validation remain separate.
 - `src/site_policy/`: site-governance declarations, host admission, and immutable repository
   freezing under policy-owned roots.
 - `src/evidence/`: typed image-inventory, selected-run, and runtime-verification
