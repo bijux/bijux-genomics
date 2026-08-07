@@ -138,11 +138,12 @@ fn derive_admitted_identity(
             pipeline.dependencies.into_iter().map(|dependency| dependency.slurm_job_id).collect(),
         ),
     };
-    let evidence_root = governance
-        .paths
-        .containers_root
-        .join("evidence/submissions")
-        .join(format!("{run_id}-{tool_id}"));
+    let evidence_root = canonical_governed_directory(
+        &governance.paths.containers_root,
+        "governed containers root",
+    )?
+    .join("evidence/submissions")
+    .join(format!("{run_id}-{tool_id}"));
     Ok(QualificationIdentity {
         job_name: scheduler_name(&domain, &stage, &tool_id, &sample)?,
         run_id,
@@ -280,6 +281,21 @@ pub(super) fn canonical_directory(path: &Path, label: &str) -> Result<PathBuf> {
         bail!("{label} is not canonical");
     }
     Ok(canonical)
+}
+
+fn canonical_governed_directory(path: &Path, label: &str) -> Result<PathBuf> {
+    if !path.is_absolute()
+        || path
+            .components()
+            .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
+    {
+        bail!("{label} path is not absolute and normalized");
+    }
+    let metadata = fs::symlink_metadata(path).with_context(|| format!("inspect {label}"))?;
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        bail!("{label} is not a regular directory");
+    }
+    path.canonicalize().with_context(|| format!("canonicalize {label}"))
 }
 
 pub(super) fn require_exact_file(path: &Path, sha256: &str, label: &str) -> Result<PathBuf> {

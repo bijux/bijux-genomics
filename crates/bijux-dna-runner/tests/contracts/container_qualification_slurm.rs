@@ -1,6 +1,7 @@
 #![cfg(unix)]
 
 use std::fs;
+use std::os::unix::fs::symlink;
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -62,6 +63,50 @@ fn preparation_rejects_active_repository_and_archived_contract_conflicts() -> Re
     fs::write(fixture.evidence_root.join("config-credential.yml"), b"conflict\n")?;
     assert!(prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")
         .is_err_and(|error| error.to_string().contains("immutable qualification material")));
+    Ok(())
+}
+
+#[test]
+fn preparation_canonicalizes_governed_root_parent_aliases() -> Result<()> {
+    let fixture = fixture()?;
+    let containers =
+        fixture.evidence_root.ancestors().nth(3).context("resolve fixture containers root")?;
+    let study = containers.parent().context("resolve fixture study root")?;
+    let study_alias = fixture.root.path().join("study-alias");
+    symlink(study, &study_alias)?;
+
+    let mut governance: ContainerGovernance =
+        serde_json::from_slice(&fs::read(&fixture.request.governance_path)?)?;
+    governance.paths.study_root = study_alias.clone();
+    governance.paths.containers_root = study_alias.join("containers");
+    governance.paths.data_root = study_alias.join("data");
+    governance.paths.results_root = study_alias.join("results");
+    governance.paths.finalization_root = study_alias.join("finalization");
+    fs::write(&fixture.request.governance_path, serde_json::to_vec_pretty(&governance)?)?;
+
+    prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let spec = load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json"),
+    )?;
+    assert_eq!(spec.evidence_root, fixture.evidence_root);
+    Ok(())
+}
+
+#[test]
+fn preparation_rejects_symlinked_governed_root() -> Result<()> {
+    let fixture = fixture()?;
+    let containers =
+        fixture.evidence_root.ancestors().nth(3).context("resolve fixture containers root")?;
+    let containers_alias = fixture.root.path().join("containers-alias");
+    symlink(containers, &containers_alias)?;
+
+    let mut governance: ContainerGovernance =
+        serde_json::from_slice(&fs::read(&fixture.request.governance_path)?)?;
+    governance.paths.containers_root = containers_alias;
+    fs::write(&fixture.request.governance_path, serde_json::to_vec_pretty(&governance)?)?;
+
+    assert!(prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")
+        .is_err_and(|error| error.to_string().contains("not a regular directory")));
     Ok(())
 }
 
