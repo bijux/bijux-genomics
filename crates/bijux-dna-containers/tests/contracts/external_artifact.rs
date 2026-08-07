@@ -17,6 +17,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
     std::fs::create_dir(&active)?;
     std::fs::write(&binary, b"#!/bin/sh\nprintf 'angsd version 0.941\\n'\n")?;
     std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755))?;
+    let canonical_binary = binary.canonicalize()?;
     let checksum = bijux_dna_infra::hash_file_sha256(&binary)?;
     let record_path = temporary.path().join("angsd-admission.json");
     let commit = repository_head_commit(root)?;
@@ -40,7 +41,10 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
         &record_path,
     )?;
     assert_eq!(record.status, ExternalArtifactAdmissionStatus::Admitted);
-    assert_eq!(record.artifact.as_ref().map(|artifact| artifact.path.as_str()), binary.to_str());
+    assert_eq!(
+        record.artifact.as_ref().map(|artifact| artifact.path.as_str()),
+        canonical_binary.to_str()
+    );
     assert!(record_path.is_file());
 
     let binding = bind_external_artifact_command(
@@ -51,7 +55,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
         &["angsd".to_string(), "-bam".to_string(), "input.list".to_string()],
         None,
     )?;
-    assert_eq!(binding.executable, binary.display().to_string());
+    assert_eq!(binding.executable, canonical_binary.display().to_string());
     assert_eq!(binding.arguments, ["-bam", "input.list"]);
     verify_external_artifact_admission(root, &active, &record_path)?;
 

@@ -245,6 +245,7 @@ docker-build-all
 ensure-images
 env-prep
 env-smoke
+external-artifact
 extract-version-map
 generate-contract-lock
 generate-evidence-qualification

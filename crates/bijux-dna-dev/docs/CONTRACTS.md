@@ -21,6 +21,9 @@ This crate owns developer automation contracts, not production pipeline contract
   `check-image-inventory-report` rejects governed report drift.
 - `containers run runtime-verification -- execute <repository-root> ...` requires the exact clean
   source checkout explicitly; the automation checkout never substitutes its own repository identity.
+- `containers run external-artifact -- <admit|block|verify|bind> ...` preserves repository and
+  active-image roots explicitly while delegating checksum, license-access, version, stage-binding,
+  and non-redistribution decisions to `bijux-dna-containers`.
 
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.

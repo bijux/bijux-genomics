@@ -312,6 +312,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateImageInventoryScanSchema,
         ),
         native(
+            "external-artifact",
+            "Admit, block, verify, or bind operator-provided restricted tool artifacts.",
+            NativeContainerCommandKey::ExternalArtifact,
+        ),
+        native(
             "image-activation",
             "Plan, apply, verify, or roll back canonical image activation.",
             NativeContainerCommandKey::ImageActivation,
