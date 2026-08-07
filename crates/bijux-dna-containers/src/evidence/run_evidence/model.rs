@@ -9,6 +9,127 @@ use serde::{Deserialize, Serialize};
 pub const CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2: &str = "bijux.container.run_evidence_index.v2";
 pub const CONTAINER_RUN_EVIDENCE_LOCK_SCHEMA_V1: &str = "bijux.container.run_evidence_lock.v1";
 pub const CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1: &str = "bijux.container.run_attempt_ledger.v1";
+pub const CONTAINER_RESULT_LAYOUT_PLAN_SCHEMA_V1: &str = "bijux.container.result_layout_plan.v1";
+pub const CONTAINER_SUPERSEDED_RESULT_ARCHIVE_SCHEMA_V1: &str =
+    "bijux.container.superseded_result_archive.v1";
+
+#[derive(Debug, Clone)]
+pub struct ResultLayoutPlanRequest {
+    pub runs_root: PathBuf,
+    pub result_root: PathBuf,
+    pub created_at_utc: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct SupersededResultArchivePlanRequest {
+    pub runs_root: PathBuf,
+    pub attempt_ledger_path: PathBuf,
+    pub result_root: PathBuf,
+    pub archive_root: PathBuf,
+    pub created_at_utc: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ResultMovementState {
+    Previewed,
+    Applying,
+    Applied,
+    RolledBack,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ResultLayoutPlan {
+    pub schema_version: String,
+    pub state: ResultMovementState,
+    pub created_at_utc: String,
+    pub result_root: String,
+    pub run_count: usize,
+    pub file_count: usize,
+    pub size_bytes: u64,
+    pub moves: Vec<ResultLayoutMove>,
+    pub removed_empty_directories: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_at_utc: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rolled_back_at_utc: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ResultLayoutMove {
+    pub run_id: String,
+    pub tool: String,
+    pub source: String,
+    pub target: String,
+    pub file_count: usize,
+    pub size_bytes: u64,
+    pub inventory_sha256: String,
+    pub evidence_lock: String,
+    pub evidence_lock_sha256: String,
+    pub applied: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub applied_at_utc: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ArchivedResultCategory {
+    SupersededAttempt,
+    GeneratedCache,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct SupersededResultArchivePlan {
+    pub schema_version: String,
+    pub state: ResultMovementState,
+    pub created_at_utc: String,
+    pub result_root: String,
+    pub archive_root: String,
+    pub attempt_ledger_sha256: String,
+    pub final_results: Vec<String>,
+    pub move_count: usize,
+    pub file_count: usize,
+    pub size_bytes: u64,
+    pub moves: Vec<SupersededResultMove>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_at_utc: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rolled_back_at_utc: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct SupersededResultMove {
+    pub category: ArchivedResultCategory,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool: Option<String>,
+    pub source: String,
+    pub target: String,
+    pub file_count: usize,
+    pub size_bytes: u64,
+    pub inventory_sha256: String,
+    pub files: Vec<ResultFileIdentity>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evidence_lock_sha256: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub superseded_by: Option<String>,
+    pub applied: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub applied_at_utc: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ResultFileIdentity {
+    pub path: String,
+    pub size_bytes: u64,
+    pub sha256: String,
+}
 
 #[derive(Debug, Clone)]
 pub struct RunEvidenceImportRequest {
