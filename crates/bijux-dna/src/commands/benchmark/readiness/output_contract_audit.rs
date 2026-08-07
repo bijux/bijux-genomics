@@ -559,15 +559,14 @@ fn collect_local_stage_proof_from_plans(
     declared_ids: &BTreeSet<String>,
     tool_plans: &[bijux_dna_stage_contract::StagePlanV1],
 ) -> Result<LocalStageProof> {
-    let out_dirs = tool_plans
-        .iter()
-        .map(|plan| repo_relative_path(repo_root, &plan.out_dir))
-        .collect::<BTreeSet<_>>();
-    for out_dir in &out_dirs {
-        if out_dir.is_dir() {
-            std::fs::remove_dir_all(out_dir)
-                .with_context(|| format!("reset proof directory {}", out_dir.display()))?;
-        }
+    let proof_root = repo_root
+        .join(DIRECT_OUTPUT_CONTRACT_PROOF_ROOT)
+        .join("shared-stage")
+        .join(stage_id)
+        .join(proof_tool_id);
+    if proof_root.is_dir() {
+        std::fs::remove_dir_all(&proof_root)
+            .with_context(|| format!("reset proof directory {}", proof_root.display()))?;
     }
 
     let mut observed_ids = BTreeSet::<String>::new();
@@ -576,16 +575,17 @@ fn collect_local_stage_proof_from_plans(
     let mut proof_path = None;
     for plan in tool_plans {
         for artifact in &plan.io.outputs {
-            let resolved = repo_relative_path(repo_root, &artifact.path);
-            materialize_declared_output(&resolved)
-                .with_context(|| format!("materialize proof output {}", resolved.display()))?;
-            proof_path.get_or_insert_with(|| path_relative_to_repo(repo_root, &resolved));
-            if resolved.exists() {
+            let declared = repo_relative_path(repo_root, &artifact.path);
+            let proof_output = local_stage_proof_output_path(repo_root, &proof_root, &declared)?;
+            materialize_declared_output(&proof_output)
+                .with_context(|| format!("materialize proof output {}", proof_output.display()))?;
+            proof_path.get_or_insert_with(|| path_relative_to_repo(repo_root, &proof_output));
+            if proof_output.exists() {
                 observed_ids.insert(artifact.name.to_string());
                 observed_paths_by_id
                     .entry(artifact.name.to_string())
                     .or_default()
-                    .push(path_relative_to_repo(repo_root, &resolved));
+                    .push(path_relative_to_repo(repo_root, &proof_output));
             } else if !artifact.optional {
                 missing_required_count += 1;
             }
@@ -609,6 +609,17 @@ fn collect_local_stage_proof_from_plans(
         undeclared_stage_output_ids,
         independent_execution_proven,
     })
+}
+
+fn local_stage_proof_output_path(
+    repo_root: &Path,
+    proof_root: &Path,
+    declared_output: &Path,
+) -> Result<PathBuf> {
+    let relative = declared_output.strip_prefix(repo_root).with_context(|| {
+        format!("declared output must remain inside repository root: {}", declared_output.display())
+    })?;
+    Ok(proof_root.join(relative))
 }
 
 fn collect_direct_declared_output_proof(
@@ -1109,10 +1120,14 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::Duration;
 
-    use super::{build_output_contract_audit_report, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH};
+    use super::{
+        build_output_contract_audit_report, local_stage_proof_output_path,
+        DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+    };
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -1127,6 +1142,28 @@ mod tests {
             Duration::from_mins(5),
         )
         .expect("acquire benchmark readiness test lock")
+    }
+
+    #[test]
+    fn local_stage_proof_output_path_isolated_from_plan_evidence() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let stage_root = root.path().join("benchmarks/readiness/local-ready/bam.contamination");
+        fs::create_dir_all(&stage_root).expect("create stage root");
+        let plan_path = stage_root.join("plan.json");
+        let output_path = stage_root.join("summary.json");
+        fs::write(&plan_path, b"governed plan").expect("write plan");
+        fs::write(&output_path, b"stale output").expect("write output");
+        let proof_root = root.path().join("runs/bench/readiness-probes/output-contracts");
+
+        let proof_output = local_stage_proof_output_path(root.path(), &proof_root, &output_path)
+            .expect("derive isolated proof output");
+        fs::create_dir_all(proof_output.parent().expect("proof output parent"))
+            .expect("create proof output parent");
+        fs::write(&proof_output, b"proof output").expect("materialize proof output");
+
+        assert!(plan_path.is_file(), "sibling plan evidence must remain untouched");
+        assert_eq!(fs::read(&output_path).expect("read declared output"), b"stale output");
+        assert!(proof_output.starts_with(proof_root));
     }
 
     #[test]
