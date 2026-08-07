@@ -298,6 +298,30 @@ fn manifest_dependency_graph_matches_boundary_contract() {
 }
 
 #[test]
+fn benchmark_library_does_not_mutate_process_environment() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().is_none_or(|extension| extension != "rs")
+        {
+            continue;
+        }
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read {}: {err}", entry.path().display()));
+        for (index, line) in content.lines().enumerate() {
+            if line.contains("std::env::set_var(") || line.contains("std::env::remove_var(") {
+                offenders.push(format!("{}:{}", entry.path().display(), index + 1));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "benchmark code and in-module tests must not mutate process-global environment: {offenders:?}",
+    );
+}
+
+#[test]
 fn commands_doc_lists_managed_benchmark_operations() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let commands_doc = root.join("docs/COMMANDS.md");
