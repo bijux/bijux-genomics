@@ -10,8 +10,11 @@ pub use credential::{
     CONTAINER_CREDENTIAL_REFERENCE_SCHEMA_V1,
 };
 pub use pipeline::{
-    admit_container_pipeline_site, load_container_pipeline, validate_container_pipeline,
-    ContainerPipelineContract, ContainerPipelineInputAdmission, ContainerPipelineSiteAdmission,
+    admit_container_pipeline_site, apply_container_pipeline_currentization,
+    derive_container_pipeline_currentization, load_container_pipeline, validate_container_pipeline,
+    ContainerPipelineContract, ContainerPipelineCurrentizationEntry,
+    ContainerPipelineCurrentizationPlan, ContainerPipelineCurrentizationRequest,
+    ContainerPipelineInputAdmission, ContainerPipelineSiteAdmission,
     ContainerPipelineSiteAdmissionRequest, ContainerPipelineV1, ContainerPipelineV2,
     PipelineAcceptanceMetric, PipelineAcceptanceV1, PipelineAcceptanceV2, PipelineCachePolicy,
     PipelineCommandsV1, PipelineCommandsV2, PipelineDataV1, PipelineDataV2, PipelineDependency,

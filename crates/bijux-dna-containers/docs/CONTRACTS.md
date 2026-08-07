@@ -17,6 +17,11 @@ This crate owns the environment contracts consumed by API, runner, and environme
   no-publication rule, consistent requirement flag, unique reference IDs, and generated schema.
 - `ContainerPipelineContract`: strict version-dispatched admission for immutable v1 history and
   current v2 declarations. Unknown and cross-version fields fail before execution-site effects.
+- `ContainerPipelineSiteAdmission`: canonical repository, image, input, result-root, and Slurm
+  resource identities reverified against one governed host before submission.
+- `ContainerPipelineCurrentizationPlan`: inventory-bound repository and image identity updates for
+  every tracked pipeline declaration. Source and target hashes make interrupted atomic-per-file
+  application resumable and reject unplanned content drift.
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
 - `CurrentApptainerImage`: absolute current retained SIF identity reverified against the selected
   inventory candidate at consumption time.

@@ -35,21 +35,28 @@ struct PipelineSchemaProbe {
 pub fn load_container_pipeline(path: &Path) -> Result<ContainerPipelineContract> {
     let raw = fs::read_to_string(path)
         .with_context(|| format!("read container pipeline {}", path.display()))?;
-    let probe: PipelineSchemaProbe = serde_yaml::from_str(&raw)
-        .with_context(|| format!("parse container pipeline schema {}", path.display()))?;
+    parse_container_pipeline_document(&raw, &path.display().to_string())
+}
+
+pub(super) fn parse_container_pipeline_document(
+    raw: &str,
+    source: &str,
+) -> Result<ContainerPipelineContract> {
+    let probe: PipelineSchemaProbe = serde_yaml::from_str(raw)
+        .with_context(|| format!("parse container pipeline schema {source}"))?;
     let contract = match probe.schema_version.as_str() {
         CONTAINER_PIPELINE_SCHEMA_V1 => ContainerPipelineContract::Legacy(Box::new(
-            serde_yaml::from_str(&raw)
-                .with_context(|| format!("parse legacy container pipeline {}", path.display()))?,
+            serde_yaml::from_str(raw)
+                .with_context(|| format!("parse legacy container pipeline {source}"))?,
         )),
         CONTAINER_PIPELINE_SCHEMA_V2 => ContainerPipelineContract::Current(Box::new(
-            serde_yaml::from_str(&raw)
-                .with_context(|| format!("parse current container pipeline {}", path.display()))?,
+            serde_yaml::from_str(raw)
+                .with_context(|| format!("parse current container pipeline {source}"))?,
         )),
         schema => bail!("unsupported container pipeline schema: {schema}"),
     };
     validate_container_pipeline(&contract)
-        .with_context(|| format!("validate container pipeline {}", path.display()))?;
+        .with_context(|| format!("validate container pipeline {source}"))?;
     Ok(contract)
 }
 

@@ -1,10 +1,16 @@
 mod admission;
+mod currentization;
 mod model;
 mod validation;
 
 pub use admission::{
     admit_container_pipeline_site, ContainerPipelineInputAdmission, ContainerPipelineSiteAdmission,
     ContainerPipelineSiteAdmissionRequest,
+};
+pub use currentization::{
+    apply_container_pipeline_currentization, derive_container_pipeline_currentization,
+    ContainerPipelineCurrentizationEntry, ContainerPipelineCurrentizationPlan,
+    ContainerPipelineCurrentizationRequest,
 };
 pub use model::{
     ContainerPipelineContract, ContainerPipelineV1, ContainerPipelineV2, PipelineAcceptanceMetric,

@@ -116,15 +116,18 @@ pub use crate::evidence::{
     QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use crate::execution_contract::{
-    admit_container_pipeline_site, container_credential_reference_schema,
+    admit_container_pipeline_site, apply_container_pipeline_currentization,
+    container_credential_reference_schema, derive_container_pipeline_currentization,
     load_container_credential_reference, load_container_pipeline,
     validate_container_credential_reference, validate_container_pipeline,
     write_container_credential_reference_schema, ContainerCredentialRecord,
     ContainerCredentialRedaction, ContainerCredentialReference, ContainerPipelineContract,
-    ContainerPipelineInputAdmission, ContainerPipelineSiteAdmission,
-    ContainerPipelineSiteAdmissionRequest, ContainerPipelineV1, ContainerPipelineV2,
-    PipelineEvidenceKind, PipelineInputKind, CONTAINER_CREDENTIAL_REFERENCE_SCHEMA_V1,
-    CONTAINER_PIPELINE_SCHEMA_V1, CONTAINER_PIPELINE_SCHEMA_V2,
+    ContainerPipelineCurrentizationEntry, ContainerPipelineCurrentizationPlan,
+    ContainerPipelineCurrentizationRequest, ContainerPipelineInputAdmission,
+    ContainerPipelineSiteAdmission, ContainerPipelineSiteAdmissionRequest, ContainerPipelineV1,
+    ContainerPipelineV2, PipelineEvidenceKind, PipelineInputKind,
+    CONTAINER_CREDENTIAL_REFERENCE_SCHEMA_V1, CONTAINER_PIPELINE_SCHEMA_V1,
+    CONTAINER_PIPELINE_SCHEMA_V2,
 };
 pub use crate::resolve::*;
 pub use crate::site_policy::{
