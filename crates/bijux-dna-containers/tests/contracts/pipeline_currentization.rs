@@ -360,6 +360,31 @@ fn currentization_refuses_source_drift_after_planning() -> Result<()> {
 }
 
 #[test]
+fn currentization_refuses_catalog_current_images_outside_active_storage() -> Result<()> {
+    let fixture = CurrentizationFixture::new()?;
+    let staged_root = fixture.request.governance.paths.containers_root.join("staging/replay-test");
+    std::fs::create_dir_all(&staged_root)?;
+    let staged_image = staged_root.join("trim_galore-current.sif");
+    std::fs::write(&staged_image, b"current trim galore image")?;
+    let mut inventory: ContainerImageInventoryPublication =
+        serde_json::from_slice(&std::fs::read(&fixture.request.inventory_path)?)?;
+    let tool = inventory
+        .tools
+        .iter_mut()
+        .find(|tool| tool.tool == "trim_galore")
+        .context("missing trim_galore inventory fixture")?;
+    tool.candidates[0].path =
+        "study://containers/staging/replay-test/trim_galore-current.sif".to_owned();
+    std::fs::write(&fixture.request.inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+
+    let error = derive_container_pipeline_currentization(&fixture.request)
+        .err()
+        .context("currentization admitted a staged image")?;
+    assert!(format!("{error:#}").contains("active Apptainer root"));
+    Ok(())
+}
+
+#[test]
 fn currentization_preserves_published_run_evidence() -> Result<()> {
     let fixture = CurrentizationFixture::new()?;
     std::fs::write(

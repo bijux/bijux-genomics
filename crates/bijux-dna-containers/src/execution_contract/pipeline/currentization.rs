@@ -184,11 +184,13 @@ fn render_currentization(
             &request.governance.paths.study_root,
             tool_id,
         )?;
+        let image_path =
+            admit_active_image(&request.governance.paths.containers_root, &image.path)?;
         let current = rewrite_pipeline_identities(
             &source,
             &repository_path,
             &request.repository_commit,
-            &image.path,
+            &image_path,
             &image.sha256,
         )?;
         parse_container_pipeline_document(&current, &format!("rendered {}", path.display()))?;
@@ -202,7 +204,7 @@ fn render_currentization(
                 tool_id: tool_id.to_owned(),
                 source_sha256: source_sha256.clone(),
                 current_sha256,
-                image_path: image.path,
+                image_path,
                 image_sha256: image.sha256,
                 disposition: if changed {
                     ContainerPipelineCurrentizationDisposition::Currentized
@@ -215,6 +217,19 @@ fn render_currentization(
         });
     }
     Ok(rendered)
+}
+
+fn admit_active_image(containers_root: &Path, selected: &Path) -> Result<PathBuf> {
+    let active_root = containers_root
+        .join("apptainer")
+        .canonicalize()
+        .context("canonicalize active Apptainer image root")?;
+    let selected = selected.canonicalize().context("canonicalize selected image")?;
+    ensure!(
+        selected.starts_with(&active_root) && selected != active_root,
+        "pipeline currentization requires an image under the active Apptainer root"
+    );
+    Ok(selected)
 }
 
 fn preserve_pipeline_document(
