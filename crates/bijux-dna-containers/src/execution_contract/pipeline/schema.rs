@@ -119,7 +119,8 @@ const CONTAINER_PIPELINE_V1_SCHEMA_JSON: &str = r##"{
     "argv": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
   },
   "additionalProperties": false
-}"##;
+}
+"##;
 const CONTAINER_PIPELINE_V2_SCHEMA_JSON: &str = r##"{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bijux.github.io/bijux-genomics/schemas/container-pipeline-v2.json",
@@ -383,7 +384,8 @@ const CONTAINER_PIPELINE_V2_SCHEMA_JSON: &str = r##"{
     "relative_path": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"}
   },
   "additionalProperties": false
-}"##;
+}
+"##;
 
 fn embedded_schema(raw: &str) -> serde_json::Value {
     serde_json::from_str(raw).unwrap_or_else(|_| serde_json::json!({}))
@@ -404,7 +406,7 @@ pub fn container_pipeline_v2_schema() -> serde_json::Value {
 /// # Errors
 /// Returns an error when schema publication fails.
 pub fn write_container_pipeline_v1_schema(path: &Path) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(path, &container_pipeline_v1_schema())?;
+    bijux_dna_infra::atomic_write_bytes(path, CONTAINER_PIPELINE_V1_SCHEMA_JSON.as_bytes())?;
     Ok(())
 }
 
@@ -413,6 +415,6 @@ pub fn write_container_pipeline_v1_schema(path: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error when schema publication fails.
 pub fn write_container_pipeline_v2_schema(path: &Path) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(path, &container_pipeline_v2_schema())?;
+    bijux_dna_infra::atomic_write_bytes(path, CONTAINER_PIPELINE_V2_SCHEMA_JSON.as_bytes())?;
     Ok(())
 }

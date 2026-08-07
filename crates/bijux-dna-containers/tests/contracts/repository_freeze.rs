@@ -4,18 +4,24 @@ use std::process::Command;
 use anyhow::{ensure, Context, Result};
 use bijux_dna_containers::api::{
     container_governance_schema, freeze_repository, load_container_governance,
-    validate_container_governance, ContainerGovernance, ContainerPathPolicy,
-    ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
-    RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
+    validate_container_governance, write_container_governance_schema, ContainerGovernance,
+    ContainerPathPolicy, ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy,
+    ContainerSlurmPolicy, RepositoryFreezeRequest, RepositoryFreezeScope,
+    CONTAINER_GOVERNANCE_SCHEMA_V1,
 };
 
 #[test]
 fn tracked_governance_schema_matches_rust_authority() -> Result<()> {
     let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let checked: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+    let tracked = std::fs::read_to_string(
         repository.join("containers/contracts/config-governance.schema.json"),
-    )?)?;
+    )?;
+    let checked: serde_json::Value = serde_json::from_str(&tracked)?;
     assert_eq!(checked, container_governance_schema());
+    let generated = tempfile::tempdir()?;
+    let output = generated.path().join("config-governance.schema.json");
+    write_container_governance_schema(&output)?;
+    assert_eq!(std::fs::read_to_string(output)?, tracked);
     Ok(())
 }
 

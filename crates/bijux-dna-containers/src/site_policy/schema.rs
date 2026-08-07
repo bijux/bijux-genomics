@@ -93,12 +93,12 @@ const CONTAINER_GOVERNANCE_SCHEMA_JSON: &str = r#"{
     }
   },
   "additionalProperties": false
-}"#;
+}
+"#;
 
 #[must_use]
 pub fn container_governance_schema() -> serde_json::Value {
-    serde_json::from_str(CONTAINER_GOVERNANCE_SCHEMA_JSON)
-        .unwrap_or_else(|_| serde_json::json!({}))
+    serde_json::from_str(CONTAINER_GOVERNANCE_SCHEMA_JSON).unwrap_or_else(|_| serde_json::json!({}))
 }
 
 /// Write the container-governance schema atomically.
@@ -106,6 +106,6 @@ pub fn container_governance_schema() -> serde_json::Value {
 /// # Errors
 /// Returns an error when schema publication fails.
 pub fn write_container_governance_schema(path: &Path) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(path, &container_governance_schema())?;
+    bijux_dna_infra::atomic_write_bytes(path, CONTAINER_GOVERNANCE_SCHEMA_JSON.as_bytes())?;
     Ok(())
 }

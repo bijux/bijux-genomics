@@ -3,6 +3,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     container_pipeline_v1_schema, container_pipeline_v2_schema, load_container_pipeline,
+    write_container_pipeline_v1_schema, write_container_pipeline_v2_schema,
     ContainerPipelineContract,
 };
 
@@ -13,13 +14,29 @@ fn repository_root() -> Result<std::path::PathBuf> {
 #[test]
 fn tracked_pipeline_schemas_match_rust_authority() -> Result<()> {
     let root = repository_root()?;
-    for (path, expected) in [
-        ("containers/contracts/config-pipeline.schema.json", container_pipeline_v1_schema()),
-        ("containers/contracts/config-pipeline-v2.schema.json", container_pipeline_v2_schema()),
+    let output = tempfile::tempdir()?;
+    for (path, expected, write) in [
+        (
+            "containers/contracts/config-pipeline.schema.json",
+            container_pipeline_v1_schema(),
+            write_container_pipeline_v1_schema as fn(&Path) -> Result<()>,
+        ),
+        (
+            "containers/contracts/config-pipeline-v2.schema.json",
+            container_pipeline_v2_schema(),
+            write_container_pipeline_v2_schema as fn(&Path) -> Result<()>,
+        ),
     ] {
-        let checked: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(root.join(path))?)?;
+        let tracked = std::fs::read_to_string(root.join(path))?;
+        let checked: serde_json::Value = serde_json::from_str(&tracked)?;
         assert_eq!(checked, expected, "tracked schema drifted: {path}");
+        let generated = output.path().join(Path::new(path).file_name().context("schema filename")?);
+        write(&generated)?;
+        assert_eq!(
+            std::fs::read_to_string(generated)?,
+            tracked,
+            "schema rendering drifted: {path}"
+        );
     }
     Ok(())
 }
