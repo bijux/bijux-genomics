@@ -30,6 +30,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
   build evidence matches only when status, commit, definition, and complete context agree.
 - `ContainerCatalog` and `ContainerCatalogTool`: the complete fail-closed model loaded from
   `containers/contracts/catalog.toml`; consumers must not define reduced or competing projections.
+  Catalog capability distinguishes prohibited redistribution from governed operator-provided
+  execution through `external_artifact_supported` and its allowed artifact kinds.
 - `ContainerCatalogLock`: exact catalog-byte identity and per-tool contract digests derived by this
   crate; unknown, stale, future-version, or unresolved-source locks fail admission.
 - `ContainerCatalogValidation`: exact 89-tool/85-retained/four-unsupported roster and bidirectional
@@ -55,6 +57,13 @@ This crate owns the environment contracts consumed by API, runner, and environme
   exact file identity and historical run-reference authority through the source inventory.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
   `ContainerToolContract.expected_version_regex` contract.
+- `ExternalArtifactAdmission`: immutable no-copy admission for an operator-provided binary or SIF,
+  including lawful-access basis, checksum, size, live cataloged version probe, permitted stage IDs,
+  and an explicit non-redistribution decision. When access is unavailable, the same contract owns a
+  `blocked_external_access` record rather than silently disabling integration.
+- `ExternalArtifactCommandBinding`: a reverified stage invocation that replaces the cataloged
+  executable with the admitted binary or wraps it in `apptainer exec`; artifact and catalog drift
+  fail before execution.
 
 ## Evidence Publications
 
@@ -113,6 +122,8 @@ complete inventory scan schema with these developer-control-plane command IDs:
 - Changing resolution precedence is breaking.
 - Adding a managed host command requires `COMMANDS.md` and boundary tests.
 - New catalog inputs must have fixture or contract coverage before becoming public behavior.
+- External artifacts must remain outside the repository and distributable active image root; only
+  identity and probe evidence may be published.
 
 ## Failure Patterns
 

@@ -36,6 +36,9 @@ library can manage when callers invoke the matching API.
   admits version output against the catalog contract regex.
 - `execute_runtime_verification()`: resolves canonical inventory images and runs independent
   version/help smoke workers before publishing manifest-bound portable evidence.
+- `admit_external_artifact()`: runs the cataloged version probe against an operator-provided
+  binary or through `apptainer exec`, verifies the declared checksum, and publishes a no-copy
+  admission record. Restricted artifacts must remain outside the repository and active image root.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
 - `derive_container_catalog_lock()` and `load_container_catalog_lock()`: derive and admit the
@@ -75,6 +78,8 @@ library can manage when callers invoke the matching API.
 - `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
 - `src/evidence/tool_contract/version_lock.rs`: committed version-source timestamp derivation for
   deterministic immutable lock publication.
+- `src/evidence/external_artifact/workflow.rs`: operator-artifact version probing and immutable
+  external admission; it never copies or publishes the restricted artifact.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 - `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
   canonical image publication.

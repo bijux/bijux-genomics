@@ -21,9 +21,10 @@
   portable report publication; exact-commit catalog and Apptainer recipe identity;
   `resolve_current_apptainer_image` selection with on-disk size and digest verification;
   no-clobber canonical image activation; reversible historical, obsolete, and interrupted image
-  quarantine; focused catalog/image-inventory closure validation for execution planning; runtime
-  inspection; deterministic image-inventory report rendering; validation, loading, JSON Schema
-  rendering, and atomic schema writing.
+  quarantine; no-copy external binary/SIF admission, access blockers, checksum/version replay, and
+  stage command binding for licensing-restricted tools; focused catalog/image-inventory closure
+  validation for execution planning; runtime inspection; deterministic image-inventory report
+  rendering; validation, loading, JSON Schema rendering, and atomic schema writing.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.

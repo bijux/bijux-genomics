@@ -2,6 +2,7 @@
 //! Typed admission for immutable container environment evidence.
 
 mod chain;
+mod external_artifact;
 mod image_activation;
 mod image_storage;
 mod inventory;
@@ -18,6 +19,14 @@ pub use chain::{
     load_container_evidence_chain, validate_container_evidence_chain,
     validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
     ContainerEvidenceChain,
+};
+pub use external_artifact::{
+    admit_external_artifact, bind_external_artifact_command, external_artifact_admission_schema,
+    load_external_artifact_admission, verify_external_artifact_admission,
+    write_external_artifact_admission_schema, ExternalArtifactAdmission,
+    ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
+    ExternalArtifactCommandBinding, ExternalArtifactIdentity, ExternalArtifactInput,
+    ExternalArtifactKind, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
 };
 pub use image_activation::{
     apply_image_activation_plan, create_image_activation_plan, image_activation_plan_schema,
