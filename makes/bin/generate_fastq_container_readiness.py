@@ -435,18 +435,19 @@ def main() -> int:
         tool_image, tool_digest = tools.get(row.default_tool, ("", ""))
         registry_row = registry.get(row.default_tool, {})
         container_ref = registry_row.get("container_ref", "")
+        absent = "missing" if row.default_tool else "not_applicable"
         matrix.append(
             [
                 row.stage_id,
                 str(stages.get(row.stage_id, {}).get("status", "")),
                 row.execution_status,
-                row.default_tool,
-                registry_row.get("status", ""),
-                container_ref,
-                registry_row.get("dockerfile", ""),
-                registry_row.get("apptainer_def", ""),
-                tool_image,
-                tool_digest,
+                row.default_tool or "not_applicable",
+                registry_row.get("status", "") or absent,
+                container_ref or absent,
+                registry_row.get("dockerfile", "") or absent,
+                registry_row.get("apptainer_def", "") or absent,
+                tool_image or absent,
+                tool_digest or absent,
             ]
         )
         if row.default_tool:
@@ -578,12 +579,19 @@ def main() -> int:
                     str(value),
                     lock_field_status(value),
                     str(lock_item.get("version", "")),
-                    str(lock_item.get("status", "")),
+                    "present" if lock_item else "missing",
                 ]
             )
     write_tsv(
         out_dir / "FASTQ_CONTAINER_LOCK_GAPS.tsv",
-        ["default_tool", "lock_field", "lock_value", "field_status", "version", "lock_status"],
+        [
+            "default_tool",
+            "lock_field",
+            "lock_value",
+            "field_status",
+            "version",
+            "lock_entry_status",
+        ],
         lock_rows,
     )
     license_rows = []

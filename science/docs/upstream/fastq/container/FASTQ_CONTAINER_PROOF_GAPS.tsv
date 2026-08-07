@@ -7,10 +7,10 @@ fastq.validate_reads	fastqvalidator	docker_cyclonedx_sbom	missing_from_snapshot	
 fastq.validate_reads	fastqvalidator	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/fastqvalidator/docker-spdx.json;artifacts/containers/sbom/fastqvalidator.spdx.json
 fastq.validate_reads	fastqvalidator	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/fastqvalidator/apptainer-cyclonedx.json;artifacts/containers/sbom/fastqvalidator.apptainer.cyclonedx.json
 fastq.validate_reads	fastqvalidator	smoke_manifest	missing_from_snapshot	artifacts/containers/smoke/fastqvalidator/manifest.json;artifacts/containers/smoke/fastqvalidator.json
-fastq.profile_read_lengths	seqkit_stats	docker_cyclonedx_sbom	missing_from_snapshot	artifacts/containers/sbom/seqkit_stats/docker-cyclonedx.json;artifacts/containers/sbom/seqkit_stats.cyclonedx.json
-fastq.profile_read_lengths	seqkit_stats	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/seqkit_stats/docker-spdx.json;artifacts/containers/sbom/seqkit_stats.spdx.json
-fastq.profile_read_lengths	seqkit_stats	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/seqkit_stats/apptainer-cyclonedx.json;artifacts/containers/sbom/seqkit_stats.apptainer.cyclonedx.json
-fastq.profile_read_lengths	seqkit_stats	smoke_manifest	missing_from_snapshot	artifacts/containers/smoke/seqkit_stats/manifest.json;artifacts/containers/smoke/seqkit_stats.json
+fastq.profile_read_lengths	seqkit	docker_cyclonedx_sbom	missing_from_snapshot	artifacts/containers/sbom/seqkit/docker-cyclonedx.json;artifacts/containers/sbom/seqkit.cyclonedx.json
+fastq.profile_read_lengths	seqkit	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/seqkit/docker-spdx.json;artifacts/containers/sbom/seqkit.spdx.json
+fastq.profile_read_lengths	seqkit	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/seqkit/apptainer-cyclonedx.json;artifacts/containers/sbom/seqkit.apptainer.cyclonedx.json
+fastq.profile_read_lengths	seqkit	smoke_manifest	missing_from_snapshot	artifacts/containers/smoke/seqkit/manifest.json;artifacts/containers/smoke/seqkit.json
 fastq.detect_adapters	fastqc	docker_cyclonedx_sbom	missing_from_snapshot	artifacts/containers/sbom/fastqc/docker-cyclonedx.json;artifacts/containers/sbom/fastqc.cyclonedx.json
 fastq.detect_adapters	fastqc	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/fastqc/docker-spdx.json;artifacts/containers/sbom/fastqc.spdx.json
 fastq.detect_adapters	fastqc	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/fastqc/apptainer-cyclonedx.json;artifacts/containers/sbom/fastqc.apptainer.cyclonedx.json
