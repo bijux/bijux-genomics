@@ -312,6 +312,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateImageInventoryScanSchema,
         ),
         native(
+            "credential-reference",
+            "Validate credential declarations and manage their Rust-owned schema.",
+            NativeContainerCommandKey::CredentialReference,
+        ),
+        native(
             "external-artifact",
             "Admit, block, verify, or bind operator-provided restricted tool artifacts.",
             NativeContainerCommandKey::ExternalArtifact,

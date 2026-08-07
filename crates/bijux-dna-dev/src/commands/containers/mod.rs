@@ -16,6 +16,7 @@ mod command_support;
 mod content_support;
 mod contracts;
 mod dispatch;
+mod execution_contract;
 mod external_artifact;
 mod image_activation;
 mod inventory;

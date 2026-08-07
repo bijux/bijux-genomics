@@ -27,6 +27,8 @@ This crate owns developer automation contracts, not production pipeline contract
 - `containers run external-artifact -- <admit|block|verify|bind> ...` preserves repository and
   active-image roots explicitly while delegating checksum, license-access, version, stage-binding,
   and non-redistribution decisions to `bijux-dna-containers`.
+- `containers run credential-reference -- validate|generate-schema|check-schema` delegates strict
+  no-secret credential metadata admission and schema ownership to `bijux-dna-containers`.
 
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.

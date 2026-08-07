@@ -240,6 +240,7 @@ container-doctor
 container-runtime-check
 container-smoke
 containers-smoke
+credential-reference
 deprecate-version
 docker-build-all
 ensure-images
