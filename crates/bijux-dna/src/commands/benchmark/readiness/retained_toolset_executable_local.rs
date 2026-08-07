@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -177,6 +178,10 @@ pub(crate) fn render_retained_toolset_executable_local(
         "retained_tool_container_smoke",
         Some(DEFAULT_CONTAINER_TOOL_SMOKE_ROOT.to_string()),
         || {
+            container_smoke_tool_count = collect_version_probe_rows(repo_root)?
+                .into_iter()
+                .filter(|row| row.resolution_kind != "host_binary")
+                .count();
             let summary = validate_container_tool_smoke_manifests(repo_root)?;
             container_smoke_tool_count = summary.tool_count;
             Ok(format!(
@@ -415,6 +420,7 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
         .filter(|row| row.resolution_kind != "host_binary")
         .collect::<Vec<_>>();
     let mut failures = Vec::new();
+    let mut ready_execution_failures = BTreeMap::<(String, Option<String>), Vec<String>>::new();
     let missing_tool_ids = container_rows
         .iter()
         .filter(|row| {
@@ -486,10 +492,10 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
             }
             (_, "ready") => {
                 if manifest.status != "ok" {
-                    failures.push(format!(
-                        "{}: expected status `ok`, found `{}`",
-                        manifest_label, manifest.status
-                    ));
+                    ready_execution_failures
+                        .entry((manifest.status.clone(), manifest.unavailable_reason.clone()))
+                        .or_default()
+                        .push(row.tool_id.clone());
                     continue;
                 }
                 if manifest.exit_code != Some(0) {
@@ -524,6 +530,9 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
             )),
         }
     }
+    for ((status, reason), tool_ids) in ready_execution_failures {
+        failures.push(render_ready_execution_failure(&status, reason.as_deref(), &tool_ids));
+    }
     if !failures.is_empty() {
         return Err(anyhow!(
             "retained container smoke manifests failed validation: {}",
@@ -536,6 +545,21 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
         unavailable_count,
         failure_count: 0,
     })
+}
+
+fn render_ready_execution_failure(
+    status: &str,
+    unavailable_reason: Option<&str>,
+    tool_ids: &[String],
+) -> String {
+    let reason = unavailable_reason
+        .filter(|reason| !reason.trim().is_empty())
+        .map_or_else(String::new, |reason| format!(", reason=\"{reason}\""));
+    format!(
+        "{} ready retained container tools have status `{status}`{reason}: {}",
+        tool_ids.len(),
+        tool_ids.join(", ")
+    )
 }
 
 fn read_json_document<T: DeserializeOwned>(path: &Path, label: &str) -> Result<T> {
@@ -553,4 +577,23 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::render_ready_execution_failure;
+
+    #[test]
+    fn ready_execution_failure_groups_tools_under_one_runtime_reason() {
+        let rendered = render_ready_execution_failure(
+            "unavailable_with_reason",
+            Some("docker daemon probe exited with code 1"),
+            &["adapterremoval".to_string(), "fastqc".to_string()],
+        );
+
+        assert_eq!(
+            rendered,
+            "2 ready retained container tools have status `unavailable_with_reason`, reason=\"docker daemon probe exited with code 1\": adapterremoval, fastqc"
+        );
+    }
 }
