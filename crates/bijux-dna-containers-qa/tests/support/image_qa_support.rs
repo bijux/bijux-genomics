@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use bijux_dna_core::contract::ExecutionContract;
 use bijux_dna_containers::api::{
     resolve_image, select_best_runner, PlatformSpec, RuntimeKind, ToolImageSpec,
 };
@@ -8,6 +7,7 @@ use bijux_dna_containers_qa::image_qa::{
     hash_file_sha256, image_qa_base_dir, image_qa_jsonl_path, image_qa_sqlite_path,
     validate_execution_outputs,
 };
+use bijux_dna_core::contract::ExecutionContract;
 
 #[test]
 fn image_qa_paths_are_stable() {
