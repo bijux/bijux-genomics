@@ -27,17 +27,13 @@ fn shell_literal(path: &Path) -> String {
     format!("'{}'", path.display().to_string().replace('\'', "'\\''"))
 }
 
-fn client(temp: &tempfile::TempDir) -> anyhow::Result<SlurmClientPaths> {
-    let paths = SlurmClientPaths {
+fn client(temp: &tempfile::TempDir) -> SlurmClientPaths {
+    SlurmClientPaths {
         sbatch: temp.path().join("sbatch"),
         squeue: temp.path().join("squeue"),
         sacct: temp.path().join("sacct"),
         scancel: temp.path().join("scancel"),
-    };
-    for path in [&paths.sbatch, &paths.squeue, &paths.sacct, &paths.scancel] {
-        write_executable(path, "#!/bin/sh\nexit 0\n")?;
     }
-    Ok(paths)
 }
 
 fn request(temp: &tempfile::TempDir, run_id: &str) -> anyhow::Result<SlurmSubmitRequest> {
@@ -67,7 +63,7 @@ fn submitted_handle(
 #[test]
 fn submission_returns_identity_without_scheduler_polling() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let argument_log = temp.path().join("sbatch.args");
     write_executable(
         &paths.sbatch,
@@ -91,7 +87,7 @@ fn submission_returns_identity_without_scheduler_polling() -> anyhow::Result<()>
 #[test]
 fn submission_binds_afterok_dependencies_to_arguments_and_handle() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let argument_log = temp.path().join("sbatch.args");
     write_executable(
         &paths.sbatch,
@@ -113,7 +109,7 @@ fn submission_binds_afterok_dependencies_to_arguments_and_handle() -> anyhow::Re
 #[test]
 fn submission_binds_afterany_array_to_arguments_and_handle() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let argument_log = temp.path().join("sbatch.args");
     write_executable(
         &paths.sbatch,
@@ -146,7 +142,7 @@ fn submission_binds_afterany_array_to_arguments_and_handle() -> anyhow::Result<(
 #[test]
 fn submission_rejects_malformed_or_duplicate_dependencies() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     write_executable(&paths.sbatch, "#!/bin/sh\nprintf '3459974\\n'\n")?;
     for dependencies in [
         vec!["3459901".to_string(), "3459901".to_string()],
@@ -166,7 +162,7 @@ fn submission_rejects_malformed_or_duplicate_dependencies() -> anyhow::Result<()
 #[test]
 fn submission_rejects_invalid_array_bounds() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     write_executable(&paths.sbatch, "#!/bin/sh\nprintf '3459974\\n'\n")?;
     for array in [
         SlurmArraySpec { first_task_id: 4, last_task_id: 3, maximum_parallel_tasks: None },
@@ -204,7 +200,7 @@ fn request_deserialization_defaults_additive_scheduler_fields() -> anyhow::Resul
 #[test]
 fn bounded_submission_refuses_an_oversized_batch() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let requests = vec![request(&temp, "run-2042")?, request(&temp, "run-2043")?];
 
     assert!(submit_slurm_batch(&paths, &requests, 1).is_err());
@@ -215,7 +211,7 @@ fn bounded_submission_refuses_an_oversized_batch() -> anyhow::Result<()> {
 #[test]
 fn bounded_submission_retains_handles_when_a_later_submission_fails() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     write_executable(
         &paths.sbatch,
         "#!/bin/sh\ncase \"$*\" in\n  *run-2043.sbatch*) echo rejected >&2; exit 1 ;;\n  *) printf '3459974\\n' ;;\nesac\n",
@@ -235,7 +231,7 @@ fn bounded_submission_retains_handles_when_a_later_submission_fails() -> anyhow:
 #[test]
 fn queue_observation_does_not_consult_accounting() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let handle = submitted_handle(&temp, &paths)?;
     write_executable(&paths.squeue, "#!/bin/sh\nprintf 'RUNNING\\n'\n")?;
     write_executable(&paths.sacct, "#!/bin/sh\nexit 99\n")?;
@@ -251,7 +247,7 @@ fn queue_observation_does_not_consult_accounting() -> anyhow::Result<()> {
 #[test]
 fn completed_job_queue_error_falls_through_to_accounting() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let handle = submitted_handle(&temp, &paths)?;
     write_executable(
         &paths.squeue,
@@ -273,7 +269,7 @@ fn completed_job_queue_error_falls_through_to_accounting() -> anyhow::Result<()>
 #[test]
 fn unrelated_queue_failure_remains_fatal() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let handle = submitted_handle(&temp, &paths)?;
     write_executable(&paths.squeue, "#!/bin/sh\nprintf 'permission denied\n' >&2\nexit 1\n")?;
 
@@ -297,7 +293,7 @@ fn terminal_accounting_parses_exit_resources_and_failure_states() -> anyhow::Res
         ("OUT_OF_MEMORY", SlurmJobState::OutOfMemory),
     ] {
         let temp = tempfile::tempdir()?;
-        let paths = client(&temp)?;
+        let paths = client(&temp);
         let handle = submitted_handle(&temp, &paths)?;
         write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
         write_executable(
@@ -325,7 +321,7 @@ fn terminal_accounting_parses_exit_resources_and_failure_states() -> anyhow::Res
 #[test]
 fn accounting_uses_allocation_state_and_peak_step_memory() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let handle = submitted_handle(&temp, &paths)?;
     write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
     write_executable(
@@ -348,7 +344,7 @@ fn accounting_uses_allocation_state_and_peak_step_memory() -> anyhow::Result<()>
 #[test]
 fn array_accounting_retains_every_exact_task_and_peak_step_memory() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let mut handle = submitted_handle(&temp, &paths)?;
     handle.array =
         Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: Some(2) });
@@ -378,7 +374,7 @@ fn array_accounting_retains_every_exact_task_and_peak_step_memory() -> anyhow::R
 #[test]
 fn terminal_array_accounting_requires_exact_declared_task_coverage() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let mut handle = submitted_handle(&temp, &paths)?;
     handle.array =
         Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: None });
@@ -401,7 +397,7 @@ fn terminal_array_accounting_requires_exact_declared_task_coverage() -> anyhow::
 #[test]
 fn accounting_accepts_fractional_total_cpu_reported_by_slurm() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let paths = client(&temp);
     let handle = submitted_handle(&temp, &paths)?;
     write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
     write_executable(
@@ -438,7 +434,7 @@ fn accounting_deserialization_defaults_additive_array_tasks() -> anyhow::Result<
 #[test]
 fn missing_accounting_is_explicit_and_duplicate_collection_is_idempotent() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let mut paths = client(&temp);
     let handle = submitted_handle(&temp, &paths)?;
     write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
     write_executable(&paths.sacct, "#!/bin/sh\nexit 0\n")?;
@@ -447,6 +443,7 @@ fn missing_accounting_is_explicit_and_duplicate_collection_is_idempotent() -> an
     assert_eq!(missing.state, SlurmJobState::AccountingPending);
     assert!(missing.accounting.is_none());
 
+    paths.sacct = temp.path().join("sacct-terminal");
     write_executable(
         &paths.sacct,
         "#!/bin/sh\nprintf '%s\\n' '3459974|COMPLETED|0:0|60|00:00:58|1G|n001|None'\n",
@@ -460,7 +457,7 @@ fn missing_accounting_is_explicit_and_duplicate_collection_is_idempotent() -> an
 #[test]
 fn cancellation_uses_exact_job_identity_and_propagates_failure() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let mut paths = client(&temp);
     let handle = submitted_handle(&temp, &paths)?;
     let cancellation_log = temp.path().join("cancelled-job");
     write_executable(
@@ -471,6 +468,7 @@ fn cancellation_uses_exact_job_identity_and_propagates_failure() -> anyhow::Resu
     cancel_slurm_job(&paths, &handle)?;
     assert_eq!(std::fs::read_to_string(cancellation_log)?, "3459974");
 
+    paths.scancel = temp.path().join("scancel-denied");
     write_executable(&paths.scancel, "#!/bin/sh\necho denied >&2\nexit 1\n")?;
     assert!(cancel_slurm_job(&paths, &handle).is_err());
     Ok(())
@@ -479,14 +477,16 @@ fn cancellation_uses_exact_job_identity_and_propagates_failure() -> anyhow::Resu
 #[test]
 fn malformed_scheduler_evidence_fails_closed() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
-    let paths = client(&temp)?;
+    let mut paths = client(&temp);
     write_executable(&paths.sbatch, "#!/bin/sh\nprintf 'not-a-job\\n'\n")?;
     assert!(submit_slurm_job(&paths, &request(&temp, "run-2042")?).is_err());
 
+    paths.sbatch = temp.path().join("sbatch-valid");
     let handle = submitted_handle(&temp, &paths)?;
     write_executable(&paths.squeue, "#!/bin/sh\nprintf 'MYSTERY\\n'\n")?;
     assert!(observe_slurm_job(&paths, &handle, "2026-08-04T20:10:00Z").is_err());
 
+    paths.squeue = temp.path().join("squeue-empty");
     write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
     write_executable(
         &paths.sacct,
