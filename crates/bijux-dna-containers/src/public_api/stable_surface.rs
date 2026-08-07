@@ -116,3 +116,9 @@ pub use crate::evidence::{
     QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use crate::resolve::*;
+pub use crate::site_policy::{
+    freeze_repository, load_container_governance, validate_container_governance,
+    validate_container_governance_host, ContainerGovernance, ContainerPathPolicy,
+    ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
+    RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
+};
