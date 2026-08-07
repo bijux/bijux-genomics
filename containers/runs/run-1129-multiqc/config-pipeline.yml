@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T05:46:23Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/07f6e82d85d9495bcb6089f6e8afefc1f061b796
-  commit: 07f6e82d85d9495bcb6089f6e8afefc1f061b796
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-72668c0158ad.sif
-  sha256: 72668c0158ad9355aad107338ac3de92fa2c53fa66190cea2d267e2f77c8132a
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-67a592e9a836.sif
+  sha256: 67a592e9a836ef0e626badba77ab48fc0ca9d10bc5f287bb7d55b1922f374813
 data:
   inputs:
     - id: fastqc_archive

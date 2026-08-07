@@ -9,12 +9,12 @@ run:
   tool: eigensoft
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/e91d3dac0ccf34fba5f266ab175449ddeb5a7079
-  commit: e91d3dac0ccf34fba5f266ab175449ddeb5a7079
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eigensoft-8.0.0-linux-amd64-b514b5c1541d.sif
-  sha256: b514b5c1541d77b77b200ea90c8aa620592da77e4b45aab995d6735e84d23e18
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/eigensoft-8.0.0-linux-amd64-d814b0a55508.sif
+  sha256: d814b0a55508084c6b146b1ef958f9cd699f2d12d25eb74a4e484374670c976a
 data:
   inputs:
     - id: chromosome-22-plink-ped

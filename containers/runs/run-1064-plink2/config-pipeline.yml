@@ -9,12 +9,12 @@ run:
   tool: plink2
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/7950bde13673acbf12afd252b278ed185234274c
-  commit: 7950bde13673acbf12afd252b278ed185234274c
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/plink2-2.00a6-linux-amd64-ec2c69253b84.sif
-  sha256: ec2c69253b8417d63472eca31c46e7dab082767752725a47296cad598337d645
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/plink2-2.00a6-linux-amd64-bcf616ec9695.sif
+  sha256: bcf616ec969528195b171f6e5b86a58f329b730473f817e2e921efafd975f2ac
 data:
   inputs:
     - id: 1000-genomes-phase3-chr22-biallelic-100-samples

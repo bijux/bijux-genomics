@@ -1,7 +1,7 @@
 schema_version: bijux.container.pipeline.v1
 run: {id: run-1052, campaign: public-human-relatedness-container-qualification, corpus: 1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome, sample: 100-sample-cohort, domain: vcf, stage: vcf.ibd, tool: ibdseq, operator: bijan}
-repository: {path: /home/bijan/bijux/bijux-genomics-runs/cd19ed5c31348a9786a7bb7fdebd546239fdeb24, commit: cd19ed5c31348a9786a7bb7fdebd546239fdeb24, clean: true}
-image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdseq-r1206-linux-amd64-d8a2ed8f3822.sif, sha256: d8a2ed8f3822582ae74dea3831f65e01b0960d28d5d495019021526e12cda25e}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db, commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db, clean: true}
+image: {path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/ibdseq-r1206-linux-amd64-4b26ba0f4a7d.sif, sha256: 4b26ba0f4a7d92d2542276e99eb8d05ffe27e0edfbf5ee0f7465b4122f1404d9}
 data:
   inputs:
     - {id: 1000-genomes-phase3-chr22-v5b-biallelic-100-samples-full-chromosome, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz, sha256: 343a756d611cb58c1187e9b8f6c9a15a297772ea4fc9691a51ad2a56457a91bb}

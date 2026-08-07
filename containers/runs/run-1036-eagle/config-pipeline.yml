@@ -1,7 +1,7 @@
 schema_version: bijux.container.pipeline.v1
 run: {id: run-1036, campaign: public-human-phasing-container-qualification, corpus: 1000-genomes-phase3-chr22-biallelic, sample: 2504-sample-cohort, domain: vcf, stage: vcf.phasing, tool: eagle, operator: bijan}
-repository: {path: /home/bijan/bijux/bijux-genomics-runs/c07932e6374fc0ef1511a6341223fd8e0baf226c, commit: c07932e6374fc0ef1511a6341223fd8e0baf226c, clean: true}
-image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eagle-2.4.1-linux-amd64-881f32028845.sif, sha256: 881f320288453eb577801a1caf738b4788fe2bcaa9816624a4f33125fb8aa7dd}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db, commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db, clean: true}
+image: {path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/eagle-2.4.1-linux-amd64-ad8947a915ca.sif, sha256: ad8947a915ca503048665686ef51522492c5fbea8b5a9387d92a7c9cf3973432}
 data:
   inputs:
     - {id: 1000-genomes-phase3-chr22-v5b-biallelic-20-22mb, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-20-22mb/normalized.vcf.gz, sha256: f7e7ff32ac8d9c802dff6bc097e28e18111ae3342101294334d01dbc5f0aad15}

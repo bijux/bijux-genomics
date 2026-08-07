@@ -9,12 +9,12 @@ run:
   tool: vsearch
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/7c508db009352c0ce935b863bbde56806a48ad72
-  commit: 7c508db009352c0ce935b863bbde56806a48ad72
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/vsearch-2.29.3-linux-amd64-4d7794c15639.sif
-  sha256: 4d7794c1563989143c42b3a17772a6daf82837bc6c9ce3aca28dca7449f82180
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/vsearch-2.29.3-linux-amd64-073427d77dda.sif
+  sha256: 073427d77ddac209df4bfc647818dc91cd2a7a3dee601526b653e85db8fbf2e8
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1-uncompressed

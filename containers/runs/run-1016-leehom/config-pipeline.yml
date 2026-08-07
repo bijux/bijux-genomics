@@ -9,12 +9,12 @@ run:
   tool: leehom
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/953e9a17bcc2ec15b82789a788f8b9301b5d9c56
-  commit: 953e9a17bcc2ec15b82789a788f8b9301b5d9c56
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/leehom-1.2.18-linux-amd64-b3ea2f42cfc8.sif
-  sha256: b3ea2f42cfc89539bda6b3c2b216a5a36ebcccc3ea820b2c05fbbe958c623373
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/leehom-1.2.18-linux-amd64-fda5028d5449.sif
+  sha256: fda5028d544968ddd0d1186e17cf7d1346f9aeb13ede79a681cc4c36f55e5ed1
 data:
   inputs:
     - {id: err1021817-read-prefix-100000-r1, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz, sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc}

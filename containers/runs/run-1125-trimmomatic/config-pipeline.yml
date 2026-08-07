@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T05:05:35Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5306d62788b314d1b0cfac8f6fa19ee55d45dd35
-  commit: 5306d62788b314d1b0cfac8f6fa19ee55d45dd35
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/trimmomatic-0.39-linux-amd64-329c9ec4abfd.sif
-  sha256: 329c9ec4abfdfd6543ed7973f24ab4dba870899b0a98e16784ae2127797a9e7d
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/trimmomatic-0.39-linux-amd64-8168ae37e76e.sif
+  sha256: 8168ae37e76e217ecf2b8d18cf0348c2c2d9fa1e28d4694bbc5242b6ee57ba47
 data:
   inputs:
     - id: err1021817_read_one

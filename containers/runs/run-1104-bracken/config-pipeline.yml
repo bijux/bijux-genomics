@@ -9,12 +9,12 @@ run:
   tool: bracken
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/457df23743a98b41b4d213a41a85278391db4dfe
-  commit: 457df23743a98b41b4d213a41a85278391db4dfe
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bracken-2.9-linux-amd64-9627dd712111.sif
-  sha256: 9627dd7121113897677f0b8a670f1f1cdba63b9f5ca8f4fadb94d34fee783f55
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bracken-2.9-linux-amd64-959e24879cb9.sif
+  sha256: 959e24879cb91d7f97ba4b323d32875194877b862a7ef2b54a6707ce9c52570b
 data:
   inputs:
     - id: kraken2-run-1102-viral-report

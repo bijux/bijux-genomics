@@ -9,12 +9,12 @@ run:
   tool: clumpify
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132
-  commit: a7690273fbf58648d4adf485d7d4037e0f983132
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/clumpify-39.06-linux-amd64-10ebdaa418a2.sif
-  sha256: 10ebdaa418a20267cd054d19debff04571628d74d7cabf5f9b829dc6689b939c
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/clumpify-39.06-linux-amd64-68bc3a6aa914.sif
+  sha256: 68bc3a6aa9140cd9671aa51600aa82750e618e67cad5a58274351b4ef402ace4
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-pair1

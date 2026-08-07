@@ -1,7 +1,7 @@
 schema_version: bijux.container.pipeline.v1
 run: {id: run-1025, campaign: horse-wgs-container-qualification, corpus: ena-prjeb10854-err1021817-read-prefix-100000, sample: ERR1021817-R1, domain: fastq, stage: fastq.correct_errors, tool: musket, operator: bijan}
-repository: {path: /home/bijan/bijux/bijux-genomics-runs/8cee26d799267731746bd3b1679af4f4c8f8f1cc, commit: 8cee26d799267731746bd3b1679af4f4c8f8f1cc, clean: true}
-image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/musket-1.1-linux-amd64-66cc57153cc4.sif, sha256: 66cc57153cc40ea65f19dd660baa30cda11eedd5084f94acac2e35a3700c2c56}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db, commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db, clean: true}
+image: {path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/musket-1.1-linux-amd64-555c61cff6be.sif, sha256: 555c61cff6be57d656af5ed8af88e382ad583250da3561a371a3645fdb2680ce}
 data:
   inputs:
     - {id: fqtools-run-1021-mate1, kind: upstream_result, path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fqtools/run-1021/mate1.fastq, sha256: f95166df34bf2c3ce3b8641f62068a3ab1e3a9bbb1ec71c570035b7d844588e2}

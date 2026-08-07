@@ -9,12 +9,12 @@ run:
   tool: ibdhap
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/17a6ee7ab1163f07b34a5619cc44b3679e9ccd03
-  commit: 17a6ee7ab1163f07b34a5619cc44b3679e9ccd03
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ibdhap-3.4-linux-amd64-5c34505e4602.sif
-  sha256: 5c34505e46021dbcddcbd0b0614f0fb9f818ef578613bb436c40ad61d934ca8a
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/ibdhap-3.4-linux-amd64-e2748541d45d.sif
+  sha256: e2748541d45d80e533d781a450ecaaf2f0ffaa4a4910bea5ce9f15de8da7b5a9
 data:
   inputs:
     - id: 1000-genomes-phase3-chr22-biallelic-100-samples

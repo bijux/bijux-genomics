@@ -9,12 +9,12 @@ run:
   tool: skewer
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/bda7a8a945f2cc88733fd72aa2bc663f6fdb1cfe
-  commit: bda7a8a945f2cc88733fd72aa2bc663f6fdb1cfe
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/skewer-0.2.2-linux-amd64-d3a3db911786.sif
-  sha256: d3a3db911786f3aa6c75876130b5b048ed67b2a081a9374f49388a524523f32e
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/skewer-0.2.2-linux-amd64-5fc491268eba.sif
+  sha256: 5fc491268ebab2b2e6750d25a80abb44ab73fa4db552ea0aef007bffd8ac5536
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

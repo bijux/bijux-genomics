@@ -9,12 +9,12 @@ run:
   tool: centrifuge
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/71bc19ce7b89a7abe7aff3a2ac2058c3067c8468
-  commit: 71bc19ce7b89a7abe7aff3a2ac2058c3067c8468
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/centrifuge-1.0.4-linux-amd64-ef902ccdea50.sif
-  sha256: ef902ccdea50babb3c1627156469589f645f6473294650ca0304023aa211d0ec
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/centrifuge-1.0.4-linux-amd64-bec37fdd5c2f.sif
+  sha256: bec37fdd5c2ff06e0decc0c72e3ebfde24f4ccecc14b8460bab9eba815a868e3
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

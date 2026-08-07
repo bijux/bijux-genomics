@@ -9,12 +9,12 @@ run:
   tool: bayeshammer
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/2bc6530df146c688168ce9894483b3774ab6c0eb
-  commit: 2bc6530df146c688168ce9894483b3774ab6c0eb
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bayeshammer-4.2.0-linux-amd64-29f135aa518c.sif
-  sha256: 29f135aa518c0b47a643167eb501f4430d1ab9a1d8b15cbec6336616c2212e99
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bayeshammer-4.2.0-linux-amd64-4c45c358e332.sif
+  sha256: 4c45c358e3325166ee49b631afb7d97cfc446f101e109f4e75e355b270cc7adc
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

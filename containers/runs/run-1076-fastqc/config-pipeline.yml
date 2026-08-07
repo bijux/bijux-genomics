@@ -9,12 +9,12 @@ run:
   tool: fastqc
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/46d84160c0510c0440ec9645e9cf7de2c767f703
-  commit: 46d84160c0510c0440ec9645e9cf7de2c767f703
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqc-0.12.1-linux-amd64-67d35b581fd8.sif
-  sha256: 67d35b581fd832f7ffb40618001a1d92cb12a45490784457e5edfeb352a2bcad
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastqc-0.12.1-linux-amd64-eae341b0449c.sif
+  sha256: eae341b0449c62bcadfdbc91486ce145f17e2baa5011a636d9b05be7f3b1f0c0
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

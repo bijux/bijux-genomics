@@ -9,12 +9,12 @@ run:
   tool: fastqvalidator
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/6fe3d23155fabf8514a844c43e5ebc9e4db63684
-  commit: 6fe3d23155fabf8514a844c43e5ebc9e4db63684
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqvalidator-0.1.1-linux-amd64-5f311ba0cdfd.sif
-  sha256: 5f311ba0cdfd1da0487335c8aa668bb8b2550703dfdbc877fd926c7170cc43d0
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastqvalidator-0.1.1-linux-amd64-d47320cde24b.sif
+  sha256: d47320cde24b76f7d7d400ca9eb31da33088cad5f0f11d6390f97973413b0271
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

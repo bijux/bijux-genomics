@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T06:10:02Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/bd9bb1b7244adf096cbc56c23ccba288af21e832
-  commit: bd9bb1b7244adf096cbc56c23ccba288af21e832
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-1ac426328807.sif
-  sha256: 1ac4263288074952b2123c2a85ff84d5b12bc93d4247ebe63e7551f0f9defda8
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-f39fff0488f1.sif
+  sha256: f39fff0488f12c08f5ffe2abaf2aa4c7919cf468e05749df9cf7289d0e97f3e2
 data:
   inputs:
     - id: f3d0_read_one

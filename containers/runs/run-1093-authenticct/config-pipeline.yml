@@ -9,12 +9,12 @@ run:
   tool: authenticct
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/4b9d91ac251cd2e854ec18f48fbad891b10eddca
-  commit: 4b9d91ac251cd2e854ec18f48fbad891b10eddca
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/authenticct-1.0.0-linux-amd64-0a349f5cd7be.sif
-  sha256: 0a349f5cd7bebfa719ccaa681b94f7c0b3d1bd292e017a541fb25fd11c14923b
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/authenticct-1.0.0-linux-amd64-90eda73860f9.sif
+  sha256: 90eda73860f958f213cc529f0976d969ce98e4671091d1a76a2c248a9aebc90b
 data:
   inputs:
     - id: samtools-err2112767-sorted-sam

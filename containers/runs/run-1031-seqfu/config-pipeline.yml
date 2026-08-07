@@ -1,7 +1,7 @@
 schema_version: bijux.container.pipeline.v1
 run: {id: run-1031, campaign: horse-wgs-container-qualification, corpus: ena-prjeb10854-err1021817-read-prefix-100000, sample: ERR1021817, domain: fastq, stage: fastq.profile_read_lengths, tool: seqfu, operator: bijan}
-repository: {path: /home/bijan/bijux/bijux-genomics-runs/ca54ce7ccd10601fe5feceabdb2834493ecb44cd, commit: ca54ce7ccd10601fe5feceabdb2834493ecb44cd, clean: true}
-image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqfu-1.26.0-linux-amd64-5ff9145d6996.sif, sha256: 5ff9145d6996eb9f2b38c8d896f77f676d51640cc736f76293984fec8a7a7f76}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db, commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db, clean: true}
+image: {path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/seqfu-1.26.0-linux-amd64-ccfd4a2e6222.sif, sha256: ccfd4a2e6222607395ac142bd78bda70c828536d9e82f267555832a4249082e5}
 data:
   inputs:
     - {id: ena-err1021817-read-prefix-100000-mate-1, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz, sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc}

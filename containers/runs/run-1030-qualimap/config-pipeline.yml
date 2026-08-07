@@ -1,7 +1,7 @@
 schema_version: bijux.container.pipeline.v1
 run: {id: run-1030, campaign: horse-wgs-container-qualification, corpus: ena-prjeb10854-err1021817-read-prefix-100000, sample: ERR1021817, domain: bam, stage: bam.quality_control, tool: qualimap, operator: bijan}
-repository: {path: /home/bijan/bijux/bijux-genomics-runs/703dd600386cd668f4f75726a523a4e113034da7, commit: 703dd600386cd668f4f75726a523a4e113034da7, clean: true}
-image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-afd592cf021b.sif, sha256: afd592cf021b3c42f71e6f1c305638218a7107e791c2779cb7e4bb232545dc3f}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db, commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db, clean: true}
+image: {path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/qualimap-2.3-linux-amd64-5b7d89fa2719.sif, sha256: 5b7d89fa2719c6d2eed7f622343cd83b8bad176876eb90347fd2b296910f4e73}
 data:
   inputs:
     - {id: samtools-run-1027-coordinate-sorted-bam, kind: upstream_result, path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1027/aligned.sorted.bam, sha256: 02ead42cfecbcbfd1a27c0508428f2ad34eebabe8e1e70fb0d8caa6d436bc4d9}

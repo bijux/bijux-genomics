@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T07:11:02Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/b78cd27c0109b3ab996122fd843662c5cb129ded
-  commit: b78cd27c0109b3ab996122fd843662c5cb129ded
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-634782e108fe.sif
-  sha256: 634782e108fe1384642b7f5da026b8a628f5f61d35b438333eb64ae688bbb8be
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-e3ab4749a040.sif
+  sha256: e3ab4749a040edfa51322595530bc09576730644172d84dbe8c2d9a45da21223
 data:
   inputs:
     - id: err2112767_alignment

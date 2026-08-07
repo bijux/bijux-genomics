@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T05:05:35Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5306d62788b314d1b0cfac8f6fa19ee55d45dd35
-  commit: 5306d62788b314d1b0cfac8f6fa19ee55d45dd35
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif
-  sha256: 25567e0ec95dcb8914178d6daf3f0439a24e9e3cfd8832e88e79cc1154387b14
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/trim_galore-0.6.10-linux-amd64-7b269973978f.sif
+  sha256: 7b269973978f4bad3cbe66ab11ca702dd391d562e13c84e007c53892dd5c023c
 data:
   inputs:
     - id: err1021817_read_one

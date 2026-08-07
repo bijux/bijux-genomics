@@ -9,12 +9,12 @@ run:
   tool: atropos
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/e3cd013e0ac489cab7f78dd7d15cb83bb4469086
-  commit: e3cd013e0ac489cab7f78dd7d15cb83bb4469086
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/atropos-1.1.31-linux-amd64-7abde4206eef.sif
-  sha256: 7abde4206eefb82e42c633406936975c97363d74f1c5339f399375628550d385
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/atropos-1.1.31-linux-amd64-3bc7a5711ddd.sif
+  sha256: 3bc7a5711dddce35a7b4c4e020ab0dff6324c84e159faacab45a1ff22b5c0e81
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

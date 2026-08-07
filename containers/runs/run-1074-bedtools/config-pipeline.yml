@@ -9,12 +9,12 @@ run:
   tool: bedtools
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/f909c78337c345d853aa11a003e9e9e005bc4ff3
-  commit: f909c78337c345d853aa11a003e9e9e005bc4ff3
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bedtools-2.31.1-linux-amd64-e74534c14624.sif
-  sha256: e74534c14624fff630e0fc50a8c1f167c847424b9884c6b23a99823734ce664b
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bedtools-2.31.1-linux-amd64-a8e532ec0c80.sif
+  sha256: a8e532ec0c80ef3ba974b76da38805a512de44c6a729cb22cc51e7126183d90c
 data:
   inputs:
     - id: ena-err2112767-sorted-bam

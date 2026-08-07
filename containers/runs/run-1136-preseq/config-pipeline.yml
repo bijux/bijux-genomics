@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T06:54:14Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/6a3f66c7ed49410bd60e3db901e09e73fb2d9a51
-  commit: 6a3f66c7ed49410bd60e3db901e09e73fb2d9a51
+  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
+  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
   clean: true
 image:
-  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-6ef1786da19b.sif
-  sha256: 6ef1786da19b8447539a1b04ab3f6801c116618308639873d6c6de6b321651b8
+  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-41ad532419b1.sif
+  sha256: 41ad532419b1f19cac2321569b03a6e77a24b58cea0fc9195c50b0916fbf5e80
 data:
   inputs:
     - id: err2112767_alignment
