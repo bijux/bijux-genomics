@@ -30,6 +30,8 @@ impl Default for SlurmClientPaths {
 #[serde(deny_unknown_fields)]
 pub struct SlurmSubmitRequest {
     pub run_id: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dependencies: Vec<String>,
     pub script_path: PathBuf,
     pub working_directory: PathBuf,
     pub stdout_path: PathBuf,
@@ -43,6 +45,8 @@ pub struct SlurmJobHandle {
     pub schema_version: String,
     pub run_id: String,
     pub job_id: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dependencies: Vec<String>,
     pub script_path: PathBuf,
     pub working_directory: PathBuf,
     pub stdout_path: PathBuf,

@@ -74,6 +74,7 @@ pub fn prepare_benchmark_slurm_job(
                 "{}:{}:{}",
                 spec.identity.run.run_id, spec.identity.tool_id, spec.identity.attempt_id
             ),
+            dependencies: Vec::new(),
             script_path,
             working_directory: repository_path,
             stdout_path,

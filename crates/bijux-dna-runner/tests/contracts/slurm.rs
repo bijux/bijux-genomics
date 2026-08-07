@@ -38,6 +38,7 @@ fn request(temp: &tempfile::TempDir, run_id: &str) -> anyhow::Result<SlurmSubmit
     std::fs::write(&script_path, "#!/bin/sh\nexit 0\n")?;
     Ok(SlurmSubmitRequest {
         run_id: run_id.to_string(),
+        dependencies: Vec::new(),
         script_path,
         working_directory: temp.path().to_path_buf(),
         stdout_path: temp.path().join(format!("{run_id}.stdout.log")),
@@ -75,6 +76,45 @@ fn submission_returns_identity_without_scheduler_polling() -> anyhow::Result<()>
     assert!(arguments.contains("--chdir"));
     assert!(arguments.contains("--output"));
     assert!(arguments.contains("--error"));
+    Ok(())
+}
+
+#[test]
+fn submission_binds_afterok_dependencies_to_arguments_and_handle() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let argument_log = temp.path().join("sbatch.args");
+    write_executable(
+        &paths.sbatch,
+        &format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$*\" > {}\nprintf '3459974\\n'\n",
+            shell_literal(&argument_log)
+        ),
+    )?;
+    let mut request = request(&temp, "run-2042")?;
+    request.dependencies = vec!["3459901".to_string(), "3459902".to_string()];
+
+    let handle = submit_slurm_job(&paths, &request)?;
+
+    assert_eq!(handle.dependencies, request.dependencies);
+    assert!(std::fs::read_to_string(argument_log)?.contains("--dependency afterok:3459901:3459902"));
+    Ok(())
+}
+
+#[test]
+fn submission_rejects_malformed_or_duplicate_dependencies() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    write_executable(&paths.sbatch, "#!/bin/sh\nprintf '3459974\\n'\n")?;
+    for dependencies in [
+        vec!["3459901".to_string(), "3459901".to_string()],
+        vec!["job-3459901".to_string()],
+        vec![String::new()],
+    ] {
+        let mut request = request(&temp, "run-2042")?;
+        request.dependencies = dependencies;
+        assert!(submit_slurm_job(&paths, &request).is_err());
+    }
     Ok(())
 }
 

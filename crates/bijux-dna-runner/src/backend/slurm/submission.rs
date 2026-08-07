@@ -23,6 +23,8 @@ const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
 struct BenchmarkSubmissionIntent {
     schema_version: String,
     run_id: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    dependencies: Vec<String>,
     execution_spec_sha256: String,
     script_sha256: String,
     script_path: PathBuf,
@@ -130,6 +132,7 @@ pub fn load_benchmark_slurm_job_handle(spec: &BenchmarkExecutionSpec) -> Result<
                 "{}:{}:{}",
                 spec.identity.run.run_id, spec.identity.tool_id, spec.identity.attempt_id
             ),
+            dependencies: intent.dependencies.clone(),
             script_path,
             working_directory: PathBuf::from(&spec.source.repository_path),
             stdout_path: scheduler_root.join("stdout.log"),
@@ -188,6 +191,7 @@ fn submission_intent(prepared: &PreparedBenchmarkSlurmJob) -> BenchmarkSubmissio
     BenchmarkSubmissionIntent {
         schema_version: SUBMISSION_INTENT_SCHEMA_V1.to_string(),
         run_id: prepared.request.run_id.clone(),
+        dependencies: prepared.request.dependencies.clone(),
         execution_spec_sha256: prepared.execution_spec_sha256.clone(),
         script_sha256: prepared.script_sha256.clone(),
         script_path: prepared.request.script_path.clone(),

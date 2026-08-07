@@ -49,6 +49,7 @@ pub fn prepare_corpus_materialization_slurm_job(
         schema_version: CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1.to_string(),
         request: SlurmSubmitRequest {
             run_id: format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id),
+            dependencies: Vec::new(),
             script_path,
             working_directory: spec.repository_path.clone(),
             stdout_path: scheduler_root.join("stdout.log"),

@@ -22,23 +22,28 @@ pub fn submit_slurm_job(
     request: &SlurmSubmitRequest,
 ) -> Result<SlurmJobHandle> {
     validate_submit_request(request)?;
-    let output = execute(
-        &paths.sbatch,
-        &[
-            "--parsable".to_string(),
-            "--chdir".to_string(),
-            request.working_directory.display().to_string(),
-            "--output".to_string(),
-            request.stdout_path.display().to_string(),
-            "--error".to_string(),
-            request.stderr_path.display().to_string(),
-            request.script_path.display().to_string(),
-        ],
-    )?;
+    let mut arguments = vec!["--parsable".to_string()];
+    if !request.dependencies.is_empty() {
+        arguments.extend([
+            "--dependency".to_string(),
+            format!("afterok:{}", request.dependencies.join(":")),
+        ]);
+    }
+    arguments.extend([
+        "--chdir".to_string(),
+        request.working_directory.display().to_string(),
+        "--output".to_string(),
+        request.stdout_path.display().to_string(),
+        "--error".to_string(),
+        request.stderr_path.display().to_string(),
+        request.script_path.display().to_string(),
+    ]);
+    let output = execute(&paths.sbatch, &arguments)?;
     Ok(SlurmJobHandle {
         schema_version: SLURM_JOB_HANDLE_SCHEMA_V1.to_string(),
         run_id: request.run_id.clone(),
         job_id: parse_job_id(&output)?,
+        dependencies: request.dependencies.clone(),
         script_path: request.script_path.clone(),
         working_directory: request.working_directory.clone(),
         stdout_path: request.stdout_path.clone(),
@@ -192,6 +197,15 @@ fn execute(executable: &Path, arguments: &[String]) -> Result<String> {
 fn validate_submit_request(request: &SlurmSubmitRequest) -> Result<()> {
     require_text(&request.run_id, "run id")?;
     require_text(&request.submitted_at_utc, "submission timestamp")?;
+    let mut dependencies = std::collections::BTreeSet::new();
+    for dependency in &request.dependencies {
+        if dependency.is_empty()
+            || !dependency.bytes().all(|byte| byte.is_ascii_digit())
+            || !dependencies.insert(dependency)
+        {
+            bail!("Slurm dependency job identities are empty, malformed, or duplicated");
+        }
+    }
     if !request.script_path.is_file() {
         bail!("Slurm submission script is missing: {}", request.script_path.display());
     }
