@@ -13,6 +13,8 @@ pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2: &str =
     "bijux.runner.container_qualification_slurm_spec.v2";
 pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3: &str =
     "bijux.runner.container_qualification_slurm_spec.v3";
+pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4: &str =
+    "bijux.runner.container_qualification_slurm_spec.v4";
 pub const CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_prepared_job.v1";
 pub const CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1: &str =
@@ -24,6 +26,7 @@ pub const CONTAINER_QUALIFICATION_FAILED_ATTEMPT_ARCHIVE_SCHEMA_V1: &str =
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContainerQualificationPreparationRequest {
+    pub attempt_id: String,
     pub hostname: String,
     pub governance_path: PathBuf,
     pub pipeline_path: PathBuf,
@@ -33,6 +36,7 @@ pub struct ContainerQualificationPreparationRequest {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HistoricalContainerQualificationReplayRequest {
+    pub attempt_id: String,
     pub hostname: String,
     pub governance_path: PathBuf,
     pub source_pipeline_path: PathBuf,
@@ -77,6 +81,8 @@ pub struct ContainerQualificationSlurmSpec {
     pub historical_replay_source: Option<HistoricalContainerQualificationReplaySource>,
     pub run_id: String,
     pub tool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attempt_id: Option<String>,
     pub job_name: String,
     pub hostname: String,
     pub repository_path: PathBuf,
@@ -195,6 +201,8 @@ pub struct ContainerQualificationFailedAttemptArchive {
     pub schema_version: String,
     pub run_id: String,
     pub tool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attempt_id: Option<String>,
     pub slurm_job_id: String,
     pub archived_at_utc: String,
     pub source_paths: ContainerQualificationArchiveSources,

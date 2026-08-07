@@ -93,27 +93,30 @@ Prepare and submit it on LUNARC through the non-waiting Rust scheduler boundary:
 
 ```console
 specification=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1122-trim_galore
+attempt_id=attempt-001
 cargo build --locked --release -p bijux-dna-dev
 operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
 test -x "${operator_program}"
 
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
+  "${attempt_id}" \
   containers/contracts/sites/lunarc.yml \
   "${specification}/config-pipeline.yml" \
   "${specification}/config-credential.yml" \
   "${operator_program}" \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-qualification_spec=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1122-trim_galore/qualification-spec.json
+qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1122-trim_galore/attempts/${attempt_id}/qualification-spec.json"
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
   "${qualification_spec}"
 ```
 
 Submission copies the resolved contracts and generated Slurm script to the
-immutable operational evidence directory. After the job becomes terminal,
-collect scheduler accounting and import the completed flat result into this
-directory. Only completed or failed evidence is tracked; provisional files do
-not masquerade as a replay record.
+immutable attempt directory. The pipeline declares a stable result namespace;
+the runner writes each execution below `attempts/attempt-NNN` in both submission
+and result namespaces. After the job becomes terminal, collect scheduler
+accounting into that same attempt. Only completed or failed evidence is tracked;
+provisional files do not masquerade as a replay record.
 
 ```console
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \

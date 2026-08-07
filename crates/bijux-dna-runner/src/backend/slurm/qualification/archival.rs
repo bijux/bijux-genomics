@@ -65,7 +65,10 @@ pub fn archive_failed_container_qualification_attempt(
     let archive_root = canonical_directory(&archive_root, "qualification archive root")?;
     require_same_filesystem(&submission_root, &result_root, &archive_root)?;
 
-    let bundle_name = format!("{}-{}-slurm-{}", spec.run_id, spec.tool_id, handle.job_id);
+    let attempt_component =
+        spec.attempt_id.as_deref().map_or_else(String::new, |attempt_id| format!("-{attempt_id}"));
+    let bundle_name =
+        format!("{}-{}{}-slurm-{}", spec.run_id, spec.tool_id, attempt_component, handle.job_id);
     let target = archive_root.join(&bundle_name);
     let staging = archive_root.join(format!(".{bundle_name}.partial"));
     require_absent(&target, "qualification attempt archive")?;
@@ -81,6 +84,7 @@ pub fn archive_failed_container_qualification_attempt(
         schema_version: CONTAINER_QUALIFICATION_FAILED_ATTEMPT_ARCHIVE_SCHEMA_V1.to_string(),
         run_id: spec.run_id.clone(),
         tool_id: spec.tool_id.clone(),
+        attempt_id: spec.attempt_id.clone(),
         slurm_job_id: handle.job_id,
         archived_at_utc: archived_at_utc.to_string(),
         source_paths,

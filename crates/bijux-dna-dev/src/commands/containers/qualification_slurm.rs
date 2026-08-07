@@ -2,7 +2,7 @@ use super::{
     command_hostname, path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace,
 };
 
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- replay-prepare <governance> <source-pipeline> <replay-pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- execute <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- archive-failure <qualification-spec> <archived-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <attempt-id> <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- replay-prepare <attempt-id> <governance> <source-pipeline> <replay-pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- execute <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- archive-failure <qualification-spec> <archived-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -41,13 +41,14 @@ fn execute(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
 }
 
 fn replay_prepare(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let [governance, source_pipeline, replay_pipeline, credential_reference, executor_program, submitted_at_utc] =
+    let [attempt_id, governance, source_pipeline, replay_pipeline, credential_reference, executor_program, submitted_at_utc] =
         args
     else {
         anyhow::bail!(USAGE);
     };
     let prepared = bijux_dna_runner::api::prepare_historical_container_qualification_replay(
         &bijux_dna_runner::api::HistoricalContainerQualificationReplayRequest {
+            attempt_id: attempt_id.clone(),
             hostname: command_hostname(),
             governance_path: path_from_arg(workspace, governance),
             source_pipeline_path: path_from_arg(workspace, source_pipeline),
@@ -61,12 +62,14 @@ fn replay_prepare(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
 }
 
 fn prepare(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let [governance, pipeline, credential_reference, executor_program, submitted_at_utc] = args
+    let [attempt_id, governance, pipeline, credential_reference, executor_program, submitted_at_utc] =
+        args
     else {
         anyhow::bail!(USAGE);
     };
     let prepared = bijux_dna_runner::api::prepare_container_qualification_slurm_job(
         &bijux_dna_runner::api::ContainerQualificationPreparationRequest {
+            attempt_id: attempt_id.clone(),
             hostname: command_hostname(),
             governance_path: path_from_arg(workspace, governance),
             pipeline_path: path_from_arg(workspace, pipeline),

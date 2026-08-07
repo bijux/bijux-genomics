@@ -19,7 +19,7 @@ use serde_json::{json, Value};
 
 use super::contracts::{
     ContainerQualificationExecution, ContainerQualificationSlurmSpec,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
 };
 use super::validation::validate_specification;
 
@@ -49,8 +49,11 @@ pub fn execute_container_qualification(
     spec: &ContainerQualificationSlurmSpec,
 ) -> Result<ContainerQualificationExecution> {
     validate_specification(spec)?;
-    if spec.schema_version != CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 {
-        bail!("native qualification execution requires a v3 scheduler specification");
+    if !matches!(
+        spec.schema_version.as_str(),
+        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
+    ) {
+        bail!("native qualification execution requires a native scheduler specification");
     }
     let governance = load_container_governance(&spec.governance_path)?;
     let contract = plan_container_qualification(load_container_pipeline(&spec.pipeline_path)?)?;

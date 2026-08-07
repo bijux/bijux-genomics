@@ -33,7 +33,8 @@ fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result
     let spec_path = fixture.evidence_root.join("qualification-spec.json");
     let spec = load_container_qualification_slurm_spec(&spec_path)?;
 
-    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v3");
+    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v4");
+    assert_eq!(spec.attempt_id.as_deref(), Some("attempt-001"));
     assert!(script.contains("#SBATCH --job-name=fastq-align_reads-bwa-sample-a"));
     assert!(script.contains("#SBATCH --cpus-per-task=2"));
     assert!(script.contains("'containers' 'run' 'qualification-slurm' '--' 'execute'"));
@@ -219,10 +220,93 @@ fn preparation_rejects_active_repository_and_archived_contract_conflicts() -> Re
 }
 
 #[test]
+fn preparation_keeps_qualification_attempts_immutable_and_addressable() -> Result<()> {
+    let fixture = fixture()?;
+    let first =
+        prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let first_spec_path = fixture.evidence_root.join("qualification-spec.json");
+    let first_spec = load_container_qualification_slurm_spec(&first_spec_path)?;
+
+    let mut second_request = fixture.request.clone();
+    second_request.attempt_id = "attempt-002".to_string();
+    let second =
+        prepare_container_qualification_slurm_job(&second_request, "2026-08-07T10:00:00Z")?;
+    let second_evidence_root =
+        fixture.containers_root.join("evidence/submissions/run-1200-bwa/attempts/attempt-002");
+    let second_spec = load_container_qualification_slurm_spec(
+        &second_evidence_root.join("qualification-spec.json"),
+    )?;
+
+    assert!(first_spec_path.is_file());
+    assert_ne!(first, second);
+    assert_eq!(first_spec.attempt_id.as_deref(), Some("attempt-001"));
+    assert_eq!(second_spec.attempt_id.as_deref(), Some("attempt-002"));
+    assert_eq!(first_spec.evidence_root, fixture.evidence_root);
+    assert_eq!(second_spec.evidence_root, second_evidence_root);
+    assert_eq!(first_spec.result_root, fixture.paths.result_root);
+    assert_eq!(
+        second_spec.result_root,
+        fixture.paths.result_namespace.join("attempts/attempt-002")
+    );
+    assert_eq!(
+        prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?,
+        first
+    );
+    Ok(())
+}
+
+#[test]
+fn historical_v3_specification_remains_loadable_at_its_flat_roots() -> Result<()> {
+    let fixture = fixture()?;
+    prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let mut spec = load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json"),
+    )?;
+    let evidence_namespace = fixture
+        .evidence_root
+        .parent()
+        .and_then(Path::parent)
+        .context("qualification evidence namespace")?;
+    for name in ["config-governance.yml", "config-pipeline.yml", "config-credential.yml"] {
+        fs::copy(fixture.evidence_root.join(name), evidence_namespace.join(name))?;
+    }
+    spec.schema_version = "bijux.runner.container_qualification_slurm_spec.v3".to_string();
+    spec.attempt_id = None;
+    spec.governance_path = evidence_namespace.join("config-governance.yml");
+    spec.pipeline_path = evidence_namespace.join("config-pipeline.yml");
+    spec.credential_reference_path = evidence_namespace.join("config-credential.yml");
+    spec.evidence_root = evidence_namespace.to_path_buf();
+    spec.result_root = fixture.paths.result_namespace.clone();
+    let legacy_spec_path = evidence_namespace.join("qualification-spec.json");
+    fs::write(&legacy_spec_path, serde_json::to_vec_pretty(&spec)?)?;
+
+    assert_eq!(load_container_qualification_slurm_spec(&legacy_spec_path)?, spec);
+    Ok(())
+}
+
+#[test]
+fn preparation_rejects_malformed_qualification_attempt_identity() -> Result<()> {
+    let fixture = fixture()?;
+    for attempt_id in ["attempt-000", "attempt-01", "attempt-one", "../attempt-002"] {
+        let mut request = fixture.request.clone();
+        request.attempt_id = attempt_id.to_string();
+        let Err(error) =
+            prepare_container_qualification_slurm_job(&request, "2026-08-07T09:50:00Z")
+        else {
+            anyhow::bail!("malformed attempt identity was accepted: {attempt_id}");
+        };
+        assert!(
+            error.to_string().contains("qualification attempt identity"),
+            "unexpected refusal for {attempt_id}: {error:#}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn preparation_canonicalizes_governed_root_parent_aliases() -> Result<()> {
     let fixture = fixture()?;
-    let containers =
-        fixture.evidence_root.ancestors().nth(3).context("resolve fixture containers root")?;
+    let containers = &fixture.containers_root;
     let study = containers.parent().context("resolve fixture study root")?;
     let study_alias = fixture.root.path().join("study-alias");
     symlink(study, &study_alias)?;
@@ -266,8 +350,7 @@ fn preparation_rejects_non_native_executor_authority() -> Result<()> {
 #[test]
 fn preparation_rejects_symlinked_governed_root() -> Result<()> {
     let fixture = fixture()?;
-    let containers =
-        fixture.evidence_root.ancestors().nth(3).context("resolve fixture containers root")?;
+    let containers = &fixture.containers_root;
     let containers_alias =
         containers.parent().context("resolve fixture study root")?.join("containers-alias");
     symlink(containers, &containers_alias)?;
@@ -312,6 +395,7 @@ fn historical_replay_archives_source_authority_without_weakening_current_prepara
         &fixture,
     )?;
     let replay_request = HistoricalContainerQualificationReplayRequest {
+        attempt_id: "attempt-001".to_owned(),
         hostname: "test-node".to_owned(),
         governance_path: fixture.request.governance_path.clone(),
         source_pipeline_path: source_pipeline.canonicalize()?,
@@ -325,7 +409,8 @@ fn historical_replay_archives_source_authority_without_weakening_current_prepara
         &fixture.evidence_root.join("qualification-spec.json"),
     )?;
     assert_eq!(spec.submission_kind, ContainerQualificationSubmissionKind::HistoricalReplay);
-    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v3");
+    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v4");
+    assert_eq!(spec.attempt_id.as_deref(), Some("attempt-001"));
     assert!(spec
         .historical_replay_source
         .as_ref()
@@ -473,6 +558,7 @@ fn failed_scheduler_attempt_is_archived_without_execution_evidence() -> Result<(
     assert_eq!(persisted, archived.archive);
     assert_eq!(archived.archive.run_id, "run-1200");
     assert_eq!(archived.archive.tool_id, "bwa");
+    assert_eq!(archived.archive.attempt_id.as_deref(), Some("attempt-001"));
     assert_eq!(archived.archive.slurm_job_id, "456789");
     assert!(archived.archive.source_paths.submission.starts_with("study://containers/"));
     assert!(archived.archive.source_paths.result.starts_with("study://results/"));
@@ -531,11 +617,13 @@ struct FixturePaths {
     input_sha256: String,
     upstream: PathBuf,
     upstream_sha256: String,
+    result_namespace: PathBuf,
     result_root: PathBuf,
 }
 
 struct Fixture {
     root: tempfile::TempDir,
+    containers_root: PathBuf,
     active_repository: PathBuf,
     frozen_repository: PathBuf,
     commit: String,
@@ -574,22 +662,7 @@ fn fixture() -> Result<Fixture> {
     let frozen_root = frozen_root.canonicalize()?;
     let (commit, frozen_repository) = setup_repositories(&active_repository, &frozen_root)?;
 
-    let image = containers.join("apptainer/bwa.sif");
-    fs::write(&image, b"immutable image")?;
-    let input = data.join("reads.fastq.gz");
-    fs::write(&input, b"immutable reads")?;
-    let upstream = results.join("upstream/result.json");
-    fs::create_dir_all(upstream.parent().context("upstream parent")?)?;
-    fs::write(&upstream, b"immutable upstream result")?;
-    let paths = FixturePaths {
-        image_sha256: bijux_dna_infra::hash_file_sha256(&image)?,
-        image,
-        input_sha256: bijux_dna_infra::hash_file_sha256(&input)?,
-        input,
-        upstream_sha256: bijux_dna_infra::hash_file_sha256(&upstream)?,
-        upstream,
-        result_root: results.join("container-validation/run-1200-bwa"),
-    };
+    let paths = fixture_paths(&containers, &data, &results)?;
     let governance = governance(
         ContainerPathPolicy {
             study_root: study.clone(),
@@ -608,17 +681,19 @@ fn fixture() -> Result<Fixture> {
     let pipeline_path = root.path().join("pipeline.yml");
     let fixture_stub = Fixture {
         root,
+        containers_root: containers.clone(),
         active_repository,
         frozen_repository,
         commit,
         request: ContainerQualificationPreparationRequest {
+            attempt_id: String::new(),
             hostname: String::new(),
             governance_path: PathBuf::new(),
             pipeline_path: PathBuf::new(),
             credential_reference_path: PathBuf::new(),
             executor_program_path: PathBuf::new(),
         },
-        evidence_root: containers.join("evidence/submissions/run-1200-bwa"),
+        evidence_root: containers.join("evidence/submissions/run-1200-bwa/attempts/attempt-001"),
         paths,
     };
     write_pipeline(
@@ -636,6 +711,7 @@ fn fixture() -> Result<Fixture> {
     write_executable(&executor_program_path, "#!/bin/sh\nexit 0\n")?;
     Ok(Fixture {
         request: ContainerQualificationPreparationRequest {
+            attempt_id: "attempt-001".to_string(),
             hostname: "test-node".to_string(),
             governance_path,
             pipeline_path,
@@ -643,6 +719,27 @@ fn fixture() -> Result<Fixture> {
             executor_program_path,
         },
         ..fixture_stub
+    })
+}
+
+fn fixture_paths(containers: &Path, data: &Path, results: &Path) -> Result<FixturePaths> {
+    let image = containers.join("apptainer/bwa.sif");
+    fs::write(&image, b"immutable image")?;
+    let input = data.join("reads.fastq.gz");
+    fs::write(&input, b"immutable reads")?;
+    let upstream = results.join("upstream/result.json");
+    fs::create_dir_all(upstream.parent().context("upstream parent")?)?;
+    fs::write(&upstream, b"immutable upstream result")?;
+    let result_namespace = results.join("container-validation/run-1200-bwa");
+    Ok(FixturePaths {
+        image_sha256: bijux_dna_infra::hash_file_sha256(&image)?,
+        image,
+        input_sha256: bijux_dna_infra::hash_file_sha256(&input)?,
+        input,
+        upstream_sha256: bijux_dna_infra::hash_file_sha256(&upstream)?,
+        upstream,
+        result_root: result_namespace.join("attempts/attempt-001"),
+        result_namespace,
     })
 }
 
@@ -751,7 +848,7 @@ fn write_pipeline(path: &Path, repository: &Path, commit: &str, fixture: &Fixtur
                 "negative": ["bwa", "invalid"]
             },
             "outputs": {
-                "result_root": fixture.paths.result_root,
+                "result_root": fixture.paths.result_namespace,
                 "mount_path": "/result",
                 "required_files": ["result.json"],
                 "collection_rule": "required_files_and_metrics"
@@ -806,7 +903,7 @@ fn write_legacy_pipeline(
 ) -> Result<()> {
     let result_root = fixture
         .paths
-        .result_root
+        .result_namespace
         .parent()
         .context("fixture result root has no parent")?
         .join("bwa/run-1200");

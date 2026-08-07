@@ -14,10 +14,11 @@ use super::contracts::{
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
     CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
 };
 use super::validation::{
     canonical_directory, derive_historical_replay_identity, derive_identity, ensure_json_identity,
-    require_exact_file, require_utc_timestamp, validate_specification,
+    require_exact_file, require_utc_timestamp, validate_specification, QualificationIdentity,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -43,6 +44,7 @@ pub fn prepare_historical_container_qualification_replay(
     submitted_at_utc: &str,
 ) -> Result<PreparedContainerQualificationSlurmJob> {
     let preparation = ContainerQualificationPreparationRequest {
+        attempt_id: request.attempt_id.clone(),
         hostname: request.hostname.clone(),
         governance_path: request.governance_path.clone(),
         pipeline_path: request.replay_pipeline_path.clone(),
@@ -65,17 +67,7 @@ fn prepare(
 ) -> Result<PreparedContainerQualificationSlurmJob> {
     require_utc_timestamp(submitted_at_utc, "submission timestamp")?;
     load_container_credential_reference(&request.credential_reference_path)?;
-    let identity = match historical_source_pipeline {
-        Some(source) => derive_historical_replay_identity(
-            &request.hostname,
-            &request.governance_path,
-            source,
-            &request.pipeline_path,
-        )?,
-        None => {
-            derive_identity(&request.hostname, &request.governance_path, &request.pipeline_path)?
-        }
-    };
+    let identity = derive_preparation_identity(request, historical_source_pipeline)?;
     let executor_program_path = request
         .executor_program_path
         .canonicalize()
@@ -108,11 +100,12 @@ fn prepare(
     let credential_reference_sha256 =
         bijux_dna_infra::hash_file_sha256(&credential_reference_path)?;
     let spec = ContainerQualificationSlurmSpec {
-        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3.to_string(),
+        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4.to_string(),
         submission_kind,
         historical_replay_source,
         run_id: identity.run_id,
         tool_id: identity.tool_id,
+        attempt_id: Some(request.attempt_id.clone()),
         job_name: identity.job_name,
         hostname: request.hostname.clone(),
         repository_path: identity.repository_path,
@@ -163,6 +156,27 @@ fn prepare(
     Ok(prepared)
 }
 
+fn derive_preparation_identity(
+    request: &ContainerQualificationPreparationRequest,
+    historical_source_pipeline: Option<&Path>,
+) -> Result<QualificationIdentity> {
+    match historical_source_pipeline {
+        Some(source) => derive_historical_replay_identity(
+            &request.hostname,
+            &request.governance_path,
+            source,
+            &request.pipeline_path,
+            Some(&request.attempt_id),
+        ),
+        None => derive_identity(
+            &request.hostname,
+            &request.governance_path,
+            &request.pipeline_path,
+            Some(&request.attempt_id),
+        ),
+    }
+}
+
 fn archive_historical_source(
     source: Option<&Path>,
     evidence_root: &Path,
@@ -202,35 +216,7 @@ fn render_script(
         .scratch_mb
         .checked_mul(1024)
         .context("qualification scratch requirement overflow")?;
-    let command = if spec.schema_version == CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 {
-        [
-            shell_quote(&spec.executor_program_path),
-            "'containers'".to_string(),
-            "'run'".to_string(),
-            "'qualification-slurm'".to_string(),
-            "'--'".to_string(),
-            "'execute'".to_string(),
-            shell_quote(spec.evidence_root.join("qualification-spec.json")),
-        ]
-        .join(" ")
-    } else {
-        let executor_script = spec
-            .executor_script_path
-            .as_ref()
-            .context("legacy qualification specification lacks executor script")?;
-        [
-            shell_quote(&spec.executor_program_path),
-            shell_quote(executor_script),
-            "'execute'".to_string(),
-            "'--governance'".to_string(),
-            shell_quote(&spec.governance_path),
-            "'--pipeline'".to_string(),
-            shell_quote(&spec.pipeline_path),
-            "'--credentials'".to_string(),
-            shell_quote(&spec.credential_reference_path),
-        ]
-        .join(" ")
-    };
+    let command = qualification_command(spec)?;
     let executor_script_declaration = spec
         .executor_script_path
         .as_ref()
@@ -286,6 +272,44 @@ fn render_script(
         String::new(),
     ]
     .join("\n"))
+}
+
+fn qualification_command(spec: &ContainerQualificationSlurmSpec) -> Result<String> {
+    Ok(
+        if matches!(
+            spec.schema_version.as_str(),
+            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
+                | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
+        ) {
+            [
+                shell_quote(&spec.executor_program_path),
+                "'containers'".to_string(),
+                "'run'".to_string(),
+                "'qualification-slurm'".to_string(),
+                "'--'".to_string(),
+                "'execute'".to_string(),
+                shell_quote(spec.evidence_root.join("qualification-spec.json")),
+            ]
+            .join(" ")
+        } else {
+            let executor_script = spec
+                .executor_script_path
+                .as_ref()
+                .context("legacy qualification specification lacks executor script")?;
+            [
+                shell_quote(&spec.executor_program_path),
+                shell_quote(executor_script),
+                "'execute'".to_string(),
+                "'--governance'".to_string(),
+                shell_quote(&spec.governance_path),
+                "'--pipeline'".to_string(),
+                shell_quote(&spec.pipeline_path),
+                "'--credentials'".to_string(),
+                shell_quote(&spec.credential_reference_path),
+            ]
+            .join(" ")
+        },
+    )
 }
 
 fn hash_check(shell_path: &str, sha256: &str) -> String {

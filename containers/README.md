@@ -316,14 +316,16 @@ operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
 test -x "${operator_program}"
 
 run_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1125-trimmomatic"
+attempt_id=attempt-001
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
+  "${attempt_id}" \
   containers/contracts/sites/lunarc.yml \
   "${run_spec}/config-pipeline.yml" \
   "${run_spec}/config-credential.yml" \
   "${operator_program}" \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1125-trimmomatic/qualification-spec.json"
+qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1125-trimmomatic/attempts/${attempt_id}/qualification-spec.json"
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
   "${qualification_spec}"
 ```
@@ -343,6 +345,9 @@ done
 
 Submission remains an explicit per-run action so a malformed or scientifically
 inappropriate batch cannot enter the queue merely because it shares a folder.
+Each preparation requires a nonzero `attempt-NNN` identity. Submission evidence
+and result data are isolated below that attempt, so a retry cannot overwrite or
+invalidate an earlier attempt.
 
 ## Collect results and publish run evidence
 
