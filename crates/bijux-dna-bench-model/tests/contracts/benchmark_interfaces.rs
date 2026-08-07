@@ -156,9 +156,10 @@ fn stage_interface_contracts_reject_unknown_artifact_contracts() {
     catalog.interfaces[0].accepted_input_contracts =
         vec!["bijux.fastq.artifact.tool_specific_filename.v1".to_string()];
 
-    let error = validate_stage_interface_catalog(&catalog)
-        .expect_err("unknown artifact contract must fail benchmark admission");
-    assert!(error.to_string().contains("unknown canonical artifact contract"));
+    let error = validate_stage_interface_catalog(&catalog).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("unknown canonical artifact contract")));
 }
 
 #[test]

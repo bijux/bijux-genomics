@@ -32,9 +32,10 @@ pub use interfaces::{
     validate_pipeline_parameter_config, validate_stage_interface_catalog,
 };
 pub use lifecycle::{
-    append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
-    validate_attempt_identity, validate_attempt_record_v2, validate_attempt_transition,
-    validate_campaign_plan, validate_cycle_status_v2, validate_scheduler_observation,
+    append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_directory_name,
+    validate_attempt_archive, validate_attempt_identity, validate_attempt_record_v2,
+    validate_attempt_transition, validate_campaign_plan, validate_cycle_status_v2,
+    validate_scheduler_observation,
 };
 pub use materialization::{
     validate_corpus_acquisition_plan, validate_governed_data_catalog, validate_utc_timestamp,
@@ -44,7 +45,10 @@ pub use planning::{
     validate_portfolio_campaign_alignment, validate_scientific_readiness,
     validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
 };
-pub use protocol::{validate_benchmark_case_definition, validate_benchmark_run_definition};
+pub use protocol::{
+    benchmark_run_definition_sha256, validate_benchmark_case_definition,
+    validate_benchmark_run_definition, validate_benchmark_run_definition_revision,
+};
 pub use publication::{
     validate_benchmark_citation_record, validate_benchmark_evidence_book,
     validate_benchmark_publication_receipt,

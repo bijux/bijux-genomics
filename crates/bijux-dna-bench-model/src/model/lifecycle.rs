@@ -503,6 +503,11 @@ pub fn benchmark_attempt_schema() -> Schema {
 }
 
 #[must_use]
+pub fn benchmark_attempt_identity_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptIdentity)
+}
+
+#[must_use]
 pub fn benchmark_attempt_v2_schema() -> Schema {
     schemars::schema_for!(BenchmarkAttemptRecordV2)
 }

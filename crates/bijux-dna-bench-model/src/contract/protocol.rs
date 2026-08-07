@@ -2,6 +2,9 @@
 
 use std::collections::BTreeSet;
 
+use bijux_dna_core::contract::canonical::to_canonical_json_bytes;
+use sha2::{Digest, Sha256};
+
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCaseDefinition, BenchmarkContractLock, BenchmarkCorpusRole, BenchmarkRunDefinition,
@@ -25,6 +28,7 @@ pub fn validate_benchmark_run_definition(
         return Err(invalid("benchmark run-definition schema mismatch"));
     }
     benchmark_run_directory_name(&definition.identity)?;
+    validate_protocol_version(&definition.protocol_version)?;
     for (value, field) in [
         (&definition.title, "title"),
         (&definition.purpose, "purpose"),
@@ -73,6 +77,50 @@ pub fn validate_benchmark_run_definition(
         return Err(invalid("reserved benchmark run definition cannot claim executable closure"));
     }
     Ok(())
+}
+
+/// Validate an intentional revision of a permanent benchmark protocol.
+///
+/// # Errors
+/// Returns an error unless a same-run revision increases `protocol_version` or a replacement run
+/// explicitly supersedes the prior run while preserving its semantic stage identity.
+pub fn validate_benchmark_run_definition_revision(
+    previous: &BenchmarkRunDefinition,
+    current: &BenchmarkRunDefinition,
+) -> Result<(), BenchError> {
+    validate_benchmark_run_definition(previous)?;
+    validate_benchmark_run_definition(current)?;
+    if previous.identity == current.identity {
+        if protocol_version(&current.protocol_version)?
+            <= protocol_version(&previous.protocol_version)?
+        {
+            return Err(invalid("same-run protocol revision must increase protocol_version"));
+        }
+        return Ok(());
+    }
+    if previous.identity.domain != current.identity.domain
+        || previous.identity.stage_id != current.identity.stage_id
+        || !current.supersedes_run_ids.contains(&previous.identity.run_id)
+    {
+        return Err(invalid(
+            "replacement protocol must preserve semantic stage identity and explicitly supersede the prior run",
+        ));
+    }
+    Ok(())
+}
+
+/// Return the canonical SHA-256 identity of one valid run definition.
+///
+/// # Errors
+/// Returns an error when the definition is invalid or cannot be canonically serialized.
+pub fn benchmark_run_definition_sha256(
+    definition: &BenchmarkRunDefinition,
+) -> Result<String, BenchError> {
+    validate_benchmark_run_definition(definition)?;
+    let bytes = to_canonical_json_bytes(definition).map_err(|error| {
+        invalid(format!("cannot canonicalize benchmark run definition: {error}"))
+    })?;
+    Ok(sha256_hex(&bytes))
 }
 
 /// Validate one source-locked benchmark case.
@@ -201,6 +249,36 @@ fn validate_run_ids(run_ids: &[String], current: &str) -> Result<(), BenchError>
         previous = Some(run_id.as_str());
     }
     Ok(())
+}
+
+fn validate_protocol_version(value: &str) -> Result<(), BenchError> {
+    protocol_version(value).map(|_| ())
+}
+
+fn protocol_version(value: &str) -> Result<(u64, u64, u64), BenchError> {
+    let components = value.split('.').collect::<Vec<_>>();
+    if components.len() != 3
+        || components
+            .iter()
+            .any(|part| part.is_empty() || (part.len() > 1 && part.starts_with('0')))
+    {
+        return Err(invalid("benchmark protocol_version must use canonical major.minor.patch"));
+    }
+    let parsed =
+        components.iter().map(|part| part.parse::<u64>()).collect::<Result<Vec<_>, _>>().map_err(
+            |_| invalid("benchmark protocol_version must use canonical major.minor.patch"),
+        )?;
+    Ok((parsed[0], parsed[1], parsed[2]))
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        use std::fmt::Write as _;
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }
 
 fn validate_component(value: &str, field: &str) -> Result<(), BenchError> {

@@ -26,6 +26,14 @@ rationale traces are involved:
   stable for identical inputs.
 - Do not use hash map iteration order as public output order.
 
+## Identity Hashing
+
+`benchmark_run_definition_sha256` and `benchmark_attempt_identity_sha256` hash
+canonical JSON bytes after contract validation. Run definitions carry an
+explicit semantic `protocol_version`; attempt identities exclude scheduler job
+IDs so a retry reuses the run identity while receiving a distinct attempt
+identity. Slurm identity remains execution provenance only.
+
 ## Examples
 
 Deterministic scoring example:
