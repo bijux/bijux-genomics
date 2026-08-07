@@ -11,7 +11,9 @@ pub use credential::{
 };
 pub use pipeline::{
     admit_container_pipeline_site, apply_container_pipeline_currentization,
+    container_pipeline_v1_schema, container_pipeline_v2_schema,
     derive_container_pipeline_currentization, load_container_pipeline, validate_container_pipeline,
+    write_container_pipeline_v1_schema, write_container_pipeline_v2_schema,
     ContainerPipelineContract, ContainerPipelineCurrentizationDisposition,
     ContainerPipelineCurrentizationEntry, ContainerPipelineCurrentizationPlan,
     ContainerPipelineCurrentizationRequest, ContainerPipelineInputAdmission,

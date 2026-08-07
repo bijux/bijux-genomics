@@ -118,11 +118,13 @@ pub use crate::evidence::{
 };
 pub use crate::execution_contract::{
     admit_container_pipeline_site, apply_container_pipeline_currentization,
-    container_credential_reference_schema, derive_container_pipeline_currentization,
+    container_credential_reference_schema, container_pipeline_v1_schema,
+    container_pipeline_v2_schema, derive_container_pipeline_currentization,
     load_container_credential_reference, load_container_pipeline,
     validate_container_credential_reference, validate_container_pipeline,
-    write_container_credential_reference_schema, ContainerCredentialRecord,
-    ContainerCredentialRedaction, ContainerCredentialReference, ContainerPipelineContract,
+    write_container_credential_reference_schema, write_container_pipeline_v1_schema,
+    write_container_pipeline_v2_schema, ContainerCredentialRecord, ContainerCredentialRedaction,
+    ContainerCredentialReference, ContainerPipelineContract,
     ContainerPipelineCurrentizationDisposition, ContainerPipelineCurrentizationEntry,
     ContainerPipelineCurrentizationPlan, ContainerPipelineCurrentizationRequest,
     ContainerPipelineInputAdmission, ContainerPipelineSiteAdmission,
@@ -132,8 +134,9 @@ pub use crate::execution_contract::{
 };
 pub use crate::resolve::*;
 pub use crate::site_policy::{
-    freeze_repository, load_container_governance, validate_container_governance,
-    validate_container_governance_host, ContainerGovernance, ContainerPathPolicy,
+    container_governance_schema, freeze_repository, load_container_governance,
+    validate_container_governance, validate_container_governance_host,
+    write_container_governance_schema, ContainerGovernance, ContainerPathPolicy,
     ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
     RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
 };

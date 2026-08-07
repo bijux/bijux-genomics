@@ -3,11 +3,21 @@ use std::process::Command;
 
 use anyhow::{ensure, Context, Result};
 use bijux_dna_containers::api::{
-    freeze_repository, load_container_governance, validate_container_governance,
-    ContainerGovernance, ContainerPathPolicy, ContainerPreflightPolicy, ContainerRuntimePolicy,
-    ContainerSitePolicy, ContainerSlurmPolicy, RepositoryFreezeRequest, RepositoryFreezeScope,
-    CONTAINER_GOVERNANCE_SCHEMA_V1,
+    container_governance_schema, freeze_repository, load_container_governance,
+    validate_container_governance, ContainerGovernance, ContainerPathPolicy,
+    ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
+    RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
 };
+
+#[test]
+fn tracked_governance_schema_matches_rust_authority() -> Result<()> {
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let checked: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+        repository.join("containers/contracts/config-governance.schema.json"),
+    )?)?;
+    assert_eq!(checked, container_governance_schema());
+    Ok(())
+}
 
 fn git(repository: &Path, arguments: &[&str]) -> Result<String> {
     let output = Command::new("git")

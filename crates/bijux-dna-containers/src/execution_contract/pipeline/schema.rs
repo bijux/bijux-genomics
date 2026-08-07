@@ -1,0 +1,418 @@
+use std::path::Path;
+
+use anyhow::Result;
+
+const CONTAINER_PIPELINE_V1_SCHEMA_JSON: &str = r##"{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/container-pipeline-v1.json",
+  "title": "Bijux Genomics immutable container execution pipeline",
+  "type": "object",
+  "required": ["schema_version", "run", "repository", "image", "data", "commands", "outputs", "resources", "execution", "acceptance"],
+  "properties": {
+    "schema_version": {"const": "bijux.container.pipeline.v1"},
+    "run": {
+      "type": "object",
+      "required": ["id", "campaign", "corpus", "sample", "domain", "stage", "tool", "operator"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^run-[1-9][0-9]{3,}$"},
+        "campaign": {"type": "string", "minLength": 1},
+        "corpus": {"type": "string", "minLength": 1},
+        "sample": {"type": "string", "minLength": 1},
+        "domain": {"type": "string", "minLength": 1},
+        "stage": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "minLength": 1},
+        "operator": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "repository": {
+      "type": "object",
+      "required": ["path", "commit", "clean"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "clean": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "image": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "required": ["inputs"],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "path", "sha256"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["data", "reference", "database", "upstream_result"]},
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "required": ["version", "help", "real", "negative"],
+      "properties": {
+        "version": {"$ref": "#/$defs/argv"},
+        "help": {"$ref": "#/$defs/argv"},
+        "real": {"$ref": "#/$defs/argv"},
+        "negative": {"$ref": "#/$defs/argv"}
+      },
+      "additionalProperties": false
+    },
+    "outputs": {
+      "type": "object",
+      "required": ["result_root", "required_files"],
+      "properties": {
+        "result_root": {"type": "string", "minLength": 1},
+        "required_files": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
+    },
+    "resources": {
+      "type": "object",
+      "required": ["account", "partition", "cpus", "memory_mb", "walltime", "scratch_mb"],
+      "properties": {
+        "account": {"type": "string", "minLength": 1},
+        "partition": {"type": "string", "minLength": 1},
+        "cpus": {"type": "integer", "minimum": 1},
+        "memory_mb": {"type": "integer", "minimum": 1},
+        "walltime": {"type": "string", "pattern": "^[0-9]{2,3}:[0-5][0-9]:[0-5][0-9]$"},
+        "scratch_mb": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "required": ["locale", "timezone", "runtime_network"],
+      "properties": {"locale": {"const": "C"}, "timezone": {"const": "UTC"}, "runtime_network": {"const": false}},
+      "additionalProperties": false
+    },
+    "acceptance": {
+      "type": "object",
+      "required": ["version_regex", "negative_exit_nonzero"],
+      "properties": {
+        "version_regex": {"type": "string", "minLength": 1},
+        "negative_exit_nonzero": {"const": true}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "argv": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": false
+}"##;
+const CONTAINER_PIPELINE_V2_SCHEMA_JSON: &str = r##"{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/container-pipeline-v2.json",
+  "title": "Bijux Genomics reproducible container execution pipeline",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run",
+    "repository",
+    "image",
+    "data",
+    "commands",
+    "outputs",
+    "resources",
+    "execution",
+    "dependencies",
+    "acceptance"
+  ],
+  "properties": {
+    "schema_version": {"const": "bijux.container.pipeline.v2"},
+    "run": {
+      "type": "object",
+      "required": ["id", "campaign", "corpus", "sample", "domain", "stage", "tool", "operator", "submitted_at_utc"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^run-[1-9][0-9]{3,}$"},
+        "kind": {"enum": ["qualification", "benchmark"]},
+        "campaign": {"type": "string", "minLength": 1},
+        "corpus": {"type": "string", "minLength": 1},
+        "sample": {"type": "string", "minLength": 1},
+        "domain": {"type": "string", "minLength": 1},
+        "stage": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+        "operator": {"type": "string", "minLength": 1},
+        "submitted_at_utc": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "repository": {
+      "type": "object",
+      "required": ["path", "commit", "clean"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "clean": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "image": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "required": ["inputs"],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "path", "mount_path", "sha256"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["data", "reference", "database", "upstream_result"]},
+              "path": {"type": "string", "minLength": 1},
+              "mount_path": {"type": "string", "pattern": "^/input/[A-Za-z0-9][A-Za-z0-9._-]*$"},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "required": ["version", "help", "real", "negative"],
+      "properties": {
+        "version": {"$ref": "#/$defs/argv"},
+        "help": {"$ref": "#/$defs/argv"},
+        "warmup": {"$ref": "#/$defs/argv"},
+        "real": {"$ref": "#/$defs/argv"},
+        "negative": {"$ref": "#/$defs/argv"}
+      },
+      "additionalProperties": false
+    },
+    "measurement": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "warmup_repetitions",
+        "measured_repetitions",
+        "resource_file_template",
+        "runtime_scope"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.repeated_measurement.v1"},
+        "warmup_repetitions": {"const": 1},
+        "measured_repetitions": {"type": "integer", "minimum": 1, "maximum": 10},
+        "resource_file_template": {"const": "repetitions/repetition-{repetition}.resource.tsv"},
+        "runtime_scope": {"const": "containerized_stage_end_to_end"}
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "parameter_schema_version",
+        "defaults_provider",
+        "overrides_file",
+        "overrides_sha256",
+        "effective_file",
+        "effective_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.parameter_evidence.v1"},
+        "parameter_schema_version": {"type": "string", "minLength": 1},
+        "defaults_provider": {"type": "string", "minLength": 1},
+        "overrides_file": {"const": "config-pipeline-parameters.yml"},
+        "overrides_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "effective_file": {"const": "effective-parameters.json"},
+        "effective_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "interface": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "accepted_input_contracts",
+        "output_contract",
+        "normalized_result_contract",
+        "adapter",
+        "downstream_probe"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.stage_interface_evidence.v1"},
+        "accepted_input_contracts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "output_contract": {"type": "string", "minLength": 1},
+        "normalized_result_contract": {"$ref": "#/$defs/relative_path"},
+        "adapter": {"type": "string", "minLength": 1},
+        "downstream_probe": {
+          "type": "object",
+          "required": ["stage_id", "input_contract", "source", "artifact"],
+          "properties": {
+            "stage_id": {"type": "string", "minLength": 1},
+            "input_contract": {"type": "string", "minLength": 1},
+            "source": {"type": "string", "minLength": 1},
+            "artifact": {"$ref": "#/$defs/relative_path"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "outputs": {
+      "type": "object",
+      "required": ["result_root", "mount_path", "required_files", "collection_rule"],
+      "properties": {
+        "result_root": {"type": "string", "minLength": 1},
+        "mount_path": {"const": "/result"},
+        "required_files": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/relative_path"}},
+        "collection_rule": {"const": "required_files_and_metrics"}
+      },
+      "additionalProperties": false
+    },
+    "resources": {
+      "type": "object",
+      "required": ["account", "partition", "cpus", "memory_mb", "walltime", "scratch_mb", "retry"],
+      "properties": {
+        "account": {"type": "string", "minLength": 1},
+        "partition": {"type": "string", "minLength": 1},
+        "cpus": {"type": "integer", "minimum": 1},
+        "memory_mb": {"type": "integer", "minimum": 1},
+        "walltime": {"type": "string", "pattern": "^[0-9]{2,3}:[0-5][0-9]:[0-5][0-9]$"},
+        "scratch_mb": {"type": "integer", "minimum": 1},
+        "retry": {
+          "type": "object",
+          "required": ["max_attempts", "backoff_seconds", "retryable_exit_codes"],
+          "properties": {
+            "max_attempts": {"const": 1},
+            "backoff_seconds": {"type": "integer", "minimum": 0},
+            "retryable_exit_codes": {"const": []}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "required": ["locale", "timezone", "runtime_network", "threads", "random_seed", "cache_policy", "determinism"],
+      "properties": {
+        "locale": {"const": "C"},
+        "timezone": {"const": "UTC"},
+        "runtime_network": {"const": false},
+        "threads": {"type": "integer", "minimum": 1},
+        "random_seed": {"type": ["integer", "null"]},
+        "cache_policy": {"enum": ["cold", "warm", "disabled"]},
+        "determinism": {"enum": ["deterministic", "seeded", "nondeterministic"]}
+      },
+      "additionalProperties": false
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["run_id", "slurm_job_id", "required_outputs"],
+        "properties": {
+          "run_id": {"type": "string", "pattern": "^run-[1-9][0-9]{3,}$"},
+          "slurm_job_id": {"type": "string", "pattern": "^[0-9]+$"},
+          "required_outputs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "required": ["version_regex", "negative_exit_nonzero", "metrics"],
+      "properties": {
+        "version_regex": {"type": "string", "minLength": 1},
+        "negative_exit_nonzero": {"const": true},
+        "metrics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "path", "json_pointer", "operator", "expected", "unit"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+              "path": {"$ref": "#/$defs/relative_path"},
+              "json_pointer": {"type": "string", "pattern": "^/"},
+              "operator": {"enum": ["eq", "ge", "gt", "le", "lt"]},
+              "expected": {"type": ["number", "string"]},
+              "unit": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "argv": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "relative_path": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"}
+  },
+  "additionalProperties": false
+}"##;
+
+fn embedded_schema(raw: &str) -> serde_json::Value {
+    serde_json::from_str(raw).unwrap_or_else(|_| serde_json::json!({}))
+}
+
+#[must_use]
+pub fn container_pipeline_v1_schema() -> serde_json::Value {
+    embedded_schema(CONTAINER_PIPELINE_V1_SCHEMA_JSON)
+}
+
+#[must_use]
+pub fn container_pipeline_v2_schema() -> serde_json::Value {
+    embedded_schema(CONTAINER_PIPELINE_V2_SCHEMA_JSON)
+}
+
+/// Write the legacy container-pipeline schema atomically.
+///
+/// # Errors
+/// Returns an error when schema publication fails.
+pub fn write_container_pipeline_v1_schema(path: &Path) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(path, &container_pipeline_v1_schema())?;
+    Ok(())
+}
+
+/// Write the current container-pipeline schema atomically.
+///
+/// # Errors
+/// Returns an error when schema publication fails.
+pub fn write_container_pipeline_v2_schema(path: &Path) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(path, &container_pipeline_v2_schema())?;
+    Ok(())
+}

@@ -153,13 +153,20 @@ fn execution_policy_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/execution_contract/pipeline")),
-        btree_set(&["admission.rs", "currentization.rs", "mod.rs", "model.rs", "validation.rs",]),
-        "pipeline contracts must separate models, validation, site admission, and currentization"
+        btree_set(&[
+            "admission.rs",
+            "currentization.rs",
+            "mod.rs",
+            "model.rs",
+            "schema.rs",
+            "validation.rs",
+        ]),
+        "pipeline contracts must separate models, schemas, validation, site admission, and currentization"
     );
     assert_eq!(
         dir_entries(&root.join("src/site_policy")),
-        btree_set(&["mod.rs", "model.rs", "repository_freeze.rs", "validation.rs"]),
-        "site policy must separate declarations, validation, and repository effects"
+        btree_set(&["mod.rs", "model.rs", "repository_freeze.rs", "schema.rs", "validation.rs"]),
+        "site policy must separate declarations, schemas, validation, and repository effects"
     );
 }
 

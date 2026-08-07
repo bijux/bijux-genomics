@@ -1,6 +1,7 @@
 mod admission;
 mod currentization;
 mod model;
+mod schema;
 mod validation;
 
 pub use admission::{
@@ -22,5 +23,9 @@ pub use model::{
     PipelineParameterEvidence, PipelineRepository, PipelineResourcesV1, PipelineResourcesV2,
     PipelineRetry, PipelineRunV1, PipelineRunV2, CONTAINER_PIPELINE_SCHEMA_V1,
     CONTAINER_PIPELINE_SCHEMA_V2,
+};
+pub use schema::{
+    container_pipeline_v1_schema, container_pipeline_v2_schema, write_container_pipeline_v1_schema,
+    write_container_pipeline_v2_schema,
 };
 pub use validation::{load_container_pipeline, validate_container_pipeline};

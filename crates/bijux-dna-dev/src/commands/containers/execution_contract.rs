@@ -4,8 +4,11 @@ use super::{
 };
 
 const SCHEMA_PATH: &str = "containers/contracts/config-credential.schema.json";
+const GOVERNANCE_SCHEMA_PATH: &str = "containers/contracts/config-governance.schema.json";
+const PIPELINE_V1_SCHEMA_PATH: &str = "containers/contracts/config-pipeline.schema.json";
+const PIPELINE_V2_SCHEMA_PATH: &str = "containers/contracts/config-pipeline-v2.schema.json";
 const CREDENTIAL_USAGE: &str = "Usage:\n  bijux-dna-dev containers run credential-reference -- validate <credential-reference>\n  bijux-dna-dev containers run credential-reference -- generate-schema [<output>]\n  bijux-dna-dev containers run credential-reference -- check-schema";
-const PIPELINE_USAGE: &str = "Usage:\n  bijux-dna-dev containers run pipeline-contract -- validate <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- admit --governance <governance> <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- currentize --governance <governance> --inventory <inventory> --commit <sha> [--apply] <pipelines-root>";
+const PIPELINE_USAGE: &str = "Usage:\n  bijux-dna-dev containers run pipeline-contract -- validate <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- admit --governance <governance> <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- currentize --governance <governance> --inventory <inventory> --commit <sha> [--apply] <pipelines-root>\n  bijux-dna-dev containers run pipeline-contract -- generate-schemas [<governance-schema> <pipeline-v1-schema> <pipeline-v2-schema>]\n  bijux-dna-dev containers run pipeline-contract -- check-schemas";
 
 pub(super) fn run_credential_reference(
     workspace: &Workspace,
@@ -42,8 +45,63 @@ pub(super) fn run_pipeline_contract(
         [operation, options @ ..] if operation == "currentize" => {
             currentize_pipelines(workspace, options)
         }
+        [operation, options @ ..] if operation == "generate-schemas" => {
+            generate_pipeline_schemas(workspace, options)
+        }
+        [operation] if operation == "check-schemas" => check_pipeline_schemas(workspace),
         _ => anyhow::bail!(PIPELINE_USAGE),
     }
+}
+
+fn pipeline_schema_paths(workspace: &Workspace) -> [std::path::PathBuf; 3] {
+    [
+        workspace.path(GOVERNANCE_SCHEMA_PATH),
+        workspace.path(PIPELINE_V1_SCHEMA_PATH),
+        workspace.path(PIPELINE_V2_SCHEMA_PATH),
+    ]
+}
+
+fn generate_pipeline_schemas(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let paths = match args {
+        [] => pipeline_schema_paths(workspace),
+        [governance, pipeline_v1, pipeline_v2] => [
+            path_from_arg(workspace, governance),
+            path_from_arg(workspace, pipeline_v1),
+            path_from_arg(workspace, pipeline_v2),
+        ],
+        _ => anyhow::bail!(PIPELINE_USAGE),
+    };
+    bijux_dna_containers::api::write_container_governance_schema(&paths[0])?;
+    bijux_dna_containers::api::write_container_pipeline_v1_schema(&paths[1])?;
+    bijux_dna_containers::api::write_container_pipeline_v2_schema(&paths[2])?;
+    success_line(format!(
+        "generated governance and pipeline schemas at {}, {}, and {}",
+        paths[0].display(),
+        paths[1].display(),
+        paths[2].display()
+    ))
+}
+
+fn check_pipeline_schemas(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let paths = pipeline_schema_paths(workspace);
+    let generated = [
+        bijux_dna_containers::api::container_governance_schema(),
+        bijux_dna_containers::api::container_pipeline_v1_schema(),
+        bijux_dna_containers::api::container_pipeline_v2_schema(),
+    ];
+    for (path, expected) in paths.iter().zip(generated) {
+        let checked: serde_json::Value = serde_json::from_str(&read_utf8(path)?)?;
+        if checked != expected {
+            return Ok(ContainerCommandOutcome::failure(format!(
+                "{} drifted from Rust container contract authority\n",
+                path.display()
+            )));
+        }
+    }
+    success_line("container governance and pipeline schemas: OK")
 }
 
 fn validate_pipeline(workspace: &Workspace, path: &str) -> Result<ContainerCommandOutcome> {
