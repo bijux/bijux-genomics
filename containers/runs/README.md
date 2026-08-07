@@ -118,24 +118,24 @@ rename and supports verification and rollback. It never copies or deletes a
 result. On LUNARC:
 
 ```console
-python3 containers/runs/result_layout.py plan \
-  --runs-root containers/runs \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+study=/home/bijan/lu2024-12-24/Dardel/STUDY
+results="$study/results/container-validation"
+plan="$results/.governance/result-layout.json"
 
-python3 containers/runs/result_layout.py apply \
-  --runs-root containers/runs \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  layout-plan containers/runs "$results" "$plan"
 
-python3 containers/runs/result_layout.py verify \
-  --runs-root containers/runs \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  layout-apply containers/runs "$results" "$plan"
+
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  layout-verify containers/runs "$results" "$plan"
 ```
 
-`rollback` accepts the same arguments and restores the recorded nested paths.
-The journal is execution-site evidence and remains outside Git.
+`layout-rollback` accepts the same positional arguments and restores the
+recorded nested paths. The journal is execution-site evidence and remains
+outside Git. Its contract is checked in as
+[`../contracts/schemas/result-layout-plan.v1.json`](../contracts/schemas/result-layout-plan.v1.json).
 
 ## Keep the active result surface publication-only
 
@@ -155,28 +155,20 @@ study=/home/bijan/lu2024-12-24/Dardel/STUDY
 plan="$study/containers/evidence/result-layout/$commit/superseded-results.json"
 archive="$study/containers/evidence/superseded/results/$commit"
 
-python3 containers/runs/result_layout.py plan-superseded-archive \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --result-root "$study/results/container-validation" \
-  --archive-root "$archive" \
-  --plan "$plan"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  archive-plan containers/runs containers/runs/attempt-ledger.json \
+  "$study/results/container-validation" "$archive" "$plan"
 
-python3 containers/runs/result_layout.py apply-superseded-archive \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --result-root "$study/results/container-validation" \
-  --archive-root "$archive" \
-  --plan "$plan"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  archive-apply containers/runs containers/runs/attempt-ledger.json \
+  "$study/results/container-validation" "$archive" "$plan"
 
-python3 containers/runs/result_layout.py verify-superseded-archive \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --result-root "$study/results/container-validation" \
-  --archive-root "$archive" \
-  --plan "$plan"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  archive-verify containers/runs containers/runs/attempt-ledger.json \
+  "$study/results/container-validation" "$archive" "$plan"
 ```
 
-`rollback-superseded-archive` accepts the same arguments. No result file is
+`archive-rollback` accepts the same positional arguments. No result file is
 deleted or rewritten; the plan records its path, size, SHA-256, category, and
-replacement identity before any move occurs.
+replacement identity before any move occurs. Its contract is checked in as
+[`../contracts/schemas/superseded-result-archive.v1.json`](../contracts/schemas/superseded-result-archive.v1.json).

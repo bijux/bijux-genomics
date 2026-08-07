@@ -15,6 +15,7 @@ const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-
 const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
+const OWNERSHIP_AUDIT_SOURCE: &str = "crates/bijux-dna-dev/src/commands/repo_checks/ownership.rs";
 const ROOT_PYTHON_AUTHORITIES: [&str; 8] = [
     "benchmarks/corpus_acquisition.py",
     "benchmarks/corpus_catalog_enrichment.py",
@@ -489,6 +490,7 @@ fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
         .map(|authority| {
             let mut matches = files
                 .iter()
+                .filter(|file| file.path != OWNERSHIP_AUDIT_SOURCE)
                 .filter(|file| is_executable_reference(&file.path))
                 .filter(|file| references_legacy_authority(&file.path, &file.content, authority))
                 .map(|file| file.path.clone())
@@ -599,7 +601,7 @@ mod tests {
 
     use super::{
         classify, legacy_callers, render_markdown, validate_audit, AuditSummary, OwnershipAudit,
-        SourceFile, ROOT_PYTHON_AUTHORITIES,
+        SourceFile, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
     };
 
     #[test]
@@ -675,6 +677,10 @@ mod tests {
                 path: "containers/README.md".to_string(),
                 content: "python3 containers/runs/manage.py validate".to_string(),
             },
+            SourceFile {
+                path: OWNERSHIP_AUDIT_SOURCE.to_string(),
+                content: "containers/runs/result_layout.py".to_string(),
+            },
         ]);
         assert_eq!(callers.len(), ROOT_PYTHON_AUTHORITIES.len());
         assert_eq!(
@@ -682,6 +688,7 @@ mod tests {
             ["containers/contracts/container_validation.py"]
         );
         assert!(callers["benchmarks/data_catalog.py"].is_empty());
+        assert!(callers["containers/runs/result_layout.py"].is_empty());
         assert_eq!(callers["containers/runs/manage.py"], ["containers/README.md"]);
     }
 
