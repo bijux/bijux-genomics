@@ -12,6 +12,7 @@ fn dependency_graph_matches_science_boundary() {
         "bijux-dna-bench-model",
         "bijux-dna-core",
         "bijux-dna-infra",
+        "bijux-dna-policies",
         "clap",
         "flate2",
         "serde",
@@ -30,10 +31,6 @@ fn dependency_graph_matches_science_boundary() {
         );
     }
 
-    assert!(
-        dependencies_doc.contains("`bijux-dna-policies`"),
-        "docs/DEPENDENCIES.md must document the guardrail dev-dependency"
-    );
     assert!(
         cargo_toml.contains("bijux-dna-infra = { workspace = true"),
         "bijux-dna-infra must come from the workspace catalog"

@@ -214,6 +214,49 @@ impl QualificationAssessment {
     }
 }
 
+impl EvidenceDecision {
+    #[must_use]
+    pub fn passed(evidence_sha256: String) -> Self {
+        Self {
+            verdict: EvidenceVerdict::Passed,
+            evidence_sha256: Some(evidence_sha256),
+            reasons: Vec::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn failed(reason: &str) -> Self {
+        Self {
+            verdict: EvidenceVerdict::Failed,
+            evidence_sha256: None,
+            reasons: vec![reason.to_string()],
+        }
+    }
+
+    #[must_use]
+    pub fn blocked(reason: &str) -> Self {
+        Self {
+            verdict: EvidenceVerdict::Blocked,
+            evidence_sha256: None,
+            reasons: vec![reason.to_string()],
+        }
+    }
+
+    #[must_use]
+    pub fn missing(reason: &str) -> Self {
+        Self {
+            verdict: EvidenceVerdict::Missing,
+            evidence_sha256: None,
+            reasons: vec![reason.to_string()],
+        }
+    }
+
+    #[must_use]
+    pub fn not_applicable() -> Self {
+        Self { verdict: EvidenceVerdict::NotApplicable, evidence_sha256: None, reasons: Vec::new() }
+    }
+}
+
 fn validate_decision(dimension: EvidenceDimension, decision: &EvidenceDecision) -> Result<()> {
     match decision.verdict {
         EvidenceVerdict::Passed => {

@@ -38,7 +38,7 @@ fn science_source_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/decision")),
-        entries(["benchmark_gate.rs", "mod.rs"]),
+        entries(["benchmark_gate.rs", "mod.rs", "qualification.rs"]),
         "science decisions must stay isolated from persistence and execution concerns"
     );
     assert_eq!(

@@ -8,12 +8,19 @@ use bijux_dna_containers::evidence::{
     ContainerCatalogTool, ContainerEvidenceChain, ContainerImageInventoryTool,
 };
 use bijux_dna_policies::{
-    EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
+    evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_source_identity,
+    BenchmarkEvidenceObservation, EvidenceDecision, EvidenceDimension,
+    ExecutionEvidenceObservation, ExecutionEvidenceStatus, PublicationDisposition,
     QualificationAssessment, QualificationEvidenceSource, QualificationReport, SupportDisposition,
     REQUIRED_EVIDENCE_DIMENSIONS,
 };
 use bijux_dna_runtime::{
     load_run_evidence_index, AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
+};
+use bijux_dna_science::decision::{
+    evaluate_scientific_acceptance, ScientificAcceptanceObservation,
+    ScientificAssessmentStatus as ScienceAssessmentStatus,
+    ScientificExecutionStatus as ScienceExecutionStatus,
 };
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -127,33 +134,49 @@ fn derive_tool_assessment(
         .selected_image_sha256
         .as_deref()
         .ok_or_else(|| anyhow::anyhow!("qualification inventory has no image for {}", tool.id))?;
-    let stage = execution_decision(runs, &tool.real_test_stage);
-    let science = science_decision(runs, &tool.real_test_stage);
+    let execution_observations = execution_observations(runs);
+    let scientific_observations = scientific_observations(runs);
+    let stage = evaluate_execution_evidence(&execution_observations, &tool.real_test_stage);
+    let science = evaluate_scientific_acceptance(&scientific_observations, &tool.real_test_stage);
     let dimensions = BTreeMap::from([
-        (EvidenceDimension::Catalog, passed(context.chain.catalog_sha256.clone())),
-        (EvidenceDimension::Source, source_decision(tool)),
-        (EvidenceDimension::Build, passed(image_sha256.to_string())),
-        (EvidenceDimension::Runtime, passed(context.runtime_sha256.to_string())),
+        (
+            EvidenceDimension::Catalog,
+            EvidenceDecision::passed(context.chain.catalog_sha256.clone()),
+        ),
+        (
+            EvidenceDimension::Source,
+            evaluate_source_identity(
+                &tool.source_sha256,
+                &tool.pinned_commit,
+                &bijux_dna_infra::hash_bytes_sha256(
+                    format!("git:{}", tool.pinned_commit).as_bytes(),
+                ),
+            ),
+        ),
+        (EvidenceDimension::Build, EvidenceDecision::passed(image_sha256.to_string())),
+        (EvidenceDimension::Runtime, EvidenceDecision::passed(context.runtime_sha256.to_string())),
         (EvidenceDimension::Stage, stage.clone()),
         (EvidenceDimension::RealData, stage),
         (EvidenceDimension::Science, science),
         (
             EvidenceDimension::Benchmark,
-            benchmark_decision(
-                &tool.id,
-                image_sha256,
+            evaluate_benchmark_evidence(
+                &benchmark_observations(&tool.id, context.benchmark_reports),
                 &context.chain.repository_commit,
-                context.benchmark_reports,
+                image_sha256,
             ),
         ),
         (
             EvidenceDimension::Security,
-            missing("no admitted security publication covers this image"),
+            EvidenceDecision::missing("no admitted security publication covers this image"),
         ),
-        (EvidenceDimension::Freshness, passed(context.freshness_sha256.to_string())),
+        (
+            EvidenceDimension::Freshness,
+            EvidenceDecision::passed(context.freshness_sha256.to_string()),
+        ),
         (
             EvidenceDimension::Release,
-            missing("no immutable release publication covers this evidence set"),
+            EvidenceDecision::missing("no immutable release publication covers this evidence set"),
         ),
     ]);
     QualificationAssessment::v1(
@@ -164,85 +187,61 @@ fn derive_tool_assessment(
     )
 }
 
-fn source_decision(tool: &ContainerCatalogTool) -> EvidenceDecision {
-    if valid_sha256(&tool.source_sha256) && !placeholder_identity(&tool.source_sha256) {
-        return passed(tool.source_sha256.clone());
-    }
-    if valid_git_commit(&tool.pinned_commit) && !placeholder_identity(&tool.pinned_commit) {
-        return passed(bijux_dna_infra::hash_bytes_sha256(
-            format!("git:{}", tool.pinned_commit).as_bytes(),
-        ));
-    }
-    missing("catalog source identity is unresolved")
-}
-
-fn execution_decision(runs: &[&RunEvidenceRecord], stage: &str) -> EvidenceDecision {
-    let matching = runs.iter().copied().filter(|run| run.stage == stage).collect::<Vec<_>>();
-    if let Some(run) = matching
-        .iter()
-        .copied()
-        .filter(|run| run.execution_status == AttemptExecutionStatus::Passed)
-        .min_by(|left, right| left.run_id.cmp(&right.run_id))
-    {
-        return passed(run.evidence_lock_sha256.clone());
-    }
-    if matching.iter().any(|run| run.execution_status == AttemptExecutionStatus::Failed) {
-        return failed("all completed declared-stage executions failed");
-    }
-    if !matching.is_empty() {
-        return blocked("declared-stage execution is blocked");
-    }
-    missing("no immutable run evidence matches the declared real-test stage")
-}
-
-fn science_decision(runs: &[&RunEvidenceRecord], stage: &str) -> EvidenceDecision {
-    let mut executed = runs
-        .iter()
-        .copied()
-        .filter(|run| run.stage == stage && run.execution_status == AttemptExecutionStatus::Passed)
-        .collect::<Vec<_>>();
-    executed.sort_by(|left, right| left.run_id.cmp(&right.run_id));
-    if let Some(run) = executed
-        .iter()
-        .copied()
-        .find(|run| run.scientific_status == ScientificAcceptanceStatus::Passed)
-    {
-        return passed(run.evidence_lock_sha256.clone());
-    }
-    if executed.iter().any(|run| run.scientific_status == ScientificAcceptanceStatus::Failed) {
-        return failed("scientific acceptance failed for the declared-stage execution");
-    }
-    if !executed.is_empty() {
-        return missing("declared-stage execution has no scientific acceptance assessment");
-    }
-    blocked("scientific acceptance requires a passing declared-stage execution")
-}
-
-fn benchmark_decision(
+fn benchmark_observations(
     tool_id: &str,
-    image_sha256: &str,
-    repository_commit: &str,
     reports: &[AdmittedBenchmarkStageReport],
-) -> EvidenceDecision {
-    let mut current = reports
+) -> Vec<BenchmarkEvidenceObservation> {
+    reports
         .iter()
         .filter_map(|admission| {
             let tool = admission.report.tools.iter().find(|tool| tool.tool == tool_id)?;
-            (tool.repository_commit == repository_commit && tool.image.sha256 == image_sha256)
-                .then_some((admission, tool))
+            Some(BenchmarkEvidenceObservation {
+                run_id: admission.report.run_id.clone(),
+                repository_commit: tool.repository_commit.clone(),
+                image_sha256: tool.image.sha256.clone(),
+                evidence_sha256: admission.source_sha256.clone(),
+                report_passed: admission.report.verdict == BenchmarkReportVerdict::Passed,
+                tool_passed: tool.verdict == BenchmarkReportVerdict::Passed,
+            })
         })
-        .collect::<Vec<_>>();
-    current.sort_by(|(left, _), (right, _)| left.report.run_id.cmp(&right.report.run_id));
-    if let Some((admission, _)) = current.iter().copied().find(|(admission, tool)| {
-        admission.report.verdict == BenchmarkReportVerdict::Passed
-            && tool.verdict == BenchmarkReportVerdict::Passed
-    }) {
-        return passed(admission.source_sha256.clone());
-    }
-    if !current.is_empty() {
-        return failed("current-image benchmark evidence failed");
-    }
-    missing("no admitted benchmark report covers the current image and repository commit")
+        .collect()
+}
+
+fn execution_observations(runs: &[&RunEvidenceRecord]) -> Vec<ExecutionEvidenceObservation> {
+    runs.iter()
+        .map(|run| ExecutionEvidenceObservation {
+            run_id: run.run_id.clone(),
+            stage: run.stage.clone(),
+            evidence_sha256: run.evidence_lock_sha256.clone(),
+            status: match run.execution_status {
+                AttemptExecutionStatus::Passed => ExecutionEvidenceStatus::Passed,
+                AttemptExecutionStatus::Failed => ExecutionEvidenceStatus::Failed,
+                AttemptExecutionStatus::Blocked => ExecutionEvidenceStatus::Blocked,
+                AttemptExecutionStatus::Incomplete => ExecutionEvidenceStatus::Incomplete,
+            },
+        })
+        .collect()
+}
+
+fn scientific_observations(runs: &[&RunEvidenceRecord]) -> Vec<ScientificAcceptanceObservation> {
+    runs.iter()
+        .map(|run| ScientificAcceptanceObservation {
+            run_id: run.run_id.clone(),
+            stage: run.stage.clone(),
+            evidence_sha256: run.evidence_lock_sha256.clone(),
+            execution_status: match run.execution_status {
+                AttemptExecutionStatus::Passed => ScienceExecutionStatus::Passed,
+                AttemptExecutionStatus::Failed => ScienceExecutionStatus::Failed,
+                AttemptExecutionStatus::Blocked => ScienceExecutionStatus::Blocked,
+                AttemptExecutionStatus::Incomplete => ScienceExecutionStatus::Incomplete,
+            },
+            scientific_status: match run.scientific_status {
+                ScientificAcceptanceStatus::Passed => ScienceAssessmentStatus::Passed,
+                ScientificAcceptanceStatus::Failed => ScienceAssessmentStatus::Failed,
+                ScientificAcceptanceStatus::NotAssessed => ScienceAssessmentStatus::NotAssessed,
+            },
+        })
+        .collect()
 }
 
 fn repository_source(
@@ -264,142 +263,16 @@ fn freshness_identity(
     Ok(bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(&(repository_commit, sources))?))
 }
 
-fn passed(evidence_sha256: String) -> EvidenceDecision {
-    EvidenceDecision {
-        verdict: EvidenceVerdict::Passed,
-        evidence_sha256: Some(evidence_sha256),
-        reasons: Vec::new(),
-    }
-}
-
-fn failed(reason: &str) -> EvidenceDecision {
-    EvidenceDecision {
-        verdict: EvidenceVerdict::Failed,
-        evidence_sha256: None,
-        reasons: vec![reason.to_string()],
-    }
-}
-
-fn blocked(reason: &str) -> EvidenceDecision {
-    EvidenceDecision {
-        verdict: EvidenceVerdict::Blocked,
-        evidence_sha256: None,
-        reasons: vec![reason.to_string()],
-    }
-}
-
-fn missing(reason: &str) -> EvidenceDecision {
-    EvidenceDecision {
-        verdict: EvidenceVerdict::Missing,
-        evidence_sha256: None,
-        reasons: vec![reason.to_string()],
-    }
-}
-
 fn not_applicable() -> EvidenceDecision {
-    EvidenceDecision {
-        verdict: EvidenceVerdict::NotApplicable,
-        evidence_sha256: None,
-        reasons: Vec::new(),
-    }
-}
-
-fn valid_sha256(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
-}
-
-fn valid_git_commit(value: &str) -> bool {
-    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
-}
-
-fn placeholder_identity(value: &str) -> bool {
-    value.is_empty()
-        || value.bytes().next().is_some_and(|first| value.bytes().all(|byte| byte == first))
+    EvidenceDecision::not_applicable()
 }
 
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::{execution_decision, freshness_identity, science_decision};
-    use bijux_dna_policies::{EvidenceVerdict, QualificationEvidenceSource};
-    use bijux_dna_runtime::{
-        AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
-    };
-
-    fn run(
-        run_id: &str,
-        execution_status: AttemptExecutionStatus,
-        scientific_status: ScientificAcceptanceStatus,
-    ) -> RunEvidenceRecord {
-        RunEvidenceRecord {
-            campaign: "campaign".to_string(),
-            corpus: "corpus".to_string(),
-            domain: "fastq".to_string(),
-            evidence_lock_sha256: "a".repeat(64),
-            execution_status,
-            pipeline_schema_version: "bijux.pipeline.v1".to_string(),
-            repository_commit: "b".repeat(40),
-            run_id: run_id.to_string(),
-            sample: "sample".to_string(),
-            scientific_status,
-            slurm_job_id: "1234".to_string(),
-            source_file_count: 1,
-            source_result: "study://runs/result".to_string(),
-            stage: ["fastq", "trim_reads"].join("."),
-            tool: "atropos".to_string(),
-        }
-    }
-
-    #[test]
-    fn execution_decision_preserves_pass_failure_and_blocking() {
-        let passed_run = run(
-            "run-1001",
-            AttemptExecutionStatus::Passed,
-            ScientificAcceptanceStatus::NotAssessed,
-        );
-        assert_eq!(
-            execution_decision(&[&passed_run], &passed_run.stage).verdict,
-            EvidenceVerdict::Passed
-        );
-        let failed_run = run(
-            "run-1002",
-            AttemptExecutionStatus::Failed,
-            ScientificAcceptanceStatus::NotAssessed,
-        );
-        assert_eq!(
-            execution_decision(&[&failed_run], &failed_run.stage).verdict,
-            EvidenceVerdict::Failed
-        );
-        let blocked_run = run(
-            "run-1003",
-            AttemptExecutionStatus::Blocked,
-            ScientificAcceptanceStatus::NotAssessed,
-        );
-        assert_eq!(
-            execution_decision(&[&blocked_run], &blocked_run.stage).verdict,
-            EvidenceVerdict::Blocked
-        );
-    }
-
-    #[test]
-    fn science_decision_does_not_infer_acceptance_from_execution() {
-        let unassessed = run(
-            "run-1001",
-            AttemptExecutionStatus::Passed,
-            ScientificAcceptanceStatus::NotAssessed,
-        );
-        assert_eq!(
-            science_decision(&[&unassessed], &unassessed.stage).verdict,
-            EvidenceVerdict::Missing
-        );
-        let accepted =
-            run("run-1002", AttemptExecutionStatus::Passed, ScientificAcceptanceStatus::Passed);
-        assert_eq!(
-            science_decision(&[&accepted], &accepted.stage).verdict,
-            EvidenceVerdict::Passed
-        );
-    }
+    use super::freshness_identity;
+    use bijux_dna_policies::QualificationEvidenceSource;
 
     #[test]
     fn freshness_identity_covers_benchmark_sources() -> anyhow::Result<()> {

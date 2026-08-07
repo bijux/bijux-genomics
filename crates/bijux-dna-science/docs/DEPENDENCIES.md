@@ -14,6 +14,7 @@ guardrails without pulling in runtime execution or planning responsibilities.
 | `bijux-dna-bench-model` | Persisted benchmark gate policy and decision records consumed by pure science evaluation. |
 | `bijux-dna-core` | Canonical metric direction semantics used by scientific gates. |
 | `bijux-dna-infra` with `yaml` | Shared deterministic file IO and governed YAML parsing. |
+| `bijux-dna-policies` | Governed evidence-decision contracts used by scientific acceptance rules. |
 | `clap` | CLI parser for the `bijux-dna-science` binary. |
 | `flate2` | Streaming multi-member gzip decoding for independent FASTQ truth. |
 | `serde` | Authored spec and compiled model serialization. |
@@ -21,12 +22,6 @@ guardrails without pulling in runtime execution or planning responsibilities.
 | `sha2` | Streaming exact per-record digest derivation without retaining all reads. |
 | `toml` | Governed TOML evidence-table parsing. |
 | `walkdir` | Deterministic recursive YAML discovery. |
-
-## Development Dependencies
-
-| Dependency | Role |
-| --- | --- |
-| `bijux-dna-policies` | Workspace guardrail configuration used by crate tests. |
 
 ## Forbidden Dependency Edges
 

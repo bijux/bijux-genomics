@@ -317,6 +317,7 @@ dependencies = [
  "bijux-dna-policies",
  "bijux-dna-runner",
  "bijux-dna-runtime",
+ "bijux-dna-science",
  "bijux-dna-stage-contract",
  "bijux-dna-stages-vcf",
  "bijux-dna-testkit",
