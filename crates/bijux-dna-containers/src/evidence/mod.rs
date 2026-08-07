@@ -22,11 +22,12 @@ pub use chain::{
 };
 pub use external_artifact::{
     admit_external_artifact, bind_external_artifact_command, external_artifact_admission_schema,
-    load_external_artifact_admission, verify_external_artifact_admission,
-    write_external_artifact_admission_schema, ExternalArtifactAdmission,
-    ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
+    external_artifact_image_ref, external_artifact_tool_id, load_external_artifact_admission,
+    verify_external_artifact_admission, write_external_artifact_admission_schema,
+    ExternalArtifactAdmission, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
     ExternalArtifactCommandBinding, ExternalArtifactIdentity, ExternalArtifactInput,
     ExternalArtifactKind, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
+    EXTERNAL_ARTIFACT_IMAGE_SCHEME,
 };
 pub use image_activation::{
     apply_image_activation_plan, create_image_activation_plan, image_activation_plan_schema,

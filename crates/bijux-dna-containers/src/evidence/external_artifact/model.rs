@@ -5,6 +5,17 @@ use super::super::EvidenceSourceIdentity;
 
 pub const EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1: &str =
     "bijux.container.external_artifact_admission.v1";
+pub const EXTERNAL_ARTIFACT_IMAGE_SCHEME: &str = "external-artifact://";
+
+#[must_use]
+pub fn external_artifact_image_ref(tool_id: &str) -> String {
+    format!("{EXTERNAL_ARTIFACT_IMAGE_SCHEME}{tool_id}")
+}
+
+#[must_use]
+pub fn external_artifact_tool_id(image: &str) -> Option<&str> {
+    image.strip_prefix(EXTERNAL_ARTIFACT_IMAGE_SCHEME).filter(|tool_id| !tool_id.is_empty())
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]

@@ -3,9 +3,10 @@ mod schema;
 mod workflow;
 
 pub use model::{
-    ExternalArtifactAdmission, ExternalArtifactAdmissionStatus, ExternalArtifactCommandBinding,
-    ExternalArtifactIdentity, ExternalArtifactKind, ExternalArtifactVersionProbe,
-    EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
+    external_artifact_image_ref, external_artifact_tool_id, ExternalArtifactAdmission,
+    ExternalArtifactAdmissionStatus, ExternalArtifactCommandBinding, ExternalArtifactIdentity,
+    ExternalArtifactKind, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
+    EXTERNAL_ARTIFACT_IMAGE_SCHEME,
 };
 pub use schema::{external_artifact_admission_schema, write_external_artifact_admission_schema};
 pub use workflow::{

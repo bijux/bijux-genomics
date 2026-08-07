@@ -245,13 +245,13 @@ pub fn bind_external_artifact_command(
     let [program, arguments @ ..] = command else {
         bail!("external artifact stage command is empty");
     };
-    if program != &admission.expected_binary {
-        bail!("external artifact stage command must invoke {}", admission.expected_binary);
-    }
     let artifact = admission.artifact.context("admitted external artifact has no identity")?;
     let (executable, arguments) = match artifact.kind {
-        ExternalArtifactKind::Binary => (artifact.path, arguments.to_vec()),
+        ExternalArtifactKind::Binary => {
+            bind_binary_command(program, arguments, &admission.expected_binary, &artifact.path)?
+        }
         ExternalArtifactKind::ApptainerSif => {
+            require_expected_binary_invocation(command, &admission.expected_binary)?;
             let executable =
                 apptainer_executable.map_or_else(|| PathBuf::from("apptainer"), Path::to_path_buf);
             let mut bound = vec!["exec".to_string(), artifact.path];
@@ -266,6 +266,72 @@ pub fn bind_external_artifact_command(
         executable,
         arguments,
     })
+}
+
+fn bind_binary_command(
+    program: &str,
+    arguments: &[String],
+    expected_binary: &str,
+    artifact_path: &str,
+) -> Result<(String, Vec<String>)> {
+    if program == expected_binary {
+        return Ok((artifact_path.to_string(), arguments.to_vec()));
+    }
+    let [shell_option, script, remaining @ ..] = arguments else {
+        bail!("external artifact stage command must invoke {expected_binary}");
+    };
+    if !matches!(program, "sh" | "/bin/sh" | "bash" | "/bin/bash")
+        || !matches!(shell_option.as_str(), "-c" | "-lc")
+    {
+        bail!("external artifact stage command must invoke {expected_binary}");
+    }
+    let bound_script = replace_shell_command_word(script, expected_binary, artifact_path)?;
+    let mut bound_arguments = vec![shell_option.clone(), bound_script];
+    bound_arguments.extend_from_slice(remaining);
+    Ok((program.to_string(), bound_arguments))
+}
+
+fn require_expected_binary_invocation(command: &[String], expected_binary: &str) -> Result<()> {
+    let [program, arguments @ ..] = command else {
+        bail!("external artifact stage command is empty");
+    };
+    if program == expected_binary {
+        return Ok(());
+    }
+    let [shell_option, script, ..] = arguments else {
+        bail!("external artifact stage command must invoke {expected_binary}");
+    };
+    if !matches!(program.as_str(), "sh" | "/bin/sh" | "bash" | "/bin/bash")
+        || !matches!(shell_option.as_str(), "-c" | "-lc")
+    {
+        bail!("external artifact stage command must invoke {expected_binary}");
+    }
+    replace_shell_command_word(script, expected_binary, expected_binary).map(|_| ())
+}
+
+fn replace_shell_command_word(
+    script: &str,
+    expected_binary: &str,
+    replacement: &str,
+) -> Result<String> {
+    let pattern = Regex::new(&format!(
+        r"(?m)(^|[;&|])([[:space:]]*){}([[:space:]]|$)",
+        regex::escape(expected_binary)
+    ))
+    .context("compile external artifact shell binding")?;
+    if !pattern.is_match(script) {
+        bail!("external artifact shell command must invoke {expected_binary}");
+    }
+    let quoted = shell_quote(replacement);
+    Ok(pattern
+        .replace_all(script, |captures: &regex::Captures<'_>| {
+            format!("{}{}{}{}", &captures[1], &captures[2], quoted, &captures[3])
+        })
+        .into_owned())
+}
+
+fn shell_quote(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 fn inspect_artifact(

@@ -57,6 +57,28 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
     )?;
     assert_eq!(binding.executable, canonical_binary.display().to_string());
     assert_eq!(binding.arguments, ["-bam", "input.list"]);
+
+    let shell_binding = bind_external_artifact_command(
+        root,
+        &active,
+        &record_path,
+        "bam.sex",
+        &["/bin/sh".to_string(), "-c".to_string(), "angsd -i sample.bam -doCounts 1".to_string()],
+        None,
+    )?;
+    assert_eq!(shell_binding.executable, "/bin/sh");
+    assert_eq!(shell_binding.arguments[0], "-c");
+    assert!(shell_binding.arguments[1]
+        .starts_with(&format!("'{}' -i sample.bam", canonical_binary.display())));
+    assert!(bind_external_artifact_command(
+        root,
+        &active,
+        &record_path,
+        "bam.sex",
+        &["/bin/sh".to_string(), "-c".to_string(), "printf '%s' angsd".to_string()],
+        None,
+    )
+    .is_err());
     verify_external_artifact_admission(root, &active, &record_path)?;
 
     std::fs::write(&binary, b"#!/bin/sh\nprintf 'changed\\n'\n")?;
