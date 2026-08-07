@@ -9,6 +9,7 @@ mod inventory;
 mod load;
 mod model;
 mod qualification_registry;
+mod run_evidence;
 mod runtime_verification;
 mod schema;
 mod selection;
@@ -75,6 +76,10 @@ pub use qualification_registry::{
     QualificationRegistryDerivationRequest, QualificationRunIdAudit, QualificationRunIdAuditRow,
     QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
     QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+};
+pub use run_evidence::{
+    load_run_evidence_index, validate_run_evidence_index, AttemptExecutionStatus, RunEvidenceIndex,
+    RunEvidenceRecord, ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
 };
 pub use runtime_verification::{
     execute_runtime_verification, render_runtime_verification_markdown,

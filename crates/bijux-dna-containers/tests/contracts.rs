@@ -25,6 +25,8 @@ mod mod_contracts_qualification_run_registry_rs;
 mod mod_contracts_registry_projection_rs;
 #[path = "contracts/resolve_runtime.rs"]
 mod mod_contracts_resolve_runtime_rs;
+#[path = "contracts/run_evidence.rs"]
+mod mod_contracts_run_evidence_rs;
 #[path = "contracts/run_shell_capture.rs"]
 mod mod_contracts_run_shell_capture_rs;
 #[path = "contracts/runtime_verification.rs"]

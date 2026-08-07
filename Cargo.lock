@@ -746,6 +746,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-bench-model",
+ "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",
