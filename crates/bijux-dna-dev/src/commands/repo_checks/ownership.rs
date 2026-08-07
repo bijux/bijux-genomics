@@ -524,7 +524,8 @@ fn is_executable_reference(path: &str) -> bool {
 }
 
 fn is_live_root_python_authority(row: &OwnershipRow) -> bool {
-    row.file_type == ".py"
+    (row.path.starts_with("benchmarks/") || row.path.starts_with("containers/"))
+        && row.file_type == ".py"
         && row.classification == "duplicate legacy logic"
         && !row.path.contains("/tests/")
 }
