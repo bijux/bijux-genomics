@@ -246,7 +246,8 @@ fn canonical_artifact_contracts_reject_incompatible_handoffs_before_execution() 
     producer.index = ArtifactPresenceV1::Optional;
     producer.sidecars[0].presence = ArtifactPresenceV1::Optional;
     let error = ensure_artifact_compatibility(&producer, consumer)
-        .expect_err("optional index cannot satisfy indexed BAM input");
+        .err()
+        .unwrap_or_else(|| panic!("optional index cannot satisfy indexed BAM input"));
     assert!(error.to_string().contains("incompatible index"));
 }
 

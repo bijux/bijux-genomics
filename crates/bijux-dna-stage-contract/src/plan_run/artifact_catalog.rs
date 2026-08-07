@@ -7,15 +7,13 @@ pub fn artifact_kind_schema(role: &str) -> (&'static str, &'static str) {
         }
         "variant" => ("vcf", "bijux.vcf.artifact.coordinate_sorted_indexed.v1"),
         "reference" => ("reference", "bijux.reference.artifact.fasta.v1"),
-        "report_json" | "metrics_json" | "summary_json" => {
+        "report_json" | "metrics_json" | "summary_json" | "metrics_envelope" => {
             ("json", "bijux.auxiliary.artifact.json.v1")
         }
         "summary_tsv" => ("tsv", "bijux.auxiliary.artifact.table.v1"),
         "report_html" => ("html", "bijux.auxiliary.artifact.html.v1"),
         "log" => ("log", "bijux.auxiliary.artifact.text.v1"),
         "index" => ("index", "bijux.auxiliary.artifact.index.v1"),
-        "metrics_envelope" => ("json", "bijux.auxiliary.artifact.json.v1"),
-        "stage_report" => ("file", "bijux.auxiliary.artifact.file.v1"),
         _ => ("file", "bijux.auxiliary.artifact.file.v1"),
     }
 }

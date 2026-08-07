@@ -391,12 +391,15 @@ const fn role_accepts_contract_class(role: ArtifactRole, class: ArtifactClassV1)
             | (ArtifactRoleFamily::Alignment, ArtifactClassV1::Alignment)
             | (ArtifactRoleFamily::Variant, ArtifactClassV1::Variant)
             | (ArtifactRoleFamily::Reference, ArtifactClassV1::Reference)
-            | (ArtifactRoleFamily::Report, ArtifactClassV1::Auxiliary)
-            | (ArtifactRoleFamily::Metrics, ArtifactClassV1::Auxiliary)
-            | (ArtifactRoleFamily::Provenance, ArtifactClassV1::Auxiliary)
-            | (ArtifactRoleFamily::Evidence, ArtifactClassV1::Auxiliary)
-            | (ArtifactRoleFamily::Log, ArtifactClassV1::Auxiliary)
-            | (ArtifactRoleFamily::Other, ArtifactClassV1::Auxiliary)
+            | (
+                ArtifactRoleFamily::Report
+                    | ArtifactRoleFamily::Metrics
+                    | ArtifactRoleFamily::Provenance
+                    | ArtifactRoleFamily::Evidence
+                    | ArtifactRoleFamily::Log
+                    | ArtifactRoleFamily::Other,
+                ArtifactClassV1::Auxiliary,
+            )
     )
 }
 

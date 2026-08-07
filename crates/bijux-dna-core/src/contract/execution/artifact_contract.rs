@@ -221,7 +221,8 @@ impl ArtifactContractV1 {
                 self.contract_id
             )));
         }
-        if !self.contract_id.starts_with("bijux.") || !self.contract_id.ends_with(".v1") {
+        if !self.contract_id.starts_with("bijux.") || self.contract_id.strip_suffix(".v1").is_none()
+        {
             return Err(BijuxError::validation(format!(
                 "artifact contract_id must be a versioned bijux identifier: {}",
                 self.contract_id
@@ -350,18 +351,26 @@ fn artifact_contract_catalog_schema_version(_: &mut SchemaGenerator) -> Schema {
 
 #[must_use]
 pub fn canonical_artifact_contract_catalog() -> ArtifactContractCatalogV1 {
-    use ArtifactClassV1::{Alignment, Auxiliary, Fastq, Reference, Variant};
-    use ArtifactCompressionV1::{Bgzf, Gzip, None as Uncompressed};
-    use ArtifactFormatV1::{
-        Bam, Database, Directory, Fasta, Fastq as FastqFormat, File, Html, Index, Json, Tabular,
-        Text, Vcf,
-    };
-    use ArtifactPairingV1::{Interleaved, Merged, NotApplicable, PairedEnd, SingleEnd};
-    use ArtifactPresenceV1::{Forbidden, Optional, Required};
-    use ArtifactSortOrderV1::{Coordinate, NotApplicable as SortNotApplicable};
+    let mut contracts = canonical_fastq_contracts();
+    contracts.push(canonical_alignment_contract());
+    contracts.extend(canonical_variant_contracts());
+    contracts.extend(canonical_single_artifact_contracts());
+    contracts.sort_by(|left, right| left.contract_id.cmp(&right.contract_id));
+    ArtifactContractCatalogV1 {
+        schema_version: ARTIFACT_CONTRACT_CATALOG_SCHEMA_V1.to_string(),
+        contracts,
+    }
+}
+
+fn canonical_fastq_contracts() -> Vec<ArtifactContractV1> {
+    use ArtifactClassV1::Fastq;
+    use ArtifactCompressionV1::{Gzip, None as Uncompressed};
+    use ArtifactFormatV1::Fastq as FastqFormat;
+    use ArtifactPairingV1::{Interleaved, Merged, PairedEnd, SingleEnd};
+    use ArtifactPresenceV1::{Forbidden, Required};
+    use ArtifactSortOrderV1::NotApplicable as SortNotApplicable;
     use ArtifactValidationInvariantV1::{
-        CoordinateSorted, FastqRecordStructure, HeaderReferenceConsistent, IndexReadable,
-        LineageRecorded, NonEmpty, PairedRecordSynchronization, ReferenceIdentityPresent,
+        FastqRecordStructure, LineageRecorded, NonEmpty, PairedRecordSynchronization,
         SampleIdentityPresent,
     };
 
@@ -392,7 +401,7 @@ pub fn canonical_artifact_contract_catalog() -> ArtifactContractCatalogV1 {
         },
     };
 
-    let mut contracts = vec![
+    vec![
         ArtifactContractV1 {
             schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
             contract_id: "bijux.fastq.artifact.reads.v1".to_string(),
@@ -418,185 +427,190 @@ pub fn canonical_artifact_contract_catalog() -> ArtifactContractCatalogV1 {
         fastq_contract("bijux.fastq.artifact.paired_end.v1", PairedEnd, true),
         fastq_contract("bijux.fastq.artifact.interleaved.v1", Interleaved, true),
         fastq_contract("bijux.fastq.artifact.merged.v1", Merged, false),
-        ArtifactContractV1 {
-            schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
-            contract_id: "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
-            class: Alignment,
-            formats: vec![Bam],
-            compressions: vec![Bgzf],
-            cardinality: ArtifactCardinalityV1::One,
-            pairing: vec![SingleEnd, PairedEnd],
-            sort_orders: vec![Coordinate],
-            index: Required,
-            sample_identity: Required,
-            reference_identity: Required,
-            sidecars: vec![required_index_sidecar(Index)],
-            lineage: required_lineage(),
-            validation_invariants: vec![
-                NonEmpty,
-                CoordinateSorted,
-                IndexReadable,
-                SampleIdentityPresent,
-                ReferenceIdentityPresent,
-                HeaderReferenceConsistent,
-                LineageRecorded,
-            ],
-        },
-        ArtifactContractV1 {
-            schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
-            contract_id: "bijux.vcf.artifact.coordinate_sorted_indexed.v1".to_string(),
-            class: Variant,
-            formats: vec![Vcf],
-            compressions: vec![Bgzf],
-            cardinality: ArtifactCardinalityV1::One,
-            pairing: vec![NotApplicable],
-            sort_orders: vec![Coordinate],
-            index: Required,
-            sample_identity: Required,
-            reference_identity: Required,
-            sidecars: vec![required_index_sidecar(Index)],
-            lineage: required_lineage(),
-            validation_invariants: vec![
-                NonEmpty,
-                CoordinateSorted,
-                IndexReadable,
-                SampleIdentityPresent,
-                ReferenceIdentityPresent,
-                HeaderReferenceConsistent,
-                LineageRecorded,
-            ],
-        },
-        ArtifactContractV1 {
-            schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
-            contract_id: "bijux.vcf.artifact.reference_panel_indexed.v1".to_string(),
-            class: Variant,
-            formats: vec![Vcf],
-            compressions: vec![Bgzf],
-            cardinality: ArtifactCardinalityV1::One,
-            pairing: vec![NotApplicable],
-            sort_orders: vec![Coordinate],
-            index: Required,
-            sample_identity: Forbidden,
-            reference_identity: Required,
-            sidecars: vec![required_index_sidecar(Index)],
-            lineage: required_lineage(),
-            validation_invariants: vec![
-                NonEmpty,
-                CoordinateSorted,
-                IndexReadable,
-                ReferenceIdentityPresent,
-                HeaderReferenceConsistent,
-                LineageRecorded,
-            ],
-        },
-        auxiliary_contract(
-            "bijux.reference.artifact.fasta.v1",
-            Reference,
-            Fasta,
-            vec![Uncompressed, Gzip],
-            Optional,
-            Forbidden,
-            Required,
-            vec![NonEmpty, ReferenceIdentityPresent, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.table.v1",
-            Auxiliary,
-            Tabular,
-            vec![Uncompressed, Gzip],
-            Forbidden,
-            Optional,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.json.v1",
-            Auxiliary,
-            Json,
-            vec![Uncompressed],
-            Forbidden,
-            Optional,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.database.v1",
-            Auxiliary,
-            Database,
-            vec![Uncompressed],
-            Optional,
-            Forbidden,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.directory.v1",
-            Auxiliary,
-            Directory,
-            vec![Uncompressed],
-            Forbidden,
-            Optional,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.file.v1",
-            Auxiliary,
-            File,
-            vec![Uncompressed, Gzip],
-            Forbidden,
-            Optional,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.html.v1",
-            Auxiliary,
-            Html,
-            vec![Uncompressed, Gzip],
-            Forbidden,
-            Optional,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.index.v1",
-            Auxiliary,
-            Index,
-            vec![Uncompressed],
-            Forbidden,
-            Optional,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-        auxiliary_contract(
-            "bijux.auxiliary.artifact.text.v1",
-            Auxiliary,
-            Text,
-            vec![Uncompressed, Gzip],
-            Forbidden,
-            Optional,
-            Optional,
-            vec![NonEmpty, LineageRecorded],
-        ),
-    ];
-    contracts.sort_by(|left, right| left.contract_id.cmp(&right.contract_id));
-    ArtifactContractCatalogV1 {
-        schema_version: ARTIFACT_CONTRACT_CATALOG_SCHEMA_V1.to_string(),
-        contracts,
+    ]
+}
+
+fn canonical_alignment_contract() -> ArtifactContractV1 {
+    use ArtifactValidationInvariantV1::{
+        CoordinateSorted, HeaderReferenceConsistent, IndexReadable, LineageRecorded, NonEmpty,
+        ReferenceIdentityPresent, SampleIdentityPresent,
+    };
+
+    ArtifactContractV1 {
+        schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
+        contract_id: "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
+        class: ArtifactClassV1::Alignment,
+        formats: vec![ArtifactFormatV1::Bam],
+        compressions: vec![ArtifactCompressionV1::Bgzf],
+        cardinality: ArtifactCardinalityV1::One,
+        pairing: vec![ArtifactPairingV1::SingleEnd, ArtifactPairingV1::PairedEnd],
+        sort_orders: vec![ArtifactSortOrderV1::Coordinate],
+        index: ArtifactPresenceV1::Required,
+        sample_identity: ArtifactPresenceV1::Required,
+        reference_identity: ArtifactPresenceV1::Required,
+        sidecars: vec![required_index_sidecar(ArtifactFormatV1::Index)],
+        lineage: required_lineage(),
+        validation_invariants: vec![
+            NonEmpty,
+            CoordinateSorted,
+            IndexReadable,
+            SampleIdentityPresent,
+            ReferenceIdentityPresent,
+            HeaderReferenceConsistent,
+            LineageRecorded,
+        ],
     }
 }
 
-fn auxiliary_contract(
+fn canonical_variant_contracts() -> Vec<ArtifactContractV1> {
+    use ArtifactValidationInvariantV1::{
+        CoordinateSorted, HeaderReferenceConsistent, IndexReadable, LineageRecorded, NonEmpty,
+        ReferenceIdentityPresent, SampleIdentityPresent,
+    };
+
+    let variant_contract =
+        |contract_id: &str, sample_identity, validation_invariants| ArtifactContractV1 {
+            schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
+            contract_id: contract_id.to_string(),
+            class: ArtifactClassV1::Variant,
+            formats: vec![ArtifactFormatV1::Vcf],
+            compressions: vec![ArtifactCompressionV1::Bgzf],
+            cardinality: ArtifactCardinalityV1::One,
+            pairing: vec![ArtifactPairingV1::NotApplicable],
+            sort_orders: vec![ArtifactSortOrderV1::Coordinate],
+            index: ArtifactPresenceV1::Required,
+            sample_identity,
+            reference_identity: ArtifactPresenceV1::Required,
+            sidecars: vec![required_index_sidecar(ArtifactFormatV1::Index)],
+            lineage: required_lineage(),
+            validation_invariants,
+        };
+
+    vec![
+        variant_contract(
+            "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
+            ArtifactPresenceV1::Required,
+            vec![
+                NonEmpty,
+                CoordinateSorted,
+                IndexReadable,
+                SampleIdentityPresent,
+                ReferenceIdentityPresent,
+                HeaderReferenceConsistent,
+                LineageRecorded,
+            ],
+        ),
+        variant_contract(
+            "bijux.vcf.artifact.reference_panel_indexed.v1",
+            ArtifactPresenceV1::Forbidden,
+            vec![
+                NonEmpty,
+                CoordinateSorted,
+                IndexReadable,
+                ReferenceIdentityPresent,
+                HeaderReferenceConsistent,
+                LineageRecorded,
+            ],
+        ),
+    ]
+}
+
+#[derive(Clone, Copy)]
+enum SingleArtifactIdentityPolicy {
+    Auxiliary,
+    Database,
+    Reference,
+}
+
+fn canonical_single_artifact_contracts() -> Vec<ArtifactContractV1> {
+    use ArtifactCompressionV1::{Gzip, None as Uncompressed};
+    use ArtifactFormatV1::{Database, Directory, Fasta, File, Html, Index, Json, Tabular, Text};
+    use SingleArtifactIdentityPolicy::{Auxiliary, Database as DatabasePolicy, Reference};
+
+    vec![
+        single_artifact_contract(
+            "bijux.reference.artifact.fasta.v1",
+            Fasta,
+            vec![Uncompressed, Gzip],
+            Reference,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.table.v1",
+            Tabular,
+            vec![Uncompressed, Gzip],
+            Auxiliary,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.json.v1",
+            Json,
+            vec![Uncompressed],
+            Auxiliary,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.database.v1",
+            Database,
+            vec![Uncompressed],
+            DatabasePolicy,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.directory.v1",
+            Directory,
+            vec![Uncompressed],
+            Auxiliary,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.file.v1",
+            File,
+            vec![Uncompressed, Gzip],
+            Auxiliary,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.html.v1",
+            Html,
+            vec![Uncompressed, Gzip],
+            Auxiliary,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.index.v1",
+            Index,
+            vec![Uncompressed],
+            Auxiliary,
+        ),
+        single_artifact_contract(
+            "bijux.auxiliary.artifact.text.v1",
+            Text,
+            vec![Uncompressed, Gzip],
+            Auxiliary,
+        ),
+    ]
+}
+
+fn single_artifact_contract(
     contract_id: &str,
-    class: ArtifactClassV1,
     format: ArtifactFormatV1,
     compressions: Vec<ArtifactCompressionV1>,
-    index: ArtifactPresenceV1,
-    sample_identity: ArtifactPresenceV1,
-    reference_identity: ArtifactPresenceV1,
-    validation_invariants: Vec<ArtifactValidationInvariantV1>,
+    identity_policy: SingleArtifactIdentityPolicy,
 ) -> ArtifactContractV1 {
+    use ArtifactClassV1::{Auxiliary, Reference};
+    use ArtifactPresenceV1::{Forbidden, Optional, Required};
+    use ArtifactValidationInvariantV1::{LineageRecorded, NonEmpty, ReferenceIdentityPresent};
+
+    let (class, index, sample_identity, reference_identity, validation_invariants) =
+        match identity_policy {
+            SingleArtifactIdentityPolicy::Auxiliary => {
+                (Auxiliary, Forbidden, Optional, Optional, vec![NonEmpty, LineageRecorded])
+            }
+            SingleArtifactIdentityPolicy::Database => {
+                (Auxiliary, Optional, Forbidden, Optional, vec![NonEmpty, LineageRecorded])
+            }
+            SingleArtifactIdentityPolicy::Reference => (
+                Reference,
+                Optional,
+                Forbidden,
+                Required,
+                vec![NonEmpty, ReferenceIdentityPresent, LineageRecorded],
+            ),
+        };
     ArtifactContractV1 {
         schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
         contract_id: contract_id.to_string(),

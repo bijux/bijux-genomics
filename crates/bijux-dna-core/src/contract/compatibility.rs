@@ -581,8 +581,10 @@ pub fn migrate_workflow_manifest_value(
                         Some(crate::contract::ReadLayoutMode::SingleEnd) => {
                             Some("bijux.fastq.artifact.single_end.v1".to_string())
                         }
-                        Some(crate::contract::ReadLayoutMode::PairedEnd)
-                        | Some(crate::contract::ReadLayoutMode::Deinterleaved) => {
+                        Some(
+                            crate::contract::ReadLayoutMode::PairedEnd
+                            | crate::contract::ReadLayoutMode::Deinterleaved,
+                        ) => {
                             Some("bijux.fastq.artifact.paired_end.v1".to_string())
                         }
                         Some(crate::contract::ReadLayoutMode::Interleaved) => {
