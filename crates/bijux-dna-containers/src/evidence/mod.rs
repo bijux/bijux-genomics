@@ -78,8 +78,9 @@ pub use qualification_registry::{
     QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use run_evidence::{
-    load_run_evidence_index, validate_run_evidence_index, AttemptExecutionStatus, RunEvidenceIndex,
-    RunEvidenceRecord, ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
+    load_run_evidence_index, run_evidence_index_schema, validate_run_evidence_index,
+    write_run_evidence_index_schema, AttemptExecutionStatus, RunEvidenceIndex, RunEvidenceRecord,
+    RunEvidenceSummary, ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
 };
 pub use runtime_verification::{
     execute_runtime_verification, render_runtime_verification_markdown,
