@@ -18,8 +18,8 @@ mod validation;
 
 pub use chain::{
     load_container_evidence_chain, validate_container_evidence_chain,
-    validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
-    ContainerEvidenceChain,
+    resolve_current_apptainer_contract_commit, validate_container_inventory_catalog,
+    validate_container_recipe_evidence_chain, ContainerEvidenceChain,
 };
 pub use external_artifact::{
     admit_external_artifact, bind_external_artifact_command, external_artifact_admission_schema,

@@ -10,9 +10,9 @@ use super::{
     load_container_catalog, load_image_inventory_publication,
     load_runtime_verification_publication, repository_head_commit, validate_container_catalog,
     validate_image_inventory_publication, validate_runtime_verification_publication,
-    BuildEvidenceStatus, ContainerCatalog, ContainerImageInventoryPublication,
-    ContainerSupportDisposition, RuntimeEvidenceStatus, RuntimeVerificationPublication,
-    CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
+    BuildEvidenceStatus, ContainerCatalog, ContainerCatalogTool,
+    ContainerImageInventoryPublication, ContainerSupportDisposition, RuntimeEvidenceStatus,
+    RuntimeVerificationPublication, CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -74,55 +74,73 @@ pub fn validate_container_recipe_evidence_chain(
             inventory.repository_commit
         );
     }
-    let inventory_tools =
-        inventory.tools.iter().map(|tool| (tool.tool.as_str(), tool)).collect::<BTreeMap<_, _>>();
     for tool in catalog.tools.iter().filter(|tool| tool.support_disposition == "retained") {
-        let inventory_tool = inventory_tools
-            .get(tool.id.as_str())
-            .ok_or_else(|| anyhow::anyhow!("image inventory omits retained tool {}", tool.id))?;
-        let selected_sha256 = inventory_tool
-            .selected_image_sha256
-            .as_deref()
-            .ok_or_else(|| anyhow::anyhow!("retained tool {} has no selected image", tool.id))?;
-        let selected = inventory_tool
-            .candidates
-            .iter()
-            .find(|candidate| candidate.admitted && candidate.sha256 == selected_sha256)
-            .ok_or_else(|| {
-                anyhow::anyhow!("retained tool {} has no admitted selected image", tool.id)
-            })?;
-        let recipe = apptainer_recipe_identity_at_commit(
+        resolve_current_apptainer_contract_commit(
             repository_root,
             repository_commit,
-            &tool.apptainer_definition,
+            inventory,
+            tool,
         )?;
-        let mut recipe_matches = false;
-        for evidence in &selected.build_evidence {
-            if !matches!(evidence.status, BuildEvidenceStatus::Built | BuildEvidenceStatus::Passed)
-                || !repository_commit_is_ancestor_of_head(
-                    repository_root,
-                    &evidence.repository_commit,
-                )?
-            {
-                continue;
-            }
-            let built_recipe = apptainer_recipe_identity_at_commit(
-                repository_root,
-                &evidence.repository_commit,
-                &tool.apptainer_definition,
-            )?;
-            recipe_matches = container_build_evidence_matches_recipe(evidence, &built_recipe)
-                && evidence.definition_sha256 == recipe.definition_sha256
-                && evidence.build_context.as_deref().unwrap_or_default() == recipe.build_context;
-            if recipe_matches {
-                break;
-            }
-        }
-        if !recipe_matches || !selected.current_recipe {
-            bail!("selected image for {} lacks current recipe build evidence", tool.id);
-        }
     }
     Ok(())
+}
+
+/// Resolve the build commit whose admitted contract is embedded in a selected image.
+///
+/// The build commit may precede the inventory commit only when the exact definition and ordered
+/// `%files` context are unchanged.
+///
+/// # Errors
+/// Returns an error when the selected image lacks matching built/passed evidence from an ancestor.
+pub fn resolve_current_apptainer_contract_commit(
+    repository_root: &Path,
+    repository_commit: &str,
+    inventory: &ContainerImageInventoryPublication,
+    tool: &ContainerCatalogTool,
+) -> Result<String> {
+    let inventory_tool = inventory
+        .tools
+        .iter()
+        .find(|inventory_tool| inventory_tool.tool == tool.id)
+        .ok_or_else(|| anyhow::anyhow!("image inventory omits retained tool {}", tool.id))?;
+    let selected_sha256 = inventory_tool
+        .selected_image_sha256
+        .as_deref()
+        .ok_or_else(|| anyhow::anyhow!("retained tool {} has no selected image", tool.id))?;
+    let selected = inventory_tool
+        .candidates
+        .iter()
+        .find(|candidate| candidate.admitted && candidate.sha256 == selected_sha256)
+        .ok_or_else(|| {
+            anyhow::anyhow!("retained tool {} has no admitted selected image", tool.id)
+        })?;
+    if !selected.current_recipe {
+        bail!("selected image for {} lacks current recipe build evidence", tool.id);
+    }
+    let recipe = apptainer_recipe_identity_at_commit(
+        repository_root,
+        repository_commit,
+        &tool.apptainer_definition,
+    )?;
+    for evidence in &selected.build_evidence {
+        if !matches!(evidence.status, BuildEvidenceStatus::Built | BuildEvidenceStatus::Passed)
+            || !repository_commit_is_ancestor_of_head(repository_root, &evidence.repository_commit)?
+        {
+            continue;
+        }
+        let built_recipe = apptainer_recipe_identity_at_commit(
+            repository_root,
+            &evidence.repository_commit,
+            &tool.apptainer_definition,
+        )?;
+        if container_build_evidence_matches_recipe(evidence, &built_recipe)
+            && evidence.definition_sha256 == recipe.definition_sha256
+            && evidence.build_context.as_deref().unwrap_or_default() == recipe.build_context
+        {
+            return Ok(evidence.repository_commit.clone());
+        }
+    }
+    bail!("selected image for {} lacks current recipe build evidence", tool.id)
 }
 
 /// Validate cross-publication identities and complete catalog tool closure.

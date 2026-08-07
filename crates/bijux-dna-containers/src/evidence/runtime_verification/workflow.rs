@@ -13,7 +13,8 @@ use crate::evidence::tool_contract::{
     ApptainerSmokeRequest, ContainerToolContract,
 };
 use crate::evidence::{
-    load_container_catalog, load_image_inventory_publication, resolve_current_apptainer_image,
+    load_container_catalog, load_image_inventory_publication,
+    resolve_current_apptainer_contract_commit, resolve_current_apptainer_image,
     validate_container_evidence_chain, validate_container_inventory_catalog,
     validate_container_recipe_evidence_chain, ContainerRuntimeEvidence, EvidenceSourceIdentity,
     RuntimeEvidenceStatus, RuntimeVerificationPublication,
@@ -95,10 +96,16 @@ pub fn execute_runtime_verification(
         .filter(|tool| tool.support_disposition == "retained" && tool.apptainer_supported)
         .map(|tool| {
             let image = resolve_current_apptainer_image(&inventory, &request.study_root, &tool.id)?;
+            let contract_commit = resolve_current_apptainer_contract_commit(
+                &request.repository_root,
+                &commit,
+                &inventory,
+                tool,
+            )?;
             let contract = derive_apptainer_tool_contract(
                 &request.repository_root,
                 &tool.id,
-                &commit,
+                &contract_commit,
                 &catalog.apptainer_architecture,
             )?;
             Ok(ToolTask {

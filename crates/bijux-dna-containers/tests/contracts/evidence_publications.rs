@@ -181,9 +181,15 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
         .iter_mut()
         .find(|candidate| candidate.sha256 == selected_sha256)
         .context("ibdhap inventory omits selected candidate")?;
-    selected.build_evidence[0].repository_commit = parent_commit;
+    selected.build_evidence[0].repository_commit = parent_commit.clone();
     selected.build_evidence[0].definition_sha256 = parent_recipe.definition_sha256;
     selected.build_evidence[0].build_context = Some(parent_recipe.build_context);
+    assert_eq!(
+        bijux_dna_containers::api::resolve_current_apptainer_contract_commit(
+            &root, &commit, &inventory, tool,
+        )?,
+        parent_commit
+    );
     bijux_dna_containers::evidence::validate_container_recipe_evidence_chain(
         &root, &commit, &catalog, &inventory,
     )?;
