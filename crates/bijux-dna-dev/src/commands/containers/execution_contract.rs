@@ -1,9 +1,11 @@
-use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
+use super::{
+    command_hostname, path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result,
+    Workspace,
+};
 
 const SCHEMA_PATH: &str = "containers/contracts/config-credential.schema.json";
 const CREDENTIAL_USAGE: &str = "Usage:\n  bijux-dna-dev containers run credential-reference -- validate <credential-reference>\n  bijux-dna-dev containers run credential-reference -- generate-schema [<output>]\n  bijux-dna-dev containers run credential-reference -- check-schema";
-const PIPELINE_USAGE: &str =
-    "Usage: bijux-dna-dev containers run pipeline-contract -- validate <pipeline>";
+const PIPELINE_USAGE: &str = "Usage:\n  bijux-dna-dev containers run pipeline-contract -- validate <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- admit --governance <governance> <pipeline>";
 
 pub(super) fn run_credential_reference(
     workspace: &Workspace,
@@ -30,12 +32,18 @@ pub(super) fn run_pipeline_contract(
     if args.iter().any(|argument| matches!(argument.as_str(), "--help" | "-h")) {
         return success_line(PIPELINE_USAGE);
     }
-    let [operation, path] = args else {
-        anyhow::bail!(PIPELINE_USAGE);
-    };
-    if operation != "validate" {
-        anyhow::bail!(PIPELINE_USAGE);
+    match args {
+        [operation, path] if operation == "validate" => validate_pipeline(workspace, path),
+        [operation, governance_option, governance, pipeline]
+            if operation == "admit" && governance_option == "--governance" =>
+        {
+            admit_pipeline(workspace, governance, pipeline)
+        }
+        _ => anyhow::bail!(PIPELINE_USAGE),
     }
+}
+
+fn validate_pipeline(workspace: &Workspace, path: &str) -> Result<ContainerCommandOutcome> {
     let path = path_from_arg(workspace, path);
     let contract = bijux_dna_containers::api::load_container_pipeline(&path)?;
     let (schema, run_id, tool) = match contract {
@@ -47,6 +55,31 @@ pub(super) fn run_pipeline_contract(
         }
     };
     success_line(format!("validated {schema} pipeline {run_id} for {tool} at {}", path.display()))
+}
+
+fn admit_pipeline(
+    workspace: &Workspace,
+    governance: &str,
+    pipeline: &str,
+) -> Result<ContainerCommandOutcome> {
+    let governance_path = path_from_arg(workspace, governance);
+    let pipeline_path = path_from_arg(workspace, pipeline);
+    let governance = bijux_dna_containers::api::load_container_governance(&governance_path)?;
+    let admission = bijux_dna_containers::api::admit_container_pipeline_site(
+        &bijux_dna_containers::api::ContainerPipelineSiteAdmissionRequest {
+            governance,
+            hostname: command_hostname(),
+            pipeline_path: pipeline_path.clone(),
+        },
+    )?;
+    success_line(format!(
+        "admitted {} pipeline {} at {} for account {} partition {}",
+        admission.schema_version,
+        admission.run_id,
+        pipeline_path.display(),
+        admission.account,
+        admission.partition
+    ))
 }
 
 fn validate(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -102,5 +135,15 @@ mod tests {
         let workspace = Workspace { root: "/workspace".into() };
         assert!(run_pipeline_contract(&workspace, &[]).is_err());
         assert!(run_pipeline_contract(&workspace, &["validate".into()]).is_err());
+        assert!(run_pipeline_contract(
+            &workspace,
+            &["admit".into(), "--governance".into(), "site.yml".into()]
+        )
+        .is_err());
+        assert!(run_pipeline_contract(
+            &workspace,
+            &["admit".into(), "--site".into(), "site.yml".into(), "pipeline.yml".into(),]
+        )
+        .is_err());
     }
 }

@@ -333,7 +333,7 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
         ),
         native(
             "pipeline-contract",
-            "Validate versioned container pipeline declarations through their Rust owner.",
+            "Validate declarations or admit pipelines against governed execution-site identities.",
             NativeContainerCommandKey::PipelineContract,
         ),
         native(
