@@ -2,9 +2,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    load_checked_in_benchmark_planning_contracts, plan_benchmark_case_matrix,
-    BenchmarkCaseMatrixRequest, BenchmarkCorpusSnapshotV1, BenchmarkStageCampaignRegistry,
-    BenchmarkStageInterfaceCatalog,
+    aggregate_benchmark_case_observations, load_checked_in_benchmark_planning_contracts,
+    plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV1,
+    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1,
+    BenchmarkScientificValue, BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
 };
 use bijux_dna_core::{
     contract::ToolConstraints,
@@ -146,6 +148,63 @@ fn campaign_binding_cpu_drift_is_refused() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn admitted_observations_aggregate_all_cases_without_dispatch() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    validate_benchmark_case_matrix(&matrix)?;
+    let mut observations = admitted_observations(&matrix);
+    let aggregations = aggregate_benchmark_case_observations(&matrix, &observations)?;
+    assert_eq!(aggregations.len(), EXISTING_CASE_COUNT);
+    assert!(aggregations.iter().all(|aggregation| {
+        aggregation.repetition_count == 3
+            && aggregation.performance.len()
+                == matrix
+                    .cases
+                    .iter()
+                    .find(|case| case.case_id == aggregation.case_id)
+                    .expect("aggregation case")
+                    .measurement
+                    .performance_metrics
+                    .len()
+    }));
+
+    observations.reverse();
+    assert_eq!(
+        serde_json::to_vec(&aggregations)?,
+        serde_json::to_vec(&aggregate_benchmark_case_observations(&matrix, &observations)?)?
+    );
+    Ok(())
+}
+
+#[test]
+fn aggregation_refuses_incomplete_or_nondeterministic_evidence() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    let mut observations = admitted_observations(&matrix);
+    observations.pop();
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("missing case evidence must fail")
+        .to_string()
+        .contains("do not close"));
+
+    let mut observations = admitted_observations(&matrix);
+    observations[0].repetitions[1].normalized_result_sha256 = "9".repeat(64);
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("normalized result drift must fail")
+        .to_string()
+        .contains("differ across"));
+
+    let mut observations = admitted_observations(&matrix);
+    let metric = matrix.cases[0].measurement.performance_metrics[0].clone();
+    observations[0].repetitions[0].performance.remove(&metric);
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("metric closure drift must fail")
+        .to_string()
+        .contains("metric closure"));
+    Ok(())
+}
+
 fn planning_fixture() -> Result<PlanningFixture> {
     let (campaigns, _, interfaces) = load_checked_in_benchmark_planning_contracts()?;
     let mut bindings = ToolBindingRegistry::default();
@@ -223,6 +282,47 @@ fn binding(
         downstream_probe_id: interface.downstream_probe.consumer_stage_id.clone(),
         limitations: vec!["synthetic contract fixture".to_string()],
     }
+}
+
+fn admitted_observations(
+    matrix: &bijux_dna_bench::BenchmarkCaseMatrixV1,
+) -> Vec<BenchmarkAdmittedCaseObservationV1> {
+    matrix
+        .cases
+        .iter()
+        .map(|case| BenchmarkAdmittedCaseObservationV1 {
+            schema_version: BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1.to_string(),
+            case_id: case.case_id.clone(),
+            repository_commit: matrix.repository_commit.clone(),
+            admission_sha256: "5".repeat(64),
+            input_lock_sha256: "6".repeat(64),
+            parameter_lock_sha256: "7".repeat(64),
+            repetitions: (1..=case.measurement.measured_repetitions)
+                .map(|repetition| BenchmarkCaseRepetitionObservationV1 {
+                    repetition,
+                    allocated_cpus: case.measurement.allocated_cpus,
+                    performance: case
+                        .measurement
+                        .performance_metrics
+                        .iter()
+                        .map(|metric| (metric.clone(), f64::from(repetition)))
+                        .collect(),
+                    scientific: case
+                        .science
+                        .scientific_metrics
+                        .iter()
+                        .map(|metric| {
+                            (
+                                metric.clone(),
+                                BenchmarkScientificValue::Number(f64::from(repetition)),
+                            )
+                        })
+                        .collect(),
+                    normalized_result_sha256: "8".repeat(64),
+                })
+                .collect(),
+        })
+        .collect()
 }
 
 fn plan(fixture: &PlanningFixture) -> Result<bijux_dna_bench::BenchmarkCaseMatrixV1> {

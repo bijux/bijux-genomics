@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "BenchmarkCorpusSnapshotV1": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_id": {
+          "type": "string"
+        },
+        "sample_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "snapshot_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "corpus_id",
+        "snapshot_sha256",
+        "sample_ids"
+      ],
+      "type": "object"
+    },
+    "BenchmarkMetricDistribution": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "format": "double",
+          "type": "number"
+        },
+        "mean": {
+          "format": "double",
+          "type": "number"
+        },
+        "minimum": {
+          "format": "double",
+          "type": "number"
+        },
+        "sample_standard_deviation": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum",
+        "mean",
+        "sample_standard_deviation"
+      ],
+      "type": "object"
+    },
+    "BenchmarkScientificValue": {
+      "anyOf": [
+        {
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admission_sha256": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "corpus": {
+      "$ref": "#/$defs/BenchmarkCorpusSnapshotV1"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "input_lock_sha256": {
+      "type": "string"
+    },
+    "normalized_result_sha256": {
+      "type": "string"
+    },
+    "parameter_lock_sha256": {
+      "type": "string"
+    },
+    "performance": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BenchmarkMetricDistribution"
+      },
+      "type": "object"
+    },
+    "repetition_count": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.case_aggregation.v1",
+      "type": "string"
+    },
+    "scientific": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/BenchmarkScientificValue"
+        },
+        "type": "array"
+      },
+      "type": "object"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "case_id",
+    "run_id",
+    "domain",
+    "stage_id",
+    "tool_id",
+    "corpus",
+    "repository_commit",
+    "admission_sha256",
+    "input_lock_sha256",
+    "parameter_lock_sha256",
+    "repetition_count",
+    "performance",
+    "scientific",
+    "normalized_result_sha256"
+  ],
+  "title": "BenchmarkCaseAggregationV1",
+  "type": "object"
+}

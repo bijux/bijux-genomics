@@ -3,6 +3,7 @@
 //! Must not perform IO or depend on repo/policy/compare logic.
 
 pub mod admission;
+pub mod campaign_engine;
 pub mod corpus;
 pub mod execution;
 pub mod graph;
@@ -24,6 +25,13 @@ pub mod summary;
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+#[allow(unused_imports)]
+pub use campaign_engine::{
+    benchmark_admitted_case_observation_schema, benchmark_case_aggregation_schema,
+    benchmark_case_matrix_schema, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
+    BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
 };
 #[allow(unused_imports)]
 pub use corpus::{

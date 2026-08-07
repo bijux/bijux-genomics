@@ -26,6 +26,10 @@ pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V2: &str = "bijux.benchmark.cycle_status
 pub const BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.benchmark.campaign_plan.v1";
 pub const BENCHMARK_RUN_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.run_definition.v1";
 pub const BENCHMARK_CASE_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.case_definition.v1";
+pub const BENCHMARK_CASE_MATRIX_SCHEMA_V1: &str = "bijux.benchmark.case_matrix.v1";
+pub const BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1: &str =
+    "bijux.benchmark.admitted_case_observation.v1";
+pub const BENCHMARK_CASE_AGGREGATION_SCHEMA_V1: &str = "bijux.benchmark.case_aggregation.v1";
 pub const BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.publication_receipt.v1";
 pub const BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1: &str = "bijux.benchmark.evidence_book.v1";
 pub const BENCHMARK_CITATION_RECORD_SCHEMA_V1: &str = "bijux.benchmark.citation_record.v1";

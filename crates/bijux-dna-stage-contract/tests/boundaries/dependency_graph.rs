@@ -10,7 +10,7 @@ fn normal_dependency_graph_matches_stage_contract_boundary() {
 
     assert_eq!(
         dependencies,
-        entries(["anyhow", "bijux-dna-core", "serde", "serde_json", "sha2"]),
+        entries(["anyhow", "bijux-dna-core", "schemars", "serde", "serde_json", "sha2"]),
         "stage-contract runtime dependencies must stay pure contract-facing"
     );
     assert!(

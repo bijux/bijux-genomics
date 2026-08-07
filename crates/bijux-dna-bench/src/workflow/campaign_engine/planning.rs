@@ -98,6 +98,7 @@ pub fn plan_benchmark_case_matrix(
                     stage_id: campaign.stage_id.clone(),
                     tool_id: tool.clone(),
                     corpus: (*corpus).clone(),
+                    campaign: campaign.clone(),
                     binding: binding.clone(),
                     interface: interface.clone(),
                     measurement: BenchmarkCaseMeasurementPlanV1 {
@@ -133,6 +134,66 @@ pub fn plan_benchmark_case_matrix(
         tool_binding_registry_sha256: request.tool_binding_registry_sha256.to_owned(),
         cases,
     })
+}
+
+/// Reconstruct every case authority and require exact pure-planner replay.
+///
+/// # Errors
+/// Returns an error when persisted cases are incomplete, conflicting, malformed, or not in the
+/// canonical planner order.
+pub fn validate_benchmark_case_matrix(matrix: &BenchmarkCaseMatrixV1) -> Result<()> {
+    if matrix.schema_version != BENCHMARK_CASE_MATRIX_SCHEMA_V1 {
+        bail!("benchmark case matrix schema is unsupported");
+    }
+    let mut campaigns = BTreeMap::new();
+    let mut interfaces = BTreeMap::new();
+    let mut bindings = BTreeMap::new();
+    let mut snapshots = BTreeMap::new();
+    for case in &matrix.cases {
+        insert_identical(&mut campaigns, &case.run_id, &case.campaign, "campaign")?;
+        insert_identical(&mut interfaces, &case.stage_id, &case.interface, "interface")?;
+        insert_identical(&mut bindings, &case.binding.binding_id, &case.binding, "binding")?;
+        insert_identical(&mut snapshots, &case.corpus.corpus_id, &case.corpus, "corpus")?;
+    }
+    let campaigns = BenchmarkStageCampaignRegistry {
+        schema_version: bijux_dna_bench_model::BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1.to_string(),
+        campaigns: campaigns.into_values().cloned().collect(),
+    };
+    let interfaces = BenchmarkStageInterfaceCatalog {
+        schema_version: bijux_dna_bench_model::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1.to_string(),
+        interfaces: interfaces.into_values().cloned().collect(),
+    };
+    let mut registry = ToolBindingRegistry::default();
+    for binding in bindings.into_values() {
+        registry.insert(binding.clone())?;
+    }
+    let snapshots = snapshots.into_values().cloned().collect::<Vec<_>>();
+    let replay = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &matrix.repository_commit,
+        campaign_registry_sha256: &matrix.campaign_registry_sha256,
+        interface_catalog_sha256: &matrix.interface_catalog_sha256,
+        tool_binding_registry_sha256: &matrix.tool_binding_registry_sha256,
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &registry,
+        corpus_snapshots: &snapshots,
+    })?;
+    if replay != *matrix {
+        bail!("benchmark case matrix differs from canonical planner replay");
+    }
+    Ok(())
+}
+
+fn insert_identical<'a, T: PartialEq>(
+    values: &mut BTreeMap<&'a str, &'a T>,
+    key: &'a str,
+    value: &'a T,
+    label: &str,
+) -> Result<()> {
+    if values.insert(key, value).is_some_and(|existing| existing != value) {
+        bail!("benchmark case matrix contains conflicting {label} authority");
+    }
+    Ok(())
 }
 
 fn snapshot_index(

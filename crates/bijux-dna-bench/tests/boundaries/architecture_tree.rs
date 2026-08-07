@@ -161,8 +161,8 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/campaign_engine")),
-        entries(["mod.rs", "model.rs", "planning.rs"]),
-        "campaign engine must separate persistent case models from authority planning"
+        entries(["aggregation.rs", "mod.rs", "planning.rs"]),
+        "campaign engine must keep persisted models in bench-model and separate planning from aggregation"
     );
 
     assert_eq!(

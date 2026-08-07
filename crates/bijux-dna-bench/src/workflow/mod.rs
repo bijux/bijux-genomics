@@ -68,9 +68,13 @@ pub use bijux_dna_runtime::{
     load_attempt_lifecycle,
 };
 pub use campaign_engine::{
-    plan_benchmark_case_matrix, BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixRequest,
-    BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1, BenchmarkCaseSciencePlanV1,
-    BenchmarkCorpusSnapshotV1, BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    aggregate_benchmark_case_observations, plan_benchmark_case_matrix,
+    validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV1,
+    BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V1,
+    BENCHMARK_CASE_MATRIX_SCHEMA_V1,
 };
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,

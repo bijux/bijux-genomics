@@ -16,11 +16,12 @@ pub use crate::contract::{
     validate_corpus_acquisition_plan, validate_cycle_status_v1, validate_cycle_status_v2,
     validate_execution_spec, validate_fastq_read_length_expectations,
     validate_governed_data_catalog, validate_scheduler_observation, validate_scientific_readiness,
-    validate_stage_universe, validate_utc_timestamp, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
-    BENCHMARK_CASE_DEFINITION_SCHEMA_V1, BENCHMARK_CITATION_RECORD_SCHEMA_V1,
+    validate_stage_universe, validate_utc_timestamp, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    BENCHMARK_CASE_AGGREGATION_SCHEMA_V1, BENCHMARK_CASE_DEFINITION_SCHEMA_V1,
+    BENCHMARK_CASE_MATRIX_SCHEMA_V1, BENCHMARK_CITATION_RECORD_SCHEMA_V1,
     BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V2, BENCHMARK_DATA_INDEX_SCHEMA_V1,
     BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
@@ -41,6 +42,12 @@ pub use crate::diagnostics::BenchError;
 pub use crate::model::admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+pub use crate::model::campaign_engine::{
+    benchmark_admitted_case_observation_schema, benchmark_case_aggregation_schema,
+    benchmark_case_matrix_schema, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
+    BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
 };
 pub use crate::model::execution::{
     benchmark_effective_parameters_schema, benchmark_execution_spec_schema,

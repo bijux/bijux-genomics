@@ -791,6 +791,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-policies",
  "bijux-dna-testkit",
+ "schemars",
  "serde",
  "serde_json",
  "sha2",
