@@ -190,7 +190,8 @@ mod tests {
             None,
             None,
         )
-        .expect_err("blocked access must prevent execution");
+        .err()
+        .context("blocked external access allowed execution")?;
 
         assert!(error.to_string().contains("institutional artifact was not supplied"));
         assert!(!out_dir.exists());

@@ -62,7 +62,7 @@ fn runtime_platform_identity_defaults_to_runner_name() {
 }
 
 #[test]
-fn ordinary_runner_refuses_external_artifact_plans_before_execution() {
+fn ordinary_runner_refuses_external_artifact_plans_before_execution() -> anyhow::Result<()> {
     let step = execution_step_fixture(
         "sample-0001.vcf.call-gl.angsd",
         "vcf.call_gl",
@@ -74,9 +74,11 @@ fn ordinary_runner_refuses_external_artifact_plans_before_execution() {
     );
 
     let error = execute_step(&step, RuntimeKind::Local, None)
-        .expect_err("ordinary runner must reject restricted-tool execution");
+        .err()
+        .ok_or_else(|| anyhow!("ordinary runner accepted restricted-tool execution"))?;
 
     assert!(error.to_string().contains("execute_external_artifact_step"));
+    Ok(())
 }
 
 #[test]
