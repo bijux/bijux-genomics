@@ -4,14 +4,15 @@ use std::process::Command;
 
 use anyhow::{ensure, Context, Result};
 use bijux_dna_containers::api::{
-    admit_container_pipeline_site, ContainerGovernance, ContainerPathPolicy,
-    ContainerPipelineSiteAdmissionRequest, ContainerPreflightPolicy, ContainerRuntimePolicy,
-    ContainerSitePolicy, ContainerSlurmPolicy,
+    admit_container_pipeline_site, admit_historical_container_pipeline_replay, ContainerGovernance,
+    ContainerPathPolicy, ContainerPipelineSiteAdmissionRequest, ContainerPreflightPolicy,
+    ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
+    HistoricalContainerPipelineReplayRequest,
 };
 use sha2::{Digest, Sha256};
 
 struct SiteFixture {
-    _root: tempfile::TempDir,
+    root: tempfile::TempDir,
     governance: ContainerGovernance,
     repository: PathBuf,
     commit: String,
@@ -103,7 +104,7 @@ impl SiteFixture {
         };
 
         let fixture = Self {
-            _root: root,
+            root,
             governance,
             repository,
             commit,
@@ -314,6 +315,104 @@ fn admits_only_the_exact_benchmark_result_layout() -> Result<()> {
         .context("benchmark pipeline admitted a noncanonical result root")?;
     assert!(format!("{error:#}").contains("run-1200-fastq-align-reads"));
     Ok(())
+}
+
+#[test]
+fn historical_replay_allows_only_repository_and_image_currentization() -> Result<()> {
+    let fixture = SiteFixture::new()?;
+    let frozen = fixture.governance.paths.frozen_repositories.join(&fixture.commit);
+    let output = Command::new("git")
+        .args(["clone", "--quiet"])
+        .arg(&fixture.repository)
+        .arg(&frozen)
+        .output()?;
+    ensure!(output.status.success(), "git clone failed");
+
+    let source_path = fixture.root.path().join("source-pipeline.json");
+    let replay_path = fixture.root.path().join("replay-pipeline.json");
+    let source = legacy_pipeline(
+        &fixture,
+        &fixture.root.path().join("retired-repository"),
+        &"a".repeat(40),
+        &fixture.root.path().join("retired-bwa.sif"),
+        &"b".repeat(64),
+    );
+    let replay =
+        legacy_pipeline(&fixture, &frozen, &fixture.commit, &fixture.image, &fixture.image_sha256);
+    std::fs::write(&source_path, serde_json::to_vec_pretty(&source)?)?;
+    std::fs::write(&replay_path, serde_json::to_vec_pretty(&replay)?)?;
+    let request = HistoricalContainerPipelineReplayRequest {
+        governance: fixture.governance.clone(),
+        hostname: "test-node".to_owned(),
+        source_pipeline_path: source_path.canonicalize()?,
+        replay_pipeline_path: replay_path.canonicalize()?,
+    };
+    let admission = admit_historical_container_pipeline_replay(&request)?;
+    assert_eq!(admission.site.run_id, "run-1200");
+    assert_ne!(admission.source_pipeline_sha256, admission.replay_pipeline_sha256);
+
+    let mut changed = replay;
+    changed["commands"]["real"] = serde_json::json!(["bwa", "index"]);
+    std::fs::write(&request.replay_pipeline_path, serde_json::to_vec_pretty(&changed)?)?;
+    let error = admit_historical_container_pipeline_replay(&request)
+        .err()
+        .context("historical replay admitted changed scientific intent")?;
+    assert!(format!("{error:#}").contains("outside repository and image identity"));
+    Ok(())
+}
+
+fn legacy_pipeline(
+    fixture: &SiteFixture,
+    repository: &Path,
+    commit: &str,
+    image: &Path,
+    image_sha256: &str,
+) -> serde_json::Value {
+    serde_json::json!({
+        "schema_version": "bijux.container.pipeline.v1",
+        "run": {
+            "id": "run-1200",
+            "campaign": "governed-replay-test",
+            "corpus": "immutable-corpus",
+            "sample": "sample-a",
+            "domain": "fastq",
+            "stage": "fastq.align_reads",
+            "tool": "bwa",
+            "operator": "bijux"
+        },
+        "repository": {"path": repository, "commit": commit, "clean": true},
+        "image": {"path": image, "sha256": image_sha256},
+        "data": {"inputs": [{
+            "id": "reads",
+            "kind": "data",
+            "path": fixture.input,
+            "sha256": fixture.input_sha256
+        }]},
+        "commands": {
+            "version": ["bwa", "version"],
+            "help": ["bwa", "help"],
+            "real": ["bwa", "mem"],
+            "negative": ["bwa", "invalid"]
+        },
+        "outputs": {
+            "result_root": fixture
+                .governance
+                .paths
+                .results_root
+                .join("container-validation/bwa/run-1200"),
+            "required_files": ["result.json"]
+        },
+        "resources": {
+            "account": "science",
+            "partition": "compute",
+            "cpus": 2,
+            "memory_mb": 1024,
+            "walltime": "00:05:00",
+            "scratch_mb": 1024
+        },
+        "execution": {"locale": "C", "timezone": "UTC", "runtime_network": false},
+        "acceptance": {"version_regex": "^1[.]0$", "negative_exit_nonzero": true}
+    })
 }
 
 fn sha256(bytes: &[u8]) -> String {

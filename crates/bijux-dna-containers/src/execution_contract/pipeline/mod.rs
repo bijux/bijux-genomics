@@ -1,6 +1,7 @@
 mod admission;
 mod currentization;
 mod model;
+mod replay;
 mod schema;
 mod validation;
 
@@ -23,6 +24,10 @@ pub use model::{
     PipelineParameterEvidence, PipelineRepository, PipelineResourcesV1, PipelineResourcesV2,
     PipelineRetry, PipelineRunV1, PipelineRunV2, CONTAINER_PIPELINE_SCHEMA_V1,
     CONTAINER_PIPELINE_SCHEMA_V2,
+};
+pub use replay::{
+    admit_historical_container_pipeline_replay, HistoricalContainerPipelineReplayAdmission,
+    HistoricalContainerPipelineReplayRequest,
 };
 pub use schema::{
     container_pipeline_v1_schema, container_pipeline_v2_schema, write_container_pipeline_v1_schema,

@@ -13,9 +13,10 @@ use bijux_dna_containers::api::{
 use bijux_dna_runner::api::{
     cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
     load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
-    prepare_container_qualification_slurm_job, submit_prepared_container_qualification_job,
-    ContainerQualificationPreparationRequest, ContainerQualificationSchedulerStatus,
-    SlurmClientPaths, SlurmJobState,
+    prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
+    submit_prepared_container_qualification_job, ContainerQualificationPreparationRequest,
+    ContainerQualificationSchedulerStatus, ContainerQualificationSubmissionKind,
+    HistoricalContainerQualificationReplayRequest, SlurmClientPaths, SlurmJobState,
 };
 
 #[test]
@@ -28,6 +29,7 @@ fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result
     let spec_path = fixture.evidence_root.join("qualification-spec.json");
     let spec = load_container_qualification_slurm_spec(&spec_path)?;
 
+    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v2");
     assert!(script.contains("#SBATCH --job-name=fastq-align_reads-bwa-sample-a"));
     assert!(script.contains("#SBATCH --cpus-per-task=2"));
     assert!(script.contains("'execute' '--governance'"));
@@ -60,6 +62,56 @@ fn preparation_rejects_active_repository_and_archived_contract_conflicts() -> Re
     fs::write(fixture.evidence_root.join("config-credential.yml"), b"conflict\n")?;
     assert!(prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")
         .is_err_and(|error| error.to_string().contains("immutable qualification material")));
+    Ok(())
+}
+
+#[test]
+fn historical_replay_archives_source_authority_without_weakening_current_preparation() -> Result<()>
+{
+    let fixture = fixture()?;
+    let source_pipeline = fixture.root.path().join("source-legacy-pipeline.yml");
+    let replay_pipeline = fixture.root.path().join("replay-legacy-pipeline.yml");
+    write_legacy_pipeline(
+        &source_pipeline,
+        &fixture.root.path().join("retired-repository"),
+        &"a".repeat(40),
+        &fixture.root.path().join("retired-bwa.sif"),
+        &"b".repeat(64),
+        &fixture,
+    )?;
+    write_legacy_pipeline(
+        &replay_pipeline,
+        &fixture.frozen_repository,
+        &fixture.commit,
+        &fixture.paths.image,
+        &fixture.paths.image_sha256,
+        &fixture,
+    )?;
+    let replay_request = HistoricalContainerQualificationReplayRequest {
+        hostname: "test-node".to_owned(),
+        governance_path: fixture.request.governance_path.clone(),
+        source_pipeline_path: source_pipeline.canonicalize()?,
+        replay_pipeline_path: replay_pipeline.canonicalize()?,
+        credential_reference_path: fixture.request.credential_reference_path.clone(),
+        executor_program_path: fixture.request.executor_program_path.clone(),
+    };
+    let prepared =
+        prepare_historical_container_qualification_replay(&replay_request, "2026-08-07T09:50:00Z")?;
+    let spec = load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json"),
+    )?;
+    assert_eq!(spec.submission_kind, ContainerQualificationSubmissionKind::HistoricalReplay);
+    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v2");
+    assert!(spec
+        .historical_replay_source
+        .as_ref()
+        .is_some_and(|source| source.pipeline_path.ends_with("source-config-pipeline.yml")));
+    assert_eq!(load_prepared_container_qualification_slurm_job(&spec)?, prepared);
+
+    let mut ordinary = fixture.request.clone();
+    ordinary.pipeline_path = replay_request.replay_pipeline_path;
+    assert!(prepare_container_qualification_slurm_job(&ordinary, "2026-08-07T09:50:00Z")
+        .is_err_and(|error| error.to_string().contains("current pipeline schema")));
     Ok(())
 }
 
@@ -429,6 +481,72 @@ fn write_pipeline(path: &Path, repository: &Path, commit: &str, fixture: &Fixtur
                     "unit": "records"
                 }]
             }
+        }))?,
+    )?;
+    Ok(())
+}
+
+fn write_legacy_pipeline(
+    path: &Path,
+    repository: &Path,
+    commit: &str,
+    image: &Path,
+    image_sha256: &str,
+    fixture: &Fixture,
+) -> Result<()> {
+    let result_root = fixture
+        .paths
+        .result_root
+        .parent()
+        .context("fixture result root has no parent")?
+        .join("bwa/run-1200");
+    fs::write(
+        path,
+        serde_json::to_vec_pretty(&serde_json::json!({
+            "schema_version": "bijux.container.pipeline.v1",
+            "run": {
+                "id": "run-1200",
+                "campaign": "governed-runner-replay-test",
+                "corpus": "immutable-corpus",
+                "sample": "sample-a",
+                "domain": "fastq",
+                "stage": "fastq.align_reads",
+                "tool": "bwa",
+                "operator": "bijux"
+            },
+            "repository": {"path": repository, "commit": commit, "clean": true},
+            "image": {"path": image, "sha256": image_sha256},
+            "data": {"inputs": [
+                {
+                    "id": "reads",
+                    "kind": "data",
+                    "path": fixture.paths.input,
+                    "sha256": fixture.paths.input_sha256
+                },
+                {
+                    "id": "upstream_result",
+                    "kind": "upstream_result",
+                    "path": fixture.paths.upstream,
+                    "sha256": fixture.paths.upstream_sha256
+                }
+            ]},
+            "commands": {
+                "version": ["bwa", "version"],
+                "help": ["bwa", "help"],
+                "real": ["bwa", "mem"],
+                "negative": ["bwa", "invalid"]
+            },
+            "outputs": {"result_root": result_root, "required_files": ["result.json"]},
+            "resources": {
+                "account": "science",
+                "partition": "compute",
+                "cpus": 2,
+                "memory_mb": 1024,
+                "walltime": "00:05:00",
+                "scratch_mb": 1024
+            },
+            "execution": {"locale": "C", "timezone": "UTC", "runtime_network": false},
+            "acceptance": {"version_regex": "^1[.]0$", "negative_exit_nonzero": true}
         }))?,
     )?;
     Ok(())

@@ -9,6 +9,8 @@ use super::super::{SlurmAccounting, SlurmJobObservation, SlurmSubmitRequest};
 
 pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_slurm_spec.v1";
+pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2: &str =
+    "bijux.runner.container_qualification_slurm_spec.v2";
 pub const CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_prepared_job.v1";
 pub const CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1: &str =
@@ -23,6 +25,31 @@ pub struct ContainerQualificationPreparationRequest {
     pub pipeline_path: PathBuf,
     pub credential_reference_path: PathBuf,
     pub executor_program_path: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HistoricalContainerQualificationReplayRequest {
+    pub hostname: String,
+    pub governance_path: PathBuf,
+    pub source_pipeline_path: PathBuf,
+    pub replay_pipeline_path: PathBuf,
+    pub credential_reference_path: PathBuf,
+    pub executor_program_path: PathBuf,
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ContainerQualificationSubmissionKind {
+    #[default]
+    Current,
+    HistoricalReplay,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct HistoricalContainerQualificationReplaySource {
+    pub pipeline_path: PathBuf,
+    pub pipeline_sha256: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -40,6 +67,10 @@ pub struct ContainerQualificationSlurmResources {
 #[serde(deny_unknown_fields)]
 pub struct ContainerQualificationSlurmSpec {
     pub schema_version: String,
+    #[serde(default)]
+    pub submission_kind: ContainerQualificationSubmissionKind,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub historical_replay_source: Option<HistoricalContainerQualificationReplaySource>,
     pub run_id: String,
     pub tool_id: String,
     pub job_name: String,

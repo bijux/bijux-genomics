@@ -158,10 +158,11 @@ fn execution_policy_tree_matches_architecture_contract() {
             "currentization.rs",
             "mod.rs",
             "model.rs",
+            "replay.rs",
             "schema.rs",
             "validation.rs",
         ]),
-        "pipeline contracts must separate models, schemas, validation, site admission, and currentization"
+        "pipeline contracts must separate models, schemas, validation, site admission, currentization, and historical replay"
     );
     assert_eq!(
         dir_entries(&root.join("src/site_policy")),

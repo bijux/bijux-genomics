@@ -6,15 +6,18 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
-    admit_container_pipeline_site, load_container_credential_reference, load_container_governance,
-    load_container_pipeline, ContainerPipelineContract, ContainerPipelineSiteAdmissionRequest,
+    admit_container_pipeline_site, admit_historical_container_pipeline_replay,
+    load_container_credential_reference, load_container_governance, load_container_pipeline,
+    ContainerPipelineContract, ContainerPipelineSiteAdmission,
+    ContainerPipelineSiteAdmissionRequest, HistoricalContainerPipelineReplayRequest,
     PipelineEvidenceKind,
 };
 use serde::de::DeserializeOwned;
 
 use super::contracts::{
     ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
+    ContainerQualificationSubmissionKind, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2,
 };
 
 pub(super) const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
@@ -56,6 +59,33 @@ pub(super) fn derive_identity(
         hostname: hostname.to_string(),
         pipeline_path: pipeline_path.to_path_buf(),
     })?;
+    derive_admitted_identity(&governance, contract, admission, false)
+}
+
+pub(super) fn derive_historical_replay_identity(
+    hostname: &str,
+    governance_path: &Path,
+    source_pipeline_path: &Path,
+    replay_pipeline_path: &Path,
+) -> Result<QualificationIdentity> {
+    let governance = load_container_governance(governance_path)?;
+    let replay =
+        admit_historical_container_pipeline_replay(&HistoricalContainerPipelineReplayRequest {
+            governance: governance.clone(),
+            hostname: hostname.to_string(),
+            source_pipeline_path: source_pipeline_path.to_path_buf(),
+            replay_pipeline_path: replay_pipeline_path.to_path_buf(),
+        })?;
+    let contract = load_container_pipeline(replay_pipeline_path)?;
+    derive_admitted_identity(&governance, contract, replay.site, true)
+}
+
+fn derive_admitted_identity(
+    governance: &bijux_dna_containers::api::ContainerGovernance,
+    contract: ContainerPipelineContract,
+    admission: ContainerPipelineSiteAdmission,
+    historical_replay: bool,
+) -> Result<QualificationIdentity> {
     if admission.evidence_kind != PipelineEvidenceKind::Qualification {
         bail!("container qualification scheduler requires qualification evidence kind");
     }
@@ -72,6 +102,22 @@ pub(super) fn derive_identity(
     }
 
     let (run_id, tool_id, domain, stage, sample, resources, dependencies) = match contract {
+        ContainerPipelineContract::Legacy(pipeline) if historical_replay => (
+            pipeline.run.id,
+            pipeline.run.tool,
+            pipeline.run.domain,
+            pipeline.run.stage,
+            pipeline.run.sample,
+            ContainerQualificationSlurmResources {
+                account: pipeline.resources.account,
+                partition: pipeline.resources.partition,
+                cpus: pipeline.resources.cpus,
+                memory_mb: pipeline.resources.memory_mb,
+                walltime: pipeline.resources.walltime,
+                scratch_mb: pipeline.resources.scratch_mb,
+            },
+            Vec::new(),
+        ),
         ContainerPipelineContract::Legacy(_) => {
             bail!("new container qualification submission requires the current pipeline schema")
         }
@@ -111,14 +157,35 @@ pub(super) fn derive_identity(
 }
 
 pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> Result<()> {
-    if spec.schema_version != CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1 {
+    if !matches!(
+        spec.schema_version.as_str(),
+        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2
+    ) {
         bail!("container qualification Slurm specification schema is unsupported");
+    }
+    if spec.schema_version == CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1
+        && (spec.submission_kind != ContainerQualificationSubmissionKind::Current
+            || spec.historical_replay_source.is_some())
+    {
+        bail!("v1 qualification specification cannot declare historical replay authority");
     }
     require_sha256(&spec.governance_sha256, "governance SHA-256")?;
     require_sha256(&spec.pipeline_sha256, "pipeline SHA-256")?;
     require_sha256(&spec.credential_reference_sha256, "credential-reference SHA-256")?;
     require_sha256(&spec.executor_program_sha256, "executor program SHA-256")?;
     require_sha256(&spec.executor_script_sha256, "executor script SHA-256")?;
+    match (&spec.submission_kind, &spec.historical_replay_source) {
+        (ContainerQualificationSubmissionKind::Current, None) => {}
+        (ContainerQualificationSubmissionKind::HistoricalReplay, Some(source)) => {
+            require_sha256(&source.pipeline_sha256, "historical source pipeline SHA-256")?;
+            require_exact_file(
+                &source.pipeline_path,
+                &source.pipeline_sha256,
+                "historical source pipeline",
+            )?;
+        }
+        _ => bail!("qualification submission kind conflicts with historical replay authority"),
+    }
     require_exact_file(&spec.governance_path, &spec.governance_sha256, "governance")?;
     require_exact_file(&spec.pipeline_path, &spec.pipeline_sha256, "pipeline")?;
     require_exact_file(
@@ -138,7 +205,15 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
         "executor script",
     )?;
     load_container_credential_reference(&spec.credential_reference_path)?;
-    let identity = derive_identity(&spec.hostname, &spec.governance_path, &spec.pipeline_path)?;
+    let identity = match &spec.historical_replay_source {
+        Some(source) => derive_historical_replay_identity(
+            &spec.hostname,
+            &spec.governance_path,
+            &source.pipeline_path,
+            &spec.pipeline_path,
+        )?,
+        None => derive_identity(&spec.hostname, &spec.governance_path, &spec.pipeline_path)?,
+    };
     if spec.run_id != identity.run_id
         || spec.tool_id != identity.tool_id
         || spec.job_name != identity.job_name

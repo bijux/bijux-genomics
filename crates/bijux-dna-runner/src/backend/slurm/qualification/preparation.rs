@@ -11,12 +11,13 @@ use bijux_dna_containers::api::{load_container_credential_reference, load_contai
 
 use super::contracts::{
     ContainerQualificationPreparationRequest, ContainerQualificationSlurmSpec,
-    PreparedContainerQualificationSlurmJob, CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
+    ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
+    HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
+    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2,
 };
 use super::validation::{
-    canonical_directory, derive_identity, ensure_json_identity, require_exact_file,
-    require_utc_timestamp, validate_specification,
+    canonical_directory, derive_historical_replay_identity, derive_identity, ensure_json_identity,
+    require_exact_file, require_utc_timestamp, validate_specification,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -29,10 +30,52 @@ pub fn prepare_container_qualification_slurm_job(
     request: &ContainerQualificationPreparationRequest,
     submitted_at_utc: &str,
 ) -> Result<PreparedContainerQualificationSlurmJob> {
+    prepare(request, None, ContainerQualificationSubmissionKind::Current, submitted_at_utc)
+}
+
+/// Prepare immutable scheduler material for one exact historical v1 protocol replay.
+///
+/// # Errors
+/// Returns an error when replay admission fails, immutable identities drift, or scheduler material
+/// cannot be published atomically.
+pub fn prepare_historical_container_qualification_replay(
+    request: &HistoricalContainerQualificationReplayRequest,
+    submitted_at_utc: &str,
+) -> Result<PreparedContainerQualificationSlurmJob> {
+    let preparation = ContainerQualificationPreparationRequest {
+        hostname: request.hostname.clone(),
+        governance_path: request.governance_path.clone(),
+        pipeline_path: request.replay_pipeline_path.clone(),
+        credential_reference_path: request.credential_reference_path.clone(),
+        executor_program_path: request.executor_program_path.clone(),
+    };
+    prepare(
+        &preparation,
+        Some(&request.source_pipeline_path),
+        ContainerQualificationSubmissionKind::HistoricalReplay,
+        submitted_at_utc,
+    )
+}
+
+fn prepare(
+    request: &ContainerQualificationPreparationRequest,
+    historical_source_pipeline: Option<&Path>,
+    submission_kind: ContainerQualificationSubmissionKind,
+    submitted_at_utc: &str,
+) -> Result<PreparedContainerQualificationSlurmJob> {
     require_utc_timestamp(submitted_at_utc, "submission timestamp")?;
     load_container_credential_reference(&request.credential_reference_path)?;
-    let identity =
-        derive_identity(&request.hostname, &request.governance_path, &request.pipeline_path)?;
+    let identity = match historical_source_pipeline {
+        Some(source) => derive_historical_replay_identity(
+            &request.hostname,
+            &request.governance_path,
+            source,
+            &request.pipeline_path,
+        )?,
+        None => {
+            derive_identity(&request.hostname, &request.governance_path, &request.pipeline_path)?
+        }
+    };
     let evidence_root = ensure_evidence_root(&identity.evidence_root)?;
     let governance_path = archive_contract(
         &request.governance_path,
@@ -49,6 +92,8 @@ pub fn prepare_container_qualification_slurm_job(
         &evidence_root.join("config-credential.yml"),
         "credential reference",
     )?;
+    let historical_replay_source =
+        archive_historical_source(historical_source_pipeline, &evidence_root)?;
     let governance_sha256 = bijux_dna_infra::hash_file_sha256(&governance_path)?;
     let pipeline_sha256 = bijux_dna_infra::hash_file_sha256(&pipeline_path)?;
     let credential_reference_sha256 =
@@ -65,7 +110,9 @@ pub fn prepare_container_qualification_slurm_job(
     require_exact_file(&executor_script_path, &executor_script_sha256, "executor script")?;
 
     let spec = ContainerQualificationSlurmSpec {
-        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2.to_string(),
+        submission_kind,
+        historical_replay_source,
         run_id: identity.run_id,
         tool_id: identity.tool_id,
         job_name: identity.job_name,
@@ -116,6 +163,25 @@ pub fn prepare_container_qualification_slurm_job(
     };
     ensure_json_identity(&scheduler_root.join("prepared-job.json"), &prepared)?;
     Ok(prepared)
+}
+
+fn archive_historical_source(
+    source: Option<&Path>,
+    evidence_root: &Path,
+) -> Result<Option<HistoricalContainerQualificationReplaySource>> {
+    source
+        .map(|source| -> Result<HistoricalContainerQualificationReplaySource> {
+            let pipeline_path = archive_contract(
+                source,
+                &evidence_root.join("source-config-pipeline.yml"),
+                "historical source pipeline",
+            )?;
+            Ok(HistoricalContainerQualificationReplaySource {
+                pipeline_sha256: bijux_dna_infra::hash_file_sha256(&pipeline_path)?,
+                pipeline_path,
+            })
+        })
+        .transpose()
 }
 
 fn render_script(

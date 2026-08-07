@@ -2,7 +2,7 @@ use super::{
     command_hostname, path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace,
 };
 
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- replay-prepare <governance> <source-pipeline> <replay-pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -13,12 +13,33 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
     }
     match operation.as_str() {
         "prepare" => prepare(workspace, options),
+        "replay-prepare" => replay_prepare(workspace, options),
         "submit" => submit(workspace, options),
         "observe" => observe(workspace, options),
         "collect" => collect(workspace, options),
         "cancel" => cancel(workspace, options),
         _ => anyhow::bail!(USAGE),
     }
+}
+
+fn replay_prepare(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let [governance, source_pipeline, replay_pipeline, credential_reference, executor_program, submitted_at_utc] =
+        args
+    else {
+        anyhow::bail!(USAGE);
+    };
+    let prepared = bijux_dna_runner::api::prepare_historical_container_qualification_replay(
+        &bijux_dna_runner::api::HistoricalContainerQualificationReplayRequest {
+            hostname: command_hostname(),
+            governance_path: path_from_arg(workspace, governance),
+            source_pipeline_path: path_from_arg(workspace, source_pipeline),
+            replay_pipeline_path: path_from_arg(workspace, replay_pipeline),
+            credential_reference_path: path_from_arg(workspace, credential_reference),
+            executor_program_path: path_from_arg(workspace, executor_program),
+        },
+        submitted_at_utc,
+    )?;
+    prepared_output(prepared)
 }
 
 fn prepare(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -36,6 +57,12 @@ fn prepare(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
         },
         submitted_at_utc,
     )?;
+    prepared_output(prepared)
+}
+
+fn prepared_output(
+    prepared: bijux_dna_runner::api::PreparedContainerQualificationSlurmJob,
+) -> Result<ContainerCommandOutcome> {
     let specification_path = prepared
         .request
         .script_path
@@ -117,7 +144,7 @@ mod tests {
     fn help_lists_every_non_waiting_lifecycle_operation() -> Result<()> {
         let workspace = Workspace { root: "/workspace".into() };
         let output = run(&workspace, &["--help".to_string()])?;
-        for operation in ["prepare", "submit", "observe", "collect", "cancel"] {
+        for operation in ["prepare", "replay-prepare", "submit", "observe", "collect", "cancel"] {
             assert!(output.stdout.contains(operation));
         }
         Ok(())
