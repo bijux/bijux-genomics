@@ -201,6 +201,9 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::QualificationRegistry => {
             qualification_registry::run(workspace, args)
         }
+        NativeContainerCommandKey::RepositoryFreeze => {
+            site_policy::freeze_repository(workspace, args)
+        }
         NativeContainerCommandKey::RunEvidence => run_evidence::run(workspace, args),
         NativeContainerCommandKey::RuntimeVerification => {
             runtime_verification::run(workspace, args)

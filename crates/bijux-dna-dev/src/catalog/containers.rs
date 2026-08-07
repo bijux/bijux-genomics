@@ -332,6 +332,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::QualificationRegistry,
         ),
         native(
+            "repository-freeze",
+            "Materialize immutable repository worktrees under the governed site policy.",
+            NativeContainerCommandKey::RepositoryFreeze,
+        ),
+        native(
             "run-evidence",
             "Import, select, validate, and publish immutable container run evidence.",
             NativeContainerCommandKey::RunEvidence,

@@ -275,6 +275,7 @@ lint
 qualification-registry
 registry-tools
 release-gate
+repository-freeze
 run-apptainer-frontend-reproducibility
 run-apptainer-frontend-security
 run-apptainer-frontend-smoke
