@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::evaluation::{CLAIM_REQUIREMENTS, REQUIRED_EVIDENCE_DIMENSIONS};
 
-pub const QUALIFICATION_ASSESSMENT_SCHEMA_V1: &str = "bijux.container.qualification_assessment.v1";
+pub const QUALIFICATION_ASSESSMENT_SCHEMA_V2: &str = "bijux.container.qualification_assessment.v2";
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema,
@@ -79,6 +79,17 @@ pub struct EvidenceDecision {
     pub evidence_sha256: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reasons: Vec<String>,
+    pub audit: DecisionAudit,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct DecisionAudit {
+    pub rule_version: String,
+    pub measured_values: BTreeMap<String, String>,
+    pub thresholds: BTreeMap<String, String>,
+    pub outcome: EvidenceVerdict,
+    pub reason: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -96,7 +107,7 @@ pub struct QualificationAssessment {
 fn qualification_assessment_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+        "const": QUALIFICATION_ASSESSMENT_SCHEMA_V2,
     })
 }
 
@@ -105,14 +116,14 @@ impl QualificationAssessment {
     ///
     /// # Errors
     /// Returns an error when the evidence dimensions or decisions are invalid.
-    pub fn v1(
+    pub fn v2(
         subject_id: String,
         support_disposition: SupportDisposition,
         publication_disposition: PublicationDisposition,
         dimensions: BTreeMap<EvidenceDimension, EvidenceDecision>,
     ) -> Result<Self> {
         let mut assessment = Self {
-            schema_version: QUALIFICATION_ASSESSMENT_SCHEMA_V1.to_string(),
+            schema_version: QUALIFICATION_ASSESSMENT_SCHEMA_V2.to_string(),
             subject_id,
             support_disposition,
             publication_disposition,
@@ -140,7 +151,7 @@ impl QualificationAssessment {
 
     fn validate_evidence(&self) -> Result<()> {
         ensure!(
-            self.schema_version == QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+            self.schema_version == QUALIFICATION_ASSESSMENT_SCHEMA_V2,
             "unsupported qualification assessment schema: {}",
             self.schema_version
         );
@@ -216,48 +227,159 @@ impl QualificationAssessment {
 
 impl EvidenceDecision {
     #[must_use]
-    pub fn passed(evidence_sha256: String) -> Self {
+    pub fn passed(
+        rule_version: &str,
+        measured_values: BTreeMap<String, String>,
+        thresholds: BTreeMap<String, String>,
+        evidence_sha256: String,
+        reason: &str,
+    ) -> Self {
         Self {
             verdict: EvidenceVerdict::Passed,
             evidence_sha256: Some(evidence_sha256),
             reasons: Vec::new(),
+            audit: DecisionAudit::new(
+                rule_version,
+                measured_values,
+                thresholds,
+                EvidenceVerdict::Passed,
+                reason,
+            ),
         }
     }
 
     #[must_use]
-    pub fn failed(reason: &str) -> Self {
+    pub fn failed(
+        rule_version: &str,
+        measured_values: BTreeMap<String, String>,
+        thresholds: BTreeMap<String, String>,
+        reason: &str,
+    ) -> Self {
         Self {
             verdict: EvidenceVerdict::Failed,
             evidence_sha256: None,
             reasons: vec![reason.to_string()],
+            audit: DecisionAudit::new(
+                rule_version,
+                measured_values,
+                thresholds,
+                EvidenceVerdict::Failed,
+                reason,
+            ),
         }
     }
 
     #[must_use]
-    pub fn blocked(reason: &str) -> Self {
+    pub fn blocked(
+        rule_version: &str,
+        measured_values: BTreeMap<String, String>,
+        thresholds: BTreeMap<String, String>,
+        reason: &str,
+    ) -> Self {
         Self {
             verdict: EvidenceVerdict::Blocked,
             evidence_sha256: None,
             reasons: vec![reason.to_string()],
+            audit: DecisionAudit::new(
+                rule_version,
+                measured_values,
+                thresholds,
+                EvidenceVerdict::Blocked,
+                reason,
+            ),
         }
     }
 
     #[must_use]
-    pub fn missing(reason: &str) -> Self {
+    pub fn missing(
+        rule_version: &str,
+        measured_values: BTreeMap<String, String>,
+        thresholds: BTreeMap<String, String>,
+        reason: &str,
+    ) -> Self {
         Self {
             verdict: EvidenceVerdict::Missing,
             evidence_sha256: None,
             reasons: vec![reason.to_string()],
+            audit: DecisionAudit::new(
+                rule_version,
+                measured_values,
+                thresholds,
+                EvidenceVerdict::Missing,
+                reason,
+            ),
         }
     }
 
     #[must_use]
-    pub fn not_applicable() -> Self {
-        Self { verdict: EvidenceVerdict::NotApplicable, evidence_sha256: None, reasons: Vec::new() }
+    pub fn not_applicable(
+        rule_version: &str,
+        measured_values: BTreeMap<String, String>,
+        thresholds: BTreeMap<String, String>,
+        reason: &str,
+    ) -> Self {
+        Self {
+            verdict: EvidenceVerdict::NotApplicable,
+            evidence_sha256: None,
+            reasons: Vec::new(),
+            audit: DecisionAudit::new(
+                rule_version,
+                measured_values,
+                thresholds,
+                EvidenceVerdict::NotApplicable,
+                reason,
+            ),
+        }
+    }
+}
+
+impl DecisionAudit {
+    fn new(
+        rule_version: &str,
+        measured_values: BTreeMap<String, String>,
+        thresholds: BTreeMap<String, String>,
+        outcome: EvidenceVerdict,
+        reason: &str,
+    ) -> Self {
+        Self {
+            rule_version: rule_version.to_string(),
+            measured_values,
+            thresholds,
+            outcome,
+            reason: reason.to_string(),
+        }
     }
 }
 
 fn validate_decision(dimension: EvidenceDimension, decision: &EvidenceDecision) -> Result<()> {
+    ensure!(
+        !decision.audit.rule_version.trim().is_empty(),
+        "{dimension:?} decision has no rule version"
+    );
+    ensure!(
+        !decision.audit.measured_values.is_empty(),
+        "{dimension:?} decision has no measured values"
+    );
+    ensure!(!decision.audit.thresholds.is_empty(), "{dimension:?} decision has no thresholds");
+    ensure!(
+        decision.audit.outcome == decision.verdict,
+        "{dimension:?} decision outcome disagrees with verdict"
+    );
+    ensure!(!decision.audit.reason.trim().is_empty(), "{dimension:?} decision has no reason");
+    for (kind, values) in [
+        ("measured value", &decision.audit.measured_values),
+        ("threshold", &decision.audit.thresholds),
+    ] {
+        ensure!(
+            values.iter().all(|(key, value)| {
+                !key.trim().is_empty()
+                    && key == key.trim()
+                    && !value.trim().is_empty()
+                    && value == value.trim()
+            }),
+            "{dimension:?} decision has malformed {kind}"
+        );
+    }
     match decision.verdict {
         EvidenceVerdict::Passed => {
             let identity = decision
@@ -288,32 +410,59 @@ fn validate_decision(dimension: EvidenceDimension, decision: &EvidenceDecision) 
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeSet;
+    use std::collections::{BTreeMap, BTreeSet};
 
     use super::{
         EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
         QualificationAssessment, QualificationClaim, SupportDisposition,
-        QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+        QUALIFICATION_ASSESSMENT_SCHEMA_V2,
     };
     use crate::qualification::REQUIRED_EVIDENCE_DIMENSIONS;
+
+    fn decision(verdict: EvidenceVerdict) -> EvidenceDecision {
+        let measured = BTreeMap::from([("evidence_state".to_string(), format!("{verdict:?}"))]);
+        let thresholds = BTreeMap::from([("required_state".to_string(), "passed".to_string())]);
+        match verdict {
+            EvidenceVerdict::Passed => EvidenceDecision::passed(
+                "qualification.test.v1",
+                measured,
+                thresholds,
+                "a".repeat(64),
+                "test evidence passes",
+            ),
+            EvidenceVerdict::Failed => EvidenceDecision::failed(
+                "qualification.test.v1",
+                measured,
+                thresholds,
+                "evidence is not admitted",
+            ),
+            EvidenceVerdict::Blocked => EvidenceDecision::blocked(
+                "qualification.test.v1",
+                measured,
+                thresholds,
+                "evidence is not admitted",
+            ),
+            EvidenceVerdict::Missing => EvidenceDecision::missing(
+                "qualification.test.v1",
+                measured,
+                thresholds,
+                "evidence is not admitted",
+            ),
+            EvidenceVerdict::NotApplicable => EvidenceDecision::not_applicable(
+                "qualification.test.v1",
+                measured,
+                thresholds,
+                "evidence is outside the test population",
+            ),
+        }
+    }
 
     fn retained(verdict: EvidenceVerdict) -> anyhow::Result<QualificationAssessment> {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
-            .map(|dimension| {
-                let evidence_sha256 = (verdict == EvidenceVerdict::Passed).then(|| "a".repeat(64));
-                let reasons = match verdict {
-                    EvidenceVerdict::Failed
-                    | EvidenceVerdict::Blocked
-                    | EvidenceVerdict::Missing => {
-                        vec!["evidence is not admitted".to_string()]
-                    }
-                    EvidenceVerdict::Passed | EvidenceVerdict::NotApplicable => Vec::new(),
-                };
-                (dimension, EvidenceDecision { verdict, evidence_sha256, reasons })
-            })
+            .map(|dimension| (dimension, decision(verdict)))
             .collect();
-        QualificationAssessment::v1(
+        QualificationAssessment::v2(
             "samtools".to_string(),
             SupportDisposition::Retained,
             PublicationDisposition::Current,
@@ -327,14 +476,15 @@ mod tests {
         assert!(assessment.is_qualified()?);
         assessment.dimensions.insert(
             EvidenceDimension::Security,
-            EvidenceDecision {
-                verdict: EvidenceVerdict::Missing,
-                evidence_sha256: None,
-                reasons: vec!["security campaign not collected".to_string()],
-            },
+            EvidenceDecision::missing(
+                "qualification.security.test.v1",
+                BTreeMap::from([("campaign".to_string(), "missing".to_string())]),
+                BTreeMap::from([("campaign".to_string(), "required".to_string())]),
+                "security campaign not collected",
+            ),
         );
         assert!(assessment.validate().is_err());
-        let assessment = QualificationAssessment::v1(
+        let assessment = QualificationAssessment::v2(
             assessment.subject_id,
             assessment.support_disposition,
             assessment.publication_disposition,
@@ -355,14 +505,16 @@ mod tests {
         {
             assessment.dimensions.insert(
                 dimension,
-                EvidenceDecision {
-                    verdict: EvidenceVerdict::Passed,
-                    evidence_sha256: Some("b".repeat(64)),
-                    reasons: Vec::new(),
-                },
+                EvidenceDecision::passed(
+                    "qualification.test.v1",
+                    BTreeMap::from([("evidence_state".to_string(), "passed".to_string())]),
+                    BTreeMap::from([("required_state".to_string(), "passed".to_string())]),
+                    "b".repeat(64),
+                    "test evidence passes",
+                ),
             );
         }
-        let assessment = QualificationAssessment::v1(
+        let assessment = QualificationAssessment::v2(
             assessment.subject_id,
             assessment.support_disposition,
             assessment.publication_disposition,
@@ -378,18 +530,9 @@ mod tests {
     fn unsupported_subject_supports_only_the_unsupported_claim() -> anyhow::Result<()> {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
-            .map(|dimension| {
-                (
-                    dimension,
-                    EvidenceDecision {
-                        verdict: EvidenceVerdict::NotApplicable,
-                        evidence_sha256: None,
-                        reasons: Vec::new(),
-                    },
-                )
-            })
+            .map(|dimension| (dimension, decision(EvidenceVerdict::NotApplicable)))
             .collect();
-        let mut assessment = QualificationAssessment::v1(
+        let mut assessment = QualificationAssessment::v2(
             "angsd".to_string(),
             SupportDisposition::Unsupported,
             PublicationDisposition::Current,
@@ -401,12 +544,46 @@ mod tests {
         );
         assessment.dimensions.insert(
             EvidenceDimension::Catalog,
-            EvidenceDecision {
-                verdict: EvidenceVerdict::Passed,
-                evidence_sha256: Some("c".repeat(64)),
-                reasons: Vec::new(),
-            },
+            EvidenceDecision::passed(
+                "qualification.test.v1",
+                BTreeMap::from([("evidence_state".to_string(), "passed".to_string())]),
+                BTreeMap::from([("required_state".to_string(), "passed".to_string())]),
+                "c".repeat(64),
+                "test evidence passes",
+            ),
         );
+        assert!(assessment.validate().is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn decision_audit_outcome_cannot_disagree_with_verdict() -> anyhow::Result<()> {
+        let mut assessment = retained(EvidenceVerdict::Passed)?;
+        let catalog = assessment
+            .dimensions
+            .get_mut(&EvidenceDimension::Catalog)
+            .ok_or_else(|| anyhow::anyhow!("catalog decision is absent"))?;
+        catalog.audit.outcome = EvidenceVerdict::Failed;
+        assert!(assessment.validate().is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn decision_audit_cannot_omit_measured_values_or_thresholds() -> anyhow::Result<()> {
+        let mut assessment = retained(EvidenceVerdict::Passed)?;
+        let catalog = assessment
+            .dimensions
+            .get_mut(&EvidenceDimension::Catalog)
+            .ok_or_else(|| anyhow::anyhow!("catalog decision is absent"))?;
+        catalog.audit.measured_values.clear();
+        assert!(assessment.validate().is_err());
+
+        let mut assessment = retained(EvidenceVerdict::Passed)?;
+        let catalog = assessment
+            .dimensions
+            .get_mut(&EvidenceDimension::Catalog)
+            .ok_or_else(|| anyhow::anyhow!("catalog decision is absent"))?;
+        catalog.audit.thresholds.clear();
         assert!(assessment.validate().is_err());
         Ok(())
     }
@@ -414,7 +591,7 @@ mod tests {
     #[test]
     fn unknown_fields_fail_deserialization() {
         let payload = serde_json::json!({
-            "schema_version": QUALIFICATION_ASSESSMENT_SCHEMA_V1,
+            "schema_version": QUALIFICATION_ASSESSMENT_SCHEMA_V2,
             "subject_id": "samtools",
             "support_disposition": "retained",
             "publication_disposition": "current",

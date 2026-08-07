@@ -26,6 +26,12 @@ means at least one required evidence dimension is absent. `qualified` is
 permitted only when every required dimension passes. Non-retained tools are
 not eligible for qualification.
 
+Every dimension decision records the exact rule version, measured values,
+thresholds, outcome, and reason. Passing decisions additionally carry the
+immutable SHA-256 of their admitted evidence. Missing observations, empty
+thresholds, and disagreement between the recorded outcome and verdict fail
+closed.
+
 ## Evidence dimensions
 
 | Dimension | Evidence required |

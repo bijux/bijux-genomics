@@ -35,8 +35,9 @@ audit orchestration.
 - `tests/support/` contains shared filesystem helpers only.
 
 ## Data Flow
-1. Qualification callers provide admitted evidence decisions; policy models validate complete
-   dimensions and derive claims and report summaries.
+1. Qualification callers provide admitted observations; policy rules record versioned measured
+   values, thresholds, outcomes, reasons, and evidence identities before models derive claims and
+   report summaries.
 2. Security callers provide typed scanner publications; policy validation derives admissibility.
 3. Repository-audit callers use `check` and `GuardrailConfig`; guardrails collect Rust sources and
    evaluate deterministic source and layout rules.

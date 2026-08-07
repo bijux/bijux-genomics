@@ -13,7 +13,7 @@ pub use bijux_dna_policies::{
     PublicationDisposition, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
     PublicationIdentityMismatch, QualificationAssessment, QualificationClaim,
     QualificationEvidenceSource, QualificationReport, QualificationReportSummary,
-    SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V1, QUALIFICATION_REPORT_SCHEMA_V2,
+    SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V2, QUALIFICATION_REPORT_SCHEMA_V3,
     REQUIRED_EVIDENCE_DIMENSIONS,
 };
 

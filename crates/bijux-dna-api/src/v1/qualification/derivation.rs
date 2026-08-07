@@ -8,11 +8,13 @@ use bijux_dna_containers::evidence::{
     ContainerCatalogTool, ContainerEvidenceChain, ContainerImageInventoryTool,
 };
 use bijux_dna_policies::{
-    evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_source_identity,
-    BenchmarkEvidenceObservation, EvidenceDecision, EvidenceDimension,
+    evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_identity_evidence,
+    evaluate_source_identity, BenchmarkEvidenceObservation, EvidenceDecision, EvidenceDimension,
     ExecutionEvidenceObservation, ExecutionEvidenceStatus, PublicationDisposition,
     QualificationAssessment, QualificationEvidenceSource, QualificationReport, SupportDisposition,
-    REQUIRED_EVIDENCE_DIMENSIONS,
+    BUILD_EVIDENCE_RULE_V1, CATALOG_EVIDENCE_RULE_V1, FRESHNESS_EVIDENCE_RULE_V1,
+    RELEASE_EVIDENCE_RULE_V1, REQUIRED_EVIDENCE_DIMENSIONS, RUNTIME_EVIDENCE_RULE_V1,
+    SECURITY_EVIDENCE_RULE_V1, SUPPORT_DISPOSITION_RULE_V1,
 };
 use bijux_dna_runtime::{
     load_run_evidence_index, AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
@@ -105,7 +107,7 @@ pub fn derive_container_qualification_report(
         })
         .collect::<Result<Vec<_>>>()?;
 
-    QualificationReport::v2(sources, assessments)
+    QualificationReport::v3(sources, assessments)
 }
 
 fn derive_tool_assessment(
@@ -117,9 +119,9 @@ fn derive_tool_assessment(
     if tool.support_disposition != "retained" {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
-            .map(|dimension| (dimension, not_applicable()))
+            .map(|dimension| (dimension, not_applicable(tool)))
             .collect();
-        return QualificationAssessment::v1(
+        return QualificationAssessment::v2(
             tool.id.clone(),
             SupportDisposition::Unsupported,
             PublicationDisposition::Current,
@@ -141,7 +143,11 @@ fn derive_tool_assessment(
     let dimensions = BTreeMap::from([
         (
             EvidenceDimension::Catalog,
-            EvidenceDecision::passed(context.chain.catalog_sha256.clone()),
+            evaluate_identity_evidence(
+                CATALOG_EVIDENCE_RULE_V1,
+                "catalog_sha256",
+                &context.chain.catalog_sha256,
+            ),
         ),
         (
             EvidenceDimension::Source,
@@ -153,8 +159,18 @@ fn derive_tool_assessment(
                 ),
             ),
         ),
-        (EvidenceDimension::Build, EvidenceDecision::passed(image_sha256.to_string())),
-        (EvidenceDimension::Runtime, EvidenceDecision::passed(context.runtime_sha256.to_string())),
+        (
+            EvidenceDimension::Build,
+            evaluate_identity_evidence(BUILD_EVIDENCE_RULE_V1, "image_sha256", image_sha256),
+        ),
+        (
+            EvidenceDimension::Runtime,
+            evaluate_identity_evidence(
+                RUNTIME_EVIDENCE_RULE_V1,
+                "runtime_publication_sha256",
+                context.runtime_sha256,
+            ),
+        ),
         (EvidenceDimension::Stage, stage.clone()),
         (EvidenceDimension::RealData, stage),
         (EvidenceDimension::Science, science),
@@ -168,18 +184,34 @@ fn derive_tool_assessment(
         ),
         (
             EvidenceDimension::Security,
-            EvidenceDecision::missing("no admitted security publication covers this image"),
+            missing_publication(
+                SECURITY_EVIDENCE_RULE_V1,
+                "admitted_publication",
+                "image_coverage",
+                "current admitted security publication",
+                "no admitted security publication covers this image",
+            ),
         ),
         (
             EvidenceDimension::Freshness,
-            EvidenceDecision::passed(context.freshness_sha256.to_string()),
+            evaluate_identity_evidence(
+                FRESHNESS_EVIDENCE_RULE_V1,
+                "bound_evidence_set_sha256",
+                context.freshness_sha256,
+            ),
         ),
         (
             EvidenceDimension::Release,
-            EvidenceDecision::missing("no immutable release publication covers this evidence set"),
+            missing_publication(
+                RELEASE_EVIDENCE_RULE_V1,
+                "immutable_publication",
+                "evidence_set_coverage",
+                "current immutable release publication",
+                "no immutable release publication covers this evidence set",
+            ),
         ),
     ]);
-    QualificationAssessment::v1(
+    QualificationAssessment::v2(
         tool.id.clone(),
         SupportDisposition::Retained,
         PublicationDisposition::Current,
@@ -263,8 +295,28 @@ fn freshness_identity(
     Ok(bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(&(repository_commit, sources))?))
 }
 
-fn not_applicable() -> EvidenceDecision {
-    EvidenceDecision::not_applicable()
+fn not_applicable(tool: &ContainerCatalogTool) -> EvidenceDecision {
+    EvidenceDecision::not_applicable(
+        SUPPORT_DISPOSITION_RULE_V1,
+        BTreeMap::from([("support_disposition".to_string(), tool.support_disposition.clone())]),
+        BTreeMap::from([("retained".to_string(), "required for qualification".to_string())]),
+        "tool is outside the retained qualification population",
+    )
+}
+
+fn missing_publication(
+    rule_version: &str,
+    measured_key: &str,
+    threshold_key: &str,
+    threshold: &str,
+    reason: &str,
+) -> EvidenceDecision {
+    EvidenceDecision::missing(
+        rule_version,
+        BTreeMap::from([(measured_key.to_string(), "missing".to_string())]),
+        BTreeMap::from([(threshold_key.to_string(), threshold.to_string())]),
+        reason,
+    )
 }
 
 #[cfg(test)]
