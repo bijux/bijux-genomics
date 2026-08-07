@@ -391,39 +391,29 @@ empty artifact directory so existing tracked evidence is never overwritten:
 result_root="/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation"
 
 # One run
-python3 -B containers/runs/manage.py import-evidence \
-  --result-root "${result_root}" \
-  --output-root containers/runs \
-  --minimum-run 1125 \
-  --maximum-run 1125
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  import "${result_root}" containers/runs 1125 1125
 
 # Full replay into disposable review output
 replay_root="artifacts/containers/run-evidence-replay"
-python3 -B containers/runs/manage.py import-evidence \
-  --result-root "${result_root}" \
-  --output-root "${replay_root}"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  import "${result_root}" "${replay_root}"
 
-python3 -B containers/runs/manage.py publish-final-evidence \
-  --runs-root "${replay_root}" \
-  --ledger "${replay_root}/attempt-ledger.json" \
-  --apply
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish "${replay_root}" "${replay_root}/attempt-ledger.json" --apply
 
 # Publish the newly imported tracked run only after previewing the selection
-python3 -B containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json
-python3 -B containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --apply
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json --apply
 
-python3 -B containers/runs/manage.py validate --runs-root containers/runs
-python3 -B containers/runs/manage.py render-index \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.json
-python3 -B containers/runs/manage.py render-report \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.md
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  validate containers/runs
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  generate containers/runs \
+  containers/reports/run-evidence.json \
+  containers/reports/run-evidence.md
 ```
 
 The all-runs importer is intentionally non-overwriting. Use an empty artifact

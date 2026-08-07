@@ -32,20 +32,17 @@ but it must never contain a credential value.
 From the repository root:
 
 ```console
-python3 containers/runs/manage.py validate \
-  --runs-root containers/runs
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  validate containers/runs
 ```
 
 Render the compact website/report index after validation:
 
 ```console
-python3 containers/runs/manage.py render-index \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.json
-
-python3 containers/runs/manage.py render-report \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.md
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  generate containers/runs \
+  containers/reports/run-evidence.json \
+  containers/reports/run-evidence.md
 ```
 
 ## Admit final execution evidence
@@ -55,11 +52,9 @@ range so one reviewable scientific or operational group is admitted per
 commit:
 
 ```console
-python3 containers/runs/manage.py import-evidence \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --output-root containers/runs \
-  --minimum-run 1001 \
-  --maximum-run 1018
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  import /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
+  containers/runs 1001 1018
 ```
 
 The importer refuses to replace an existing tracked run, rejects embedded
@@ -68,14 +63,11 @@ and records hashes for the complete remote result. Before rendering reports,
 preview and then publish the latest successful execution per tool:
 
 ```console
-python3 containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json
 
-python3 containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --apply
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json --apply
 ```
 
 Preview reports the exact final and superseded counts without changing files.
