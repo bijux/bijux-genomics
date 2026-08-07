@@ -12,6 +12,8 @@
 - `opentelemetry` as an optional `otel` feature dependency for telemetry spans.
 - `bijux-dna-bench-model` for pure benchmark attempt identity, transition, accounting, and evidence
   contracts used by runtime-owned append-only persistence.
+- `bijux-dna-containers` for compatibility exports of container-owned selected-run evidence
+  contracts. Runtime does not execute containers or own container evidence persistence.
 - `bijux-dna-core` for shared contracts, IDs, metrics, canonical JSON, and validation errors.
 - `bijux-dna-infra` for governed filesystem writes, locks, temp dirs, hash helpers, YAML parsing, and repository path helpers.
 
