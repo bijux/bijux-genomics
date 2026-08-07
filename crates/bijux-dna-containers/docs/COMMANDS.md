@@ -36,6 +36,8 @@ library can manage when callers invoke the matching API.
   admits version output against the catalog contract regex.
 - `execute_runtime_verification()`: resolves canonical inventory images and runs independent
   version/help smoke workers before publishing manifest-bound portable evidence.
+- `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
+  immutable commit-addressed checkout under site-governed roots.
 - `import_run_evidence()`, `plan_final_run_evidence()`, and
   `apply_final_run_evidence_plan()`: import immutable run locks, select the latest passing run per
   tool, and preserve superseded attempt lineage behind an explicit non-mutating plan boundary.
@@ -83,6 +85,8 @@ library can manage when callers invoke the matching API.
   deterministic immutable lock publication.
 - `src/evidence/external_artifact/workflow.rs`: operator-artifact version probing and immutable
   external admission; it never copies or publishes the restricted artifact.
+- `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
+  worktree materialization under site-governed roots.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 - `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
   canonical image publication.

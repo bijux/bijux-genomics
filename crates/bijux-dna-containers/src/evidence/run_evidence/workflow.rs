@@ -6,10 +6,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 
-use super::validation::{
-    run_directory_identity, run_number, validate_credential_reference,
-    validate_run_attempt_ledger_value,
-};
+use super::validation::{run_directory_identity, run_number, validate_run_attempt_ledger_value};
 use super::{
     render_run_evidence_markdown, validate_run_attempt_ledger, validate_run_evidence_index,
     validate_run_evidence_root, AttemptExecutionStatus, FinalRunEvidencePlan, RunAttemptLedger,
@@ -290,7 +287,7 @@ fn evidence_record(
     if !pipeline_path.is_file() || !credential_path.is_file() {
         bail!("run lacks archived pipeline contracts: {}", result.display());
     }
-    validate_credential_reference(&credential_path)?;
+    crate::execution_contract::load_container_credential_reference(&credential_path)?;
     let identity = pipeline_identity(&pipeline_path)?;
     if identity.run_id != run_id || identity.tool != tool {
         bail!("pipeline identity disagrees with result path: {}", pipeline_path.display());

@@ -13,6 +13,8 @@ This crate owns the environment contracts consumed by API, runner, and environme
 - `ImageRef`: deterministic tag formatting helper.
 - `ReferenceRecord`: digest-addressed reference cache record.
 - `ReferenceBuildRequest`: explicit switches for optional reference indexes.
+- `ContainerCredentialReference`: strict no-secret credential metadata with an explicit
+  no-publication rule, consistent requirement flag, unique reference IDs, and generated schema.
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
 - `CurrentApptainerImage`: absolute current retained SIF identity reverified against the selected
   inventory candidate at consumption time.
@@ -117,6 +119,9 @@ complete inventory scan schema with these developer-control-plane command IDs:
 
 - `generate-image-inventory-scan-schema`
 - `check-image-inventory-scan-schema`
+
+The credential-reference schema remains at `containers/contracts/config-credential.schema.json`
+for compatibility with archived run contracts and is derived from `ContainerCredentialReference`.
 
 ## Change Rules
 

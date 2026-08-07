@@ -115,6 +115,12 @@ pub use crate::evidence::{
     IMAGE_STORAGE_REPORT_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
     QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
+pub use crate::execution_contract::{
+    container_credential_reference_schema, load_container_credential_reference,
+    validate_container_credential_reference, write_container_credential_reference_schema,
+    ContainerCredentialRecord, ContainerCredentialRedaction, ContainerCredentialReference,
+    CONTAINER_CREDENTIAL_REFERENCE_SCHEMA_V1,
+};
 pub use crate::resolve::*;
 pub use crate::site_policy::{
     freeze_repository, load_container_governance, validate_container_governance,

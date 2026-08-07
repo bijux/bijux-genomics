@@ -5,6 +5,8 @@ mod mod_contracts_apptainer_build_and_smoke_rs;
 mod mod_contracts_build_dockerfile_rs;
 #[path = "contracts/canonical_image_publication.rs"]
 mod mod_contracts_canonical_image_publication_rs;
+#[path = "contracts/credential_reference.rs"]
+mod mod_contracts_credential_reference_rs;
 #[path = "contracts/evidence_publications.rs"]
 mod mod_contracts_evidence_publications_rs;
 #[path = "contracts/external_artifact.rs"]

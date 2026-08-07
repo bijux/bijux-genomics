@@ -239,55 +239,9 @@ pub(super) fn load_run_evidence_lock(path: &Path) -> Result<RunEvidenceLock> {
     }
     let credential = path.join("config-credential.yml");
     if credential.is_file() {
-        validate_credential_reference(&credential)?;
+        crate::execution_contract::load_container_credential_reference(&credential)?;
     }
     Ok(record)
-}
-
-pub(super) fn validate_credential_reference(path: &Path) -> Result<()> {
-    let raw = fs::read_to_string(path)
-        .with_context(|| format!("read credential reference {}", path.display()))?;
-    let value: serde_json::Value = bijux_dna_infra::formats::yaml::parse_yaml(&raw)
-        .with_context(|| format!("parse credential reference {}", path.display()))?;
-    let forbidden = [
-        "access_key",
-        "api_key",
-        "credential",
-        "password",
-        "private_key",
-        "secret",
-        "token",
-        "value",
-    ];
-    let mut findings = BTreeSet::new();
-    collect_forbidden_keys(&value, &forbidden, &mut findings);
-    if !findings.is_empty() {
-        bail!("credential reference contains forbidden value fields: {findings:?}");
-    }
-    let object = value
-        .as_object()
-        .with_context(|| format!("credential reference must be a mapping: {}", path.display()))?;
-    let required =
-        object.get("credentials_required").and_then(serde_json::Value::as_bool).with_context(
-            || format!("credentials_required must be explicit boolean in {}", path.display()),
-        )?;
-    let references = object
-        .get("references")
-        .and_then(serde_json::Value::as_array)
-        .with_context(|| format!("credential references must be a list in {}", path.display()))?;
-    if required == references.is_empty() {
-        bail!("credentials_required disagrees with references in {}", path.display());
-    }
-    if object
-        .get("redaction")
-        .and_then(serde_json::Value::as_object)
-        .and_then(|redaction| redaction.get("publish_values"))
-        .and_then(serde_json::Value::as_bool)
-        != Some(false)
-    {
-        bail!("credential reference lacks a no-publication rule: {}", path.display());
-    }
-    Ok(())
 }
 
 pub(super) fn run_directory_identity(path: &Path) -> Result<(String, String)> {
@@ -327,29 +281,6 @@ fn child_directories(root: &Path) -> Result<Vec<std::path::PathBuf>> {
     paths.retain(|path| path.is_dir());
     paths.sort();
     Ok(paths)
-}
-
-fn collect_forbidden_keys(
-    value: &serde_json::Value,
-    forbidden: &[&str],
-    findings: &mut BTreeSet<String>,
-) {
-    match value {
-        serde_json::Value::Object(object) => {
-            for (key, child) in object {
-                if forbidden.contains(&key.to_ascii_lowercase().as_str()) {
-                    findings.insert(key.to_ascii_lowercase());
-                }
-                collect_forbidden_keys(child, forbidden, findings);
-            }
-        }
-        serde_json::Value::Array(values) => {
-            for child in values {
-                collect_forbidden_keys(child, forbidden, findings);
-            }
-        }
-        _ => {}
-    }
 }
 
 fn validate_relative_path(value: &str, label: &str, root: &Path) -> Result<()> {

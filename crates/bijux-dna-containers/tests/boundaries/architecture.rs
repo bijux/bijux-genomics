@@ -34,7 +34,16 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src")),
-        btree_set(&["build/", "evidence/", "lib.rs", "public_api/", "resolve/", "runtime_spec/",]),
+        btree_set(&[
+            "build/",
+            "evidence/",
+            "execution_contract/",
+            "lib.rs",
+            "public_api/",
+            "resolve/",
+            "runtime_spec/",
+            "site_policy/",
+        ]),
         "src tree must match the documented environment layout"
     );
 
@@ -127,11 +136,25 @@ fn source_tree_matches_architecture_contract() {
         btree_set(&["errors.rs", "image.rs", "mod.rs", "platform.rs", "runtime.rs"]),
         "resolve types tree must stay split by model concern"
     );
+}
 
+#[test]
+fn execution_policy_tree_matches_architecture_contract() {
+    let root = crate_root("bijux-dna-containers");
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
         btree_set(&["mod.rs", "stable_surface.rs"]),
         "public api tree must keep the stable surface explicit"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/execution_contract")),
+        btree_set(&["credential.rs", "mod.rs"]),
+        "execution contracts must remain strict typed admission surfaces"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/site_policy")),
+        btree_set(&["mod.rs", "model.rs", "repository_freeze.rs", "validation.rs"]),
+        "site policy must separate declarations, validation, and repository effects"
     );
 }
 
@@ -142,6 +165,7 @@ fn inventory_source_tree_matches_ownership_contract() {
         dir_entries(&root.join("src/evidence")),
         btree_set(&[
             "chain.rs",
+            "external_artifact/",
             "image_activation/",
             "image_storage/",
             "inventory/",
@@ -149,6 +173,7 @@ fn inventory_source_tree_matches_ownership_contract() {
             "mod.rs",
             "model.rs",
             "qualification_registry/",
+            "run_evidence/",
             "runtime_verification/",
             "schema.rs",
             "selection.rs",
