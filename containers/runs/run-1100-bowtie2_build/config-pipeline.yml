@@ -9,12 +9,12 @@ run:
   tool: bowtie2_build
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/b5a58ac70e8deb09184cc20535fa86d019147e3c
+  commit: b5a58ac70e8deb09184cc20535fa86d019147e3c
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bowtie2_build-2.5.4-linux-amd64-32000470f522.sif
-  sha256: 32000470f522e0c1054fc6e8599f73f935e537adb376d380295762105395b884
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bowtie2_build-2.5.4-linux-amd64-a134b7012023.sif
+  sha256: a134b7012023af66a0a313572bc355a54f67cdd0f3e45cb5559638d03294fef2
 data:
   inputs:
     - id: equcab3-nc-009144.3-first-megabase

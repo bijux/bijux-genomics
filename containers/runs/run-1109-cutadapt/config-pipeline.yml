@@ -9,12 +9,12 @@ run:
   tool: cutadapt
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/446f6241c18db432f89a399acf477142dcea2554
+  commit: 446f6241c18db432f89a399acf477142dcea2554
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/cutadapt-4.9-linux-amd64-110b141e6281.sif
-  sha256: 110b141e628194541d1cb37ed250ab472bf1f6aca68e8deebdd9f4917f9a86dd
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/cutadapt-4.9-linux-amd64-17a50c534197.sif
+  sha256: 17a50c534197eb2bcb6b5512b96c273bef336d95ec50ebe1b2e740459f778b40
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

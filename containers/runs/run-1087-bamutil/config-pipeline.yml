@@ -9,12 +9,12 @@ run:
   tool: bamutil
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/1c38962f2871667b738f648ec66c526a31081670
+  commit: 1c38962f2871667b738f648ec66c526a31081670
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bamutil-1.0.15-linux-amd64-d7613acb8a45.sif
-  sha256: d7613acb8a45409c634c57d27bd12a8f7174f50f232834c2c82e3b80082559b8
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bamutil-1.0.15-linux-amd64-b9e8aebb7038.sif
+  sha256: b9e8aebb70381153230b3e2883af7f71b47ad8efed9f3c8beb1392dec7cda5c3
 data:
   inputs:
     - id: ena-err1021817-equcab3-coordinate-sorted-bam

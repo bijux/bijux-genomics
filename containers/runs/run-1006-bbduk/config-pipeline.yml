@@ -9,12 +9,12 @@ run:
   tool: bbduk
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132
+  commit: a7690273fbf58648d4adf485d7d4037e0f983132
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bbduk-39.06-linux-amd64-afeb276b32b8.sif
-  sha256: afeb276b32b83f2c3017991671bf2a36fe7b8a8ca20377fc27dce20f8b1e3293
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbduk-39.06-linux-amd64-ad3f94f44b4e.sif
+  sha256: ad3f94f44b4e8871c326298d260d2594215851be7289a328da04e1ef5be409af
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-pair1

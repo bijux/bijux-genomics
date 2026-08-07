@@ -9,12 +9,12 @@ run:
   tool: contammix
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/84651657741bfebe8ab25874e95139dcafd3c962
+  commit: 84651657741bfebe8ab25874e95139dcafd3c962
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/contammix-1.0.11-linux-amd64-99e9f748c6d7.sif
-  sha256: 99e9f748c6d7795d7b5d8b3c3ea35a678fa58f10bfb326e10a86a38de66cbc46
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/contammix-1.0.11-linux-amd64-10a74dccedc1.sif
+  sha256: 10a74dccedc1580d500c18d9fc1724fea0229ccc6646825cecab69364e3a4243
 data:
   inputs:
     - id: samtools-run-1107-mitochondrial-bam

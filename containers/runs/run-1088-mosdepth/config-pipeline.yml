@@ -9,12 +9,12 @@ run:
   tool: mosdepth
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/6fa5d55f3b092de162f7f136461037431aaea494
+  commit: 6fa5d55f3b092de162f7f136461037431aaea494
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/mosdepth-0.3.11-linux-amd64-0d121bbf75a8.sif
-  sha256: 0d121bbf75a8add044489699d24831f30245ad616f702687d1879e9193a75bfa
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mosdepth-0.3.11-linux-amd64-21697c7ae591.sif
+  sha256: 21697c7ae5919429ded46ea4aead6f2b93edf234271e4389655d79f4012db8f5
 data:
   inputs:
     - id: samtools-aligned-sorted-bam

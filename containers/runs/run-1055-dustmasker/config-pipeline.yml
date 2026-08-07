@@ -1,7 +1,7 @@
 schema_version: bijux.container.pipeline.v1
 run: {id: run-1055, campaign: public-equcab-complexity-container-qualification, corpus: equcab3-nc_009144.3-first-megabase, sample: chromosome-1-first-megabase, domain: reference, stage: reference.mask_low_complexity, tool: dustmasker, operator: bijan}
-repository: {path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db, commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db, clean: true}
-image: {path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/dustmasker-2.15.0-linux-amd64-40ef20651af8.sif, sha256: 40ef20651af8b7a138da344260d68188a1e2fcc42b1a03ea4cd05b1db754530e}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/3151d5ae8139baf2035914c59d3830da3cadf62b, commit: 3151d5ae8139baf2035914c59d3830da3cadf62b, clean: true}
+image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dustmasker-2.15.0-linux-amd64-416c38e6a7e1.sif, sha256: 416c38e6a7e13ea4042d15aa7f7f177c287aa535ee8e3aef6dc4bc543518682d}
 data:
   inputs:
     - {id: equcab3-nc_009144.3-first-megabase, kind: reference, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-nc_009144.3-first-megabase/equcab3-nc_009144.3-1-1000000.fasta, sha256: 31c05c963f35d1c98fb95ef7872712ea005f95d9ebffeee35c1f7207a17bbd9a}

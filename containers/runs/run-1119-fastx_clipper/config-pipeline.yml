@@ -9,12 +9,12 @@ run:
   tool: fastx_clipper
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/6678ba0be6451eca04e6cce7f777f6e34ca526e1
+  commit: 6678ba0be6451eca04e6cce7f777f6e34ca526e1
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-88f9b12fdf57.sif
-  sha256: 88f9b12fdf57e35d3f38d8a73f4062042533dfa99c09cf8b8377f6dced335ce1
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-4fe414e042bf.sif
+  sha256: 4fe414e042bf61979c1c5fe82143bd1701dc977184750a54cb0d52abb4a2d440
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1-uncompressed

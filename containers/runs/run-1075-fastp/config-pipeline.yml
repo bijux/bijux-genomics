@@ -9,12 +9,12 @@ run:
   tool: fastp
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/569a3098bea532d892a144ca7b73b6e56f2125e1
+  commit: 569a3098bea532d892a144ca7b73b6e56f2125e1
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastp-0.23.4-linux-amd64-339a8c1e7e37.sif
-  sha256: 339a8c1e7e3785cd683f511a3dcf7b60e79cc83c871789dec7bc7a34130f9d3e
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastp-0.23.4-linux-amd64-510fd454fd9c.sif
+  sha256: 510fd454fd9cdd2c1efe5f3e75ec280e98be5cfd1f0e496f0ade02554206e639
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

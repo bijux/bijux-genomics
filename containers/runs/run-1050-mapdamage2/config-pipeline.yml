@@ -1,7 +1,7 @@
 schema_version: bijux.container.pipeline.v1
 run: {id: run-1050, campaign: public-ancient-horse-container-qualification, corpus: ena-prjeb22390-err2112767, sample: ERR2112767, domain: bam, stage: bam.damage, tool: mapdamage2, operator: bijan}
-repository: {path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db, commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db, clean: true}
-image: {path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-b6c50c6b7dfb.sif, sha256: b6c50c6b7dfb1a43e1b09cc88bff5f99dba1dd2e00ee94b7f6d1d45756354721}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/814ed68d6408bb720a91ff30ee19c59a2105b530, commit: 814ed68d6408bb720a91ff30ee19c59a2105b530, clean: true}
+image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/mapdamage2-2.2.2-linux-amd64-3f6570d3130c.sif, sha256: 3f6570d3130c0921ba15d83bda7ebad02469e37e970e9b84cd20078859eb60f0}
 data:
   inputs:
     - {id: ena-prjeb22390-err2112767, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam, sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87}

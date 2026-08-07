@@ -9,12 +9,12 @@ run:
   tool: adapterremoval
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/fd989ab019a266afb10950271012bfef48833570
+  commit: fd989ab019a266afb10950271012bfef48833570
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/adapterremoval-2.3.4-linux-amd64-3223dd1ec063.sif
-  sha256: 3223dd1ec0639b8a794de92b3196f04a1b6a8b5078ca060cbe75b50eda791d37
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/adapterremoval-2.3.4-linux-amd64-a662fe75344f.sif
+  sha256: a662fe75344f09f9f756dbedf1000f1dcc572d1aff35136e0eeb80fcfd0c2687
 data:
   inputs:
   - id: ERR1021817-mate-1-read-prefix-100000

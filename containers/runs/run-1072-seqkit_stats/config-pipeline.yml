@@ -9,12 +9,12 @@ run:
   tool: seqkit_stats
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/e2cec523eddef2db149374e7fbbbca29607e3912
+  commit: e2cec523eddef2db149374e7fbbbca29607e3912
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/seqkit_stats-2.8.2-linux-amd64-333b0153eec0.sif
-  sha256: 333b0153eec075d5a6f79f668f38acbbd86f14376ffe0674d4892e19515411dc
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqkit_stats-2.8.2-linux-amd64-bb490f4acbc8.sif
+  sha256: bb490f4acbc8dc32f5a2e2a7ebaf5d1a9bed93ed468ef714dabc4e70faaab279
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

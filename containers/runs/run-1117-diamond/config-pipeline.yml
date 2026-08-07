@@ -9,12 +9,12 @@ run:
   tool: diamond
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/18b311fb90881e765510bcb81dcc7319546997b6
+  commit: 18b311fb90881e765510bcb81dcc7319546997b6
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/diamond-2.1.10-linux-amd64-3c74a1042c32.sif
-  sha256: 3c74a1042c32d3e9b5530d4925df8861c81b11010b0b3793f767fe83493f68ee
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/diamond-2.1.10-linux-amd64-d86c946a7abb.sif
+  sha256: d86c946a7abb2f28f3da389735b425eff159fd2415e95cab5cf4a5b8611b579d
 data:
   inputs:
     - id: ena-prjeb10854-err1021817-read-prefix-100000-r1

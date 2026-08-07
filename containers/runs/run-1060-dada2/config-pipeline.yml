@@ -9,12 +9,12 @@ run:
   tool: dada2
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/0402016c18e5c932e6af6338094bf250cd3ba97b
+  commit: 0402016c18e5c932e6af6338094bf250cd3ba97b
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-d38ed54d7694.sif
-  sha256: d38ed54d7694d7e36d843fee915aca97026821a5c7ecfecec70aa8cd230e88b4
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-912e10759d87.sif
+  sha256: 912e10759d87d3f64492b39db9c06f14af8504235f69ac3a92dafe76a2fd5114
 data:
   inputs:
     - id: mothur-miseq-sop-f3d0-r1

@@ -9,12 +9,12 @@ run:
   tool: alientrimmer
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/00f23822e64a47d42396f6c9dc0c567746aa5ba8
+  commit: 00f23822e64a47d42396f6c9dc0c567746aa5ba8
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/alientrimmer-3.2-linux-amd64-5655e8ffc10c.sif
-  sha256: 5655e8ffc10c2891de24ed409aa457ffa3d88aa93bc94f8a02889274d1a4244f
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/alientrimmer-3.2-linux-amd64-02ee033035a2.sif
+  sha256: 02ee033035a2b16ddd68da3234dd3701a92e7939edf2d46ac3f66e127da16536
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

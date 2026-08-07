@@ -9,12 +9,12 @@ run:
   tool: damageprofiler
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/2b7081b7f8deb3c75bb71c59d6a5d538aa153c26
+  commit: 2b7081b7f8deb3c75bb71c59d6a5d538aa153c26
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-a458a99b82e4.sif
-  sha256: a458a99b82e423e57c1d1ae363546871bf6247c7e44270e6a673da5ee811a915
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-f4378bded358.sif
+  sha256: f4378bded3587306c997c6c7bb3eb8f83be3beb29d4bb17bab432962d8c97f13
 data:
   inputs:
     - id: ena-prjeb22390-err2112767-calmd-sam

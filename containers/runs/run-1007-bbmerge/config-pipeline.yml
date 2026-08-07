@@ -9,12 +9,12 @@ run:
   tool: bbmerge
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132
+  commit: a7690273fbf58648d4adf485d7d4037e0f983132
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bbmerge-39.06-linux-amd64-f6dd03fd8ca2.sif
-  sha256: f6dd03fd8ca247a917f3e26e04904c5268fcb45e2711c738d4ae54c84eabe51e
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbmerge-39.06-linux-amd64-c2eb1201530e.sif
+  sha256: c2eb1201530e2f7113b5e2ca2f1c91aef34b3fc5a6de67cea958c54bc0c32643
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-pair1

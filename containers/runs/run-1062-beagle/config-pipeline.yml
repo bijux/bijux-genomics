@@ -9,12 +9,12 @@ run:
   tool: beagle
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/5b6f49a03cbd13c1b3a5c06fa39d2e18a7749a30
+  commit: 5b6f49a03cbd13c1b3a5c06fa39d2e18a7749a30
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/beagle-5.4-linux-amd64-6347a9737211.sif
-  sha256: 6347a9737211499413378ec45c800532ae4e6dc8f7c419fd5860e4dfa4d1a461
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/beagle-5.4-linux-amd64-98b380fa3e87.sif
+  sha256: 98b380fa3e87bd7811baac9a95bd97521028062672c72b48197187c37c2562db
 data:
   inputs:
     - id: 1000-genomes-phase3-chr22-biallelic-100-samples

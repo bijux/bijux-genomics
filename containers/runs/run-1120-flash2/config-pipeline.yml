@@ -9,12 +9,12 @@ run:
   tool: flash2
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/2e3d7774e1d51b2e95b757582836205aa0a702ba
+  commit: 2e3d7774e1d51b2e95b757582836205aa0a702ba
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/flash2-2.2.00-linux-amd64-fdca1a19d92f.sif
-  sha256: fdca1a19d92f27658c26c2b72e75607d6fa2add364dafe1e009d7beed7aef2db
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/flash2-2.2.00-linux-amd64-3fdfb65afaf1.sif
+  sha256: 3fdfb65afaf1c9967f7ffae5a0015f18b627099fd7ed95efc07626d7932aeac7
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

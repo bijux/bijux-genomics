@@ -9,12 +9,12 @@ run:
   tool: fqtools
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/4fa8609958a669146869efeca21cb373736192bc
+  commit: 4fa8609958a669146869efeca21cb373736192bc
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fqtools-2.3-linux-amd64-d3e04efc3aca.sif
-  sha256: d3e04efc3acaf972d563c9890ca6a329d136cc284502f191607c0340f11201c5
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fqtools-2.3-linux-amd64-a0f39cc7e90e.sif
+  sha256: a0f39cc7e90e778b603d41d23780a0add9bb0ded2849d73d0787f4e1d7c96488
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

@@ -9,12 +9,12 @@ run:
   tool: seqtk
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/e2cec523eddef2db149374e7fbbbca29607e3912
+  commit: e2cec523eddef2db149374e7fbbbca29607e3912
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/seqtk-1.4-linux-amd64-cd437b8ad407.sif
-  sha256: cd437b8ad40743a3eb91d0c66649606da64cba4d9e3badb8ca0f9b5cfd4bf14f
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqtk-1.4-linux-amd64-a45079003aba.sif
+  sha256: a45079003abaabe29b1f4395b372d3fe00e6f1b7a5e2c0d78a1be9546c38b215
 data:
   inputs:
     - id: ena-err1021817-read-prefix-100000-r1

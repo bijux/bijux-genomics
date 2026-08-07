@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T05:55:38Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/cba3cd2cba2258845fca9471a660febd39490830
+  commit: cba3cd2cba2258845fca9471a660febd39490830
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-800137001b98.sif
-  sha256: 800137001b98b55909f0942f0bdc9a41d73fdb68b6543a26ed74b09d15cd09da
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif
+  sha256: 482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd
 data:
   inputs:
     - id: err2112767_alignment

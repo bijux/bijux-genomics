@@ -9,12 +9,12 @@ run:
   tool: samtools
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/12514022891a719e82c87c8535fc9c40bc56eb6c
+  commit: 12514022891a719e82c87c8535fc9c40bc56eb6c
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-0f1daa340f34.sif
-  sha256: 0f1daa340f34c78e7c7f353af55436a45ca7e2275326f9013a45626cc7ed9bd0
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif
+  sha256: 5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f
 data:
   inputs:
     - id: ena-prjeb22390-err2112767

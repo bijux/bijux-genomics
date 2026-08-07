@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T17:12:05Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f
+  commit: 04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/lighter-1.1.3-linux-amd64-ded4626acb83.sif
-  sha256: ded4626acb8355fcb0ed008db000af7fa1b3a070cc3741b11d806c6b2334fb75
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/lighter-1.1.3-linux-amd64-92cc08026046.sif
+  sha256: 92cc08026046243b181c59feda88dc464f9d5e60f746581b9bd7e2534d8031d9
 data:
   inputs:
     - id: err1021817_mate_1

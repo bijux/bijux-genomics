@@ -9,12 +9,12 @@ run:
   tool: germline
   operator: bijan
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/17a6ee7ab1163f07b34a5619cc44b3679e9ccd03
+  commit: 17a6ee7ab1163f07b34a5619cc44b3679e9ccd03
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-29f52275e7bb.sif
-  sha256: 29f52275e7bb43e23c9f89651ef46dc6a7cd1df59d0412203718d3d72e64a2e1
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-3ff976e69406.sif
+  sha256: 3ff976e694067ce2252b79d3923a5e640a6b2aadc8c99e244db125f41d63a2a8
 data:
   inputs:
     - id: chromosome-22-plink-ped

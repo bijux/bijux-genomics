@@ -10,12 +10,12 @@ run:
   operator: bijan
   submitted_at_utc: '2026-08-03T16:17:24Z'
 repository:
-  path: /home/bijan/bijux/bijux-genomics-runs/5f350a441cf2910c1aa3d2d8638e3844df3249db
-  commit: 5f350a441cf2910c1aa3d2d8638e3844df3249db
+  path: /home/bijan/bijux/bijux-genomics-runs/44075982cd29ee95315f23992794684d314eae0b
+  commit: 44075982cd29ee95315f23992794684d314eae0b
   clean: true
 image:
-  path: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-f521a162c6e7.sif
-  sha256: f521a162c6e761e9a6459739b6f4f429e5a7678f08e737d0b0b21a6279a93ed9
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-408eeb428a48.sif
+  sha256: 408eeb428a48286e9f8160571db10e4cb1b519fea336983a41e7bcab4551e761
 data:
   inputs:
     - id: err2112767_bam
