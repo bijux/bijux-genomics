@@ -117,6 +117,28 @@ pub fn validate_defined_interface_campaign_alignment(
                 interface.stage_id, interface.tool_ids, campaign.tool_ids
             )));
         }
+        let declared_metrics = campaign
+            .performance_metrics
+            .iter()
+            .map(String::as_str)
+            .chain([
+                "cpu_utilization_percent",
+                "throughput_input_bytes_per_second",
+                "throughput_reads_per_second",
+            ])
+            .collect::<BTreeSet<_>>();
+        if let Some(metric) = interface
+            .report_presentation
+            .performance_columns
+            .iter()
+            .map(|column| column.metric.as_str())
+            .find(|metric| !declared_metrics.contains(metric))
+        {
+            return Err(BenchError::InvalidPolicy(format!(
+                "stage report presentation references undeclared performance metric for {}: {metric}",
+                interface.stage_id
+            )));
+        }
     }
     Ok(())
 }
@@ -167,7 +189,8 @@ fn validate_stage_interface(interface: &BenchmarkStageInterfaceSpec) -> Result<(
     validate_stage_interface_paths(interface)?;
     validate_stage_interface_tools(interface)?;
     validate_stage_interface_parameter_ownership(interface)?;
-    validate_stage_interface_downstream_probe(interface)
+    validate_stage_interface_downstream_probe(interface)?;
+    validate_report_presentation(interface)
 }
 
 fn validate_stage_interface_shape(
@@ -313,6 +336,52 @@ fn validate_stage_interface_downstream_probe(
             "stage interface downstream input differs from canonical output: {}",
             interface.stage_id
         )));
+    }
+    Ok(())
+}
+
+fn validate_report_presentation(interface: &BenchmarkStageInterfaceSpec) -> Result<(), BenchError> {
+    let presentation = &interface.report_presentation;
+    let report_extension = std::path::Path::new(&presentation.report_file_stem)
+        .extension()
+        .and_then(std::ffi::OsStr::to_str);
+    if !is_safe_filename(&presentation.report_file_stem)
+        || report_extension.is_some_and(|extension| {
+            extension.eq_ignore_ascii_case("json") || extension.eq_ignore_ascii_case("md")
+        })
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "stage report presentation has an unsafe file stem: {}",
+            interface.stage_id
+        )));
+    }
+    require_text(&presentation.generated_source, "stage report generated source")?;
+    if !presentation
+        .generated_source
+        .chars()
+        .all(|character| character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | ':'))
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "stage report presentation contains unsafe Markdown text: {}",
+            interface.stage_id
+        )));
+    }
+    if presentation.performance_columns.is_empty() {
+        return Err(BenchError::InvalidPolicy(format!(
+            "stage report presentation has no performance columns: {}",
+            interface.stage_id
+        )));
+    }
+    let mut metrics = BTreeSet::new();
+    for column in &presentation.performance_columns {
+        require_text(&column.metric, "stage report performance metric")?;
+        require_text(&column.heading, "stage report performance heading")?;
+        if column.heading.contains(['\n', '|']) || !metrics.insert(column.metric.as_str()) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "stage report presentation has unsafe or duplicate columns: {}",
+                interface.stage_id
+            )));
+        }
     }
     Ok(())
 }

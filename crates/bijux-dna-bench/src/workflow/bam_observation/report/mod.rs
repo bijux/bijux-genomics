@@ -6,11 +6,11 @@ mod rendering;
 mod science;
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    BenchmarkCampaignPlan, BenchmarkExecutionSpec, BenchmarkStageCampaignSpec, BenchmarkStageReport,
+    BenchmarkCampaignPlan, BenchmarkExecutionSpec, BenchmarkStageCampaignSpec,
 };
 
 use self::evidence::load_attempt_evidence;
@@ -23,8 +23,8 @@ use super::super::{
     verify_campaign_plan_source,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, ensure_bytes, ensure_directory, is_active_plan_origin,
-    require_complete_plan,
+    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    require_complete_plan, BenchmarkStageReportPublication,
 };
 
 pub(crate) type ScientificDeriver =
@@ -33,7 +33,6 @@ pub(crate) type ScientificDeriver =
 pub(crate) struct BamObservationReportPolicy {
     pub(crate) run_id: &'static str,
     pub(crate) stage_id: &'static str,
-    pub(crate) report_file_stem: &'static str,
     pub(crate) tool_ids: &'static [&'static str],
     pub(crate) result_artifact: &'static str,
     pub(crate) input_size_keys: &'static [&'static str],
@@ -41,14 +40,7 @@ pub(crate) struct BamObservationReportPolicy {
     pub(crate) derive: ScientificDeriver,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct BamObservationStageReportPublication {
-    pub report_path: PathBuf,
-    pub markdown_path: PathBuf,
-    pub report_sha256: String,
-    pub markdown_sha256: String,
-    pub report: BenchmarkStageReport,
-}
+pub type BamObservationStageReportPublication = BenchmarkStageReportPublication;
 
 pub(crate) fn publish_bam_observation_stage_report(
     repository_root: &Path,
@@ -108,21 +100,7 @@ pub(crate) fn publish_bam_observation_stage_report(
         evidence_by_tool.insert(tool.clone(), evidence);
     }
     let report = build_stage_report(&repository_root, plan, campaign, interface, evidence_by_tool)?;
-    ensure_directory(output_root)?;
-    let report_path = output_root.join(format!("{}.json", policy.report_file_stem));
-    let markdown_path = output_root.join(format!("{}.md", policy.report_file_stem));
-    let mut report_bytes = serde_json::to_vec_pretty(&report)?;
-    report_bytes.push(b'\n');
-    let markdown = render_bam_observation_markdown(&report);
-    ensure_bytes(&report_path, &report_bytes)?;
-    ensure_bytes(&markdown_path, markdown.as_bytes())?;
-    Ok(BamObservationStageReportPublication {
-        report_path,
-        markdown_path,
-        report_sha256: bijux_dna_infra::hash_bytes_sha256(&report_bytes),
-        markdown_sha256: bijux_dna_infra::hash_bytes_sha256(markdown.as_bytes()),
-        report,
-    })
+    publish_stage_report(output_root, campaign, interface, report)
 }
 
 fn require_governed_campaign(

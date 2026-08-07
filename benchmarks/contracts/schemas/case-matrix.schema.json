@@ -213,6 +213,106 @@
       ],
       "type": "string"
     },
+    "BenchmarkReportComparisonPresentation": {
+      "enum": [
+        "status_only",
+        "range_only",
+        "tool_means"
+      ],
+      "type": "string"
+    },
+    "BenchmarkReportDeterminismPresentation": {
+      "enum": [
+        "detailed_evidence",
+        "compact_evidence"
+      ],
+      "type": "string"
+    },
+    "BenchmarkReportMetricFormat": {
+      "enum": [
+        "seconds3",
+        "mebibytes1",
+        "mebibytes_per_second2",
+        "number0",
+        "number1",
+        "percent1"
+      ],
+      "type": "string"
+    },
+    "BenchmarkReportPerformanceColumn": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "$ref": "#/$defs/BenchmarkReportMetricFormat"
+        },
+        "heading": {
+          "type": "string"
+        },
+        "include_range": {
+          "default": false,
+          "type": "boolean"
+        },
+        "metric": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric",
+        "heading",
+        "format"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportPresentation": {
+      "additionalProperties": false,
+      "properties": {
+        "comparison": {
+          "$ref": "#/$defs/BenchmarkReportComparisonPresentation"
+        },
+        "determinism": {
+          "$ref": "#/$defs/BenchmarkReportDeterminismPresentation"
+        },
+        "generated_source": {
+          "type": "string"
+        },
+        "include_comparison_closure": {
+          "default": false,
+          "type": "boolean"
+        },
+        "performance_columns": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkReportPerformanceColumn"
+          },
+          "type": "array"
+        },
+        "report_file_stem": {
+          "type": "string"
+        },
+        "separate_accuracy_claim": {
+          "default": false,
+          "type": "boolean"
+        },
+        "title_class": {
+          "$ref": "#/$defs/BenchmarkReportTitleClass"
+        }
+      },
+      "required": [
+        "report_file_stem",
+        "generated_source",
+        "title_class",
+        "determinism",
+        "comparison",
+        "performance_columns"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportTitleClass": {
+      "enum": [
+        "qualification",
+        "comparative"
+      ],
+      "type": "string"
+    },
     "BenchmarkStageCampaignSpec": {
       "additionalProperties": false,
       "properties": {
@@ -482,6 +582,9 @@
           },
           "type": "array"
         },
+        "report_presentation": {
+          "$ref": "#/$defs/BenchmarkReportPresentation"
+        },
         "stage_id": {
           "type": "string"
         },
@@ -506,7 +609,8 @@
         "tool_ids",
         "provenance_sources",
         "adapters",
-        "downstream_probe"
+        "downstream_probe",
+        "report_presentation"
       ],
       "type": "object"
     },

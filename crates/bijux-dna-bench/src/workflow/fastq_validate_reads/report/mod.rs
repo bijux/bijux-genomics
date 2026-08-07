@@ -6,12 +6,10 @@ mod rendering;
 mod science;
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::{
-    BenchmarkCampaignPlan, BenchmarkStageCampaignSpec, BenchmarkStageReport,
-};
+use bijux_dna_bench_model::{BenchmarkCampaignPlan, BenchmarkStageCampaignSpec};
 
 use self::evidence::load_attempt_evidence;
 pub use self::rendering::render_fastq_validate_reads_markdown;
@@ -20,23 +18,14 @@ use super::super::{
     verify_campaign_plan_source,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, ensure_bytes, ensure_directory, is_active_plan_origin,
-    require_complete_plan,
+    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    require_complete_plan, BenchmarkStageReportPublication,
 };
 pub(super) use crate::workflow::stage_report::{read_json, MAX_REPORT_INPUT_BYTES};
 
 pub(super) const RUN_ID: &str = "run-2051";
 pub(super) const STAGE_ID: &str = "fastq.validate_reads";
-const REPORT_FILE_STEM: &str = "run-2051-fastq-validate-reads";
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct FastqValidateReadsStageReportPublication {
-    pub report_path: PathBuf,
-    pub markdown_path: PathBuf,
-    pub report_sha256: String,
-    pub markdown_sha256: String,
-    pub report: BenchmarkStageReport,
-}
+pub type FastqValidateReadsStageReportPublication = BenchmarkStageReportPublication;
 
 /// Derive and no-clobber publish the run-2051 report from exact admitted attempt closure.
 ///
@@ -102,21 +91,7 @@ pub fn publish_fastq_validate_reads_stage_report(
         );
     }
     let report = build_stage_report(&repository_root, plan, campaign, interface, evidence_by_tool)?;
-    ensure_directory(output_root)?;
-    let report_path = output_root.join(format!("{REPORT_FILE_STEM}.json"));
-    let markdown_path = output_root.join(format!("{REPORT_FILE_STEM}.md"));
-    let mut report_bytes = serde_json::to_vec_pretty(&report)?;
-    report_bytes.push(b'\n');
-    let markdown = render_fastq_validate_reads_markdown(&report);
-    ensure_bytes(&report_path, &report_bytes)?;
-    ensure_bytes(&markdown_path, markdown.as_bytes())?;
-    Ok(FastqValidateReadsStageReportPublication {
-        report_path,
-        markdown_path,
-        report_sha256: bijux_dna_infra::hash_bytes_sha256(&report_bytes),
-        markdown_sha256: bijux_dna_infra::hash_bytes_sha256(markdown.as_bytes()),
-        report,
-    })
+    publish_stage_report(output_root, campaign, interface, report)
 }
 
 fn require_governed_campaign(

@@ -19,7 +19,6 @@ pub type BamDuplicationMetricsStageReportPublication = BamObservationStageReport
 const POLICY: BamObservationReportPolicy = BamObservationReportPolicy {
     run_id: "run-2011",
     stage_id: "bam.duplication_metrics",
-    report_file_stem: "run-2011-bam-duplication-metrics",
     tool_ids: &["picard", "samtools"],
     result_artifact: "duplication-summary.tsv",
     input_size_keys: &["bam_input_bytes", "bam_index_input_bytes"],

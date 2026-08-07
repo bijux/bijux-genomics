@@ -132,6 +132,9 @@ pub use stage_coverage::{
     derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
     BenchmarkCoverageWriteMode,
 };
+pub use stage_report::{
+    publish_stage_report, render_stage_report_markdown, BenchmarkStageReportPublication,
+};
 pub use stage_universe::{
     derive_stage_universe, publish_checked_in_stage_universe, render_stage_universe_markdown,
     BenchmarkUniverseWriteMode,

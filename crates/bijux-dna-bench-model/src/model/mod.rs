@@ -61,8 +61,11 @@ pub use execution::{
 pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 #[allow(unused_imports)]
 pub use interfaces::{
-    BenchmarkParameterValue, BenchmarkPipelineParameterConfig, BenchmarkStageDownstreamProbe,
-    BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
+    BenchmarkParameterValue, BenchmarkPipelineParameterConfig,
+    BenchmarkReportComparisonPresentation, BenchmarkReportDeterminismPresentation,
+    BenchmarkReportMetricFormat, BenchmarkReportPerformanceColumn, BenchmarkReportPresentation,
+    BenchmarkReportTitleClass, BenchmarkStageDownstreamProbe, BenchmarkStageInterfaceCatalog,
+    BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 #[allow(unused_imports)]
 pub use lifecycle::{

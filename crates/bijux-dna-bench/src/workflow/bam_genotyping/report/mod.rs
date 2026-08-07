@@ -5,7 +5,7 @@ mod evidence;
 mod science;
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
@@ -19,20 +19,11 @@ use super::super::{
     verify_campaign_plan_source,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, ensure_bytes, ensure_directory, is_active_plan_origin,
-    require_complete_plan,
+    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    require_complete_plan, BenchmarkStageReportPublication,
 };
 
-const REPORT_FILE_STEM: &str = "run-2001-bam-genotyping";
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct BamGenotypingStageReportPublication {
-    pub report_path: PathBuf,
-    pub markdown_path: PathBuf,
-    pub report_sha256: String,
-    pub markdown_sha256: String,
-    pub report: BenchmarkStageReport,
-}
+pub type BamGenotypingStageReportPublication = BenchmarkStageReportPublication;
 
 /// Derive, validate, and no-clobber publish the report for admitted run-2001 attempts.
 ///
@@ -97,21 +88,7 @@ pub fn publish_bam_genotyping_stage_report(
         interface,
         BTreeMap::from([("bcftools".to_string(), evidence)]),
     )?;
-    ensure_directory(output_root)?;
-    let report_path = output_root.join(format!("{REPORT_FILE_STEM}.json"));
-    let markdown_path = output_root.join(format!("{REPORT_FILE_STEM}.md"));
-    let mut report_bytes = serde_json::to_vec_pretty(&report)?;
-    report_bytes.push(b'\n');
-    let markdown = render_bam_genotyping_markdown(&report);
-    ensure_bytes(&report_path, &report_bytes)?;
-    ensure_bytes(&markdown_path, markdown.as_bytes())?;
-    Ok(BamGenotypingStageReportPublication {
-        report_path,
-        markdown_path,
-        report_sha256: bijux_dna_infra::hash_bytes_sha256(&report_bytes),
-        markdown_sha256: bijux_dna_infra::hash_bytes_sha256(markdown.as_bytes()),
-        report,
-    })
+    publish_stage_report(output_root, campaign, interface, report)
 }
 
 #[must_use]

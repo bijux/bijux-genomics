@@ -226,8 +226,15 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/stage_report")),
-        entries(["evidence.rs", "freshness.rs", "metrics.rs", "mod.rs", "publication.rs"]),
-        "stage report authority must separate admission, metrics, and immutable publication"
+        entries([
+            "evidence.rs",
+            "freshness.rs",
+            "metrics.rs",
+            "mod.rs",
+            "publication.rs",
+            "rendering.rs",
+        ]),
+        "stage report authority must separate admission, metrics, rendering, and publication"
     );
 
     assert_eq!(

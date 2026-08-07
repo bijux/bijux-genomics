@@ -63,8 +63,11 @@ pub use crate::model::execution::{
 pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use crate::model::interfaces::{
     benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
-    BenchmarkParameterValue, BenchmarkPipelineParameterConfig, BenchmarkStageDownstreamProbe,
-    BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
+    BenchmarkParameterValue, BenchmarkPipelineParameterConfig,
+    BenchmarkReportComparisonPresentation, BenchmarkReportDeterminismPresentation,
+    BenchmarkReportMetricFormat, BenchmarkReportPerformanceColumn, BenchmarkReportPresentation,
+    BenchmarkReportTitleClass, BenchmarkStageDownstreamProbe, BenchmarkStageInterfaceCatalog,
+    BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 pub use crate::model::lifecycle::{
     benchmark_attempt_archive_schema, benchmark_attempt_identity_schema,
