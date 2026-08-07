@@ -223,7 +223,7 @@ fn admit_repository(
             == Some(repository.commit.as_str());
     ensure!(
         is_active || is_frozen,
-        "repository.path must identify the active checkout or its commit-addressed frozen worktree"
+        "repository.path must identify the active checkout or its commit-addressed frozen snapshot"
     );
 
     let head = git_output(&repository_path, &["rev-parse", "--verify", "HEAD^{commit}"])?;

@@ -117,7 +117,7 @@ fn request(
 }
 
 #[test]
-fn repository_freeze_materializes_scoped_clean_worktrees() -> Result<()> {
+fn repository_freeze_materializes_scoped_self_contained_snapshots() -> Result<()> {
     let root = tempfile::tempdir()?;
     let (governance, commit) = fixture(root.path())?;
 
@@ -159,7 +159,12 @@ fn repository_freeze_materializes_scoped_clean_worktrees() -> Result<()> {
     for path in [&contracts, &complete, &sources] {
         assert_eq!(git(path, &["rev-parse", "HEAD"])?, commit);
         assert!(git(path, &["status", "--porcelain"])?.is_empty());
+        assert!(path.join(".git").is_dir());
+        assert!(!path.join(".git/objects/info/alternates").exists());
+        assert!(git(path, &["remote"])?.is_empty());
     }
+    let registered_worktrees = git(&governance.paths.active_repository, &["worktree", "list"])?;
+    assert_eq!(registered_worktrees.lines().count(), 1);
     assert_eq!(
         freeze_repository(&request(
             &governance,
@@ -204,6 +209,10 @@ fn checked_site_governance_loads_through_container_policy() -> Result<()> {
         load_container_governance(&repository.join("containers/contracts/sites/lunarc.yml"))?;
     assert_eq!(policy.schema_version, CONTAINER_GOVERNANCE_SCHEMA_V1);
     assert_eq!(policy.site.id, "lunarc");
+    assert_eq!(
+        policy.paths.frozen_repositories,
+        Path::new("/home/bijan/lu2024-12-24/Dardel/STUDY/data/evidence/source-checkouts")
+    );
     for hostname in ["cosmos1", "cosmos1.int.lunarc", "cn076", "cn076.int", "cn076.int.lunarc"] {
         validate_container_governance_host(&policy, hostname)?;
     }

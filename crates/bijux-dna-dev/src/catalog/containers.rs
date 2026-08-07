@@ -348,7 +348,7 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
         ),
         native(
             "repository-freeze",
-            "Materialize immutable repository worktrees under the governed site policy.",
+            "Materialize immutable repository snapshots under the governed site policy.",
             NativeContainerCommandKey::RepositoryFreeze,
         ),
         native(

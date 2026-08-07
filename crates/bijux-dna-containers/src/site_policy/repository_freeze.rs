@@ -12,12 +12,12 @@ use super::validation::{safe_checkout_path, validate_container_governance_host};
 const CONTRACT_CHECKOUT_PATHS: [&str; 3] =
     ["benchmarks/contracts", "benchmarks/execution", "containers/contracts"];
 
-/// Materialize or verify an immutable repository worktree under the governed frozen root.
+/// Materialize or verify an immutable, self-contained repository snapshot under the governed root.
 ///
 /// # Errors
 /// Returns an error when policy or host admission fails, the source repository is dirty, the
 /// commit is unavailable, a requested path is unsafe, or Git cannot create and verify the
-/// worktree.
+/// snapshot.
 pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
     validate_request(request)?;
     let active = &request.governance.paths.active_repository;
@@ -38,11 +38,11 @@ pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
         std::fs::create_dir_all(parent)
             .with_context(|| format!("create frozen repository parent {}", parent.display()))?;
     }
-    create_worktree(request, &target, &checkout_paths)?;
+    create_snapshot(request, &target, &checkout_paths)?;
     if let Err(error) = verify_existing_freeze(&target, &request.commit) {
-        let cleanup = remove_incomplete_worktree(active, &target);
+        let cleanup = remove_incomplete_snapshot(&target);
         return Err(error).context(format!(
-            "verify frozen worktree{}",
+            "verify frozen repository snapshot{}",
             if cleanup { "" } else { "; cleanup failed" }
         ));
     }
@@ -131,54 +131,97 @@ fn hex_bytes(bytes: &[u8]) -> String {
     encoded
 }
 
-fn create_worktree(
+fn create_snapshot(
     request: &RepositoryFreezeRequest,
     target: &Path,
     checkout_paths: &[PathBuf],
 ) -> Result<()> {
     let active = &request.governance.paths.active_repository;
-    let mut arguments = vec!["worktree".to_string(), "add".to_string(), "--detach".to_string()];
-    if request.scope != RepositoryFreezeScope::Complete {
-        arguments.push("--no-checkout".to_string());
-    }
-    arguments.push(target.display().to_string());
-    arguments.push(request.commit.clone());
-    if let Err(error) = git(active, &arguments) {
-        let cleanup = remove_incomplete_worktree(active, target);
+    let name = target.file_name().context("frozen repository target has no file name")?;
+    let staging = target.with_file_name(format!(
+        ".{}.partial-{}",
+        name.to_string_lossy(),
+        std::process::id()
+    ));
+    ensure!(staging.symlink_metadata().is_err(), "frozen repository staging path exists");
+    if let Err(error) = clone_repository(active, &staging) {
+        let cleanup = remove_incomplete_snapshot(&staging);
         return Err(error).context(format!(
-            "create frozen worktree{}",
-            if cleanup { "" } else { "; incomplete worktree remains" }
+            "clone frozen repository snapshot{}",
+            if cleanup { "" } else { "; incomplete snapshot remains" }
         ));
     }
-    if request.scope == RepositoryFreezeScope::Complete {
-        return Ok(());
+    if let Err(error) = configure_snapshot(request, &staging, checkout_paths) {
+        let cleanup = remove_incomplete_snapshot(&staging);
+        return Err(error).context(format!(
+            "configure frozen repository snapshot{}",
+            if cleanup { "" } else { "; incomplete snapshot remains" }
+        ));
     }
+    if let Err(error) = verify_existing_freeze(&staging, &request.commit) {
+        let cleanup = remove_incomplete_snapshot(&staging);
+        return Err(error).context(format!(
+            "verify frozen repository snapshot before publication{}",
+            if cleanup { "" } else { "; incomplete snapshot remains" }
+        ));
+    }
+    if let Err(error) = std::fs::rename(&staging, target) {
+        let cleanup = remove_incomplete_snapshot(&staging);
+        return Err(error).with_context(|| {
+            format!(
+                "publish frozen repository snapshot {}{}",
+                target.display(),
+                if cleanup { "" } else { "; incomplete snapshot remains" }
+            )
+        });
+    }
+    Ok(())
+}
 
-    let mut sparse = vec!["sparse-checkout".to_string(), "set".to_string(), "--cone".to_string()];
-    sparse.extend(checkout_paths.iter().map(|path| path.display().to_string()));
-    for arguments in [sparse, vec!["read-tree".to_string(), "-mu".to_string(), "HEAD".to_string()]]
-    {
-        if let Err(error) = git(target, &arguments) {
-            let cleanup = remove_incomplete_worktree(active, target);
-            return Err(error).context(format!(
-                "configure frozen sparse checkout{}",
-                if cleanup { "" } else { "; incomplete worktree remains" }
-            ));
-        }
+fn clone_repository(active: &Path, staging: &Path) -> Result<()> {
+    let output = Command::new("git")
+        .args(["clone", "--no-hardlinks", "--no-checkout", "--quiet"])
+        .arg(active)
+        .arg(staging)
+        .output()
+        .context("clone self-contained frozen repository")?;
+    if !output.status.success() {
+        bail!("git clone failed: {}", String::from_utf8_lossy(&output.stderr).trim());
     }
+    Ok(())
+}
+
+fn configure_snapshot(
+    request: &RepositoryFreezeRequest,
+    staging: &Path,
+    checkout_paths: &[PathBuf],
+) -> Result<()> {
+    if request.scope != RepositoryFreezeScope::Complete {
+        let mut sparse =
+            vec!["sparse-checkout".to_string(), "set".to_string(), "--cone".to_string()];
+        sparse.extend(checkout_paths.iter().map(|path| path.display().to_string()));
+        git(staging, &sparse)?;
+    }
+    git(staging, &["checkout".to_string(), "--detach".to_string(), request.commit.clone()])?;
+    git(staging, &["remote".to_string(), "remove".to_string(), "origin".to_string()])?;
     Ok(())
 }
 
 fn verify_existing_freeze(target: &Path, commit: &str) -> Result<()> {
     ensure!(
         git_text(target, &["rev-parse", "HEAD"])? == commit,
-        "existing frozen worktree has the wrong commit: {}",
+        "existing frozen repository snapshot has the wrong commit: {}",
         target.display()
     );
     ensure!(
         git_text(target, &["status", "--porcelain"])?.is_empty(),
-        "existing frozen worktree is dirty: {}",
+        "existing frozen repository snapshot is dirty: {}",
         target.display()
+    );
+    ensure!(target.join(".git").is_dir(), "frozen repository metadata is not self-contained");
+    ensure!(
+        !target.join(".git/objects/info/alternates").exists(),
+        "frozen repository snapshot depends on alternate object storage"
     );
     Ok(())
 }
@@ -208,13 +251,6 @@ fn git(repository: &Path, arguments: &[String]) -> Result<Output> {
     Ok(output)
 }
 
-fn remove_incomplete_worktree(active: &Path, target: &Path) -> bool {
-    Command::new("git")
-        .arg("-C")
-        .arg(active)
-        .args(["worktree", "remove", "--force", "--force"])
-        .arg(target)
-        .status()
-        .is_ok_and(|status| status.success())
-        || target.symlink_metadata().is_err()
+fn remove_incomplete_snapshot(target: &Path) -> bool {
+    target.symlink_metadata().is_err() || std::fs::remove_dir_all(target).is_ok()
 }
