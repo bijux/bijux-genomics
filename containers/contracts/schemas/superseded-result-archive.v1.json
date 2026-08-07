@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SupersededResultArchivePlan",
+  "type": "object",
+  "properties": {
+    "archive_root": {
+      "type": "string"
+    },
+    "attempt_ledger_sha256": {
+      "type": "string"
+    },
+    "completed_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "final_results": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "move_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "moves": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SupersededResultMove"
+      }
+    },
+    "result_root": {
+      "type": "string"
+    },
+    "rolled_back_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "size_bytes": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "state": {
+      "$ref": "#/$defs/ResultMovementState"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "state",
+    "created_at_utc",
+    "result_root",
+    "archive_root",
+    "attempt_ledger_sha256",
+    "final_results",
+    "move_count",
+    "file_count",
+    "size_bytes",
+    "moves"
+  ],
+  "$defs": {
+    "ArchivedResultCategory": {
+      "type": "string",
+      "enum": [
+        "superseded_attempt",
+        "generated_cache"
+      ]
+    },
+    "ResultFileIdentity": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "size_bytes",
+        "sha256"
+      ]
+    },
+    "ResultMovementState": {
+      "type": "string",
+      "enum": [
+        "previewed",
+        "applying",
+        "applied",
+        "rolled_back"
+      ]
+    },
+    "SupersededResultMove": {
+      "type": "object",
+      "properties": {
+        "applied": {
+          "type": "boolean"
+        },
+        "applied_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category": {
+          "$ref": "#/$defs/ArchivedResultCategory"
+        },
+        "evidence_lock_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "file_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResultFileIdentity"
+          }
+        },
+        "inventory_sha256": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "size_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string"
+        },
+        "superseded_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "tool": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "source",
+        "target",
+        "file_count",
+        "size_bytes",
+        "inventory_sha256",
+        "files",
+        "applied"
+      ]
+    }
+  }
+}

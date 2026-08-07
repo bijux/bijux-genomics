@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResultLayoutPlan",
+  "type": "object",
+  "properties": {
+    "completed_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "file_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "moves": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ResultLayoutMove"
+      }
+    },
+    "removed_empty_directories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "result_root": {
+      "type": "string"
+    },
+    "rolled_back_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "run_count": {
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "size_bytes": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "state": {
+      "$ref": "#/$defs/ResultMovementState"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "state",
+    "created_at_utc",
+    "result_root",
+    "run_count",
+    "file_count",
+    "size_bytes",
+    "moves",
+    "removed_empty_directories"
+  ],
+  "$defs": {
+    "ResultLayoutMove": {
+      "type": "object",
+      "properties": {
+        "applied": {
+          "type": "boolean"
+        },
+        "applied_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence_lock": {
+          "type": "string"
+        },
+        "evidence_lock_sha256": {
+          "type": "string"
+        },
+        "file_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "inventory_sha256": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "tool",
+        "source",
+        "target",
+        "file_count",
+        "size_bytes",
+        "inventory_sha256",
+        "evidence_lock",
+        "evidence_lock_sha256",
+        "applied"
+      ]
+    },
+    "ResultMovementState": {
+      "type": "string",
+      "enum": [
+        "previewed",
+        "applying",
+        "applied",
+        "rolled_back"
+      ]
+    }
+  }
+}
