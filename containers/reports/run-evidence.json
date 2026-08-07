@@ -1,4 +1,15 @@
 {
+  "schema_version": "bijux.container.run_evidence_index.v2",
+  "summary": {
+    "run_count": 71,
+    "tool_count": 71,
+    "execution_status": {
+      "passed": 71
+    },
+    "scientific_status": {
+      "not_assessed": 71
+    }
+  },
   "runs": [
     {
       "campaign": "horse-wgs-container-qualification",
@@ -1207,16 +1218,5 @@
       "stage": "bam.genotyping",
       "tool": "bcftools"
     }
-  ],
-  "schema_version": "bijux.container.run_evidence_index.v2",
-  "summary": {
-    "execution_status": {
-      "passed": 71
-    },
-    "run_count": 71,
-    "scientific_status": {
-      "not_assessed": 71
-    },
-    "tool_count": 71
-  }
+  ]
 }
