@@ -2,6 +2,16 @@ use std::path::PathBuf;
 
 use clap::{Args, Subcommand};
 
+#[derive(Debug, Args)]
+pub struct BenchAcquireFastqCorpusArgs {
+    #[arg(long)]
+    pub spec: PathBuf,
+    #[arg(long)]
+    pub output: PathBuf,
+    #[arg(long)]
+    pub retrieved_at_utc: String,
+}
+
 #[derive(Debug, Subcommand)]
 pub enum BenchCorpusMaterializationCommand {
     Prepare(BenchCorpusMaterializationPrepareArgs),
