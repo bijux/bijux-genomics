@@ -98,8 +98,7 @@ pub use run_evidence::{
     CONTAINER_SUPERSEDED_RESULT_ARCHIVE_SCHEMA_V1,
 };
 pub use runtime_verification::{
-    execute_runtime_verification, render_runtime_verification_markdown,
-    verify_runtime_verification_report, RuntimeVerificationRequest, RuntimeVerificationResult,
+    render_runtime_verification_markdown, verify_runtime_verification_report,
 };
 pub use schema::{
     image_inventory_publication_schema, image_inventory_scan_schema,

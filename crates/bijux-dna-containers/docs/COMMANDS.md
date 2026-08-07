@@ -34,8 +34,6 @@ library can manage when callers invoke the matching API.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.
-- `execute_runtime_verification()`: resolves canonical inventory images and runs independent
-  version/help smoke workers before publishing manifest-bound portable evidence.
 - `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
   immutable commit-addressed checkout under site-governed roots.
 - `import_run_evidence()`, `plan_final_run_evidence()`, and
@@ -66,6 +64,8 @@ library can manage when callers invoke the matching API.
 - Image resolution and platform loading do not run containers.
 - Catalog digest hydration reads the local registry file only; it does not contact a registry.
 - Cache path functions compute paths; they do not pull, build, or delete images.
+- Catalog-wide runtime verification is composed and published by `bijux-dna-containers-qa`; this
+  crate supplies the typed admission, identity, and bounded single-image probe primitives.
 
 ## Boundary Rules
 

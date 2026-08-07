@@ -18,6 +18,7 @@ fn dependency_graph_matches_environment_qa_boundary() {
         "bijux-dna-runtime",
         "clap",
         "rusqlite",
+        "serde",
         "serde_json",
         "sha2",
         "tracing",

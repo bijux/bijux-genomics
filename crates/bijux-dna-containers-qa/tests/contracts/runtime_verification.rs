@@ -7,12 +7,10 @@ use std::process::Command;
 use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_containers::evidence::tool_contract::{
-    derive_apptainer_tool_contract, tool_contract_labels, verify_apptainer_tool_contract,
-};
-use bijux_dna_containers::evidence::{
-    apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
-    execute_runtime_verification, repository_head_commit, verify_runtime_verification_report,
+use bijux_dna_containers_qa::api::{
+    apptainer_recipe_identity_at_commit, derive_apptainer_tool_contract,
+    derive_image_inventory_evidence, execute_runtime_verification, repository_head_commit,
+    tool_contract_labels, verify_apptainer_tool_contract, verify_runtime_verification_report,
     ImageInventoryDerivationRequest, RuntimeEvidenceStatus, RuntimeVerificationRequest,
     RuntimeVerificationResult,
 };
@@ -20,7 +18,7 @@ use serde_json::json;
 
 #[test]
 fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
-    let temporary = tempfile::tempdir()?;
+    let temporary = bijux_dna_testkit::tempdir_for("runtime-verification");
     let repository = temporary.path().join("repository");
     let study = temporary.path().join("study");
     fs::create_dir_all(repository.join("containers/contracts"))?;
@@ -130,7 +128,7 @@ fn assert_runtime_evidence(result: &RuntimeVerificationResult, evidence_root: &P
 
 fn assert_label_tampering_rejected(
     root: &Path,
-    contract: &bijux_dna_containers::evidence::tool_contract::ContainerToolContract,
+    contract: &bijux_dna_containers_qa::api::ContainerToolContract,
     request: &RuntimeVerificationRequest,
     image_path: &Path,
     image_sha256: &str,
@@ -163,7 +161,7 @@ fn assert_label_tampering_rejected(
 
 fn fake_apptainer(
     root: &Path,
-    contract: &bijux_dna_containers::evidence::tool_contract::ContainerToolContract,
+    contract: &bijux_dna_containers_qa::api::ContainerToolContract,
 ) -> Result<std::path::PathBuf> {
     let contract_path = root.join("tool-contract.json");
     bijux_dna_infra::atomic_create_json(&contract_path, contract)?;

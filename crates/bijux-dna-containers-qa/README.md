@@ -22,6 +22,7 @@ Cargo binaries:
 - `image_qa`
 - `qa_docker_images`
 - `build_docker_images`
+- `runtime_verification`
 
 ## Internal module layout
 The image QA surface is organized by responsibility. Start with `src/image_qa/mod.rs`, then:
@@ -33,6 +34,7 @@ The image QA surface is organized by responsibility. Start with `src/image_qa/mo
 - `behavioral/`: FASTQ behavioral QA scenarios.
 - `support/`: Docker runtime, output contracts, diagnostics, image resolution, and seqkit metrics.
 - `qa_docker_images/`: Docker image plan/probe/report command implementation.
+- `runtime_verification/`: catalog-wide Apptainer version/help probe execution.
 
 ## Key contracts it owns/consumes
 Owned contracts are documented in `docs/CONTRACTS.md`.
@@ -48,6 +50,7 @@ Use artifact-rooted local runs:
 TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-containers-qa --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo run -p bijux-dna-containers-qa --bin qa_docker_images -- --platform docker-amd64
 CARGO_TARGET_DIR=artifacts/cargo-target cargo run -p bijux-dna-containers-qa --bin image_qa -- --platform docker-amd64
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -p bijux-dna-containers-qa --bin runtime_verification -- --help
 ```
 
 ## Expected runtime

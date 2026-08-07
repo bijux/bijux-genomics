@@ -21,8 +21,8 @@
   `validate_container_catalog` roster and recipe closure; model-owned `ContainerCatalogLock`
   derivation and admission; catalog-derived Apptainer build
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
-  execution with bounded immutable streams; catalog-wide parallel runtime verification and
-  portable report publication; exact-commit catalog and Apptainer recipe identity;
+  execution with bounded immutable streams; deterministic runtime-verification report rendering;
+  exact-commit catalog and Apptainer recipe identity;
   `resolve_current_apptainer_image` selection with on-disk size and digest verification;
   no-clobber canonical image activation; reversible historical, obsolete, and interrupted image
   quarantine; no-copy external binary/SIF admission, access blockers, checksum/version replay, and
@@ -38,6 +38,9 @@
 - `site_policy`: typed site governance, hostname admission, and commit-addressed repository
   freezing under governed roots.
 - `public_api::api`: facade re-export for consumers that prefer one stable import path.
+
+Catalog-wide runtime probe orchestration is intentionally owned by `bijux-dna-containers-qa` and
+is not exported by this production crate.
 
 ## Stability Rules
 

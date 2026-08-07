@@ -15,6 +15,7 @@ environment QA.
 - `bijux-dna-runtime`: runtime manifest loading for QA stage/tool discovery.
 - `clap`: binary argument parsing.
 - `rusqlite`: QA SQLite record store.
+- `serde`: generic immutable QA evidence serialization.
 - `serde_json`: QA summary and artifact fixture JSON.
 - `sha2`: input and output digest calculation.
 - `tracing`: warnings for image resolution and seqkit parsing drift.

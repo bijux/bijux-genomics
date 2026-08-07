@@ -197,7 +197,7 @@ restoring network access:
 runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
 publication_root="${runtime_root}/publication"
 
-cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
+cargo run -p bijux-dna-containers-qa --bin runtime_verification -- execute \
   "${source_repository}" \
   /home/bijan/lu2024-12-24/Dardel/STUDY \
   "${canonical_inventory}" \
@@ -210,7 +210,7 @@ cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
   30
 ```
 
-The environment crate resolves every image through the canonical inventory,
+The QA crate resolves every image through the canonical inventory,
 re-hashes it before execution, runs independent workers without polling or
 serial queueing, and preserves one immutable manifest plus stdout/stderr pair
 per probe. Every invocation re-inspects the embedded contract and image labels;

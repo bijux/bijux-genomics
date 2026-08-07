@@ -6,7 +6,7 @@ dataset concerns.
 
 ## Source Layout
 
-- `src/bin/`: command wrappers for `image_qa`, `qa_docker_images`, and `build_docker_images`.
+- `src/bin/`: thin command wrappers for Docker QA, image QA, and Apptainer runtime verification.
 - `src/lib.rs`: public module exports.
 - `src/public_api.rs`: stable facade that re-exports environment APIs for QA consumers.
 - `src/image_qa/contracts.rs`: QA stage roster and dataset contract models.
@@ -20,6 +20,8 @@ dataset concerns.
   resolution, layout helpers, and seqkit metrics.
 - `src/image_qa/qa_docker_images/`: Docker catalog probe planning, runtime abstraction, probe
   execution, and reporting.
+- `src/image_qa/runtime_verification/`: catalog-wide Apptainer probe orchestration and immutable
+  QA evidence publication.
 
 ## Data Flow
 

@@ -195,6 +195,11 @@ fn inventory_source_tree_matches_ownership_contract() {
         "evidence tree must separate models, admission, validation, and schemas"
     );
     assert_eq!(
+        dir_entries(&root.join("src/evidence/runtime_verification")),
+        btree_set(&["mod.rs", "report.rs"]),
+        "runtime verification production ownership is limited to publication rendering"
+    );
+    assert_eq!(
         dir_entries(&root.join("src/evidence/image_activation")),
         btree_set(&["mod.rs", "model.rs", "schema.rs", "workflow.rs"]),
         "image activation must separate persisted models, lifecycle, and schemas"

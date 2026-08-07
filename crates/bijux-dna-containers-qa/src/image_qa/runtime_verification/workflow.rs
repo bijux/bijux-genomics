@@ -7,21 +7,17 @@ use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 
-use crate::evidence::tool_contract::{
-    clean_repository_head_commit, derive_apptainer_tool_contract, run_apptainer_smoke,
-    validate_tool_image_identity_evidence, verify_apptainer_tool_contract, ApptainerSmokeManifest,
-    ApptainerSmokeRequest, ContainerToolContract,
-};
-use crate::evidence::{
-    load_container_catalog, load_image_inventory_publication,
+use bijux_dna_containers::api::{
+    clean_repository_head_commit, derive_apptainer_tool_contract, load_container_catalog,
+    load_image_inventory_publication, render_runtime_verification_markdown,
     resolve_catalog_locked_apptainer_image, resolve_current_apptainer_contract_commit,
-    validate_container_evidence_chain, validate_container_inventory_catalog,
-    validate_container_recipe_evidence_chain, ContainerRuntimeEvidence, EvidenceSourceIdentity,
+    run_apptainer_smoke, validate_container_evidence_chain, validate_container_inventory_catalog,
+    validate_container_recipe_evidence_chain, validate_runtime_verification_publication,
+    validate_tool_image_identity_evidence, verify_apptainer_tool_contract, ApptainerSmokeManifest,
+    ApptainerSmokeRequest, ContainerRuntimeEvidence, ContainerToolContract, EvidenceSourceIdentity,
     RuntimeEvidenceStatus, RuntimeVerificationPublication,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
-
-use super::report::render_runtime_verification_markdown;
 
 #[derive(Debug, Clone)]
 pub struct RuntimeVerificationRequest {
@@ -166,7 +162,7 @@ pub fn execute_runtime_verification(
     if passed == tasks.len() {
         validate_container_evidence_chain(&catalog_sha256, &catalog, &inventory, &publication)?;
     } else {
-        crate::evidence::validate_runtime_verification_publication(&publication)?;
+        validate_runtime_verification_publication(&publication)?;
     }
     ensure_immutable_json(publication_path, &publication)?;
     ensure_immutable_bytes(

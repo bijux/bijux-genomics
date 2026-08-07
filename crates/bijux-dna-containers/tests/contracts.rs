@@ -39,8 +39,6 @@ mod mod_contracts_run_evidence_rs;
 mod mod_contracts_result_layout_rs;
 #[path = "contracts/run_shell_capture.rs"]
 mod mod_contracts_run_shell_capture_rs;
-#[path = "contracts/runtime_verification.rs"]
-mod mod_contracts_runtime_verification_rs;
 #[path = "contracts/repository_freeze.rs"]
 mod mod_contracts_repository_freeze_rs;
 #[path = "contracts/tool_contract.rs"]

@@ -51,6 +51,7 @@ fn source_tree_matches_architecture_contract() {
             "mod.rs",
             "qa_docker_images/",
             "records/",
+            "runtime_verification/",
             "runner.rs",
             "static_qa.rs",
             "support/",
@@ -78,6 +79,12 @@ fn source_tree_matches_architecture_contract() {
             "runtime.rs",
         ]),
         "docker qa tree must stay split by execution concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/image_qa/runtime_verification")),
+        btree_set(&["mod.rs", "workflow.rs"]),
+        "runtime verification must isolate effectful catalog-wide probe orchestration"
     );
 
     assert_eq!(

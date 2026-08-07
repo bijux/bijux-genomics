@@ -62,8 +62,9 @@ fn container_attempt_layout_refuses_owner_overlap_before_mutation() -> Result<()
     let shared_root = temp.path().join("shared-attempts");
     let identity = container_attempt_identity();
 
-    let error = ensure_container_attempt_layout(&shared_root, &shared_root, &identity)
-        .expect_err("shared evidence ownership must be refused");
+    let Err(error) = ensure_container_attempt_layout(&shared_root, &shared_root, &identity) else {
+        anyhow::bail!("shared evidence ownership was accepted");
+    };
     assert!(format!("{error:#}").contains("separate"));
     assert!(!shared_root.exists());
     Ok(())

@@ -10,6 +10,8 @@ This crate owns QA evidence contracts, not production execution contracts.
 - QA input inventory: expected input hashes per stage/platform/runner.
 - QA pass lookup: required stage/tool/image/input tuples must have passing records.
 - Docker image probe outcome: pass/fail summary with explicit failure reasons.
+- Catalog runtime campaign: exact inventory, repository, image, identity, manifest, and probe
+  digests are bound into immutable evidence for every retained Apptainer image.
 - FASTQ behavioral QA stages from the FASTQ domain execution-support roster.
 
 ## Artifact Locations
@@ -18,6 +20,7 @@ This crate owns QA evidence contracts, not production execution contracts.
 - SQLite: `artifacts/image-qa/<platform>/qa.sqlite`
 - Summary: `artifacts/image-qa/<platform>/qa.json`
 - Per-run outputs: `artifacts/image-qa/runs/<stage>/<tool>-<uuid>/`
+- Catalog runtime evidence: explicit operator-provided study evidence roots.
 - Fixture contracts: `tests/fixtures/qa_artifacts/default/manifest.json` and `report.json`
 
 ## Dataset Rules

@@ -11,6 +11,8 @@ host command orchestration that must not leak into production crates.
   tool catalog and reports pass/fail status.
 - `build_docker_images`: Cargo binary at `src/bin/build_docker_images.rs`; builds Docker images from
   configured Dockerfiles and runs version smoke checks.
+- `runtime_verification`: Cargo binary at `src/bin/runtime_verification.rs`; executes bounded
+  version/help probes for the exact catalog-locked Apptainer inventory or verifies its report.
 
 ## Host Commands Managed By This Crate
 
@@ -22,13 +24,14 @@ host command orchestration that must not leak into production crates.
 - `gzip -t`: verifies gzip integrity for FASTQ outputs.
 - `git rev-parse HEAD`: captures OCI revision metadata for image builds.
 - `date -u +%Y-%m-%dT%H:%M:%SZ`: captures OCI creation metadata for image builds.
-- Apptainer smoke QA delegates to `bijux-dna-containers::api::run_smoke_script_batch`, which
-  invokes the developer-control-plane smoke command.
+- Apptainer catalog QA composes `bijux-dna-containers::api::verify_apptainer_tool_contract` and
+  `run_apptainer_smoke`; this crate owns catalog iteration, concurrency, and publication.
 
 ## Offline Defaults
 
-Fast tests must not run Docker, Apptainer, network pulls, or long-running QA commands. Runtime QA is
-explicit operator work and should write under `artifacts/image-qa/<platform>/`.
+Fast tests must not run Docker, Apptainer, network pulls, or long-running QA commands. Image QA
+writes under `artifacts/image-qa/<platform>/`; catalog runtime verification writes only to its
+explicit operator-provided study evidence root.
 
 ## Process Ownership Files
 

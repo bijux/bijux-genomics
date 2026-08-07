@@ -19,8 +19,9 @@ This crate owns developer automation contracts, not production pipeline contract
 - `containers run generate-image-inventory-report -- [<publication> <output>]` loads a validated
   publication, delegates Markdown rendering to `bijux-dna-containers`, and writes atomically;
   `check-image-inventory-report` rejects governed report drift.
-- `containers run runtime-verification -- execute <repository-root> ...` requires the exact clean
-  source checkout explicitly; the automation checkout never substitutes its own repository identity.
+- `containers run runtime-verification -- check-report|generate-schema|check-schema` owns only
+  deterministic report and schema operations; effectful catalog execution belongs to the
+  `bijux-dna-containers-qa` `runtime_verification` binary.
 - `containers run run-evidence -- import|validate|publish|generate|check` delegates immutable run
   lock admission, final selection, attempt lineage, and publication derivation to
   `bijux-dna-containers`; `publish` is non-mutating unless `--apply` is explicit.

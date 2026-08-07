@@ -16,6 +16,8 @@ QA crate and only under explicit command surfaces."
 - QA records, summaries, SQLite databases, logs, and generated subsets under
   `artifacts/image-qa/<platform>/`.
 - Per-run QA output directories under `artifacts/image-qa/runs/<stage>/`.
+- Catalog runtime identity, manifest, log, result, and publication evidence under an explicit
+  operator-provided study evidence root.
 - Docker image builds when `build_docker_images` is explicitly invoked.
 
 ## Allowed Processes

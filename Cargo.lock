@@ -421,6 +421,7 @@ dependencies = [
  "bijux-dna-testkit",
  "clap",
  "rusqlite",
+ "serde",
  "serde_json",
  "sha2",
  "tracing",
