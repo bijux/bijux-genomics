@@ -17,6 +17,7 @@ container_validation = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = container_validation
 SPEC.loader.exec_module(container_validation)
 
+
 class GovernanceContractTests(unittest.TestCase):
     def governance(self, root: Path) -> dict[str, object]:
         study = root / "study"
@@ -185,17 +186,19 @@ class GovernanceContractTests(unittest.TestCase):
             ):
                 container_validation.validate_governance(governance)
 
-    def test_sbatch_cluster_suffix_is_removed_from_numeric_identity(self) -> None:
-        self.assertEqual(
-            container_validation.parse_sbatch_job_id("3457577;lunarc\n"),
-            "3457577",
-        )
+    def test_worker_parser_excludes_scheduler_control(self) -> None:
+        help_text = container_validation.parser().format_help()
 
-    def test_non_numeric_sbatch_identity_is_rejected(self) -> None:
-        with self.assertRaisesRegex(
-            container_validation.ContractError, "numeric job id"
+        for operation in ("render-slurm", "submit", "collect-accounting"):
+            self.assertNotIn(operation, help_text)
+        for operation in (
+            "validate",
+            "execute",
+            "archive-failure",
+            "archive-superseded",
         ):
-            container_validation.parse_sbatch_job_id("submission failed")
+            self.assertIn(operation, help_text)
+
 
 class CurrentPipelineContractTests(unittest.TestCase):
     def make_contracts(
@@ -868,76 +871,7 @@ assertions = ["the report consumer accepts the normalized result"]
         self.assertEqual(records[0]["observed"], 12)
         self.assertEqual(records[0]["status"], "passed")
 
-    def test_current_slurm_script_enforces_scratch_and_no_automatic_retry(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            paths = self.make_contracts(root)
-            script = root / "submit.sh"
-            with mock.patch.object(
-                container_validation.socket, "gethostname", return_value="worker-7"
-            ):
-                container_validation.render_slurm(*paths, script)
-            rendered = script.read_text(encoding="utf-8")
-            subprocess.run(
-                ["bash", "-n", str(script)],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-
-        self.assertIn("#SBATCH --no-requeue", rendered)
-        self.assertIn("mktemp -d", rendered)
-        self.assertIn("bijux-genomics-${SLURM_JOB_ID}-XXXXXX", rendered)
-        self.assertIn("trap cleanup_scratch EXIT", rendered)
-        self.assertIn("refusing to remove unexpected scratch path", rendered)
-        self.assertIn("available_scratch_kib < 1048576", rendered)
-        self.assertIn("umask 027", rendered)
-
-    def test_slurm_script_uses_the_site_compute_local_scratch(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            paths = self.make_contracts(root, scratch_environment="SNIC_TMP")
-            script = root / "submit.sh"
-            with mock.patch.object(
-                container_validation.socket, "gethostname", return_value="worker-7"
-            ):
-                container_validation.render_slurm(*paths, script)
-            rendered = script.read_text(encoding="utf-8")
-            syntax = subprocess.run(
-                ["bash", "-n", str(script)],
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-
-        self.assertEqual(syntax.returncode, 0, syntax.stderr)
-        self.assertIn('readonly GOVERNED_SCRATCH_ROOT="${SNIC_TMP}"', rendered)
-        self.assertIn("SNIC_TMP is unavailable on the allocated node", rendered)
-
-    def test_slurm_render_reuses_the_submission_contract(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            paths = self.make_contracts(root)
-            script = root / "submit.sh"
-            with mock.patch.object(
-                container_validation.socket, "gethostname", return_value="worker-7"
-            ):
-                contract = container_validation.validate_contracts(*paths)
-            with mock.patch.object(
-                container_validation,
-                "validate_contracts",
-                side_effect=AssertionError("contract was revalidated"),
-            ):
-                container_validation.render_slurm(
-                    *paths,
-                    script,
-                    validated_contract=contract,
-                )
-                self.assertTrue(script.is_file())
-
-    def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(
-        self,
-    ) -> None:
+    def test_completed_dependency_uses_immutable_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             paths = self.make_contracts(root)
@@ -978,103 +912,15 @@ assertions = ["the report consumer accepts the normalized result"]
                 container_validation.yaml.safe_dump(pipeline, sort_keys=False),
                 encoding="utf-8",
             )
-            script = root / "submit.sh"
             with mock.patch.object(
                 container_validation.socket, "gethostname", return_value="worker-7"
             ):
                 contract = container_validation.validate_contracts(*paths)
-                container_validation.render_slurm(*paths, script)
-                rendered = script.read_text(encoding="utf-8")
 
         self.assertEqual(contract["dependencies"][0]["run_id"], "run-1999")
         self.assertRegex(
             contract["dependencies"][0]["evidence_sha256"],
             "^[0-9a-f]{64}$",
-        )
-        self.assertNotIn("#SBATCH --dependency", rendered)
-
-    def test_accounting_preserves_a_failure_before_executor_startup(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            paths = self.make_contracts(root)
-            manifest = paths[1].parent
-            with mock.patch.object(
-                container_validation.socket, "gethostname", return_value="worker-7"
-            ):
-                contract = container_validation.validate_contracts(*paths)
-            submission = container_validation.operational_submission_root(
-                manifest,
-                contract,
-            )
-            submission.mkdir(parents=True)
-            (submission / "submit.sh").write_text("#!/bin/bash\nexit 1\n")
-            (submission / "slurm-job-id.txt").write_text("3458665\n")
-            (submission / "slurm-3458665.stderr.log").write_text(
-                "scratch preflight failed\n"
-            )
-            fields = [
-                "3458665",
-                "fastq-validate-tool-sample",
-                "FAILED",
-                "1:0",
-                "00:00:00",
-                "0",
-                "2",
-                "1024M",
-                "",
-                "",
-                "00:00:00",
-                "0",
-                "cn001",
-            ]
-            accounting = subprocess.CompletedProcess(
-                ["sacct"],
-                0,
-                stdout="|".join(fields) + "\n",
-                stderr="",
-            )
-            real_run = subprocess.run
-
-            def run_command(
-                argv: list[str],
-                **kwargs: object,
-            ) -> subprocess.CompletedProcess[str]:
-                if argv[0] == "sacct":
-                    return accounting
-                return real_run(argv, **kwargs)
-
-            with (
-                mock.patch.object(
-                    container_validation.socket,
-                    "gethostname",
-                    return_value="worker-7",
-                ),
-                mock.patch.object(
-                    container_validation.subprocess,
-                    "run",
-                    side_effect=run_command,
-                ),
-            ):
-                accounting_path = container_validation.collect_accounting(
-                    manifest,
-                    paths[0],
-                )
-
-            result = root / "study/results/container-validation/run-2000-tool"
-            evidence = json.loads((result / "evidence.json").read_text())
-            governance_archived = (result / "config-governance.yml").is_file()
-
-        self.assertEqual(accounting_path.name, "slurm-accounting.json")
-        self.assertEqual(evidence["status"], "failed")
-        self.assertEqual(evidence["failure_class"], "slurm_pre_execution")
-        self.assertEqual(evidence["checks"], {})
-        self.assertEqual(evidence["outputs"], [])
-        self.assertEqual(evidence["metrics"], [])
-        self.assertEqual(evidence["runtime"]["scheduler_state"], "FAILED")
-        self.assertTrue(governance_archived)
-        self.assertEqual(
-            evidence["scheduler_logs"][0]["path"],
-            "slurm-3458665.stderr.log",
         )
 
     def test_failed_run_archive_frees_only_canonical_execution_paths(self) -> None:
