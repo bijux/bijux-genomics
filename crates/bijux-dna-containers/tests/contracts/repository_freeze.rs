@@ -4,10 +4,10 @@ use std::process::Command;
 use anyhow::{ensure, Context, Result};
 use bijux_dna_containers::api::{
     container_governance_schema, freeze_repository, load_container_governance,
-    validate_container_governance, write_container_governance_schema, ContainerGovernance,
-    ContainerPathPolicy, ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy,
-    ContainerSlurmPolicy, RepositoryFreezeRequest, RepositoryFreezeScope,
-    CONTAINER_GOVERNANCE_SCHEMA_V1,
+    validate_container_governance, validate_container_governance_host,
+    write_container_governance_schema, ContainerGovernance, ContainerPathPolicy,
+    ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
+    RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
 };
 
 #[test]
@@ -204,5 +204,11 @@ fn checked_site_governance_loads_through_container_policy() -> Result<()> {
         load_container_governance(&repository.join("containers/contracts/sites/lunarc.yml"))?;
     assert_eq!(policy.schema_version, CONTAINER_GOVERNANCE_SCHEMA_V1);
     assert_eq!(policy.site.id, "lunarc");
+    for hostname in ["cosmos1", "cosmos1.int.lunarc", "cn076", "cn076.int", "cn076.int.lunarc"] {
+        validate_container_governance_host(&policy, hostname)?;
+    }
+    for hostname in ["cosmos1.int", "cn076.example.org", "login1", "cn.int"] {
+        assert!(validate_container_governance_host(&policy, hostname).is_err());
+    }
     Ok(())
 }
