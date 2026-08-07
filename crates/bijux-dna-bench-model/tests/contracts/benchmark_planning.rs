@@ -365,7 +365,7 @@ fn stage_universe() -> BenchmarkStageUniverse {
                 status: "supported".to_string(),
                 benchmark_disposition: BenchmarkDisposition::BenchmarkRequired,
                 benchmark_disposition_reason: "Reserved comparative benchmark.".to_string(),
-                reserved_run_id: Some("run-2042".to_string()),
+                reserved_run_id: Some("run-2001".to_string()),
             },
             BenchmarkStageUniverseRow {
                 stage_id: "fastq.repair_pairs".to_string(),
@@ -388,6 +388,17 @@ fn benchmark_stage_universe_accepts_explicit_disposition_closure() -> anyhow::Re
 #[test]
 fn benchmark_stage_universe_rejects_run_on_qualification_utility() {
     let mut universe = stage_universe();
-    universe.stages[1].reserved_run_id = Some("run-2043".to_string());
+    universe.stages[1].reserved_run_id = Some("run-2002".to_string());
     assert!(validate_stage_universe(&universe).is_err());
+}
+
+#[test]
+fn benchmark_stage_universe_rejects_non_monotonic_run_reservation() {
+    let mut universe = stage_universe();
+    universe.stages[0].reserved_run_id = Some("run-2002".to_string());
+
+    let error = validate_stage_universe(&universe).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("monotonic and contiguous from run-2001")));
 }

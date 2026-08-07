@@ -379,8 +379,8 @@ pub fn validate_stage_coverage(coverage: &BenchmarkStageCoverage) -> Result<(), 
 /// Validate the complete canonical domain-stage universe.
 ///
 /// # Errors
-/// Returns an error when schema identity, ordering, disposition rationale, run identity, or
-/// summary counts disagree.
+/// Returns an error when schema identity, ordering, disposition rationale, monotonic run identity,
+/// or summary counts disagree.
 pub fn validate_stage_universe(universe: &BenchmarkStageUniverse) -> Result<(), BenchError> {
     if universe.schema_version != BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1 {
         return Err(BenchError::InvalidPolicy(
@@ -429,7 +429,12 @@ pub fn validate_stage_universe(universe: &BenchmarkStageUniverse) -> Result<(), 
                     ))
                 })?;
                 validate_coverage_run_id(run_id)?;
-                if !run_ids.insert(run_id) {
+                let run_number = parse_run_id(run_id).ok_or_else(|| {
+                    BenchError::InvalidPolicy(format!(
+                        "stage universe run id is malformed: {run_id}"
+                    ))
+                })?;
+                if !run_ids.insert(run_number) {
                     return Err(BenchError::InvalidPolicy(format!(
                         "stage universe run id is duplicated: {run_id}"
                     )));
@@ -444,6 +449,8 @@ pub fn validate_stage_universe(universe: &BenchmarkStageUniverse) -> Result<(), 
             _ => {}
         }
     }
+
+    validate_monotonic_stage_run_namespace(&run_ids)?;
 
     let count = |disposition| {
         universe.stages.iter().filter(|row| row.benchmark_disposition == disposition).count()
@@ -471,6 +478,25 @@ pub fn validate_stage_universe(universe: &BenchmarkStageUniverse) -> Result<(), 
         return Err(BenchError::InvalidPolicy(
             "benchmark stage universe summary disagrees with stage rows".to_string(),
         ));
+    }
+    Ok(())
+}
+
+fn validate_monotonic_stage_run_namespace(run_ids: &BTreeSet<u32>) -> Result<(), BenchError> {
+    for (offset, run_number) in run_ids.iter().enumerate() {
+        let offset = u32::try_from(offset).map_err(|_| {
+            BenchError::InvalidPolicy(
+                "stage universe contains too many run reservations".to_string(),
+            )
+        })?;
+        let expected = 2001_u32.checked_add(offset).ok_or_else(|| {
+            BenchError::InvalidPolicy("stage universe run reservation range overflowed".to_string())
+        })?;
+        if *run_number != expected {
+            return Err(BenchError::InvalidPolicy(format!(
+                "stage universe run reservations must be monotonic and contiguous from run-2001: expected run-{expected}, found run-{run_number}"
+            )));
+        }
     }
     Ok(())
 }
