@@ -11,6 +11,7 @@ pub mod executor_registry;
 pub mod plan_run;
 pub mod stage_plan;
 pub mod stage_plugin;
+pub mod tool_binding;
 
 pub use execution_plan::{
     default_edges_for_stages, lint_execution_plan, ExecutionPlan, PlanEdge, PlanValidationContext,
@@ -32,6 +33,11 @@ pub use stage_plan::{
 pub use stage_plugin::{
     validate_report_parts, StageEventHintV1, StageInvocationV1, StagePlugin, StagePluginOutputV1,
     StageReportPartV1,
+};
+pub use tool_binding::{
+    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
+    BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1, ToolBinding, ToolBindingRegistry,
+    ToolBindingRenderContext, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };
 
 pub use bijux_dna_core::contract::{

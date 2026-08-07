@@ -57,6 +57,7 @@ fn assert_source_layout(root: &Path) {
             "plan_run/",
             "stage_plan/",
             "stage_plugin.rs",
+            "tool_binding/",
         ]),
         "src must stay grouped by stage-contract concern"
     );
@@ -84,6 +85,11 @@ fn assert_source_layout(root: &Path) {
         dir_entries(&root.join("src/stage_plan")),
         entries(["contract.rs", "execution_step.rs", "json.rs", "mod.rs", "reason.rs"]),
         "stage_plan must separate contract model, JSON projection, execution-step projection, and reason types"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/tool_binding")),
+        entries(["mod.rs", "model.rs", "registry.rs", "rendering.rs", "validation.rs"]),
+        "tool_binding must separate model, registry, rendering, and validation"
     );
 }
 

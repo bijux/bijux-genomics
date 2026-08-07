@@ -1,11 +1,18 @@
 # bijux-dna-stage-contract
 
+## Repository Policy
+
+This crate follows repository governance documentation. Re-read
+[../../README.md](../../README.md) before editing this crate or making commits in this
+repository.
+
 ## What this crate does
 
 `bijux-dna-stage-contract` defines the shared planning contract between
 planners, stage crates, policy checks, runtime, and runner code. It owns stage
 plans, execution plans, artifact-bound plan edges, stage plugin payloads, and
-executor-readiness metadata.
+executor-readiness metadata. It also owns declarative tool bindings used to
+project canonical inputs, parameters, outputs, and resources into tool argv.
 
 ## What this crate is NOT
 
@@ -42,11 +49,14 @@ Start with `docs/INDEX.md`, then use:
 - `StageInvocationV1`, `StagePluginOutputV1`, `StageReportPartV1`, and
   `StageEventHintV1`.
 - `StageExecutorEntry`, `ReadinessBadge`, and `StageDomain`.
+- `ToolBinding`, `ToolBindingV1`, and `ToolBindingRegistry`.
 
 ## Key contracts it owns/consumes
 
 - Owns stage-plan, execution-plan, stage plugin, and executor registry contract
   shapes.
+- Owns the pure tool-binding interface, registry, renderer, and conformance
+  validation for catalog and externally supplied artifacts.
 - Consumes core IDs, artifact references, `StageIO`, `ToolConstraints`,
   `CommandSpecV1`, `ContainerImageRefV1`, and metrics envelopes.
 - Keeps public fixture snapshots under `tests/fixtures/`.
@@ -94,6 +104,7 @@ the docs allowance.
 - `src/plan_run/mod.rs`
 - `src/executor_registry/mod.rs`
 - `src/stage_plugin.rs`
+- `src/tool_binding/mod.rs`
 
 ## Failure modes
 

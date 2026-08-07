@@ -1,7 +1,8 @@
 # Boundary
 
 `bijux-dna-stage-contract` owns the public stage and artifact contract surface for
-stage plans, execution plans, stage plugin payloads, and executor-readiness metadata.
+stage plans, execution plans, stage plugin payloads, executor-readiness metadata,
+and declarative tool bindings.
 
 ## Belongs Here
 
@@ -10,11 +11,16 @@ stage plans, execution plans, stage plugin payloads, and executor-readiness meta
 - Planner-to-stage payload shapes.
 - Artifact binding validation for planned handoffs.
 - Executor registry labels and readiness badges used by policy checks.
+- Tool capabilities, source admission requirements, command templates, canonical
+  input/output projections, resource requests, normalizer identities, probes,
+  and limitations.
 - Deterministic schema fixtures and public contract snapshots.
 
 ## Does Not Belong Here
 
 - Runtime manifests or executed-run records.
+- Artifact resolution, checksum admission, output discovery IO, or normalizer
+  execution; this crate only declares those contracts.
 - Process spawning, container invocation, network access, or filesystem mutation.
 - CLI parsing and command routing.
 - Planner selection policy, API orchestration, runner backends, or environment QA.

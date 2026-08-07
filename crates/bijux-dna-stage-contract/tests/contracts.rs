@@ -3,6 +3,8 @@
 mod mod_contracts_execution_step_metadata_rs;
 #[path = "contracts/stage_instance_ids.rs"]
 mod mod_contracts_stage_instance_ids_rs;
+#[path = "contracts/tool_binding.rs"]
+mod mod_contracts_tool_binding_rs;
 #[path = "contracts/versioning.rs"]
 mod mod_contracts_versioning_rs;
 #[path = "support/workspace_paths.rs"]

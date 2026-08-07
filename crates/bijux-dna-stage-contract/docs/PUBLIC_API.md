@@ -12,6 +12,8 @@ CLI parsing, process execution, or environment control APIs.
 - `stage_plan` for stage-plan models, JSON projections, decision reasons, and
   execution-step projections.
 - `stage_plugin` for stage invocation and parsed-output payload contracts.
+- `tool_binding` for registry-driven tool/stage declarations, generic argv
+  rendering, and conformance validation.
 
 ## Root Re-exports
 
@@ -22,6 +24,7 @@ CLI parsing, process execution, or environment control APIs.
 - Stage plugin invocation, output, report, event-hint, and trait contracts.
 - `ArtifactRef` and `StageIO` from `bijux-dna-core` for caller ergonomics.
 - Canonical artifact contract types, schemas, catalog, and compatibility functions.
+- Tool-binding models, the deterministic registry, renderer, and validator.
 
 ## Public Types
 
@@ -50,6 +53,15 @@ CLI parsing, process execution, or environment control APIs.
 - `StageExecutorEntry`
 - `ReadinessBadge`
 - `StageDomain`
+- `ToolBinding`
+- `ToolBindingV1`
+- `ToolBindingRegistry`
+- `ToolBindingRenderContext`
+- `ToolArtifactSourceV1`
+- `BindingInputV1`
+- `BindingParameterV1`
+- `BindingOutputV1`
+- `OutputDiscoveryV1`
 - `ArtifactRef`
 - `ArtifactContractV1`
 - `ArtifactContractCatalogV1`
@@ -77,6 +89,12 @@ These examples are abbreviated for readability. Fixture snapshots under
 
 ```json
 {"metrics":{},"artifacts":[],"operating_mode":"enforced","report_parts":[],"warnings":[],"invariants":[],"event_hints":[]}
+```
+
+### ToolBindingV1
+
+```json
+{"schema_version":"bijux.tool_binding.v1","binding_id":"fastq.trim_reads__fastp","stage_id":"fastq.trim_reads","tool_id":"fastp","artifact_source":{"kind":"catalog_image","catalog_tool_id":"fastp"},"capabilities":["paired_or_single_reads"],"inputs":[{"name":"reads","artifact_contract_id":"bijux.artifact.fastq.reads.v1","required":true}],"parameters":[{"name":"threads","required":true}],"outputs":[{"name":"trimmed","artifact_contract_id":"bijux.artifact.fastq.reads.v1","discovery":{"kind":"exact_path"}}],"command_template":["${executable}","--in=${input:reads}","--out","${output:trimmed}"],"resources":{"runtime":"apptainer","mem_gb":4,"tmp_gb":2,"threads":8},"normalizer_id":"fastq.trim_reads.v1","downstream_probe_id":"fastq.reads-readable.v1","limitations":[]}
 ```
 
 ## Snapshots And Fixtures
