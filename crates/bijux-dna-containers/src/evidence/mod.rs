@@ -78,9 +78,15 @@ pub use qualification_registry::{
     QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
 };
 pub use run_evidence::{
-    load_run_evidence_index, run_evidence_index_schema, validate_run_evidence_index,
-    write_run_evidence_index_schema, AttemptExecutionStatus, RunEvidenceIndex, RunEvidenceRecord,
-    RunEvidenceSummary, ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
+    apply_final_run_evidence_plan, derive_run_evidence_index, import_run_evidence,
+    load_run_evidence_index, plan_final_run_evidence, render_run_evidence_markdown,
+    run_evidence_index_schema, validate_run_attempt_ledger, validate_run_evidence_index,
+    validate_run_evidence_root, verify_run_evidence_publication, write_run_evidence_index_schema,
+    AttemptExecutionStatus, FinalRunEvidencePlan, RunAttemptLedger, RunAttemptLedgerRow,
+    RunAttemptLedgerSummary, RunEvidenceFileIdentity, RunEvidenceImportRequest, RunEvidenceIndex,
+    RunEvidenceLock, RunEvidenceRecord, RunEvidenceSummary, ScientificAcceptanceStatus,
+    CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
+    CONTAINER_RUN_EVIDENCE_LOCK_SCHEMA_V1,
 };
 pub use runtime_verification::{
     execute_runtime_verification, render_runtime_verification_markdown,
