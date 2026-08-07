@@ -2,37 +2,39 @@
   "schema_version": "bijux.bench.readiness.retained_toolset_executable_local.v1",
   "output_path": "benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json",
   "checked_goal_count": 9,
-  "passed_goal_count": 9,
-  "failed_goal_count": 0,
-  "failing_goal_ids": [],
-  "retained_tool_count": 71,
-  "executable_resolution_row_count": 71,
-  "version_probe_row_count": 71,
+  "passed_goal_count": 8,
+  "failed_goal_count": 1,
+  "failing_goal_ids": [
+    425
+  ],
+  "retained_tool_count": 75,
+  "executable_resolution_row_count": 75,
+  "version_probe_row_count": 75,
   "host_smoke_tool_count": 1,
-  "container_smoke_tool_count": 70,
-  "parser_family_count": 30,
-  "ok": true,
+  "container_smoke_tool_count": 0,
+  "parser_family_count": 31,
+  "ok": false,
   "checks": [
     {
       "goal_id": 421,
       "surface": "retained_tool_inventory",
       "output_path": "benchmarks/readiness/tools/retained-tool-inventory.tsv",
       "ok": true,
-      "detail": "row_count=71, benchmark_ready_tool_count=71"
+      "detail": "row_count=75, benchmark_ready_tool_count=71"
     },
     {
       "goal_id": 422,
       "surface": "retained_tool_executable_resolution",
       "output_path": "benchmarks/readiness/tools/executable-resolution.tsv",
       "ok": true,
-      "detail": "row_count=71, host_binary_count=1, container_count=68, unavailable_count=2"
+      "detail": "row_count=75, host_binary_count=1, container_count=68, external_artifact_count=4, unavailable_count=2"
     },
     {
       "goal_id": 423,
       "surface": "retained_tool_version_probes",
       "output_path": "benchmarks/readiness/tools/version-probes.json",
       "ok": true,
-      "detail": "row_count=71, ready_count=69, unavailable_count=2"
+      "detail": "row_count=75, ready_count=73, unavailable_count=2"
     },
     {
       "goal_id": 424,
@@ -45,36 +47,36 @@
       "goal_id": 425,
       "surface": "retained_tool_container_smoke",
       "output_path": "runs/bench/tool-smoke/container",
-      "ok": true,
-      "detail": "tool_count=70, success_count=68, unavailable_count=2, failure_count=0"
+      "ok": false,
+      "detail": "retained container smoke manifests failed validation: missing 67 retained container smoke manifests under `runs/bench/tool-smoke/container`: addeam, alientrimmer, atropos, authenticct, bamtools, bamutil, bayeshammer, bbduk, bbmerge, bcftools, beagle, bedtools, bowtie2, bowtie2_build, bwa, centrifuge, clumpify, contammix, cutadapt, dada2, damageprofiler, eigensoft, fastp, fastq_scan, fastqc, fastqvalidator, fastx_clipper, flash2, fqtools, gatk, germline, ibdne, ibdseq, kaiju, king, kraken2, krakenuniq, leehom, lighter, mapdamage2, mosdepth, multiqc, musket, pear, picard, plink2, pmdtools, preseq, prinseq, pydamage, rcorrector, rxy, samtools, schmutzi, seqfu, seqkit, seqkit_stats, seqtk, skewer, sortmerna, star, trim_galore, trimmomatic, umi_tools, verifybamid2, vsearch, yleaf | runs/bench/tool-smoke/container/adapterremoval/manifest.json: expected status `ok`, found `command_failed`"
     },
     {
       "goal_id": 426,
       "surface": "retained_tool_apptainer_map",
       "output_path": "benchmarks/readiness/tools/apptainer-map.tsv",
       "ok": true,
-      "detail": "row_count=71, docker_runtime=docker-arm64, covered_domain_count=3"
+      "detail": "row_count=67, docker_runtime=docker-arm64, covered_domain_count=3"
     },
     {
       "goal_id": 427,
       "surface": "retained_tool_input_preflight",
       "output_path": "benchmarks/readiness/tools/input-preflight-tests.json",
       "ok": true,
-      "detail": "row_count=258, passed_row_count=258, covered_tool_count=71"
+      "detail": "row_count=261, passed_row_count=261, covered_tool_count=75"
     },
     {
       "goal_id": 428,
       "surface": "retained_tool_output_contracts",
       "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
       "ok": true,
-      "detail": "row_count=141, passed_row_count=141, failed_row_count=0"
+      "detail": "row_count=138, passed_row_count=135, blocked_row_count=3, failed_row_count=0"
     },
     {
       "goal_id": 429,
       "surface": "retained_tool_real_output_parser_smoke",
       "output_path": "benchmarks/readiness/tools/real-output-parser-smoke.json",
       "ok": true,
-      "detail": "family_count=30, passed_family_count=30, failed_family_count=0"
+      "detail": "family_count=31, passed_family_count=31, failed_family_count=0"
     }
   ]
 }

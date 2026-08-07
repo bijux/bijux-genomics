@@ -152,7 +152,7 @@ tool_ids = ["ibdne"]
 [[families]]
 family_id = "vcf_identity_by_descent"
 summary = "Tools whose primary benchmark role is identifying identity-by-descent or related shared-haplotype segments across VCF cohorts."
-tool_ids = ["germline"]
+tool_ids = ["germline", "ibdseq"]
 
 [[families]]
 family_id = "vcf_imputation"

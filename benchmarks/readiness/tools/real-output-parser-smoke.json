@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.real_output_parser_smoke.v1",
   "output_path": "benchmarks/readiness/tools/real-output-parser-smoke.json",
   "probe_root": "runs/bench/readiness-probes/tools/real-output-parser-smoke",
-  "family_count": 30,
-  "passed_family_count": 30,
+  "family_count": 31,
+  "passed_family_count": 31,
   "failed_family_count": 0,
   "parser_surface_counts": {
     "bam::parse_contamination_json": 1,
@@ -30,8 +30,9 @@
     "serde_json::<BamOverlapCorrectionSummaryV1>": 1,
     "serde_json::<BamRecalibrationSummaryV1>": 1,
     "serde_json::<BamValidationSummaryV1>": 1,
-    "serde_json::<Value> + governed keys": 1,
     "serde_json::<Value> + governed vcf call metric keys": 1,
+    "serde_json::<Value> + governed vcf demographic-history keys": 1,
+    "serde_json::<Value> + governed vcf identity-by-descent keys": 1,
     "serde_json::<Value> + governed vcf impute metric keys": 1,
     "serde_json::<Value> + governed vcf phasing metric keys": 1,
     "serde_json::<Value> + governed vcf population-structure keys": 1,
@@ -77,7 +78,7 @@
         "tool_id": "bijux"
       },
       "passed": true,
-      "reason": "validated abundance_normalization family output through fastq::parse_normalize_abundance_report"
+      "reason": "validated abundance_normalization output through fastq::parse_normalize_abundance_report"
     },
     {
       "family_id": "adapter_and_quality_trimming",
@@ -139,7 +140,7 @@
         "tool_id": "bbduk"
       },
       "passed": true,
-      "reason": "validated adapter_and_quality_trimming family output through fastq::parse_trim_reads_report"
+      "reason": "validated adapter_and_quality_trimming output through fastq::parse_trim_reads_report"
     },
     {
       "family_id": "alignment",
@@ -173,7 +174,7 @@
         "strategy_id": "bowtie2_very_sensitive_local"
       },
       "passed": true,
-      "reason": "validated alignment family output through serde_json::<BamAlignmentProvenanceV1>"
+      "reason": "validated alignment output through serde_json::<BamAlignmentProvenanceV1>"
     },
     {
       "family_id": "amplicon_processing",
@@ -218,7 +219,7 @@
         "tool_id": "bijux"
       },
       "passed": true,
-      "reason": "validated amplicon_processing family output through fastq::parse_infer_asvs_report"
+      "reason": "validated amplicon_processing output through fastq::parse_infer_asvs_report"
     },
     {
       "family_id": "authenticity_assessment",
@@ -246,7 +247,7 @@
         "score": 0.5333333333333333
       },
       "passed": true,
-      "reason": "validated authenticity_assessment family output through serde_json::<BamAuthenticityAdvisoryV1>"
+      "reason": "validated authenticity_assessment output through serde_json::<BamAuthenticityAdvisoryV1>"
     },
     {
       "family_id": "bam_quality_control_and_metrics",
@@ -272,7 +273,7 @@
         "validation_report_present": true
       },
       "passed": true,
-      "reason": "validated bam_quality_control_and_metrics family output through serde_json::<BamValidationSummaryV1>"
+      "reason": "validated bam_quality_control_and_metrics output through serde_json::<BamValidationSummaryV1>"
     },
     {
       "family_id": "contamination_estimation",
@@ -297,13 +298,13 @@
         "method": "verifybamid2"
       },
       "passed": true,
-      "reason": "validated contamination_estimation family output through bam::parse_contamination_json"
+      "reason": "validated contamination_estimation output through bam::parse_contamination_json"
     },
     {
       "family_id": "damage_and_postmortem_bias",
       "family_summary": "Tools whose primary benchmark role is profiling ancient-DNA damage or postmortem substitution bias.",
       "representative_stage_id": "bam.damage",
-      "representative_tool_id": "ngsbriggs",
+      "representative_tool_id": "mapdamage2",
       "proof_path": "runs/bench/readiness-probes/tools/real-output-parser-smoke/bam_damage/damage.summary.json",
       "parser_surface": "serde_json::<BamDamageEvidenceV1>",
       "parsed_schema_version": "bijux.bam.damage_evidence.v1",
@@ -325,7 +326,7 @@
         "terminal_g_to_a_3p": 0.11
       },
       "passed": true,
-      "reason": "validated damage_and_postmortem_bias family output through serde_json::<BamDamageEvidenceV1>"
+      "reason": "validated damage_and_postmortem_bias output through serde_json::<BamDamageEvidenceV1>"
     },
     {
       "family_id": "duplicate_handling",
@@ -372,7 +373,7 @@
         "tool_id": "bijux"
       },
       "passed": true,
-      "reason": "validated duplicate_handling family output through fastq::parse_remove_duplicates_report"
+      "reason": "validated duplicate_handling output through fastq::parse_remove_duplicates_report"
     },
     {
       "family_id": "error_correction",
@@ -431,45 +432,13 @@
         "tool_id": "rcorrector"
       },
       "passed": true,
-      "reason": "validated error_correction family output through fastq::parse_correct_errors_report"
-    },
-    {
-      "family_id": "genotyping_and_population_inference",
-      "family_summary": "Tools whose primary benchmark role is genotype-likelihood, population, or genotype-derived inference across BAM evidence.",
-      "representative_stage_id": "bam.genotyping",
-      "representative_tool_id": "angsd",
-      "proof_path": "runs/bench/readiness-probes/tools/real-output-parser-smoke/bam_genotyping/genotyping.json",
-      "parser_surface": "serde_json::<Value> + governed keys",
-      "parsed_schema_version": "bijux.bam.genotyping.v1",
-      "parsed_top_level_key_count": 11,
-      "parsed_top_level_keys": [
-        "call_rate",
-        "caller",
-        "mean_posterior",
-        "posterior_histogram",
-        "producer",
-        "reference",
-        "regions",
-        "sample_id",
-        "schema_version",
-        "sites",
-        "stage_id"
-      ],
-      "normalized_snapshot": {
-        "call_rate": 1.0,
-        "mean_posterior": 0.99,
-        "producer": "bam.genotyping",
-        "reference": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
-        "sites": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
-      },
-      "passed": true,
-      "reason": "validated genotyping_and_population_inference family output through serde_json::<Value> + governed keys"
+      "reason": "validated error_correction output through fastq::parse_correct_errors_report"
     },
     {
       "family_id": "internal_workflow_runtime",
       "family_summary": "Repository-owned runtime tools whose primary benchmark role is governed internal workflow execution.",
       "representative_stage_id": "fastq.detect_duplicates_premerge",
-      "representative_tool_id": "bijux",
+      "representative_tool_id": "bijux_dna",
       "proof_path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna/duplicate_signal_report.json",
       "parser_surface": "fastq::parse_detect_duplicates_premerge_report",
       "parsed_schema_version": "bijux.fastq.detect_duplicates_premerge.report.v1",
@@ -491,10 +460,10 @@
       ],
       "normalized_snapshot": {
         "reads_in": 6,
-        "tool_id": "bijux"
+        "tool_id": "bijux_dna"
       },
       "passed": true,
-      "reason": "validated internal_workflow_runtime family output through fastq::parse_detect_duplicates_premerge_report"
+      "reason": "validated internal_workflow_runtime output through fastq::parse_detect_duplicates_premerge_report"
     },
     {
       "family_id": "kinship_relatedness",
@@ -529,7 +498,7 @@
         "status": "ok"
       },
       "passed": true,
-      "reason": "validated kinship_relatedness family output through serde_json::<BamKinshipSummaryV1>"
+      "reason": "validated kinship_relatedness output through serde_json::<BamKinshipSummaryV1>"
     },
     {
       "family_id": "library_complexity_estimation",
@@ -558,7 +527,7 @@
         "method": "preseq"
       },
       "passed": true,
-      "reason": "validated library_complexity_estimation family output through serde_json::<BamComplexitySummaryV1>"
+      "reason": "validated library_complexity_estimation output through serde_json::<BamComplexitySummaryV1>"
     },
     {
       "family_id": "overlap_correction",
@@ -589,7 +558,7 @@
         "pair_count": 2
       },
       "passed": true,
-      "reason": "validated overlap_correction family output through serde_json::<BamOverlapCorrectionSummaryV1>"
+      "reason": "validated overlap_correction output through serde_json::<BamOverlapCorrectionSummaryV1>"
     },
     {
       "family_id": "read_filtering_and_low_complexity",
@@ -649,7 +618,7 @@
         "tool_id": "fastp"
       },
       "passed": true,
-      "reason": "validated read_filtering_and_low_complexity family output through fastq::parse_filter_reads_report"
+      "reason": "validated read_filtering_and_low_complexity output through fastq::parse_filter_reads_report"
     },
     {
       "family_id": "read_pair_merging",
@@ -693,7 +662,7 @@
         "tool_id": "bijux"
       },
       "passed": true,
-      "reason": "validated read_pair_merging family output through fastq::parse_merge_pairs_report"
+      "reason": "validated read_pair_merging output through fastq::parse_merge_pairs_report"
     },
     {
       "family_id": "read_validation_and_profiling",
@@ -737,7 +706,7 @@
         "tool_id": "seqkit_stats"
       },
       "passed": true,
-      "reason": "validated read_validation_and_profiling family output through fastq::parse_profile_reads_report"
+      "reason": "validated read_validation_and_profiling output through fastq::parse_profile_reads_report"
     },
     {
       "family_id": "reference_indexing",
@@ -776,7 +745,7 @@
         "tool_id": "bowtie2_build"
       },
       "passed": true,
-      "reason": "validated reference_indexing family output through fastq::parse_index_reference_report"
+      "reason": "validated reference_indexing output through fastq::parse_index_reference_report"
     },
     {
       "family_id": "report_aggregation",
@@ -832,7 +801,7 @@
         "tool_id": "multiqc"
       },
       "passed": true,
-      "reason": "validated report_aggregation family output through fastq::parse_report_qc_report"
+      "reason": "validated report_aggregation output through fastq::parse_report_qc_report"
     },
     {
       "family_id": "rrna_depletion",
@@ -891,7 +860,7 @@
         "tool_id": "sortmerna"
       },
       "passed": true,
-      "reason": "validated rrna_depletion family output through fastq::parse_deplete_rrna_report"
+      "reason": "validated rrna_depletion output through fastq::parse_deplete_rrna_report"
     },
     {
       "family_id": "sex_and_haplogroup_inference",
@@ -931,7 +900,7 @@
         "x_to_y_ratio": 1.0
       },
       "passed": true,
-      "reason": "validated sex_and_haplogroup_inference family output through bam::parse_sex_json"
+      "reason": "validated sex_and_haplogroup_inference output through bam::parse_sex_json"
     },
     {
       "family_id": "taxonomy_classification",
@@ -989,7 +958,7 @@
         "tool_id": "kraken2"
       },
       "passed": true,
-      "reason": "validated taxonomy_classification family output through fastq::parse_screen_taxonomy_report"
+      "reason": "validated taxonomy_classification output through fastq::parse_screen_taxonomy_report"
     },
     {
       "family_id": "umi_processing",
@@ -1042,7 +1011,7 @@
         "tool_id": "bijux"
       },
       "passed": true,
-      "reason": "validated umi_processing family output through fastq::parse_extract_umis_report"
+      "reason": "validated umi_processing output through fastq::parse_extract_umis_report"
     },
     {
       "family_id": "variant_analysis_and_recalibration",
@@ -1079,7 +1048,7 @@
         "status": "skipped"
       },
       "passed": true,
-      "reason": "validated variant_analysis_and_recalibration family output through serde_json::<BamRecalibrationSummaryV1>"
+      "reason": "validated variant_analysis_and_recalibration output through serde_json::<BamRecalibrationSummaryV1>"
     },
     {
       "family_id": "vcf_calling_and_curation",
@@ -1113,7 +1082,115 @@
         "variant_count": 3
       },
       "passed": true,
-      "reason": "validated vcf_calling_and_curation family output through serde_json::<Value> + governed vcf call metric keys"
+      "reason": "validated vcf_calling_and_curation output through serde_json::<Value> + governed vcf call metric keys"
+    },
+    {
+      "family_id": "vcf_demographic_history",
+      "family_summary": "Tools whose primary benchmark role is inferring demographic history trajectories from derived VCF cohort evidence.",
+      "representative_stage_id": "vcf.demography",
+      "representative_tool_id": "ibdne",
+      "proof_path": "runs/bench/local-smoke/vcf.demography/ibdne/demography.json",
+      "parser_surface": "serde_json::<Value> + governed vcf demographic-history keys",
+      "parsed_schema_version": "bijux.bench.local_vcf_demography_smoke.v1",
+      "parsed_top_level_key_count": 28,
+      "parsed_top_level_keys": [
+        "command",
+        "corpus_id",
+        "demography_json_path",
+        "elapsed_seconds",
+        "exit_code",
+        "finished_at",
+        "inference_status",
+        "input_fixture_id",
+        "input_ibd",
+        "insufficient_data_probe",
+        "insufficient_reason",
+        "method",
+        "ne_estimates",
+        "output_root",
+        "schema_version",
+        "source_demography_contract_path",
+        "source_demography_metrics_path",
+        "source_logs_path",
+        "source_ne_trajectory_path",
+        "source_upstream_filtered_segments_path",
+        "source_upstream_ibd_report_path",
+        "stage_id",
+        "stage_result_manifest_path",
+        "started_at",
+        "status",
+        "time_bins",
+        "tool_id",
+        "tool_ok"
+      ],
+      "normalized_snapshot": {
+        "inference_status": "fallback_estimate",
+        "method": "ibdne",
+        "stage_id": "vcf.demography",
+        "time_bins": [
+          5,
+          10,
+          20,
+          40,
+          80
+        ],
+        "tool_id": "ibdne"
+      },
+      "passed": true,
+      "reason": "validated vcf_demographic_history output through serde_json::<Value> + governed vcf demographic-history keys"
+    },
+    {
+      "family_id": "vcf_identity_by_descent",
+      "family_summary": "Tools whose primary benchmark role is identifying identity-by-descent or related shared-haplotype segments across VCF cohorts.",
+      "representative_stage_id": "vcf.ibd",
+      "representative_tool_id": "germline",
+      "proof_path": "runs/bench/local-smoke/vcf.ibd/germline/ibd.json",
+      "parser_surface": "serde_json::<Value> + governed vcf identity-by-descent keys",
+      "parsed_schema_version": "bijux.bench.local_vcf_ibd_smoke.v1",
+      "parsed_top_level_key_count": 32,
+      "parsed_top_level_keys": [
+        "command",
+        "corpus_id",
+        "elapsed_seconds",
+        "execution_mode",
+        "exit_code",
+        "finished_at",
+        "fixture_manifest_path",
+        "germline_tool_ok",
+        "ibd_json_path",
+        "ibd_tsv_path",
+        "ibdhap_tool_ok",
+        "ibdseq_tool_ok",
+        "input_fixture_id",
+        "input_vcf_path",
+        "insufficient_overlap_probe",
+        "output_root",
+        "pair_count",
+        "rows",
+        "sample_metadata_path",
+        "schema_version",
+        "source_ibd_filtered_segments_path",
+        "source_ibd_input_path",
+        "source_ibd_merged_segments_path",
+        "source_ibd_metrics_path",
+        "source_ibd_segments_path",
+        "source_ibd_summary_path",
+        "source_logs_path",
+        "stage_id",
+        "stage_result_manifest_path",
+        "started_at",
+        "status",
+        "tool_id"
+      ],
+      "normalized_snapshot": {
+        "execution_mode": "fallback_proxy",
+        "pair_count": 6,
+        "stage_id": "vcf.ibd",
+        "status": "complete",
+        "tool_id": "germline"
+      },
+      "passed": true,
+      "reason": "validated vcf_identity_by_descent output through serde_json::<Value> + governed vcf identity-by-descent keys"
     },
     {
       "family_id": "vcf_imputation",
@@ -1153,7 +1230,7 @@
         "variant_count": 2
       },
       "passed": true,
-      "reason": "validated vcf_imputation family output through serde_json::<Value> + governed vcf impute metric keys"
+      "reason": "validated vcf_imputation output through serde_json::<Value> + governed vcf impute metric keys"
     },
     {
       "family_id": "vcf_ordination_and_population_structure",
@@ -1249,7 +1326,7 @@
         "tool_id": "plink2"
       },
       "passed": true,
-      "reason": "validated vcf_ordination_and_population_structure family output through serde_json::<Value> + governed vcf population-structure keys"
+      "reason": "validated vcf_ordination_and_population_structure output through serde_json::<Value> + governed vcf population-structure keys"
     },
     {
       "family_id": "vcf_phasing",
@@ -1284,7 +1361,7 @@
         "tool_id": "shapeit5"
       },
       "passed": true,
-      "reason": "validated vcf_phasing family output through serde_json::<Value> + governed vcf phasing metric keys"
+      "reason": "validated vcf_phasing output through serde_json::<Value> + governed vcf phasing metric keys"
     },
     {
       "family_id": "vcf_quality_control",
@@ -1388,7 +1465,7 @@
         ]
       },
       "passed": true,
-      "reason": "validated vcf_quality_control family output through serde_json::<Value> + governed vcf qc metric keys"
+      "reason": "validated vcf_quality_control output through serde_json::<Value> + governed vcf qc metric keys"
     }
   ]
 }

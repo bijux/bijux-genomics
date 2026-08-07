@@ -17,6 +17,8 @@ use crate::commands::benchmark::local_stage_commands::{
     local_stage_plans, materialize_local_stage,
 };
 use crate::commands::benchmark::local_vcf_call_smoke::run_local_vcf_call_smoke;
+use crate::commands::benchmark::local_vcf_demography_smoke::run_local_vcf_demography_smoke;
+use crate::commands::benchmark::local_vcf_ibd_smoke::run_local_vcf_ibd_smoke;
 use crate::commands::benchmark::local_vcf_impute_smoke::run_local_vcf_impute_smoke;
 use crate::commands::benchmark::local_vcf_phasing_smoke::run_local_vcf_phasing_smoke;
 use crate::commands::benchmark::local_vcf_population_structure_smoke::run_local_vcf_population_structure_smoke;
@@ -86,6 +88,8 @@ enum ProbeKind {
     GeneratedBamKinship,
     GeneratedBamSex,
     GeneratedVcfCall,
+    GeneratedVcfDemography,
+    GeneratedVcfIbd,
     GeneratedVcfImpute,
     GeneratedVcfPhasing,
     GeneratedVcfPopulationStructure,
@@ -121,6 +125,8 @@ enum ParseKind {
     BamSexJson,
     BamGenotypingJson,
     VcfCallMetrics,
+    VcfDemographyReport,
+    VcfIbdReport,
     VcfImputeMetrics,
     VcfPhasingMetrics,
     VcfPopulationStructureReport,
@@ -572,6 +578,20 @@ fn family_probe_specs() -> Vec<FamilyProbeSpec> {
             snapshot_keys: &["stage_id", "tool_id", "variant_count", "snp_count", "sample_count"],
         },
         FamilyProbeSpec {
+            family_id: "vcf_demographic_history",
+            representative_stage_id: "vcf.demography",
+            probe_kind: ProbeKind::GeneratedVcfDemography,
+            parse_kind: ParseKind::VcfDemographyReport,
+            snapshot_keys: &["stage_id", "tool_id", "method", "inference_status", "time_bins"],
+        },
+        FamilyProbeSpec {
+            family_id: "vcf_identity_by_descent",
+            representative_stage_id: "vcf.ibd",
+            probe_kind: ProbeKind::GeneratedVcfIbd,
+            parse_kind: ParseKind::VcfIbdReport,
+            snapshot_keys: &["stage_id", "tool_id", "execution_mode", "pair_count", "status"],
+        },
+        FamilyProbeSpec {
             family_id: "vcf_imputation",
             representative_stage_id: "vcf.impute",
             probe_kind: ProbeKind::GeneratedVcfImpute,
@@ -678,6 +698,8 @@ fn materialize_family_proof(
         ProbeKind::GeneratedBamKinship => generate_bam_kinship_probe(repo_root, probe_root),
         ProbeKind::GeneratedBamSex => generate_bam_sex_probe(repo_root, probe_root),
         ProbeKind::GeneratedVcfCall => generate_vcf_call_probe(repo_root),
+        ProbeKind::GeneratedVcfDemography => generate_vcf_demography_probe(repo_root),
+        ProbeKind::GeneratedVcfIbd => generate_vcf_ibd_probe(repo_root),
         ProbeKind::GeneratedVcfImpute => generate_vcf_impute_probe(repo_root),
         ProbeKind::GeneratedVcfPhasing => generate_vcf_phasing_probe(repo_root),
         ProbeKind::GeneratedVcfPopulationStructure => {
@@ -865,6 +887,39 @@ fn parse_proof(
                 &["schema_version", "stage_id", "tool_id", "variant_count", "sample_count"],
             )?;
         }
+        ParseKind::VcfDemographyReport => {
+            let value = read_json_document(proof_path)?;
+            ensure_governed_keys_present(
+                &value,
+                proof_path,
+                &[
+                    "schema_version",
+                    "stage_id",
+                    "tool_id",
+                    "method",
+                    "inference_status",
+                    "time_bins",
+                    "ne_estimates",
+                    "status",
+                ],
+            )?;
+        }
+        ParseKind::VcfIbdReport => {
+            let value = read_json_document(proof_path)?;
+            ensure_governed_keys_present(
+                &value,
+                proof_path,
+                &[
+                    "schema_version",
+                    "stage_id",
+                    "tool_id",
+                    "execution_mode",
+                    "pair_count",
+                    "rows",
+                    "status",
+                ],
+            )?;
+        }
         ParseKind::VcfImputeMetrics => {
             let value = read_json_document(proof_path)?;
             ensure_governed_keys_present(
@@ -940,6 +995,10 @@ fn parse_surface_label(parse_kind: ParseKind) -> &'static str {
         ParseKind::BamSexJson => "bam::parse_sex_json",
         ParseKind::BamGenotypingJson => "serde_json::<Value> + governed keys",
         ParseKind::VcfCallMetrics => "serde_json::<Value> + governed vcf call metric keys",
+        ParseKind::VcfDemographyReport => {
+            "serde_json::<Value> + governed vcf demographic-history keys"
+        }
+        ParseKind::VcfIbdReport => "serde_json::<Value> + governed vcf identity-by-descent keys",
         ParseKind::VcfImputeMetrics => "serde_json::<Value> + governed vcf impute metric keys",
         ParseKind::VcfPhasingMetrics => "serde_json::<Value> + governed vcf phasing metric keys",
         ParseKind::VcfPopulationStructureReport => {
@@ -1627,6 +1686,22 @@ fn generate_vcf_call_probe(repo_root: &Path) -> Result<MaterializedProof> {
     let report = run_local_vcf_call_smoke(repo_root, "bcftools")?;
     Ok(MaterializedProof {
         proof_path: repo_root.join(&report.metrics_path),
+        observed_tool_id: report.tool_id,
+    })
+}
+
+fn generate_vcf_demography_probe(repo_root: &Path) -> Result<MaterializedProof> {
+    let report = run_local_vcf_demography_smoke(repo_root, "ibdne")?;
+    Ok(MaterializedProof {
+        proof_path: repo_root.join(&report.demography_json_path),
+        observed_tool_id: report.tool_id,
+    })
+}
+
+fn generate_vcf_ibd_probe(repo_root: &Path) -> Result<MaterializedProof> {
+    let report = run_local_vcf_ibd_smoke(repo_root, "germline")?;
+    Ok(MaterializedProof {
+        proof_path: repo_root.join(&report.ibd_json_path),
         observed_tool_id: report.tool_id,
     })
 }

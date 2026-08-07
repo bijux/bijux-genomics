@@ -1,19 +1,29 @@
 {
   "schema_version": "bijux.bench.readiness.output_contract_audit.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
-  "row_count": 141,
-  "passed_row_count": 141,
+  "row_count": 138,
+  "passed_row_count": 135,
+  "blocked_row_count": 3,
   "failed_row_count": 0,
   "domain_counts": {
-    "bam": 49,
-    "fastq": 71,
-    "vcf": 21
+    "bam": 46,
+    "fastq": 68,
+    "vcf": 24
   },
   "output_proof_surface_counts": {
-    "direct_declared_output_proof": 8,
-    "direct_tool_smoke": 21,
-    "shared_stage_smoke": 112
+    "direct_declared_output_proof": 6,
+    "direct_tool_smoke": 24,
+    "shared_stage_smoke": 108
   },
+  "blocked_stage_ids": [
+    "vcf.demography",
+    "vcf.ibd"
+  ],
+  "blocked_tool_ids": [
+    "germline",
+    "ibdne",
+    "ibdseq"
+  ],
   "failed_stage_ids": [],
   "failed_tool_ids": [],
   "rows": [
@@ -80,6 +90,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.align` / `bowtie2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -146,6 +157,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.align` / `bwa` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -200,6 +212,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.authenticity` / `authenticct` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -260,6 +273,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.authenticity` / `damageprofiler` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -320,6 +334,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.authenticity` / `pmdtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -380,6 +395,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.bias_mitigation` / `mapdamage2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
@@ -437,6 +453,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.complexity` / `preseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -497,6 +514,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.contamination` / `contammix` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -557,6 +575,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.contamination` / `schmutzi` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -614,6 +633,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.contamination` / `verifybamid2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -668,6 +688,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.coverage` / `bedtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -722,6 +743,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.coverage` / `mosdepth` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -776,6 +798,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.coverage` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -839,6 +862,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.damage` / `addeam` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -902,6 +926,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.damage` / `damageprofiler` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -965,71 +990,9 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.damage` / `mapdamage2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
-    },
-    {
-      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-      "domain": "bam",
-      "stage_id": "bam.damage",
-      "tool_id": "ngsbriggs",
-      "corpus_id": "corpus-01-adna-damage-mini",
-      "asset_profile_id": "corpus_only",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
-      "proof_tool_id": "ngsbriggs",
-      "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
-      "declared_raw_output_ids": [
-        "terminal_position_metrics",
-        "parser_output",
-        "stage_metrics",
-        "damage_profile",
-        "damage_parameters"
-      ],
-      "observed_raw_output_ids": [
-        "terminal_position_metrics",
-        "parser_output",
-        "stage_metrics",
-        "damage_profile",
-        "damage_parameters"
-      ],
-      "declared_normalized_metric_ids": [
-        "damage_report"
-      ],
-      "observed_normalized_metric_ids": [
-        "damage_report"
-      ],
-      "declared_index_output_ids": [],
-      "observed_index_output_ids": [],
-      "observed_output_paths": [
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_parameters.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
-      ],
-      "stage_undeclared_output_ids": [],
-      "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stderr.log"
-      ],
-      "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stderr.log"
-      ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
-      "raw_outputs_matched": true,
-      "normalized_metrics_matched": true,
-      "index_outputs_matched": true,
-      "logs_matched": true,
-      "manifest_matched": true,
-      "no_undeclared_outputs": true,
-      "independent_execution_proven": true,
-      "passed": true,
-      "reason": "binding `bam.damage` / `ngsbriggs` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
@@ -1091,6 +1054,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.damage` / `pmdtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1151,6 +1115,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.damage` / `pydamage` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1208,6 +1173,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.duplication_metrics` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1265,6 +1231,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.duplication_metrics` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1319,6 +1286,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.endogenous_content` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1388,6 +1356,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.filter` / `bamtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1457,6 +1426,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.filter` / `bedtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1526,6 +1496,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.filter` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -1583,30 +1554,37 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.gc_bias` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
-      "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
+      "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools",
       "domain": "bam",
       "stage_id": "bam.genotyping",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
       "output_proof_surface": "direct_declared_output_proof",
-      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd (result ids: bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd)",
-      "proof_tool_id": "angsd",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools (result ids: bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools)",
+      "proof_tool_id": "bcftools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stage-result.json",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/bcftools/stage-result.json",
       "declared_raw_output_ids": [
         "summary",
         "stage_metrics",
-        "population_metrics"
+        "genotyping_bcf",
+        "genotyping_vcf",
+        "genotyping_vcf_tbi",
+        "genotyping_gl"
       ],
       "observed_raw_output_ids": [
         "summary",
         "stage_metrics",
-        "population_metrics"
+        "genotyping_bcf",
+        "genotyping_vcf",
+        "genotyping_vcf_tbi",
+        "genotyping_gl"
       ],
       "declared_normalized_metric_ids": [
         "genotyping_report"
@@ -1617,22 +1595,25 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/genotyping_report/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/population_metrics/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/stage_metrics/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/summary/proof.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools/genotyping_bcf/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools/genotyping_gl/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools/genotyping_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools/genotyping_vcf/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools/genotyping_vcf_tbi/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/bcftools/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stderr.log"
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/bcftools/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/bcftools/stderr.log"
       ],
       "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stderr.log"
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/bcftools/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/bcftools/stderr.log"
       ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stage-result.json",
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/bcftools/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
@@ -1640,8 +1621,9 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
-      "reason": "binding `bam.genotyping` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.genotyping` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
@@ -1697,6 +1679,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.haplogroups` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
@@ -1754,65 +1737,9 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.insert_size` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
-    },
-    {
-      "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.kinship",
-      "tool_id": "angsd",
-      "corpus_id": "corpus-01-kinship-mini",
-      "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "direct_declared_output_proof",
-      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd (result ids: bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd)",
-      "proof_tool_id": "angsd",
-      "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
-      "declared_raw_output_ids": [
-        "summary",
-        "stage_metrics",
-        "population_metrics"
-      ],
-      "observed_raw_output_ids": [
-        "summary",
-        "stage_metrics",
-        "population_metrics"
-      ],
-      "declared_normalized_metric_ids": [
-        "kinship_report"
-      ],
-      "observed_normalized_metric_ids": [
-        "kinship_report"
-      ],
-      "declared_index_output_ids": [],
-      "observed_index_output_ids": [],
-      "observed_output_paths": [
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/kinship_report/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/population_metrics/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/stage_metrics/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/summary/proof.json"
-      ],
-      "stage_undeclared_output_ids": [],
-      "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stderr.log"
-      ],
-      "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stderr.log"
-      ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
-      "raw_outputs_matched": true,
-      "normalized_metrics_matched": true,
-      "index_outputs_matched": true,
-      "logs_matched": true,
-      "manifest_matched": true,
-      "no_undeclared_outputs": true,
-      "independent_execution_proven": true,
-      "passed": true,
-      "reason": "binding `bam.kinship` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -1865,6 +1792,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.kinship` / `king` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
@@ -1934,6 +1862,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.length_filter` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2003,6 +1932,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.length_filter` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2063,6 +1993,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.mapping_summary` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2123,6 +2054,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.mapping_summary` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2192,6 +2124,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.mapq_filter` / `bamtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2261,6 +2194,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.mapq_filter` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2330,6 +2264,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.markdup` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2399,6 +2334,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.markdup` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2468,6 +2404,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.overlap_correction` / `bamutil` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2528,6 +2465,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.qc_pre` / `multiqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2585,6 +2523,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.qc_pre` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2645,65 +2584,9 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.recalibration` / `gatk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
-    },
-    {
-      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.sex",
-      "tool_id": "angsd",
-      "corpus_id": "corpus-01-adna-bam-mini",
-      "asset_profile_id": "reference_fasta",
-      "output_proof_surface": "direct_declared_output_proof",
-      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd (result ids: bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd)",
-      "proof_tool_id": "angsd",
-      "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
-      "declared_raw_output_ids": [
-        "summary",
-        "stage_metrics",
-        "population_metrics"
-      ],
-      "observed_raw_output_ids": [
-        "summary",
-        "stage_metrics",
-        "population_metrics"
-      ],
-      "declared_normalized_metric_ids": [
-        "sex_report"
-      ],
-      "observed_normalized_metric_ids": [
-        "sex_report"
-      ],
-      "declared_index_output_ids": [],
-      "observed_index_output_ids": [],
-      "observed_output_paths": [
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/population_metrics/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/sex_report/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/stage_metrics/proof.json",
-        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/summary/proof.json"
-      ],
-      "stage_undeclared_output_ids": [],
-      "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stderr.log"
-      ],
-      "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stderr.log"
-      ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
-      "raw_outputs_matched": true,
-      "normalized_metrics_matched": true,
-      "index_outputs_matched": true,
-      "logs_matched": true,
-      "manifest_matched": true,
-      "no_undeclared_outputs": true,
-      "independent_execution_proven": true,
-      "passed": true,
-      "reason": "binding `bam.sex` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -2759,6 +2642,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.sex` / `rxy` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
@@ -2816,6 +2700,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.sex` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
@@ -2873,6 +2758,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.validate` / `bamtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2930,6 +2816,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.validate` / `bedtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -2987,6 +2874,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.validate` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3047,6 +2935,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.cluster_otus` / `vsearch` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3101,6 +2990,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.correct_errors` / `bayeshammer` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3155,6 +3045,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.correct_errors` / `lighter` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3209,6 +3100,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.correct_errors` / `musket` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3263,6 +3155,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.correct_errors` / `rcorrector` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3323,6 +3216,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.deplete_host` / `bowtie2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3383,6 +3277,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.deplete_reference_contaminants` / `bowtie2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3446,6 +3341,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.deplete_rrna` / `sortmerna` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3501,6 +3397,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.detect_adapters` / `fastqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3552,6 +3449,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.detect_duplicates_premerge` / `bijux_dna` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3603,6 +3501,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.estimate_library_complexity_prealign` / `bijux_dna` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3657,6 +3556,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.extract_umis` / `umi_tools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3713,6 +3613,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.filter_low_complexity` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3769,6 +3670,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.filter_low_complexity` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3825,6 +3727,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.filter_low_complexity` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3881,6 +3784,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.filter_reads` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3937,6 +3841,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.filter_reads` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -3993,6 +3898,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.filter_reads` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4049,6 +3955,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.filter_reads` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4100,6 +4007,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.index_reference` / `bowtie2_build` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4151,6 +4059,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.index_reference` / `star` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4211,6 +4120,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.infer_asvs` / `dada2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4271,6 +4181,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.merge_pairs` / `adapterremoval` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4331,6 +4242,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.merge_pairs` / `bbmerge` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4391,6 +4303,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.merge_pairs` / `flash2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4451,6 +4364,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.merge_pairs` / `leehom` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4511,6 +4425,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.merge_pairs` / `pear` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4571,6 +4486,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.merge_pairs` / `vsearch` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4622,6 +4538,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.normalize_abundance` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4686,6 +4603,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.normalize_primers` / `cutadapt` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4740,6 +4658,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.profile_overrepresented_sequences` / `fastq_scan` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4794,6 +4713,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.profile_overrepresented_sequences` / `fastqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -4848,122 +4768,9 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.profile_overrepresented_sequences` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
-    },
-    {
-      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "fastp",
-      "corpus_id": "corpus-01-mini",
-      "asset_profile_id": "corpus_only",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
-      "proof_tool_id": "seqkit_stats",
-      "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stage-result.json",
-      "declared_raw_output_ids": [
-        "length_distribution_tsv",
-        "length_distribution_json"
-      ],
-      "observed_raw_output_ids": [
-        "length_distribution_tsv",
-        "length_distribution_json"
-      ],
-      "declared_normalized_metric_ids": [
-        "report_json"
-      ],
-      "observed_normalized_metric_ids": [
-        "report_json"
-      ],
-      "declared_index_output_ids": [],
-      "observed_index_output_ids": [],
-      "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/profile_read_lengths_report.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json"
-      ],
-      "stage_undeclared_output_ids": [],
-      "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stderr.log"
-      ],
-      "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stderr.log"
-      ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stage-result.json",
-      "raw_outputs_matched": true,
-      "normalized_metrics_matched": true,
-      "index_outputs_matched": true,
-      "logs_matched": true,
-      "manifest_matched": true,
-      "no_undeclared_outputs": true,
-      "independent_execution_proven": true,
-      "passed": true,
-      "reason": "binding `fastq.profile_read_lengths` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
-    },
-    {
-      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "prinseq",
-      "corpus_id": "corpus-01-mini",
-      "asset_profile_id": "corpus_only",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
-      "proof_tool_id": "seqkit_stats",
-      "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stage-result.json",
-      "declared_raw_output_ids": [
-        "length_distribution_tsv",
-        "length_distribution_json"
-      ],
-      "observed_raw_output_ids": [
-        "length_distribution_tsv",
-        "length_distribution_json"
-      ],
-      "declared_normalized_metric_ids": [
-        "report_json"
-      ],
-      "observed_normalized_metric_ids": [
-        "report_json"
-      ],
-      "declared_index_output_ids": [],
-      "observed_index_output_ids": [],
-      "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/profile_read_lengths_report.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json"
-      ],
-      "stage_undeclared_output_ids": [],
-      "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stderr.log"
-      ],
-      "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stderr.log"
-      ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stage-result.json",
-      "raw_outputs_matched": true,
-      "normalized_metrics_matched": true,
-      "index_outputs_matched": true,
-      "logs_matched": true,
-      "manifest_matched": true,
-      "no_undeclared_outputs": true,
-      "independent_execution_proven": true,
-      "passed": true,
-      "reason": "binding `fastq.profile_read_lengths` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
@@ -4973,8 +4780,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
-      "proof_tool_id": "seqkit_stats",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/profile_read_lengths_report.json",
+      "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqfu/stage-result.json",
       "declared_raw_output_ids": [
@@ -4994,12 +4801,12 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/profile_read_lengths_report.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json"
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit/length_distribution.json",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit/length_distribution.tsv",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit/profile_read_lengths_report.json",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/length_distribution.json",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/length_distribution.tsv",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/profile_read_lengths_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5019,21 +4826,22 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.profile_read_lengths` / `seqfu` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
-      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
+      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit",
       "domain": "fastq",
       "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "seqkit_stats",
+      "tool_id": "seqkit",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
-      "proof_tool_id": "seqkit_stats",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/profile_read_lengths_report.json",
+      "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stage-result.json",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit/stage-result.json",
       "declared_raw_output_ids": [
         "length_distribution_tsv",
         "length_distribution_json"
@@ -5051,24 +4859,24 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/profile_read_lengths_report.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.json",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.tsv",
-        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json"
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit/length_distribution.json",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit/length_distribution.tsv",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit/profile_read_lengths_report.json",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/length_distribution.json",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/length_distribution.tsv",
+        "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit/profile_read_lengths_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stderr.log"
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit/stderr.log"
       ],
       "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stderr.log"
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit/stderr.log"
       ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stage-result.json",
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
@@ -5076,8 +4884,9 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
-      "reason": "binding `fastq.profile_read_lengths` / `seqkit_stats` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `fastq.profile_read_lengths` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqfu",
@@ -5106,6 +4915,8 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqfu/qc.json",
+        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqfu/qc.tsv",
         "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqfu/qc.json",
         "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqfu/qc.tsv"
       ],
@@ -5127,6 +4938,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.profile_reads` / `seqfu` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5180,6 +4992,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.profile_reads` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5234,6 +5047,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.profile_reads` / `seqkit_stats` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5294,6 +5108,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.remove_chimeras` / `vsearch` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5354,68 +5169,9 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.remove_duplicates` / `clumpify` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
-    },
-    {
-      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-      "domain": "fastq",
-      "stage_id": "fastq.remove_duplicates",
-      "tool_id": "fastuniq",
-      "corpus_id": "corpus-01-mini",
-      "asset_profile_id": "corpus_only",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
-      "proof_tool_id": "clumpify",
-      "runtime_path_proof_surface": "expected_benchmark_result_paths",
-      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stage-result.json",
-      "declared_raw_output_ids": [
-        "dedup_reads_r1",
-        "dedup_reads_r2",
-        "duplicate_classes_tsv",
-        "duplicate_provenance_json"
-      ],
-      "observed_raw_output_ids": [
-        "dedup_reads_r1",
-        "dedup_reads_r2",
-        "duplicate_classes_tsv",
-        "duplicate_provenance_json"
-      ],
-      "declared_normalized_metric_ids": [
-        "report_json"
-      ],
-      "observed_normalized_metric_ids": [
-        "report_json"
-      ],
-      "declared_index_output_ids": [],
-      "observed_index_output_ids": [],
-      "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
-        "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R2.fastq.gz",
-        "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/deduplicate_report.json",
-        "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_classes.tsv",
-        "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_provenance.json"
-      ],
-      "stage_undeclared_output_ids": [],
-      "declared_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stderr.log"
-      ],
-      "observed_logs": [
-        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stdout.log",
-        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stderr.log"
-      ],
-      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stage-result.json",
-      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stage-result.json",
-      "raw_outputs_matched": true,
-      "normalized_metrics_matched": true,
-      "index_outputs_matched": true,
-      "logs_matched": true,
-      "manifest_matched": true,
-      "no_undeclared_outputs": true,
-      "independent_execution_proven": true,
-      "passed": true,
-      "reason": "binding `fastq.remove_duplicates` / `fastuniq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
@@ -5471,6 +5227,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.report_qc` / `multiqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5522,6 +5279,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.screen_taxonomy` / `centrifuge` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5573,6 +5331,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.screen_taxonomy` / `kaiju` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5630,6 +5389,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.screen_taxonomy` / `kraken2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5681,6 +5441,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.screen_taxonomy` / `krakenuniq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5741,6 +5502,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_polyg_tails` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5801,6 +5563,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_polyg_tails` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5857,6 +5620,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `adapterremoval` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5913,6 +5677,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `alientrimmer` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -5969,6 +5734,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `atropos` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6029,6 +5795,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6089,6 +5856,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `cutadapt` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6149,6 +5917,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6205,6 +5974,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `fastx_clipper` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6261,6 +6031,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `leehom` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6317,6 +6088,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6373,6 +6145,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6429,6 +6202,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `skewer` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6485,6 +6259,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `trim_galore` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6541,6 +6316,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_reads` / `trimmomatic` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6597,6 +6373,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_terminal_damage` / `adapterremoval` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6657,6 +6434,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_terminal_damage` / `cutadapt` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6713,6 +6491,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.trim_terminal_damage` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6766,6 +6545,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.validate_reads` / `fastq_scan` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6819,6 +6599,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.validate_reads` / `fastqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6872,6 +6653,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.validate_reads` / `fastqvalidator` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6925,6 +6707,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.validate_reads` / `fqtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -6978,6 +6761,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.validate_reads` / `seqtk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
@@ -7035,6 +6819,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.admixture` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7090,6 +6875,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.call` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7145,6 +6931,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.call_diploid` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7200,6 +6987,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.call_gl` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7255,6 +7043,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.call_pseudohaploid` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7310,8 +7099,55 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.damage_filter` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne",
+      "domain": "vcf",
+      "stage_id": "vcf.demography",
+      "tool_id": "ibdne",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "json_ibd_segments",
+      "output_proof_surface": "direct_tool_smoke",
+      "output_proof_path": "runs/bench/local-smoke/vcf.demography/ibdne/stage-result.json",
+      "proof_tool_id": "ibdne",
+      "runtime_path_proof_surface": "declared_vcf_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stage-result.json",
+      "declared_raw_output_ids": [
+        "ne_trajectory_tsv",
+        "logs_txt"
+      ],
+      "observed_raw_output_ids": [],
+      "declared_normalized_metric_ids": [
+        "demography_report"
+      ],
+      "observed_normalized_metric_ids": [],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stage-result.json",
+      "raw_outputs_matched": false,
+      "normalized_metrics_matched": false,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": false,
+      "execution_blocker": "selected VCF tool `ibdne` was not executed; smoke reported `tool_ok=false`",
+      "passed": false,
+      "reason": "execution blocked: selected VCF tool `ibdne` was not executed; smoke reported `tool_ok=false`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
@@ -7365,6 +7201,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.filter` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7420,8 +7257,103 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.gl_propagation` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "output_proof_surface": "direct_tool_smoke",
+      "output_proof_path": "runs/bench/local-smoke/vcf.ibd/germline/stage-result.json",
+      "proof_tool_id": "germline",
+      "runtime_path_proof_surface": "declared_vcf_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stage-result.json",
+      "declared_raw_output_ids": [
+        "cohort_ped",
+        "cohort_map",
+        "germline_match",
+        "logs_txt"
+      ],
+      "observed_raw_output_ids": [],
+      "declared_normalized_metric_ids": [
+        "ibd_segments"
+      ],
+      "observed_normalized_metric_ids": [],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stage-result.json",
+      "raw_outputs_matched": false,
+      "normalized_metrics_matched": false,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": false,
+      "execution_blocker": "selected VCF tool `germline` was not executed; smoke reported execution_mode `fallback_proxy` and `germline_tool_ok=false`",
+      "passed": false,
+      "reason": "execution blocked: selected VCF tool `germline` was not executed; smoke reported execution_mode `fallback_proxy` and `germline_tool_ok=false`"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "ibdseq",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "output_proof_surface": "direct_tool_smoke",
+      "output_proof_path": "runs/bench/local-smoke/vcf.ibd/ibdseq/stage-result.json",
+      "proof_tool_id": "ibdseq",
+      "runtime_path_proof_surface": "declared_vcf_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stage-result.json",
+      "declared_raw_output_ids": [
+        "ibdseq_segments_tsv",
+        "logs_txt"
+      ],
+      "observed_raw_output_ids": [],
+      "declared_normalized_metric_ids": [
+        "ibd_segments"
+      ],
+      "observed_normalized_metric_ids": [],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stage-result.json",
+      "raw_outputs_matched": false,
+      "normalized_metrics_matched": false,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": false,
+      "execution_blocker": "selected VCF tool `ibdseq` was not executed; smoke reported execution_mode `fallback_proxy` and `ibdseq_tool_ok=false`",
+      "passed": false,
+      "reason": "execution blocked: selected VCF tool `ibdseq` was not executed; smoke reported execution_mode `fallback_proxy` and `ibdseq_tool_ok=false`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
@@ -7493,6 +7425,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.imputation_metrics` / `beagle` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7578,6 +7511,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.impute` / `beagle` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7650,6 +7584,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.pca` / `eigensoft` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7707,6 +7642,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.pca` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7771,6 +7707,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.phasing` / `shapeit5` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7836,6 +7773,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.population_structure` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7891,6 +7829,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.postprocess` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -7949,6 +7888,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.prepare_reference_panel` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -8015,6 +7955,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.qc` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -8081,6 +8022,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.qc` / `plink` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -8147,6 +8089,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.qc` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -8201,6 +8144,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.roh` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
@@ -8252,6 +8196,7 @@
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
+      "execution_blocker": null,
       "passed": true,
       "reason": "binding `vcf.stats` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     }

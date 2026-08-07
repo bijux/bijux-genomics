@@ -85,6 +85,7 @@ pub(crate) struct OutputContractTestRow {
     pub(crate) manifest_matched: bool,
     pub(crate) no_undeclared_outputs: bool,
     pub(crate) independent_execution_proven: bool,
+    pub(crate) execution_blocker: Option<String>,
     pub(crate) passed: bool,
     pub(crate) reason: String,
 }
@@ -95,9 +96,12 @@ pub(crate) struct OutputContractTestsReport {
     pub(crate) output_path: String,
     pub(crate) row_count: usize,
     pub(crate) passed_row_count: usize,
+    pub(crate) blocked_row_count: usize,
     pub(crate) failed_row_count: usize,
     pub(crate) domain_counts: BTreeMap<String, usize>,
     pub(crate) output_proof_surface_counts: BTreeMap<String, usize>,
+    pub(crate) blocked_stage_ids: Vec<String>,
+    pub(crate) blocked_tool_ids: Vec<String>,
     pub(crate) failed_stage_ids: Vec<String>,
     pub(crate) failed_tool_ids: Vec<String>,
     pub(crate) rows: Vec<OutputContractTestRow>,
@@ -135,6 +139,7 @@ struct VcfToolProof {
     observed_ids: BTreeSet<String>,
     observed_paths_by_id: BTreeMap<String, Vec<String>>,
     independent_execution_proven: bool,
+    execution_blocker: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -228,23 +233,39 @@ fn build_output_contract_audit_report(
     });
 
     let passed_row_count = rows.iter().filter(|row| row.passed).count();
-    let failed_row_count = rows.len().saturating_sub(passed_row_count);
+    let blocked_row_count = rows.iter().filter(|row| row.execution_blocker.is_some()).count();
+    let failed_row_count =
+        rows.iter().filter(|row| !row.passed && row.execution_blocker.is_none()).count();
     let mut domain_counts = BTreeMap::<String, usize>::new();
     let mut output_proof_surface_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         *domain_counts.entry(row.domain.clone()).or_default() += 1;
         *output_proof_surface_counts.entry(row.output_proof_surface.clone()).or_default() += 1;
     }
+    let blocked_stage_ids = rows
+        .iter()
+        .filter(|row| row.execution_blocker.is_some())
+        .map(|row| row.stage_id.clone())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    let blocked_tool_ids = rows
+        .iter()
+        .filter(|row| row.execution_blocker.is_some())
+        .map(|row| row.tool_id.clone())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
     let failed_stage_ids = rows
         .iter()
-        .filter(|row| !row.passed)
+        .filter(|row| !row.passed && row.execution_blocker.is_none())
         .map(|row| row.stage_id.clone())
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
     let failed_tool_ids = rows
         .iter()
-        .filter(|row| !row.passed)
+        .filter(|row| !row.passed && row.execution_blocker.is_none())
         .map(|row| row.tool_id.clone())
         .collect::<BTreeSet<_>>()
         .into_iter()
@@ -255,9 +276,12 @@ fn build_output_contract_audit_report(
         output_path: path_relative_to_repo(repo_root, output_path),
         row_count: rows.len(),
         passed_row_count,
+        blocked_row_count,
         failed_row_count,
         domain_counts,
         output_proof_surface_counts,
+        blocked_stage_ids,
+        blocked_tool_ids,
         failed_stage_ids,
         failed_tool_ids,
         rows,
@@ -670,22 +694,27 @@ fn collect_vcf_tool_proofs(
                     observed_ids: BTreeSet::new(),
                     observed_paths_by_id: BTreeMap::new(),
                     independent_execution_proven: false,
+                    execution_blocker: None,
                 },
             );
             continue;
         };
         let manifest = load_validated_stage_result_manifest_path(&repo_root.join(&manifest_path))
             .with_context(|| format!("load `{manifest_path}`"))?;
-        proofs
-            .insert(row.result_id.clone(), vcf_tool_proof_from_manifest(&manifest_path, manifest));
+        proofs.insert(
+            row.result_id.clone(),
+            vcf_tool_proof_from_manifest(repo_root, &manifest_path, manifest)?,
+        );
     }
     Ok(proofs)
 }
 
 fn vcf_tool_proof_from_manifest(
+    repo_root: &Path,
     manifest_path: &str,
     manifest: BenchStageResultManifestV1,
-) -> VcfToolProof {
+) -> Result<VcfToolProof> {
+    let execution_blocker = vcf_execution_blocker(repo_root, &manifest)?;
     let mut observed_ids = BTreeSet::<String>::new();
     let mut observed_paths_by_id = BTreeMap::<String, Vec<String>>::new();
     for output in manifest.outputs {
@@ -698,14 +727,64 @@ fn vcf_tool_proof_from_manifest(
         paths.sort();
         paths.dedup();
     }
-    VcfToolProof {
+    Ok(VcfToolProof {
         proof_surface: PROOF_SURFACE_DIRECT_TOOL_SMOKE,
         proof_path: manifest_path.to_string(),
         proof_tool_id: Some(manifest.tool.id),
         observed_ids,
         observed_paths_by_id,
-        independent_execution_proven: true,
+        independent_execution_proven: execution_blocker.is_none(),
+        execution_blocker,
+    })
+}
+
+fn vcf_execution_blocker(
+    repo_root: &Path,
+    manifest: &BenchStageResultManifestV1,
+) -> Result<Option<String>> {
+    let report_artifact_id = match manifest.stage_id.as_str() {
+        "vcf.ibd" => "ibd_json",
+        "vcf.demography" => "demography_json",
+        _ => return Ok(None),
+    };
+    let report_output = manifest
+        .outputs
+        .iter()
+        .find(|output| output.artifact_id == report_artifact_id && output.exists)
+        .ok_or_else(|| {
+            anyhow!(
+                "VCF tool proof `{}` / `{}` is missing `{report_artifact_id}`",
+                manifest.stage_id,
+                manifest.tool.id
+            )
+        })?;
+    let report_path = repo_relative_path(repo_root, Path::new(&report_output.realized_path));
+    let report: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(&report_path)
+            .with_context(|| format!("read VCF execution proof {}", report_path.display()))?,
+    )
+    .with_context(|| format!("parse VCF execution proof {}", report_path.display()))?;
+
+    if manifest.stage_id == "vcf.ibd" {
+        let execution_mode =
+            report.get("execution_mode").and_then(serde_json::Value::as_str).unwrap_or("missing");
+        let tool_ok_field = format!("{}_tool_ok", manifest.tool.id);
+        let selected_tool_ok =
+            report.get(&tool_ok_field).and_then(serde_json::Value::as_bool).unwrap_or(false);
+        if execution_mode != "tool_backed" || !selected_tool_ok {
+            return Ok(Some(format!(
+                "selected VCF tool `{}` was not executed; smoke reported execution_mode `{execution_mode}` and `{tool_ok_field}={selected_tool_ok}`",
+                manifest.tool.id
+            )));
+        }
+    } else if !report.get("tool_ok").and_then(serde_json::Value::as_bool).unwrap_or(false) {
+        return Ok(Some(format!(
+            "selected VCF tool `{}` was not executed; smoke reported `tool_ok=false`",
+            manifest.tool.id
+        )));
     }
+
+    Ok(None)
 }
 
 fn build_row(
@@ -731,6 +810,7 @@ fn build_row(
         observed_paths_by_id,
         stage_undeclared_output_ids,
         independent_execution_proven,
+        execution_blocker,
     ) = match output_row.domain.as_str() {
         "fastq" | "bam" => {
             let proof = fastq_bam_proofs.get(&tool_key).ok_or_else(|| {
@@ -748,6 +828,7 @@ fn build_row(
                 proof.observed_paths_by_id.clone(),
                 proof.undeclared_stage_output_ids.clone(),
                 proof.independent_execution_proven,
+                None,
             )
         }
         "vcf" => {
@@ -765,6 +846,7 @@ fn build_row(
                 proof.observed_paths_by_id.clone(),
                 Vec::new(),
                 proof.independent_execution_proven,
+                proof.execution_blocker.clone(),
             )
         }
         other => {
@@ -820,6 +902,8 @@ fn build_row(
             output_proof_surface,
             runtime_path_proof.runtime_path_proof_surface
         )
+    } else if let Some(blocker) = &execution_blocker {
+        format!("execution blocked: {blocker}")
     } else {
         let mut failures = Vec::<String>::new();
         if output_row.status != AllDomainOutputDeclarationStatus::Complete {
@@ -888,6 +972,7 @@ fn build_row(
         manifest_matched,
         no_undeclared_outputs,
         independent_execution_proven,
+        execution_blocker,
         passed,
         reason,
     })
@@ -1056,7 +1141,7 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
-        assert_eq!(report.row_count, 141);
+        assert_eq!(report.row_count, 138);
         assert!(report.passed_row_count > 0, "report should keep real passing rows");
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),
@@ -1092,7 +1177,11 @@ mod tests {
             .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.passed_row_count, report.row_count);
+        assert_eq!(report.blocked_row_count, 3);
+        assert_eq!(report.passed_row_count + report.blocked_row_count, report.row_count);
+        assert_eq!(report.blocked_tool_ids, ["germline", "ibdne", "ibdseq"]);
+        assert!(report.failed_stage_ids.is_empty());
+        assert!(report.failed_tool_ids.is_empty());
         assert!(
             !report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
             "governed proof runs should not leave blocked FASTQ/BAM materialization rows"

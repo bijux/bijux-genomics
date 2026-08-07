@@ -53,9 +53,22 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64)
+        Some(rows.len() as u64 - 3)
     );
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(
+        payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
+        Some(&vec![
+            serde_json::Value::String("germline".to_string()),
+            serde_json::Value::String("ibdne".to_string()),
+            serde_json::Value::String("ibdseq".to_string()),
+        ])
+    );
+    assert!(payload
+        .get("failed_tool_ids")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(Vec::is_empty));
 
     let proof_surface_counts = payload
         .get("output_proof_surface_counts")
@@ -82,6 +95,18 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some("haplogroups")))
     }));
+    for blocked_tool_id in ["germline", "ibdne", "ibdseq"] {
+        assert!(rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(blocked_tool_id)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
+                && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
+                    == Some(false)
+                && row
+                    .get("execution_blocker")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|reason| reason.contains("was not executed"))
+        }));
+    }
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
@@ -131,6 +156,7 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
         Some(rows.len() as u64)
     );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
