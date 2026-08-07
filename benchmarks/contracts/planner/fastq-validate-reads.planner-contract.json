@@ -54,6 +54,7 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -62,6 +63,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -130,12 +132,14 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             },
             {
               "name": "reads_r2",
               "path": "__BIJUX_READS_R2__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -144,6 +148,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -215,6 +220,7 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -223,6 +229,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -291,12 +298,14 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             },
             {
               "name": "reads_r2",
               "path": "__BIJUX_READS_R2__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -305,6 +314,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -376,6 +386,7 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -384,6 +395,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -452,12 +464,14 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             },
             {
               "name": "reads_r2",
               "path": "__BIJUX_READS_R2__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -466,6 +480,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -537,6 +552,7 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -545,6 +561,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -613,12 +630,14 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             },
             {
               "name": "reads_r2",
               "path": "__BIJUX_READS_R2__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -627,6 +646,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -698,6 +718,7 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -706,6 +727,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
@@ -774,12 +796,14 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             },
             {
               "name": "reads_r2",
               "path": "__BIJUX_READS_R2__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -788,6 +812,7 @@
               "name": "validation_report",
               "path": "__BIJUX_RESULT_ROOT__/validation.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {

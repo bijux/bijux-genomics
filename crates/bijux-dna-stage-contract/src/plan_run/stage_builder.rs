@@ -93,6 +93,7 @@ pub fn build_stage_plan(
         .map(|artifact| StageArtifactPromiseV1 {
             artifact_id: artifact.name.to_string(),
             role: artifact.role,
+            artifact_contract_id: artifact.artifact_contract_id.clone(),
             path: artifact.path.to_string_lossy().to_string(),
             optional: artifact.optional,
         })

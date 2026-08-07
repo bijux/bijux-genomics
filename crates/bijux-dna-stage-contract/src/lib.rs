@@ -34,4 +34,13 @@ pub use stage_plugin::{
     StageReportPartV1,
 };
 
-pub use bijux_dna_core::contract::{ArtifactRef, StageIO};
+pub use bijux_dna_core::contract::{
+    artifact_compatibility, artifact_contract_catalog_schema, artifact_contract_schema,
+    canonical_artifact_contract_catalog, ensure_artifact_compatibility, ArtifactCardinalityV1,
+    ArtifactClassV1, ArtifactCompatibilityCheckV1, ArtifactCompatibilityReportV1,
+    ArtifactCompressionV1, ArtifactContractCatalogV1, ArtifactContractV1, ArtifactFormatV1,
+    ArtifactLineageContractV1, ArtifactPairingV1, ArtifactPresenceV1, ArtifactRef, ArtifactRole,
+    ArtifactSidecarContractV1, ArtifactSidecarRoleV1, ArtifactSortOrderV1,
+    ArtifactValidationInvariantV1, StageIO, ARTIFACT_CONTRACT_CATALOG_SCHEMA_V1,
+    ARTIFACT_CONTRACT_SCHEMA_V1,
+};

@@ -226,6 +226,16 @@ pub fn governed_schema_registry() -> Vec<SchemaRegistryEntryV1> {
             "Deterministic plan manifest whose fingerprint is part of cache and replay identity.",
         ),
         schema_entry(
+            "artifact_contract",
+            "bijux.artifact_contract.v1",
+            "1.0.0",
+            SchemaSurfaceKindV1::Artifact,
+            SchemaCompatibilityClassV1::ExactMatch,
+            SchemaMigrationRuleV1::RefuseUnknownVersions,
+            "bijux-dna-stage-contract",
+            "Canonical format, layout, identity, sidecar, lineage, and validation guarantees shared by planners and benchmarks.",
+        ),
+        schema_entry(
             "artifact_inventory",
             "bijux.artifact_inventory.v1",
             "1.0.0",
@@ -564,7 +574,37 @@ pub fn migrate_workflow_manifest_value(
             ))
         }
         "bijux.workflow_manifest.v0" => {
-            let legacy: WorkflowManifestLegacyV0 = serde_json::from_value(value.clone())?;
+            let mut legacy: WorkflowManifestLegacyV0 = serde_json::from_value(value.clone())?;
+            for input in &mut legacy.inputs {
+                if input.artifact_contract_id.is_none() {
+                    input.artifact_contract_id = match input.layout {
+                        Some(crate::contract::ReadLayoutMode::SingleEnd) => {
+                            Some("bijux.fastq.artifact.single_end.v1".to_string())
+                        }
+                        Some(crate::contract::ReadLayoutMode::PairedEnd)
+                        | Some(crate::contract::ReadLayoutMode::Deinterleaved) => {
+                            Some("bijux.fastq.artifact.paired_end.v1".to_string())
+                        }
+                        Some(crate::contract::ReadLayoutMode::Interleaved) => {
+                            Some("bijux.fastq.artifact.interleaved.v1".to_string())
+                        }
+                        Some(crate::contract::ReadLayoutMode::Merged) => {
+                            Some("bijux.fastq.artifact.merged.v1".to_string())
+                        }
+                        Some(crate::contract::ReadLayoutMode::Unknown) | None => {
+                            crate::contract::canonical_contract_id_for_role(input.role)
+                                .map(str::to_string)
+                        }
+                    };
+                }
+            }
+            for asset in &mut legacy.reference_assets {
+                if asset.artifact_contract_id.is_none() {
+                    asset.artifact_contract_id = Some(
+                        "bijux.reference.artifact.fasta.v1".to_string(),
+                    );
+                }
+            }
             let manifest = WorkflowManifestV1 {
                 schema_version: "bijux.workflow_manifest.v1".to_string(),
                 domain: legacy.domain,

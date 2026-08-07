@@ -251,11 +251,11 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(dedup_cohorts[0].scenario_id, "dedup_fairness");
     assert_eq!(
         dedup_cohorts[0].tool_ids.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["clumpify", "fastuniq"]
+        vec!["clumpify"]
     );
     assert_eq!(
         dedup_cohorts[0].observer_specialized_tools.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["clumpify", "fastuniq"]
+        vec!["clumpify"]
     );
 
     let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
@@ -265,7 +265,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(read_length_cohorts[0].scenario_id, "read_length_fairness");
     assert_eq!(
         read_length_cohorts[0].tool_ids.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]
+        vec!["seqfu", "seqkit"]
     );
     assert_eq!(
         read_length_cohorts[0]
@@ -273,7 +273,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(ToolId::as_str)
             .collect::<Vec<_>>(),
-        vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]
+        vec!["seqfu", "seqkit"]
     );
 
     let correction_stage = StageId::from_static("fastq.correct_errors");

@@ -2,6 +2,9 @@ use std::path::{Path, PathBuf};
 
 use crate::foundation::{BijuxError, Result};
 
+use super::artifact_contract::{
+    canonical_artifact_contract_catalog, ArtifactClassV1, ArtifactFormatV1,
+};
 use super::graph::ExecutionStep;
 use super::io::{ArtifactRole, ArtifactSpec};
 
@@ -123,7 +126,11 @@ impl TypedArtifactRef {
         let lower_name = artifact.name.as_str().to_ascii_lowercase();
         let lower_path = path.to_string_lossy().to_ascii_lowercase();
         let domain = stage_domain(step.stage_id.as_str());
-        let typed = classify_input_artifact(step, artifact, &path, &lower_name, &lower_path)?;
+        let typed = if let Some(contract_id) = artifact.artifact_contract_id.as_deref() {
+            classify_contract_artifact(contract_id, &path)?
+        } else {
+            classify_input_artifact(step, artifact, &path, &lower_name, &lower_path)?
+        };
 
         if domain == "fastq" {
             if let Some(kind) = typed.as_ref().map(Self::kind) {
@@ -147,6 +154,39 @@ impl TypedArtifactRef {
 
         Ok(typed)
     }
+}
+
+fn classify_contract_artifact(contract_id: &str, path: &Path) -> Result<Option<TypedArtifactRef>> {
+    let catalog = canonical_artifact_contract_catalog();
+    let contract = catalog.contract(contract_id).ok_or_else(|| {
+        BijuxError::validation(format!("unknown canonical artifact contract: {contract_id}"))
+    })?;
+    let typed = match contract.class {
+        ArtifactClassV1::Fastq => TypedArtifactRef::Fastq(FastqArtifact::new(path.to_path_buf())),
+        ArtifactClassV1::Alignment => TypedArtifactRef::Bam(BamArtifact::new(path.to_path_buf())),
+        ArtifactClassV1::Variant
+            if contract.contract_id == "bijux.vcf.artifact.reference_panel_indexed.v1" =>
+        {
+            TypedArtifactRef::Panel(PanelArtifact::new(path.to_path_buf()))
+        }
+        ArtifactClassV1::Variant => TypedArtifactRef::Vcf(VcfArtifact::new(path.to_path_buf())),
+        ArtifactClassV1::Reference => {
+            TypedArtifactRef::Reference(ReferenceArtifact::new(path.to_path_buf()))
+        }
+        ArtifactClassV1::Auxiliary => match contract.formats.as_slice() {
+            [ArtifactFormatV1::Tabular] => {
+                TypedArtifactRef::Table(TableArtifact::new(path.to_path_buf()))
+            }
+            [ArtifactFormatV1::Json] => {
+                TypedArtifactRef::JsonMetrics(JsonMetricsArtifact::new(path.to_path_buf()))
+            }
+            [ArtifactFormatV1::Database] => {
+                TypedArtifactRef::Database(DatabaseArtifact::new(path.to_path_buf()))
+            }
+            _ => return Ok(None),
+        },
+    };
+    Ok(Some(typed))
 }
 
 fn classify_input_artifact(
@@ -481,12 +521,14 @@ mod tests {
             ArtifactId::new("reference_panel_vcf"),
             PathBuf::from("panels/panel.vcf.gz"),
             ArtifactRole::Variant,
-        );
+        )
+        .with_artifact_contract("bijux.vcf.artifact.reference_panel_indexed.v1");
         let table = ArtifactSpec::required(
             ArtifactId::new("genetic_map_tsv"),
             PathBuf::from("maps/grch38.tsv"),
             ArtifactRole::Reference,
-        );
+        )
+        .with_artifact_contract("bijux.auxiliary.artifact.table.v1");
         let metrics = ArtifactSpec::required(
             ArtifactId::new("metrics_json"),
             PathBuf::from("metrics.json"),
@@ -496,7 +538,8 @@ mod tests {
             ArtifactId::new("taxonomy_database"),
             PathBuf::from("taxonomy/database.sqlite"),
             ArtifactRole::Reference,
-        );
+        )
+        .with_artifact_contract("bijux.auxiliary.artifact.database.v1");
         let step = step(
             "vcf.call",
             vec![
@@ -527,7 +570,7 @@ mod tests {
     }
 
     #[test]
-    fn typed_artifact_handoffs_reject_reads_declared_with_bam_paths() {
+    fn typed_artifact_handoffs_use_contract_identity_instead_of_filename() {
         let step = step(
             &domain_stage_id(DomainKind::Fastq, "validate_reads"),
             vec![ArtifactSpec::required(
@@ -537,10 +580,10 @@ mod tests {
             )],
         );
 
-        let err = match validate_typed_input_handoffs(&step) {
-            Ok(()) => panic!("reads role must reject BAM path"),
-            Err(err) => err,
-        };
-        assert!(err.to_string().contains("expected FASTQ"), "{err}");
+        let artifact = &step.io.inputs[0];
+        let typed = TypedArtifactRef::from_input(&step, artifact)
+            .unwrap_or_else(|error| panic!("canonical contract must classify handoff: {error}"))
+            .unwrap_or_else(|| panic!("FASTQ contract must produce a typed handoff"));
+        assert_eq!(typed.kind(), TypedArtifactKind::Fastq);
     }
 }

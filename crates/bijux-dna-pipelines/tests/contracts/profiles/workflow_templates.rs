@@ -120,6 +120,7 @@ fn template_admission_requires_layout_metadata_reference_and_index() {
     let mut manifest = WorkflowManifestV1::new("cross", "bam-to-vcf__default__v1");
     manifest.inputs.push(WorkflowInputArtifactV1 {
         artifact_id: "reads".to_string(),
+        artifact_contract_id: Some("bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string()),
         role: ArtifactRole::Bam,
         path: "sample.bam".into(),
         layout: Some(ReadLayoutMode::SingleEnd),
@@ -128,6 +129,7 @@ fn template_admission_requires_layout_metadata_reference_and_index() {
     });
     manifest.reference_assets.push(WorkflowReferenceAssetV1 {
         asset_id: "GRCh38".to_string(),
+        artifact_contract_id: Some("bijux.reference.artifact.fasta.v1".to_string()),
         role: ArtifactRole::Reference,
         path: "references/GRCh38.fa".into(),
         checksum_sha256: None,

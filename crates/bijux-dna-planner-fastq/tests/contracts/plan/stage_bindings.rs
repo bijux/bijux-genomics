@@ -408,8 +408,8 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
                 stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
             },
             PipelineNodeSpec {
-                stage_id: "fastq.remove_duplicates".to_string(),
-                stage_instance_id: Some("fastq.remove_duplicates.selected".to_string()),
+                stage_id: "fastq.filter_low_complexity".to_string(),
+                stage_instance_id: Some("fastq.filter_low_complexity.selected".to_string()),
             },
         ],
         vec![
@@ -421,7 +421,7 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
             },
             PipelineEdgeSpec {
                 from: "fastq.trim_reads.cleanup".to_string(),
-                to: "fastq.remove_duplicates.selected".to_string(),
+                to: "fastq.filter_low_complexity.selected".to_string(),
                 from_output_id: None,
                 to_input_id: None,
             },
@@ -450,9 +450,9 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
                 params: None,
             },
             FastqStageToolsetBinding {
-                stage_id: "fastq.remove_duplicates".to_string(),
-                stage_instance_id: Some("fastq.remove_duplicates.selected".to_string()),
-                tools: vec![tool("clumpify"), tool("fastuniq")],
+                stage_id: "fastq.filter_low_complexity".to_string(),
+                stage_instance_id: Some("fastq.filter_low_complexity.selected".to_string()),
+                tools: vec![tool("bbduk"), tool("prinseq")],
                 reason: None,
                 params: None,
             },
@@ -1023,7 +1023,7 @@ fn planner_uses_typed_profile_read_lengths_params_from_stage_binding() -> anyhow
         stage_bindings: vec![FastqStageBinding {
             stage_id: "fastq.profile_read_lengths".to_string(),
             stage_instance_id: Some("fastq.profile_read_lengths.custom".to_string()),
-            tool: seqkit_stats_tool(),
+            tool: tool("seqkit"),
             reason: None,
             params: Some(FastqStageParameters::ProfileReadLengths(FastqReadLengthProfileParams {
                 schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
@@ -1048,7 +1048,7 @@ fn planner_uses_typed_profile_read_lengths_params_from_stage_binding() -> anyhow
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.profile_read_lengths.custom");
     assert_eq!(step.resources.threads, 6);
-    assert_eq!(step.command.template[5], "6");
+    assert!(step.command.template.windows(2).any(|pair| pair == ["--threads", "6"]));
     assert!(step.io.outputs.iter().any(|artifact| artifact.name.as_str() == "report_json"));
     Ok(())
 }

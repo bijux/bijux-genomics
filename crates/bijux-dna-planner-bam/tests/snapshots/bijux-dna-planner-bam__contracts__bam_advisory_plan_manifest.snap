@@ -4,7 +4,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
 ---
 {
   "domain": "bam",
-  "graph_hash": "3ef16e193ba7acd4dfc483e18b4c00c0257e9f514873e4c2ac515ade17e7112c",
+  "graph_hash": "b95d33d4f05818fcf27fc5ae195c5b41b0ad58f6a6c8c9bc5181c2ebba60c994",
   "ordered_steps": [
     {
       "advisory": false,
@@ -19,7 +19,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "artifact_id": "flagstat",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_validate/flagstat.txt",
-          "role": "report_json"
+          "role": "report"
         },
         {
           "artifact_id": "stage_metrics",
@@ -28,7 +28,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "1be49df1931d327526bc1e56ae7b515d565c38af6f7954c64397232975f2fcd9",
+      "cache_key": "84fda5652eeba19d0620686c768d88b0a048b9dafc743fec289bbeb0d71f9e9c",
       "effective_parameters_json": {
         "strict": true
       },
@@ -61,19 +61,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "artifact_id": "flagstat",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt",
-          "role": "report_json"
+          "role": "report"
         },
         {
           "artifact_id": "idxstats",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt",
-          "role": "unknown"
+          "role": "report"
         },
         {
           "artifact_id": "stats",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt",
-          "role": "unknown"
+          "role": "report"
         },
         {
           "artifact_id": "stage_metrics",
@@ -82,7 +82,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "dbd0c607292f88e82b18bd47e2f71b56c7ca2319de92d7367fddb90d380269f1",
+      "cache_key": "447efe8b1c03ebce5bcf0d054ebbc04b9aa4d365c67a5a0113f826e4ab3a5aac",
       "dependencies": [
         "bam.validate"
       ],
@@ -115,19 +115,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "artifact_id": "flagstat",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt",
-          "role": "report_json"
+          "role": "report"
         },
         {
           "artifact_id": "idxstats",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt",
-          "role": "unknown"
+          "role": "report"
         },
         {
           "artifact_id": "stats",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt",
-          "role": "unknown"
+          "role": "report"
         },
         {
           "artifact_id": "summary",
@@ -142,7 +142,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "bce44ee8ae116d34b74dda2af30c1329e4014f48eed7160d35fd663b1bf1b790",
+      "cache_key": "a2bc9821e10698135ea34277d059b1ff0f3da5d6489777c46986950a7fb37615",
       "dependencies": [
         "bam.qc_pre"
       ],
@@ -187,25 +187,25 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "artifact_id": "flagstat_before",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt",
-          "role": "report_json"
+          "role": "report"
         },
         {
           "artifact_id": "flagstat_after",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt",
-          "role": "report_json"
+          "role": "report"
         },
         {
           "artifact_id": "idxstats_before",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt",
-          "role": "unknown"
+          "role": "report"
         },
         {
           "artifact_id": "idxstats_after",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt",
-          "role": "unknown"
+          "role": "report"
         },
         {
           "artifact_id": "summary",
@@ -220,7 +220,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "48c221e285729742d4dcf452f121917a6afe975c924171c80372ea25b21ad96a",
+      "cache_key": "860e3eae69eeaf659dfb51c0e58a7080bf32649a9d89455506c03dd1823b937e",
       "dependencies": [
         "bam.mapping_summary"
       ],
@@ -258,13 +258,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "artifact_id": "coverage_summary",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt",
-          "role": "report_json"
+          "role": "report"
         },
         {
           "artifact_id": "coverage_depth",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.depth.txt",
-          "role": "unknown"
+          "role": "report"
         },
         {
           "artifact_id": "stage_metrics",
@@ -273,7 +273,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "34dafc6d8c00f0f662edbd58bdaa5dc13c02410250a13d0c97f4615a6927cafc",
+      "cache_key": "db3a39fe6cb29de12d259d61aa92348b501454a7e11dbcf1efe712dcfd9c5283",
       "dependencies": [
         "bam.filter"
       ],
@@ -324,7 +324,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "artifact_id": "parser_output",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.parser_output.json",
-          "role": "unknown"
+          "role": "report_json"
         },
         {
           "artifact_id": "stage_metrics",
@@ -336,16 +336,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "artifact_id": "damage_profile",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_damage/damage_profile.json",
-          "role": "unknown"
+          "role": "report_json"
         },
         {
           "artifact_id": "damage_plot",
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_damage/damage_plot.json",
-          "role": "unknown"
+          "role": "report_json"
         }
       ],
-      "cache_key": "043d1542ed52dfd7ccdc83a3f58f93489877a979bc06d9bd808335429433a36f",
+      "cache_key": "5e2e16f8e8ae8ba26cb0bdc30e98334607be62a6bb30f9e9b9a491e19158c863",
       "dependencies": [
         "bam.coverage"
       ],
@@ -360,9 +360,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
       },
       "environment": {
         "command": [
-          "/bin/sh",
-          "-c",
-          "mapDamage --bam <TMPDIR>/<TMP>/out/bam_filter/filtered.bam --folder <TMPDIR>/<TMP>/out/bam_damage && if [ -f <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; elif [ -f <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; else : > <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; fi"
+          "mapdamage2",
+          "analyze",
+          "--bam",
+          "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
+          "--reference",
+          "<TMPDIR>/<TMP>/reference.fasta",
+          "--out-dir",
+          "<TMPDIR>/<TMP>/out/bam_damage"
         ],
         "image": "bijux/bwa",
         "image_digest": "sha256:bwa",
@@ -374,6 +379,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "tmp_gb": 1
         }
       },
+      "reference_asset_ids": [
+        "reference"
+      ],
       "stage_id": "bam.damage",
       "step_id": "bam.damage"
     }
@@ -433,7 +441,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
     }
   ],
   "pipeline_id": "bam-to-bam__default__v1",
-  "plan_fingerprint": "1c9d2666be881938e9dabf9e05d6d7db997413fa659cb29958c4ae07b2b2cd72",
+  "plan_fingerprint": "52d64e442e5dd88dd50032e30f3fe15447671030cac0e8898e39192891a98716",
   "planner_version": "bijux-dna-planner-bam.v1",
   "policy": "PreferAccuracy",
   "profile_id": "bam-to-bam__default__v1",
@@ -457,5 +465,5 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
       "stage_id": "bam.coverage"
     }
   ],
-  "workflow_fingerprint": "1585d014d0ea3afb44ff06df1bfc99f315140d5281ac2b5c75ea1bf118e90f15"
+  "workflow_fingerprint": "b5d5ce25e0e4079231b648fc612b8509b25878e412b702a7d4059391ab299b4d"
 }

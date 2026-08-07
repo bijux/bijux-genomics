@@ -41,6 +41,7 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
@@ -53,6 +54,7 @@
         "name": "reads_r2",
         "path": "reads_R2.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       }
     ],
@@ -61,30 +63,35 @@
         "name": "contaminant_screened_reads_r1",
         "path": "out/contaminant_screened_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "contaminant_screened_reads_r2",
         "path": "out/contaminant_screened_R2.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "removed_contaminant_reads_r1",
         "path": "out/removed_contaminant_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "removed_contaminant_reads_r2",
         "path": "out/removed_contaminant_R2.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": true
       },
       {
         "name": "contaminant_screen_report_json",
         "path": "out/contaminant_screen_report.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       }
     ]

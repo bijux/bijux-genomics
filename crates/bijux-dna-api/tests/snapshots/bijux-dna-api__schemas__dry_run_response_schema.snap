@@ -7,7 +7,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "backend_descriptor_path": "<temp>/backend_descriptor.json",
   "checkpoint_path": "<temp>/checkpoints/checkpoint.json",
   "control_state_path": "<temp>/run_control.json",
-  "correlation_id": "dry_run:934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
+  "correlation_id": "dry_run:90cec304df259d72b9769309bf53b82674b70e4d5f8c63ecf87bc0d9c80e23f9",
   "evidence_bundle_path": "<temp>/evidence_bundle.json",
   "evidence_verification_path": "<temp>/evidence_verification.json",
   "executor_descriptor_path": "<temp>/executor_descriptor.json",

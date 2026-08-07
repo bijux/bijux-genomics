@@ -23,6 +23,7 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -31,6 +32,7 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "filtered_bam",
         "optional": false,
         "path": "out/filtered.bam",
@@ -46,33 +48,35 @@
         "name": "flagstat_before",
         "optional": false,
         "path": "out/flagstat.before.txt",
-        "role": "report_json"
+        "role": "report"
       },
       {
         "name": "flagstat_after",
         "optional": false,
         "path": "out/flagstat.after.txt",
-        "role": "report_json"
+        "role": "report"
       },
       {
         "name": "idxstats_before",
         "optional": false,
         "path": "out/idxstats.before.txt",
-        "role": "unknown"
+        "role": "report"
       },
       {
         "name": "idxstats_after",
         "optional": false,
         "path": "out/idxstats.after.txt",
-        "role": "unknown"
+        "role": "report"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "summary",
         "optional": false,
         "path": "out/filter.summary.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

@@ -223,6 +223,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "reads_R1.fastq",
@@ -237,12 +238,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "report_json",
             "optional": false,
             "path": "adapter_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "adapter_report",
             "optional": false,
             "path": "adapter_report.json",
@@ -295,6 +298,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "fastp.fastq.gz",
@@ -309,12 +313,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "filtered_reads_r1",
             "optional": false,
             "path": "fastp.fastq.gz",
             "role": "reads"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "report_json",
             "optional": false,
             "path": "filter_report.json",
@@ -356,6 +362,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "fastp.fastq.gz",
@@ -370,18 +377,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "overrepresented_sequences_tsv",
             "optional": false,
             "path": "overrepresented_sequences.tsv",
             "role": "summary_tsv"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "overrepresented_sequences_json",
             "optional": false,
             "path": "overrepresented_sequences.json",
             "role": "metrics_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "report_json",
             "optional": false,
             "path": "overrepresented_report.json",
@@ -428,6 +438,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "reads_R1.fastq",
@@ -442,18 +453,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "report_json",
             "optional": false,
             "path": "profile_read_lengths_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "length_distribution_tsv",
             "optional": false,
             "path": "length_distribution.tsv",
             "role": "summary_tsv"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "length_distribution_json",
             "optional": false,
             "path": "length_distribution.json",
@@ -494,6 +508,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "fastp.fastq.gz",
@@ -508,12 +523,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "qc_json",
             "optional": false,
             "path": "qc.json",
             "role": "metrics_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "qc_tsv",
             "optional": false,
             "path": "qc.tsv",
@@ -546,7 +563,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "sh",
           "-lc",
-          "set -eu\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.report_qc.inputs.v1\",\"qc_inputs\":[{\"name\":\"fastq.detect_adapters.adapter_evidence_dir\",\"path\":\"<TMPDIR>/<TMP>/out/detect_adapters/fastqc/fastqc\",\"role\":\"stage_report\",\"optional\":true},{\"name\":\"fastq.detect_adapters.adapter_report\",\"path\":\"<TMPDIR>/<TMP>/out/detect_adapters/fastqc/adapter_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.detect_adapters.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/detect_adapters/fastqc/adapter_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.filter_reads.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/filter_reads/fastp/filter_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.overrepresented_sequences_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json\",\"role\":\"metrics_json\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.overrepresented_sequences_tsv\",\"path\":\"<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv\",\"role\":\"summary_tsv\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.length_distribution_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.json\",\"role\":\"metrics_json\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.length_distribution_tsv\",\"path\":\"<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.tsv\",\"role\":\"summary_tsv\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/profile_read_lengths_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.profile_reads.qc_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.json\",\"role\":\"metrics_json\",\"optional\":false},{\"name\":\"fastq.profile_reads.qc_plots_dir\",\"path\":\"<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/plots\",\"role\":\"index\",\"optional\":true},{\"name\":\"fastq.profile_reads.qc_tsv\",\"path\":\"<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.tsv\",\"role\":\"summary_tsv\",\"optional\":false},{\"name\":\"fastq.trim_polyg_tails.raw_backend_report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json\",\"role\":\"report_json\",\"optional\":true},{\"name\":\"fastq.trim_polyg_tails.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.trim_reads.raw_backend_report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.fastp.json\",\"role\":\"report_json\",\"optional\":true},{\"name\":\"fastq.trim_reads.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.validate_reads.validated_reads_manifest\",\"path\":\"<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validated_reads_manifest.json\",\"role\":\"stage_report\",\"optional\":false},{\"name\":\"fastq.validate_reads.validation_report\",\"path\":\"<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validation.json\",\"role\":\"report_json\",\"optional\":false}],\"contributors\":[],\"raw_fastqc_dir\":null,\"lineage_hash\":null}' > '<TMPDIR>/<TMP>/out/report_qc/multiqc/governed_qc_inputs_manifest.json'\nmultiqc -o '<TMPDIR>/<TMP>/out/report_qc/multiqc/multiqc_data' -n multiqc_report.html '<TMPDIR>/<TMP>/out/detect_adapters/fastqc/adapter_report.json' '<TMPDIR>/<TMP>/out/detect_adapters/fastqc/fastqc' '<TMPDIR>/<TMP>/out/filter_reads/fastp/filter_report.json' '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_report.json' '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json' '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv' '<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.json' '<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.tsv' '<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/profile_read_lengths_report.json' '<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/plots' '<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.json' '<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.tsv' '<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json' '<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.json' '<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.fastp.json' '<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.json' '<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validated_reads_manifest.json' '<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validation.json'\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.report_qc.report.v2\",\"stage\":\"fastq.report_qc\",\"stage_id\":\"fastq.report_qc\",\"tool_id\":\"multiqc\",\"paired_mode\":\"single_end\",\"aggregation_engine\":\"multiqc\",\"aggregation_scope\":\"governed_qc_artifacts\",\"reads_in\":0,\"reads_out\":0,\"bases_in\":0,\"bases_out\":0,\"pairs_in\":null,\"pairs_out\":null,\"mean_q\":0.0,\"contamination_rate\":0.0,\"adapter_content_max\":null,\"adapter_content_mean\":null,\"duplication_rate\":null,\"n_rate\":null,\"kmer_warning_count\":null,\"overrepresented_sequence_count\":null,\"multiqc_sample_count\":null,\"multiqc_module_count\":null,\"raw_fastqc_dir\":null,\"trimmed_fastqc_dir\":null,\"multiqc_report\":\"<TMPDIR>/<TMP>/out/report_qc/multiqc/multiqc_report.html\",\"multiqc_data\":\"<TMPDIR>/<TMP>/out/report_qc/multiqc/multiqc_data\",\"governed_qc_input_count\":19,\"governed_qc_contributor_stage_ids\":[],\"governed_qc_contributor_tool_ids\":[],\"governed_qc_contributors\":[],\"governed_qc_lineage_hash\":null,\"governed_qc_inputs_manifest\":\"<TMPDIR>/<TMP>/out/report_qc/multiqc/governed_qc_inputs_manifest.json\",\"runtime_s\":null,\"memory_mb\":null,\"exit_code\":null}' > '<TMPDIR>/<TMP>/out/report_qc/multiqc/report_qc_report.json'\n"
+          "set -eu\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.report_qc.inputs.v1\",\"qc_inputs\":[{\"name\":\"fastq.detect_adapters.adapter_evidence_dir\",\"path\":\"<TMPDIR>/<TMP>/out/detect_adapters/fastqc/fastqc\",\"role\":\"stage_report\",\"optional\":true},{\"name\":\"fastq.detect_adapters.adapter_report\",\"path\":\"<TMPDIR>/<TMP>/out/detect_adapters/fastqc/adapter_report.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.detect_adapters.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/detect_adapters/fastqc/adapter_report.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.filter_reads.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/filter_reads/fastp/filter_report.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.overrepresented_sequences_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json\",\"role\":\"metrics_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.overrepresented_sequences_tsv\",\"path\":\"<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv\",\"role\":\"summary_tsv\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.table.v1\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_report.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.length_distribution_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.json\",\"role\":\"metrics_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.length_distribution_tsv\",\"path\":\"<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.tsv\",\"role\":\"summary_tsv\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.table.v1\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/profile_read_lengths_report.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.profile_reads.qc_json\",\"path\":\"<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.json\",\"role\":\"metrics_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.profile_reads.qc_plots_dir\",\"path\":\"<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/plots\",\"role\":\"index\",\"optional\":true},{\"name\":\"fastq.profile_reads.qc_tsv\",\"path\":\"<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.tsv\",\"role\":\"summary_tsv\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.table.v1\",\"optional\":false},{\"name\":\"fastq.trim_polyg_tails.raw_backend_report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":true},{\"name\":\"fastq.trim_polyg_tails.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.trim_reads.raw_backend_report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.fastp.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":true},{\"name\":\"fastq.trim_reads.report_json\",\"path\":\"<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false},{\"name\":\"fastq.validate_reads.validated_reads_manifest\",\"path\":\"<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validated_reads_manifest.json\",\"role\":\"stage_report\",\"optional\":false},{\"name\":\"fastq.validate_reads.validation_report\",\"path\":\"<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validation.json\",\"role\":\"report_json\",\"artifact_contract_id\":\"bijux.auxiliary.artifact.json.v1\",\"optional\":false}],\"contributors\":[],\"raw_fastqc_dir\":null,\"lineage_hash\":null}' > '<TMPDIR>/<TMP>/out/report_qc/multiqc/governed_qc_inputs_manifest.json'\nmultiqc -o '<TMPDIR>/<TMP>/out/report_qc/multiqc/multiqc_data' -n multiqc_report.html '<TMPDIR>/<TMP>/out/detect_adapters/fastqc/adapter_report.json' '<TMPDIR>/<TMP>/out/detect_adapters/fastqc/fastqc' '<TMPDIR>/<TMP>/out/filter_reads/fastp/filter_report.json' '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_report.json' '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json' '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv' '<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.json' '<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/length_distribution.tsv' '<TMPDIR>/<TMP>/out/profile_read_lengths/seqkit/profile_read_lengths_report.json' '<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/plots' '<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.json' '<TMPDIR>/<TMP>/out/profile_reads/seqkit_stats/qc.tsv' '<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json' '<TMPDIR>/<TMP>/out/trim_polyg_tails/fastp/trim_polyg_tails_report.json' '<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.fastp.json' '<TMPDIR>/<TMP>/out/trim_reads/fastp/trim_report.json' '<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validated_reads_manifest.json' '<TMPDIR>/<TMP>/out/validate_reads/fastqvalidator/validation.json'\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.report_qc.report.v2\",\"stage\":\"fastq.report_qc\",\"stage_id\":\"fastq.report_qc\",\"tool_id\":\"multiqc\",\"paired_mode\":\"single_end\",\"aggregation_engine\":\"multiqc\",\"aggregation_scope\":\"governed_qc_artifacts\",\"reads_in\":0,\"reads_out\":0,\"bases_in\":0,\"bases_out\":0,\"pairs_in\":null,\"pairs_out\":null,\"mean_q\":0.0,\"contamination_rate\":0.0,\"adapter_content_max\":null,\"adapter_content_mean\":null,\"duplication_rate\":null,\"n_rate\":null,\"kmer_warning_count\":null,\"overrepresented_sequence_count\":null,\"multiqc_sample_count\":null,\"multiqc_module_count\":null,\"raw_fastqc_dir\":null,\"trimmed_fastqc_dir\":null,\"multiqc_report\":\"<TMPDIR>/<TMP>/out/report_qc/multiqc/multiqc_report.html\",\"multiqc_data\":\"<TMPDIR>/<TMP>/out/report_qc/multiqc/multiqc_data\",\"governed_qc_input_count\":19,\"governed_qc_contributor_stage_ids\":[],\"governed_qc_contributor_tool_ids\":[],\"governed_qc_contributors\":[],\"governed_qc_lineage_hash\":null,\"governed_qc_inputs_manifest\":\"<TMPDIR>/<TMP>/out/report_qc/multiqc/governed_qc_inputs_manifest.json\",\"runtime_s\":null,\"memory_mb\":null,\"exit_code\":null}' > '<TMPDIR>/<TMP>/out/report_qc/multiqc/report_qc_report.json'\n"
         ]
       },
       "expected_artifact_ids": [
@@ -568,60 +585,70 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "role": "stage_report"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.detect_adapters.adapter_report",
             "optional": false,
             "path": "adapter_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.detect_adapters.report_json",
             "optional": false,
             "path": "adapter_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.filter_reads.report_json",
             "optional": false,
             "path": "filter_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.profile_overrepresented_sequences.overrepresented_sequences_json",
             "optional": false,
             "path": "overrepresented_sequences.json",
             "role": "metrics_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "fastq.profile_overrepresented_sequences.overrepresented_sequences_tsv",
             "optional": false,
             "path": "overrepresented_sequences.tsv",
             "role": "summary_tsv"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.profile_overrepresented_sequences.report_json",
             "optional": false,
             "path": "overrepresented_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.profile_read_lengths.length_distribution_json",
             "optional": false,
             "path": "length_distribution.json",
             "role": "metrics_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "fastq.profile_read_lengths.length_distribution_tsv",
             "optional": false,
             "path": "length_distribution.tsv",
             "role": "summary_tsv"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.profile_read_lengths.report_json",
             "optional": false,
             "path": "profile_read_lengths_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.profile_reads.qc_json",
             "optional": false,
             "path": "qc.json",
@@ -634,30 +661,35 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "role": "index"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
             "name": "fastq.profile_reads.qc_tsv",
             "optional": false,
             "path": "qc.tsv",
             "role": "summary_tsv"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.trim_polyg_tails.raw_backend_report_json",
             "optional": true,
             "path": "trim_polyg_tails_report.fastp.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.trim_polyg_tails.report_json",
             "optional": false,
             "path": "trim_polyg_tails_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.trim_reads.raw_backend_report_json",
             "optional": true,
             "path": "trim_report.fastp.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.trim_reads.report_json",
             "optional": false,
             "path": "trim_report.json",
@@ -670,6 +702,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "role": "stage_report"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "fastq.validate_reads.validation_report",
             "optional": false,
             "path": "validation.json",
@@ -696,12 +729,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "role": "index"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "governed_qc_inputs_manifest",
             "optional": false,
             "path": "governed_qc_inputs_manifest.json",
             "role": "summary_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "report_json",
             "optional": false,
             "path": "report_qc_report.json",
@@ -743,6 +778,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "reads_R1.fastq",
@@ -757,18 +793,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "trimmed_reads_r1",
             "optional": false,
             "path": "polyg.fastp.fastq.gz",
             "role": "trimmed_reads"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "report_json",
             "optional": false,
             "path": "trim_polyg_tails_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "raw_backend_report_json",
             "optional": true,
             "path": "trim_polyg_tails_report.fastp.json",
@@ -810,6 +849,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "polyg.fastp.fastq.gz",
@@ -824,18 +864,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "trimmed_reads_r1",
             "optional": false,
             "path": "fastp.fastq.gz",
             "role": "trimmed_reads"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "report_json",
             "optional": false,
             "path": "trim_report.json",
             "role": "report_json"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "raw_backend_report_json",
             "optional": true,
             "path": "trim_report.fastp.json",
@@ -876,6 +919,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
             "name": "reads_r1",
             "optional": false,
             "path": "reads_R1.fastq",
@@ -884,6 +928,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "validation_report",
             "optional": false,
             "path": "validation.json",

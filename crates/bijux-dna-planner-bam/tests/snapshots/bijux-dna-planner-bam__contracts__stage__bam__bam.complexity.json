@@ -22,6 +22,7 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -30,24 +31,28 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "complexity_report",
         "optional": false,
         "path": "out/complexity.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
         "name": "complexity_curve",
         "optional": false,
         "path": "out/complexity_curve.tsv",
-        "role": "unknown"
+        "role": "summary_tsv"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "summary",
         "optional": false,
         "path": "out/complexity.summary.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

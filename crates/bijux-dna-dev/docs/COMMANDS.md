@@ -388,6 +388,7 @@ acquire-maps
 acquire-panels
 acquire-reference
 architecture-report
+artifact-contracts
 benchmark-campaign-cycle
 benchmark-integrity-mini
 benchmark-scientific-readiness

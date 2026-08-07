@@ -533,6 +533,7 @@ fn vcf_workflow_manifest(advisory_stats: bool) -> WorkflowManifestV1 {
     let mut manifest = WorkflowManifestV1::new("vcf", "vcf-downstream");
     manifest.inputs = vec![WorkflowInputArtifactV1 {
         artifact_id: "vcf".to_string(),
+        artifact_contract_id: Some("bijux.vcf.artifact.coordinate_sorted_indexed.v1".to_string()),
         role: ArtifactRole::Variant,
         path: PathBuf::from("sample.vcf.gz"),
         layout: None,

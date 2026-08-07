@@ -5,7 +5,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "rxy --input tests/fixtures/plan_inputs/default/sample.bam > out/sex.json && python - <<'PY' > out/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
+      "rxy --input tests/fixtures/plan_inputs/default/sample.bam > out/sex.json && cp out/sex.json out/sex.summary.json"
     ]
   },
   "effective_params": {
@@ -22,6 +22,7 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -30,36 +31,42 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "sex_report",
         "optional": false,
         "path": "out/sex.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "sex_estimate",
         "optional": false,
         "path": "out/sex_estimate.json",
-        "role": "unknown"
+        "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "population_metrics",
         "optional": false,
         "path": "out/population_metrics.json",
         "role": "metrics_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "haplogroup_report",
         "optional": false,
         "path": "out/haplogroup_report.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "summary",
         "optional": false,
         "path": "out/sex.summary.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

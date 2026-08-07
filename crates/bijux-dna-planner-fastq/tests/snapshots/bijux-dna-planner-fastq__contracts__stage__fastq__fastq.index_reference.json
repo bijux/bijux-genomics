@@ -27,6 +27,7 @@
         "name": "reference_fasta",
         "path": "reference.fa",
         "role": "reference",
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "optional": false
       }
     ],
@@ -41,6 +42,7 @@
         "name": "report_json",
         "path": "out/index_reference_report.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       }
     ]

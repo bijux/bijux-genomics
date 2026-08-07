@@ -65,6 +65,7 @@ fn assert_contract_layout(root: &Path) {
         dir_entries(&root.join("src/contract/execution")),
         entries([
             "OWNER.toml",
+            "artifact_contract.rs",
             "contract.rs",
             "graph.rs",
             "handoff.rs",

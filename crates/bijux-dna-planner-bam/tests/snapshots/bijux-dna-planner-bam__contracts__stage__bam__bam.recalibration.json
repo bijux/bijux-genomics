@@ -23,12 +23,14 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
         "role": "bam"
       },
       {
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "name": "reference",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/reference.fasta",
@@ -37,6 +39,7 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "recal_bam",
         "optional": false,
         "path": "out/recal.bam",
@@ -52,15 +55,17 @@
         "name": "recal_report",
         "optional": false,
         "path": "out/recal.report.txt",
-        "role": "report_json"
+        "role": "report"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "summary",
         "optional": false,
         "path": "out/recal.summary.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

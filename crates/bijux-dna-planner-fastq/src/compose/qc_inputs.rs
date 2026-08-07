@@ -31,6 +31,7 @@ pub(super) fn report_qc_input_artifact(
         name: ArtifactId::new(format!("{}.{}", source_stage_node_id, artifact.name.as_str())),
         path: artifact.path.clone(),
         role: artifact.role,
+        artifact_contract_id: artifact.artifact_contract_id.clone(),
         optional: artifact.optional,
     }
 }

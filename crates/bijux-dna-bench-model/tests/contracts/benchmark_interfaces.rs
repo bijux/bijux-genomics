@@ -151,6 +151,17 @@ fn stage_interface_contracts_reject_parameter_ownership_overlap() {
 }
 
 #[test]
+fn stage_interface_contracts_reject_unknown_artifact_contracts() {
+    let mut catalog = interface_catalog();
+    catalog.interfaces[0].accepted_input_contracts =
+        vec!["bijux.fastq.artifact.tool_specific_filename.v1".to_string()];
+
+    let error = validate_stage_interface_catalog(&catalog)
+        .expect_err("unknown artifact contract must fail benchmark admission");
+    assert!(error.to_string().contains("unknown canonical artifact contract"));
+}
+
+#[test]
 fn checked_interface_schemas_match_model_authority() -> anyhow::Result<()> {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()

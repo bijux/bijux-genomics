@@ -24,12 +24,19 @@ pub use compatibility::{
     SchemaRegistryEntryV1, SchemaSurfaceKindV1,
 };
 pub use execution::{
-    validate_execution_outputs, validate_typed_input_handoffs, ArtifactRef, ArtifactRole,
-    ArtifactRoleFamily, ArtifactSpec, BamArtifact, BamIndexArtifact, DatabaseArtifact,
-    ExecutionEdge, ExecutionGraph, ExecutionManifest, ExecutionStep, FastqArtifact,
-    JsonMetricsArtifact, PanelArtifact, PlanPolicy, ReferenceArtifact, RetryPolicy, RunRecordV1,
-    StageExecutionRecordV1, StageIO, TableArtifact, TypedArtifactKind, TypedArtifactRef,
-    VcfArtifact, VcfIndexArtifact,
+    artifact_compatibility, artifact_contract_catalog_schema, artifact_contract_schema,
+    canonical_artifact_contract_catalog, canonical_contract_id_for_role,
+    ensure_artifact_compatibility, validate_execution_outputs, validate_typed_input_handoffs,
+    ArtifactCardinalityV1, ArtifactClassV1, ArtifactCompatibilityCheckV1,
+    ArtifactCompatibilityReportV1, ArtifactCompressionV1, ArtifactContractCatalogV1,
+    ArtifactContractV1, ArtifactFormatV1, ArtifactLineageContractV1, ArtifactPairingV1,
+    ArtifactPresenceV1, ArtifactRef, ArtifactRole, ArtifactRoleFamily, ArtifactSidecarContractV1,
+    ArtifactSidecarRoleV1, ArtifactSortOrderV1, ArtifactSpec, ArtifactValidationInvariantV1,
+    BamArtifact, BamIndexArtifact, DatabaseArtifact, ExecutionEdge, ExecutionGraph,
+    ExecutionManifest, ExecutionStep, FastqArtifact, JsonMetricsArtifact, PanelArtifact,
+    PlanPolicy, ReferenceArtifact, RetryPolicy, RunRecordV1, StageExecutionRecordV1, StageIO,
+    TableArtifact, TypedArtifactKind, TypedArtifactRef, VcfArtifact, VcfIndexArtifact,
+    ARTIFACT_CONTRACT_CATALOG_SCHEMA_V1, ARTIFACT_CONTRACT_SCHEMA_V1,
 };
 pub use planning::{
     build_plan_manifest, diff_plan_manifests, planner_refusal_from_message,

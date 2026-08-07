@@ -3,6 +3,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use bijux_dna_stage_contract::canonical_artifact_contract_catalog;
+
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkParameterValue, BenchmarkPipelineParameterConfig, BenchmarkStageCampaignRegistry,
@@ -28,9 +30,24 @@ pub fn validate_stage_interface_catalog(
         ));
     }
 
+    let artifact_catalog = canonical_artifact_contract_catalog();
+    artifact_catalog.validate().map_err(|error| {
+        BenchError::InvalidPolicy(format!(
+            "canonical artifact contract catalog is invalid: {error}"
+        ))
+    })?;
+
     let mut seen_stages = BTreeSet::new();
     for interface in &catalog.interfaces {
         validate_stage_interface(interface)?;
+        for contract_id in &interface.accepted_input_contracts {
+            if artifact_catalog.contract(contract_id).is_none() {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "stage interface {} references unknown canonical artifact contract: {contract_id}",
+                    interface.stage_id
+                )));
+            }
+        }
         if !seen_stages.insert(interface.stage_id.as_str()) {
             return Err(BenchError::InvalidPolicy(format!(
                 "stage interface stage id is duplicated: {}",

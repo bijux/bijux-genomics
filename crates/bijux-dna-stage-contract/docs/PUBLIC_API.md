@@ -21,6 +21,7 @@ CLI parsing, process execution, or environment control APIs.
   projections.
 - Stage plugin invocation, output, report, event-hint, and trait contracts.
 - `ArtifactRef` and `StageIO` from `bijux-dna-core` for caller ergonomics.
+- Canonical artifact contract types, schemas, catalog, and compatibility functions.
 
 ## Public Types
 
@@ -50,6 +51,9 @@ CLI parsing, process execution, or environment control APIs.
 - `ReadinessBadge`
 - `StageDomain`
 - `ArtifactRef`
+- `ArtifactContractV1`
+- `ArtifactContractCatalogV1`
+- `ArtifactCompatibilityReportV1`
 - `StageIO`
 
 ## Shape Examples

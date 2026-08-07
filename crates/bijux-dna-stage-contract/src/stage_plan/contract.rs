@@ -18,6 +18,8 @@ use super::reason::PlanDecisionReason;
 pub struct StageArtifactPromiseV1 {
     pub artifact_id: String,
     pub role: ArtifactRole,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_contract_id: Option<String>,
     pub path: String,
     pub optional: bool,
 }

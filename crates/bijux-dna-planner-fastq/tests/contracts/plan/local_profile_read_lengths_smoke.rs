@@ -21,13 +21,13 @@ fn local_profile_read_lengths_smoke_plans_use_governed_toy_fixtures() -> Result<
         .find(|case| case.sample_id == "toy-se")
         .unwrap_or_else(|| panic!("toy-se case missing from local read-length smoke plans"));
     assert_eq!(single_end.plan.stage_id.as_str(), "fastq.profile_read_lengths");
-    assert_eq!(single_end.plan.tool_id.as_str(), "seqkit_stats");
+    assert_eq!(single_end.plan.tool_id.as_str(), "seqkit");
     assert_eq!(single_end.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq"));
     assert_eq!(single_end.r2, None);
     assert_eq!(single_end.histogram_bins, 16);
     assert_eq!(
         single_end.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats")
+        PathBuf::from("runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit")
     );
     assert_eq!(single_end.plan.resources.threads, 4);
     assert_eq!(single_end.plan.params["histogram_bins"], serde_json::json!(16));
@@ -41,7 +41,7 @@ fn local_profile_read_lengths_smoke_plans_use_governed_toy_fixtures() -> Result<
     assert_eq!(paired_end.histogram_bins, 16);
     assert_eq!(
         paired_end.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats")
+        PathBuf::from("runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit")
     );
     assert_eq!(
         paired_end.plan.params["input_r2"],

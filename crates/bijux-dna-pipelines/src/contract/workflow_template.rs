@@ -414,6 +414,19 @@ pub fn sample_sheet_to_workflow_manifests(
         let mut manifest = WorkflowManifestV1::new("cross", template.pipeline_id.clone());
         manifest.inputs.push(WorkflowInputArtifactV1 {
             artifact_id: format!("{}.r1", record.sample_id),
+            artifact_contract_id: Some(
+                match record.layout_mode {
+                    ReadLayoutMode::PairedEnd | ReadLayoutMode::Deinterleaved => {
+                        "bijux.fastq.artifact.paired_end.v1"
+                    }
+                    ReadLayoutMode::Interleaved => "bijux.fastq.artifact.interleaved.v1",
+                    ReadLayoutMode::Merged => "bijux.fastq.artifact.merged.v1",
+                    ReadLayoutMode::SingleEnd | ReadLayoutMode::Unknown => {
+                        "bijux.fastq.artifact.single_end.v1"
+                    }
+                }
+                .to_string(),
+            ),
             role: ArtifactRole::Reads,
             path: record.r1.clone(),
             layout: Some(record.layout_mode),
@@ -423,6 +436,7 @@ pub fn sample_sheet_to_workflow_manifests(
         if let Some(r2) = &record.r2 {
             manifest.inputs.push(WorkflowInputArtifactV1 {
                 artifact_id: format!("{}.r2", record.sample_id),
+                artifact_contract_id: Some("bijux.fastq.artifact.paired_end.v1".to_string()),
                 role: ArtifactRole::Reads,
                 path: r2.clone(),
                 layout: Some(ReadLayoutMode::PairedEnd),
@@ -432,6 +446,7 @@ pub fn sample_sheet_to_workflow_manifests(
         }
         manifest.reference_assets.push(WorkflowReferenceAssetV1 {
             asset_id: record.reference_id.clone(),
+            artifact_contract_id: Some("bijux.reference.artifact.fasta.v1".to_string()),
             role: ArtifactRole::Reference,
             path: PathBuf::from(format!("references/{}.fa", record.reference_id)),
             checksum_sha256: None,

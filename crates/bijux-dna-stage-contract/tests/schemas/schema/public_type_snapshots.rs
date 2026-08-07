@@ -47,31 +47,31 @@ fn write_snapshot(path: &str, value: &serde_json::Value) {
         String::from_utf8(canonical).unwrap_or_else(|err| panic!("decode {path} as utf8: {err}"));
     let expected = include_str!("../../fixtures/public_types/default/stage_plan.json");
     if path.ends_with("stage_plan.json") {
-        assert_eq!(actual, expected);
+        assert_eq!(actual, expected.trim_end());
         return;
     }
     let expected = include_str!("../../fixtures/public_types/default/run_execution_plan.json");
     if path.ends_with("run_execution_plan.json") {
-        assert_eq!(actual, expected);
+        assert_eq!(actual, expected.trim_end());
         return;
     }
     let expected = include_str!("../../fixtures/public_types/default/execution_plan.json");
     if path.ends_with("execution_plan.json") {
-        assert_eq!(actual, expected);
+        assert_eq!(actual, expected.trim_end());
         return;
     }
     let expected = include_str!("../../fixtures/public_types/default/stage_invocation.json");
     if path.ends_with("stage_invocation.json") {
-        assert_eq!(actual, expected);
+        assert_eq!(actual, expected.trim_end());
         return;
     }
     let expected = include_str!("../../fixtures/public_types/default/stage_plugin_output.json");
     if path.ends_with("stage_plugin_output.json") {
-        assert_eq!(actual, expected);
+        assert_eq!(actual, expected.trim_end());
         return;
     }
     let expected = include_str!("../../fixtures/public_types/default/run_execution_plan.json");
-    assert_eq!(actual, expected);
+    assert_eq!(actual, expected.trim_end());
 }
 
 #[test]
@@ -160,7 +160,7 @@ fn run_execution_plan_snapshot() {
             role: "trimmed_reads".to_string(),
             path: "trimmed.fastq.gz".to_string(),
             kind: "fastq".to_string(),
-            schema: "bijux.artifact.fastq.v1".to_string(),
+            schema: "bijux.fastq.artifact.reads.v1".to_string(),
         }],
         stage: plan,
         tool: bijux_dna_core::contract::ToolExecutionSpecV1 {

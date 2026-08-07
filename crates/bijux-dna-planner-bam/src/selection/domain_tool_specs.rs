@@ -571,8 +571,14 @@ mod tests {
 
         assert_eq!(spec.tool_id.as_str(), "bcftools");
         assert_eq!(spec.command.template, vec!["bcftools".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/bcftools:1.20");
-        assert!(spec.image.digest.is_none());
+        assert_eq!(
+            spec.image.image,
+            "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+        );
+        assert_eq!(
+            spec.image.digest.as_deref(),
+            Some("sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
+        );
         Ok(())
     }
 
@@ -630,7 +636,7 @@ mod tests {
 
         for (tool_name, expected_image) in [
             ("bedtools", "bijuxdna/bedtools:2.31.1"),
-            ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
+            ("mosdepth", "bijuxdna/mosdepth:0.3.11"),
             ("samtools", "bijuxdna/samtools:1.21"),
         ] {
             let stage_id = StageId::from_static("bam.coverage");
@@ -725,7 +731,7 @@ mod tests {
         let stage_id = StageId::from_static("bam.coverage");
 
         for (tool, expected_image) in [
-            ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
+            ("mosdepth", "bijuxdna/mosdepth:0.3.11"),
             ("samtools", "bijuxdna/samtools:1.21"),
             ("bedtools", "bijuxdna/bedtools:2.31.1"),
         ] {

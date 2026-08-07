@@ -7,8 +7,16 @@ fn normal_dependency_graph_stays_low_level() {
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
             .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
     let dependencies = dependency_names(&manifest, "dependencies");
-    let expected =
-        entries(["chrono", "regex", "serde", "serde_json", "sha2", "thiserror", "walkdir"]);
+    let expected = entries([
+        "chrono",
+        "regex",
+        "schemars",
+        "serde",
+        "serde_json",
+        "sha2",
+        "thiserror",
+        "walkdir",
+    ]);
 
     assert_eq!(
         dependencies, expected,

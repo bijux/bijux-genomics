@@ -27,12 +27,14 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "reads_r2",
         "path": "reads_R2.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       }
     ],
@@ -41,18 +43,21 @@
         "name": "overrepresented_sequences_tsv",
         "path": "out/overrepresented_sequences.tsv",
         "role": "summary_tsv",
+        "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
         "optional": false
       },
       {
         "name": "overrepresented_sequences_json",
         "path": "out/overrepresented_sequences.json",
         "role": "metrics_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "report_json",
         "path": "out/overrepresented_report.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       }
     ]

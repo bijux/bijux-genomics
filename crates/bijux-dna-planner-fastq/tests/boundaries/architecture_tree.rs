@@ -16,6 +16,7 @@ fn planner_fastq_tree_matches_architecture_contract() {
     assert_eq!(
         child_entries(&root.join("src")),
         entries([
+            "benchmark_contracts.rs",
             "compose/",
             "lib.rs",
             "pipeline_defaults.rs",
