@@ -332,6 +332,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ImageStorage,
         ),
         native(
+            "pipeline-contract",
+            "Validate versioned container pipeline declarations through their Rust owner.",
+            NativeContainerCommandKey::PipelineContract,
+        ),
+        native(
             "qualification-registry",
             "Derive and audit stable qualification-run identities from catalog and history.",
             NativeContainerCommandKey::QualificationRegistry,

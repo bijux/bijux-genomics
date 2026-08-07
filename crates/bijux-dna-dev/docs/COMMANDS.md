@@ -273,6 +273,7 @@ image-qa
 image-smoke-vcf
 image-storage
 lint
+pipeline-contract
 qualification-registry
 registry-tools
 release-gate

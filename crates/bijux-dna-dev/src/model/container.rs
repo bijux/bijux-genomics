@@ -74,6 +74,7 @@ pub enum NativeContainerCommandKey {
     ExternalArtifact,
     ImageActivation,
     ImageStorage,
+    PipelineContract,
     QualificationRegistry,
     RepositoryFreeze,
     RunEvidence,
