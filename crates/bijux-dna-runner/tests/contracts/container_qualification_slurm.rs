@@ -13,11 +13,13 @@ use bijux_dna_containers::api::{
 };
 use bijux_dna_runner::api::{
     cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
-    load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
-    prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
-    submit_prepared_container_qualification_job, ContainerQualificationPreparationRequest,
-    ContainerQualificationSchedulerStatus, ContainerQualificationSubmissionKind,
-    HistoricalContainerQualificationReplayRequest, SlurmClientPaths, SlurmJobState,
+    execute_container_qualification, load_container_qualification_slurm_spec,
+    load_prepared_container_qualification_slurm_job, prepare_container_qualification_slurm_job,
+    prepare_historical_container_qualification_replay, submit_prepared_container_qualification_job,
+    ContainerQualificationExecution, ContainerQualificationPreparationRequest,
+    ContainerQualificationSchedulerStatus, ContainerQualificationSlurmSpec,
+    ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
+    SlurmClientPaths, SlurmJobState,
 };
 
 #[test]
@@ -30,11 +32,13 @@ fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result
     let spec_path = fixture.evidence_root.join("qualification-spec.json");
     let spec = load_container_qualification_slurm_spec(&spec_path)?;
 
-    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v2");
+    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v3");
     assert!(script.contains("#SBATCH --job-name=fastq-align_reads-bwa-sample-a"));
     assert!(script.contains("#SBATCH --cpus-per-task=2"));
-    assert!(script.contains("'execute' '--governance'"));
-    assert!(script.contains(&spec.executor_script_sha256));
+    assert!(script.contains("'containers' 'run' 'qualification-slurm' '--' 'execute'"));
+    assert!(!script.contains("container_validation.py"));
+    assert!(spec.executor_script_path.is_none());
+    assert!(spec.executor_script_sha256.is_none());
     assert_eq!(prepared.request.dependencies, vec!["456700"]);
     assert_eq!(spec.repository_path, fixture.frozen_repository);
     assert_eq!(spec.repository_commit, fixture.commit);
@@ -46,6 +50,150 @@ fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result
         prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?,
         prepared
     );
+    Ok(())
+}
+
+#[test]
+fn native_executor_runs_the_admitted_contract_without_a_python_authority() -> Result<()> {
+    let fixture = fixture()?;
+    prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let spec = load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json"),
+    )?;
+    let execution = execute_with_fake_runtime(
+        &fixture,
+        &spec,
+        r#"#!/bin/sh
+set -eu
+output_root=
+for argument in "$@"; do
+  case "$argument" in
+    *:/result:rw) output_root=${argument%:/result:rw} ;;
+  esac
+done
+case " $* " in
+  *" bwa version "*) printf '1.0\n' ;;
+  *" bwa help "*) printf 'help\n' ;;
+  *" bwa mem "*) printf '{"records":1}\n' > "${output_root}/result.json" ;;
+  *" bwa invalid "*) exit 2 ;;
+  *" --version "*) printf 'apptainer version 1.3.0\n' ;;
+  *) exit 64 ;;
+esac
+"#,
+    )?;
+
+    let evidence: serde_json::Value = serde_json::from_slice(&fs::read(&execution.evidence_path)?)?;
+    assert!(execution.passed, "native execution evidence: {evidence:#}");
+    assert_eq!(evidence["status"], "passed");
+    assert_eq!(evidence["checks"]["negative"]["exit_code"], 2);
+    assert_eq!(evidence["metrics"][0]["observed"], 1);
+    assert_eq!(evidence["site"]["host"], evidence["runtime"]["host"]);
+    assert!(evidence["site"]["host"].as_str().is_some_and(|host| !host.is_empty()));
+    assert!(fixture.paths.result_root.join("outputs/result.json").is_file());
+    assert!(!fs::read_to_string(fixture.evidence_root.join("scheduler/job.sbatch"))?
+        .contains("container_validation.py"));
+    Ok(())
+}
+
+#[test]
+fn native_executor_publishes_failed_evidence_for_malformed_metrics() -> Result<()> {
+    let fixture = fixture()?;
+    prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let spec = load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json"),
+    )?;
+    let execution = execute_with_fake_runtime(
+        &fixture,
+        &spec,
+        r#"#!/bin/sh
+set -eu
+output_root=
+for argument in "$@"; do
+  case "$argument" in
+    *:/result:rw) output_root=${argument%:/result:rw} ;;
+  esac
+done
+case " $* " in
+  *" bwa version "*) printf '1.0\n' ;;
+  *" bwa help "*) printf 'help\n' ;;
+  *" bwa mem "*) printf '{}\n' > "${output_root}/result.json" ;;
+  *" bwa invalid "*) exit 2 ;;
+  *" --version "*) printf 'apptainer version 1.3.0\n' ;;
+  *) exit 64 ;;
+esac
+"#,
+    )?;
+
+    let evidence: serde_json::Value = serde_json::from_slice(&fs::read(&execution.evidence_path)?)?;
+    assert!(!execution.passed);
+    assert_eq!(evidence["status"], "failed");
+    assert_eq!(evidence["metrics"][0]["status"], "failed");
+    assert!(evidence["metrics"][0]["observed"].is_null());
+    assert!(evidence["failures"][0]
+        .as_str()
+        .is_some_and(|failure| failure.contains("metric records cannot be evaluated")));
+    Ok(())
+}
+
+fn execute_with_fake_runtime(
+    fixture: &Fixture,
+    spec: &ContainerQualificationSlurmSpec,
+    runtime: &str,
+) -> Result<ContainerQualificationExecution> {
+    let bin = fixture.root.path().join("bin");
+    fs::create_dir(&bin)?;
+    write_executable(&bin.join("apptainer"), runtime)?;
+    let scratch = fixture.root.path().join("study/scratch/job-123");
+    fs::create_dir(&scratch)?;
+    let execution_path = fixture.root.path().join("native-execution.json");
+    let output = Command::new(std::env::current_exe()?)
+        .args(["native_executor_subprocess", "--nocapture"])
+        .env("BIJUX_QUALIFICATION_SPEC", fixture.evidence_root.join("qualification-spec.json"))
+        .env("BIJUX_QUALIFICATION_EXECUTION", &execution_path)
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                bin.display(),
+                std::env::var_os("PATH").unwrap_or_default().to_string_lossy()
+            ),
+        )
+        .env("TMPDIR", &scratch)
+        .env("SLURM_JOB_ID", "123")
+        .env("SLURM_CPUS_PER_TASK", "2")
+        .output()?;
+    ensure!(
+        output.status.success(),
+        "native executor subprocess failed: {}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let execution: ContainerQualificationExecution =
+        serde_json::from_slice(&fs::read(execution_path)?)?;
+    ensure!(
+        execution.evidence_path == spec.result_root.join("evidence.json"),
+        "subprocess returned evidence for a different qualification"
+    );
+    Ok(execution)
+}
+
+#[test]
+fn native_executor_subprocess() -> Result<()> {
+    let Some(specification) = std::env::var_os("BIJUX_QUALIFICATION_SPEC") else {
+        return Ok(());
+    };
+    let output = PathBuf::from(
+        std::env::var_os("BIJUX_QUALIFICATION_EXECUTION")
+            .context("native execution output path is absent")?,
+    );
+    let spec = load_container_qualification_slurm_spec(&PathBuf::from(specification))?;
+    let execution = execute_container_qualification(&spec)?;
+    fs::write(output, serde_json::to_vec_pretty(&execution)?)?;
+    if !execution.passed {
+        let evidence: serde_json::Value =
+            serde_json::from_slice(&fs::read(&execution.evidence_path)?)?;
+        ensure!(evidence["status"] == "failed", "failed execution lacks failed evidence");
+    }
     Ok(())
 }
 
@@ -93,11 +241,31 @@ fn preparation_canonicalizes_governed_root_parent_aliases() -> Result<()> {
 }
 
 #[test]
+fn preparation_rejects_non_native_executor_authority() -> Result<()> {
+    let fixture = fixture()?;
+    let executor = fixture.root.path().join("qualification-driver");
+    write_executable(&executor, "#!/bin/sh\nexit 0\n")?;
+    let mut request = fixture.request.clone();
+    request.executor_program_path = executor;
+
+    let Err(error) = prepare_container_qualification_slurm_job(&request, "2026-08-07T09:50:00Z")
+    else {
+        anyhow::bail!("non-native qualification executor was accepted");
+    };
+    assert!(
+        error.to_string().contains("must be the pinned bijux-dna-dev program"),
+        "unexpected executor refusal: {error:#}"
+    );
+    Ok(())
+}
+
+#[test]
 fn preparation_rejects_symlinked_governed_root() -> Result<()> {
     let fixture = fixture()?;
     let containers =
         fixture.evidence_root.ancestors().nth(3).context("resolve fixture containers root")?;
-    let containers_alias = fixture.root.path().join("containers-alias");
+    let containers_alias =
+        containers.parent().context("resolve fixture study root")?.join("containers-alias");
     symlink(containers, &containers_alias)?;
 
     let mut governance: ContainerGovernance =
@@ -105,8 +273,15 @@ fn preparation_rejects_symlinked_governed_root() -> Result<()> {
     governance.paths.containers_root = containers_alias;
     fs::write(&fixture.request.governance_path, serde_json::to_vec_pretty(&governance)?)?;
 
-    assert!(prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")
-        .is_err_and(|error| error.to_string().contains("not a regular directory")));
+    let Err(error) =
+        prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")
+    else {
+        anyhow::bail!("symlinked governed root was accepted");
+    };
+    assert!(
+        error.to_string().contains("not a regular directory"),
+        "unexpected symlink refusal: {error:#}"
+    );
     Ok(())
 }
 
@@ -146,7 +321,7 @@ fn historical_replay_archives_source_authority_without_weakening_current_prepara
         &fixture.evidence_root.join("qualification-spec.json"),
     )?;
     assert_eq!(spec.submission_kind, ContainerQualificationSubmissionKind::HistoricalReplay);
-    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v2");
+    assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v3");
     assert!(spec
         .historical_replay_source
         .as_ref()
@@ -342,6 +517,7 @@ fn fixture() -> Result<Fixture> {
             frozen_repositories: frozen_root,
         },
         &study,
+        fixture_hostname_regex()?,
     );
     let governance_path = root.path().join("governance.yml");
     fs::write(&governance_path, serde_json::to_vec_pretty(&governance)?)?;
@@ -372,7 +548,7 @@ fn fixture() -> Result<Fixture> {
         &credential_reference_path,
         "schema_version: bijux.container.credential_reference.v1\ncredentials_required: false\nreferences: []\nredaction:\n  publish_values: false\n",
     )?;
-    let executor_program_path = fixture_stub.root.path().join("python3");
+    let executor_program_path = fixture_stub.root.path().join("bijux-dna-dev");
     write_executable(&executor_program_path, "#!/bin/sh\nexit 0\n")?;
     Ok(Fixture {
         request: ContainerQualificationPreparationRequest {
@@ -386,14 +562,18 @@ fn fixture() -> Result<Fixture> {
     })
 }
 
+fn fixture_hostname_regex() -> Result<String> {
+    let output = Command::new("hostname").output()?;
+    ensure!(output.status.success(), "resolve fixture hostname");
+    let hostname = String::from_utf8(output.stdout)?.trim().to_string();
+    ensure!(!hostname.is_empty(), "fixture hostname is empty");
+    Ok(format!("(?:test-node|{})", regex::escape(&hostname)))
+}
+
 fn setup_repositories(active_repository: &Path, frozen_root: &Path) -> Result<(String, PathBuf)> {
     git(active_repository, &["init", "--quiet"])?;
-    fs::write(
-        active_repository.join("containers/contracts/container_validation.py"),
-        b"#!/usr/bin/env python3\n",
-    )?;
     fs::write(active_repository.join("README.md"), b"governed repository\n")?;
-    git(active_repository, &["add", "README.md", "containers/contracts/container_validation.py"])?;
+    git(active_repository, &["add", "README.md"])?;
     git(
         active_repository,
         &[
@@ -418,13 +598,14 @@ fn setup_repositories(active_repository: &Path, frozen_root: &Path) -> Result<(S
     Ok((commit, frozen_repository))
 }
 
-fn governance(paths: ContainerPathPolicy, study: &Path) -> ContainerGovernance {
+fn governance(
+    paths: ContainerPathPolicy,
+    study: &Path,
+    hostname_regex: String,
+) -> ContainerGovernance {
     ContainerGovernance {
         schema_version: "bijux.container.governance.v1".to_string(),
-        site: ContainerSitePolicy {
-            id: "test-site".to_string(),
-            hostname_regex: "test-node".to_string(),
-        },
+        site: ContainerSitePolicy { id: "test-site".to_string(), hostname_regex },
         paths,
         runtime: ContainerRuntimePolicy { apptainer_architecture: "linux/amd64".to_string() },
         slurm: ContainerSlurmPolicy {

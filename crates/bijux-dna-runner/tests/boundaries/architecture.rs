@@ -114,11 +114,18 @@ fn runner_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/backend/slurm/qualification")),
-        ["contracts.rs", "lifecycle.rs", "mod.rs", "preparation.rs", "validation.rs",]
+        [
+            "contracts.rs",
+            "execution.rs",
+            "lifecycle.rs",
+            "mod.rs",
+            "preparation.rs",
+            "validation.rs",
+        ]
             .into_iter()
             .map(str::to_string)
             .collect(),
-        "qualification scheduling must separate contracts, preparation, lifecycle, and validation"
+        "qualification scheduling must separate contracts, execution, preparation, lifecycle, and validation"
     );
 
     let docker_entries = dir_entries(&root.join("src/backend/docker"));

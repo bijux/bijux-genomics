@@ -311,13 +311,16 @@ run_commit="$(git rev-parse HEAD)"
 cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --governance containers/contracts/sites/lunarc.yml \
   --commit "${run_commit}"
+cargo build --locked --release -p bijux-dna-dev
+operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
+test -x "${operator_program}"
 
 run_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1125-trimmomatic"
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
   containers/contracts/sites/lunarc.yml \
   "${run_spec}/config-pipeline.yml" \
   "${run_spec}/config-credential.yml" \
-  /usr/bin/python3 \
+  "${operator_program}" \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1125-trimmomatic/qualification-spec.json"

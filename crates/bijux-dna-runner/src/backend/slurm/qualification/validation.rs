@@ -1,6 +1,7 @@
 //! Owner: bijux-dna-runner
 //! Identity validation for container qualification scheduler jobs.
 
+use std::ffi::OsStr;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
@@ -17,7 +18,7 @@ use serde::de::DeserializeOwned;
 use super::contracts::{
     ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
 };
 
 pub(super) const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
@@ -160,7 +161,9 @@ fn derive_admitted_identity(
 pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> Result<()> {
     if !matches!(
         spec.schema_version.as_str(),
-        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2
+        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1
+            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2
+            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
     ) {
         bail!("container qualification Slurm specification schema is unsupported");
     }
@@ -174,7 +177,20 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
     require_sha256(&spec.pipeline_sha256, "pipeline SHA-256")?;
     require_sha256(&spec.credential_reference_sha256, "credential-reference SHA-256")?;
     require_sha256(&spec.executor_program_sha256, "executor program SHA-256")?;
-    require_sha256(&spec.executor_script_sha256, "executor script SHA-256")?;
+    match (
+        spec.schema_version.as_str(),
+        spec.executor_script_path.as_ref(),
+        spec.executor_script_sha256.as_deref(),
+    ) {
+        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3, None, None) => {}
+        (
+            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1
+            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2,
+            Some(_),
+            Some(sha256),
+        ) => require_sha256(sha256, "executor script SHA-256")?,
+        _ => bail!("qualification executor authority conflicts with specification schema"),
+    }
     match (&spec.submission_kind, &spec.historical_replay_source) {
         (ContainerQualificationSubmissionKind::Current, None) => {}
         (ContainerQualificationSubmissionKind::HistoricalReplay, Some(source)) => {
@@ -200,11 +216,16 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
         "executor program",
     )?;
     require_executable(&spec.executor_program_path, "executor program")?;
-    require_exact_file(
-        &spec.executor_script_path,
-        &spec.executor_script_sha256,
-        "executor script",
-    )?;
+    if spec.schema_version == CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
+        && spec.executor_program_path.file_name() != Some(OsStr::new("bijux-dna-dev"))
+    {
+        bail!("native qualification executor must be the pinned bijux-dna-dev program");
+    }
+    if let (Some(path), Some(sha256)) =
+        (spec.executor_script_path.as_ref(), spec.executor_script_sha256.as_deref())
+    {
+        require_exact_file(path, sha256, "executor script")?;
+    }
     load_container_credential_reference(&spec.credential_reference_path)?;
     let identity = match &spec.historical_replay_source {
         Some(source) => derive_historical_replay_identity(
@@ -227,10 +248,12 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
     {
         bail!("container qualification specification conflicts with admitted contracts");
     }
-    let expected_executor =
-        spec.repository_path.join("containers/contracts/container_validation.py");
-    if spec.executor_script_path != expected_executor {
-        bail!("container qualification executor is outside its frozen repository authority");
+    if spec.schema_version != CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 {
+        let expected_executor =
+            spec.repository_path.join("containers/contracts/container_validation.py");
+        if spec.executor_script_path.as_deref() != Some(expected_executor.as_path()) {
+            bail!("container qualification executor is outside its frozen repository authority");
+        }
     }
     canonical_directory(&spec.evidence_root, "qualification evidence root")?;
     Ok(())

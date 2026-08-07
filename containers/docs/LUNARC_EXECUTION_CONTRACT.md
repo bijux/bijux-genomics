@@ -39,10 +39,13 @@ Use the executor explicitly:
 cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --governance containers/contracts/sites/lunarc.yml \
   --commit COMMIT_SHA
+cargo build --locked --release -p bijux-dna-dev
+operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
+test -x "${operator_program}"
 
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
   GOVERNANCE MANIFEST/config-pipeline.yml MANIFEST/config-credential.yml \
-  /usr/bin/python3 "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  "${operator_program}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
   QUALIFICATION_SPEC

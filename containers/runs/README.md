@@ -93,12 +93,15 @@ Prepare and submit it on LUNARC through the non-waiting Rust scheduler boundary:
 
 ```console
 specification=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1122-trim_galore
+cargo build --locked --release -p bijux-dna-dev
+operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
+test -x "${operator_program}"
 
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
   containers/contracts/sites/lunarc.yml \
   "${specification}/config-pipeline.yml" \
   "${specification}/config-credential.yml" \
-  /usr/bin/python3 \
+  "${operator_program}" \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 qualification_spec=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1122-trim_galore/qualification-spec.json

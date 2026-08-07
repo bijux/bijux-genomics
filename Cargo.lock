@@ -735,6 +735,7 @@ dependencies = [
  "bijux-dna-runtime",
  "bijux-dna-testkit",
  "cargo_metadata",
+ "regex",
  "serde",
  "serde_json",
  "sha2",

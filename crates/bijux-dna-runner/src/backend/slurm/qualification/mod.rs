@@ -2,20 +2,23 @@
 //! Governed container qualification Slurm lifecycle.
 
 mod contracts;
+mod execution;
 mod lifecycle;
 mod preparation;
 mod validation;
 
 pub use contracts::{
     ContainerQualificationAccountingRecord, ContainerQualificationCollection,
-    ContainerQualificationPreparationRequest, ContainerQualificationSchedulerEvidence,
-    ContainerQualificationSchedulerStatus, ContainerQualificationSlurmResources,
-    ContainerQualificationSlurmSpec, ContainerQualificationSubmissionKind,
-    HistoricalContainerQualificationReplayRequest, HistoricalContainerQualificationReplaySource,
-    PreparedContainerQualificationSlurmJob, CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1, CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2,
+    ContainerQualificationExecution, ContainerQualificationPreparationRequest,
+    ContainerQualificationSchedulerEvidence, ContainerQualificationSchedulerStatus,
+    ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
+    ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
+    HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
+    CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
 };
+pub use execution::execute_container_qualification;
 pub use lifecycle::{
     cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
     load_container_qualification_slurm_job_handle, load_prepared_container_qualification_slurm_job,

@@ -23,17 +23,18 @@ pub use super::corpus_materialization::{
 };
 pub use super::qualification::{
     cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
-    load_container_qualification_slurm_job_handle, load_container_qualification_slurm_spec,
-    load_prepared_container_qualification_slurm_job, observe_container_qualification_slurm_job,
-    prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
-    submit_prepared_container_qualification_job, ContainerQualificationAccountingRecord,
-    ContainerQualificationCollection, ContainerQualificationPreparationRequest,
+    execute_container_qualification, load_container_qualification_slurm_job_handle,
+    load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
+    observe_container_qualification_slurm_job, prepare_container_qualification_slurm_job,
+    prepare_historical_container_qualification_replay, submit_prepared_container_qualification_job,
+    ContainerQualificationAccountingRecord, ContainerQualificationCollection,
+    ContainerQualificationExecution, ContainerQualificationPreparationRequest,
     ContainerQualificationSchedulerEvidence, ContainerQualificationSchedulerStatus,
     ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
     CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
     CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
 };
 pub use super::submission::{load_benchmark_slurm_job_handle, submit_prepared_benchmark_job};
