@@ -785,7 +785,7 @@ fn scheduler_client(root: &Path, sbatch_body: &str) -> Result<SlurmClientPaths> 
         sacct: root.join("sacct"),
         scancel: root.join("scancel"),
     };
-    write_executable(&paths.sbatch, sbatch_body)?;
+    write_executable(&paths.sbatch, &format!("#!/bin/sh\n{sbatch_body}"))?;
     Ok(paths)
 }
 
