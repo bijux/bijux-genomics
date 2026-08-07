@@ -78,9 +78,11 @@
 - `ContainerQualificationSlurmResources`
 - `PreparedContainerQualificationSlurmJob`
 - `ContainerQualificationCollection`
+- `ContainerQualificationAccountingRecord`
 - `ContainerQualificationSchedulerEvidence`
 - `ContainerQualificationSchedulerStatus`
 - `CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1`
+- `CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1`
 - `CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1`
 - `CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1`
 

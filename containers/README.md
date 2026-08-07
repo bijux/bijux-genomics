@@ -313,13 +313,16 @@ cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --commit "${run_commit}"
 
 run_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1125-trimmomatic"
-python3 -B containers/contracts/container_validation.py validate \
-  --governance containers/contracts/sites/lunarc.yml \
-  --pipeline "${run_spec}/config-pipeline.yml" \
-  --credentials "${run_spec}/config-credential.yml"
-python3 -B containers/contracts/container_validation.py submit \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
+  containers/contracts/sites/lunarc.yml \
+  "${run_spec}/config-pipeline.yml" \
+  "${run_spec}/config-credential.yml" \
+  /usr/bin/python3 \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1125-trimmomatic/qualification-spec.json"
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
+  "${qualification_spec}"
 ```
 
 To validate every staged specification before submitting any of them, run:
@@ -327,10 +330,11 @@ To validate every staged specification before submitting any of them, run:
 ```console
 spec_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications"
 for run_spec in "${spec_root}"/run-*-*; do
-  python3 -B containers/contracts/container_validation.py validate \
+  cargo run -q -p bijux-dna-dev -- containers run credential-reference -- validate \
+    "${run_spec}/config-credential.yml"
+  cargo run -q -p bijux-dna-dev -- containers run pipeline-contract -- admit \
     --governance containers/contracts/sites/lunarc.yml \
-    --pipeline "${run_spec}/config-pipeline.yml" \
-    --credentials "${run_spec}/config-credential.yml"
+    "${run_spec}/config-pipeline.yml"
 done
 ```
 
@@ -343,9 +347,9 @@ After Slurm reaches a terminal state, collection adds immutable scheduler
 accounting and preserves failures even when the executor never started:
 
 ```console
-python3 -B containers/contracts/container_validation.py collect-accounting \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \
+  "${qualification_spec}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 If the collected `evidence.json` is failed, archive that attempt before

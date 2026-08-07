@@ -40,20 +40,25 @@ cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --governance containers/contracts/sites/lunarc.yml \
   --commit COMMIT_SHA
 
-python3 containers/contracts/container_validation.py submit \
-  --manifest MANIFEST
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
+  GOVERNANCE MANIFEST/config-pipeline.yml MANIFEST/config-credential.yml \
+  /usr/bin/python3 "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-python3 containers/contracts/container_validation.py collect-accounting \
-  --manifest MANIFEST
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
+  QUALIFICATION_SPEC
+
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \
+  QUALIFICATION_SPEC "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 python3 containers/contracts/container_validation.py archive-failure \
   --manifest MANIFEST
 ```
 
-The executor validates the current hostname against the site contract, rejects
+The Rust preparation and runner boundary validates the current hostname against the site contract, rejects
 paths outside the configured study roots, restricts Slurm resources to the
 configured account and partitions, checks every immutable digest, and refuses
-to overwrite an existing result or accounting record.
+to overwrite an existing scheduler or accounting record. Submission returns
+immediately; observation and collection perform one scheduler query per call.
 
 `archive-failure` is the only supported way to free canonical submission and
 result paths for a corrected attempt with the same stable run identity. It

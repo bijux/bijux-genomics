@@ -9,9 +9,10 @@ use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use super::contracts::{
-    ContainerQualificationCollection, ContainerQualificationSchedulerEvidence,
-    ContainerQualificationSchedulerStatus, ContainerQualificationSlurmSpec,
-    PreparedContainerQualificationSlurmJob, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
+    ContainerQualificationAccountingRecord, ContainerQualificationCollection,
+    ContainerQualificationSchedulerEvidence, ContainerQualificationSchedulerStatus,
+    ContainerQualificationSlurmSpec, PreparedContainerQualificationSlurmJob,
+    CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
     CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
@@ -192,6 +193,7 @@ pub fn collect_container_qualification_slurm_job(
     if regular_file_exists(&terminal_path, "qualification terminal evidence")? {
         let evidence: ContainerQualificationSchedulerEvidence = read_json(&terminal_path)?;
         validate_retained_evidence(spec, &handle, &evidence)?;
+        publish_result_scheduler_records(spec, &evidence)?;
         let observation = SlurmJobObservation {
             job_id: evidence.job_id.clone(),
             state: evidence.accounting.state,
@@ -253,7 +255,33 @@ pub fn collect_container_qualification_slurm_job(
         failure,
     };
     ensure_json_identity(&terminal_path, &evidence)?;
+    publish_result_scheduler_records(spec, &evidence)?;
     Ok(ContainerQualificationCollection { observation, evidence: Some(evidence) })
+}
+
+fn publish_result_scheduler_records(
+    spec: &ContainerQualificationSlurmSpec,
+    evidence: &ContainerQualificationSchedulerEvidence,
+) -> Result<()> {
+    fs::create_dir_all(&spec.result_root).with_context(|| {
+        format!("create qualification result root {}", spec.result_root.display())
+    })?;
+    canonical_directory(&spec.result_root, "qualification result root")?;
+    let accounting = ContainerQualificationAccountingRecord {
+        schema_version: CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1.to_string(),
+        run_id: spec.run_id.clone(),
+        tool_id: spec.tool_id.clone(),
+        slurm_job_id: evidence.job_id.clone(),
+        accounting: evidence.accounting.clone(),
+        specification_sha256: evidence.specification_sha256.clone(),
+        script_sha256: evidence.script_sha256.clone(),
+        governance_sha256: evidence.governance_sha256.clone(),
+        pipeline_sha256: evidence.pipeline_sha256.clone(),
+        credential_reference_sha256: evidence.credential_reference_sha256.clone(),
+        collected_at_utc: evidence.collected_at_utc.clone(),
+    };
+    ensure_json_identity(&spec.result_root.join("slurm-accounting.json"), &accounting)?;
+    ensure_json_identity(&spec.result_root.join("qualification-scheduler-evidence.json"), evidence)
 }
 
 /// Request cancellation once and return as soon as `scancel` exits.

@@ -13,6 +13,8 @@ pub const CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_prepared_job.v1";
 pub const CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_scheduler_evidence.v1";
+pub const CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1: &str =
+    "bijux.runner.container_qualification_accounting.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContainerQualificationPreparationRequest {
@@ -100,6 +102,22 @@ pub struct ContainerQualificationSchedulerEvidence {
     pub collected_at_utc: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub failure: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct ContainerQualificationAccountingRecord {
+    pub schema_version: String,
+    pub run_id: String,
+    pub tool_id: String,
+    pub slurm_job_id: String,
+    pub accounting: SlurmAccounting,
+    pub specification_sha256: String,
+    pub script_sha256: String,
+    pub governance_sha256: String,
+    pub pipeline_sha256: String,
+    pub credential_reference_sha256: String,
+    pub collected_at_utc: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

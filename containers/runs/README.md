@@ -89,19 +89,21 @@ an already frozen repository commit, immutable images and inputs, stable
 container mount names, predefined metrics, and non-secret credential
 references.
 
-Validate and submit it on LUNARC:
+Prepare and submit it on LUNARC through the non-waiting Rust scheduler boundary:
 
 ```console
 specification=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1122-trim_galore
 
-python3 containers/contracts/container_validation.py validate \
-  --governance containers/contracts/sites/lunarc.yml \
-  --pipeline "${specification}/config-pipeline.yml" \
-  --credentials "${specification}/config-credential.yml"
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
+  containers/contracts/sites/lunarc.yml \
+  "${specification}/config-pipeline.yml" \
+  "${specification}/config-credential.yml" \
+  /usr/bin/python3 \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-python3 containers/contracts/container_validation.py submit \
-  --manifest "${specification}" \
-  --governance containers/contracts/sites/lunarc.yml
+qualification_spec=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1122-trim_galore/qualification-spec.json
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
+  "${qualification_spec}"
 ```
 
 Submission copies the resolved contracts and generated Slurm script to the
@@ -109,6 +111,12 @@ immutable operational evidence directory. After the job becomes terminal,
 collect scheduler accounting and import the completed flat result into this
 directory. Only completed or failed evidence is tracked; provisional files do
 not masquerade as a replay record.
+
+```console
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \
+  "${qualification_spec}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+```
 
 ## Migrate historical result paths
 

@@ -127,6 +127,7 @@ fn dev_tree_matches_architecture_contract() {
         "metadata.rs",
         "mod.rs",
         "qualification_registry.rs",
+        "qualification_slurm.rs",
         "registry_catalog.rs",
         "run_evidence.rs",
         "site_policy.rs",

@@ -22,6 +22,7 @@ mod image_activation;
 mod inventory;
 mod metadata;
 mod qualification_registry;
+mod qualification_slurm;
 mod registry_catalog;
 mod run_evidence;
 mod site_policy;

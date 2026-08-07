@@ -115,6 +115,8 @@ fn lifecycle_is_duplicate_safe_non_waiting_collectable_and_cancellable() -> Resu
     let evidence = terminal.evidence.context("missing terminal evidence")?;
     assert_eq!(evidence.status, ContainerQualificationSchedulerStatus::Passed);
     assert!(evidence.execution_evidence_sha256.is_some());
+    assert!(spec.result_root.join("slurm-accounting.json").is_file());
+    assert!(spec.result_root.join("qualification-scheduler-evidence.json").is_file());
 
     let cancellation = fixture.root.path().join("cancelled-job");
     write_executable(
@@ -157,6 +159,7 @@ fn completed_scheduler_job_without_execution_evidence_is_durably_failed() -> Res
         .failure
         .as_deref()
         .is_some_and(|failure| failure.contains("lacks execution evidence")));
+    assert!(spec.result_root.join("slurm-accounting.json").is_file());
     write_executable(&scheduler.squeue, "#!/bin/sh\nexit 99\n")?;
     assert!(collect_container_qualification_slurm_job(&scheduler, &spec, "2026-08-07T09:53:00Z")?
         .evidence

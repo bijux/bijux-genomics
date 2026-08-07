@@ -275,6 +275,7 @@ image-storage
 lint
 pipeline-contract
 qualification-registry
+qualification-slurm
 registry-tools
 release-gate
 repository-freeze

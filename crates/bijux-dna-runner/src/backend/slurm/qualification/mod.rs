@@ -7,10 +7,11 @@ mod preparation;
 mod validation;
 
 pub use contracts::{
-    ContainerQualificationCollection, ContainerQualificationPreparationRequest,
-    ContainerQualificationSchedulerEvidence, ContainerQualificationSchedulerStatus,
-    ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
-    PreparedContainerQualificationSlurmJob, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
+    ContainerQualificationAccountingRecord, ContainerQualificationCollection,
+    ContainerQualificationPreparationRequest, ContainerQualificationSchedulerEvidence,
+    ContainerQualificationSchedulerStatus, ContainerQualificationSlurmResources,
+    ContainerQualificationSlurmSpec, PreparedContainerQualificationSlurmJob,
+    CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
     CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
 };
 pub use lifecycle::{
