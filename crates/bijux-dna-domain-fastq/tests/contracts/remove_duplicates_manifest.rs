@@ -162,18 +162,23 @@ fn remove_duplicates_tool_manifests_do_not_emit_legacy_governed_reports() -> Res
 }
 
 #[test]
-fn governed_remove_duplicates_tools_are_not_marked_external_only() -> Result<()> {
+fn governed_remove_duplicates_tools_preserve_their_packaging_modes() -> Result<()> {
     let allowlist = external_tool_allowlist()?;
     let external_tools = allowlist
         .get("non_container_tools")
         .and_then(serde_json::Value::as_object)
         .context("non_container_tools missing")?;
-    for tool_id in ["fastuniq", "clumpify"] {
-        assert!(
-            !external_tools.contains_key(tool_id),
-            "{tool_id} is containerized for fastq.remove_duplicates and must not remain in configs/domain/external_tools.toml",
-        );
-    }
+    assert!(
+        !external_tools.contains_key("clumpify"),
+        "containerized clumpify must not remain in configs/domain/external_tools.toml",
+    );
+    assert!(
+        external_tools
+            .get("fastuniq")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|reason| reason.contains("unsupported container redistribution")),
+        "governed FastUniq execution must preserve its external-artifact packaging restriction",
+    );
     Ok(())
 }
 

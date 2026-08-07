@@ -56,6 +56,7 @@ CLI parsing, process execution, or environment control APIs.
 - `ToolBinding`
 - `ToolBindingV1`
 - `ToolBindingRegistry`
+- `canonical_external_artifact_tool_bindings`
 - `ToolBindingRenderContext`
 - `ToolArtifactSourceV1`
 - `BindingInputV1`

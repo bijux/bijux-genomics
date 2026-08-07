@@ -1,3 +1,4 @@
+use std::collections::{BTreeMap, BTreeSet};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
@@ -7,6 +8,73 @@ use bijux_dna_containers::api::{
     repository_head_commit, verify_external_artifact_admission, ExternalArtifactAdmissionRequest,
     ExternalArtifactAdmissionStatus, ExternalArtifactInput, ExternalArtifactKind,
 };
+use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_stage_contract::{
+    canonical_artifact_contract_catalog, canonical_external_artifact_tool_bindings,
+    ToolArtifactSourceV1,
+};
+
+#[test]
+fn external_artifact_catalog_and_stage_bindings_have_exact_pairwise_closure() -> Result<()> {
+    let catalog = bijux_dna_containers::api::load_container_catalog(repository_root())?;
+    let catalog_pairs = catalog
+        .tools
+        .iter()
+        .filter(|tool| tool.external_artifact_supported)
+        .flat_map(|tool| tool.stage_ids.iter().map(|stage_id| (stage_id.clone(), tool.id.clone())))
+        .collect::<BTreeSet<_>>();
+    let catalog_tools = catalog
+        .tools
+        .iter()
+        .filter(|tool| tool.external_artifact_supported)
+        .map(|tool| tool.id.clone())
+        .collect::<BTreeSet<_>>();
+
+    let bindings = canonical_external_artifact_tool_bindings()?;
+    let binding_pairs = bindings
+        .bindings()
+        .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
+        .collect::<BTreeSet<_>>();
+    let binding_tools =
+        bindings.bindings().map(|binding| binding.tool_id.to_string()).collect::<BTreeSet<_>>();
+
+    assert_eq!(
+        catalog_tools,
+        BTreeSet::from_iter(["angsd", "fastuniq", "impute5", "ngsbriggs"].map(str::to_string))
+    );
+    assert_eq!(binding_tools, catalog_tools);
+    assert_eq!(binding_pairs, catalog_pairs);
+    assert_eq!(binding_pairs.len(), 10);
+
+    let artifact_contracts = canonical_artifact_contract_catalog()
+        .contracts
+        .into_iter()
+        .map(|contract| contract.contract_id)
+        .collect::<BTreeSet<_>>();
+    for binding in bindings.bindings() {
+        assert!(matches!(
+            &binding.artifact_source,
+            ToolArtifactSourceV1::ExternalArtifact {
+                checksum_required: true,
+                version_probe,
+                ..
+            } if version_probe.iter().any(|token| token.contains("${executable}"))
+        ));
+        for contract_id in binding
+            .inputs
+            .iter()
+            .map(|input| &input.artifact_contract_id)
+            .chain(binding.outputs.iter().map(|output| &output.artifact_contract_id))
+        {
+            assert!(
+                artifact_contracts.contains(contract_id),
+                "binding {} references unknown artifact contract {contract_id}",
+                binding.binding_id
+            );
+        }
+    }
+    Ok(())
+}
 
 #[test]
 fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<()> {
@@ -117,6 +185,8 @@ fn every_license_restricted_tool_has_an_explicit_blocked_access_record() -> Resu
     let active = temporary.path().join("active");
     std::fs::create_dir(&active)?;
     let commit = repository_head_commit(root)?;
+    let bindings = canonical_external_artifact_tool_bindings()?;
+    let mut blocked_stages = BTreeMap::new();
     for tool in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
         let path = temporary.path().join(format!("{tool}.json"));
         let record = admit_external_artifact(
@@ -133,6 +203,13 @@ fn every_license_restricted_tool_has_an_explicit_blocked_access_record() -> Resu
         )?;
         assert_eq!(record.status, ExternalArtifactAdmissionStatus::BlockedExternalAccess);
         assert!(!record.redistribution_permitted);
+        for stage_id in &record.stage_ids {
+            assert!(
+                bindings.binding(&StageId::new(stage_id), &ToolId::new(tool)).is_some(),
+                "blocked access must preserve the {stage_id}/{tool} product binding"
+            );
+        }
+        blocked_stages.insert(tool, record.stage_ids.clone());
         assert!(bind_external_artifact_command(
             root,
             &active,
@@ -144,6 +221,7 @@ fn every_license_restricted_tool_has_an_explicit_blocked_access_record() -> Resu
         .is_err());
         assert_eq!(load_external_artifact_admission(&path)?, record);
     }
+    assert_eq!(blocked_stages.values().map(Vec::len).sum::<usize>(), 10);
     Ok(())
 }
 

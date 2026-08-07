@@ -23,6 +23,7 @@ bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 [dev-dependencies]
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-policies.workspace = true
+bijux-dna-stage-contract.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 tempfile.workspace = true
 walkdir.workspace = true
