@@ -9,8 +9,8 @@ pub use admission::{
 };
 pub use currentization::{
     apply_container_pipeline_currentization, derive_container_pipeline_currentization,
-    ContainerPipelineCurrentizationEntry, ContainerPipelineCurrentizationPlan,
-    ContainerPipelineCurrentizationRequest,
+    ContainerPipelineCurrentizationDisposition, ContainerPipelineCurrentizationEntry,
+    ContainerPipelineCurrentizationPlan, ContainerPipelineCurrentizationRequest,
 };
 pub use model::{
     ContainerPipelineContract, ContainerPipelineV1, ContainerPipelineV2, PipelineAcceptanceMetric,

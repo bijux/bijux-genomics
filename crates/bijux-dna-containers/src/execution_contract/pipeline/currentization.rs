@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, ensure, Context, Result};
 
-use crate::evidence::{load_image_inventory_publication, resolve_current_apptainer_image};
+use crate::evidence::{
+    load_image_inventory_publication, resolve_current_apptainer_image, ContainerSupportDisposition,
+};
 use crate::site_policy::{validate_container_governance_host, ContainerGovernance};
 
 use super::model::ContainerPipelineContract;
@@ -26,7 +28,15 @@ pub struct ContainerPipelineCurrentizationEntry {
     pub current_sha256: String,
     pub image_path: PathBuf,
     pub image_sha256: String,
+    pub disposition: ContainerPipelineCurrentizationDisposition,
     pub changed: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ContainerPipelineCurrentizationDisposition {
+    Currentized,
+    AlreadyCurrent,
+    ExternalArtifactRequired,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -82,7 +92,9 @@ pub fn apply_container_pipeline_currentization(
                 && planned.tool_id == document.entry.tool_id
                 && planned.current_sha256 == document.entry.current_sha256
                 && planned.image_path == document.entry.image_path
-                && planned.image_sha256 == document.entry.image_sha256,
+                && planned.image_sha256 == document.entry.image_sha256
+                && is_external_artifact_disposition(planned.disposition)
+                    == is_external_artifact_disposition(document.entry.disposition),
             "container pipeline currentization target changed after planning"
         );
         let observed = document.entry.source_sha256;
@@ -128,6 +140,35 @@ fn render_currentization(
             .with_context(|| format!("read pipeline declaration {}", path.display()))?;
         let contract = parse_container_pipeline_document(&source, &path.display().to_string())?;
         let (run_id, tool_id) = pipeline_identity(&contract);
+        let source_sha256 = bijux_dna_infra::hash_bytes_sha256(source.as_bytes());
+        let inventory_tool = inventory
+            .tools
+            .iter()
+            .find(|tool| tool.tool == tool_id)
+            .with_context(|| format!("image inventory does not declare tool {tool_id}"))?;
+        if inventory_tool.support_disposition == ContainerSupportDisposition::Unsupported {
+            let (image_path, image_sha256) = pipeline_image_identity(&contract);
+            rendered.push(RenderedPipeline {
+                entry: ContainerPipelineCurrentizationEntry {
+                    path,
+                    run_id: run_id.to_owned(),
+                    tool_id: tool_id.to_owned(),
+                    source_sha256: source_sha256.clone(),
+                    current_sha256: source_sha256,
+                    image_path: image_path.to_path_buf(),
+                    image_sha256: image_sha256.to_owned(),
+                    disposition:
+                        ContainerPipelineCurrentizationDisposition::ExternalArtifactRequired,
+                    changed: false,
+                },
+                bytes: source.into_bytes(),
+            });
+            continue;
+        }
+        ensure!(
+            inventory_tool.support_disposition == ContainerSupportDisposition::Retained,
+            "pipeline tool {tool_id} is outside retained and external-artifact inventory policy"
+        );
         let image = resolve_current_apptainer_image(
             &inventory,
             &request.governance.paths.study_root,
@@ -141,7 +182,6 @@ fn render_currentization(
             &image.sha256,
         )?;
         parse_container_pipeline_document(&current, &format!("rendered {}", path.display()))?;
-        let source_sha256 = bijux_dna_infra::hash_bytes_sha256(source.as_bytes());
         let current_sha256 = bijux_dna_infra::hash_bytes_sha256(current.as_bytes());
         let changed = source_sha256 != current_sha256;
         rendered.push(RenderedPipeline {
@@ -153,6 +193,11 @@ fn render_currentization(
                 current_sha256,
                 image_path: image.path,
                 image_sha256: image.sha256,
+                disposition: if changed {
+                    ContainerPipelineCurrentizationDisposition::Currentized
+                } else {
+                    ContainerPipelineCurrentizationDisposition::AlreadyCurrent
+                },
                 changed,
             },
             bytes: current.into_bytes(),
@@ -183,6 +228,23 @@ fn pipeline_identity(contract: &ContainerPipelineContract) -> (&str, &str) {
         ContainerPipelineContract::Legacy(pipeline) => (&pipeline.run.id, &pipeline.run.tool),
         ContainerPipelineContract::Current(pipeline) => (&pipeline.run.id, &pipeline.run.tool),
     }
+}
+
+fn pipeline_image_identity(contract: &ContainerPipelineContract) -> (&Path, &str) {
+    match contract {
+        ContainerPipelineContract::Legacy(pipeline) => {
+            (&pipeline.image.path, &pipeline.image.sha256)
+        }
+        ContainerPipelineContract::Current(pipeline) => {
+            (&pipeline.image.path, &pipeline.image.sha256)
+        }
+    }
+}
+
+fn is_external_artifact_disposition(
+    disposition: ContainerPipelineCurrentizationDisposition,
+) -> bool {
+    disposition == ContainerPipelineCurrentizationDisposition::ExternalArtifactRequired
 }
 
 fn rewrite_pipeline_identities(

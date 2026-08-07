@@ -7,8 +7,9 @@ use bijux_dna_containers::api::{
     load_container_pipeline, ContainerGovernance, ContainerImageCandidate,
     ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerPathPolicy,
-    ContainerPipelineContract, ContainerPipelineCurrentizationRequest, ContainerPreflightPolicy,
-    ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy, ContainerSupportDisposition,
+    ContainerPipelineContract, ContainerPipelineCurrentizationDisposition,
+    ContainerPipelineCurrentizationRequest, ContainerPreflightPolicy, ContainerRuntimePolicy,
+    ContainerSitePolicy, ContainerSlurmPolicy, ContainerSupportDisposition,
     ImageCandidateDisposition, ImageInventoryPublicationIdentity,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
 };
@@ -17,6 +18,8 @@ struct CurrentizationFixture {
     _root: tempfile::TempDir,
     request: ContainerPipelineCurrentizationRequest,
     pipeline_path: PathBuf,
+    unsupported_pipeline_path: PathBuf,
+    unsupported_source: String,
     source: String,
     image_path: PathBuf,
     image_sha256: String,
@@ -61,6 +64,13 @@ impl CurrentizationFixture {
             repository_root()?.join("containers/runs/run-1124-trim_galore/config-pipeline.yml"),
         )?;
         std::fs::write(&pipeline_path, &source)?;
+        let unsupported_root = pipelines_root.join("run-1125-fastuniq");
+        std::fs::create_dir_all(&unsupported_root)?;
+        let unsupported_pipeline_path = unsupported_root.join("config-pipeline.yml");
+        let unsupported_source = source
+            .replace("id: run-1124", "id: run-1125")
+            .replace("tool: trim_galore", "tool: fastuniq");
+        std::fs::write(&unsupported_pipeline_path, &unsupported_source)?;
 
         let governance = ContainerGovernance {
             schema_version: "bijux.container.governance.v1".to_owned(),
@@ -100,7 +110,16 @@ impl CurrentizationFixture {
             inventory_path,
             repository_commit: commit,
         };
-        Ok(Self { _root: root, request, pipeline_path, source, image_path, image_sha256 })
+        Ok(Self {
+            _root: root,
+            request,
+            pipeline_path,
+            unsupported_pipeline_path,
+            unsupported_source,
+            source,
+            image_path,
+            image_sha256,
+        })
     }
 }
 
@@ -118,32 +137,43 @@ fn inventory_fixture(
             raw_sha256: "3".repeat(64),
         },
         summary: ContainerImageInventorySummary {
-            tool_count: 1,
-            states: BTreeMap::from([("current".to_owned(), 1)]),
+            tool_count: 2,
+            states: BTreeMap::from([("current".to_owned(), 1), ("unsupported".to_owned(), 1)]),
             historical_dependency_count: 0,
             unknown_image_count: 0,
             staged_image_count: 0,
             unreferenced_obsolete_count: 0,
         },
-        tools: vec![ContainerImageInventoryTool {
-            tool: "trim_galore".to_owned(),
-            version: "0.6.10".to_owned(),
-            support_disposition: ContainerSupportDisposition::Retained,
-            apptainer_supported: true,
-            state: ContainerImageState::Current,
-            selected_image_sha256: Some(image_sha256.to_owned()),
-            candidates: vec![ContainerImageCandidate {
-                admitted: true,
-                current_recipe: true,
-                disposition: ImageCandidateDisposition::Canonical,
-                path: "study://containers/apptainer/trim_galore-current.sif".to_owned(),
-                sha256: image_sha256.to_owned(),
-                size_bytes: image_size,
-                real_run_references: 0,
-                run_references: Vec::new(),
-                build_evidence: Vec::new(),
-            }],
-        }],
+        tools: vec![
+            ContainerImageInventoryTool {
+                tool: "fastuniq".to_owned(),
+                version: "1.1".to_owned(),
+                support_disposition: ContainerSupportDisposition::Unsupported,
+                apptainer_supported: false,
+                state: ContainerImageState::Unsupported,
+                selected_image_sha256: None,
+                candidates: Vec::new(),
+            },
+            ContainerImageInventoryTool {
+                tool: "trim_galore".to_owned(),
+                version: "0.6.10".to_owned(),
+                support_disposition: ContainerSupportDisposition::Retained,
+                apptainer_supported: true,
+                state: ContainerImageState::Current,
+                selected_image_sha256: Some(image_sha256.to_owned()),
+                candidates: vec![ContainerImageCandidate {
+                    admitted: true,
+                    current_recipe: true,
+                    disposition: ImageCandidateDisposition::Canonical,
+                    path: "study://containers/apptainer/trim_galore-current.sif".to_owned(),
+                    sha256: image_sha256.to_owned(),
+                    size_bytes: image_size,
+                    real_run_references: 0,
+                    run_references: Vec::new(),
+                    build_evidence: Vec::new(),
+                }],
+            },
+        ],
         historical_images: Vec::new(),
         unknown_images: Vec::new(),
         staged_images: Vec::new(),
@@ -154,9 +184,22 @@ fn inventory_fixture(
 fn currentization_changes_only_repository_and_image_identity_lines() -> Result<()> {
     let fixture = CurrentizationFixture::new()?;
     let plan = derive_container_pipeline_currentization(&fixture.request)?;
-    assert_eq!(plan.entries.len(), 1);
-    assert!(plan.entries[0].changed);
+    assert_eq!(plan.entries.len(), 2);
+    assert_eq!(plan.entries.iter().filter(|entry| entry.changed).count(), 1);
+    let external = plan
+        .entries
+        .iter()
+        .find(|entry| entry.tool_id == "fastuniq")
+        .context("missing external-artifact plan entry")?;
+    assert_eq!(
+        external.disposition,
+        ContainerPipelineCurrentizationDisposition::ExternalArtifactRequired
+    );
     apply_container_pipeline_currentization(&fixture.request, &plan)?;
+    assert_eq!(
+        std::fs::read_to_string(&fixture.unsupported_pipeline_path)?,
+        fixture.unsupported_source
+    );
 
     let current = std::fs::read_to_string(&fixture.pipeline_path)?;
     let changed_lines = fixture
@@ -177,7 +220,7 @@ fn currentization_changes_only_repository_and_image_identity_lines() -> Result<(
     }
     apply_container_pipeline_currentization(&fixture.request, &plan)?;
     let repeated = derive_container_pipeline_currentization(&fixture.request)?;
-    assert!(!repeated.entries[0].changed);
+    assert!(repeated.entries.iter().all(|entry| !entry.changed));
     Ok(())
 }
 

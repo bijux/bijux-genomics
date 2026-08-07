@@ -122,12 +122,12 @@ pub use crate::execution_contract::{
     validate_container_credential_reference, validate_container_pipeline,
     write_container_credential_reference_schema, ContainerCredentialRecord,
     ContainerCredentialRedaction, ContainerCredentialReference, ContainerPipelineContract,
-    ContainerPipelineCurrentizationEntry, ContainerPipelineCurrentizationPlan,
-    ContainerPipelineCurrentizationRequest, ContainerPipelineInputAdmission,
-    ContainerPipelineSiteAdmission, ContainerPipelineSiteAdmissionRequest, ContainerPipelineV1,
-    ContainerPipelineV2, PipelineEvidenceKind, PipelineInputKind,
-    CONTAINER_CREDENTIAL_REFERENCE_SCHEMA_V1, CONTAINER_PIPELINE_SCHEMA_V1,
-    CONTAINER_PIPELINE_SCHEMA_V2,
+    ContainerPipelineCurrentizationDisposition, ContainerPipelineCurrentizationEntry,
+    ContainerPipelineCurrentizationPlan, ContainerPipelineCurrentizationRequest,
+    ContainerPipelineInputAdmission, ContainerPipelineSiteAdmission,
+    ContainerPipelineSiteAdmissionRequest, ContainerPipelineV1, ContainerPipelineV2,
+    PipelineEvidenceKind, PipelineInputKind, CONTAINER_CREDENTIAL_REFERENCE_SCHEMA_V1,
+    CONTAINER_PIPELINE_SCHEMA_V1, CONTAINER_PIPELINE_SCHEMA_V2,
 };
 pub use crate::resolve::*;
 pub use crate::site_policy::{
