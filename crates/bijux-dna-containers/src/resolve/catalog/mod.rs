@@ -26,10 +26,17 @@ pub(super) fn resolve_image(
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
 pub(super) fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     let path = bijux_dna_infra::configs_file(Path::new("."), "ci/tools/images.toml");
-    let mut catalog = load_image_catalog_from_file(&path)?;
     let registry_path =
         bijux_dna_infra::configs_file(Path::new("."), "ci/registry/tool_registry.toml");
-    hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
+    load_image_catalog_from_paths(&path, &registry_path)
+}
+
+pub(super) fn load_image_catalog_from_paths(
+    images_path: &Path,
+    registry_path: &Path,
+) -> Result<HashMap<String, ToolImageSpec>, EnvError> {
+    let mut catalog = load_image_catalog_from_file(images_path)?;
+    hydrate_catalog_digests_from_registry(&mut catalog, registry_path)?;
     Ok(catalog)
 }
 

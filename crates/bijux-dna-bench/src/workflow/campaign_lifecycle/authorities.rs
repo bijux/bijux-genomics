@@ -11,9 +11,9 @@ use bijux_dna_bench_model::{
     BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
 };
 use bijux_dna_containers::api::{
-    load_container_catalog, load_image_inventory_publication, resolve_current_apptainer_image,
-    validate_container_inventory_catalog, ContainerCatalog, ContainerImageInventoryPublication,
-    CurrentApptainerImage,
+    load_container_catalog, load_image_inventory_publication,
+    resolve_catalog_locked_apptainer_image, validate_container_inventory_catalog, ContainerCatalog,
+    ContainerImageInventoryPublication, CurrentApptainerImage,
 };
 
 use super::verify_campaign_plan_source;
@@ -29,6 +29,8 @@ pub struct BenchmarkExecutionAuthorities {
     registry: BenchmarkStageCampaignRegistry,
     interfaces: BenchmarkStageInterfaceCatalog,
     catalog: ContainerCatalog,
+    catalog_sha256: String,
+    repository_commit: String,
     source_contract_sha256: BTreeMap<String, String>,
     image_inventory: ContainerImageInventoryPublication,
 }
@@ -50,7 +52,14 @@ impl BenchmarkExecutionAuthorities {
         study_root: &Path,
         tool_id: &str,
     ) -> Result<CurrentApptainerImage> {
-        resolve_current_apptainer_image(&self.image_inventory, study_root, tool_id)
+        resolve_catalog_locked_apptainer_image(
+            &self.image_inventory,
+            &self.catalog_sha256,
+            &self.catalog,
+            &self.repository_commit,
+            study_root,
+            tool_id,
+        )
     }
 
     /// Build one execution specification without exposing mutable loaded authorities.
@@ -129,7 +138,7 @@ pub fn load_execution_authorities(
 
     let mut source_contract_sha256 = BTreeMap::from([
         ("campaign_registry".to_string(), campaign_registry_sha256),
-        ("container_catalog".to_string(), container_catalog_sha256),
+        ("container_catalog".to_string(), container_catalog_sha256.clone()),
         ("image_inventory".to_string(), image_inventory_sha256),
         ("stage_interface_registry".to_string(), stage_interface_registry_sha256),
     ]);
@@ -159,6 +168,8 @@ pub fn load_execution_authorities(
         registry,
         interfaces,
         catalog,
+        catalog_sha256: container_catalog_sha256,
+        repository_commit: repository_commit.to_owned(),
         source_contract_sha256,
         image_inventory,
     })

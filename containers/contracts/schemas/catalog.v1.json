@@ -41,14 +41,12 @@
           "type": "string"
         },
         "external_artifact_kinds": {
-          "default": [],
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "external_artifact_supported": {
-          "default": false,
           "type": "boolean"
         },
         "help_command": {

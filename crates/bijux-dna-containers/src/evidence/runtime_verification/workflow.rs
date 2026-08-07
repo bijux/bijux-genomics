@@ -14,7 +14,7 @@ use crate::evidence::tool_contract::{
 };
 use crate::evidence::{
     load_container_catalog, load_image_inventory_publication,
-    resolve_current_apptainer_contract_commit, resolve_current_apptainer_image,
+    resolve_catalog_locked_apptainer_image, resolve_current_apptainer_contract_commit,
     validate_container_evidence_chain, validate_container_inventory_catalog,
     validate_container_recipe_evidence_chain, ContainerRuntimeEvidence, EvidenceSourceIdentity,
     RuntimeEvidenceStatus, RuntimeVerificationPublication,
@@ -83,7 +83,11 @@ pub fn execute_runtime_verification(
         bail!("runtime repository and inventory identify different commits");
     }
     let catalog = load_container_catalog(&request.repository_root)?;
-    validate_container_inventory_catalog(&inventory.catalog_sha256, &catalog, &inventory)?;
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &request.repository_root.join("containers/contracts/catalog.toml"),
+    )
+    .context("hash runtime-verification container catalog")?;
+    validate_container_inventory_catalog(&catalog_sha256, &catalog, &inventory)?;
     validate_container_recipe_evidence_chain(
         &request.repository_root,
         &commit,
@@ -95,7 +99,14 @@ pub fn execute_runtime_verification(
         .iter()
         .filter(|tool| tool.support_disposition == "retained" && tool.apptainer_supported)
         .map(|tool| {
-            let image = resolve_current_apptainer_image(&inventory, &request.study_root, &tool.id)?;
+            let image = resolve_catalog_locked_apptainer_image(
+                &inventory,
+                &catalog_sha256,
+                &catalog,
+                &commit,
+                &request.study_root,
+                &tool.id,
+            )?;
             let contract_commit = resolve_current_apptainer_contract_commit(
                 &request.repository_root,
                 &commit,
@@ -123,7 +134,7 @@ pub fn execute_runtime_verification(
         bail!("runtime verification has no retained Apptainer tools");
     }
     bijux_dna_infra::ensure_dir(&request.evidence_root)?;
-    let results = execute_tasks(request, &commit, &inventory.catalog_sha256, &tasks)?;
+    let results = execute_tasks(request, &commit, &catalog_sha256, &tasks)?;
     let mut tools = BTreeMap::new();
     let mut passed = 0;
     for result in results {
@@ -143,7 +154,7 @@ pub fn execute_runtime_verification(
         schema_version: CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2.to_string(),
         catalog: EvidenceSourceIdentity {
             path: "repository://containers/contracts/catalog.toml".to_string(),
-            sha256: inventory.catalog_sha256.clone(),
+            sha256: catalog_sha256.clone(),
         },
         inventory: EvidenceSourceIdentity {
             path: portable_path(&request.inventory_path, &request.study_root, "study")?,
@@ -153,12 +164,7 @@ pub fn execute_runtime_verification(
         tools,
     };
     if passed == tasks.len() {
-        validate_container_evidence_chain(
-            &inventory.catalog_sha256,
-            &catalog,
-            &inventory,
-            &publication,
-        )?;
+        validate_container_evidence_chain(&catalog_sha256, &catalog, &inventory, &publication)?;
     } else {
         crate::evidence::validate_runtime_verification_publication(&publication)?;
     }

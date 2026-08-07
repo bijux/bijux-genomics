@@ -3,7 +3,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, ensure, Context, Result};
 
 use crate::evidence::{
-    load_image_inventory_publication, resolve_current_apptainer_image, ContainerSupportDisposition,
+    load_container_catalog, load_image_inventory_publication,
+    resolve_catalog_locked_apptainer_image, validate_container_inventory_catalog,
+    ContainerSupportDisposition,
 };
 use crate::site_policy::{validate_container_governance_host, ContainerGovernance};
 
@@ -125,6 +127,12 @@ fn render_currentization(
     let repository_path =
         request.governance.paths.frozen_repositories.join(&request.repository_commit);
     ensure!(repository_path.is_dir(), "currentization repository freeze is absent");
+    let catalog_path = repository_path.join("containers/contracts/catalog.toml");
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)
+        .context("hash currentization container catalog")?;
+    let catalog = load_container_catalog(&repository_path)?;
+    validate_container_inventory_catalog(&catalog_sha256, &catalog, &inventory)
+        .context("bind currentization inventory to its source catalog")?;
     ensure!(request.pipelines_root.is_dir(), "pipeline declaration root is absent");
 
     let mut paths = std::fs::read_dir(&request.pipelines_root)
@@ -168,8 +176,11 @@ fn render_currentization(
             inventory_tool.support_disposition == ContainerSupportDisposition::Retained,
             "pipeline tool {tool_id} is outside retained and external-artifact inventory policy"
         );
-        let image = resolve_current_apptainer_image(
+        let image = resolve_catalog_locked_apptainer_image(
             &inventory,
+            &catalog_sha256,
+            &catalog,
+            &request.repository_commit,
             &request.governance.paths.study_root,
             tool_id,
         )?;

@@ -50,13 +50,10 @@ impl CurrentizationFixture {
             std::fs::create_dir_all(path)?;
         }
 
-        let image_path = containers.join("apptainer/trim_galore-current.sif");
-        std::fs::write(&image_path, b"current trim galore image")?;
-        let image_sha256 = bijux_dna_infra::hash_file_sha256(&image_path)?;
-        let inventory =
-            inventory_fixture(&commit, &image_sha256, std::fs::metadata(&image_path)?.len());
-        let inventory_path = root.path().join("inventory.json");
-        std::fs::write(&inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+        let catalog_sha256 = write_catalog_fixture(&frozen_repositories.join(&commit))?;
+
+        let (image_path, image_sha256, inventory_path) =
+            write_inventory_fixture(root.path(), &containers, &commit, &catalog_sha256)?;
 
         let pipelines_root = root.path().join("pipelines");
         let run_root = pipelines_root.join("run-1124-trim_galore");
@@ -133,14 +130,42 @@ impl CurrentizationFixture {
     }
 }
 
+fn write_catalog_fixture(repository: &Path) -> Result<String> {
+    let path = repository.join("containers/contracts/catalog.toml");
+    std::fs::create_dir_all(path.parent().context("catalog fixture has no parent")?)?;
+    std::fs::write(&path, catalog_fixture())?;
+    Ok(bijux_dna_infra::hash_file_sha256(&path)?)
+}
+
+fn write_inventory_fixture(
+    root: &Path,
+    containers: &Path,
+    commit: &str,
+    catalog_sha256: &str,
+) -> Result<(PathBuf, String, PathBuf)> {
+    let image_path = containers.join("apptainer/trim_galore-current.sif");
+    std::fs::write(&image_path, b"current trim galore image")?;
+    let image_sha256 = bijux_dna_infra::hash_file_sha256(&image_path)?;
+    let inventory = inventory_fixture(
+        commit,
+        catalog_sha256,
+        &image_sha256,
+        std::fs::metadata(&image_path)?.len(),
+    );
+    let inventory_path = root.join("inventory.json");
+    std::fs::write(&inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+    Ok((image_path, image_sha256, inventory_path))
+}
+
 fn inventory_fixture(
     commit: &str,
+    catalog_sha256: &str,
     image_sha256: &str,
     image_size: u64,
 ) -> ContainerImageInventoryPublication {
     ContainerImageInventoryPublication {
         schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2.to_owned(),
-        catalog_sha256: "2".repeat(64),
+        catalog_sha256: catalog_sha256.to_owned(),
         repository_commit: commit.to_owned(),
         publication: ImageInventoryPublicationIdentity {
             raw_schema_version: "bijux.container.image_inventory_scan.v1".to_owned(),
@@ -188,6 +213,73 @@ fn inventory_fixture(
         unknown_images: Vec::new(),
         staged_images: Vec::new(),
     }
+}
+
+fn catalog_fixture() -> &'static str {
+    r#"schema_version = "bijux.container.catalog.v1"
+owner = "test"
+contact = "test@example.com"
+repository = "https://example.com/repository"
+apptainer_architecture = "linux/amd64"
+docker_architecture = "linux/arm64"
+evidence_schema = "bijux.container.evidence.v1"
+recipe_license = "GPL-3.0-only"
+required_checks = ["version"]
+evidence_dimensions = ["runtime"]
+
+[[tools]]
+id = "fastuniq"
+display_name = "FastUniq"
+purpose = "test"
+version = "1.1"
+support_disposition = "unsupported"
+support_reason = "external artifact"
+external_artifact_supported = true
+external_artifact_kinds = ["binary"]
+upstream = "https://example.com/fastuniq"
+documentation = "https://example.com/fastuniq/docs"
+license = "MIT"
+domains = ["fastq"]
+stage_ids = ["fastq.deduplicate"]
+expected_bin = "fastuniq"
+version_command = "fastuniq"
+help_command = "fastuniq"
+expected_version_regex = "^1[.]1$"
+apptainer_definition = ""
+apptainer_supported = false
+dockerfile = ""
+docker_arm64_supported = false
+docker_arm64_reason = "external artifact"
+build_network = false
+runtime_network = false
+real_test_stage = "fastq.deduplicate"
+real_test_input_kind = "fastq"
+
+[[tools]]
+id = "trim_galore"
+display_name = "Trim Galore"
+purpose = "test"
+version = "0.6.10"
+support_disposition = "retained"
+upstream = "https://example.com/trim-galore"
+documentation = "https://example.com/trim-galore/docs"
+license = "GPL-3.0-only"
+domains = ["fastq"]
+stage_ids = ["fastq.trim_reads"]
+expected_bin = "trim_galore"
+version_command = "trim_galore --version"
+help_command = "trim_galore --help"
+expected_version_regex = "^0[.]6[.]10$"
+apptainer_definition = "containers/apptainer/trim_galore.def"
+apptainer_supported = true
+dockerfile = ""
+docker_arm64_supported = false
+docker_arm64_reason = "test fixture"
+build_network = true
+runtime_network = false
+real_test_stage = "fastq.trim_reads"
+real_test_input_kind = "fastq"
+"#
 }
 
 #[test]

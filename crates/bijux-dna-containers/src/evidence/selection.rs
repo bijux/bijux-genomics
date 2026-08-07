@@ -6,8 +6,9 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 
 use super::{
-    validate_image_inventory_publication, ContainerImageInventoryPublication, ContainerImageState,
-    ContainerSupportDisposition, ImageCandidateDisposition,
+    validate_container_inventory_catalog, validate_image_inventory_publication, ContainerCatalog,
+    ContainerImageInventoryPublication, ContainerImageState, ContainerSupportDisposition,
+    ImageCandidateDisposition,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,12 +21,36 @@ pub struct CurrentApptainerImage {
     pub catalog_sha256: String,
 }
 
+/// Resolve one image only after binding the inventory to its catalog and repository source lock.
+///
+/// # Errors
+/// Returns an error when the inventory is stale, differs from the catalog, or cannot resolve the
+/// requested tool to one current immutable image.
+pub fn resolve_catalog_locked_apptainer_image(
+    publication: &ContainerImageInventoryPublication,
+    catalog_sha256: &str,
+    catalog: &ContainerCatalog,
+    repository_commit: &str,
+    study_root: &Path,
+    tool_id: &str,
+) -> Result<CurrentApptainerImage> {
+    validate_container_inventory_catalog(catalog_sha256, catalog, publication)
+        .context("bind image inventory to the container catalog")?;
+    if publication.repository_commit != repository_commit {
+        bail!(
+            "image inventory repository commit is stale: expected {repository_commit}, observed {}",
+            publication.repository_commit
+        );
+    }
+    resolve_current_apptainer_image(publication, study_root, tool_id)
+}
+
 /// Resolve and verify the current retained Apptainer image for one tool.
 ///
 /// # Errors
 /// Returns an error when the publication is invalid, the tool is not uniquely current and
 /// retained, the selected path escapes STUDY, or the on-disk file differs from inventory evidence.
-pub fn resolve_current_apptainer_image(
+fn resolve_current_apptainer_image(
     publication: &ContainerImageInventoryPublication,
     study_root: &Path,
     tool_id: &str,
