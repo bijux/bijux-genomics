@@ -22,6 +22,7 @@ mod inventory;
 mod metadata;
 mod qualification_registry;
 mod registry_catalog;
+mod run_evidence;
 mod runtime;
 mod runtime_verification;
 mod storage;

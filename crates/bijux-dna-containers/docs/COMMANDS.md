@@ -36,6 +36,9 @@ library can manage when callers invoke the matching API.
   admits version output against the catalog contract regex.
 - `execute_runtime_verification()`: resolves canonical inventory images and runs independent
   version/help smoke workers before publishing manifest-bound portable evidence.
+- `import_run_evidence()`, `plan_final_run_evidence()`, and
+  `apply_final_run_evidence_plan()`: import immutable run locks, select the latest passing run per
+  tool, and preserve superseded attempt lineage behind an explicit non-mutating plan boundary.
 - `admit_external_artifact()`: runs the cataloged version probe against an operator-provided
   binary or through `apptainer exec`, verifies the declared checksum, and publishes a no-copy
   admission record. Restricted artifacts must remain outside the repository and active image root.

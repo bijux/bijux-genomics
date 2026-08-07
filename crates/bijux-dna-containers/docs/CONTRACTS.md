@@ -22,6 +22,9 @@ This crate owns the environment contracts consumed by API, runner, and environme
   repository or study run references; the publication records the exact serialized scan digest.
 - `RuntimeVerificationPublication`: runtime evidence tied to catalog, inventory, repository, and
   image identities.
+- `RunEvidenceLock`, `RunAttemptLedger`, and `RunEvidenceIndex`: immutable selected execution,
+  supersession lineage, and portable final-run publication with independently counted execution
+  and scientific states.
 - `ContainerToolContract`: the strict identity installed exactly once at
   `/usr/share/bijux/tool-contract.json` in each retained tool image.
 - `ToolImageIdentityEvidence`: persisted image digest, complete embedded tool contract, and exact

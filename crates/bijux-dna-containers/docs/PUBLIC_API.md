@@ -12,7 +12,8 @@
 
 - `build`: Docker metadata helpers plus Apptainer build requests, reports, append-only attempt paths,
   failure classification, bounded build execution, and canonical study image/evidence publication.
-- `evidence`: typed container image-inventory and runtime-verification publications; strict embedded
+- `evidence`: typed container image-inventory, selected-run, and runtime-verification publications;
+  strict embedded
   tool contracts; the complete canonical `ContainerCatalog` and `ContainerCatalogTool` model;
   `validate_container_catalog` roster and recipe closure; model-owned `ContainerCatalogLock`
   derivation and admission; catalog-derived Apptainer build

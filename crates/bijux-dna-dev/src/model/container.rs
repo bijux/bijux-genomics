@@ -74,6 +74,7 @@ pub enum NativeContainerCommandKey {
     ImageActivation,
     ImageStorage,
     QualificationRegistry,
+    RunEvidence,
     RuntimeVerification,
     CheckEvidenceQualification,
     CheckImageInventoryReport,

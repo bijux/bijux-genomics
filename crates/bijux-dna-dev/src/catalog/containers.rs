@@ -332,6 +332,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::QualificationRegistry,
         ),
         native(
+            "run-evidence",
+            "Import, select, validate, and publish immutable container run evidence.",
+            NativeContainerCommandKey::RunEvidence,
+        ),
+        native(
             "runtime-verification",
             "Execute and publish runtime evidence for canonical Apptainer images.",
             NativeContainerCommandKey::RuntimeVerification,
