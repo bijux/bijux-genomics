@@ -159,6 +159,12 @@ fn lifecycle_store_uses_permanent_run_tool_campaign_and_attempt_identity() -> an
             "run-2042-fastq-profile-read-lengths/seqkit/attempts/all-domains-20260804/attempt-001"
         )
     );
+    for required in
+        ["manifests", "logs", "outputs", "accounting", "validation", "science", "receipts"]
+    {
+        assert!(directory.join(required).is_dir());
+    }
+    assert!(directory.join("manifests/attempt-layout.json").is_file());
     assert_eq!(load_attempt_lifecycle(temporary.path(), &record.identity)?, record);
     Ok(())
 }

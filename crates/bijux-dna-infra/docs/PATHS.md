@@ -10,5 +10,8 @@ Infra can only construct paths via stable path helpers.
 - `paths::normalize_run_base_dir` only anchors a relative base to a cwd; it does not
   canonicalize or clean the path.
 - `configs_file` only applies documented alias remapping before joining under `configs/`.
+- `attempt_layout_paths` rejects unsafe identity segments instead of silently normalizing them and
+  preserves the permanent run/tool/campaign/attempt hierarchy under an owner-provided root.
+- `validate_attempt_owner_roots` refuses equal or nested container and benchmark evidence roots.
 
 No independent normalization allowed outside bijux-dna-core `contract::canonical`.

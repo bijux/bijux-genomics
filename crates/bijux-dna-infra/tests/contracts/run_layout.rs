@@ -109,3 +109,147 @@ fn bench_base_dir_confines_stage_and_sample() {
         out.join("bench").join("stage").join("sample_one")
     );
 }
+
+fn attempt_identity() -> bijux_dna_infra::AttemptLayoutIdentity {
+    bijux_dna_infra::AttemptLayoutIdentity {
+        run_directory: "run-2042-fastq-profile-read-lengths".to_string(),
+        tool_id: "seqkit".to_string(),
+        campaign_id: "all-domains-20260804".to_string(),
+        attempt_id: "attempt-001".to_string(),
+    }
+}
+
+#[test]
+fn governed_attempt_layout_uses_permanent_identity_and_required_directories() -> anyhow::Result<()>
+{
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-layout")?;
+    let benchmark_root = temporary.path().join("benchmarks");
+    let identity = attempt_identity();
+
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &benchmark_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+    )?;
+
+    assert_eq!(
+        layout.attempt_dir.strip_prefix(&benchmark_root)?,
+        Path::new(
+            "run-2042-fastq-profile-read-lengths/seqkit/attempts/all-domains-20260804/attempt-001"
+        )
+    );
+    for directory in [
+        &layout.manifests_dir,
+        &layout.logs_dir,
+        &layout.outputs_dir,
+        &layout.accounting_dir,
+        &layout.validation_dir,
+        &layout.science_dir,
+        &layout.receipts_dir,
+    ] {
+        assert!(directory.is_dir());
+    }
+    let manifest: bijux_dna_infra::AttemptLayoutManifestV1 =
+        serde_json::from_slice(&std::fs::read(&layout.layout_manifest_path)?)?;
+    assert_eq!(manifest.schema_version, bijux_dna_infra::ATTEMPT_LAYOUT_SCHEMA_V1);
+    assert_eq!(manifest.owner, bijux_dna_infra::AttemptEvidenceOwner::Benchmarks);
+    assert_eq!(manifest.attempt_id, "attempt-001");
+    Ok(())
+}
+
+#[test]
+fn governed_attempt_layout_recovery_is_idempotent_and_owner_locked() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-recovery")?;
+    let benchmark_root = temporary.path().join("benchmarks");
+    let identity = attempt_identity();
+    let first = bijux_dna_infra::ensure_attempt_layout(
+        &benchmark_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+    )?;
+    let manifest_bytes = std::fs::read(&first.layout_manifest_path)?;
+    std::fs::write(first.outputs_dir.join("result.json"), b"{}")?;
+
+    let recovered = bijux_dna_infra::ensure_attempt_layout(
+        &benchmark_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+    )?;
+    assert_eq!(recovered, first);
+    assert_eq!(std::fs::read(&recovered.layout_manifest_path)?, manifest_bytes);
+    assert!(recovered.outputs_dir.join("result.json").is_file());
+    assert!(bijux_dna_infra::ensure_attempt_layout(
+        &benchmark_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+    )
+    .is_err());
+    Ok(())
+}
+
+#[test]
+fn governed_attempt_layout_refuses_partial_or_unsafe_identity_reuse() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-refusal")?;
+    let benchmark_root = temporary.path().join("benchmarks");
+    let mut identity = attempt_identity();
+    let layout = bijux_dna_infra::attempt_layout_paths(&benchmark_root, &identity)?;
+    std::fs::create_dir_all(&layout.attempt_dir)?;
+    std::fs::write(layout.attempt_dir.join("foreign.txt"), b"partial")?;
+    assert!(bijux_dna_infra::ensure_attempt_layout(
+        &benchmark_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+    )
+    .is_err());
+    assert_eq!(std::fs::read(layout.attempt_dir.join("foreign.txt"))?, b"partial");
+
+    identity.attempt_id = "../attempt-002".to_string();
+    assert!(bijux_dna_infra::attempt_layout_paths(&benchmark_root, &identity).is_err());
+    Ok(())
+}
+
+#[test]
+fn governed_attempt_owner_roots_must_be_separate() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-owner-roots")?;
+    let containers = temporary.path().join("containers");
+    let benchmarks = temporary.path().join("benchmarks");
+    bijux_dna_infra::validate_attempt_owner_roots(&containers, &benchmarks)?;
+    assert!(bijux_dna_infra::validate_attempt_owner_roots(&containers, &containers).is_err());
+    assert!(bijux_dna_infra::validate_attempt_owner_roots(
+        &containers,
+        &containers.join("benchmarks")
+    )
+    .is_err());
+    assert!(bijux_dna_infra::validate_attempt_owner_roots(
+        Path::new("relative-containers"),
+        &benchmarks
+    )
+    .is_err());
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn governed_attempt_owner_roots_reject_symlinked_components() -> anyhow::Result<()> {
+    use std::os::unix::fs::symlink;
+
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-owner-symlink")?;
+    let physical = temporary.path().join("physical");
+    let alias = temporary.path().join("alias");
+    std::fs::create_dir(&physical)?;
+    symlink(&physical, &alias)?;
+
+    let aliased_root = alias.join("attempts");
+    let physical_root = physical.join("attempts");
+    assert!(bijux_dna_infra::validate_attempt_owner_roots(&aliased_root, &physical_root).is_err());
+    Ok(())
+}
+
+#[test]
+fn governed_attempt_layout_schema_closes_owner_and_directory_shape() {
+    let schema = bijux_dna_infra::attempt_layout_schema();
+    assert_eq!(schema["additionalProperties"], false);
+    assert_eq!(schema["properties"]["schema_version"]["const"], "bijux.attempt_layout.v1");
+    assert_eq!(schema["properties"]["attempt_id"]["pattern"], "^[A-Za-z0-9][A-Za-z0-9._-]*$");
+    assert_eq!(schema["properties"]["directories"]["properties"]["receipts"]["const"], "receipts");
+}
