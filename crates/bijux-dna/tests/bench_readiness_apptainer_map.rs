@@ -69,17 +69,17 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
     assert!(rows.iter().all(|row| {
         !matches!(
             row.get("tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd" | "fastuniq" | "ngsbriggs")
+            Some("angsd" | "fastuniq" | "impute5" | "ngsbriggs")
         )
     }));
 
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("adapterremoval")
             && row.get("image_uri").and_then(serde_json::Value::as_str)
-                == Some("docker-daemon://bijuxdna/adapterremoval:2.3.3-arm64")
+                == Some("docker-daemon://bijuxdna/adapterremoval:2.3.4-arm64")
             && row.get("expected_sif_path").and_then(serde_json::Value::as_str).is_some_and(
                 |path| path.ends_with(
-                    "/adapterremoval/5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d.sif"
+                    "/adapterremoval/47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20.sif"
                 )
             )
             && row.get("registry_paths").and_then(serde_json::Value::as_array).is_some_and(
@@ -89,23 +89,8 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
             )
     }));
 
-    assert!(rows.iter().any(|row| {
-        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")
-            && row.get("image_uri").and_then(serde_json::Value::as_str)
-                == Some("docker-daemon://bijuxdna/shapeit5:5.1.1-arm64")
-            && row.get("conversion_command").and_then(serde_json::Value::as_str).is_some_and(
-                |command| {
-                    command.contains("apptainer build --force")
-                        && command.contains("docker-daemon://bijuxdna/shapeit5:5.1.1-arm64")
-                },
-            )
-            && row.get("runtime_probe_paths").and_then(serde_json::Value::as_array).is_some_and(
-                |paths| {
-                    paths.len() == 1
-                        && paths.first().and_then(serde_json::Value::as_str)
-                            == Some("domain/vcf/tools/shapeit5.yaml")
-                },
-            )
+    assert!(rows.iter().all(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) != Some("shapeit5")
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")

@@ -364,6 +364,16 @@ fn prepare_container_smoke_command(
                 unavailable_reason: None,
             })
         }
+        "external_artifact" => Ok(PreparedSmokeCommand {
+            smoke_runtime: None,
+            declared_command: None,
+            applied_command: Vec::new(),
+            applied_env: Vec::new(),
+            unavailable_reason: Some(format!(
+                "external artifact admission is required before container smoke for {}",
+                row.tool_id
+            )),
+        }),
         "unavailable_with_reason" => Ok(PreparedSmokeCommand {
             smoke_runtime: None,
             declared_command: None,
@@ -500,6 +510,7 @@ mod tests {
         let output_root = PathBuf::from("runs/bench/tool-smoke/container");
         let rows = vec![
             sample_row("adapterremoval", "docker_image"),
+            sample_row("angsd", "external_artifact"),
             sample_row("shapeit5", "unavailable_with_reason"),
         ];
 
@@ -541,9 +552,9 @@ mod tests {
             },
         )?;
 
-        assert_eq!(report.tool_count, 2);
+        assert_eq!(report.tool_count, 3);
         assert_eq!(report.success_count, 1);
-        assert_eq!(report.unavailable_count, 1);
+        assert_eq!(report.unavailable_count, 2);
         assert_eq!(report.failure_count, 0);
         assert!(repo_root
             .path()
@@ -551,8 +562,24 @@ mod tests {
             .is_file());
         assert!(repo_root
             .path()
+            .join("runs/bench/tool-smoke/container/angsd/manifest.json")
+            .is_file());
+        assert!(repo_root
+            .path()
             .join("runs/bench/tool-smoke/container/shapeit5/manifest.json")
             .is_file());
+        let external_manifest: serde_json::Value = serde_json::from_slice(&std::fs::read(
+            repo_root.path().join("runs/bench/tool-smoke/container/angsd/manifest.json"),
+        )?)?;
+        assert_eq!(
+            external_manifest.get("status").and_then(serde_json::Value::as_str),
+            Some("unavailable_with_reason")
+        );
+        assert!(external_manifest.get("exit_code").is_none_or(serde_json::Value::is_null));
+        assert!(external_manifest
+            .get("unavailable_reason")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|reason| reason.contains("external artifact admission")));
         Ok(())
     }
 

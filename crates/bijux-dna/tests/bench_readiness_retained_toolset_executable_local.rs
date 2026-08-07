@@ -73,7 +73,31 @@ pub(crate) fn seed_tool_smoke_manifests(repo_root: &std::path::Path) {
             continue;
         }
 
-        let manifest = if version_probe_status == "ready" {
+        let manifest = if resolution_kind == "external_artifact" {
+            serde_json::json!({
+                "schema_version": "bijux.bench.container_tool_smoke_manifest.v1",
+                "tool_id": tool_id,
+                "domains": row.get("domains").cloned().unwrap_or(serde_json::Value::Array(Vec::new())),
+                "active_stage_ids": row.get("active_stage_ids").cloned().unwrap_or(serde_json::Value::Array(Vec::new())),
+                "status": "unavailable_with_reason",
+                "resolution_kind": resolution_kind,
+                "resolution_target": row.get("resolution_target").cloned().unwrap_or(serde_json::Value::String(String::new())),
+                "smoke_runtime": serde_json::Value::Null,
+                "command_entrypoint": row.get("command_entrypoint").cloned().unwrap_or(serde_json::Value::Null),
+                "declared_command": serde_json::Value::Null,
+                "applied_command": [],
+                "version_cmd": row.get("version_cmd").cloned().unwrap_or(serde_json::Value::Null),
+                "help_cmd": row.get("help_cmd").cloned().unwrap_or(serde_json::Value::Null),
+                "working_directory": ".",
+                "exit_code": serde_json::Value::Null,
+                "stdout": "",
+                "stderr": "",
+                "unavailable_reason": format!("external artifact admission is required before container smoke for {tool_id}"),
+                "runtime_probe_paths": runtime_probe_paths,
+                "registry_paths": registry_paths,
+                "checked_at_unix_s": 0
+            })
+        } else if version_probe_status == "ready" {
             serde_json::json!({
                 "schema_version": "bijux.bench.container_tool_smoke_manifest.v1",
                 "tool_id": tool_id,
@@ -173,7 +197,11 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
         Some("benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(
+        payload.get("failed_goal_count").and_then(serde_json::Value::as_u64),
+        Some(0),
+        "composite gate payload: {payload:#}"
+    );
     let retained_tool_count =
         support::json_u64(&payload, "retained_tool_count").expect("retained tool count");
     assert_eq!(
@@ -201,7 +229,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
             && check
                 .get("detail")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|detail| detail.contains("unavailable_count=2"))
+                .is_some_and(|detail| detail.contains("unavailable_count=6"))
     }));
 }
 

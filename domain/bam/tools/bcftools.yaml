@@ -6,7 +6,8 @@ pin_strategy: "container_digest"
 default_version: "1.20"
 install_kind: "container"
 container:
-  image: "bijuxdna/bcftools:1.20"
+  image: "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+  digest: "sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
 license: "MIT"
 citation: "DOI:10.1093/gigascience/giab008"
 outputs:

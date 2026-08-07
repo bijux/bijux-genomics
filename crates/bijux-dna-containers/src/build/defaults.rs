@@ -114,7 +114,7 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
             version_cmd: "sortmerna --version".to_string(),
             probe_cmd: Some("sortmerna --version".to_string()),
             probe_expected_exit: vec![0],
-            help_cmd: Some("sortmerna --help".to_string()),
+            help_cmd: Some("sortmerna -h".to_string()),
         },
         DockerToolSpec {
             name: "seqpurge".to_string(),

@@ -6,8 +6,9 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
-    collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
+    collect_all_domain_executable_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
 };
+use super::catalog::{load_external_artifact_tool_contracts, ExternalArtifactToolContract};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -16,6 +17,7 @@ pub(crate) const DEFAULT_ALL_DOMAIN_RETAINED_TOOLS_PATH: &str =
 const ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.retained_tool_inventory.v1";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
+const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
 const NO_BENCHMARK_READY_STAGE_IDS: &str = "none";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -115,12 +117,14 @@ pub(crate) fn render_all_domain_retained_tools(
 pub(crate) fn collect_all_domain_retained_tool_rows(
     repo_root: &Path,
 ) -> Result<Vec<AllDomainRetainedToolRow>> {
-    let source_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
-    build_all_domain_retained_tool_rows(&source_rows)
+    let source_rows = collect_all_domain_executable_active_stage_tool_matrix_rows(repo_root)?;
+    let external_artifacts = load_external_artifact_tool_contracts(repo_root)?;
+    build_all_domain_retained_tool_rows(&source_rows, &external_artifacts)
 }
 
 fn build_all_domain_retained_tool_rows(
     source_rows: &[AllDomainActiveStageToolMatrixRow],
+    external_artifacts: &[ExternalArtifactToolContract],
 ) -> Result<Vec<AllDomainRetainedToolRow>> {
     let mut by_tool = BTreeMap::<String, ToolAccumulator>::new();
     for row in source_rows {
@@ -132,6 +136,17 @@ fn build_all_domain_retained_tool_rows(
         if row.status == BENCHMARK_READY_STATUS {
             entry.benchmark_ready_stage_ids.insert(row.stage_id.clone());
             entry.benchmark_ready_binding_count += 1;
+        }
+    }
+
+    for contract in external_artifacts {
+        let entry = by_tool.entry(contract.tool_id.clone()).or_default();
+        entry.domains.extend(contract.domains.iter().cloned());
+        entry.benchmark_statuses.insert(STATUS_NOT_BENCHMARK_READY.to_string());
+        for stage_id in &contract.stage_ids {
+            if entry.active_stage_ids.insert(stage_id.clone()) {
+                entry.active_binding_count += 1;
+            }
         }
     }
 
@@ -150,12 +165,13 @@ fn build_all_domain_retained_tool_rows(
         })
         .collect::<Vec<_>>();
 
-    ensure_all_domain_retained_tool_contract(source_rows, &rows)?;
+    ensure_all_domain_retained_tool_contract(source_rows, external_artifacts, &rows)?;
     Ok(rows)
 }
 
 fn ensure_all_domain_retained_tool_contract(
     source_rows: &[AllDomainActiveStageToolMatrixRow],
+    external_artifacts: &[ExternalArtifactToolContract],
     rows: &[AllDomainRetainedToolRow],
 ) -> Result<()> {
     let inventory_tool_ids = rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>();
@@ -163,11 +179,14 @@ fn ensure_all_domain_retained_tool_contract(
         return Err(anyhow!("retained tool inventory must keep exactly one row per tool_id"));
     }
 
-    let active_matrix_tool_ids =
-        source_rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>();
-    if inventory_tool_ids != active_matrix_tool_ids {
+    let expected_tool_ids = source_rows
+        .iter()
+        .map(|row| row.tool_id.as_str())
+        .chain(external_artifacts.iter().map(|contract| contract.tool_id.as_str()))
+        .collect::<BTreeSet<_>>();
+    if inventory_tool_ids != expected_tool_ids {
         return Err(anyhow!(
-            "retained tool inventory drifted from the governed active stage-tool scope"
+            "retained tool inventory drifted from active bindings and external artifact contracts"
         ));
     }
 

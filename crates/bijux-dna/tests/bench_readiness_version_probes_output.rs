@@ -57,6 +57,14 @@ fn bench_readiness_version_probes_writes_governed_json_file() {
                 == Some("beagle [0-9]+([.][0-9]+)?")
     }));
     assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastuniq")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str)
+                == Some("external-artifact://fastuniq")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+    }));
+    assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")
             && row.get("version_probe_status").and_then(serde_json::Value::as_str)
                 == Some("unavailable_with_reason")

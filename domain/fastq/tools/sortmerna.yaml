@@ -73,7 +73,7 @@ expected_artifacts:
 metrics_schema_id: bijux.stage.metrics.v1
 metrics_schema: bijux.stage.metrics.v1
 version_cmd: sortmerna --version
-help_cmd: sortmerna --help
+help_cmd: sortmerna -h
 comparability:
   comparable_with: []
   non_comparable_with: []

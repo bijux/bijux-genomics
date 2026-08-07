@@ -130,9 +130,15 @@ pub(crate) fn render_retained_toolset_executable_local(
                 .filter(|(kind, _)| matches!(kind.as_str(), "docker_image" | "apptainer_image"))
                 .map(|(_, count)| *count)
                 .sum::<usize>();
+            let external_artifact_count =
+                report.resolution_counts.get("external_artifact").copied().unwrap_or_default();
             Ok(format!(
-                "row_count={}, host_binary_count={}, container_count={}, unavailable_count={}",
-                report.row_count, host_binary_count, container_count, report.unavailable_count
+                "row_count={}, host_binary_count={}, container_count={}, external_artifact_count={}, unavailable_count={}",
+                report.row_count,
+                host_binary_count,
+                container_count,
+                external_artifact_count,
+                report.unavailable_count
             ))
         },
     );
@@ -403,8 +409,37 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
             ));
             continue;
         }
-        match row.version_probe_status.as_str() {
-            "ready" => {
+        match (row.resolution_kind.as_str(), row.version_probe_status.as_str()) {
+            ("external_artifact", "ready") => {
+                if manifest.status != "unavailable_with_reason" {
+                    failures.push(format!(
+                        "{}: external artifact smoke must remain unavailable before admission, found `{}`",
+                        manifest_path.display(),
+                        manifest.status
+                    ));
+                    continue;
+                }
+                if manifest
+                    .unavailable_reason
+                    .as_deref()
+                    .is_none_or(|reason| !reason.contains("external artifact admission"))
+                {
+                    failures.push(format!(
+                        "{}: external artifact smoke is missing its admission requirement",
+                        manifest_path.display()
+                    ));
+                    continue;
+                }
+                if manifest.exit_code.is_some() {
+                    failures.push(format!(
+                        "{}: external artifact smoke must not record an execution exit code before admission",
+                        manifest_path.display()
+                    ));
+                    continue;
+                }
+                unavailable_count += 1;
+            }
+            (_, "ready") => {
                 if manifest.status != "ok" {
                     failures.push(format!(
                         "{}: expected status `ok`, found `{}`",
@@ -423,7 +458,7 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
                 }
                 success_count += 1;
             }
-            "unavailable_with_reason" => {
+            (_, "unavailable_with_reason") => {
                 if manifest.status != "unavailable_with_reason" {
                     failures.push(format!(
                         "{}: expected status `unavailable_with_reason`, found `{}`",
@@ -441,7 +476,7 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
                 }
                 unavailable_count += 1;
             }
-            other => failures.push(format!(
+            (_, other) => failures.push(format!(
                 "{}: unsupported version probe status `{other}` for `{}`",
                 manifest_path.display(),
                 row.tool_id

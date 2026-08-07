@@ -6,6 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use super::catalog::load_external_artifact_tool_contracts;
 use super::executable_resolution::{collect_executable_resolution_rows, ExecutableResolutionRow};
 use super::tool_execution_modes::load_runtime_probe_with_source;
 use crate::commands::cli::parse;
@@ -17,6 +18,7 @@ const VERSION_PROBES_SCHEMA_VERSION: &str = "bijux.bench.readiness.version_probe
 const VERSION_PROBE_STATUS_READY: &str = "ready";
 const VERSION_PROBE_STATUS_UNAVAILABLE: &str = "unavailable_with_reason";
 const VERSION_PARSER_KIND_FIRST_DOTTED_NUMERIC_TOKEN: &str = "first_dotted_numeric_token";
+const CONTAINER_CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const GOVERNED_TOOL_REGISTRY_PATHS: [&str; 3] = [
     "configs/ci/registry/tool_registry.toml",
     "configs/ci/registry/tool_registry_experimental.toml",
@@ -367,6 +369,20 @@ fn load_registry_version_contracts(repo_root: &Path) -> Result<Vec<RegistryVersi
             contracts.push(candidate);
         }
     }
+
+    contracts.extend(load_external_artifact_tool_contracts(repo_root)?.into_iter().map(
+        |contract| RegistryVersionContract {
+            tool_id: contract.tool_id,
+            domains: contract.domains,
+            stage_ids: contract.stage_ids,
+            version_cmd: Some(contract.version_command),
+            help_cmd: Some(contract.help_command),
+            expected_bin: Some(contract.expected_bin),
+            expected_version_regex: Some(contract.expected_version_regex),
+            declared_version: Some(contract.declared_version),
+            registry_paths: vec![CONTAINER_CATALOG_PATH.to_string()],
+        },
+    ));
 
     Ok(contracts)
 }

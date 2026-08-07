@@ -46,16 +46,19 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
 
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty());
-    assert!(rows.iter().all(|row| {
-        !row.starts_with("angsd\t")
-            && !row.starts_with("fastuniq\t")
-            && !row.starts_with("ngsbriggs\t")
-    }));
+    for external_tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        assert!(rows.iter().any(|row| {
+            row.starts_with(&format!("{external_tool_id}\t"))
+                && row.split('\t').nth(6).is_some_and(|statuses| {
+                    statuses.split(',').any(|status| status == "not_benchmark_ready")
+                })
+        }));
+    }
     assert!(rows.iter().any(|row| {
         row == &"kraken2\tfastq\t1\t1\t1\t1\tbenchmark_ready\tfastq.screen_taxonomy\tfastq.screen_taxonomy"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"bcftools\tvcf\t11\t11\t11\t11\tbenchmark_ready\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats\tvcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats"
+        row == &"bcftools\tbam,vcf\t12\t12\t12\t12\tbenchmark_ready\tbam.genotyping,vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats\tbam.genotyping,vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats"
     }));
     assert!(rows.iter().any(|row| {
         row == &"beagle\tvcf\t2\t2\t2\t2\tbenchmark_ready\tvcf.imputation_metrics,vcf.impute\tvcf.imputation_metrics,vcf.impute"
