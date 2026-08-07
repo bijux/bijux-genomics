@@ -13,6 +13,8 @@
 - `bijux-dna-runtime` for the `Runner` trait, invocations, runner results, and artifact handoff.
 - `bijux-dna-containers` for runtime kind, image catalog, image resolution, platform contracts, and
   external-artifact admission verification and binding.
+- `bijux-dna-containers-qa` for pipeline-derived qualification probe plans, declared-output
+  validation, acceptance metrics, and classified verdicts.
 - `bijux-dna-infra` for governed filesystem writes, temp dirs, path helpers, and hashing.
 
 The Slurm backend introduces no scheduler library or async runtime dependency. It invokes the configured `sbatch`, `squeue`, `sacct`, and `scancel` executables through the standard process boundary.
@@ -22,6 +24,7 @@ The Slurm backend introduces no scheduler library or async runtime dependency. I
 - `bijux-dna-testkit` for shared workspace source scanning support.
 - `cargo_metadata` for dependency boundary tests.
 - `assert_cmd` for command-runner contract tests.
+- `regex` for hostname fixture construction in qualification contract tests.
 - `tempfile` for isolated filesystem tests.
 - `toml` for the local manifest dependency graph test.
 

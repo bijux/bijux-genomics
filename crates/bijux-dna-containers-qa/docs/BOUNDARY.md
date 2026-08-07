@@ -6,13 +6,15 @@ Owner: effectful environment QA, image readiness checks, and QA evidence persist
 
 - Docker image build and smoke checks for configured tool images.
 - Docker/Apptainer image QA workflows that are explicitly operator-invoked.
+- Container qualification probe planning, declared-output validation, metric evaluation, and
+  classified verdicts.
 - QA artifact writing under `artifacts/image-qa/<platform>/`.
 - QA record persistence to JSONL, SQLite, and summary JSON.
 - Offline contract tests for planning, layout, records, and fixture stability.
 
 ## Does Not Belong Here
 
-- Production runtime execution.
+- Process execution, scheduler lifecycle, and container image/catalog authority.
 - CLI command routing outside this crate's dedicated binaries.
 - Planner selection logic or domain model ownership.
 - Report analysis semantics beyond writing QA evidence consumed by analyze.
@@ -21,8 +23,10 @@ Owner: effectful environment QA, image readiness checks, and QA evidence persist
 
 ## Dependency Direction
 
-Production crates must not depend on this crate. This crate may consume environment, runtime, core,
-FASTQ domain, infrastructure, and analyze contracts because it is the heavy QA edge of the stack.
+The runner may consume this crate's stable qualification plan and verdict API while retaining all
+process and scheduler effects. Other production crates must not acquire QA implementation details.
+This crate may consume environment, runtime, core, FASTQ domain, infrastructure, and analyze
+contracts because it is the heavy QA edge of the stack.
 
 ## Verification
 

@@ -3,16 +3,17 @@
 ## What this crate does
 `bijux-dna-containers-qa` is the effectful QA edge for environment and image readiness. It builds
 and probes Docker images, runs Docker/Apptainer QA workflows, writes QA evidence, and validates QA
-artifacts before production layers trust image inputs.
+artifacts before production layers trust image inputs. It also owns pipeline-derived qualification
+probe plans and classified output/metric verdicts consumed by the runner.
 
 ## What it must not do (boundaries)
-Production crates must not depend on this crate. It must not own planner selection, biological
-pipeline execution, production runner backends, or report-analysis semantics.
+It must not own planner selection, biological pipeline process execution, production runner
+backends, scheduler state, container catalog authority, or report-analysis semantics.
 
 ## Role in the stack
 This crate sits at the effectful QA boundary. It consumes environment, runtime, FASTQ-domain,
-infrastructure, and analyze contracts; it should not be a dependency of API, planner, runner, stage,
-or domain crates.
+infrastructure, and analyze contracts. The runner is the sole production consumer of its stable
+qualification API; API, planner, stage, and domain crates must not depend on it.
 
 ## Public API / entrypoints
 See `docs/PUBLIC_API.md` and `docs/COMMANDS.md`.
@@ -35,6 +36,8 @@ The image QA surface is organized by responsibility. Start with `src/image_qa/mo
 - `support/`: Docker runtime, output contracts, diagnostics, image resolution, and seqkit metrics.
 - `qa_docker_images/`: Docker image plan/probe/report command implementation.
 - `runtime_verification/`: catalog-wide Apptainer version/help probe execution.
+- `qualification/`: typed probe plans, declared-output validation, metric evaluation, and failure
+  classification.
 
 ## Key contracts it owns/consumes
 Owned contracts are documented in `docs/CONTRACTS.md`.
@@ -80,6 +83,6 @@ Root docs are limited to this `README.md`. All other crate docs live in `docs/`;
 Contract and behavior changes follow `docs/CONTRACTS.md`, `docs/PUBLIC_API.md`, and
 `docs/DEPENDENCIES.md`.
 
-## Must not be depended on
-This crate is QA-only and must not be depended on by production crates. Keep the dependency
-direction locked by boundary tests and repository policy checks.
+## Dependency boundary
+Only `bijux-dna-runner` may consume the stable qualification facade. Keep all process execution and
+scheduler effects in the runner and lock the remaining dependency direction through boundary tests.

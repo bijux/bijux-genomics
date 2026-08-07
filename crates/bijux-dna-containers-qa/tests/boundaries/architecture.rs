@@ -34,8 +34,14 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src")),
-        btree_set(&["bin/", "image_qa/", "lib.rs", "public_api.rs"]),
+        btree_set(&["bin/", "image_qa/", "lib.rs", "public_api.rs", "qualification/"]),
         "src tree must match the documented environment qa layout"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/qualification")),
+        btree_set(&["evaluation.rs", "mod.rs", "model.rs", "planning.rs"]),
+        "qualification must separate models, planning, and verdict evaluation"
     );
 
     assert_eq!(

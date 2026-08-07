@@ -86,6 +86,7 @@ esac
     let evidence: serde_json::Value = serde_json::from_slice(&fs::read(&execution.evidence_path)?)?;
     assert!(execution.passed, "native execution evidence: {evidence:#}");
     assert_eq!(evidence["status"], "passed");
+    assert_eq!(evidence["failure_details"], serde_json::json!([]));
     assert_eq!(evidence["checks"]["negative"]["exit_code"], 2);
     assert_eq!(evidence["metrics"][0]["observed"], 1);
     assert_eq!(evidence["site"]["host"], evidence["runtime"]["host"]);
@@ -133,6 +134,8 @@ esac
     assert!(evidence["failures"][0]
         .as_str()
         .is_some_and(|failure| failure.contains("metric records cannot be evaluated")));
+    assert_eq!(evidence["failure_details"][0]["class"], "metric_unreadable");
+    assert_eq!(evidence["failure_details"][0]["subject"], "records");
     Ok(())
 }
 
