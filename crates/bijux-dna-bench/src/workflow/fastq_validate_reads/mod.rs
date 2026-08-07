@@ -23,6 +23,7 @@ use super::{
     BenchmarkExecutionMaterial, FastqProfileReadsExpectationPublication,
 };
 
+pub(crate) use report::publish_fastq_validate_reads_stage_report_with_presentation_authority;
 pub use report::{
     publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
     FastqValidateReadsStageReportPublication,

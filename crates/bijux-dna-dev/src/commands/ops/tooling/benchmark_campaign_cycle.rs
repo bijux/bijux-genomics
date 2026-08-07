@@ -30,7 +30,7 @@ const USAGE: &str = concat!(
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish --benchmark-root <path> --output-root <path> --plan <path> --presentation-repository-root <path> --repository-root <path> --study-root <path>\n",
 );
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
@@ -59,6 +59,15 @@ const BENCHMARK_SUBMISSION_OPTIONS: &[&str] = &[
     "--repository-root",
     "--study-root",
     "--submitted-at-utc",
+];
+
+const BENCHMARK_PUBLICATION_OPTIONS: &[&str] = &[
+    "--benchmark-root",
+    "--output-root",
+    "--plan",
+    "--presentation-repository-root",
+    "--repository-root",
+    "--study-root",
 ];
 
 struct CampaignPreparation<'a> {
@@ -466,26 +475,28 @@ fn publish_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
-    require_exact_options(
-        options,
-        &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
-    )?;
+    require_exact_options(options, BENCHMARK_PUBLICATION_OPTIONS)?;
     let plan = read_plan(&resolve_path(workspace, required(options, "--plan")?))?;
-    let publication = bijux_dna_bench::publish_benchmark_campaign_report(
-        &resolve_path(workspace, required(options, "--repository-root")?),
-        &resolve_path(workspace, required(options, "--study-root")?),
-        &resolve_path(workspace, required(options, "--benchmark-root")?),
-        &plan,
-        &resolve_path(workspace, required(options, "--output-root")?),
-    )?;
+    let publication =
+        bijux_dna_bench::publish_benchmark_campaign_report_with_presentation_authority(
+            &resolve_path(workspace, required(options, "--repository-root")?),
+            &resolve_path(workspace, required(options, "--presentation-repository-root")?),
+            &resolve_path(workspace, required(options, "--study-root")?),
+            &resolve_path(workspace, required(options, "--benchmark-root")?),
+            &plan,
+            &resolve_path(workspace, required(options, "--output-root")?),
+        )?;
     Ok(OpsCommandOutcome::success(format!(
-        "published admitted benchmark campaign report\nrun\t{}\nstage\t{}\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
+        "published admitted benchmark campaign report\nrun\t{}\nstage\t{}\njson\t{}\t{}\nmarkdown\t{}\t{}\npresentation_repository_commit\t{}\npresentation_catalog_sha256\t{}\npresentation_overlaid_stage_ids\t{}\n",
         publication.run_id,
         publication.stage_id,
         publication.report_path.display(),
         publication.report_sha256,
         publication.markdown_path.display(),
         publication.markdown_sha256,
+        publication.presentation_repository_commit,
+        publication.presentation_catalog_sha256,
+        publication.presentation_overlaid_stage_ids.join(","),
     )))
 }
 
@@ -637,7 +648,7 @@ mod tests {
         parse_options, require_exact_options,
         scheduler::{benchmark_accounting, benchmark_observation},
         validate_operator_timestamp_at, BENCHMARK_PREPARATION_OPTIONS,
-        BENCHMARK_SUBMISSION_OPTIONS,
+        BENCHMARK_PUBLICATION_OPTIONS, BENCHMARK_SUBMISSION_OPTIONS,
     };
 
     #[test]
@@ -750,6 +761,33 @@ mod tests {
             "2026-08-05T03:00:00Z".into(),
         ])?;
         assert!(require_exact_options(&options, BENCHMARK_SUBMISSION_OPTIONS).is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn campaign_publication_contract_requires_explicit_presentation_authority() -> anyhow::Result<()>
+    {
+        let options = parse_options(&[
+            "--benchmark-root".into(),
+            "/study/benchmarks".into(),
+            "--output-root".into(),
+            "/study/reports".into(),
+            "--plan".into(),
+            "/study/plan.json".into(),
+            "--presentation-repository-root".into(),
+            "/source/current".into(),
+            "--repository-root".into(),
+            "/source/historical".into(),
+            "--study-root".into(),
+            "/study".into(),
+        ])?;
+        assert!(require_exact_options(&options, BENCHMARK_PUBLICATION_OPTIONS).is_ok());
+
+        let mut missing_presentation = options;
+        missing_presentation.remove("--presentation-repository-root");
+        assert!(
+            require_exact_options(&missing_presentation, BENCHMARK_PUBLICATION_OPTIONS).is_err()
+        );
         Ok(())
     }
 

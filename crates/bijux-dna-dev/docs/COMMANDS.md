@@ -452,7 +452,8 @@ validate-frontend-mini-domain-stacks
 with runner-owned Slurm materialization. It selects crate-owned material by the source-locked run
 identity, initializes or recovers every attempt, and records `ready` lifecycle evidence without
 submitting or polling scheduler jobs. The benchmark crate owns executable material for every
-campaign in the current registry: run-2001 through run-2004, run-2011, run-2042, and run-2043.
+campaign in the current registry: run-2001 through run-2004, run-2011, run-2030, run-2042,
+run-2043, and run-2051.
 Registry closure tests fail when a declared campaign lacks crate-owned material.
 
 Every campaign operation that creates or consumes a source-locked plan requires an explicit
@@ -480,3 +481,8 @@ publish immutable acceptance evidence, and record `passed` lifecycle transitions
 replays the admitted attempt closure, and no-clobber publishes JSON and Markdown identities. Each
 campaign implementation retains its own normalized output, metric, science, comparison, and
 downstream-probe validation; the operator command does not branch on scientific report semantics.
+Publication also requires `--presentation-repository-root`. Current source catalogs use their own
+presentation metadata. Historical v1 catalogs that predate that metadata receive only absent
+`report_presentation` tables from the explicit presentation repository; all execution, scientific,
+parameter, adapter, and downstream-probe fields remain validated against `--repository-root`. The
+operator reports the presentation commit, catalog SHA-256, and exact overlaid stage IDs.

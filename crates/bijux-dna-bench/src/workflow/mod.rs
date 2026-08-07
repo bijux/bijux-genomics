@@ -84,8 +84,9 @@ pub use campaign_lifecycle::{
 };
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
-    publish_benchmark_campaign_report, BenchmarkCampaignEvidence, BenchmarkCampaignMaterialRequest,
-    BenchmarkCampaignReportPublication,
+    publish_benchmark_campaign_report,
+    publish_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
+    BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
 };
 pub use corpus_acquisition::{
     acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, CorpusAcquisitionRequest,
@@ -143,6 +144,8 @@ pub use suite_load::{
     load_benchmark_portfolio, load_bundle_catalog, load_bundle_manifest,
     load_checked_in_benchmark_contracts, load_checked_in_benchmark_planning_contracts,
     load_corpus_catalog, load_corpus_manifest, load_stage_campaign_registry,
-    load_stage_interface_catalog, load_stage_interface_catalog_from_repo, load_suite,
+    load_stage_interface_catalog, load_stage_interface_catalog_for_publication,
+    load_stage_interface_catalog_from_repo, load_suite, BenchmarkPublicationInterfaceCatalog,
+    BenchmarkReportPresentationAuthority,
 };
 pub use summary::summarize;

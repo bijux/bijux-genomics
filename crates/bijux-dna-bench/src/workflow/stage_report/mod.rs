@@ -21,6 +21,8 @@ use bijux_dna_bench_model::{
 };
 use serde::Serialize;
 
+use super::BenchmarkReportPresentationAuthority;
+
 pub(super) use evidence::load_admitted_attempt_evidence;
 pub(super) use freshness::current_report_sources;
 pub(super) use metrics::{distribution, read_resource_observation, ResourceObservation};
@@ -36,6 +38,7 @@ pub struct BenchmarkStageReportPublication {
     pub report_sha256: String,
     pub markdown_sha256: String,
     pub report: BenchmarkStageReport,
+    pub presentation_authority: BenchmarkReportPresentationAuthority,
 }
 
 /// Publish one validated report using only its stage-interface presentation contract.
@@ -48,6 +51,7 @@ pub fn publish_stage_report(
     campaign: &BenchmarkStageCampaignSpec,
     interface: &BenchmarkStageInterfaceSpec,
     report: BenchmarkStageReport,
+    presentation_authority: &BenchmarkReportPresentationAuthority,
 ) -> Result<BenchmarkStageReportPublication> {
     validate_stage_report(&report).context("validate benchmark stage report before publication")?;
     validate_stage_report_alignment(&report, campaign, Some(interface))
@@ -67,6 +71,7 @@ pub fn publish_stage_report(
         report_sha256: bijux_dna_infra::hash_bytes_sha256(&report_bytes),
         markdown_sha256: bijux_dna_infra::hash_bytes_sha256(markdown.as_bytes()),
         report,
+        presentation_authority: presentation_authority.clone(),
     })
 }
 

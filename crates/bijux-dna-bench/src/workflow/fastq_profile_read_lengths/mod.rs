@@ -25,6 +25,7 @@ use super::{
     FastqReadLengthExpectationPublication,
 };
 
+pub(crate) use report::publish_fastq_profile_read_lengths_stage_report_with_presentation_authority;
 pub use report::{
     publish_fastq_profile_read_lengths_stage_report, render_fastq_profile_read_lengths_markdown,
     FastqProfileReadLengthsStageReportPublication,

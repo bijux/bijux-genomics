@@ -14,7 +14,7 @@ use bijux_dna_bench_model::{BenchmarkCampaignPlan, BenchmarkStageCampaignSpec};
 use self::evidence::load_attempt_evidence;
 pub use self::rendering::render_fastq_profile_read_lengths_markdown;
 use super::super::{
-    load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
+    load_stage_campaign_registry, load_stage_interface_catalog_for_publication,
     verify_campaign_plan_source,
 };
 use crate::workflow::stage_report::{
@@ -43,6 +43,24 @@ pub fn publish_fastq_profile_read_lengths_stage_report(
     plan: &BenchmarkCampaignPlan,
     output_root: &Path,
 ) -> Result<FastqProfileReadLengthsStageReportPublication> {
+    publish_fastq_profile_read_lengths_stage_report_with_presentation_authority(
+        repository_root,
+        repository_root,
+        study_root,
+        benchmark_root,
+        plan,
+        output_root,
+    )
+}
+
+pub(crate) fn publish_fastq_profile_read_lengths_stage_report_with_presentation_authority(
+    repository_root: &Path,
+    presentation_repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    output_root: &Path,
+) -> Result<FastqProfileReadLengthsStageReportPublication> {
     let repository_root = canonical_directory(repository_root, "benchmark repository")?;
     let study_root = canonical_directory(study_root, "STUDY root")?;
     let benchmark_root = canonical_directory(benchmark_root, "benchmark result root")?;
@@ -64,8 +82,13 @@ pub fn publish_fastq_profile_read_lengths_stage_report(
         .find(|campaign| campaign.run_id == RUN_ID)
         .context("benchmark registry omits run-2042")?;
     require_governed_campaign(campaign, plan)?;
-    let interfaces = load_stage_interface_catalog_from_repo(&interface_path, &repository_root)?;
+    let interfaces = load_stage_interface_catalog_for_publication(
+        &interface_path,
+        &repository_root,
+        presentation_repository_root,
+    )?;
     let interface = interfaces
+        .catalog
         .interfaces
         .iter()
         .find(|interface| interface.stage_id == STAGE_ID)
@@ -92,7 +115,7 @@ pub fn publish_fastq_profile_read_lengths_stage_report(
         evidence_by_tool.insert(tool.clone(), evidence);
     }
     let report = build_stage_report(&repository_root, plan, campaign, interface, evidence_by_tool)?;
-    publish_stage_report(output_root, campaign, interface, report)
+    publish_stage_report(output_root, campaign, interface, report, &interfaces.presentation)
 }
 
 fn require_governed_campaign(

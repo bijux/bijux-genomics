@@ -35,6 +35,8 @@ mod mod_contracts_fastq_local_stage_matrix_rs;
 mod mod_contracts_gate_rs;
 #[path = "contracts/generic_report_publication.rs"]
 mod mod_contracts_generic_report_publication_rs;
+#[path = "contracts/historical_report_presentation.rs"]
+mod mod_contracts_historical_report_presentation_rs;
 #[path = "contracts/api/no_panics_in_public_api.rs"]
 mod mod_contracts_no_panics_in_public_api_rs;
 #[path = "contracts/api/no_raw_json.rs"]

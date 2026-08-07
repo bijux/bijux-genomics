@@ -38,8 +38,27 @@ pub fn publish_bam_endogenous_content_stage_report(
     plan: &BenchmarkCampaignPlan,
     output_root: &Path,
 ) -> Result<BamEndogenousContentStageReportPublication> {
+    publish_bam_endogenous_content_stage_report_with_presentation_authority(
+        repository_root,
+        repository_root,
+        study_root,
+        benchmark_root,
+        plan,
+        output_root,
+    )
+}
+
+pub(crate) fn publish_bam_endogenous_content_stage_report_with_presentation_authority(
+    repository_root: &Path,
+    presentation_repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    output_root: &Path,
+) -> Result<BamEndogenousContentStageReportPublication> {
     publish_bam_observation_stage_report(
         repository_root,
+        presentation_repository_root,
         study_root,
         benchmark_root,
         plan,

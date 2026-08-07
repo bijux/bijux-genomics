@@ -18,6 +18,7 @@ These operations are exported through the crate root and `public_api`.
 | `load-benchmark-portfolio` | `load_benchmark_portfolio(path)` | Load and validate one benchmark portfolio TOML file. |
 | `load-stage-interface-catalog` | `load_stage_interface_catalog(path)` | Load and validate one stage-interface TOML catalog and its repository-owned parameter and source contracts. |
 | `load-stage-interface-catalog-from-repo` | `load_stage_interface_catalog_from_repo(path, repository_root)` | Load and validate one stage-interface catalog against an explicit repository root. |
+| `load-stage-interface-catalog-for-publication` | `load_stage_interface_catalog_for_publication(path, source_repository_root, presentation_repository_root)` | Complete only absent historical report-presentation tables from an explicit validated presentation authority. |
 | `load-checked-in-benchmark-contracts` | `load_checked_in_benchmark_contracts()` | Load the checked-in stage-campaign registry and benchmark portfolio while validating all checked-in planning inputs. |
 | `load-checked-in-benchmark-planning-contracts` | `load_checked_in_benchmark_planning_contracts()` | Load the checked-in stage-campaign registry, benchmark portfolio, and stage-interface catalog and validate their defined identities. |
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
