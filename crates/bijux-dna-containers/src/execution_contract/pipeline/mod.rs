@@ -1,6 +1,11 @@
+mod admission;
 mod model;
 mod validation;
 
+pub use admission::{
+    admit_container_pipeline_site, ContainerPipelineInputAdmission, ContainerPipelineSiteAdmission,
+    ContainerPipelineSiteAdmissionRequest,
+};
 pub use model::{
     ContainerPipelineContract, ContainerPipelineV1, ContainerPipelineV2, PipelineAcceptanceMetric,
     PipelineAcceptanceV1, PipelineAcceptanceV2, PipelineCachePolicy, PipelineCommandsV1,

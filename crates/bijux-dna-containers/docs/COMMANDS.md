@@ -57,6 +57,9 @@ library can manage when callers invoke the matching API.
   malformed identities.
 - `clean_repository_head_commit()`: runs `git status --porcelain=v1 --untracked-files=normal`
   before resolving `HEAD` and rejects uncommitted build inputs.
+- `admit_container_pipeline_site()`: runs bounded `git rev-parse --verify HEAD^{commit}` and
+  `git status --porcelain=v1 --untracked-files=normal` inspections before admitting a pipeline's
+  repository, immutable files, governed result layout, and Slurm resource selection.
 
 ## Non-Commands
 
@@ -87,6 +90,8 @@ library can manage when callers invoke the matching API.
   external admission; it never copies or publishes the restricted artifact.
 - `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
   worktree materialization under site-governed roots.
+- `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state
+  inspection before immutable pipeline inputs are admitted.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 - `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
   canonical image publication.

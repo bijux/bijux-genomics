@@ -153,8 +153,8 @@ fn execution_policy_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/execution_contract/pipeline")),
-        btree_set(&["mod.rs", "model.rs", "validation.rs"]),
-        "pipeline contracts must separate wire models from admission semantics"
+        btree_set(&["admission.rs", "mod.rs", "model.rs", "validation.rs"]),
+        "pipeline contracts must separate wire models, structural validation, and site admission"
     );
     assert_eq!(
         dir_entries(&root.join("src/site_policy")),

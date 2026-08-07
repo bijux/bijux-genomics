@@ -23,6 +23,8 @@ mod mod_contracts_image_storage_reconciliation_rs;
 mod mod_contracts_matrix_rs;
 #[path = "contracts/pipeline.rs"]
 mod mod_contracts_pipeline_rs;
+#[path = "contracts/pipeline_site_admission.rs"]
+mod mod_contracts_pipeline_site_admission_rs;
 #[path = "contracts/qualification_run_registry.rs"]
 mod mod_contracts_qualification_run_registry_rs;
 #[path = "contracts/registry_projection.rs"]
