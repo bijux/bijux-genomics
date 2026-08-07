@@ -333,7 +333,7 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
         ),
         native(
             "pipeline-contract",
-            "Validate declarations or admit pipelines against governed execution-site identities.",
+            "Validate, currentize, or admit pipelines against governed execution-site identities.",
             NativeContainerCommandKey::PipelineContract,
         ),
         native(

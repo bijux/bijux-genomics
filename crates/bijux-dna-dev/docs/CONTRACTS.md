@@ -33,7 +33,9 @@ This crate owns developer automation contracts, not production pipeline contract
   current declaration validation to `bijux-dna-containers` without running site effects;
   `admit --governance <governance> <pipeline>` additionally verifies the current host, Git state,
   immutable image and inputs, governed result layout, and Slurm account and partition without
-  submitting work.
+  submitting work. `currentize --governance <governance> --inventory <inventory> --commit <sha>
+  [--apply] <pipelines-root>` plans or atomically applies inventory-bound repository and image
+  identities while preserving all other declaration content.
 
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.

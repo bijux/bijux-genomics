@@ -5,7 +5,7 @@ use super::{
 
 const SCHEMA_PATH: &str = "containers/contracts/config-credential.schema.json";
 const CREDENTIAL_USAGE: &str = "Usage:\n  bijux-dna-dev containers run credential-reference -- validate <credential-reference>\n  bijux-dna-dev containers run credential-reference -- generate-schema [<output>]\n  bijux-dna-dev containers run credential-reference -- check-schema";
-const PIPELINE_USAGE: &str = "Usage:\n  bijux-dna-dev containers run pipeline-contract -- validate <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- admit --governance <governance> <pipeline>";
+const PIPELINE_USAGE: &str = "Usage:\n  bijux-dna-dev containers run pipeline-contract -- validate <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- admit --governance <governance> <pipeline>\n  bijux-dna-dev containers run pipeline-contract -- currentize --governance <governance> --inventory <inventory> --commit <sha> [--apply] <pipelines-root>";
 
 pub(super) fn run_credential_reference(
     workspace: &Workspace,
@@ -38,6 +38,9 @@ pub(super) fn run_pipeline_contract(
             if operation == "admit" && governance_option == "--governance" =>
         {
             admit_pipeline(workspace, governance, pipeline)
+        }
+        [operation, options @ ..] if operation == "currentize" => {
+            currentize_pipelines(workspace, options)
         }
         _ => anyhow::bail!(PIPELINE_USAGE),
     }
@@ -79,6 +82,68 @@ fn admit_pipeline(
         pipeline_path.display(),
         admission.account,
         admission.partition
+    ))
+}
+
+fn currentize_pipelines(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let mut governance = None;
+    let mut inventory = None;
+    let mut commit = None;
+    let mut pipelines_root = None;
+    let mut apply = false;
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--apply" if !apply => {
+                apply = true;
+                index += 1;
+            }
+            option @ ("--governance" | "--inventory" | "--commit") => {
+                let value = args.get(index + 1).ok_or_else(|| anyhow::anyhow!(PIPELINE_USAGE))?;
+                let target = match option {
+                    "--governance" => &mut governance,
+                    "--inventory" => &mut inventory,
+                    "--commit" => &mut commit,
+                    _ => unreachable!(),
+                };
+                if target.replace(value.clone()).is_some() {
+                    anyhow::bail!("{option} may be supplied only once");
+                }
+                index += 2;
+            }
+            value if !value.starts_with('-') && pipelines_root.is_none() => {
+                pipelines_root = Some(value.to_owned());
+                index += 1;
+            }
+            _ => anyhow::bail!(PIPELINE_USAGE),
+        }
+    }
+    let request = bijux_dna_containers::api::ContainerPipelineCurrentizationRequest {
+        governance: bijux_dna_containers::api::load_container_governance(&path_from_arg(
+            workspace,
+            governance.as_deref().ok_or_else(|| anyhow::anyhow!(PIPELINE_USAGE))?,
+        ))?,
+        hostname: command_hostname(),
+        pipelines_root: path_from_arg(
+            workspace,
+            pipelines_root.as_deref().ok_or_else(|| anyhow::anyhow!(PIPELINE_USAGE))?,
+        ),
+        inventory_path: path_from_arg(
+            workspace,
+            inventory.as_deref().ok_or_else(|| anyhow::anyhow!(PIPELINE_USAGE))?,
+        ),
+        repository_commit: commit.ok_or_else(|| anyhow::anyhow!(PIPELINE_USAGE))?,
+    };
+    let plan = bijux_dna_containers::api::derive_container_pipeline_currentization(&request)?;
+    let changed = plan.entries.iter().filter(|entry| entry.changed).count();
+    if apply {
+        bijux_dna_containers::api::apply_container_pipeline_currentization(&request, &plan)?;
+    }
+    success_line(format!(
+        "{} {changed} of {} pipeline declarations at inventory {}",
+        if apply { "currentized" } else { "planned" },
+        plan.entries.len(),
+        plan.inventory_sha256
     ))
 }
 
@@ -143,6 +208,11 @@ mod tests {
         assert!(run_pipeline_contract(
             &workspace,
             &["admit".into(), "--site".into(), "site.yml".into(), "pipeline.yml".into(),]
+        )
+        .is_err());
+        assert!(run_pipeline_contract(
+            &workspace,
+            &["currentize".into(), "--governance".into(), "site.yml".into(), "pipelines".into(),]
         )
         .is_err());
     }
