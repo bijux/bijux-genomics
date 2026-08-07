@@ -16,7 +16,7 @@ use super::validation::{
     canonical_directory, ensure_json_identity, require_utc_timestamp,
     validate_catalog_precondition, validate_specification,
 };
-use crate::backend::slurm::SlurmSubmitRequest;
+use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
 /// Validate exact source authorities and publish restart-safe materialization scheduler files.
 ///
@@ -50,6 +50,8 @@ pub fn prepare_corpus_materialization_slurm_job(
         request: SlurmSubmitRequest {
             run_id: format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id),
             dependencies: Vec::new(),
+            dependency_condition: SlurmDependencyCondition::AfterOk,
+            array: None,
             script_path,
             working_directory: spec.repository_path.clone(),
             stdout_path: scheduler_root.join("stdout.log"),

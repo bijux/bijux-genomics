@@ -26,7 +26,19 @@ pub fn submit_slurm_job(
     if !request.dependencies.is_empty() {
         arguments.extend([
             "--dependency".to_string(),
-            format!("afterok:{}", request.dependencies.join(":")),
+            format!(
+                "{}:{}",
+                request.dependency_condition.as_sbatch_value(),
+                request.dependencies.join(":")
+            ),
+        ]);
+    }
+    if let Some(array) = &request.array {
+        let parallelism =
+            array.maximum_parallel_tasks.map_or_else(String::new, |maximum| format!("%{maximum}"));
+        arguments.extend([
+            "--array".to_string(),
+            format!("{}-{}{}", array.first_task_id, array.last_task_id, parallelism),
         ]);
     }
     arguments.extend([
@@ -44,6 +56,8 @@ pub fn submit_slurm_job(
         run_id: request.run_id.clone(),
         job_id: parse_job_id(&output)?,
         dependencies: request.dependencies.clone(),
+        dependency_condition: request.dependency_condition,
+        array: request.array.clone(),
         script_path: request.script_path.clone(),
         working_directory: request.working_directory.clone(),
         stdout_path: request.stdout_path.clone(),
@@ -197,14 +211,14 @@ fn execute(executable: &Path, arguments: &[String]) -> Result<String> {
 fn validate_submit_request(request: &SlurmSubmitRequest) -> Result<()> {
     require_text(&request.run_id, "run id")?;
     require_text(&request.submitted_at_utc, "submission timestamp")?;
-    let mut dependencies = std::collections::BTreeSet::new();
-    for dependency in &request.dependencies {
-        if dependency.is_empty()
-            || !dependency.bytes().all(|byte| byte.is_ascii_digit())
-            || !dependencies.insert(dependency)
-        {
-            bail!("Slurm dependency job identities are empty, malformed, or duplicated");
-        }
+    validate_dependency_spec(request.dependency_condition, &request.dependencies)?;
+    validate_array_spec(request.array.as_ref())?;
+    if request.array.is_some()
+        && [&request.stdout_path, &request.stderr_path]
+            .iter()
+            .any(|path| !path.to_string_lossy().contains("%a"))
+    {
+        bail!("Slurm array stdout and stderr paths must contain the task token %a");
     }
     if !request.script_path.is_file() {
         bail!("Slurm submission script is missing: {}", request.script_path.display());
@@ -220,6 +234,43 @@ fn validate_submit_request(request: &SlurmSubmitRequest) -> Result<()> {
     Ok(())
 }
 
+fn validate_dependency_spec(
+    condition: super::SlurmDependencyCondition,
+    job_ids: &[String],
+) -> Result<()> {
+    let mut dependencies = std::collections::BTreeSet::new();
+    for dependency in job_ids {
+        if dependency.is_empty()
+            || !dependency.bytes().all(|byte| byte.is_ascii_digit())
+            || !dependencies.insert(dependency)
+        {
+            bail!("Slurm dependency job identities are empty, malformed, or duplicated");
+        }
+    }
+    if job_ids.is_empty() && condition != super::SlurmDependencyCondition::AfterOk {
+        bail!("Slurm dependency condition requires at least one dependency");
+    }
+    Ok(())
+}
+
+fn validate_array_spec(array: Option<&super::SlurmArraySpec>) -> Result<()> {
+    if let Some(array) = array {
+        if array.first_task_id > array.last_task_id {
+            bail!("Slurm array task range is reversed");
+        }
+        let task_count = array
+            .last_task_id
+            .checked_sub(array.first_task_id)
+            .and_then(|difference| difference.checked_add(1))
+            .context("Slurm array task count overflow")?;
+        if array.maximum_parallel_tasks.is_some_and(|maximum| maximum == 0 || maximum > task_count)
+        {
+            bail!("Slurm array parallelism is zero or exceeds its task count");
+        }
+    }
+    Ok(())
+}
+
 fn validate_handle(handle: &SlurmJobHandle) -> Result<()> {
     if handle.schema_version != SLURM_JOB_HANDLE_SCHEMA_V1
         || handle.job_id.is_empty()
@@ -228,7 +279,9 @@ fn validate_handle(handle: &SlurmJobHandle) -> Result<()> {
         bail!("Slurm job handle identity is invalid");
     }
     require_text(&handle.run_id, "run id")?;
-    require_text(&handle.submitted_at_utc, "submission timestamp")
+    require_text(&handle.submitted_at_utc, "submission timestamp")?;
+    validate_dependency_spec(handle.dependency_condition, &handle.dependencies)?;
+    validate_array_spec(handle.array.as_ref())
 }
 
 fn require_text(value: &str, label: &str) -> Result<()> {

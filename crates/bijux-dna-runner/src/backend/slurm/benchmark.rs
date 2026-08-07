@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{validate_execution_spec, BenchmarkExecutionSpec};
 
-use super::SlurmSubmitRequest;
+use super::{SlurmDependencyCondition, SlurmSubmitRequest};
 
 const MAX_SPEC_BYTES: usize = 16 * 1024 * 1024;
 
@@ -75,6 +75,8 @@ pub fn prepare_benchmark_slurm_job(
                 spec.identity.run.run_id, spec.identity.tool_id, spec.identity.attempt_id
             ),
             dependencies: Vec::new(),
+            dependency_condition: SlurmDependencyCondition::AfterOk,
+            array: None,
             script_path,
             working_directory: repository_path,
             stdout_path,

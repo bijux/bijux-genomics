@@ -37,6 +37,8 @@
 - `cancel_slurm_job`
 - `SlurmClientPaths`
 - `SlurmSubmitRequest`
+- `SlurmDependencyCondition`
+- `SlurmArraySpec`
 - `SlurmJobHandle`
 - `SlurmBatchSubmission`
 - `SlurmSubmissionFailure`

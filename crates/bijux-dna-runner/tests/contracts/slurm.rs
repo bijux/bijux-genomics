@@ -5,7 +5,8 @@ use std::path::Path;
 
 use bijux_dna_runner::api::{
     cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,
-    SlurmClientPaths, SlurmEvidenceSource, SlurmJobState, SlurmSubmitRequest,
+    SlurmArraySpec, SlurmClientPaths, SlurmDependencyCondition, SlurmEvidenceSource, SlurmJobState,
+    SlurmSubmitRequest,
 };
 
 fn write_executable(path: &Path, body: &str) -> anyhow::Result<()> {
@@ -39,6 +40,8 @@ fn request(temp: &tempfile::TempDir, run_id: &str) -> anyhow::Result<SlurmSubmit
     Ok(SlurmSubmitRequest {
         run_id: run_id.to_string(),
         dependencies: Vec::new(),
+        dependency_condition: SlurmDependencyCondition::AfterOk,
+        array: None,
         script_path,
         working_directory: temp.path().to_path_buf(),
         stdout_path: temp.path().join(format!("{run_id}.stdout.log")),
@@ -102,6 +105,39 @@ fn submission_binds_afterok_dependencies_to_arguments_and_handle() -> anyhow::Re
 }
 
 #[test]
+fn submission_binds_afterany_array_to_arguments_and_handle() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let argument_log = temp.path().join("sbatch.args");
+    write_executable(
+        &paths.sbatch,
+        &format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$*\" > {}\nprintf '3459974\\n'\n",
+            shell_literal(&argument_log)
+        ),
+    )?;
+    let mut request = request(&temp, "run-2042")?;
+    request.dependencies = vec!["3459901".to_string()];
+    request.dependency_condition = SlurmDependencyCondition::AfterAny;
+    request.array = Some(SlurmArraySpec {
+        first_task_id: 3,
+        last_task_id: 11,
+        maximum_parallel_tasks: Some(4),
+    });
+    request.stdout_path = temp.path().join("array-%A_%a.stdout.log");
+    request.stderr_path = temp.path().join("array-%A_%a.stderr.log");
+
+    let handle = submit_slurm_job(&paths, &request)?;
+
+    assert_eq!(handle.dependency_condition, SlurmDependencyCondition::AfterAny);
+    assert_eq!(handle.array, request.array);
+    let arguments = std::fs::read_to_string(argument_log)?;
+    assert!(arguments.contains("--dependency afterany:3459901"));
+    assert!(arguments.contains("--array 3-11%4"));
+    Ok(())
+}
+
+#[test]
 fn submission_rejects_malformed_or_duplicate_dependencies() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
     let paths = client(&temp)?;
@@ -115,6 +151,47 @@ fn submission_rejects_malformed_or_duplicate_dependencies() -> anyhow::Result<()
         request.dependencies = dependencies;
         assert!(submit_slurm_job(&paths, &request).is_err());
     }
+    let mut condition_without_dependency = request(&temp, "run-2042")?;
+    condition_without_dependency.dependency_condition = SlurmDependencyCondition::AfterAny;
+    assert!(submit_slurm_job(&paths, &condition_without_dependency).is_err());
+    Ok(())
+}
+
+#[test]
+fn submission_rejects_invalid_array_bounds() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    write_executable(&paths.sbatch, "#!/bin/sh\nprintf '3459974\\n'\n")?;
+    for array in [
+        SlurmArraySpec { first_task_id: 4, last_task_id: 3, maximum_parallel_tasks: None },
+        SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: Some(0) },
+        SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: Some(3) },
+    ] {
+        let mut request = request(&temp, "run-2042")?;
+        request.array = Some(array);
+        assert!(submit_slurm_job(&paths, &request).is_err());
+    }
+    let mut shared_logs = request(&temp, "run-2042")?;
+    shared_logs.array =
+        Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: None });
+    assert!(submit_slurm_job(&paths, &shared_logs).is_err());
+    Ok(())
+}
+
+#[test]
+fn request_deserialization_defaults_additive_scheduler_fields() -> anyhow::Result<()> {
+    let request = request(&tempfile::tempdir()?, "run-2042")?;
+    let mut value = serde_json::to_value(&request)?;
+    let object = value
+        .as_object_mut()
+        .ok_or_else(|| anyhow::anyhow!("request did not serialize as an object"))?;
+    object.remove("dependency_condition");
+    object.remove("array");
+
+    let decoded: SlurmSubmitRequest = serde_json::from_value(value)?;
+
+    assert_eq!(decoded.dependency_condition, SlurmDependencyCondition::AfterOk);
+    assert!(decoded.array.is_none());
     Ok(())
 }
 

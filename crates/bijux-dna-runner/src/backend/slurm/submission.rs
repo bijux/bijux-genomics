@@ -10,8 +10,8 @@ use bijux_dna_bench_model::{validate_execution_spec, BenchmarkExecutionSpec};
 use serde::{Deserialize, Serialize};
 
 use super::{
-    submit_slurm_job, PreparedBenchmarkSlurmJob, SlurmClientPaths, SlurmJobHandle,
-    SLURM_JOB_HANDLE_SCHEMA_V1,
+    submit_slurm_job, PreparedBenchmarkSlurmJob, SlurmArraySpec, SlurmClientPaths,
+    SlurmDependencyCondition, SlurmJobHandle, SLURM_JOB_HANDLE_SCHEMA_V1,
 };
 
 const SUBMISSION_INTENT_SCHEMA_V1: &str = "bijux.runner.benchmark_submission_intent.v1";
@@ -25,6 +25,10 @@ struct BenchmarkSubmissionIntent {
     run_id: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     dependencies: Vec<String>,
+    #[serde(default, skip_serializing_if = "SlurmDependencyCondition::is_after_ok")]
+    dependency_condition: SlurmDependencyCondition,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    array: Option<SlurmArraySpec>,
     execution_spec_sha256: String,
     script_sha256: String,
     script_path: PathBuf,
@@ -133,6 +137,8 @@ pub fn load_benchmark_slurm_job_handle(spec: &BenchmarkExecutionSpec) -> Result<
                 spec.identity.run.run_id, spec.identity.tool_id, spec.identity.attempt_id
             ),
             dependencies: intent.dependencies.clone(),
+            dependency_condition: intent.dependency_condition,
+            array: intent.array.clone(),
             script_path,
             working_directory: PathBuf::from(&spec.source.repository_path),
             stdout_path: scheduler_root.join("stdout.log"),
@@ -192,6 +198,8 @@ fn submission_intent(prepared: &PreparedBenchmarkSlurmJob) -> BenchmarkSubmissio
         schema_version: SUBMISSION_INTENT_SCHEMA_V1.to_string(),
         run_id: prepared.request.run_id.clone(),
         dependencies: prepared.request.dependencies.clone(),
+        dependency_condition: prepared.request.dependency_condition,
+        array: prepared.request.array.clone(),
         execution_spec_sha256: prepared.execution_spec_sha256.clone(),
         script_sha256: prepared.script_sha256.clone(),
         script_path: prepared.request.script_path.clone(),
@@ -230,6 +238,9 @@ fn load_matching_handle(
     let handle: SlurmJobHandle = read_json(path)?;
     if handle.schema_version != SLURM_JOB_HANDLE_SCHEMA_V1
         || handle.run_id != prepared.request.run_id
+        || handle.dependencies != prepared.request.dependencies
+        || handle.dependency_condition != prepared.request.dependency_condition
+        || handle.array != prepared.request.array
         || handle.script_path != prepared.request.script_path
         || handle.working_directory != prepared.request.working_directory
         || handle.stdout_path != prepared.request.stdout_path

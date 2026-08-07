@@ -26,12 +26,48 @@ impl Default for SlurmClientPaths {
     }
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SlurmDependencyCondition {
+    #[default]
+    AfterOk,
+    AfterAny,
+}
+
+impl SlurmDependencyCondition {
+    pub(crate) const fn as_sbatch_value(self) -> &'static str {
+        match self {
+            Self::AfterOk => "afterok",
+            Self::AfterAny => "afterany",
+        }
+    }
+
+    // Serde skip predicates receive a borrowed field value.
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub(crate) const fn is_after_ok(value: &Self) -> bool {
+        matches!(value, Self::AfterOk)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SlurmArraySpec {
+    pub first_task_id: u32,
+    pub last_task_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maximum_parallel_tasks: Option<u32>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SlurmSubmitRequest {
     pub run_id: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub dependencies: Vec<String>,
+    #[serde(default, skip_serializing_if = "SlurmDependencyCondition::is_after_ok")]
+    pub dependency_condition: SlurmDependencyCondition,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub array: Option<SlurmArraySpec>,
     pub script_path: PathBuf,
     pub working_directory: PathBuf,
     pub stdout_path: PathBuf,
@@ -47,6 +83,10 @@ pub struct SlurmJobHandle {
     pub job_id: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub dependencies: Vec<String>,
+    #[serde(default, skip_serializing_if = "SlurmDependencyCondition::is_after_ok")]
+    pub dependency_condition: SlurmDependencyCondition,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub array: Option<SlurmArraySpec>,
     pub script_path: PathBuf,
     pub working_directory: PathBuf,
     pub stdout_path: PathBuf,
