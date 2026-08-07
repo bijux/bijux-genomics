@@ -273,12 +273,32 @@ fn replace_section_scalar(source: &str, section: &str, field: &str, value: &str)
         "currentization scalar is not safe plain YAML"
     );
     let section_line = format!("{section}:");
+    let inline_section_prefix = format!("{section}: {{");
     let field_prefix = format!("  {field}:");
+    let inline_field_prefix = format!("{field}: ");
     let mut inside = false;
     let mut replaced = 0;
     let mut lines = Vec::new();
     for line in source.lines() {
-        if !line.starts_with(' ') && line.ends_with(':') {
+        if line.starts_with(&inline_section_prefix) && line.ends_with('}') {
+            let fields = &line[inline_section_prefix.len()..line.len() - 1];
+            let fields = fields
+                .split(", ")
+                .map(|entry| {
+                    if entry.starts_with(&inline_field_prefix) {
+                        replaced += 1;
+                        format!("{inline_field_prefix}{value}")
+                    } else {
+                        entry.to_owned()
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
+            lines.push(format!("{inline_section_prefix}{fields}}}"));
+            inside = false;
+            continue;
+        }
+        if !line.starts_with(' ') {
             inside = line == section_line;
         }
         if inside && line.starts_with(&field_prefix) {

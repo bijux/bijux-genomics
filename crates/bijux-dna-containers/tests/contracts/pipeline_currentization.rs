@@ -18,6 +18,8 @@ struct CurrentizationFixture {
     _root: tempfile::TempDir,
     request: ContainerPipelineCurrentizationRequest,
     pipeline_path: PathBuf,
+    inline_pipeline_path: PathBuf,
+    inline_source: String,
     unsupported_pipeline_path: PathBuf,
     unsupported_source: String,
     source: String,
@@ -64,6 +66,12 @@ impl CurrentizationFixture {
             repository_root()?.join("containers/runs/run-1124-trim_galore/config-pipeline.yml"),
         )?;
         std::fs::write(&pipeline_path, &source)?;
+        let inline_root = pipelines_root.join("run-1126-trim_galore");
+        std::fs::create_dir_all(&inline_root)?;
+        let inline_pipeline_path = inline_root.join("config-pipeline.yml");
+        let inline_source =
+            inline_identity_sections(&source)?.replace("id: run-1124", "id: run-1126");
+        std::fs::write(&inline_pipeline_path, &inline_source)?;
         let unsupported_root = pipelines_root.join("run-1125-fastuniq");
         std::fs::create_dir_all(&unsupported_root)?;
         let unsupported_pipeline_path = unsupported_root.join("config-pipeline.yml");
@@ -114,6 +122,8 @@ impl CurrentizationFixture {
             _root: root,
             request,
             pipeline_path,
+            inline_pipeline_path,
+            inline_source,
             unsupported_pipeline_path,
             unsupported_source,
             source,
@@ -184,8 +194,8 @@ fn inventory_fixture(
 fn currentization_changes_only_repository_and_image_identity_lines() -> Result<()> {
     let fixture = CurrentizationFixture::new()?;
     let plan = derive_container_pipeline_currentization(&fixture.request)?;
-    assert_eq!(plan.entries.len(), 2);
-    assert_eq!(plan.entries.iter().filter(|entry| entry.changed).count(), 1);
+    assert_eq!(plan.entries.len(), 3);
+    assert_eq!(plan.entries.iter().filter(|entry| entry.changed).count(), 2);
     let external = plan
         .entries
         .iter()
@@ -209,6 +219,25 @@ fn currentization_changes_only_repository_and_image_identity_lines() -> Result<(
         .filter(|(before, after)| before != after)
         .count();
     assert_eq!(changed_lines, 4);
+    let inline_current = std::fs::read_to_string(&fixture.inline_pipeline_path)?;
+    assert_eq!(
+        fixture
+            .inline_source
+            .lines()
+            .zip(inline_current.lines())
+            .filter(|(before, after)| before != after)
+            .count(),
+        2
+    );
+    match load_container_pipeline(&fixture.inline_pipeline_path)? {
+        ContainerPipelineContract::Current(pipeline) => {
+            assert_eq!(pipeline.repository.commit, fixture.request.repository_commit);
+            assert_eq!(pipeline.repository.path, plan.repository_path);
+            assert_eq!(pipeline.image.path, fixture.image_path.canonicalize()?);
+            assert_eq!(pipeline.image.sha256, fixture.image_sha256);
+        }
+        ContainerPipelineContract::Legacy(_) => anyhow::bail!("fixture changed pipeline schema"),
+    }
     match load_container_pipeline(&fixture.pipeline_path)? {
         ContainerPipelineContract::Current(pipeline) => {
             assert_eq!(pipeline.repository.commit, fixture.request.repository_commit);
@@ -240,4 +269,28 @@ fn currentization_refuses_source_drift_after_planning() -> Result<()> {
 
 fn repository_root() -> Result<PathBuf> {
     Ok(Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?)
+}
+
+fn inline_identity_sections(source: &str) -> Result<String> {
+    let mut lines = source.lines();
+    let mut rendered = Vec::new();
+    while let Some(line) = lines.next() {
+        if line == "repository:" {
+            let path = lines.next().context("missing repository path")?.trim();
+            let commit = lines.next().context("missing repository commit")?.trim();
+            let clean = lines.next().context("missing repository clean state")?.trim();
+            rendered.push(format!("repository: {{{path}, {commit}, {clean}}}"));
+        } else if line == "image:" {
+            let path = lines.next().context("missing image path")?.trim();
+            let sha256 = lines.next().context("missing image SHA-256")?.trim();
+            rendered.push(format!("image: {{{path}, {sha256}}}"));
+        } else {
+            rendered.push(line.to_owned());
+        }
+    }
+    let mut rendered = rendered.join("\n");
+    if source.ends_with('\n') {
+        rendered.push('\n');
+    }
+    Ok(rendered)
 }
