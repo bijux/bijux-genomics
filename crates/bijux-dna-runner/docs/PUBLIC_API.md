@@ -24,6 +24,7 @@
 - `run_command_with_context`
 - `CommandOutputV1`
 - `execute_observer_command`
+- `execute_external_artifact_step`
 - `execute_step`
 - `StageResultV1`
 - `submit_slurm_job`

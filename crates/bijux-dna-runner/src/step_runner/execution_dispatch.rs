@@ -2,8 +2,8 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_containers::api::RuntimeKind;
+use bijux_dna_core::contract::ExecutionStep;
 
 use super::apptainer_execution::execute_apptainer_step;
 use super::docker_execution::execute_docker_step;
@@ -17,12 +17,13 @@ pub(super) fn execute_step_outcome(
     input_root: &Path,
     out_dir: &Path,
     timeout: Option<Duration>,
+    runtime_executable: Option<&Path>,
 ) -> Result<StepExecutionOutcome> {
     match runner {
         RuntimeKind::Local => execute_local_step(step, out_dir, timeout),
         RuntimeKind::Docker => execute_docker_step(step, inputs, input_root, out_dir, timeout),
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
-            execute_apptainer_step(step, runner, inputs, input_root, out_dir)
+            execute_apptainer_step(step, runner, inputs, input_root, out_dir, runtime_executable)
         }
     }
 }

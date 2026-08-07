@@ -121,6 +121,8 @@ fn vcf_planner_renders_executable_angsd_stage_templates_for_low_coverage_rows() 
         let plans = plan_vcf_stage_plans(&base_inputs(regime))
             .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
         for plan in plans.iter().filter(|plan| plan.tool_id.to_string() == "angsd") {
+            assert_eq!(plan.image.image, "external-artifact://angsd");
+            assert!(plan.image.digest.is_none());
             assert!(
                 !plan.command.template.is_empty(),
                 "angsd stage {} must keep a real command template",
@@ -332,7 +334,7 @@ fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends(
 }
 
 #[test]
-fn vcf_planner_renders_executable_imputation_stage_templates_for_retained_backends() {
+fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backends() {
     let cases = [
         (CoverageRegime::Diploid, "vcf.imputation_metrics", "beagle"),
         (CoverageRegime::LowCovGl, "vcf.imputation_metrics", "glimpse"),
@@ -357,6 +359,11 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_retained_backen
             .find(|plan| plan.stage_id.as_str() == stage_id)
             .unwrap_or_else(|| panic!("stage plan for {tool_id} on {stage_id}"));
         let joined = stage_plan.command.template.join(" ");
+
+        if tool_id == "impute5" {
+            assert_eq!(stage_plan.image.image, "external-artifact://impute5");
+            assert!(stage_plan.image.digest.is_none());
+        }
 
         assert!(
             !joined.contains("--help") && !joined.contains(" impute --input vcf"),

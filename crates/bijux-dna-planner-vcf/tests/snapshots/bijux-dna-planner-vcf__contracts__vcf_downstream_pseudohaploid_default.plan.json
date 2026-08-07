@@ -73,7 +73,7 @@
       },
       "image": {
         "digest": null,
-        "image": "quay.io/biocontainers/angsd:0.940--h2e03b76_2"
+        "image": "external-artifact://angsd"
       },
       "io": {
         "inputs": [

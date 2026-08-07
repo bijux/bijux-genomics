@@ -4,6 +4,8 @@
 
 ## Allowed Effects
 - Spawn `docker run` and `apptainer exec` through typed execution specs.
+- Spawn an admitted external binary or SIF only through `execute_external_artifact_step`, after
+  current checksum, catalog, stage, and command binding verification.
 - Spawn declared observer commands through `execute_observer_command`.
 - Spawn declared low-level commands through `run_command` and `run_command_with_context`.
 - Spawn `sbatch`, `squeue`, `sacct`, and `scancel` only through typed Slurm contracts.
@@ -32,6 +34,8 @@ Runner errors use these source-level effect codes:
 - No privileged containers or host-root mounts.
 - No secret logging.
 - Replay must not spawn processes, pull images, or mutate input artifacts.
+- Ordinary runners must refuse `external-artifact://` image references before filesystem or process
+  effects.
 
 ## Environment Rules
 - Inject only environment variables declared in the execution spec.

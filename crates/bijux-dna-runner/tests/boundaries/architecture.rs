@@ -172,6 +172,7 @@ fn runner_tree_matches_architecture_contract() {
         "effects.rs",
         "execution_dispatch.rs",
         "execution_outcome.rs",
+        "external_artifact.rs",
         "identity.rs",
         "inputs.rs",
         "internal_contracts.rs",

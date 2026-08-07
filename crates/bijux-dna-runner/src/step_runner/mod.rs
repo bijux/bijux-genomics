@@ -1,11 +1,11 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::Result;
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::prelude::cache::CacheKey;
 use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
-use bijux_dna_containers::api::RuntimeKind;
 
 mod apptainer_args;
 mod apptainer_execution;
@@ -16,6 +16,7 @@ mod docker_execution;
 mod effects;
 mod execution_dispatch;
 mod execution_outcome;
+mod external_artifact;
 mod identity;
 mod inputs;
 #[cfg(test)]
@@ -32,6 +33,7 @@ pub use contracts::StageResultV1;
 use effects::{runner_failure, RunnerEffectKind};
 use execution_dispatch::execute_step_outcome;
 use execution_outcome::StepExecutionOutcome;
+pub use external_artifact::execute_external_artifact_step;
 use identity::hash_inputs;
 #[allow(unused_imports)]
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
@@ -47,12 +49,42 @@ pub fn execute_step(
     runner: RuntimeKind,
     timeout: Option<Duration>,
 ) -> Result<StageResultV1> {
+    if let Some(tool_id) = bijux_dna_containers::api::external_artifact_tool_id(&step.image.image) {
+        anyhow::bail!(
+            "external artifact plan for {tool_id} requires execute_external_artifact_step"
+        );
+    }
+    execute_verified_step(step, runner, timeout)
+}
+
+fn execute_verified_step(
+    step: &ExecutionStep,
+    runner: RuntimeKind,
+    timeout: Option<Duration>,
+) -> Result<StageResultV1> {
+    execute_verified_step_with_runtime_executable(step, runner, timeout, None)
+}
+
+fn execute_verified_step_with_runtime_executable(
+    step: &ExecutionStep,
+    runner: RuntimeKind,
+    timeout: Option<Duration>,
+    runtime_executable: Option<&Path>,
+) -> Result<StageResultV1> {
     let out_dir = &step.out_dir;
     bijux_dna_infra::ensure_dir(out_dir)
         .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
     let inputs: Vec<PathBuf> = step.io.inputs.iter().map(|input| input.path.clone()).collect();
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
-    let outcome = execute_step_outcome(step, runner, &inputs, &input_root, out_dir, timeout)?;
+    let outcome = execute_step_outcome(
+        step,
+        runner,
+        &inputs,
+        &input_root,
+        out_dir,
+        timeout,
+        runtime_executable,
+    )?;
     let (run_id, outputs) = materialize_step_records(step, runner, &outcome, &inputs)?;
 
     Ok(StageResultV1 {

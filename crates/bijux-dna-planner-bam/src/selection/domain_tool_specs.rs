@@ -504,6 +504,21 @@ mod tests {
     }
 
     #[test]
+    fn load_bam_domain_tool_execution_spec_marks_angsd_as_external_artifact() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::from_static("bam.sex");
+        let tool_id = ToolId::from_static("angsd");
+
+        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
+        assert_eq!(spec.image.image, "external-artifact://angsd");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_bam_domain_tool_execution_spec_accepts_benchmark_ready_validate_and_damage_tools(
     ) -> Result<()> {
         let repo_root = repo_root();
@@ -513,7 +528,7 @@ mod tests {
             ("bam.validate", "samtools", "bijuxdna/samtools:1.21"),
             ("bam.damage", "damageprofiler", "bijuxdna/damageprofiler:1.1"),
             ("bam.damage", "mapdamage2", "bijuxdna/mapdamage2:2.2.2"),
-            ("bam.damage", "ngsbriggs", "bijuxdna/ngsbriggs:0.1.3"),
+            ("bam.damage", "ngsbriggs", "external-artifact://ngsbriggs"),
             ("bam.damage", "pmdtools", "bijuxdna/pmdtools:0.60"),
             ("bam.damage", "pydamage", "bijuxdna/pydamage:1.0"),
         ] {
