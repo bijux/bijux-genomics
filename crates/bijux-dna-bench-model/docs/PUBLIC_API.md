@@ -19,6 +19,10 @@ Model contracts:
 - `BenchmarkStageCoverageRow`
 - `BenchmarkStageDefinitionStatus`
 - `BenchmarkStageExecutionStatus`
+- `BenchmarkDisposition`
+- `BenchmarkStageUniverse`
+- `BenchmarkStageUniverseSummary`
+- `BenchmarkStageUniverseRow`
 - `BenchmarkPortfolio`
 - `BenchmarkStageInterfaceCatalog`
 - `BenchmarkStageInterfaceSpec`
@@ -108,6 +112,7 @@ Policy and diagnostics:
 - `BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
+- `BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`

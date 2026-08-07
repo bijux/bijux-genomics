@@ -24,6 +24,7 @@ mod acquisition;
 mod benchmark_campaign_cycle;
 mod benchmark_scientific_readiness;
 mod benchmark_stage_coverage;
+mod benchmark_stage_universe;
 mod cargo_targets;
 mod certification;
 mod ci;
@@ -40,6 +41,7 @@ pub(super) use self::acquisition::{
 pub(super) use self::benchmark_campaign_cycle::tooling_benchmark_campaign_cycle;
 pub(super) use self::benchmark_scientific_readiness::tooling_benchmark_scientific_readiness;
 pub(super) use self::benchmark_stage_coverage::tooling_benchmark_stage_coverage;
+pub(super) use self::benchmark_stage_universe::tooling_benchmark_stage_universe;
 pub(super) use self::cargo_targets::tooling_cargo_targets;
 pub(super) use self::certification::{
     tooling_benchmark_smoke_level1, tooling_certification_gate, tooling_certify_all,

@@ -5,18 +5,19 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
-    BenchmarkMeasurementContract, BenchmarkPortfolio, BenchmarkProfileAssignment,
-    BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
+    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition, BenchmarkEvidenceScope,
+    BenchmarkEvidenceTier, BenchmarkMeasurementContract, BenchmarkPortfolio,
+    BenchmarkProfileAssignment, BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
     BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
     BenchmarkStageCoverageRow, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
-    BenchmarkStageInterfaceStatus,
+    BenchmarkStageInterfaceStatus, BenchmarkStageUniverse,
 };
 
 use super::{
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
     BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
 };
 
 const REQUIRED_PERFORMANCE_METRICS: &[&str] =
@@ -370,6 +371,105 @@ pub fn validate_stage_coverage(coverage: &BenchmarkStageCoverage) -> Result<(), 
     if observed != declared {
         return Err(BenchError::InvalidPolicy(
             "benchmark stage coverage summary disagrees with stage rows".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+/// Validate the complete canonical domain-stage universe.
+///
+/// # Errors
+/// Returns an error when schema identity, ordering, disposition rationale, run identity, or
+/// summary counts disagree.
+pub fn validate_stage_universe(universe: &BenchmarkStageUniverse) -> Result<(), BenchError> {
+    if universe.schema_version != BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark stage universe schema mismatch".to_string(),
+        ));
+    }
+    if universe.stages.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark stage universe contains no stages".to_string(),
+        ));
+    }
+
+    let mut previous_stage = None;
+    let mut run_ids = BTreeSet::new();
+    for row in &universe.stages {
+        require_text(&row.stage_id, "stage universe stage id")?;
+        require_text(&row.domain, "stage universe domain")?;
+        require_text(&row.status, "stage universe status")?;
+        require_text(&row.benchmark_disposition_reason, "stage universe disposition reason")?;
+        if !matches!(row.domain.as_str(), "bam" | "fastq" | "vcf")
+            || !row.stage_id.starts_with(&format!("{}.", row.domain))
+        {
+            return Err(BenchError::InvalidPolicy(format!(
+                "stage universe domain identity disagrees for {}",
+                row.stage_id
+            )));
+        }
+        if !matches!(row.status.as_str(), "supported" | "planned" | "out_of_scope") {
+            return Err(BenchError::InvalidPolicy(format!(
+                "stage universe status is invalid for {}: {}",
+                row.stage_id, row.status
+            )));
+        }
+        if previous_stage.is_some_and(|previous| previous >= row.stage_id.as_str()) {
+            return Err(BenchError::InvalidPolicy(
+                "benchmark stage universe rows are not strictly sorted".to_string(),
+            ));
+        }
+        previous_stage = Some(row.stage_id.as_str());
+        match row.benchmark_disposition {
+            BenchmarkDisposition::BenchmarkRequired => {
+                let run_id = row.reserved_run_id.as_deref().ok_or_else(|| {
+                    BenchError::InvalidPolicy(format!(
+                        "benchmark-required stage has no reserved run id: {}",
+                        row.stage_id
+                    ))
+                })?;
+                validate_coverage_run_id(run_id)?;
+                if !run_ids.insert(run_id) {
+                    return Err(BenchError::InvalidPolicy(format!(
+                        "stage universe run id is duplicated: {run_id}"
+                    )));
+                }
+            }
+            _ if row.reserved_run_id.is_some() => {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "non-benchmark stage reserves a run id: {}",
+                    row.stage_id
+                )));
+            }
+            _ => {}
+        }
+    }
+
+    let count = |disposition| {
+        universe.stages.iter().filter(|row| row.benchmark_disposition == disposition).count()
+    };
+    let observed = (
+        universe.stages.len(),
+        count(BenchmarkDisposition::BenchmarkRequired),
+        count(BenchmarkDisposition::QualificationOnly),
+        count(BenchmarkDisposition::OrchestrationOnly),
+        count(BenchmarkDisposition::TestOnly),
+        count(BenchmarkDisposition::Retired),
+        count(BenchmarkDisposition::Excluded),
+    );
+    let summary = &universe.summary;
+    let declared = (
+        summary.stage_count,
+        summary.benchmark_required_count,
+        summary.qualification_only_count,
+        summary.orchestration_only_count,
+        summary.test_only_count,
+        summary.retired_count,
+        summary.excluded_count,
+    );
+    if observed != declared {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark stage universe summary disagrees with stage rows".to_string(),
         ));
     }
     Ok(())

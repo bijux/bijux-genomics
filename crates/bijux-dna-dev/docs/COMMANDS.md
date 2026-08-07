@@ -393,6 +393,7 @@ benchmark-integrity-mini
 benchmark-scientific-readiness
 benchmark-smoke-level1
 benchmark-stage-coverage
+benchmark-stage-universe
 bijux
 cargo-targets
 certification-gate

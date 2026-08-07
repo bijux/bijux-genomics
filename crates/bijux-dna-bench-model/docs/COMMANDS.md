@@ -14,6 +14,8 @@ not own CLI commands or process execution.
 | `validate-stage-campaign-registry` | `contract::validate_stage_campaign_registry` | Validate `BenchmarkStageCampaignRegistry` shape and campaign-level invariants. |
 | `validate-stage-coverage` | `contract::validate_stage_coverage` | Validate version, ordering, identities, state consistency, and exact summary closure for a stage-coverage publication. |
 | `benchmark-stage-coverage-schema` | `benchmark_stage_coverage_schema` | Generate the JSON Schema for the versioned stage-coverage publication from its Rust type. |
+| `validate-stage-universe` | `contract::validate_stage_universe` | Validate stage ordering, explicit disposition rationale, permanent run reservations, and exact summary closure. |
+| `benchmark-stage-universe-schema` | `benchmark_stage_universe_schema` | Generate the JSON Schema for the canonical stage-universe publication. |
 | `validate-benchmark-portfolio` | `contract::validate_benchmark_portfolio` | Validate `BenchmarkPortfolio` declarations, corpora, profiles, and stage assignments. |
 | `validate-defined-campaign-portfolio-alignment` | `contract::validate_defined_campaign_portfolio_alignment` | Validate that every defined stage campaign matches its reserved portfolio run, profile, and corpus identities. |
 | `validate-portfolio-campaign-alignment` | `contract::validate_portfolio_campaign_alignment` | Validate full 1:1 closure between all reserved portfolio stages and the stage campaign registry. |

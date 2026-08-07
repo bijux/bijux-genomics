@@ -93,6 +93,7 @@ fn bench_tree_matches_architecture_contract() {
             "bam_observation/",
             "campaign_lifecycle/",
             "campaign_material/",
+            "corpus_acquisition.rs",
             "corpus_materialization/",
             "evaluation.rs",
             "fastq_detect_adapters/",
@@ -106,6 +107,7 @@ fn bench_tree_matches_architecture_contract() {
             "run_suite/",
             "scientific_readiness.rs",
             "stage_coverage.rs",
+            "stage_universe.rs",
             "stage_report/",
             "summary/",
             "suite_load.rs",
@@ -303,6 +305,8 @@ fn commands_doc_lists_managed_benchmark_operations() {
         "ensure-stage-campaign-attempts",
         "derive-stage-coverage",
         "publish-checked-in-stage-coverage",
+        "derive-stage-universe",
+        "publish-checked-in-stage-universe",
     ] {
         assert!(
             content.contains(command),

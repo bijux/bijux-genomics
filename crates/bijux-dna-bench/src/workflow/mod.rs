@@ -25,6 +25,7 @@ mod run_suite;
 mod scientific_readiness;
 mod stage_coverage;
 mod stage_report;
+mod stage_universe;
 mod suite_load;
 mod summary;
 mod summary_fairness;
@@ -120,6 +121,10 @@ pub use scientific_readiness::{
 pub use stage_coverage::{
     derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
     BenchmarkCoverageWriteMode,
+};
+pub use stage_universe::{
+    derive_stage_universe, publish_checked_in_stage_universe, render_stage_universe_markdown,
+    BenchmarkUniverseWriteMode,
 };
 pub use suite_load::{
     load_benchmark_portfolio, load_bundle_catalog, load_bundle_manifest,

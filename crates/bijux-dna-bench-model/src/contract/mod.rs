@@ -42,7 +42,7 @@ pub use materialization::{
 pub use planning::{
     validate_benchmark_portfolio, validate_defined_campaign_portfolio_alignment,
     validate_portfolio_campaign_alignment, validate_scientific_readiness,
-    validate_stage_campaign_registry, validate_stage_coverage,
+    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
 };
 pub use protocol::{validate_benchmark_case_definition, validate_benchmark_run_definition};
 pub use publication::{
@@ -72,10 +72,11 @@ pub use schema_versions::{
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
     BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
-    BENCHMARK_STAGE_RESULT_SCHEMA_V2, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
-    GOVERNED_DATA_CATALOG_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
+    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use stage_result::validate_benchmark_stage_result_manifest;
 pub use suite::validate_suite;

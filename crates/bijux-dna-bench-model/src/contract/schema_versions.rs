@@ -38,6 +38,7 @@ pub const BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1: &str =
     "bijux.benchmark.scheduler_observation.v1";
 pub const BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1: &str = "bijux.benchmark.stage_campaigns.v1";
 pub const BENCHMARK_STAGE_COVERAGE_SCHEMA_V1: &str = "bijux.benchmark.stage_coverage.v1";
+pub const BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1: &str = "bijux.benchmark.stage_universe.v1";
 pub const BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1: &str =
     "bijux.benchmark.scientific_readiness.v1";
 pub const BENCHMARK_PORTFOLIO_SCHEMA_V1: &str = "bijux.benchmark.portfolio.v1";

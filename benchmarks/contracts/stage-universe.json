@@ -1,0 +1,708 @@
+{
+  "schema_version": "bijux.benchmark.stage_universe.v1",
+  "summary": {
+    "stage_count": 89,
+    "benchmark_required_count": 71,
+    "qualification_only_count": 9,
+    "orchestration_only_count": 9,
+    "test_only_count": 0,
+    "retired_count": 0,
+    "excluded_count": 0
+  },
+  "stages": [
+    {
+      "stage_id": "bam.align",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2005"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2006"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2007"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2008"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2009"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2002"
+    },
+    {
+      "stage_id": "bam.damage",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2010"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2011"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2003"
+    },
+    {
+      "stage_id": "bam.filter",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2012"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "domain": "bam",
+      "status": "planned",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2013"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2001"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2014"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "domain": "bam",
+      "status": "planned",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2015"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2016"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2017"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2004"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2018"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "domain": "bam",
+      "status": "planned",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2019"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2020"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2021"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2022"
+    },
+    {
+      "stage_id": "bam.sex",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2023"
+    },
+    {
+      "stage_id": "bam.validate",
+      "domain": "bam",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2024"
+    },
+    {
+      "stage_id": "fastq.build_contaminant_db",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.build_rrna_db",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.build_taxonomy_db",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.capture_provenance_snapshot",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.classify_layout",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2025"
+    },
+    {
+      "stage_id": "fastq.concatenate_lanes",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2026"
+    },
+    {
+      "stage_id": "fastq.deinterleave_reads",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.demultiplex_reads",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2027"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2028"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2029"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2030"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2031"
+    },
+    {
+      "stage_id": "fastq.detect_instrument_artifacts",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2032"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2033"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2034"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2035"
+    },
+    {
+      "stage_id": "fastq.index_reference",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2036"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2037"
+    },
+    {
+      "stage_id": "fastq.interleave_reads",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.materialize_qc_manifest",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2038"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2039"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2040"
+    },
+    {
+      "stage_id": "fastq.normalize_read_names",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.prepare_adapter_bank",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.prepare_host_reference_bundle",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.prepare_primer_bank",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2041"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2042"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2043"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2044"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2045"
+    },
+    {
+      "stage_id": "fastq.repair_pairs",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.report_qc",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2046"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2047"
+    },
+    {
+      "stage_id": "fastq.subsample_reads",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "qualification_only",
+      "benchmark_disposition_reason": "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2048"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2049"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2050"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "domain": "fastq",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2051"
+    },
+    {
+      "stage_id": "fastq.verify_assets",
+      "domain": "fastq",
+      "status": "planned",
+      "benchmark_disposition": "orchestration_only",
+      "benchmark_disposition_reason": "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
+    },
+    {
+      "stage_id": "vcf.admixture",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2052"
+    },
+    {
+      "stage_id": "vcf.call",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2053"
+    },
+    {
+      "stage_id": "vcf.call_diploid",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2054"
+    },
+    {
+      "stage_id": "vcf.call_gl",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2055"
+    },
+    {
+      "stage_id": "vcf.call_pseudohaploid",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2056"
+    },
+    {
+      "stage_id": "vcf.damage_filter",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2057"
+    },
+    {
+      "stage_id": "vcf.demography",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2058"
+    },
+    {
+      "stage_id": "vcf.filter",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2059"
+    },
+    {
+      "stage_id": "vcf.gl_propagation",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2060"
+    },
+    {
+      "stage_id": "vcf.ibd",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2061"
+    },
+    {
+      "stage_id": "vcf.imputation_metrics",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2062"
+    },
+    {
+      "stage_id": "vcf.impute",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2063"
+    },
+    {
+      "stage_id": "vcf.pca",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2064"
+    },
+    {
+      "stage_id": "vcf.phasing",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2065"
+    },
+    {
+      "stage_id": "vcf.population_structure",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2066"
+    },
+    {
+      "stage_id": "vcf.postprocess",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2067"
+    },
+    {
+      "stage_id": "vcf.prepare_reference_panel",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2068"
+    },
+    {
+      "stage_id": "vcf.qc",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2069"
+    },
+    {
+      "stage_id": "vcf.roh",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2070"
+    },
+    {
+      "stage_id": "vcf.stats",
+      "domain": "vcf",
+      "status": "supported",
+      "benchmark_disposition": "benchmark_required",
+      "benchmark_disposition_reason": "The stage has a permanent run reservation in the governed benchmark portfolio.",
+      "reserved_run_id": "run-2071"
+    }
+  ]
+}

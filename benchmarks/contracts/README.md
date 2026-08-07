@@ -12,6 +12,12 @@ requirements. `stage-campaigns.toml` contains only executable campaigns whose
 complete retained-tool closure, inputs, parameters, resource measurements,
 quality metrics, interpretation, and limitations have been reviewed.
 
+`stage-universe.json` is generated from the authoritative BAM, FASTQ, and VCF
+stage YAML contracts. It records an explicit benchmark disposition and rationale
+for every stage and binds every `benchmark_required` stage to exactly one
+permanent reservation in `portfolio.toml`; `benchmarks/reports/stage-universe.md`
+is its generated review index.
+
 `stage-interfaces.toml` closes an executable stage definition over its accepted
 input contracts, canonical output, normalized benchmark result, complete tool
 adapter set, crate-owned default provider, and downstream substitution probe.
@@ -33,6 +39,8 @@ under `STUDY/results/benchmarks/`, and small reviewed reports belong in
 retained-stage tool closure from the environment catalog and preserves
 historical report identities as `stale`; only a passing report from the required
 repository commit is counted as admitted.
+`schemas/stage-universe.schema.json` is generated from the typed canonical-stage
+registry and must drift whenever a stage is added, removed, or reclassified.
 
 The checked `suite`, `corpus`, `bundle`, `observation`, `summary`, and `decision`
 schemas are also generated from `bijux-dna-bench-model`. `GateDecision` is the

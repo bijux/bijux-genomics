@@ -356,6 +356,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkStageCoverage,
         ),
         native(
+            "benchmark-stage-universe",
+            "Generate or check the canonical domain-stage benchmark disposition registry.",
+            NativeOpsCommandKey::ToolingBenchmarkStageUniverse,
+        ),
+        native(
             "benchmark-smoke-level1",
             "Measure smoke-only duration and artifact sizes for the canonical Level 1 examples.",
             NativeOpsCommandKey::ToolingBenchmarkSmokeLevel1,
