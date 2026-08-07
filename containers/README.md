@@ -308,7 +308,7 @@ execution checkout:
 
 ```console
 run_commit="$(git rev-parse HEAD)"
-python3 -B containers/contracts/container_validation.py freeze-repository \
+cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --governance containers/contracts/sites/lunarc.yml \
   --commit "${run_commit}"
 

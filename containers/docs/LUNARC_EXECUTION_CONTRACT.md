@@ -36,7 +36,7 @@ changing a path alone cannot turn qualification output into benchmark evidence.
 Use the executor explicitly:
 
 ```console
-python3 containers/contracts/container_validation.py freeze-repository \
+cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --governance containers/contracts/sites/lunarc.yml \
   --commit COMMIT_SHA
 

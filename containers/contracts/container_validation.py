@@ -49,13 +49,6 @@ ACTIVE_SLURM_STATES = {
     "RUNNING",
     "SUSPENDED",
 }
-FROZEN_CHECKOUT_PATHS = (
-    "benchmarks/contracts",
-    "benchmarks/execution",
-    "containers/contracts",
-)
-
-
 class ContractError(RuntimeError):
     """Raised when execution would violate a governed run contract."""
 
@@ -363,25 +356,6 @@ def git_output(repo: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
-def remove_incomplete_worktree(active_repository: Path, target: Path) -> bool:
-    completed = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(active_repository),
-            "worktree",
-            "remove",
-            "--force",
-            "--force",
-            str(target),
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    return completed.returncode == 0 or not target.exists()
-
-
 def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
     require_keys(
         config,
@@ -526,127 +500,6 @@ def load_governance(path: Path) -> dict[str, Any]:
     governance["config"] = config
     governance["path"] = path.resolve()
     return governance
-
-
-def freeze_repository(
-    commit: str,
-    governance_path: Path,
-    checkout_scope: str = "contracts",
-    checkout_paths: tuple[str, ...] = (),
-    source_namespace: str = "source-freezes",
-) -> Path:
-    if not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise ContractError("frozen repository commit must be a full Git commit")
-    if checkout_scope not in {"contracts", "sources", "complete"}:
-        raise ContractError(
-            "frozen repository scope must be contracts, sources, or complete"
-        )
-    if checkout_scope == "sources":
-        if re.fullmatch(r"[a-z][a-z0-9-]*", source_namespace) is None:
-            raise ContractError(
-                "source freeze namespace must be a durable path identity"
-            )
-        if not checkout_paths:
-            raise ContractError("source freeze requires at least one checkout path")
-        for value in checkout_paths:
-            path = Path(value)
-            if path.is_absolute() or ".." in path.parts or not path.parts:
-                raise ContractError(f"source freeze path is unsafe: {value}")
-    elif checkout_paths:
-        raise ContractError("checkout paths are valid only for a source freeze")
-    elif source_namespace != "source-freezes":
-        raise ContractError("source freeze namespace is valid only for a source freeze")
-    governance = load_governance(governance_path)
-    active_repository: Path = governance["active_repository"]
-    frozen_repositories: Path = governance["frozen_repositories"]
-    if git_output(active_repository, "status", "--porcelain"):
-        raise ContractError(
-            "active LUNARC repository must be clean before freezing a run"
-        )
-    git_output(active_repository, "cat-file", "-e", f"{commit}^{{commit}}")
-    if checkout_scope == "contracts":
-        target = frozen_repositories / commit
-    elif checkout_scope == "sources":
-        source_identity = hashlib.sha256(
-            "\0".join(sorted(set(checkout_paths))).encode("utf-8")
-        ).hexdigest()[:12]
-        target = frozen_repositories / source_namespace / f"{commit}-{source_identity}"
-    else:
-        target = frozen_repositories / "image-builds" / commit
-    if target.exists():
-        if git_output(target, "rev-parse", "HEAD") != commit:
-            raise ContractError(
-                f"existing frozen worktree has the wrong commit: {target}"
-            )
-        if git_output(target, "status", "--porcelain"):
-            raise ContractError(f"existing frozen worktree is dirty: {target}")
-        return target
-    target.parent.mkdir(parents=True, exist_ok=True)
-    worktree_arguments = [
-        "git",
-        "-C",
-        str(active_repository),
-        "worktree",
-        "add",
-        "--detach",
-    ]
-    if checkout_scope in {"contracts", "sources"}:
-        worktree_arguments.append("--no-checkout")
-    worktree_arguments.extend([str(target), commit])
-    completed = subprocess.run(
-        worktree_arguments,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if completed.returncode != 0:
-        cleanup_succeeded = remove_incomplete_worktree(active_repository, target)
-        cleanup_note = ""
-        if not cleanup_succeeded:
-            cleanup_note = f"; incomplete worktree remains for inspection: {target}"
-        raise ContractError(
-            f"cannot create frozen worktree: {completed.stderr.strip()}{cleanup_note}"
-        )
-    sparse_paths = (
-        FROZEN_CHECKOUT_PATHS
-        if checkout_scope == "contracts"
-        else tuple(sorted(set(checkout_paths)))
-    )
-    checkout_commands = (
-        (
-            (
-                ("sparse-checkout", "set", "--cone", *sparse_paths),
-                "configure frozen sparse checkout",
-            ),
-            (("read-tree", "-mu", "HEAD"), "populate frozen sparse checkout"),
-        )
-        if checkout_scope in {"contracts", "sources"}
-        else ()
-    )
-    for arguments, label in checkout_commands:
-        configured = subprocess.run(
-            ["git", "-C", str(target), *arguments],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        if configured.returncode != 0:
-            cleanup_succeeded = remove_incomplete_worktree(active_repository, target)
-            cleanup_note = ""
-            if not cleanup_succeeded:
-                cleanup_note = f"; incomplete worktree remains for inspection: {target}"
-            raise ContractError(
-                f"cannot {label}: {configured.stderr.strip()}{cleanup_note}"
-            )
-    try:
-        if git_output(target, "rev-parse", "HEAD") != commit:
-            raise ContractError("new frozen worktree has the wrong commit")
-        if git_output(target, "status", "--porcelain"):
-            raise ContractError("new frozen worktree is not clean")
-    except ContractError as exc:
-        remove_incomplete_worktree(active_repository, target)
-        raise ContractError(f"cannot verify frozen worktree: {exc}") from exc
-    return target
 
 
 def validate_credentials(config: dict[str, Any]) -> None:
@@ -2379,16 +2232,6 @@ def parser() -> argparse.ArgumentParser:
     render.add_argument("--pipeline", type=Path, required=True)
     render.add_argument("--credentials", type=Path, required=True)
     render.add_argument("--output", type=Path, required=True)
-    freeze = commands.add_parser("freeze-repository")
-    freeze.add_argument("--governance", type=Path, required=True)
-    freeze.add_argument("--commit", required=True)
-    freeze.add_argument(
-        "--scope",
-        choices=("contracts", "sources", "complete"),
-        default="contracts",
-    )
-    freeze.add_argument("--path", action="append", default=[])
-    freeze.add_argument("--namespace", default="source-freezes")
     collect = commands.add_parser("collect-accounting")
     collect.add_argument("--manifest", type=Path, required=True)
     collect.add_argument("--governance", type=Path)
@@ -2414,17 +2257,6 @@ def main() -> int:
             return 0
         if args.command == "execute":
             return execute(args.governance, args.pipeline, args.credentials)
-        if args.command == "freeze-repository":
-            print(
-                freeze_repository(
-                    args.commit,
-                    args.governance,
-                    checkout_scope=args.scope,
-                    checkout_paths=tuple(args.path),
-                    source_namespace=args.namespace,
-                )
-            )
-            return 0
         if args.command == "collect-accounting":
             print(collect_accounting(args.manifest, args.governance))
             return 0
