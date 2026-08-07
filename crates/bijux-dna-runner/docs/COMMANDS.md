@@ -42,6 +42,14 @@ to recover the exact submission request through `load_prepared_corpus_materializ
 observe operation is one-shot and non-mutating; terminal collection re-hashes the admitted catalog
 closure and publishes immutable pass/fail evidence.
 
+`prepare_container_qualification_slurm_job` requires the current qualification pipeline schema and
+a commit-addressed frozen repository. It archives governance, pipeline, and credential-reference
+contracts, binds their hashes plus the exact executor program and script, and publishes an
+immutable scheduler specification. `submit_prepared_container_qualification_job` persists intent
+before `sbatch`; observe and collect perform one scheduler query per call; terminal collection
+binds accounting, logs, and successful execution evidence. Cancellation uses the retained exact
+job handle. None of these operations poll or wait.
+
 Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, and `awk`
 only for source validation, byte-identity checks, and acceptance checks. The Slurm host requires
 GNU `time` at `/usr/bin/time` and wraps the complete offline `apptainer exec` to record resource

@@ -17,6 +17,9 @@
 - `backend/` owns backend kind contracts and backend-facing facade exports.
 - `backend/slurm/` owns bounded non-waiting scheduler submission, one-shot queue
   observation, terminal accounting collection, cancellation, and fail-closed parsing.
+- `backend/slurm/qualification/` owns immutable container qualification preparation,
+  intent-first submission, disconnect-safe recovery, one-shot observation, terminal scheduler
+  evidence, and cancellation. Container contract admission remains in `bijux-dna-containers`.
 - `backend/stable_surface.rs` keeps stable backend exports out of the backend root module.
 - `backend/facade.rs` keeps backend re-exports out of the backend root module.
 - `step_runner/` owns step orchestration plus support modules for contracts, runtime policy, dispatch, container argument assembly, backend-specific execution, effects, records, inputs, observer calls, identity, and artifacts.
