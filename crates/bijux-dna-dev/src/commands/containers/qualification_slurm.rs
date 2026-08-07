@@ -2,7 +2,7 @@ use super::{
     command_hostname, path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace,
 };
 
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- replay-prepare <governance> <source-pipeline> <replay-pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- execute <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- replay-prepare <governance> <source-pipeline> <replay-pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- execute <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- archive-failure <qualification-spec> <archived-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -18,6 +18,7 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
         "submit" => submit(workspace, options),
         "observe" => observe(workspace, options),
         "collect" => collect(workspace, options),
+        "archive-failure" => archive_failure(workspace, options),
         "cancel" => cancel(workspace, options),
         _ => anyhow::bail!(USAGE),
     }
@@ -142,6 +143,17 @@ fn cancel(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutc
     success_line(format!("requested cancellation for {}:{}", spec.run_id, spec.tool_id))
 }
 
+fn archive_failure(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let [specification, archived_at_utc] = args else {
+        anyhow::bail!(USAGE);
+    };
+    let archived = bijux_dna_runner::api::archive_failed_container_qualification_attempt(
+        &load_spec(workspace, specification)?,
+        archived_at_utc,
+    )?;
+    json_out(&serde_json::to_value(archived)?)
+}
+
 fn load_spec(
     workspace: &Workspace,
     value: &str,
@@ -161,9 +173,16 @@ mod tests {
     fn help_lists_every_non_waiting_lifecycle_operation() -> Result<()> {
         let workspace = Workspace { root: "/workspace".into() };
         let output = run(&workspace, &["--help".to_string()])?;
-        for operation in
-            ["prepare", "replay-prepare", "execute", "submit", "observe", "collect", "cancel"]
-        {
+        for operation in [
+            "prepare",
+            "replay-prepare",
+            "execute",
+            "submit",
+            "observe",
+            "collect",
+            "archive-failure",
+            "cancel",
+        ] {
             assert!(output.stdout.contains(operation));
         }
         Ok(())

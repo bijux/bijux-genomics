@@ -1,20 +1,25 @@
 //! Owner: bijux-dna-runner
 //! Governed container qualification Slurm lifecycle.
 
+mod archival;
 mod contracts;
 mod execution;
 mod lifecycle;
 mod preparation;
 mod validation;
 
+pub use archival::archive_failed_container_qualification_attempt;
 pub use contracts::{
-    ContainerQualificationAccountingRecord, ContainerQualificationCollection,
-    ContainerQualificationExecution, ContainerQualificationPreparationRequest,
+    ArchivedContainerQualificationAttempt, ContainerQualificationAccountingRecord,
+    ContainerQualificationArchiveFile, ContainerQualificationArchiveSources,
+    ContainerQualificationCollection, ContainerQualificationExecution,
+    ContainerQualificationFailedAttemptArchive, ContainerQualificationPreparationRequest,
     ContainerQualificationSchedulerEvidence, ContainerQualificationSchedulerStatus,
     ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
     CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_FAILED_ATTEMPT_ARCHIVE_SCHEMA_V1,
     CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
     CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
 };

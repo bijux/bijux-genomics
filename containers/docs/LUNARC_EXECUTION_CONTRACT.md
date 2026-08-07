@@ -53,8 +53,8 @@ cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \
   QUALIFICATION_SPEC "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-python3 containers/contracts/container_validation.py archive-failure \
-  --manifest MANIFEST
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- archive-failure \
+  QUALIFICATION_SPEC "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 The Rust preparation and runner boundary validates the current hostname against the site contract, rejects

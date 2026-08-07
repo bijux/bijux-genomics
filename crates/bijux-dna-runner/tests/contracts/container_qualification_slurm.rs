@@ -12,11 +12,12 @@ use bijux_dna_containers::api::{
     ContainerSitePolicy, ContainerSlurmPolicy,
 };
 use bijux_dna_runner::api::{
-    cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
-    execute_container_qualification, load_container_qualification_slurm_spec,
-    load_prepared_container_qualification_slurm_job, prepare_container_qualification_slurm_job,
-    prepare_historical_container_qualification_replay, submit_prepared_container_qualification_job,
-    ContainerQualificationExecution, ContainerQualificationPreparationRequest,
+    archive_failed_container_qualification_attempt, cancel_container_qualification_slurm_job,
+    collect_container_qualification_slurm_job, execute_container_qualification,
+    load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
+    prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
+    submit_prepared_container_qualification_job, ContainerQualificationExecution,
+    ContainerQualificationFailedAttemptArchive, ContainerQualificationPreparationRequest,
     ContainerQualificationSchedulerStatus, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     SlurmClientPaths, SlurmJobState,
@@ -436,6 +437,86 @@ fn completed_scheduler_job_without_execution_evidence_is_durably_failed() -> Res
     assert!(collect_container_qualification_slurm_job(&scheduler, &spec, "2026-08-07T09:53:00Z")?
         .evidence
         .is_some());
+    Ok(())
+}
+
+#[test]
+fn failed_scheduler_attempt_is_archived_without_execution_evidence() -> Result<()> {
+    let fixture = fixture()?;
+    let prepared =
+        prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let spec = load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json"),
+    )?;
+    let scheduler = scheduler_client(fixture.root.path(), "printf '456789\n'\n")?;
+    submit_prepared_container_qualification_job(&scheduler, &prepared)?;
+    write_executable(&scheduler.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &scheduler.sacct,
+        "#!/bin/sh\nprintf '%s\n' '456789|FAILED|1:0|12|00:00:10|128K|n001|None'\n",
+    )?;
+    fs::write(&prepared.request.stdout_path, b"")?;
+    fs::write(&prepared.request.stderr_path, b"executor did not start\n")?;
+    collect_container_qualification_slurm_job(&scheduler, &spec, "2026-08-07T09:52:00Z")?;
+    assert!(!spec.result_root.join("evidence.json").exists());
+
+    let archived = archive_failed_container_qualification_attempt(&spec, "2026-08-07T09:54:00Z")?;
+
+    assert!(!spec.evidence_root.exists());
+    assert!(!spec.result_root.exists());
+    assert!(archived.path.join("archive.json").is_file());
+    let persisted: ContainerQualificationFailedAttemptArchive =
+        serde_json::from_slice(&fs::read(archived.path.join("archive.json"))?)?;
+    assert_eq!(persisted, archived.archive);
+    assert_eq!(archived.archive.run_id, "run-1200");
+    assert_eq!(archived.archive.tool_id, "bwa");
+    assert_eq!(archived.archive.slurm_job_id, "456789");
+    assert!(archived.archive.source_paths.submission.starts_with("study://containers/"));
+    assert!(archived.archive.source_paths.result.starts_with("study://results/"));
+    assert!(archived
+        .archive
+        .files
+        .iter()
+        .any(|file| file.path == "submission/scheduler-evidence.json"));
+    assert!(archived.archive.files.iter().any(|file| file.path == "result/slurm-accounting.json"));
+    for file in &archived.archive.files {
+        let path = archived.path.join(&file.path);
+        assert_eq!(fs::metadata(&path)?.len(), file.size_bytes);
+        assert_eq!(bijux_dna_infra::hash_file_sha256(&path)?, file.sha256);
+    }
+    Ok(())
+}
+
+#[test]
+fn failed_attempt_archival_rejects_symlinks_before_moving_roots() -> Result<()> {
+    let fixture = fixture()?;
+    let prepared =
+        prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let spec = load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json"),
+    )?;
+    let scheduler = scheduler_client(fixture.root.path(), "printf '456789\n'\n")?;
+    submit_prepared_container_qualification_job(&scheduler, &prepared)?;
+    write_executable(&scheduler.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &scheduler.sacct,
+        "#!/bin/sh\nprintf '%s\n' '456789|FAILED|1:0|12|00:00:10|128K|n001|None'\n",
+    )?;
+    fs::write(&prepared.request.stdout_path, b"")?;
+    fs::write(&prepared.request.stderr_path, b"executor did not start\n")?;
+    collect_container_qualification_slurm_job(&scheduler, &spec, "2026-08-07T09:52:00Z")?;
+    symlink(
+        spec.result_root.join("slurm-accounting.json"),
+        spec.result_root.join("accounting-link.json"),
+    )?;
+
+    let Err(error) = archive_failed_container_qualification_attempt(&spec, "2026-08-07T09:54:00Z")
+    else {
+        anyhow::bail!("symlink-contaminated evidence was archived");
+    };
+    assert!(error.to_string().contains("symlink"));
+    assert!(spec.evidence_root.is_dir());
+    assert!(spec.result_root.is_dir());
     Ok(())
 }
 

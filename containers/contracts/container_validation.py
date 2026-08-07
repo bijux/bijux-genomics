@@ -1839,9 +1839,6 @@ def parser() -> argparse.ArgumentParser:
         command.add_argument("--governance", type=Path, required=True)
         command.add_argument("--pipeline", type=Path, required=True)
         command.add_argument("--credentials", type=Path, required=True)
-    archive = commands.add_parser("archive-failure")
-    archive.add_argument("--manifest", type=Path, required=True)
-    archive.add_argument("--governance", type=Path)
     supersede = commands.add_parser("archive-superseded")
     supersede.add_argument("--manifest", type=Path, required=True)
     supersede.add_argument("--governance", type=Path)
@@ -1858,9 +1855,6 @@ def main() -> int:
             return 0
         if args.command == "execute":
             return execute(args.governance, args.pipeline, args.credentials)
-        if args.command == "archive-failure":
-            print(archive_failed_run(args.manifest, args.governance))
-            return 0
         if args.command == "archive-superseded":
             print(
                 archive_superseded_run(

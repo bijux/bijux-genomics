@@ -189,12 +189,16 @@ class GovernanceContractTests(unittest.TestCase):
     def test_worker_parser_excludes_scheduler_control(self) -> None:
         help_text = container_validation.parser().format_help()
 
-        for operation in ("render-slurm", "submit", "collect-accounting"):
+        for operation in (
+            "render-slurm",
+            "submit",
+            "collect-accounting",
+            "archive-failure",
+        ):
             self.assertNotIn(operation, help_text)
         for operation in (
             "validate",
             "execute",
-            "archive-failure",
             "archive-superseded",
         ):
             self.assertIn(operation, help_text)

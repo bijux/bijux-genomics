@@ -324,7 +324,7 @@ fn validate_successful_execution_evidence(
     Ok(bijux_dna_infra::hash_file_sha256(path)?)
 }
 
-fn validate_retained_evidence(
+pub(super) fn validate_retained_evidence(
     spec: &ContainerQualificationSlurmSpec,
     handle: &SlurmJobHandle,
     evidence: &ContainerQualificationSchedulerEvidence,

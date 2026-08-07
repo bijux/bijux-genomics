@@ -355,24 +355,23 @@ cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
-If the collected `evidence.json` is failed, archive that attempt before
-correcting and resubmitting the same stable run specification:
+If collected scheduler evidence marks the attempt failed, archive it before
+correcting and resubmitting the same stable run specification. This also covers
+scheduler failures that occurred before execution could publish `evidence.json`:
 
 ```console
-python3 -B containers/contracts/container_validation.py archive-failure \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- archive-failure \
+  "${qualification_spec}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Archival accepts only failed terminal evidence with matching Slurm accounting.
 It hashes every submission and result file, verifies that both trees and the
 owner-specific archive root share one filesystem, then moves them through a
 recoverable partial directory. Qualification failures remain under
-`containers/evidence/failures/RUN-TOOL-slurm-JOB/`; benchmark failures use
-`results/benchmark-attempts/failed/RUN-TOOL-slurm-JOB/` and the governed
-`bijux.benchmark.attempt_archive.v1` record. This frees the canonical submission
-and result paths without deleting the failed attempt or allowing it into the
-final run index. A passed result cannot be archived by this command.
+`containers/evidence/failures/RUN-TOOL-slurm-JOB/`. This frees the canonical
+submission and result paths without deleting the failed attempt or allowing it
+into the final run index. A passed result and a benchmark attempt cannot be
+archived by this qualification command.
 
 If a passed attempt later proves scientifically or structurally invalid,
 preserve it with an explicit disposition rather than deleting or relabelling
