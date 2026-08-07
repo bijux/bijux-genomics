@@ -760,6 +760,9 @@ stage_default_settings:
     clumpify:
       profile: adna_sane_default
       notes: kmer-clumped duplicate removal preset
+    fastuniq:
+      profile: paired_exact_duplicates
+      notes: paired-read duplicate removal using a checksum-admitted external artifact
   fastq.report_qc:
     multiqc:
       profile: adna_sane_default

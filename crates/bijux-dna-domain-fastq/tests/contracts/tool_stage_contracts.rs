@@ -152,10 +152,10 @@ fn stage_outputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
 }
 
 #[test]
-fn seqkit_stats_and_vsearch_execution_contracts_cover_supported_artifacts() -> Result<()> {
+fn seqkit_and_vsearch_execution_contracts_cover_supported_artifacts() -> Result<()> {
     for (tool_name, required_artifacts) in [
         (
-            "seqkit_stats",
+            "seqkit",
             ["report_json", "length_distribution_tsv", "length_distribution_json"].as_slice(),
         ),
         ("vsearch", ["uchime_report_tsv", "chimera_filtered_reads", "otu_table"].as_slice()),
