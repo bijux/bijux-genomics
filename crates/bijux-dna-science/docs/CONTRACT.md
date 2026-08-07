@@ -47,6 +47,7 @@ The index must also summarize the source-archive and FASTQ closure surfaces thro
 - Authored science spec loading and validation.
 - Typed science identifier data structures.
 - Deterministic evidence-row compilation.
+- Pure benchmark science gate validation and evaluation over measured metrics.
 - Bounded independent FASTQ decoding for exact read-length truth, histograms, and row digests.
 - Stable TSV and JSON rendering for science outputs.
 - Science release bundle writing under `artifacts/science-releases/`.
@@ -56,5 +57,5 @@ The index must also summarize the source-archive and FASTQ closure surfaces thro
 - Pipeline planning.
 - Stage execution.
 - Container runtime resolution.
-- Benchmark policy decisions outside compiled science evidence.
+- Persisted benchmark decision schemas and records.
 - Tool invocation or filesystem writes outside governed science outputs.

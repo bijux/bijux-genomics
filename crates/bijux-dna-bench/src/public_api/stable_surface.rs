@@ -157,3 +157,6 @@ pub use bijux_dna_bench_model::{
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V1,
     OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
+pub use bijux_dna_science::decision::{
+    evaluate_benchmark_gate_policy, validate_benchmark_gate_policy,
+};

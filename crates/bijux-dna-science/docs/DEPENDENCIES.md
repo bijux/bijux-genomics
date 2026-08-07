@@ -11,6 +11,8 @@ guardrails without pulling in runtime execution or planning responsibilities.
 | Dependency | Role |
 | --- | --- |
 | `anyhow` | Error context for command and compiler flows. |
+| `bijux-dna-bench-model` | Persisted benchmark gate policy and decision records consumed by pure science evaluation. |
+| `bijux-dna-core` | Canonical metric direction semantics used by scientific gates. |
 | `bijux-dna-infra` with `yaml` | Shared deterministic file IO and governed YAML parsing. |
 | `clap` | CLI parser for the `bijux-dna-science` binary. |
 | `flate2` | Streaming multi-member gzip decoding for independent FASTQ truth. |
@@ -35,8 +37,8 @@ crate must not import them or couple command behavior to execution backends.
 ## Dependency Review Notes
 
 Internal `bijux-dna-*` dependencies must be declared through the workspace catalog. The science
-crate currently has one internal runtime edge, `bijux-dna-infra`, and boundary tests require it to
-stay cataloged.
+crate's model, metric-semantics, and infrastructure edges are boundary-tested and must stay
+cataloged.
 
 The crate previously declared `thiserror` without using it. That direct dependency
 is intentionally absent; error handling currently uses `anyhow` because failures

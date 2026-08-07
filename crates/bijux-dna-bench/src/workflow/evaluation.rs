@@ -7,6 +7,7 @@ use anyhow::Result;
 use bijux_dna_bench_model::compare::{compare_summaries, CompareReport};
 use bijux_dna_bench_model::policy::{GateDecision, GatePolicy};
 use bijux_dna_bench_model::BenchmarkSummary;
+use bijux_dna_science::decision::evaluate_benchmark_gate_policy;
 
 /// Gate summary rows using a policy.
 #[must_use]
@@ -19,7 +20,8 @@ pub fn gate(policy: &GatePolicy, summary: &BenchmarkSummary) -> Vec<GateDecision
         for metric in &row.metrics {
             metrics.entry(metric.metric_id.clone()).or_insert(metric.stats.median);
         }
-        decisions.push(policy.decide(
+        decisions.push(evaluate_benchmark_gate_policy(
+            policy,
             &row.dataset_id,
             &row.stage_id,
             &row.tool_id,

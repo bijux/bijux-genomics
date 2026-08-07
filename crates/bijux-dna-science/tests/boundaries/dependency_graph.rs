@@ -9,6 +9,8 @@ fn dependency_graph_matches_science_boundary() {
 
     for dependency in [
         "anyhow",
+        "bijux-dna-bench-model",
+        "bijux-dna-core",
         "bijux-dna-infra",
         "clap",
         "flate2",

@@ -1,6 +1,6 @@
 # bijux-dna-bench-model Boundary Contract
 
-Owner: benchmark model contracts and pure decision logic.
+Owner: benchmark model contracts and persisted decision records.
 
 ## Owns
 
@@ -13,7 +13,7 @@ Owner: benchmark model contracts and pure decision logic.
   gate decision records.
 - Deterministic summary comparison reports.
 - Gate policy configuration, per-stage overrides, violation records, and
-  decision outcomes.
+  decision outcome types.
 - Robust statistics, seeded bootstrap confidence intervals, and MAD outlier
   detection.
 - Stable public exports through `src/public_api/stable_surface.rs`.
@@ -25,6 +25,7 @@ Owner: benchmark model contracts and pure decision logic.
 - Filesystem writes, report rendering, artifact publication, or network access.
 - Domain-specific stage implementation beyond validating supported ids and
   contract shapes.
+- Scientific acceptance evaluation and metric-direction resolution.
 
 ## Allowed Inputs
 

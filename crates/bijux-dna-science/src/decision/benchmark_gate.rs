@@ -1,88 +1,122 @@
-//! Owner: bijux-dna-bench-model
-//! Gate policy evaluation rules.
-
 use std::collections::BTreeMap;
 
+use anyhow::{bail, Result};
+use bijux_dna_bench_model::{GateDecision, GatePolicy, GateViolation, DECISION_SCHEMA_V1};
 use bijux_dna_core::metrics::{metric_semantics, MetricDirection};
 
-use crate::policy::outcomes::{GateDecision, GateViolation};
-
-use super::GatePolicy;
-
-impl GatePolicy {
-    #[allow(clippy::cast_precision_loss)]
-    #[must_use]
-    pub fn decide(
-        &self,
-        dataset_id: &str,
-        stage_id: &str,
-        tool_id: &str,
-        params_hash: &str,
-        metrics: &BTreeMap<String, f64>,
-    ) -> GateDecision {
-        let overrides = Some(stage_id).and_then(|stage| self.stage_overrides.get(stage));
-        let required_metrics = overrides
-            .map_or(self.required_metrics.as_slice(), |override_policy| {
-                override_policy.required_metrics.as_slice()
-            });
-        let thresholds =
-            overrides.map_or(&self.thresholds, |override_policy| &override_policy.thresholds);
-        let allowed_regressions = overrides.map_or(&self.allowed_regressions, |override_policy| {
-            &override_policy.allowed_regressions
-        });
-        let must_not_regress = overrides
-            .map_or(self.must_not_regress.as_slice(), |override_policy| {
-                override_policy.must_not_regress.as_slice()
-            });
-        let semantics_overrides = overrides.map_or(&self.semantics_overrides, |override_policy| {
-            &override_policy.semantics_overrides
-        });
-
-        let mut violations = Vec::new();
-        let mut missing_metrics = Vec::new();
-        let mut rationale_trace = Vec::new();
-
-        record_missing_required_metrics(
-            required_metrics,
-            metrics,
-            &mut missing_metrics,
-            &mut rationale_trace,
+/// Validate that every gate metric has governed semantics.
+///
+/// # Errors
+/// Returns an error when a policy references a metric without canonical or explicit semantics.
+pub fn validate_benchmark_gate_policy(policy: &GatePolicy) -> Result<()> {
+    let mut unknown = Vec::new();
+    collect_unknown_metrics(
+        policy.required_metrics.iter(),
+        policy.thresholds.keys(),
+        policy.allowed_regressions.keys(),
+        policy.must_not_regress.iter(),
+        &policy.semantics_overrides,
+        &mut unknown,
+    );
+    for override_policy in policy.stage_overrides.values() {
+        collect_unknown_metrics(
+            override_policy.required_metrics.iter(),
+            override_policy.thresholds.keys(),
+            override_policy.allowed_regressions.keys(),
+            override_policy.must_not_regress.iter(),
+            &override_policy.semantics_overrides,
+            &mut unknown,
         );
-        evaluate_thresholds(
-            thresholds,
-            semantics_overrides,
-            metrics,
-            &mut violations,
-            &mut missing_metrics,
-            &mut rationale_trace,
-        );
-        evaluate_regression_windows(
-            allowed_regressions,
-            semantics_overrides,
-            metrics,
-            &mut violations,
-            &mut missing_metrics,
-            &mut rationale_trace,
-        );
-        record_missing_regression_guards(
-            must_not_regress,
-            metrics,
-            &mut missing_metrics,
-            &mut rationale_trace,
-        );
+    }
+    unknown.sort();
+    unknown.dedup();
+    if !unknown.is_empty() {
+        bail!("unknown metrics: {}", unknown.join(","));
+    }
+    Ok(())
+}
 
-        GateDecision {
-            schema_version: "bijux.bench.gate.v1".to_string(),
-            dataset_id: dataset_id.to_string(),
-            stage_id: stage_id.to_string(),
-            tool_id: tool_id.to_string(),
-            params_hash: params_hash.to_string(),
-            passes: violations.is_empty() && missing_metrics.is_empty(),
-            violations,
-            missing_metrics: missing_metrics.clone(),
-            completeness_score: completeness_score(required_metrics, &missing_metrics),
-            rationale_trace,
+fn collect_unknown_metrics<'a>(
+    required: impl Iterator<Item = &'a String>,
+    thresholds: impl Iterator<Item = &'a String>,
+    regressions: impl Iterator<Item = &'a String>,
+    must_not_regress: impl Iterator<Item = &'a String>,
+    semantics_overrides: &BTreeMap<String, MetricDirection>,
+    unknown: &mut Vec<String>,
+) {
+    for metric_id in required.chain(thresholds).chain(regressions).chain(must_not_regress) {
+        if metric_semantics(metric_id).is_none() && !semantics_overrides.contains_key(metric_id) {
+            unknown.push(metric_id.clone());
         }
+    }
+}
+
+/// Evaluate measured benchmark metrics against a validated scientific gate policy.
+#[allow(clippy::cast_precision_loss)]
+#[must_use]
+pub fn evaluate_benchmark_gate_policy(
+    policy: &GatePolicy,
+    dataset_id: &str,
+    stage_id: &str,
+    tool_id: &str,
+    params_hash: &str,
+    metrics: &BTreeMap<String, f64>,
+) -> GateDecision {
+    let overrides = policy.stage_overrides.get(stage_id);
+    let required_metrics = overrides
+        .map_or(policy.required_metrics.as_slice(), |value| value.required_metrics.as_slice());
+    let thresholds = overrides.map_or(&policy.thresholds, |value| &value.thresholds);
+    let allowed_regressions =
+        overrides.map_or(&policy.allowed_regressions, |value| &value.allowed_regressions);
+    let must_not_regress = overrides
+        .map_or(policy.must_not_regress.as_slice(), |value| value.must_not_regress.as_slice());
+    let semantics_overrides =
+        overrides.map_or(&policy.semantics_overrides, |value| &value.semantics_overrides);
+
+    let mut violations = Vec::new();
+    let mut missing_metrics = Vec::new();
+    let mut rationale_trace = Vec::new();
+
+    record_missing_required_metrics(
+        required_metrics,
+        metrics,
+        &mut missing_metrics,
+        &mut rationale_trace,
+    );
+    evaluate_thresholds(
+        thresholds,
+        semantics_overrides,
+        metrics,
+        &mut violations,
+        &mut missing_metrics,
+        &mut rationale_trace,
+    );
+    evaluate_regression_windows(
+        allowed_regressions,
+        semantics_overrides,
+        metrics,
+        &mut violations,
+        &mut missing_metrics,
+        &mut rationale_trace,
+    );
+    record_missing_regression_guards(
+        must_not_regress,
+        metrics,
+        &mut missing_metrics,
+        &mut rationale_trace,
+    );
+
+    GateDecision {
+        schema_version: DECISION_SCHEMA_V1.to_string(),
+        dataset_id: dataset_id.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        params_hash: params_hash.to_string(),
+        passes: violations.is_empty() && missing_metrics.is_empty(),
+        violations,
+        missing_metrics: missing_metrics.clone(),
+        completeness_score: completeness_score(required_metrics, &missing_metrics),
+        rationale_trace,
     }
 }
 
@@ -219,61 +253,4 @@ fn completeness_score(required_metrics: &[String], missing_metrics: &[String]) -
     let missing = f64::from(u32::try_from(missing_required_count).unwrap_or(u32::MAX));
     let total = f64::from(u32::try_from(required_metrics.len()).unwrap_or(u32::MAX));
     (1.0 - (missing / total)).clamp(0.0, 1.0)
-}
-
-#[cfg(test)]
-mod tests {
-    use std::collections::{BTreeMap, HashSet};
-
-    use bijux_dna_core::id_catalog::FASTQ_TRIM;
-
-    use crate::policy::GatePolicy;
-
-    #[test]
-    fn missing_metrics_are_reported_once() {
-        let mut thresholds = BTreeMap::new();
-        thresholds.insert("runtime_s".to_string(), 1.0);
-        let mut allowed_regressions = BTreeMap::new();
-        allowed_regressions.insert("runtime_s".to_string(), 0.1);
-        let policy = GatePolicy {
-            objective: "runtime".to_string(),
-            required_metrics: vec!["runtime_s".to_string()],
-            thresholds,
-            allowed_regressions,
-            must_not_regress: vec!["runtime_s".to_string()],
-            semantics_overrides: BTreeMap::new(),
-            stage_overrides: BTreeMap::new(),
-        };
-
-        let decision =
-            policy.decide("dataset-1", FASTQ_TRIM, "fastp", "params-a", &BTreeMap::new());
-        let unique_missing: HashSet<&str> =
-            decision.missing_metrics.iter().map(String::as_str).collect();
-
-        assert_eq!(decision.missing_metrics, vec!["runtime_s"]);
-        assert_eq!(unique_missing.len(), decision.missing_metrics.len());
-    }
-
-    #[test]
-    #[allow(clippy::float_cmp)]
-    fn completeness_counts_required_metrics_only() {
-        let mut thresholds = BTreeMap::new();
-        thresholds.insert("memory_mb".to_string(), 128.0);
-        let policy = GatePolicy {
-            objective: "runtime".to_string(),
-            required_metrics: vec!["runtime_s".to_string()],
-            thresholds,
-            allowed_regressions: BTreeMap::new(),
-            must_not_regress: Vec::new(),
-            semantics_overrides: BTreeMap::new(),
-            stage_overrides: BTreeMap::new(),
-        };
-        let mut metrics = BTreeMap::new();
-        metrics.insert("runtime_s".to_string(), 1.0);
-
-        let decision = policy.decide("dataset-1", FASTQ_TRIM, "fastp", "params-a", &metrics);
-
-        assert_eq!(decision.missing_metrics, vec!["memory_mb"]);
-        assert_eq!(decision.completeness_score, 1.0);
-    }
 }

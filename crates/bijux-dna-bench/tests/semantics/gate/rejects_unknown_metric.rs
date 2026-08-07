@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_dna_bench::GatePolicy;
+use bijux_dna_bench::{validate_benchmark_gate_policy, GatePolicy};
 
 #[test]
 fn policy_rejects_unknown_metric() {
@@ -15,6 +15,6 @@ fn policy_rejects_unknown_metric() {
         semantics_overrides: BTreeMap::new(),
         stage_overrides: BTreeMap::new(),
     };
-    let err = policy.validate().expect_err("expected error");
+    let err = validate_benchmark_gate_policy(&policy).expect_err("expected error");
     assert!(err.to_string().contains("unknown metrics"));
 }

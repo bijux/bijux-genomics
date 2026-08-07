@@ -3,6 +3,7 @@
 pub mod app;
 pub mod cli;
 pub mod compile;
+pub mod decision;
 pub mod domain;
 pub mod errors;
 pub mod evidence;
