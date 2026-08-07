@@ -163,6 +163,26 @@ pub struct SlurmAccounting {
     pub node_list: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub array_tasks: Vec<SlurmArrayTaskAccounting>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SlurmArrayTaskAccounting {
+    pub task_id: u32,
+    pub job_id: String,
+    pub state: SlurmJobState,
+    pub raw_state: String,
+    pub exit_code: i32,
+    pub signal: i32,
+    pub elapsed_seconds: u64,
+    pub total_cpu_seconds: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_rss_bytes: Option<u64>,
+    pub node_list: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

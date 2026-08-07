@@ -766,6 +766,7 @@ mod tests {
             max_rss_bytes: Some(4096),
             node_list: "node1".to_string(),
             reason: Some("memory limit".to_string()),
+            array_tasks: Vec::new(),
         };
         let mapped = benchmark_accounting(&accounting)?;
         assert_eq!(mapped.job_id, accounting.job_id);

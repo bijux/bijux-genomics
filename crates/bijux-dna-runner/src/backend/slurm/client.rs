@@ -134,7 +134,7 @@ pub fn observe_slurm_job(
             "JobIDRaw,State,ExitCode,ElapsedRaw,TotalCPU,MaxRSS,NodeList,Reason".to_string(),
         ],
     )?;
-    let accounting = parse_accounting(&accounting_output, &handle.job_id)?;
+    let accounting = parse_accounting(&accounting_output, &handle.job_id, handle.array.as_ref())?;
     let state = accounting.as_ref().map_or(SlurmJobState::AccountingPending, |row| row.state);
     Ok(SlurmJobObservation {
         job_id: handle.job_id.clone(),

@@ -340,6 +340,59 @@ fn accounting_uses_allocation_state_and_peak_step_memory() -> anyhow::Result<()>
 }
 
 #[test]
+fn array_accounting_retains_every_exact_task_and_peak_step_memory() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let mut handle = submitted_handle(&temp, &paths)?;
+    handle.array =
+        Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: Some(2) });
+    write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &paths.sacct,
+        "#!/bin/sh\nprintf '%s\n' \
+'3459974|COMPLETED|0:0|60|00:01:58||n001|None' \
+'3459974_3|COMPLETED|0:0|31|00:00:30||n001|None' \
+'3459974_3.batch|COMPLETED|0:0|31|00:00:30|128M|n001|None' \
+'3459974_4|FAILED|2:0|29|00:00:28|64M|n002|bad input'\n",
+    )?;
+
+    let observed = collect_slurm_job(&paths, &handle, "2026-08-04T20:30:00Z")?;
+    let accounting = observed.accounting.ok_or_else(|| anyhow::anyhow!("missing accounting"))?;
+
+    assert_eq!(accounting.array_tasks.len(), 2);
+    assert_eq!(accounting.array_tasks[0].task_id, 3);
+    assert_eq!(accounting.array_tasks[0].job_id, "3459974_3");
+    assert_eq!(accounting.array_tasks[0].max_rss_bytes, Some(128 * 1024 * 1024));
+    assert_eq!(accounting.array_tasks[1].task_id, 4);
+    assert_eq!(accounting.array_tasks[1].state, SlurmJobState::Failed);
+    assert_eq!(accounting.array_tasks[1].reason.as_deref(), Some("bad input"));
+    Ok(())
+}
+
+#[test]
+fn terminal_array_accounting_requires_exact_declared_task_coverage() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let mut handle = submitted_handle(&temp, &paths)?;
+    handle.array =
+        Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: None });
+    write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &paths.sacct,
+        "#!/bin/sh\nprintf '%s\n' \
+'3459974|COMPLETED|0:0|60|00:00:58||n001|None' \
+'3459974_3|COMPLETED|0:0|60|00:00:58|1G|n001|None'\n",
+    )?;
+
+    let error = collect_slurm_job(&paths, &handle, "2026-08-04T20:30:00Z")
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("incomplete array accounting was accepted"))?;
+
+    assert!(format!("{error:#}").contains("has 1 tasks instead of 2"));
+    Ok(())
+}
+
+#[test]
 fn accounting_accepts_fractional_total_cpu_reported_by_slurm() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
     let paths = client(&temp)?;
@@ -355,6 +408,24 @@ fn accounting_accepts_fractional_total_cpu_reported_by_slurm() -> anyhow::Result
 
     assert_eq!(accounting.total_cpu_seconds, 1);
     assert_eq!(accounting.max_rss_bytes, Some(32 * 1024));
+    Ok(())
+}
+
+#[test]
+fn accounting_deserialization_defaults_additive_array_tasks() -> anyhow::Result<()> {
+    let accounting: bijux_dna_runner::api::SlurmAccounting =
+        serde_json::from_value(serde_json::json!({
+            "job_id": "3459974",
+            "state": "completed",
+            "raw_state": "COMPLETED",
+            "exit_code": 0,
+            "signal": 0,
+            "elapsed_seconds": 60,
+            "total_cpu_seconds": 58,
+            "node_list": "n001"
+        }))?;
+
+    assert!(accounting.array_tasks.is_empty());
     Ok(())
 }
 

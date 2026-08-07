@@ -9,11 +9,12 @@ pub use crate::backend::{
     CorpusMaterializationCollection, CorpusMaterializationEvidence,
     CorpusMaterializationEvidenceStatus, CorpusMaterializationSlurmResources,
     CorpusMaterializationSlurmSpec, PreparedBenchmarkSlurmJob,
-    PreparedCorpusMaterializationSlurmJob, SlurmAccounting, SlurmArraySpec, SlurmBatchSubmission,
-    SlurmClientPaths, SlurmDependencyCondition, SlurmEvidenceSource, SlurmJobHandle,
-    SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
-    CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1, CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
-    CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1, SLURM_JOB_HANDLE_SCHEMA_V1,
+    PreparedCorpusMaterializationSlurmJob, SlurmAccounting, SlurmArraySpec,
+    SlurmArrayTaskAccounting, SlurmBatchSubmission, SlurmClientPaths, SlurmDependencyCondition,
+    SlurmEvidenceSource, SlurmJobHandle, SlurmJobObservation, SlurmJobState,
+    SlurmSubmissionFailure, SlurmSubmitRequest, CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1, CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
+    SLURM_JOB_HANDLE_SCHEMA_V1,
 };
 pub use crate::command_runner::{
     invocation_hash, run_command, run_command_with_context, run_command_with_context_and_stdin,
