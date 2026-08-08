@@ -409,10 +409,11 @@ Visible aliases are part of the operator surface:
   `missing_result`, `insufficient_data`, and `unsupported_pair` evidence in the final readiness
   gate.
 - `bijux-dna bench readiness render-missing-result-report`
-  `render-missing-result-report` writes `benchmarks/readiness/missing-result-report-test.json`
-  with one governed row per expected FASTQ or BAM benchmark result, materializes a controlled
-  fake result tree, removes the governed taxonomy result manifest, and proves that the report
-  keeps the missing binding visible as a `missing_result` row instead of dropping it.
+  `render-missing-result-report` writes disposable proof under
+  `artifacts/benchmark-smoke/readiness/missing-result/fastq-bam`, with one governed row per
+  expected FASTQ or BAM benchmark result. It materializes a controlled result tree, removes the
+  governed taxonomy result manifest, and proves that the report keeps the missing binding visible
+  as a `missing_result` row instead of dropping it.
 - `bijux-dna bench readiness render-pair-readiness`
   `render-pair-readiness` writes `benchmarks/readiness/pair-readiness.tsv` with one governed
   row per FASTQ or BAM stage-tool pair, carrying the exact `adapter_status`, `parser_status`,
@@ -1359,12 +1360,11 @@ Visible aliases are part of the operator surface:
   command fails closed unless the owned benchmark-ready VCF slice retains complete expected-result
   coverage.
 - `bijux-dna bench readiness render-vcf-missing-result-report`
-  `render-vcf-missing-result-report` writes
-  `benchmarks/readiness/vcf-missing-result-report-test.json` after materializing a governed fake
-  VCF benchmark-result tree under `benchmarks/readiness/vcf-missing-result-report-fixture`,
-  deleting exactly one governed VCF manifest, and auditing the remaining rows. The report fails
-  closed unless exactly one row is visible as `missing_result` instead of disappearing from the
-  table.
+  `render-vcf-missing-result-report` writes disposable proof under
+  `artifacts/benchmark-smoke/readiness/missing-result/vcf` after materializing a governed VCF
+  benchmark-result tree, deleting exactly one governed VCF manifest, and auditing the remaining
+  rows. The report fails closed unless exactly one row is visible as `missing_result` instead of
+  disappearing from the table.
 - `bijux-dna bench readiness render-vcf-report-map`
   `render-vcf-report-map` writes `benchmarks/readiness/vcf/vcf-report-map.tsv` with one row per
   expected benchmark-ready VCF result. Each row keeps `stage_id`, `tool_id`, `section_id`,

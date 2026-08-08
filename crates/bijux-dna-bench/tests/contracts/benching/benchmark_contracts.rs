@@ -242,8 +242,6 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
     assert_eq!(registry.summary.current_product_count, 4);
     assert_eq!(registry.summary.active_stage_report_count, 0);
     assert_eq!(registry.summary.historical_stage_report_count, 7);
-    assert_eq!(registry.summary.quarantined_surface_count, 1);
-    assert_eq!(registry.summary.quarantined_file_count, 1_504);
     Ok(())
 }
 

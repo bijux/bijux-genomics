@@ -19,9 +19,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_MISSING_RESULT_REPORT_TEST_PATH: &str =
-    "benchmarks/readiness/missing-result-report-test.json";
+    "artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/report.json";
 const DEFAULT_MISSING_RESULT_REPORT_FIXTURE_ROOT: &str =
-    "benchmarks/readiness/missing-result-report-fixture";
+    "artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/results";
 const EXPECTED_RESULT_ROOT_PREFIX: &str = "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/";
 const MISSING_RESULT_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.missing_result_report.v1";
 
@@ -466,7 +466,10 @@ mod tests {
 
         assert_eq!(report.schema_version, MISSING_RESULT_REPORT_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_MISSING_RESULT_REPORT_TEST_PATH);
-        assert_eq!(report.fake_result_root, "benchmarks/readiness/missing-result-report-fixture");
+        assert_eq!(
+            report.fake_result_root,
+            "artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/results"
+        );
         assert!(report.expected_row_count > 0);
         assert_eq!(report.present_result_row_count + 1, report.expected_row_count);
         assert_eq!(report.missing_result_row_count, 1);
