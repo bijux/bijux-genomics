@@ -1,10 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
 use anyhow::{bail, Context, Result};
+use chrono::DateTime;
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -22,6 +23,7 @@ use super::{
 
 pub const IMAGE_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.container.image_campaign_plan.v1";
 pub const IMAGE_CAMPAIGN_EXECUTION_SCHEMA_V1: &str = "bijux.container.image_campaign_execution.v1";
+pub const IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1: &str = "bijux.image_campaign_job_completion.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ApptainerImageCampaignRequest {
@@ -69,6 +71,18 @@ pub struct ImageCampaignExecution {
     pub tools: BTreeMap<String, ImageCampaignToolOutcome>,
     pub passed: usize,
     pub failed: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ImageCampaignJobCompletion {
+    pub schema_version: String,
+    pub attempt_id: String,
+    pub repository_commit: String,
+    pub slurm_job_id: String,
+    pub completed_at: String,
+    pub campaign_execution: String,
+    pub campaign_execution_sha256: String,
 }
 
 #[must_use]
@@ -175,6 +189,103 @@ pub fn execute_apptainer_image_campaign(
         execution_from_tools(commit, catalog_sha256, catalog.apptainer_architecture, tools);
     publish_campaign_execution(&evidence_root, &execution)?;
     Ok(execution)
+}
+
+/// Admit a terminal Slurm campaign receipt and every publication it references.
+///
+/// # Errors
+/// Returns an error for receipt, source, catalog, roster, publication, image, or runtime drift.
+pub fn verify_apptainer_image_campaign_receipt(
+    repository_root: &Path,
+    study_root: &Path,
+    apptainer_executable: &Path,
+    attempt_root: &Path,
+) -> Result<ImageCampaignExecution> {
+    let completion_path = attempt_root.join("completion.json");
+    let completion: ImageCampaignJobCompletion = serde_json::from_slice(
+        &fs::read(&completion_path)
+            .with_context(|| format!("read {}", completion_path.display()))?,
+    )
+    .with_context(|| format!("parse {}", completion_path.display()))?;
+    if completion.schema_version != IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1
+        || completion.attempt_id.trim().is_empty()
+        || completion.slurm_job_id.is_empty()
+        || !completion.slurm_job_id.bytes().all(|byte| byte.is_ascii_digit())
+        || DateTime::parse_from_rfc3339(&completion.completed_at).is_err()
+        || completion.campaign_execution != "campaign-execution.json"
+        || !valid_sha256(&completion.campaign_execution_sha256)
+    {
+        bail!("image campaign completion identity is invalid");
+    }
+    let execution_path = attempt_root.join(&completion.campaign_execution);
+    if bijux_dna_infra::hash_file_sha256(&execution_path)? != completion.campaign_execution_sha256 {
+        bail!("image campaign execution digest differs from completion");
+    }
+
+    let source_commit = clean_repository_head_commit(repository_root)?;
+    if completion.repository_commit != source_commit {
+        bail!("image campaign completion differs from frozen source commit");
+    }
+    let catalog = load_container_catalog(repository_root)?;
+    let validated = validate_container_catalog(repository_root)?;
+    if !validated.is_valid() {
+        bail!("image campaign catalog validation failed: {}", validated.errors.join("; "));
+    }
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    let tools = load_progress(
+        &execution_path,
+        &source_commit,
+        &catalog_sha256,
+        &catalog.apptainer_architecture,
+    )?;
+    let retained = retained_apptainer_tool_ids(repository_root, &catalog.apptainer_architecture)?
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    if tools.keys().cloned().collect::<BTreeSet<_>>() != retained
+        || tools.len() != validated.retained_count
+        || tools.values().any(|outcome| {
+            outcome.status != ImageCampaignToolStatus::Passed
+                || outcome.publication.is_none()
+                || outcome.error.is_some()
+        })
+    {
+        bail!("image campaign receipt does not close the retained tool roster");
+    }
+    let execution = execution_from_tools(
+        source_commit.clone(),
+        catalog_sha256.clone(),
+        catalog.apptainer_architecture.clone(),
+        tools.clone(),
+    );
+    let canonical_path = study_root
+        .join("containers/evidence/image-campaigns")
+        .join(&source_commit)
+        .join("execution.json");
+    let canonical: ImageCampaignExecution = serde_json::from_slice(
+        &fs::read(&canonical_path).with_context(|| format!("read {}", canonical_path.display()))?,
+    )?;
+    if canonical != execution {
+        bail!("image campaign receipt differs from canonical execution publication");
+    }
+    verify_resumed_outcomes(
+        &ApptainerImageCampaignRequest {
+            repository_root: repository_root.to_path_buf(),
+            study_root: study_root.to_path_buf(),
+            apptainer_executable: apptainer_executable.to_path_buf(),
+            worker_count: 1,
+        },
+        &catalog.apptainer_architecture,
+        &source_commit,
+        &catalog_sha256,
+        &Mutex::new(tools),
+    )?;
+    Ok(execution)
+}
+
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 fn execute_campaign_tools(

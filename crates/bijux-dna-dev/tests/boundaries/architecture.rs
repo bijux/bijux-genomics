@@ -123,6 +123,7 @@ fn dev_tree_matches_architecture_contract() {
         "execution_contract.rs",
         "external_artifact.rs",
         "image_activation.rs",
+        "image_campaign.rs",
         "inventory.rs",
         "metadata.rs",
         "mod.rs",

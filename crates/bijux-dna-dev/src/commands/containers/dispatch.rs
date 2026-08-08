@@ -201,6 +201,7 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::ExternalArtifact => external_artifact::run(workspace, args),
         NativeContainerCommandKey::SecurityToolchain => security_toolchain::run(workspace, args),
         NativeContainerCommandKey::ImageActivation => image_activation::run(workspace, args),
+        NativeContainerCommandKey::ImageCampaign => image_campaign::run(workspace, args),
         NativeContainerCommandKey::ImageStorage => storage::run(workspace, args),
         NativeContainerCommandKey::PipelineContract => {
             execution_contract::run_pipeline_contract(workspace, args)

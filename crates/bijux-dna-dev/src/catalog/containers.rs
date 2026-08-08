@@ -332,6 +332,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ImageActivation,
         ),
         native(
+            "image-campaign",
+            "Admit terminal retained-image campaign receipts and referenced publications.",
+            NativeContainerCommandKey::ImageCampaign,
+        ),
+        native(
             "image-storage",
             "Plan, apply, verify, report, or roll back governed image quarantine.",
             NativeContainerCommandKey::ImageStorage,

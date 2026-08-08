@@ -10,9 +10,11 @@ use std::time::Duration;
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
     clean_repository_head_commit, derive_image_inventory_evidence, prepare_apptainer_tool_contract,
-    publish_canonical_apptainer_image, tool_contract_labels, CanonicalApptainerImageDestination,
-    CanonicalApptainerImagePublicationRequest, ContainerImageState,
+    publish_canonical_apptainer_image, tool_contract_labels,
+    verify_apptainer_image_campaign_receipt, CanonicalApptainerImageDestination,
+    CanonicalApptainerImagePublicationRequest, ContainerImageState, ImageCampaignJobCompletion,
     ImageInventoryDerivationRequest, ToolContractBuildRequest,
+    IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1,
 };
 
 #[test]
@@ -110,6 +112,31 @@ fn clean_commit_identity_rejects_uncommitted_build_inputs() -> Result<()> {
     fs::write(repository.path().join("containers/apptainer/contract_tool.def"), "changed")?;
     assert!(clean_repository_head_commit(repository.path())
         .is_err_and(|error| error.to_string().contains("repository changes")));
+    Ok(())
+}
+
+#[test]
+fn campaign_receipt_rejects_execution_digest_mutation() -> Result<()> {
+    let attempt = tempfile::tempdir()?;
+    let execution_path = attempt.path().join("campaign-execution.json");
+    fs::write(&execution_path, b"{}\n")?;
+    let completion = ImageCampaignJobCompletion {
+        schema_version: IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1.to_string(),
+        attempt_id: "fixture-attempt-001".to_string(),
+        repository_commit: "a".repeat(40),
+        slurm_job_id: "12345".to_string(),
+        completed_at: "2026-08-08T19:45:53Z".to_string(),
+        campaign_execution: "campaign-execution.json".to_string(),
+        campaign_execution_sha256: "b".repeat(64),
+    };
+    bijux_dna_infra::atomic_write_json(&attempt.path().join("completion.json"), &completion)?;
+    assert!(verify_apptainer_image_campaign_receipt(
+        Path::new("/unreached/repository"),
+        Path::new("/unreached/study"),
+        Path::new("/unreached/apptainer"),
+        attempt.path(),
+    )
+    .is_err_and(|error| error.to_string().contains("digest differs")));
     Ok(())
 }
 

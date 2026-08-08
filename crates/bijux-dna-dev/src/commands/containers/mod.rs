@@ -19,6 +19,7 @@ mod dispatch;
 mod execution_contract;
 mod external_artifact;
 mod image_activation;
+mod image_campaign;
 mod inventory;
 mod metadata;
 mod qualification_registry;
