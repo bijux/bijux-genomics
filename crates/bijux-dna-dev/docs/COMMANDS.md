@@ -284,6 +284,7 @@ run-apptainer-frontend-security
 run-apptainer-frontend-smoke
 run-evidence
 runtime-verification
+security-toolchain
 smoke-apptainer
 smoke-containers-apptainer
 smoke-containers-apptainer-apptainer-run

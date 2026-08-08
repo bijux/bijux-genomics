@@ -322,6 +322,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ExternalArtifact,
         ),
         native(
+            "security-toolchain",
+            "Admit an immutable security scanner toolchain acquisition.",
+            NativeContainerCommandKey::SecurityToolchain,
+        ),
+        native(
             "image-activation",
             "Plan, apply, verify, or roll back canonical image activation.",
             NativeContainerCommandKey::ImageActivation,
