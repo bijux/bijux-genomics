@@ -101,7 +101,7 @@ fn normalized_checkout_paths(request: &RepositoryFreezeRequest) -> Result<Vec<Pa
 fn freeze_target(request: &RepositoryFreezeRequest, checkout_paths: &[PathBuf]) -> PathBuf {
     let root = &request.governance.paths.frozen_repositories;
     match request.scope {
-        RepositoryFreezeScope::Contracts => root.join(&request.commit),
+        RepositoryFreezeScope::Contracts => root.join("contract-snapshots").join(&request.commit),
         RepositoryFreezeScope::Sources => {
             let mut digest = Sha256::new();
             for (index, path) in checkout_paths.iter().enumerate() {
@@ -117,7 +117,7 @@ fn freeze_target(request: &RepositoryFreezeRequest, checkout_paths: &[PathBuf]) 
                 &identity[..12]
             ))
         }
-        RepositoryFreezeScope::Complete => root.join("image-builds").join(&request.commit),
+        RepositoryFreezeScope::Complete => root.join(&request.commit),
     }
 }
 

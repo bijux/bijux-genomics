@@ -149,9 +149,10 @@ fn repository_freeze_materializes_scoped_self_contained_snapshots() -> Result<()
     assert_eq!(std::fs::read_to_string(sources.join("other/source.txt"))?, "complete tree\n");
     assert!(!sources.join("containers/contracts/governance.yml").exists());
     assert_eq!(
-        complete.parent().and_then(Path::file_name).and_then(|value| value.to_str()),
-        Some("image-builds")
+        contracts.parent().and_then(Path::file_name).and_then(|value| value.to_str()),
+        Some("contract-snapshots")
     );
+    assert_eq!(complete.parent(), Some(governance.paths.frozen_repositories.as_path()));
     assert_eq!(
         sources.parent().and_then(Path::file_name).and_then(|value| value.to_str()),
         Some("source-freezes")

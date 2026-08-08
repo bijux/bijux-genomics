@@ -310,7 +310,8 @@ execution checkout:
 run_commit="$(git rev-parse HEAD)"
 cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --governance containers/contracts/sites/lunarc.yml \
-  --commit "${run_commit}"
+  --commit "${run_commit}" \
+  --scope complete
 cargo build --locked --release -p bijux-dna-dev
 operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
 test -x "${operator_program}"
