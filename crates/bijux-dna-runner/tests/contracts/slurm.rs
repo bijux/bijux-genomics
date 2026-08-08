@@ -1,8 +1,6 @@
 #![cfg(unix)]
 
-use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
-use std::{fs, io::Write as _};
 
 use bijux_dna_runner::api::{
     cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,
@@ -10,18 +8,7 @@ use bijux_dna_runner::api::{
     SlurmSubmitRequest,
 };
 
-fn write_executable(path: &Path, body: &str) -> anyhow::Result<()> {
-    let staging = path.with_extension("staging");
-    let mut file = fs::OpenOptions::new().write(true).create_new(true).open(&staging)?;
-    file.write_all(body.as_bytes())?;
-    let mut permissions = file.metadata()?.permissions();
-    permissions.set_mode(0o755);
-    file.set_permissions(permissions)?;
-    file.sync_all()?;
-    drop(file);
-    fs::rename(staging, path)?;
-    Ok(())
-}
+use crate::scheduler_executable::write_executable;
 
 fn shell_literal(path: &Path) -> String {
     format!("'{}'", path.display().to_string().replace('\'', "'\\''"))

@@ -14,6 +14,9 @@ use bijux_dna_runner::api::{
 };
 
 #[cfg(unix)]
+use crate::scheduler_executable::write_executable;
+
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt as _;
 
 #[test]
@@ -360,13 +363,4 @@ fn scheduler_client(root: &std::path::Path, sbatch_body: &str) -> anyhow::Result
     };
     write_executable(&paths.sbatch, &format!("#!/bin/sh\n{sbatch_body}"))?;
     Ok(paths)
-}
-
-#[cfg(unix)]
-fn write_executable(path: &std::path::Path, body: &str) -> anyhow::Result<()> {
-    fs::write(path, body)?;
-    let mut permissions = fs::metadata(path)?.permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(path, permissions)?;
-    Ok(())
 }
