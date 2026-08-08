@@ -8,7 +8,7 @@ use super::catalog::{load_retained_tool, CatalogToolSource};
 use super::labels::tool_contract_labels;
 use super::model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
-    CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
+    CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
 };
 use super::validation::validate_tool_contract;
 
@@ -17,6 +17,13 @@ struct InterfaceIdentity<'a> {
     expected_binary: &'a str,
     version_command: &'a str,
     expected_version_regex: &'a str,
+}
+
+#[derive(Serialize)]
+struct CatalogEntryIdentity<'a> {
+    schema_version: &'static str,
+    architecture: &'a str,
+    tool: &'a super::catalog::ContainerCatalogTool,
 }
 
 /// Generate one embedded contract and a definition that installs it.
@@ -70,6 +77,11 @@ fn derive_contract(
         .to_string_lossy()
         .replace('\\', "/");
     let catalog_sha256 = sha256_hex(&source.catalog_bytes);
+    let catalog_entry_sha256 = sha256_json(&CatalogEntryIdentity {
+        schema_version: super::catalog::CONTAINER_CATALOG_SCHEMA_V1,
+        architecture: &request.architecture,
+        tool: &source.tool,
+    })?;
     let recipe_sha256 = sha256_hex(&source.recipe_bytes);
     let interface_sha256 = sha256_json(&InterfaceIdentity {
         expected_binary: &source.tool.expected_bin,
@@ -78,10 +90,9 @@ fn derive_contract(
     })?;
     let build_evidence_id = sha256_json(&serde_json::json!({
         "architecture": request.architecture,
-        "catalog_sha256": catalog_sha256,
+        "catalog_entry_sha256": catalog_entry_sha256,
         "interface_sha256": interface_sha256,
         "recipe_sha256": recipe_sha256,
-        "repository_commit": request.repository_commit,
         "tool_id": request.tool_id,
     }))?;
     let (source_sha256, pinned_commit) = if valid_sha256(&source.tool.source_sha256) {
@@ -92,10 +103,11 @@ fn derive_contract(
         bail!("retained tool {} has no valid source identity", request.tool_id);
     };
     let contract = ContainerToolContract {
-        schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V2.to_string(),
         tool_id: source.tool.id.clone(),
         version: source.tool.version.clone(),
         support_disposition: source.tool.support_disposition.clone(),
+        catalog_entry_sha256,
         catalog_sha256,
         recipe_path,
         recipe_sha256,

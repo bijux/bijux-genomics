@@ -16,6 +16,10 @@ pub fn tool_contract_labels(contract: &ContainerToolContract) -> ToolContractLab
             "io.bijux.tool-contract.support-disposition".to_string(),
             contract.support_disposition.clone(),
         ),
+        (
+            "io.bijux.tool-contract.catalog-entry-sha256".to_string(),
+            contract.catalog_entry_sha256.clone(),
+        ),
         ("io.bijux.tool-contract.catalog-sha256".to_string(), contract.catalog_sha256.clone()),
         ("io.bijux.tool-contract.recipe-path".to_string(), contract.recipe_path.clone()),
         ("io.bijux.tool-contract.recipe-sha256".to_string(), contract.recipe_sha256.clone()),

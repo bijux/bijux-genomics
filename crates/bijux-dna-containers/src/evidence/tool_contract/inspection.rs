@@ -12,9 +12,9 @@ use sha2::{Digest, Sha256};
 use super::labels::{validate_tool_contract_labels, ToolContractLabels};
 use super::model::{
     ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
 };
-use super::validation::{validate_sha256, validate_tool_contract};
+use super::validation::{tool_contract_is_compatible, validate_sha256, validate_tool_contract};
 
 /// Read and verify the contract inside one immutable Apptainer image.
 ///
@@ -51,7 +51,7 @@ pub fn verify_apptainer_tool_contract(
     let observed: ContainerToolContract = serde_json::from_slice(&contract_output.stdout)
         .with_context(|| format!("parse embedded tool contract from {}", image.display()))?;
     validate_tool_contract(&observed)?;
-    if &observed != expected_contract {
+    if !tool_contract_is_compatible(&observed, expected_contract) {
         bail!("embedded tool contract differs from expected build identity");
     }
 
@@ -72,7 +72,7 @@ pub fn verify_apptainer_tool_contract(
     let labels = collect_contract_labels(&inspection);
     validate_tool_contract_labels(&observed, &labels)?;
     Ok(ToolImageIdentityEvidence {
-        schema_version: TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1.to_string(),
+        schema_version: TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2.to_string(),
         image_sha256,
         contract: observed,
         labels,

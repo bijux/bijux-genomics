@@ -30,8 +30,8 @@ pub use inspection::verify_apptainer_tool_contract;
 pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContractLabels};
 pub use model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
-    ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1,
+    ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
 };
 pub use preparation::{derive_apptainer_tool_contract, prepare_apptainer_tool_contract};
 pub use recipe_identity::{
@@ -54,7 +54,9 @@ pub use smoke::{
     run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
     APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
 };
-pub use validation::{validate_tool_contract, validate_tool_image_identity_evidence};
+pub use validation::{
+    tool_contract_is_compatible, validate_tool_contract, validate_tool_image_identity_evidence,
+};
 pub use version_catalog::{
     derive_container_version_map, render_container_version_index, render_container_version_map,
     ContainerVersionMap, ContainerVersionMapItem, CONTAINER_VERSION_CATALOG_PATH,

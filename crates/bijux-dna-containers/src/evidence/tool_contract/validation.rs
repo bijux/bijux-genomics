@@ -3,8 +3,8 @@ use regex::Regex;
 
 use super::labels::validate_tool_contract_labels;
 use super::model::{
-    ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1,
+    ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
 };
 
 /// Validate every immutable field in an embedded tool contract.
@@ -12,7 +12,7 @@ use super::model::{
 /// # Errors
 /// Returns an error for malformed, incomplete, unsupported, or ambiguous identities.
 pub fn validate_tool_contract(contract: &ContainerToolContract) -> Result<()> {
-    if contract.schema_version != CONTAINER_TOOL_CONTRACT_SCHEMA_V1 {
+    if contract.schema_version != CONTAINER_TOOL_CONTRACT_SCHEMA_V2 {
         bail!("unsupported tool-contract schema: {}", contract.schema_version);
     }
     for (label, value) in [
@@ -35,6 +35,7 @@ pub fn validate_tool_contract(contract: &ContainerToolContract) -> Result<()> {
         bail!("tool contract support disposition must be retained");
     }
     for (label, value) in [
+        ("catalog entry", contract.catalog_entry_sha256.as_str()),
         ("catalog", contract.catalog_sha256.as_str()),
         ("recipe", contract.recipe_sha256.as_str()),
         ("interface", contract.interface_sha256.as_str()),
@@ -63,7 +64,8 @@ pub fn validate_tool_image_identity_evidence(
     expected_image_sha256: &str,
     expected_contract: &ContainerToolContract,
 ) -> Result<()> {
-    if evidence.schema_version != TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1 {
+    validate_tool_contract(expected_contract)?;
+    if evidence.schema_version != TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2 {
         bail!("unsupported tool-image identity evidence schema");
     }
     validate_sha256(&evidence.image_sha256, "image")?;
@@ -71,10 +73,37 @@ pub fn validate_tool_image_identity_evidence(
         bail!("tool-image identity evidence differs from the requested image");
     }
     validate_tool_contract(&evidence.contract)?;
-    if &evidence.contract != expected_contract {
+    if !tool_contract_is_compatible(&evidence.contract, expected_contract) {
         bail!("tool-image identity evidence differs from the requested contract");
     }
     validate_tool_contract_labels(&evidence.contract, &evidence.labels)
+}
+
+/// Compare image-defining fields while retaining whole-catalog and source-commit provenance.
+///
+/// A catalog roster or unrelated repository change must not force an otherwise identical image
+/// to be rebuilt. Tool-local catalog, recipe, source, interface, or architecture changes remain
+/// incompatible.
+#[must_use]
+pub fn tool_contract_is_compatible(
+    observed: &ContainerToolContract,
+    expected: &ContainerToolContract,
+) -> bool {
+    observed.schema_version == expected.schema_version
+        && observed.tool_id == expected.tool_id
+        && observed.version == expected.version
+        && observed.support_disposition == expected.support_disposition
+        && observed.catalog_entry_sha256 == expected.catalog_entry_sha256
+        && observed.recipe_path == expected.recipe_path
+        && observed.recipe_sha256 == expected.recipe_sha256
+        && observed.source_sha256 == expected.source_sha256
+        && observed.pinned_commit == expected.pinned_commit
+        && observed.architecture == expected.architecture
+        && observed.build_evidence_id == expected.build_evidence_id
+        && observed.expected_binary == expected.expected_binary
+        && observed.version_command == expected.version_command
+        && observed.expected_version_regex == expected.expected_version_regex
+        && observed.interface_sha256 == expected.interface_sha256
 }
 
 pub(super) fn validate_sha256(value: &str, label: &str) -> Result<()> {

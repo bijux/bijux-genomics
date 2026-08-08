@@ -6,11 +6,11 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_containers::evidence::tool_contract::{
     apptainer_recipe_identity_at_commit, catalog_identity_at_commit,
-    container_build_evidence_matches_recipe, load_container_catalog,
-    prepare_apptainer_tool_contract, retained_apptainer_tool_ids, tool_contract_labels,
-    validate_container_catalog, validate_tool_contract, validate_tool_contract_labels,
-    validate_tool_image_identity_evidence, verify_apptainer_tool_contract,
-    ToolContractBuildRequest,
+    container_build_evidence_matches_recipe, derive_apptainer_tool_contract,
+    load_container_catalog, prepare_apptainer_tool_contract, retained_apptainer_tool_ids,
+    tool_contract_is_compatible, tool_contract_labels, validate_container_catalog,
+    validate_tool_contract, validate_tool_contract_labels, validate_tool_image_identity_evidence,
+    verify_apptainer_tool_contract, ToolContractBuildRequest,
 };
 
 #[test]
@@ -76,6 +76,46 @@ fn retained_contract_is_catalog_derived_and_installed_once() -> Result<()> {
         );
         assert!(!rendered.contains(&format!("{key} \"{value}\"")));
     }
+    Ok(())
+}
+
+#[test]
+fn unrelated_catalog_and_commit_changes_preserve_tool_image_identity() -> Result<()> {
+    let root = repository_root()?;
+    let original = derive_apptainer_tool_contract(
+        &root,
+        "samtools",
+        "1234567890abcdef1234567890abcdef12345678",
+        "linux/amd64",
+    )?;
+    let revised_root = bijux_dna_testkit::tempdir_for("container-tool-contract-roster-change");
+    let contract_root = revised_root.path().join("containers/contracts");
+    let recipe_root = revised_root.path().join("containers/apptainer");
+    fs::create_dir_all(&contract_root)?;
+    fs::create_dir_all(&recipe_root)?;
+    let catalog = fs::read_to_string(root.join("containers/contracts/catalog.toml"))?.replacen(
+        "display_name = \"AdapterRemoval\"",
+        "display_name = \"AdapterRemoval audited roster\"",
+        1,
+    );
+    fs::write(contract_root.join("catalog.toml"), catalog)?;
+    fs::copy(root.join("containers/apptainer/samtools.def"), recipe_root.join("samtools.def"))?;
+    let revised = derive_apptainer_tool_contract(
+        revised_root.path(),
+        "samtools",
+        "abcdef1234567890abcdef1234567890abcdef12",
+        "linux/amd64",
+    )?;
+
+    assert_ne!(original.catalog_sha256, revised.catalog_sha256);
+    assert_ne!(original.repository_commit, revised.repository_commit);
+    assert_eq!(original.catalog_entry_sha256, revised.catalog_entry_sha256);
+    assert_eq!(original.build_evidence_id, revised.build_evidence_id);
+    assert!(tool_contract_is_compatible(&original, &revised));
+
+    let mut tool_drift = revised;
+    tool_drift.catalog_entry_sha256 = "f".repeat(64);
+    assert!(!tool_contract_is_compatible(&original, &tool_drift));
     Ok(())
 }
 
@@ -363,6 +403,13 @@ fn runtime_verification_binds_contract_labels_and_image_digest() -> Result<()> {
     assert_eq!(verified.contract, prepared.contract);
     assert_eq!(verified.image_sha256, image_sha256);
     validate_tool_image_identity_evidence(&verified, &image_sha256, &prepared.contract)?;
+
+    let mut roster_changed = prepared.contract.clone();
+    roster_changed.catalog_sha256 = "e".repeat(64);
+    roster_changed.repository_commit = "abcdef1234567890abcdef1234567890abcdef12".to_string();
+    let reused =
+        verify_apptainer_tool_contract(&fake_apptainer, &image, &image_sha256, &roster_changed)?;
+    validate_tool_image_identity_evidence(&reused, &image_sha256, &roster_changed)?;
 
     let mut stale_labels = verified.clone();
     stale_labels.labels.insert("io.bijux.tool-contract.version".to_string(), "stale".to_string());

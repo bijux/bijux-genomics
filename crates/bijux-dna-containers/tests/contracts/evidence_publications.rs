@@ -349,7 +349,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let runtime_path =
         root.join("containers/contracts/schemas/runtime-verification-publication.v2.json");
     let tool_identity_path =
-        root.join("containers/contracts/schemas/tool-image-identity-evidence.v1.json");
+        root.join("containers/contracts/schemas/tool-image-identity-evidence.v2.json");
     let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
@@ -357,7 +357,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         root.join("containers/contracts/schemas/qualification-run-registry.v1.json");
     let qualification_audit_path =
         root.join("containers/contracts/schemas/qualification-run-id-audit.v2.json");
-    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v1.json");
+    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v2.json");
     let build_evidence_path = root.join("containers/contracts/schemas/build-evidence.v1.json");
     let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");
     let campaign_execution_path =
