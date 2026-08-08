@@ -297,7 +297,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         .iter()
         .find(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
                 && row.get("asset_role").and_then(serde_json::Value::as_str) == Some("sites_vcf")
         })
         .expect("bam genotyping sites row");
