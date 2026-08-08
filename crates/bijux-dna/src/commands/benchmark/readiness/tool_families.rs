@@ -350,7 +350,7 @@ mod tests {
         assert_eq!(fastuniq.family_id, "duplicate_handling");
 
         let angsd = report.rows.iter().find(|row| row.tool_id == "angsd").expect("angsd row");
-        assert_eq!(angsd.family_id, "genotype_likelihood_analysis");
+        assert_eq!(angsd.family_id, "genotyping_and_population_inference");
 
         let bcftools =
             report.rows.iter().find(|row| row.tool_id == "bcftools").expect("bcftools row");

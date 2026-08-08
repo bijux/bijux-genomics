@@ -110,8 +110,8 @@ summary = "Tools whose primary benchmark role is genotyping, VCF-oriented varian
 tool_ids = ["gatk"]
 
 [[families]]
-family_id = "genotype_likelihood_analysis"
-summary = "Tools whose primary benchmark role is genotype-likelihood analysis for downstream inference."
+family_id = "genotyping_and_population_inference"
+summary = "Tools whose primary benchmark role is genotype-likelihood analysis for genotyping and population inference."
 tool_ids = ["angsd"]
 
 [[families]]
