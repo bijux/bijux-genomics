@@ -34,7 +34,7 @@ use crate::commands::cli::render;
 use bijux_dna_stage_contract::{execution_step_from_stage_plan, PlanDecisionReason, StagePlanV1};
 
 pub(crate) const DEFAULT_INPUT_PREFLIGHT_TESTS_PATH: &str =
-    "benchmarks/readiness/tools/input-preflight-tests.json";
+    "artifacts/benchmark-smoke/readiness/tools/input-preflight-tests.json";
 const INPUT_PREFLIGHT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.input_preflight_audit.v1";
 const REQUIRED_INPUT_CLASSES: [&str; 6] = ["fastq", "bam", "vcf", "reference", "database", "panel"];
 

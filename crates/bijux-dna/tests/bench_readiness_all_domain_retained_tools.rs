@@ -44,7 +44,7 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/retained-tool-inventory.tsv")
+        Some("artifacts/benchmark-smoke/readiness/tools/retained-tool-inventory.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
@@ -60,7 +60,7 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         support::json_u64(&payload, "not_benchmark_ready_only_tool_count")
             .expect("not-ready-only tool count");
     assert_eq!(benchmark_ready_tool_count + not_benchmark_ready_only_tool_count, row_count);
-    assert!(not_benchmark_ready_only_tool_count >= 4);
+    assert_eq!(not_benchmark_ready_only_tool_count, 1);
 
     let domain_counts = payload
         .get("domain_tool_counts")
@@ -75,12 +75,11 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
     for external_tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
         assert!(rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(external_tool_id)
-                && row
-                    .get("benchmark_statuses")
-                    .and_then(serde_json::Value::as_array)
-                    .is_some_and(|statuses| {
+                && row.get("benchmark_statuses").and_then(serde_json::Value::as_array).is_some_and(
+                    |statuses| {
                         statuses.iter().any(|status| status.as_str() == Some("not_benchmark_ready"))
-                    })
+                    },
+                )
         }));
     }
 

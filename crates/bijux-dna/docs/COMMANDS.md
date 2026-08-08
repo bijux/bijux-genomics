@@ -1238,7 +1238,7 @@ Visible aliases are part of the operator surface:
   `not_benchmark_ready`.
 - `bijux-dna bench readiness render-all-domain-retained-tools`
   `render-all-domain-retained-tools` writes
-  `benchmarks/readiness/tools/retained-tool-inventory.tsv` with one governed row per retained
+  `artifacts/benchmark-smoke/readiness/tools/retained-tool-inventory.tsv` with one governed row per retained
   FASTQ, BAM, and VCF tool across the unified active stage-tool surface. Each row keeps
   `tool_id`, `domains`, `active_stage_count`, `benchmark_ready_stage_count`,
   `active_binding_count`, `benchmark_ready_binding_count`, `benchmark_statuses`,
@@ -1248,14 +1248,14 @@ Visible aliases are part of the operator surface:
   exactly once and no retained tool serves zero active stages.
 - `bijux-dna bench readiness render-executable-resolution`
   `render-executable-resolution` writes
-  `benchmarks/readiness/tools/executable-resolution.tsv` with one governed row per retained tool,
+  `artifacts/benchmark-smoke/readiness/tools/executable-resolution.tsv` with one governed row per retained tool,
   resolving each runtime surface to `host_binary`, `docker_image`, `apptainer_image`, or
   `unavailable_with_reason`. Each row keeps `tool_id`, `domains`, `active_stage_ids`,
   `install_kind`, `resolution_target`, `command_entrypoint`, `runtime_probe_paths`, and any
   explicit unavailable reason visible. The command fails closed if cross-domain runtime probes
   drift or a retained tool falls outside the governed resolution classes.
 - `bijux-dna bench readiness render-apptainer-map`
-  `render-apptainer-map` writes `benchmarks/readiness/tools/apptainer-map.tsv` with one governed
+  `render-apptainer-map` writes `artifacts/benchmark-smoke/readiness/tools/apptainer-map.tsv` with one governed
   row per retained Docker-backed tool, translating the local Docker image surface into the exact
   Apptainer conversion contract used by the governed HPC cache layout. Each row keeps `tool_id`,
   `domains`, `active_stage_ids`, `docker_runtime`, `image_uri`, `local_image_name`, `dockerfile`,
@@ -1265,7 +1265,7 @@ Visible aliases are part of the operator surface:
   retained Docker-backed tool falls out of scope, or if the rendered SIF target drifts from the
   stable cache-key derivation shared with `env ensure`.
 - `bijux-dna bench readiness render-version-probes`
-  `render-version-probes` writes `benchmarks/readiness/tools/version-probes.json` with one
+  `render-version-probes` writes `artifacts/benchmark-smoke/readiness/tools/version-probes.json` with one
   governed row per retained tool, joining executable-resolution coverage to runtime
   `version_cmd` declarations and governed registry `expected_version_regex` contracts. Ready rows
   keep `version_cmd`, `help_cmd`, parser kind `first_dotted_numeric_token`,
@@ -1275,7 +1275,7 @@ Visible aliases are part of the operator surface:
   between runtime probes and governed registries.
 - `bijux-dna bench readiness render-input-preflight-tests`
   `render-input-preflight-tests` writes
-  `benchmarks/readiness/tools/input-preflight-tests.json` with one governed missing-input probe
+  `artifacts/benchmark-smoke/readiness/tools/input-preflight-tests.json` with one governed missing-input probe
   row per retained-tool readiness binding plus explicit fixture-support coverage where the owned
   adapter surface does not consume the asset directly. Each row keeps `domain`, `stage_id`,
   `tool_id`, `contract_surface`, `missing_input_role`, `missing_input_class`, the governed
@@ -1288,7 +1288,7 @@ Visible aliases are part of the operator surface:
   real runtime-validation or adapter-contract surface.
 - `bijux-dna bench readiness render-output-contract-tests`
   `render-output-contract-tests` writes
-  `benchmarks/readiness/tools/output-contract-tests.json` with one governed row per retained-tool
+  `artifacts/benchmark-smoke/readiness/tools/output-contract-tests.json` with one governed row per retained-tool
   readiness binding, joining output declarations to independent execution proof and governed
   runtime-path proof. Each row keeps `domain`, `stage_id`, `tool_id`, declared raw outputs,
   normalized metrics, index outputs, governed stdout/stderr plus stage-result manifest paths, the
@@ -1298,7 +1298,7 @@ Visible aliases are part of the operator surface:
   declaration-only or fake-only contract.
 - `bijux-dna bench readiness render-real-output-parser-smoke`
   `render-real-output-parser-smoke` writes
-  `benchmarks/readiness/tools/real-output-parser-smoke.json` with one governed real-output parser
+  `artifacts/benchmark-smoke/readiness/tools/real-output-parser-smoke.json` with one governed real-output parser
   probe per retained tool family. Each row keeps the family id and summary, representative stage
   and tool, proof path, parser surface, parsed schema version, top-level key audit, normalized
   snapshot, and an explicit pass reason. The command fails closed unless every retained family has
@@ -1307,7 +1307,7 @@ Visible aliases are part of the operator surface:
   fixtures alone.
 - `bijux-dna bench readiness render-retained-toolset-executable-local`
   `render-retained-toolset-executable-local` writes
-  `benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json` as the final local retained
+  `artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json` as the final local retained
   tool execution gate for Goals 421–429. The gate rerenders the governed retained inventory,
   executable-resolution, version-probe, Apptainer-map, input-preflight, output-contract, and
   real-output parser proof surfaces, and it validates the retained host/container smoke manifests

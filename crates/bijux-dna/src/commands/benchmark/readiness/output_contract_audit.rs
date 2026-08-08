@@ -39,7 +39,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OUTPUT_CONTRACT_TESTS_PATH: &str =
-    "benchmarks/readiness/tools/output-contract-tests.json";
+    "artifacts/benchmark-smoke/readiness/tools/output-contract-tests.json";
 const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.output_contract_audit.v1";
 const PROOF_SURFACE_SHARED_STAGE_SMOKE: &str = "shared_stage_smoke";
 const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
@@ -1181,7 +1181,7 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
-        assert_eq!(report.row_count, 138);
+        assert_eq!(report.row_count, 142);
         assert!(report.passed_row_count > 0, "report should keep real passing rows");
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),

@@ -43,7 +43,7 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/executable-resolution.tsv")
+        Some("artifacts/benchmark-smoke/readiness/tools/executable-resolution.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let row_count = rows.len() as u64;

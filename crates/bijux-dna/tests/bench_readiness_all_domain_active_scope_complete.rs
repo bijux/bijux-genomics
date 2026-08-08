@@ -73,7 +73,10 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
             == Some("all_domain_retained_tools")
             && check.get("proof_paths").and_then(serde_json::Value::as_array).is_some_and(|paths| {
                 paths.iter().any(|path| {
-                    path.as_str() == Some("benchmarks/readiness/tools/retained-tool-inventory.tsv")
+                    path.as_str()
+                        == Some(
+                            "artifacts/benchmark-smoke/readiness/tools/retained-tool-inventory.tsv",
+                        )
                 })
             })
             && check.get("detail").and_then(serde_json::Value::as_str).is_some_and(|detail| {

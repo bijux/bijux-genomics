@@ -27,7 +27,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH: &str =
-    "benchmarks/readiness/tools/real-output-parser-smoke.json";
+    "artifacts/benchmark-smoke/readiness/tools/real-output-parser-smoke.json";
 const REAL_OUTPUT_PARSER_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.real_output_parser_smoke.v1";
 const DEFAULT_PROBE_ROOT: &str =
