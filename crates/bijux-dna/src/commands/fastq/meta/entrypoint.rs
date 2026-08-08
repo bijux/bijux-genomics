@@ -191,6 +191,20 @@ pub(crate) fn handle_meta_commands(
                         )?;
                         crate::commands::cli::render::json::print_pretty(&collection)?;
                     }
+                    cli::BenchCorpusMaterializationCommand::CorrectEvidence(args) => {
+                        let correction = bijux_dna_api::v1::api::bench::publish_corpus_materialization_evidence_correction(
+                            &bijux_dna_api::v1::api::bench::CorpusMaterializationEvidenceCorrectionRequest {
+                                evidence_path: args.evidence.clone(),
+                                output_path: args.output.clone(),
+                                observed_local_time: args.observed_local_time.clone(),
+                                source_timezone: args.source_timezone.clone(),
+                                corrected_at_utc: args.corrected_at_utc.clone(),
+                                source_commit: args.source_commit.clone(),
+                                reason: args.reason.clone(),
+                            },
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&correction)?;
+                    }
                 },
                 BenchCommand::Status => {
                     let cwd = std::env::current_dir()?;

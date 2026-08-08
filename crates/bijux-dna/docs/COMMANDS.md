@@ -237,6 +237,10 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-materialization collect`
   Performs one observation and publishes terminal evidence only after scheduler accounting and the
   complete admitted catalog closure validate.
+- `bijux-dna bench corpus-materialization correct-evidence`
+  Publishes an immutable digest-bound correction for an operator-supplied collection timestamp.
+  The command derives UTC from an explicit offset-bearing local timestamp and never replaces the
+  original terminal evidence.
   `run-micro` writes `artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
   for result rows, output rows, log rows, and normalized metrics under `artifacts/benchmark-smoke/micro/`, and
   also writes the governed Markdown and JSON micro benchmark report pair

@@ -93,6 +93,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench corpus-materialization submit",
     "bijux-dna bench corpus-materialization status",
     "bijux-dna bench corpus-materialization collect",
+    "bijux-dna bench corpus-materialization correct-evidence",
     "bijux-dna bench status",
     "bijux-dna bench workspace-value",
     "bijux-dna bench config-json",

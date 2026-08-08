@@ -13,6 +13,8 @@ pub const CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_prepared_job.v1";
 pub const CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_evidence.v1";
+pub const CORPUS_MATERIALIZATION_EVIDENCE_CORRECTION_SCHEMA_V1: &str =
+    "bijux.runner.corpus_materialization_evidence_correction.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -93,4 +95,34 @@ pub struct CorpusMaterializationEvidence {
 pub struct CorpusMaterializationCollection {
     pub observation: SlurmJobObservation,
     pub evidence: Option<CorpusMaterializationEvidence>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CorpusMaterializationEvidenceCorrectionRequest {
+    pub evidence_path: PathBuf,
+    pub output_path: PathBuf,
+    pub observed_local_time: String,
+    pub source_timezone: String,
+    pub corrected_at_utc: String,
+    pub source_commit: String,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CorpusMaterializationEvidenceCorrection {
+    pub schema_version: String,
+    pub run_id: String,
+    pub attempt_id: String,
+    pub job_id: String,
+    pub evidence_path: PathBuf,
+    pub evidence_sha256: String,
+    pub field: String,
+    pub recorded_value: String,
+    pub observed_local_time: String,
+    pub source_timezone: String,
+    pub corrected_value: String,
+    pub corrected_at_utc: String,
+    pub source_commit: String,
+    pub reason: String,
 }

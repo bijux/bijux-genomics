@@ -9,7 +9,8 @@ use bijux_dna_bench_model::{
 use bijux_dna_runner::api::{
     collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_spec,
     load_prepared_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
-    submit_prepared_corpus_materialization_job, CorpusMaterializationEvidenceStatus,
+    publish_corpus_materialization_evidence_correction, submit_prepared_corpus_materialization_job,
+    CorpusMaterializationEvidenceCorrectionRequest, CorpusMaterializationEvidenceStatus,
     CorpusMaterializationSlurmResources, CorpusMaterializationSlurmSpec, SlurmClientPaths,
     CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
 };
@@ -143,7 +144,30 @@ fn submission_is_duplicate_safe_and_terminal_collection_verifies_catalog() -> an
 
     assert_eq!(evidence.status, CorpusMaterializationEvidenceStatus::Passed);
     assert_eq!(evidence.catalog_sha256.as_deref(), Some(catalog_sha256.as_str()));
-    assert!(fixture.spec.evidence_root.join("materialization-evidence.json").is_file());
+    let evidence_path = fixture.spec.evidence_root.join("materialization-evidence.json");
+    assert!(evidence_path.is_file());
+    let correction_path =
+        fixture.spec.evidence_root.join("materialization-evidence-correction.json");
+    let correction_request = CorpusMaterializationEvidenceCorrectionRequest {
+        evidence_path,
+        output_path: correction_path.clone(),
+        observed_local_time: "2026-08-06T10:30:00+02:00".to_string(),
+        source_timezone: "Europe/Stockholm".to_string(),
+        corrected_at_utc: "2026-08-06T11:00:00Z".to_string(),
+        source_commit: "b".repeat(40),
+        reason: "The operator supplied the scheduler-local clock as a UTC timestamp.".to_string(),
+    };
+    let correction = publish_corpus_materialization_evidence_correction(&correction_request)?;
+    assert_eq!(correction.recorded_value, "2026-08-06T10:30:00Z");
+    assert_eq!(correction.corrected_value, "2026-08-06T08:30:00Z");
+    assert_eq!(
+        correction,
+        publish_corpus_materialization_evidence_correction(&correction_request)?
+    );
+    let mut conflicting_correction = correction_request;
+    conflicting_correction.observed_local_time = "2026-08-06T10:31:00+02:00".to_string();
+    assert!(publish_corpus_materialization_evidence_correction(&conflicting_correction)
+        .is_err_and(|error| error.to_string().contains("conflicts")));
     fs::write(&prepared.request.stdout_path, b"tampered")?;
     assert!(collect_corpus_materialization_slurm_job(
         &scheduler,

@@ -92,9 +92,10 @@ pub use self::local::{
 };
 pub use self::materialization::{
     BenchAcquireFastqCorpusArgs, BenchCorpusMaterializationCollectArgs,
-    BenchCorpusMaterializationCommand, BenchCorpusMaterializationPrepareArgs,
-    BenchCorpusMaterializationSlurmArgs, BenchCorpusMaterializationStatusArgs,
-    BenchCorpusMaterializationSubmitArgs, BenchMaterializeFastqCorpusArgs,
+    BenchCorpusMaterializationCommand, BenchCorpusMaterializationCorrectEvidenceArgs,
+    BenchCorpusMaterializationPrepareArgs, BenchCorpusMaterializationSlurmArgs,
+    BenchCorpusMaterializationStatusArgs, BenchCorpusMaterializationSubmitArgs,
+    BenchMaterializeFastqCorpusArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::micro::BenchRunMicroArgs;
