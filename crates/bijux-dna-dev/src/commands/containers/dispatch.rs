@@ -199,6 +199,7 @@ pub(super) fn run_native_container_command(
             execution_contract::run_credential_reference(workspace, args)
         }
         NativeContainerCommandKey::ExternalArtifact => external_artifact::run(workspace, args),
+        NativeContainerCommandKey::GrypeDatabase => grype_database::run(workspace, args),
         NativeContainerCommandKey::SecurityToolchain => security_toolchain::run(workspace, args),
         NativeContainerCommandKey::ImageActivation => image_activation::run(workspace, args),
         NativeContainerCommandKey::ImageCampaign => image_campaign::run(workspace, args),

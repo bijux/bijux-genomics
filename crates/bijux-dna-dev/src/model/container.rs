@@ -72,6 +72,7 @@ pub enum NativeContainerCommandKey {
     GenerateImageInventoryScanSchema,
     CredentialReference,
     ExternalArtifact,
+    GrypeDatabase,
     SecurityToolchain,
     ImageActivation,
     ImageCampaign,

@@ -12,6 +12,7 @@ mod qualification_registry;
 mod run_evidence;
 mod runtime_verification;
 mod schema;
+mod security_database;
 mod security_toolchain;
 mod selection;
 pub mod tool_contract;
@@ -105,6 +106,11 @@ pub use schema::{
     image_inventory_publication_schema, image_inventory_scan_schema,
     runtime_verification_publication_schema, write_image_inventory_publication_schema,
     write_image_inventory_scan_schema, write_runtime_verification_publication_schema,
+};
+pub use security_database::{
+    load_grype_database_contract, verify_grype_database, AdmittedGrypeDatabase,
+    GrypeDatabaseCompletion, GrypeDatabaseContract, GrypeDatabaseStatus,
+    GRYPE_DATABASE_COMPLETION_SCHEMA_V1, GRYPE_DATABASE_CONTRACT_SCHEMA_V1,
 };
 pub use security_toolchain::{
     load_security_scanner_toolchain_contract, verify_security_scanner_toolchain,

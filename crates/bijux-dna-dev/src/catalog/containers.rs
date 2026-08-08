@@ -322,6 +322,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ExternalArtifact,
         ),
         native(
+            "grype-database",
+            "Admit immutable Grype vulnerability database evidence.",
+            NativeContainerCommandKey::GrypeDatabase,
+        ),
+        native(
             "security-toolchain",
             "Admit an immutable security scanner toolchain acquisition.",
             NativeContainerCommandKey::SecurityToolchain,

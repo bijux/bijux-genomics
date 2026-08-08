@@ -122,6 +122,7 @@ fn dev_tree_matches_architecture_contract() {
         "dispatch.rs",
         "execution_contract.rs",
         "external_artifact.rs",
+        "grype_database.rs",
         "image_activation.rs",
         "image_campaign.rs",
         "inventory.rs",

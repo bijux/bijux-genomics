@@ -18,6 +18,7 @@ mod contracts;
 mod dispatch;
 mod execution_contract;
 mod external_artifact;
+mod grype_database;
 mod image_activation;
 mod image_campaign;
 mod inventory;

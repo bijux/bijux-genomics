@@ -268,6 +268,7 @@ generate-tool-ids
 generate-tool-name-map
 generate-version-lock
 generate-versions-index-sha
+grype-database
 image-activation
 image-campaign
 image-qa
