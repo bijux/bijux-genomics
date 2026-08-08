@@ -117,8 +117,9 @@ pub use security_database::{
 pub use security_probe::{
     admit_security_probe_publication, security_probe_publication_schema,
     write_security_probe_publication_schema, AdmittedSecurityProbePublication,
-    SecurityProbeArtifact, SecurityProbeAuthority, SecurityProbePublication, SecurityProbeStatus,
-    ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    AdmittedSecurityProbeReports, SecurityProbeArtifact, SecurityProbeAuthority,
+    SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport,
+    SecurityStructuralReport, ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 pub use security_toolchain::{
     load_security_scanner_toolchain_contract, verify_security_scanner_toolchain,

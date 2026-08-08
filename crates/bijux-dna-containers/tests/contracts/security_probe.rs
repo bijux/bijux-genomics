@@ -5,8 +5,8 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     admit_security_probe_publication, SecurityProbeArtifact, SecurityProbeAuthority,
-    SecurityProbePublication, SecurityProbeStatus, ToolSecurityProbe,
-    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport,
+    SecurityStructuralReport, ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 fn digest(value: char) -> String {
@@ -22,6 +22,39 @@ fn fixture() -> Result<(tempfile::TempDir, PathBuf, SecurityProbeAuthority, Secu
     let artifact = SecurityProbeArtifact {
         uri: "study://evidence/artifact.json".to_string(),
         sha256: bijux_dna_infra::hash_file_sha256(&artifact_path)?,
+    };
+    let structural_path = study.path().join("evidence/structural.json");
+    fs::write(
+        &structural_path,
+        serde_json::to_vec_pretty(&SecurityStructuralReport {
+            suid_sgid_paths: Vec::new(),
+            world_writable_paths: Vec::new(),
+        })?,
+    )?;
+    let structural = SecurityProbeArtifact {
+        uri: "study://evidence/structural.json".to_string(),
+        sha256: bijux_dna_infra::hash_file_sha256(&structural_path)?,
+    };
+    let stream_path = study.path().join("evidence/runtime-stream.txt");
+    fs::write(&stream_path, b"1000\n")?;
+    let stream = SecurityProbeArtifact {
+        uri: "study://evidence/runtime-stream.txt".to_string(),
+        sha256: bijux_dna_infra::hash_file_sha256(&stream_path)?,
+    };
+    let probe =
+        SecurityRuntimeProbe { exit_code: 0, stdout: stream.clone(), stderr: stream.clone() };
+    let runtime_path = study.path().join("evidence/runtime.json");
+    fs::write(
+        &runtime_path,
+        serde_json::to_vec_pretty(&SecurityRuntimeReport {
+            network_isolated: probe.clone(),
+            non_root_uid: probe.clone(),
+            system_read_only: probe,
+        })?,
+    )?;
+    let runtime = SecurityProbeArtifact {
+        uri: "study://evidence/runtime.json".to_string(),
+        sha256: bijux_dna_infra::hash_file_sha256(&runtime_path)?,
     };
     let authority = SecurityProbeAuthority {
         repository_commit: "a".repeat(40),
@@ -43,8 +76,8 @@ fn fixture() -> Result<(tempfile::TempDir, PathBuf, SecurityProbeAuthority, Secu
         signature_stdout: Some(artifact.clone()),
         signature_stderr: Some(artifact.clone()),
         signature_verified: true,
-        structural_report: Some(artifact.clone()),
-        runtime_report: Some(artifact.clone()),
+        structural_report: Some(structural),
+        runtime_report: Some(runtime),
         raw_manifest: artifact.clone(),
         error: None,
     };
@@ -68,6 +101,9 @@ fn admits_exact_authority_and_rechecks_artifacts() -> Result<()> {
     let admitted = admit_security_probe_publication(&publication_path, study.path(), &authority)?;
     assert_eq!(admitted.publication.tools.len(), 1);
     assert_eq!(admitted.read_artifact(&artifact)?, b"{}");
+    let reports = admitted.reports.get("samtools").context("admitted samtools reports")?;
+    assert!(reports.structural.is_some());
+    assert_eq!(reports.runtime.as_ref().context("runtime report")?.non_root_uid.exit_code, 0);
     Ok(())
 }
 
@@ -84,6 +120,15 @@ fn rejects_authority_drift() -> Result<()> {
 fn rejects_artifact_digest_drift() -> Result<()> {
     let (study, publication_path, authority, _) = fixture()?;
     fs::write(study.path().join("evidence/artifact.json"), b"changed")?;
+    assert!(admit_security_probe_publication(&publication_path, study.path(), &authority)
+        .is_err_and(|error| error.to_string().contains("digest differs")));
+    Ok(())
+}
+
+#[test]
+fn rejects_nested_runtime_stream_digest_drift() -> Result<()> {
+    let (study, publication_path, authority, _) = fixture()?;
+    fs::write(study.path().join("evidence/runtime-stream.txt"), b"changed")?;
     assert!(admit_security_probe_publication(&publication_path, study.path(), &authority)
         .is_err_and(|error| error.to_string().contains("digest differs")));
     Ok(())

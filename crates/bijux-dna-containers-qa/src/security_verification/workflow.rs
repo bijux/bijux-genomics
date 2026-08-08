@@ -17,8 +17,8 @@ use bijux_dna_containers::api::{
     resolve_current_apptainer_contract_commit, validate_container_inventory_catalog,
     validate_container_recipe_evidence_chain, verify_grype_database,
     verify_security_scanner_toolchain, ContainerToolContract, SecurityProbeArtifact,
-    SecurityProbePublication, SecurityProbeStatus, ToolSecurityProbe,
-    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport,
+    SecurityStructuralReport, ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 const NON_ROOT_PROBE_SCRIPT: &str = "uid=$(id -u); printf '%s\\n' \"$uid\"; test \"$uid\" -ne 0";
@@ -52,12 +52,6 @@ struct ToolTask {
     image_path: PathBuf,
     image_sha256: String,
     contract: ContainerToolContract,
-}
-
-#[derive(Debug, Serialize)]
-struct StructuralReport {
-    suid_sgid_paths: Vec<String>,
-    world_writable_paths: Vec<String>,
 }
 
 /// Collect complete raw security probes for every current retained image.
@@ -400,18 +394,23 @@ fn collect_runtime(
         )?;
         report.insert(
             name,
-            serde_json::json!({
-                "exit_code": exit_code,
-                "stdout": artifact(request, &stdout)?,
-                "stderr": artifact(request, &stderr)?,
-            }),
+            SecurityRuntimeProbe {
+                exit_code,
+                stdout: artifact(request, &stdout)?,
+                stderr: artifact(request, &stderr)?,
+            },
         );
     }
+    let report = SecurityRuntimeReport {
+        network_isolated: report.remove("network_isolated").context("network probe missing")?,
+        non_root_uid: report.remove("non_root_uid").context("non-root probe missing")?,
+        system_read_only: report.remove("system_read_only").context("read-only probe missing")?,
+    };
     bijux_dna_infra::atomic_create_json(output, &report)?;
     Ok(())
 }
 
-fn inspect_structure(root: &Path) -> Result<StructuralReport> {
+fn inspect_structure(root: &Path) -> Result<SecurityStructuralReport> {
     let mut pending = vec![root.to_path_buf()];
     let mut suid_sgid_paths = Vec::new();
     let mut world_writable_paths = Vec::new();
@@ -437,7 +436,7 @@ fn inspect_structure(root: &Path) -> Result<StructuralReport> {
     }
     suid_sgid_paths.sort();
     world_writable_paths.sort();
-    Ok(StructuralReport { suid_sgid_paths, world_writable_paths })
+    Ok(SecurityStructuralReport { suid_sgid_paths, world_writable_paths })
 }
 
 fn run_bounded(

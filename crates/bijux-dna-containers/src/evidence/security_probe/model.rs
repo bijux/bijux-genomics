@@ -22,6 +22,29 @@ pub struct SecurityProbeArtifact {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
+pub struct SecurityStructuralReport {
+    pub suid_sgid_paths: Vec<String>,
+    pub world_writable_paths: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct SecurityRuntimeProbe {
+    pub exit_code: i32,
+    pub stdout: SecurityProbeArtifact,
+    pub stderr: SecurityProbeArtifact,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct SecurityRuntimeReport {
+    pub network_isolated: SecurityRuntimeProbe,
+    pub non_root_uid: SecurityRuntimeProbe,
+    pub system_read_only: SecurityRuntimeProbe,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct ToolSecurityProbe {
     pub tool_id: String,
     pub version: String,

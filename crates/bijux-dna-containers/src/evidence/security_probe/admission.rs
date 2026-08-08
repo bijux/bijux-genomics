@@ -5,8 +5,8 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 
 use super::{
-    SecurityProbeArtifact, SecurityProbePublication, SecurityProbeStatus, ToolSecurityProbe,
-    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    SecurityProbeArtifact, SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeReport,
+    SecurityStructuralReport, ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,7 +23,14 @@ pub struct AdmittedSecurityProbePublication {
     pub publication: SecurityProbePublication,
     pub publication_uri: String,
     pub publication_sha256: String,
+    pub reports: BTreeMap<String, AdmittedSecurityProbeReports>,
     artifact_paths: BTreeMap<String, (String, PathBuf)>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdmittedSecurityProbeReports {
+    pub structural: Option<SecurityStructuralReport>,
+    pub runtime: Option<SecurityRuntimeReport>,
 }
 
 impl AdmittedSecurityProbePublication {
@@ -77,11 +84,13 @@ pub fn admit_security_probe_publication(
     validate_publication_identity(&publication, authority)?;
 
     let mut artifact_paths = BTreeMap::new();
+    let mut reports = BTreeMap::new();
     for (tool_id, tool) in &publication.tools {
         validate_tool(tool_id, tool)?;
         for artifact in tool_artifacts(tool) {
             admit_artifact(&study_root, artifact, &mut artifact_paths)?;
         }
+        reports.insert(tool_id.clone(), admit_reports(tool, &study_root, &mut artifact_paths)?);
     }
     let relative = publication_path
         .strip_prefix(&study_root)
@@ -91,8 +100,68 @@ pub fn admit_security_probe_publication(
         publication,
         publication_uri: format!("study://{relative}"),
         publication_sha256: bijux_dna_infra::hash_bytes_sha256(&publication_bytes),
+        reports,
         artifact_paths,
     })
+}
+
+fn admit_reports(
+    tool: &ToolSecurityProbe,
+    study_root: &Path,
+    artifacts: &mut BTreeMap<String, (String, PathBuf)>,
+) -> Result<AdmittedSecurityProbeReports> {
+    let structural = tool
+        .structural_report
+        .as_ref()
+        .map(|artifact| read_json_artifact::<SecurityStructuralReport>(artifact, artifacts))
+        .transpose()?;
+    if let Some(report) = &structural {
+        validate_structural_report(report)?;
+    }
+    let runtime = tool
+        .runtime_report
+        .as_ref()
+        .map(|artifact| read_json_artifact::<SecurityRuntimeReport>(artifact, artifacts))
+        .transpose()?;
+    if let Some(report) = &runtime {
+        for artifact in [
+            &report.network_isolated.stdout,
+            &report.network_isolated.stderr,
+            &report.non_root_uid.stdout,
+            &report.non_root_uid.stderr,
+            &report.system_read_only.stdout,
+            &report.system_read_only.stderr,
+        ] {
+            admit_artifact(study_root, artifact, artifacts)?;
+        }
+    }
+    Ok(AdmittedSecurityProbeReports { structural, runtime })
+}
+
+fn read_json_artifact<T: serde::de::DeserializeOwned>(
+    artifact: &SecurityProbeArtifact,
+    artifacts: &BTreeMap<String, (String, PathBuf)>,
+) -> Result<T> {
+    let (_, path) =
+        artifacts.get(&artifact.uri).context("structured security artifact was not admitted")?;
+    serde_json::from_slice(&fs::read(path)?)
+        .with_context(|| format!("parse structured security artifact {}", artifact.uri))
+}
+
+fn validate_structural_report(report: &SecurityStructuralReport) -> Result<()> {
+    for (label, paths) in [
+        ("SUID/SGID", report.suid_sgid_paths.as_slice()),
+        ("world-writable", report.world_writable_paths.as_slice()),
+    ] {
+        if !paths.windows(2).all(|pair| pair[0] < pair[1])
+            || paths
+                .iter()
+                .any(|path| !path.starts_with('/') || path.contains('\n') || path.contains('\r'))
+        {
+            bail!("security {label} paths are unsafe, duplicated, or unsorted");
+        }
+    }
+    Ok(())
 }
 
 fn validate_authority(authority: &SecurityProbeAuthority) -> Result<()> {
