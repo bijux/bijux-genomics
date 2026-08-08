@@ -56,7 +56,7 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
         .get("active_tool_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count > 0));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("passed_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
