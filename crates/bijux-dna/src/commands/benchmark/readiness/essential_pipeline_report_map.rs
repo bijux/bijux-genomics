@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_REPORT_MAP_PATH: &str =
-    "benchmarks/readiness/essential-pipeline-report-map.tsv";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-report-map.tsv";
 const ESSENTIAL_PIPELINE_REPORT_MAP_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_report_map.v1";
 

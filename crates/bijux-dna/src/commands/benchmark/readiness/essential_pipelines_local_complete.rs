@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINES_LOCAL_COMPLETE_PATH: &str =
-    "benchmarks/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json";
 const ESSENTIAL_PIPELINES_LOCAL_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipelines_local_complete.v1";
 const EXPECTED_PIPELINE_COUNT: usize = 10;

@@ -27,7 +27,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINES_READY_PATH: &str =
-    "benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_READY.json";
 const ESSENTIAL_PIPELINES_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipelines_ready.v1";
 

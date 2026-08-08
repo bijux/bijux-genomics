@@ -20,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_FAILURE_ISOLATION_REPORT_PATH: &str =
-    "benchmarks/readiness/essential-pipeline-failure-isolation.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-failure-isolation.json";
 const DEFAULT_ESSENTIAL_PIPELINE_FAILURE_ISOLATION_SIMULATION_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/pipelines/essential-failure-isolation";
 const ESSENTIAL_PIPELINE_FAILURE_ISOLATION_SCHEMA_VERSION: &str =

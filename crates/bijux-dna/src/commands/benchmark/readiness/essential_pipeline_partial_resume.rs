@@ -20,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_PARTIAL_RESUME_REPORT_PATH: &str =
-    "benchmarks/readiness/essential-pipeline-partial-resume.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-partial-resume.json";
 const DEFAULT_ESSENTIAL_PIPELINE_PARTIAL_RESUME_SIMULATION_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/pipelines/essential-partial-resume";
 const ESSENTIAL_PIPELINE_PARTIAL_RESUME_SCHEMA_VERSION: &str =

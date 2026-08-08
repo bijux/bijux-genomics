@@ -486,49 +486,52 @@ Visible aliases are part of the operator surface:
   plus any required stage-tool asset bindings before HPC benchmark submission proceeds.
 - `bijux-dna bench readiness render-essential-pipeline-corpus-assets`
   `render-essential-pipeline-corpus-assets` writes
-  `benchmarks/readiness/essential-pipeline-corpus-assets.tsv` with one governed row per node in
-  the essential local pipeline set, keeping explicit `pipeline_id`, `node_id`, `stage_id`,
-  `corpus_id`, derived `asset_profile_id`, symbolic input handoffs, symbolic output handoffs, and
-  resolution status reviewer-visible so no essential pipeline node falls back to implicit global
-  corpus or asset paths.
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-corpus-assets.tsv` with one
+  governed row per node in the essential local pipeline set, keeping explicit `pipeline_id`,
+  `node_id`, `stage_id`, `corpus_id`, derived `asset_profile_id`, symbolic input handoffs, symbolic
+  output handoffs, and resolution status reviewer-visible so no essential pipeline node falls back
+  to implicit global corpus or asset paths.
 - `bijux-dna bench readiness render-essential-pipeline-partial-resume`
   `render-essential-pipeline-partial-resume` writes
-  `benchmarks/readiness/essential-pipeline-partial-resume.json` and a governed simulation tree
-  under `benchmarks/readiness/essential-pipeline-partial-resume-tree/`. It proves partial-resume
-  behavior against validated `stage-result.json` manifests, forcing the seeded
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-partial-resume.json` and a
+  disposable simulation tree under
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-partial-resume-tree/`. It proves
+  partial-resume behavior against validated `stage-result.json` manifests, forcing the seeded
   `relatedness-segments-vcf` IBD node to rerun while preserving the independent ROH branch.
 - `bijux-dna bench readiness render-essential-pipeline-failure-isolation`
   `render-essential-pipeline-failure-isolation` writes
-  `benchmarks/readiness/essential-pipeline-failure-isolation.json` and a governed simulation
-  tree under `benchmarks/readiness/essential-pipeline-failure-isolation-tree/`. It injects a
-  real failed `stage-result.json` for the seeded `relatedness-segments-vcf` IBD node, then proves
-  that only the dependent demography descendant is blocked while the unrelated ROH branch remains
-  completed.
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-failure-isolation.json` and a
+  disposable simulation tree under
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-failure-isolation-tree/`. It
+  injects a real failed `stage-result.json` for the seeded `relatedness-segments-vcf` IBD node, then
+  proves that only the dependent demography descendant is blocked while the unrelated ROH branch
+  remains completed.
 - `bijux-dna bench readiness render-essential-pipeline-report-map`
   `render-essential-pipeline-report-map` writes
-  `benchmarks/readiness/essential-pipeline-report-map.tsv` with one governed row per declared
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-report-map.tsv` with one governed row per declared
   essential-pipeline output symbol, keeping explicit `pipeline_id`, `stage_id`, `tool_id`,
   `output_metric`, `report_section`, and `failure_column`. It fails closed unless every declared
   FASTQ, BAM, and VCF pipeline output is collected into a stable report section.
 - `bijux-dna bench readiness render-essential-pipelines-ready`
   `render-essential-pipelines-ready` writes
-  `benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json` and fail-closes across Goals 261–276. It
-  reruns the governed essential pipeline DAG, corpus/assets, command rendering, fake-run,
-  partial-resume, failure-isolation, and report-map surfaces, then cross-checks that the shared
-  node and output counts still agree.
+  `artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_READY.json` and fail-closes
+  across sixteen owned pipeline checks. It reruns the governed essential pipeline DAG,
+  corpus/assets, command rendering, fake-run, partial-resume, failure-isolation, and report-map
+  surfaces, then cross-checks that the shared node and output counts still agree.
 - `bijux-dna bench readiness render-essential-pipelines-local-complete`
   `render-essential-pipelines-local-complete` writes
-  `benchmarks/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json`, proving the ten
+  `artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json`, proving the ten
   essential local pipelines keep exact node-level corpus bindings, asset-profile bindings,
   declared input and output symbols, rendered command or structured-skip coverage, and report-map
-  output rows before the Goal 397 local-completion gate can pass.
+  output rows before the local-completion gate can pass.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
-  `benchmarks/readiness/essential-pipelines-rendered-commands.sh` plus
-  `benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl` with one governed row
-  per essential pipeline node, preserving real executable command steps for FASTQ, BAM, and VCF
-  nodes while keeping owned `bijux-dna` materialization fallbacks explicit for composed local
-  stages such as `fastq.report_qc` and feature-gated surfaces such as `bam.genotyping`.
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.sh` plus
+  `artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.argv.jsonl`
+  with one governed row per essential pipeline node, preserving real executable command steps for
+  FASTQ, BAM, and VCF nodes while keeping owned `bijux-dna` materialization fallbacks explicit for
+  composed local stages such as `fastq.report_qc` and feature-gated surfaces such as
+  `bam.genotyping`.
 - `bijux-dna bench readiness render-commands`
   `render-commands` writes `benchmarks/readiness/rendered-commands.sh` with one governed shell
   command per local benchmark stage command, preserving a parseable `bash` script that can be

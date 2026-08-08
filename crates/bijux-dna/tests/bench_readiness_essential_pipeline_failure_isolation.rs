@@ -50,7 +50,7 @@ fn bench_readiness_essential_pipeline_failure_isolation_tracks_failed_and_blocke
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/essential-pipeline-failure-isolation.json")
+        Some("artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-failure-isolation.json")
     );
     assert_eq!(
         payload.get("simulation_root").and_then(serde_json::Value::as_str),
