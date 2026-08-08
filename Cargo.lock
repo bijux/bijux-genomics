@@ -475,6 +475,7 @@ dependencies = [
  "bijux-dna-domain-vcf",
  "bijux-dna-policies",
  "serde",
+ "serde_json",
  "toml",
 ]
 

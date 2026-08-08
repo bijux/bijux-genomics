@@ -86,7 +86,17 @@ pub(in super::super) fn tooling_acquire_reference(
             continue;
         }
         let url = toml_string(row.get("fasta_url"))?;
+        let source_accession = toml_string(row.get("source_accession"))?;
+        let source_md5 = toml_string(row.get("fasta_md5"))?;
         let expected = toml_string(row.get("fasta_sha256"))?;
+        let expected_size_bytes = row
+            .get("fasta_size_bytes")
+            .and_then(TomlValue::as_integer)
+            .and_then(|value| u64::try_from(value).ok())
+            .context("reference fasta_size_bytes must be a positive u64")?;
+        if expected_size_bytes == 0 {
+            return Err(anyhow::anyhow!("reference fasta_size_bytes must be positive"));
+        }
         let license_id = toml_string(row.get("license_id"))?;
         let license_url = toml_string(row.get("license_url"))?;
         let required_indexes = row
@@ -112,6 +122,7 @@ pub(in super::super) fn tooling_acquire_reference(
             &raw_fasta,
             &url,
             &expected,
+            Some(expected_size_bytes),
             download,
             verbose,
             &format!("{species}:{build}"),
@@ -126,6 +137,9 @@ pub(in super::super) fn tooling_acquire_reference(
             &json!({
                 "species_id": species,
                 "build_id": build,
+                "source_accession": source_accession,
+                "source_md5": source_md5,
+                "source_size_bytes": expected_size_bytes,
                 "license_id": license_id,
                 "license_url": license_url,
                 "required_indexes": required_indexes,
@@ -136,6 +150,9 @@ pub(in super::super) fn tooling_acquire_reference(
             "species_id": species,
             "build_id": build,
             "fasta_url": url,
+            "source_accession": source_accession,
+            "source_md5": source_md5,
+            "source_size_bytes": expected_size_bytes,
             "fasta_sha256": expected,
             "observed_sha256": materialized.observed_sha256,
             "license_id": license_id,
@@ -282,6 +299,7 @@ pub(in super::super) fn tooling_acquire_panels(
                 &dest,
                 &url,
                 &expected,
+                None,
                 download,
                 verbose,
                 &format!("{panel_id}:{name}"),
@@ -433,6 +451,7 @@ pub(in super::super) fn tooling_acquire_maps(
                 &target,
                 &url,
                 &expected,
+                None,
                 download,
                 verbose,
                 &format!("{map_id}:{name}"),

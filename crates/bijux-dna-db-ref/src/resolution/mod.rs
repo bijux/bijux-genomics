@@ -15,7 +15,7 @@ pub use reference_assets::{
     materialize_vcf_panel_assets, normalize_contig_name, reference_provenance,
     resolve_default_reference_set, resolve_genetic_map_bank, resolve_organellar_policy,
     resolve_reference_bank, resolve_reference_bundle, resolve_reference_bundle_contract,
-    validate_reference_index_qa,
+    resolve_reference_source_lock, validate_reference_index_qa,
 };
 pub use species::{
     enforce_declared_build_and_contigs, resolve_contig_aliases_for_assets, resolve_contig_map,

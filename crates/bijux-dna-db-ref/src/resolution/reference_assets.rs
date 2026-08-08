@@ -1,17 +1,18 @@
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
 
 use crate::resolution::validate_sha256;
 use crate::runtime_config::{
-    load_toml, workspace_root, AssetHydrationConfig, AssetLocksConfig, BundlesConfig,
+    load_json, load_toml, workspace_root, AssetHydrationConfig, AssetLocksConfig, BundlesConfig,
     GeneticMapBankConfig, OrganellarPolicyConfig, ReferenceBankConfig, ReferenceSetConfig,
 };
 use crate::{
     BundleEntry, ContaminantDbMaterializationReport, ContigNormalizationPolicy,
     GeneticMapBankEntry, MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy,
     ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
-    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
+    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet, ReferenceSourceLock,
     TaxonomyDbMaterializationReport, VcfPanelMaterializationReport,
 };
 
@@ -26,10 +27,86 @@ pub fn resolve_reference_bank(species: &str, build: &str) -> Result<ReferenceBan
         .find(|row| row.species_id == species && row.build_id == build)
         .ok_or_else(|| anyhow!("reference bank entry missing for {species}:{build}"))?;
     validate_sha256(&entry.fasta_sha256, "reference_bank fasta_sha256")?;
+    validate_md5(&entry.fasta_md5, "reference_bank fasta_md5")?;
+    if entry.fasta_size_bytes == 0 {
+        bail!("reference bank entry for {species}:{build} has zero source size");
+    }
+    if entry.source_accession.trim().is_empty() {
+        bail!("reference bank entry for {species}:{build} missing source accession");
+    }
     if entry.license_id.trim().is_empty() || entry.license_url.trim().is_empty() {
         bail!("reference bank entry for {species}:{build} missing license metadata");
     }
     Ok(entry)
+}
+
+/// Resolve and validate the checked reference-source lock against the source bank.
+///
+/// # Errors
+/// Returns an error when the lock is malformed, unordered, incomplete, duplicated, or drifts from
+/// the checked source authority.
+pub fn resolve_reference_source_lock() -> Result<ReferenceSourceLock> {
+    let root = workspace_root();
+    let bank_path = root.join("configs/runtime/reference_bank.toml");
+    let lock_path = root.join("configs/runtime/references/locks/lock.json");
+    let bank: ReferenceBankConfig = load_toml(&bank_path)?;
+    let lock: ReferenceSourceLock = load_json(&lock_path)?;
+    if lock.schema_version != 2 || lock.source != "configs/runtime/reference_bank.toml" {
+        bail!("reference source lock schema or source authority mismatch");
+    }
+    validate_git_object_id(&lock.source_evidence_commit)?;
+    if lock.references.len() != bank.reference.len() {
+        bail!("reference source lock does not close over the reference bank");
+    }
+
+    let keys = lock
+        .references
+        .iter()
+        .map(|entry| (entry.species_id.as_str(), entry.build_id.as_str()))
+        .collect::<Vec<_>>();
+    let sorted = keys.iter().copied().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
+    if keys != sorted {
+        bail!("reference source lock identities must be unique and sorted");
+    }
+    for entry in &lock.references {
+        validate_md5(&entry.fasta_md5, "reference source lock fasta_md5")?;
+        validate_sha256(&entry.fasta_sha256, "reference source lock fasta_sha256")?;
+        if entry.size_bytes == 0
+            || !entry.evidence_uri.starts_with("study://finalization/acquisitions/")
+            || !entry.evidence_uri.ends_with("/completion.json")
+            || entry.evidence_uri.contains("..")
+        {
+            bail!("reference source lock has invalid size or evidence URI");
+        }
+        let source = bank
+            .reference
+            .iter()
+            .find(|source| {
+                source.species_id == entry.species_id && source.build_id == entry.build_id
+            })
+            .ok_or_else(|| anyhow!("reference source lock contains an unknown identity"))?;
+        if source.source_accession != entry.source_accession
+            || source.fasta_url != entry.fasta_url
+            || source.fasta_md5 != entry.fasta_md5
+            || source.fasta_sha256 != entry.fasta_sha256
+            || source.fasta_size_bytes != entry.size_bytes
+            || source.license_id != entry.license_id
+            || source.license_url != entry.license_url
+            || source.required_indexes != entry.required_indexes
+        {
+            bail!("reference source lock drifts from {}:{}", entry.species_id, entry.build_id);
+        }
+    }
+    Ok(lock)
+}
+
+fn validate_git_object_id(value: &str) -> Result<()> {
+    if value.len() != 40
+        || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        bail!("reference source evidence commit must be lowercase 40-character hexadecimal");
+    }
+    Ok(())
 }
 
 /// # Errors
@@ -220,8 +297,11 @@ pub fn materialize_reference_bank(
         schema_version: "bijux.reference_materialization.v1".to_string(),
         species_id: species.to_string(),
         build_id: build.to_string(),
+        source_accession: bank.source_accession,
         source_url: bank.fasta_url,
+        declared_md5: bank.fasta_md5,
         declared_sha256: bank.fasta_sha256,
+        declared_size_bytes: bank.fasta_size_bytes,
         license_id: bank.license_id,
         license_url: bank.license_url,
         materialization_root: root,
@@ -229,6 +309,15 @@ pub fn materialize_reference_bank(
         bundle_id: bundle.bundle_id,
         index_artifacts,
     })
+}
+
+fn validate_md5(value: &str, label: &str) -> Result<()> {
+    if value.len() != 32
+        || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        bail!("{label} must be lowercase 32-character hexadecimal");
+    }
+    Ok(())
 }
 
 /// # Errors
@@ -552,7 +641,7 @@ mod tests {
         materialize_contaminant_databases, materialize_reference_bank,
         materialize_taxonomy_database, materialize_vcf_panel_assets,
         resolve_reference_bundle_contract, validate_bundle_contigs, validate_bundle_digests,
-        validate_reference_index_qa,
+        validate_md5, validate_reference_index_qa,
     };
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
@@ -586,6 +675,13 @@ mod tests {
         };
 
         assert!(error.to_string().contains("contig_set_digest"));
+    }
+
+    #[test]
+    fn reference_source_md5_rejects_uppercase_and_wrong_length() {
+        assert!(validate_md5(&"A".repeat(32), "source md5").is_err());
+        assert!(validate_md5(&"a".repeat(31), "source md5").is_err());
+        assert!(validate_md5(&"a".repeat(32), "source md5").is_ok());
     }
 
     #[test]

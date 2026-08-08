@@ -4,9 +4,9 @@ use bijux_dna_db_ref::public_api::{
     resolve_contig_aliases_for_assets, resolve_default_reference_set, resolve_genetic_map_bank,
     resolve_map, resolve_map_lock, resolve_organellar_policy, resolve_panel, resolve_panel_lock,
     resolve_reference_bank, resolve_reference_bundle, resolve_reference_bundle_contract,
-    resolve_sex_chromosome_rule, resolve_sex_par_organellar_assets, resolve_species_authority,
-    resolve_species_context, validate_imputation_tool_compatibility, validate_reference_index_qa,
-    CatalogCompatibility, PanelCatalogEntry,
+    resolve_reference_source_lock, resolve_sex_chromosome_rule, resolve_sex_par_organellar_assets,
+    resolve_species_authority, resolve_species_context, validate_imputation_tool_compatibility,
+    validate_reference_index_qa, CatalogCompatibility, PanelCatalogEntry,
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
@@ -27,7 +27,18 @@ fn species_context_and_bundle_resolve() {
 
     let bank = resolve_reference_bank("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve reference bank: {err}"));
+    assert_eq!(bank.source_accession, "GCF_000001405.40");
+    assert_eq!(bank.fasta_md5, "c30471567037b2b2389d43c908c653e1");
     assert!(!bank.required_indexes.is_empty());
+}
+
+#[test]
+fn reference_source_lock_closes_over_every_bank_entry() {
+    let lock = resolve_reference_source_lock()
+        .unwrap_or_else(|err| panic!("resolve reference source lock: {err}"));
+    assert_eq!(lock.schema_version, 2);
+    assert_eq!(lock.references.len(), 3);
+    assert!(lock.references.iter().all(|entry| entry.size_bytes > 0));
 }
 
 #[test]
@@ -204,6 +215,8 @@ fn horse_runtime_reference_contracts_resolve_equcab3_assets() {
 
     let bank = resolve_reference_bank("Equus caballus", "EquCab3")
         .unwrap_or_else(|err| panic!("resolve horse reference bank: {err}"));
+    assert_eq!(bank.source_accession, "GCF_002863925.1");
+    assert_eq!(bank.fasta_md5, "68f8c3faca75f1e198170a560dad5632");
     assert!(bank.fasta_url.contains("GCF_002863925.1_EquCab3.0_genomic.fna.gz"));
 
     let organellar = resolve_organellar_policy("Equus caballus", "EquCab3")

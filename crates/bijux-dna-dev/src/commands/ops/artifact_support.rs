@@ -16,6 +16,7 @@ pub(super) fn materialize_controlled_file(
     path: &Path,
     url: &str,
     expected_sha256: &str,
+    expected_size_bytes: Option<u64>,
     download: bool,
     verbose: bool,
     label: &str,
@@ -26,6 +27,15 @@ pub(super) fn materialize_controlled_file(
             .with_context(|| format!("create {}", parent.display()))?;
     }
     if path.exists() {
+        if let Some(expected) = expected_size_bytes {
+            let observed =
+                std::fs::metadata(path).with_context(|| format!("inspect existing {label}"))?.len();
+            if observed != expected {
+                return Err(anyhow!(
+                    "refusing to replace size-mismatched {label}: expected {expected} bytes, got {observed}"
+                ));
+            }
+        }
         let observed = sha256_hex(path)?;
         if observed != expected_sha256 {
             return Err(anyhow!(
@@ -43,7 +53,7 @@ pub(super) fn materialize_controlled_file(
     if verbose {
         stdout.push_str(&format!("[download] {label} <- {url}\n"));
     }
-    let observed = download_verified_file(path, url, expected_sha256, label)?;
+    let observed = download_verified_file(path, url, expected_sha256, expected_size_bytes, label)?;
     Ok(MaterializedFile { action: "download".to_string(), observed_sha256: observed })
 }
 
@@ -51,6 +61,7 @@ fn download_verified_file(
     path: &Path,
     url: &str,
     expected_sha256: &str,
+    expected_size_bytes: Option<u64>,
     label: &str,
 ) -> Result<String> {
     let sequence = PARTIAL_FILE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
@@ -75,6 +86,17 @@ fn download_verified_file(
         output.flush().with_context(|| format!("flush {}", partial.display()))?;
         output.sync_all().with_context(|| format!("sync {}", partial.display()))?;
         drop(output);
+
+        let observed_size = std::fs::metadata(&partial)
+            .with_context(|| format!("inspect {}", partial.display()))?
+            .len();
+        if let Some(expected) = expected_size_bytes {
+            if expected != observed_size {
+                return Err(anyhow!(
+                    "size mismatch for {label}: expected {expected} bytes, got {observed_size}"
+                ));
+            }
+        }
 
         let observed = sha256_hex(&partial)?;
         if observed != expected_sha256 {
@@ -187,6 +209,7 @@ mod tests {
             &path,
             "https://example.invalid/reference.fa.gz",
             &"a".repeat(64),
+            None,
             false,
             false,
             "reference",
@@ -214,6 +237,7 @@ mod tests {
             &path,
             "https://example.invalid/reference.fa.gz",
             &"b".repeat(64),
+            None,
             true,
             false,
             "reference",

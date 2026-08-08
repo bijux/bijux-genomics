@@ -7,11 +7,39 @@ use serde::{Deserialize, Serialize};
 pub struct ReferenceBankEntry {
     pub species_id: String,
     pub build_id: String,
+    pub source_accession: String,
     pub fasta_url: String,
+    pub fasta_md5: String,
     pub fasta_sha256: String,
+    pub fasta_size_bytes: u64,
     pub license_id: String,
     pub license_url: String,
     #[serde(default)]
+    pub required_indexes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReferenceSourceLock {
+    pub schema_version: u64,
+    pub source: String,
+    pub source_evidence_commit: String,
+    pub references: Vec<ReferenceSourceLockEntry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReferenceSourceLockEntry {
+    pub species_id: String,
+    pub build_id: String,
+    pub source_accession: String,
+    pub fasta_url: String,
+    pub fasta_md5: String,
+    pub fasta_sha256: String,
+    pub size_bytes: u64,
+    pub license_id: String,
+    pub license_url: String,
+    pub evidence_uri: String,
     pub required_indexes: Vec<String>,
 }
 
@@ -96,8 +124,11 @@ pub struct ReferenceMaterializationReport {
     pub schema_version: String,
     pub species_id: String,
     pub build_id: String,
+    pub source_accession: String,
     pub source_url: String,
+    pub declared_md5: String,
     pub declared_sha256: String,
+    pub declared_size_bytes: u64,
     pub license_id: String,
     pub license_url: String,
     pub materialization_root: PathBuf,

@@ -5,8 +5,8 @@ pub use reference_assets::{
     ContaminantDbMaterializationReport, ContigNormalizationPolicy, GeneticMapBankEntry,
     MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy, ReferenceBankEntry,
     ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
-    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
-    TaxonomyDbMaterializationReport, VcfPanelMaterializationReport,
+    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet, ReferenceSourceLock,
+    ReferenceSourceLockEntry, TaxonomyDbMaterializationReport, VcfPanelMaterializationReport,
 };
 pub use species::{
     BuildId, ContigAliasResolutionReport, ContigAliasResolutionRow, ContigMap, ParRegion,
