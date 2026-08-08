@@ -16,13 +16,13 @@ pub use crate::qualification::{
     SECURITY_EVIDENCE_RULE_V1, SOURCE_IDENTITY_RULE_V1, SUPPORT_DISPOSITION_RULE_V1,
 };
 pub use crate::security_evidence::{
-    parse_gitleaks_report, parse_grype_vulnerability_report, security_evidence_schema,
-    validate_security_evidence_publication, ContainerSecurityEvidencePublication,
-    ImageSignatureDisposition, ParsedSecretScanReport, ParsedVulnerabilityReport,
-    RuntimeAccessPolicy, RuntimeSecurityEvidence, SbomEvidence, SbomFormat, SecretScanEvidence,
-    SecurityArtifactIdentity, SecuritySourceIdentity, StructuralSecurityEvidence,
-    ToolSecurityEvidence, VulnerabilityDatabaseIdentity, VulnerabilityDatabaseStatus,
-    VulnerabilityEvidence, VulnerabilityFinding, VulnerabilityScannerIdentity,
-    VulnerabilitySeverity, VulnerabilitySeverityCounts, VulnerabilityWaiver,
-    CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
+    admit_security_evidence, parse_gitleaks_report, parse_grype_vulnerability_report,
+    security_evidence_schema, validate_security_evidence_publication, AdmittedSecurityEvidence,
+    ContainerSecurityEvidencePublication, ImageSignatureDisposition, ParsedSecretScanReport,
+    ParsedVulnerabilityReport, RuntimeAccessPolicy, RuntimeSecurityEvidence, SbomEvidence,
+    SbomFormat, SecretScanEvidence, SecurityArtifactIdentity, SecuritySourceIdentity,
+    StructuralSecurityEvidence, ToolSecurityEvidence, VulnerabilityDatabaseIdentity,
+    VulnerabilityDatabaseStatus, VulnerabilityEvidence, VulnerabilityFinding,
+    VulnerabilityScannerIdentity, VulnerabilitySeverity, VulnerabilitySeverityCounts,
+    VulnerabilityWaiver, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
 };

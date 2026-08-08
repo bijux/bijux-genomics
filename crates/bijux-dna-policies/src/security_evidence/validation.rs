@@ -515,6 +515,40 @@ mod tests {
     }
 
     #[test]
+    fn exact_security_publication_admits_an_image_bound_pass() -> Result<()> {
+        let publication = valid_publication()?;
+        let admitted = super::super::admission::admit_security_evidence(
+            &publication,
+            &"7".repeat(64),
+            &"a".repeat(40),
+            &"b".repeat(64),
+            &"c".repeat(64),
+        )?;
+        let decision = admitted.tool_decision("samtools", &"1".repeat(64));
+        assert_eq!(decision.verdict, EvidenceVerdict::Passed);
+        assert_eq!(decision.evidence_sha256, Some("7".repeat(64)));
+
+        let stale_image = admitted.tool_decision("samtools", &"2".repeat(64));
+        assert_eq!(stale_image.verdict, EvidenceVerdict::Failed);
+        assert!(stale_image.audit.reason.contains("different image"));
+        Ok(())
+    }
+
+    #[test]
+    fn security_admission_rejects_authority_drift() -> Result<()> {
+        let publication = valid_publication()?;
+        let result = super::super::admission::admit_security_evidence(
+            &publication,
+            &"7".repeat(64),
+            &"0".repeat(40),
+            &"b".repeat(64),
+            &"c".repeat(64),
+        );
+        assert!(result.is_err_and(|error| error.to_string().contains("repository commit")));
+        Ok(())
+    }
+
+    #[test]
     fn stale_database_cannot_inherit_a_passing_verdict() -> Result<()> {
         let mut publication = valid_publication()?;
         publication.scanner.database.status = VulnerabilityDatabaseStatus::Stale;

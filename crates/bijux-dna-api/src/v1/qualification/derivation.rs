@@ -9,7 +9,8 @@ use bijux_dna_containers::evidence::{
 };
 use bijux_dna_policies::{
     evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_identity_evidence,
-    evaluate_source_identity, BenchmarkEvidenceObservation, EvidenceDecision, EvidenceDimension,
+    evaluate_source_identity, AdmittedSecurityEvidence, BenchmarkEvidenceObservation,
+    ContainerSecurityEvidencePublication, EvidenceDecision, EvidenceDimension,
     ExecutionEvidenceObservation, ExecutionEvidenceStatus, PublicationDisposition,
     QualificationAssessment, QualificationEvidenceSource, QualificationReport, SupportDisposition,
     BUILD_EVIDENCE_RULE_V1, CATALOG_EVIDENCE_RULE_V1, FRESHNESS_EVIDENCE_RULE_V1,
@@ -29,12 +30,14 @@ const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const INVENTORY_PATH: &str = "containers/reports/image-inventory.json";
 const RUNTIME_PATH: &str = "containers/reports/runtime-verification.json";
 const RUNS_PATH: &str = "containers/reports/run-evidence.json";
+const SECURITY_PATH: &str = "containers/reports/security-evidence.json";
 
 struct QualificationContext<'a> {
     benchmark_reports: &'a [AdmittedBenchmarkStageReport],
     chain: &'a ContainerEvidenceChain,
     freshness_sha256: &'a str,
     runtime_sha256: &'a str,
+    security_evidence: Option<&'a AdmittedSecurityEvidence<'a>>,
 }
 
 /// Compose a current qualification report from admitted container, runtime, and benchmark facts.
@@ -49,6 +52,24 @@ pub fn derive_container_qualification_report(
 ) -> Result<QualificationReport> {
     let inventory_source = repository_source(repository_root, INVENTORY_PATH)?;
     let runtime_source = repository_source(repository_root, RUNTIME_PATH)?;
+    let security_publication = load_security_publication(repository_root)?;
+    let security_source = security_publication
+        .as_ref()
+        .map(|_| repository_source(repository_root, SECURITY_PATH))
+        .transpose()?;
+    let security_evidence = security_publication
+        .as_ref()
+        .zip(security_source.as_ref())
+        .map(|(publication, source)| {
+            bijux_dna_policies::admit_security_evidence(
+                publication,
+                &source.sha256,
+                &chain.repository_commit,
+                &chain.catalog_sha256,
+                &inventory_source.sha256,
+            )
+        })
+        .transpose()?;
     let runs_source = repository_source(repository_root, RUNS_PATH)?;
     let runtime_sha256 = runtime_source.sha256.clone();
     let mut sources = BTreeMap::from([
@@ -72,12 +93,16 @@ pub fn derive_container_qualification_report(
             },
         );
     }
+    if let Some(source) = security_source {
+        sources.insert("security".to_string(), source);
+    }
     let freshness_sha256 = freshness_identity(&chain.repository_commit, &sources)?;
     let context = QualificationContext {
         benchmark_reports,
         chain,
         freshness_sha256: &freshness_sha256,
         runtime_sha256: &runtime_sha256,
+        security_evidence: security_evidence.as_ref(),
     };
     let runs = load_run_evidence_index(&repository_root.join(RUNS_PATH))?;
     let inventory_tools = chain
@@ -108,6 +133,18 @@ pub fn derive_container_qualification_report(
         .collect::<Result<Vec<_>>>()?;
 
     QualificationReport::v3(sources, assessments)
+}
+
+fn load_security_publication(
+    repository_root: &Path,
+) -> Result<Option<ContainerSecurityEvidencePublication>> {
+    let path = repository_root.join(SECURITY_PATH);
+    if !path.is_file() {
+        return Ok(None);
+    }
+    serde_json::from_slice(&std::fs::read(&path)?)
+        .with_context(|| format!("parse security evidence {}", path.display()))
+        .map(Some)
 }
 
 fn derive_tool_assessment(
@@ -182,16 +219,7 @@ fn derive_tool_assessment(
                 image_sha256,
             ),
         ),
-        (
-            EvidenceDimension::Security,
-            missing_publication(
-                SECURITY_EVIDENCE_RULE_V1,
-                "admitted_publication",
-                "image_coverage",
-                "current admitted security publication",
-                "no admitted security publication covers this image",
-            ),
-        ),
+        (EvidenceDimension::Security, security_decision(context, &tool.id, image_sha256)),
         (
             EvidenceDimension::Freshness,
             evaluate_identity_evidence(
@@ -216,6 +244,25 @@ fn derive_tool_assessment(
         SupportDisposition::Retained,
         PublicationDisposition::Current,
         dimensions,
+    )
+}
+
+fn security_decision(
+    context: &QualificationContext<'_>,
+    tool_id: &str,
+    image_sha256: &str,
+) -> EvidenceDecision {
+    context.security_evidence.map_or_else(
+        || {
+            missing_publication(
+                SECURITY_EVIDENCE_RULE_V1,
+                "admitted_publication",
+                "image_coverage",
+                "current admitted security publication",
+                "no admitted security publication covers this image",
+            )
+        },
+        |security| security.tool_decision(tool_id, image_sha256),
     )
 }
 
