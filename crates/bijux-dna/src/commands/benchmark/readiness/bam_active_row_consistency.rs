@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_ACTIVE_ROW_CONSISTENCY_PATH: &str =
-    "benchmarks/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json";
+    "artifacts/benchmark-smoke/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json";
 const BAM_ACTIVE_ROW_CONSISTENCY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_active_row_consistency.v1";
 const BAM_DOMAIN: &str = "bam";

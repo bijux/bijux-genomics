@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_OVERLAP_ENDOGENOUS_READY_PATH: &str =
-    "benchmarks/readiness/bam/overlap-endogenous-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/overlap-endogenous-ready.json";
 const BAM_OVERLAP_ENDOGENOUS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_overlap_endogenous_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";

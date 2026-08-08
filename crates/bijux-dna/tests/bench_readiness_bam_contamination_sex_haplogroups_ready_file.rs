@@ -35,7 +35,7 @@ fn bench_readiness_bam_contamination_sex_haplogroups_ready_writes_governed_json_
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json"
+        "artifacts/benchmark-smoke/readiness/bam/contamination-sex-haplogroups-ready.json"
     );
 
     let payload = fs::read_to_string(repo_root.join(rendered_path.trim()))

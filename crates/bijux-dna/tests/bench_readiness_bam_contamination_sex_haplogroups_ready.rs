@@ -43,7 +43,7 @@ fn bench_readiness_bam_contamination_sex_haplogroups_ready_reports_complete_gove
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/contamination-sex-haplogroups-ready.json")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let expected_row_count = u64::try_from(rows.len()).expect("row count fits u64");

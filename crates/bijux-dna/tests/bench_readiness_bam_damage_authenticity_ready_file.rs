@@ -33,7 +33,10 @@ fn bench_readiness_bam_damage_authenticity_ready_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/bam/damage-authenticity-ready.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/bam/damage-authenticity-ready.json"
+    );
 
     let payload = fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read BAM damage/authenticity readiness JSON");

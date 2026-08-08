@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_CONTAMINATION_SEX_HAPLOGROUPS_READY_PATH: &str =
-    "benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/contamination-sex-haplogroups-ready.json";
 const BAM_CONTAMINATION_SEX_HAPLOGROUPS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_contamination_sex_haplogroups_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";

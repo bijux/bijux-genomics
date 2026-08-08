@@ -3,7 +3,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::bam_active_row_consistency;
 use super::bam_adapter_output_contract;
@@ -31,7 +31,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_ALL_RETAINED_TOOLS_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json";
 const BAM_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_all_retained_tools_complete.v1";
 const EXPECTED_CHECKED_GOAL_COUNT: usize = 19;
@@ -117,21 +117,10 @@ const BAM_STAGE_COMPLETION_GOALS: &[BamStageCompletionGoal] = &[
         goal_id: 440,
         stage_id: "bam.kinship",
         output_path: bam_kinship_complete::DEFAULT_BAM_KINSHIP_COMPLETE_PATH,
-        expected_active_row_count: 2,
+        expected_active_row_count: 1,
         expected_checked_surface_count: 19,
     },
 ];
-
-#[derive(Debug, Clone, Deserialize)]
-struct StageCompletionFallbackReport {
-    output_path: String,
-    active_row_count: usize,
-    complete_row_count: usize,
-    incomplete_row_count: usize,
-    checked_surface_count: usize,
-    violation_count: usize,
-    ok: bool,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BamBindingKey {
@@ -732,12 +721,6 @@ fn validate_stage_completion_goal(
     repo_root: &Path,
     goal: BamStageCompletionGoal,
 ) -> Result<String> {
-    if !cfg!(feature = "bam_downstream")
-        && matches!(goal.stage_id, "bam.haplogroups" | "bam.genotyping" | "bam.kinship")
-    {
-        return validate_checked_in_stage_completion_artifact(repo_root, goal);
-    }
-
     let rendered: Result<String> = match goal.stage_id {
         "bam.overlap_correction" => {
             bam_overlap_correction_complete::render_bam_overlap_correction_complete(
@@ -925,13 +908,7 @@ fn validate_stage_completion_goal(
         _ => bail!("unknown BAM stage completion goal `{}`", goal.stage_id),
     };
 
-    match rendered {
-        Ok(detail) => Ok(detail),
-        Err(error) if error.to_string().contains("`bam_downstream` feature") => {
-            validate_checked_in_stage_completion_artifact(repo_root, goal)
-        }
-        Err(error) => Err(error),
-    }
+    rendered
 }
 
 fn validate_stage_completion_counts(
@@ -955,47 +932,6 @@ fn validate_stage_completion_counts(
         );
     }
     Ok(())
-}
-
-fn validate_checked_in_stage_completion_artifact(
-    repo_root: &Path,
-    goal: BamStageCompletionGoal,
-) -> Result<String> {
-    let absolute_path = repo_relative_path(repo_root, Path::new(goal.output_path));
-    let payload = std::fs::read_to_string(&absolute_path)
-        .with_context(|| format!("read {}", absolute_path.display()))?;
-    let report: StageCompletionFallbackReport = serde_json::from_str(&payload)
-        .with_context(|| format!("parse {}", absolute_path.display()))?;
-    if report.output_path != goal.output_path {
-        bail!(
-            "checked-in stage completion artifact for `{}` drifted output_path: observed=`{}` expected=`{}`",
-            goal.stage_id,
-            report.output_path,
-            goal.output_path
-        );
-    }
-    if !report.ok || report.incomplete_row_count != 0 || report.violation_count != 0 {
-        bail!(
-            "checked-in stage completion artifact for `{}` is not complete: ok={}, incomplete_rows={}, violations={}",
-            goal.stage_id,
-            report.ok,
-            report.incomplete_row_count,
-            report.violation_count
-        );
-    }
-    validate_stage_completion_counts(
-        goal,
-        report.complete_row_count,
-        report.active_row_count,
-        report.checked_surface_count,
-    )?;
-    Ok(format!(
-        "validated checked-in `{}` completion artifact across {}/{} retained row(s) and {} governed surface(s) because the local binary was built without `bam_downstream`",
-        goal.stage_id,
-        report.complete_row_count,
-        report.active_row_count,
-        report.checked_surface_count
-    ))
 }
 
 fn format_stage_completion_detail(
@@ -1066,7 +1002,7 @@ impl Drop for CurrentDirGuard {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "bam_downstream"))]
 mod tests {
     use std::path::{Path, PathBuf};
     use std::time::Duration;

@@ -43,7 +43,7 @@ fn bench_readiness_bam_active_row_consistency_reports_governed_surface_alignment
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json")
     );
     assert_eq!(
         payload.get("active_matrix_output_path").and_then(serde_json::Value::as_str),

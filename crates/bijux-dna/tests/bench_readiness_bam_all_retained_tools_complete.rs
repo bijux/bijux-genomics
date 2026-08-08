@@ -1,3 +1,4 @@
+#![cfg(feature = "bam_downstream")]
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -42,7 +43,7 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(19));

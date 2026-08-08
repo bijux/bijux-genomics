@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_RECALIBRATION_GENOTYPING_READY_PATH: &str =
-    "benchmarks/readiness/bam/recalibration-genotyping-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/recalibration-genotyping-ready.json";
 const BAM_RECALIBRATION_GENOTYPING_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_recalibration_genotyping_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";

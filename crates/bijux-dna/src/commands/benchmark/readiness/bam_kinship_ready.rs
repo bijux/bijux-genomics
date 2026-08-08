@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_KINSHIP_READY_PATH: &str =
-    "benchmarks/readiness/bam/kinship-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/kinship-ready.json";
 const BAM_KINSHIP_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_kinship_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";
 const COVERAGE_STATUS_INCOMPLETE: &str = "incomplete";

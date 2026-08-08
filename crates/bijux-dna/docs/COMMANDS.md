@@ -474,7 +474,7 @@ Visible aliases are part of the operator surface:
   mapped into reporting instead of relying on stage-only placeholders.
 - `bijux-dna bench readiness render-bam-all-retained-tools-complete`
   `render-bam-all-retained-tools-complete` writes
-  `benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json`, re-checking Goal 379 through
+  `artifacts/benchmark-smoke/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json`, re-checking Goal 379 through
   Goal 395 against the governed BAM retained-tool slice. The report proves the 49 retained BAM
   bindings stay synchronized across the BAM serving map, command-adapter coverage, parser
   fixtures, local/container smoke paths, expected-result rows, rendered commands, and report-map
@@ -665,7 +665,7 @@ Visible aliases are part of the operator surface:
   acceptance semantics is still covered by the governed threshold table.
 - `bijux-dna bench readiness render-bam-science-thresholds-ready`
   `render-bam-science-thresholds-ready` writes
-  `benchmarks/readiness/bam/BAM_SCIENCE_THRESHOLDS_READY.json` with one governed row per
+  `artifacts/benchmark-smoke/readiness/bam/BAM_SCIENCE_THRESHOLDS_READY.json` with one governed row per
   comparable BAM stage and one governed contract entry per shared BAM comparison metric. Each
   metric entry records the scientific pass direction, tolerance kind and value, and insufficiency
   policy so same-stage BAM tool comparisons carry explicit acceptance semantics instead of relying
@@ -801,7 +801,7 @@ Visible aliases are part of the operator surface:
   (`mismatched_contract`).
 - `bijux-dna bench readiness render-bam-contamination-sex-haplogroups-ready`
   `render-bam-contamination-sex-haplogroups-ready` writes
-  `benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json` with governed rows for
+  `artifacts/benchmark-smoke/readiness/bam/contamination-sex-haplogroups-ready.json` with governed rows for
   `bam.contamination` under `contammix`, `schmutzi`, and `verifybamid2`, `bam.sex` under `angsd`,
   `rxy`, and `yleaf`, and `bam.haplogroups` under `yleaf` when downstream BAM support is enabled.
   Each row ties active-scope proof, command adapter coverage, output declarations, parser
@@ -811,7 +811,7 @@ Visible aliases are part of the operator surface:
   contamination estimates, confidence/status caveats, X/Y/autosome coverage calls, haplogroup
   panel identity, and governed report paths explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-bam-kinship-ready`
-  `render-bam-kinship-ready` writes `benchmarks/readiness/bam/kinship-ready.json` with one
+  `render-bam-kinship-ready` writes `artifacts/benchmark-smoke/readiness/bam/kinship-ready.json` with one
   governed row each for `bam.kinship` under `angsd` and `king` when downstream BAM support is
   enabled. Each row ties active-scope proof, command adapter coverage, output declarations, parser
   coverage, expected benchmark results, report-map placement, normalized-schema coverage, and
@@ -821,7 +821,7 @@ Visible aliases are part of the operator surface:
   surface.
 - `bijux-dna bench readiness render-bam-active-row-consistency`
   `render-bam-active-row-consistency` writes
-  `benchmarks/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json` with the active BAM stage/tool
+  `artifacts/benchmark-smoke/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json` with the active BAM stage/tool
   bindings from the all-domain active matrix used as the governed source of truth. The report
   compares those active BAM bindings against rendered commands, output declarations, expected
   benchmark results, parser-fixture coverage, local-job coverage, and the BAM report map, then
@@ -838,7 +838,7 @@ Visible aliases are part of the operator surface:
   downstream stages.
 - `bijux-dna bench readiness render-bam-recalibration-genotyping-ready`
   `render-bam-recalibration-genotyping-ready` writes
-  `benchmarks/readiness/bam/recalibration-genotyping-ready.json` with one governed row for
+  `artifacts/benchmark-smoke/readiness/bam/recalibration-genotyping-ready.json` with one governed row for
   `bam.recalibration` under `gatk` plus one governed row for `bam.genotyping` under `angsd` when
   downstream BAM support is enabled. Each row ties active-scope proof, command adapter coverage,
   output declarations, parser coverage, expected benchmark results, report-map placement,
@@ -849,7 +849,7 @@ Visible aliases are part of the operator surface:
   outputs, and governed report paths stay explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-bam-insert-size-gc-bias-ready`
   `render-bam-insert-size-gc-bias-ready` writes
-  `benchmarks/readiness/bam/insert-size-gc-bias-ready.json` with one governed row each for
+  `artifacts/benchmark-smoke/readiness/bam/insert-size-gc-bias-ready.json` with one governed row each for
   `bam.insert_size` and `bam.gc_bias` under Picard. Each row ties active-scope proof, command
   adapter coverage, output declarations, parser coverage, expected benchmark results, report-map
   placement, normalized-schema coverage, and owned local-smoke artifacts together so insert-size
@@ -875,7 +875,7 @@ Visible aliases are part of the operator surface:
   endogenous-content contract grows a governed contaminant-read field.
 - `bijux-dna bench readiness render-bam-overlap-endogenous-ready`
   `render-bam-overlap-endogenous-ready` writes
-  `benchmarks/readiness/bam/overlap-endogenous-ready.json` with one governed row each for
+  `artifacts/benchmark-smoke/readiness/bam/overlap-endogenous-ready.json` with one governed row each for
   `bam.overlap_correction` under `bamutil` and `bam.endogenous_content` under `samtools`. Each
   row ties active-scope proof, command adapter coverage, output declarations, parser coverage,
   expected benchmark results, report-map placement, normalized-schema coverage, and owned
@@ -956,7 +956,7 @@ Visible aliases are part of the operator surface:
   complexity, coverage, and mapping without drift.
 - `bijux-dna bench readiness render-bam-damage-authenticity-ready`
   `render-bam-damage-authenticity-ready` writes
-  `benchmarks/readiness/bam/damage-authenticity-ready.json` with governed rows for
+  `artifacts/benchmark-smoke/readiness/bam/damage-authenticity-ready.json` with governed rows for
   `bam.damage` under `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, and
   `pydamage`, plus `bam.authenticity` under `authenticct`, `damageprofiler`, and `pmdtools`.
   Each row ties active-scope proof, command adapter coverage, output declarations, parser
