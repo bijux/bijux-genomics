@@ -5,6 +5,7 @@ pub const SUITE_SCHEMA_V1: &str = "bijux.bench.suite.v1";
 pub const CORPUS_SCHEMA_V1: &str = "bijux.bench.corpus.v1";
 pub const BUNDLE_SCHEMA_V1: &str = "bijux.bench.bundle.v1";
 pub const BENCHMARK_DATA_INDEX_SCHEMA_V1: &str = "bijux.data_index.v1";
+pub const BENCHMARK_DATA_INDEX_SCHEMA_V2: &str = "bijux.data_index.v2";
 pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1: &str =
     "bijux.benchmark.data_portfolio_audit.v1";
 pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2: &str =
@@ -16,6 +17,7 @@ pub const BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1: &str =
     "bijux.benchmark.corpus_materialization_publication.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V2: &str = "bijux.data_catalog.v2";
+pub const GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1: &str = "bijux.data_catalog_registry.v1";
 pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
 pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
 pub const DECISION_SCHEMA_V1: &str = "bijux.bench.gate.v1";

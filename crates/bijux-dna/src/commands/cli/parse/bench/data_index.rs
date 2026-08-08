@@ -5,7 +5,7 @@ use clap::Args;
 #[derive(Debug, Args)]
 pub struct BenchDataIndexArgs {
     #[arg(long)]
-    pub catalog_root: PathBuf,
+    pub catalog_registry: PathBuf,
     #[arg(long)]
     pub data_root: PathBuf,
     #[arg(long)]

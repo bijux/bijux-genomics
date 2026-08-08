@@ -27,6 +27,8 @@ These operations are exported through the crate root and `public_api`.
 | `acquire-fastq-corpus` | `acquire_fastq_corpus(request)` | Resolve a reviewed corpus specification against exact ENA run metadata and atomically publish a checksum-pinned acquisition plan. |
 | `derive-fastq-corpus-acquisition-plan` | `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` | Deterministically replay acquisition-plan derivation from typed offline ENA records. |
 | `materialize-fastq-corpus` | `materialize_fastq_corpus(request)` | Re-verify or transfer checksum-pinned ENA files, validate every gzip FASTQ record, make admitted bytes read-only, and atomically publish the governed catalog. |
+| `build-benchmark-data-index` | `build_benchmark_data_index(request)` | Verify a catalog registry, select each source-addressed current v2 snapshot, and re-hash its governed data closure. |
+| `publish-benchmark-data-index` | `publish_benchmark_data_index(request)` | Publish one immutable registry-bound data index and human-readable report. |
 | `admit-fastq-benchmark-corpus` | `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` | Verify exact data-index/catalog closure and re-hash every governed FASTQ file. |
 | `admit-bam-benchmark-corpus` | `admit_bam_benchmark_corpus(study_root, data_index_path, corpus_id)` | Verify data-index/catalog agreement and re-hash one governed coordinate-sorted BAM and BAI. |
 | `ensure-fastq-read-length-expectations` | `ensure_fastq_read_length_expectations(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` | Independently derive and immutably publish exact FASTQ read-length expectations. |

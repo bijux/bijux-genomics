@@ -15,7 +15,7 @@ use tempfile::TempDir;
 fn audits_live_portfolio_bindings_without_promoting_missing_corpora() -> Result<()> {
     let fixture = DataAuditFixture::new()?;
     let index = build_benchmark_data_index(&BenchmarkDataIndexRequest {
-        catalog_root: fixture.catalog_root.clone(),
+        catalog_registry_path: fixture.catalog_registry_path.clone(),
         data_root: fixture.data_root.clone(),
         created_at_utc: "2026-08-08T00:00:00Z".to_string(),
     })?;
@@ -78,7 +78,7 @@ struct DataAuditFixture {
     _temp: TempDir,
     study_root: PathBuf,
     data_root: PathBuf,
-    catalog_root: PathBuf,
+    catalog_registry_path: PathBuf,
 }
 
 impl DataAuditFixture {
@@ -86,7 +86,9 @@ impl DataAuditFixture {
         let temp = tempfile::tempdir()?;
         let study_root = temp.path().join("STUDY");
         let data_root = study_root.join("data");
-        let catalog_root = data_root.join("catalog");
+        let source_commit = "1".repeat(40);
+        let catalog_root = data_root.join("catalog/snapshots").join(&source_commit);
+        let catalog_registry_path = data_root.join("catalog/registry.json");
         fs::create_dir_all(&catalog_root)?;
         write_catalog(
             &data_root,
@@ -116,7 +118,8 @@ impl DataAuditFixture {
             "toy fixture excluded from publication",
             Some(1),
         )?;
-        Ok(Self { _temp: temp, study_root, data_root, catalog_root })
+        write_catalog_registry(&catalog_registry_path, &catalog_root, &source_commit)?;
+        Ok(Self { _temp: temp, study_root, data_root, catalog_registry_path })
     }
 }
 
@@ -132,7 +135,7 @@ fn write_catalog(
     fs::write(&data_path, id.as_bytes())?;
     let digest = bijux_dna_infra::hash_file_sha256(&data_path)?;
     let mut catalog = json!({
-        "schema_version": "bijux.data_catalog.v1",
+        "schema_version": "bijux.data_catalog.v2",
         "id": id,
         "purpose": purpose,
         "source": format!("https://example.invalid/{id}"),
@@ -151,6 +154,44 @@ fn write_catalog(
         catalog["sample_count"] = json!(sample_count);
     }
     fs::write(catalog_root.join(format!("{id}.json")), serde_json::to_vec_pretty(&catalog)?)?;
+    Ok(())
+}
+
+fn write_catalog_registry(path: &Path, catalog_root: &Path, source_commit: &str) -> Result<()> {
+    let mut catalog_paths = fs::read_dir(catalog_root)?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    catalog_paths.sort();
+    let records = catalog_paths
+        .into_iter()
+        .map(|catalog_path| {
+            let id = catalog_path
+                .file_stem()
+                .and_then(|value| value.to_str())
+                .context("catalog identity")?;
+            let digest = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
+            Ok(json!({
+                "id": id,
+                "current_catalog_sha256": digest,
+                "snapshots": [{
+                    "catalog_path": format!("study://data/catalog/snapshots/{source_commit}/{id}.json"),
+                    "catalog_sha256": digest,
+                    "catalog_schema_version": "bijux.data_catalog.v2",
+                    "source_commit": source_commit,
+                    "created_at_utc": "2026-08-08T00:00:00Z"
+                }]
+            }))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    fs::write(
+        path,
+        serde_json::to_vec_pretty(&json!({
+            "schema_version": "bijux.data_catalog_registry.v1",
+            "created_at_utc": "2026-08-08T00:00:00Z",
+            "data_root": "study://data",
+            "records": records
+        }))?,
+    )?;
     Ok(())
 }
 

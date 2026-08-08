@@ -12,7 +12,7 @@ use tempfile::TempDir;
 struct DataIndexFixture {
     _temp: TempDir,
     data_root: PathBuf,
-    catalog_root: PathBuf,
+    catalog_registry_path: PathBuf,
     catalog_path: PathBuf,
     governed_file: PathBuf,
 }
@@ -27,6 +27,9 @@ fn derives_verified_path_stable_index_and_report() -> Result<()> {
     assert_eq!(first, second);
     assert_eq!(first.summary.record_count, 1);
     assert_eq!(first.summary.file_count, 1);
+    assert_eq!(first.schema_version, "bijux.data_index.v2");
+    assert_eq!(first.catalog_registry_path.as_deref(), Some("study://data/catalog/registry.json"));
+    assert!(first.catalog_registry_sha256.is_some());
     assert_eq!(first.summary.benchmark_eligibility.get(&BenchmarkEligibility::Eligible), Some(&1));
     assert_eq!(first.records[0].files[0].path, "study://data/corpora/horse/sample.bam");
 
@@ -38,7 +41,9 @@ fn derives_verified_path_stable_index_and_report() -> Result<()> {
         report_path: report_path.clone(),
     })?;
     assert!(index_path.is_file());
-    assert!(fs::read_to_string(report_path)?.contains("Catalog records: **1**"));
+    let report = fs::read_to_string(report_path)?;
+    assert!(report.contains("Catalog registry: `study://data/catalog/registry.json`"));
+    assert!(report.contains("Catalog records: **1**"));
 
     let published = fs::read(&index_path)?;
     let duplicate = BenchmarkDataIndexPublicationRequest {
@@ -55,7 +60,7 @@ fn derives_verified_path_stable_index_and_report() -> Result<()> {
 #[test]
 fn exposes_missing_temporal_provenance_without_fabrication() -> Result<()> {
     let fixture = data_index_fixture()?;
-    mutate_catalog(&fixture.catalog_path, |record| {
+    mutate_registered_catalog(&fixture, |record| {
         record.as_object_mut().expect("catalog object").remove("retrieved_at_utc");
     })?;
 
@@ -80,7 +85,7 @@ fn rejects_digest_drift_and_ambiguous_bare_names() -> Result<()> {
     fs::copy(&fixture.governed_file, duplicate)?;
     let digest = bijux_dna_infra::hash_file_sha256(&fixture.governed_file)?;
     let size = fs::metadata(&fixture.governed_file)?.len();
-    mutate_catalog(&fixture.catalog_path, |record| {
+    mutate_registered_catalog(&fixture, |record| {
         record["files"] = json!([{"name": "sample.bam", "sha256": digest, "size_bytes": size}]);
     })?;
     assert!(build_benchmark_data_index(&request(&fixture))
@@ -100,7 +105,7 @@ fn excludes_operational_evidence_from_governed_file_discovery() -> Result<()> {
     symlink(&fixture.governed_file, evidence_root.join("source-link.bam"))?;
     let digest = bijux_dna_infra::hash_file_sha256(&fixture.governed_file)?;
     let size = fs::metadata(&fixture.governed_file)?.len();
-    mutate_catalog(&fixture.catalog_path, |record| {
+    mutate_registered_catalog(&fixture, |record| {
         record["files"] = json!([{"name": "sample.bam", "sha256": digest, "size_bytes": size}]);
     })?;
 
@@ -117,7 +122,7 @@ fn admits_structured_parent_file_identity_and_provenance() -> Result<()> {
     fs::write(&parent, b"governed-parent")?;
     let digest = bijux_dna_infra::hash_file_sha256(&parent)?;
     let size = fs::metadata(&parent)?.len();
-    mutate_catalog(&fixture.catalog_path, |record| {
+    mutate_registered_catalog(&fixture, |record| {
         record["parents"] = json!([{"path": parent, "sha256": digest, "size_bytes": size}]);
     })?;
 
@@ -137,7 +142,7 @@ fn derives_legacy_size_but_rejects_incomplete_identity() -> Result<()> {
     let parent = fixture.data_root.join("corpora/horse/source.cram");
     fs::write(&parent, b"governed-parent")?;
     let digest = bijux_dna_infra::hash_file_sha256(&parent)?;
-    mutate_catalog(&fixture.catalog_path, |record| {
+    mutate_registered_catalog(&fixture, |record| {
         record["files"].as_array_mut().expect("files").push(json!({
             "path": parent,
             "sha256": digest,
@@ -152,7 +157,7 @@ fn derives_legacy_size_but_rejects_incomplete_identity() -> Result<()> {
     assert_eq!(parent.size_bytes, 15);
 
     let fixture = data_index_fixture()?;
-    mutate_catalog(&fixture.catalog_path, |record| {
+    mutate_registered_catalog(&fixture, |record| {
         record["files"][0].as_object_mut().expect("file object").remove("sha256");
     })?;
     assert!(build_benchmark_data_index(&request(&fixture))
@@ -177,7 +182,9 @@ fn rejects_symlinked_governed_files() -> Result<()> {
 fn data_index_fixture() -> Result<DataIndexFixture> {
     let temp = tempfile::tempdir()?;
     let data_root = temp.path().join("data");
-    let catalog_root = data_root.join("catalog");
+    let source_commit = "1".repeat(40);
+    let catalog_root = data_root.join("catalog/snapshots").join(&source_commit);
+    let catalog_registry_path = data_root.join("catalog/registry.json");
     let governed_file = data_root.join("corpora/horse/sample.bam");
     fs::create_dir_all(&catalog_root)?;
     fs::create_dir_all(governed_file.parent().expect("corpus parent"))?;
@@ -210,15 +217,61 @@ fn data_index_fixture() -> Result<DataIndexFixture> {
         "known_limitations": ["one sample does not represent a population"],
     });
     write_json(&catalog_path, &catalog)?;
-    Ok(DataIndexFixture { _temp: temp, data_root, catalog_root, catalog_path, governed_file })
+    write_registry(&catalog_registry_path, &catalog_path, &source_commit)?;
+    Ok(DataIndexFixture {
+        _temp: temp,
+        data_root,
+        catalog_registry_path,
+        catalog_path,
+        governed_file,
+    })
 }
 
 fn request(fixture: &DataIndexFixture) -> BenchmarkDataIndexRequest {
     BenchmarkDataIndexRequest {
-        catalog_root: fixture.catalog_root.clone(),
+        catalog_registry_path: fixture.catalog_registry_path.clone(),
         data_root: fixture.data_root.clone(),
         created_at_utc: "2026-08-06T00:00:00Z".to_string(),
     }
+}
+
+fn mutate_registered_catalog(
+    fixture: &DataIndexFixture,
+    mutation: impl FnOnce(&mut Value),
+) -> Result<()> {
+    mutate_catalog(&fixture.catalog_path, mutation)?;
+    let mut registry: Value = serde_json::from_slice(&fs::read(&fixture.catalog_registry_path)?)?;
+    let digest = bijux_dna_infra::hash_file_sha256(&fixture.catalog_path)?;
+    registry["records"][0]["current_catalog_sha256"] = digest.clone().into();
+    registry["records"][0]["snapshots"][0]["catalog_sha256"] = digest.into();
+    write_json(&fixture.catalog_registry_path, &registry)
+}
+
+fn write_registry(path: &Path, catalog_path: &Path, source_commit: &str) -> Result<()> {
+    let digest = bijux_dna_infra::hash_file_sha256(catalog_path)?;
+    let id = catalog_path
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| anyhow::anyhow!("catalog identity is not UTF-8"))?;
+    write_json(
+        path,
+        &json!({
+            "schema_version": "bijux.data_catalog_registry.v1",
+            "created_at_utc": "2026-08-06T00:00:00Z",
+            "data_root": "study://data",
+            "records": [{
+                "id": id,
+                "current_catalog_sha256": digest,
+                "snapshots": [{
+                    "catalog_path": format!("study://data/catalog/snapshots/{source_commit}/{id}.json"),
+                    "catalog_sha256": digest,
+                    "catalog_schema_version": "bijux.data_catalog.v2",
+                    "source_commit": source_commit,
+                    "created_at_utc": "2026-08-06T00:00:00Z"
+                }]
+            }]
+        }),
+    )
 }
 
 fn mutate_catalog(path: &Path, mutation: impl FnOnce(&mut Value)) -> Result<()> {

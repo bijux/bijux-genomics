@@ -11,6 +11,8 @@ mod mod_contracts_benchmark_planning_rs;
 mod mod_contracts_campaign_engine_rs;
 #[path = "contracts/compatibility.rs"]
 mod mod_contracts_compatibility_rs;
+#[path = "contracts/data_catalog_registry.rs"]
+mod mod_contracts_data_catalog_registry_rs;
 #[path = "contracts/data_index.rs"]
 mod mod_contracts_data_index_rs;
 #[path = "contracts/data_portfolio_audit.rs"]

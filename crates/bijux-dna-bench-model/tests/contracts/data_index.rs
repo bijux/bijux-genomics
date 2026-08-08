@@ -36,6 +36,19 @@ fn governed_data_index_rejects_unknown_persisted_fields() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn governed_data_index_v2_requires_exact_registry_identity() {
+    let mut index = valid_index();
+    index.schema_version = bijux_dna_bench_model::BENCHMARK_DATA_INDEX_SCHEMA_V2.to_string();
+    index.catalog_registry_path = Some("study://data/catalog/registry.json".to_string());
+    index.catalog_registry_sha256 = Some("c".repeat(64));
+    assert!(validate_benchmark_data_index(&index).is_ok());
+
+    index.catalog_registry_sha256 = None;
+    assert!(validate_benchmark_data_index(&index)
+        .is_err_and(|error| error.to_string().contains("disagrees with schema")));
+}
+
 fn valid_index() -> BenchmarkDataIndex {
     let file = BenchmarkDataIndexFile {
         path: "study://data/fastq/ERR000001/ERR000001.fastq.gz".to_string(),
@@ -68,6 +81,8 @@ fn valid_index() -> BenchmarkDataIndex {
         schema_version: BENCHMARK_DATA_INDEX_SCHEMA_V1.to_string(),
         created_at_utc: "2026-08-06T00:00:00+00:00".to_string(),
         data_root: "study://data".to_string(),
+        catalog_registry_path: None,
+        catalog_registry_sha256: None,
         summary: BenchmarkDataIndexSummary {
             record_count: 1,
             file_count: 1,

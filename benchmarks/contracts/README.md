@@ -61,6 +61,11 @@ v2 acquisition and admission records. Historical v1 catalogs remain readable,
 but new materialization cannot reconstruct or override policy with local
 hardcoded values.
 
+`schemas/governed-data-catalog-registry.schema.json` selects current immutable
+catalog snapshots without replacing historical authorities. Snapshot paths are
+source-addressed, exact hashes are mandatory, and only a v2 snapshot can be
+selected for a newly derived production data index.
+
 The checked `suite`, `corpus`, `bundle`, `observation`, `summary`, and `decision`
 schemas are also generated from `bijux-dna-bench-model`. `GateDecision` is the
 only persisted decision record; schema changes must originate in the model

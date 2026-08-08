@@ -5,6 +5,7 @@
 pub mod admission;
 pub mod campaign_engine;
 pub mod corpus;
+pub mod data_catalog_registry;
 pub mod data_portfolio_audit;
 pub mod execution;
 pub mod graph;
@@ -46,6 +47,11 @@ pub use corpus::{
     CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
     FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+};
+#[allow(unused_imports)]
+pub use data_catalog_registry::{
+    governed_data_catalog_registry_schema, GovernedDataCatalogRegistry,
+    GovernedDataCatalogRegistryRecord, GovernedDataCatalogSnapshot,
 };
 #[allow(unused_imports)]
 pub use data_portfolio_audit::{

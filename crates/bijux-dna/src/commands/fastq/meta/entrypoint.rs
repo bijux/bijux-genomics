@@ -97,7 +97,7 @@ pub(crate) fn handle_meta_commands(
                     let index = bijux_dna_api::v1::api::bench::publish_benchmark_data_index(
                         &bijux_dna_api::v1::api::bench::BenchmarkDataIndexPublicationRequest {
                             index: bijux_dna_api::v1::api::bench::BenchmarkDataIndexRequest {
-                                catalog_root: args.catalog_root.clone(),
+                                catalog_registry_path: args.catalog_registry.clone(),
                                 data_root: args.data_root.clone(),
                                 created_at_utc: args.created_at_utc.clone(),
                             },

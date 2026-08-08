@@ -79,6 +79,9 @@ Model contracts:
 - `GovernedDataCatalog`
 - `GovernedDataCatalogSample`
 - `GovernedDataCatalogFile`
+- `GovernedDataCatalogRegistry`
+- `GovernedDataCatalogRegistryRecord`
+- `GovernedDataCatalogSnapshot`
 - `CorpusMaterializationDisposition`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
@@ -134,6 +137,9 @@ Policy and diagnostics:
 - `FASTQ_CORPUS_SOURCE_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V2`
+- `GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1`
+- `BENCHMARK_DATA_INDEX_SCHEMA_V1`
+- `BENCHMARK_DATA_INDEX_SCHEMA_V2`
 
 Statistics:
 
@@ -160,11 +166,15 @@ Schema derivation:
 - `corpus_acquisition_plan_schema`
 - `fastq_corpus_source_spec_schema`
 - `governed_data_catalog_schema`
+- `governed_data_catalog_registry_schema`
+- `benchmark_data_index_schema`
 - `validate_scheduler_observation`
 - `validate_execution_spec`
 - `validate_corpus_acquisition_plan`
 - `validate_fastq_corpus_source_spec`
 - `validate_governed_data_catalog`
+- `validate_governed_data_catalog_registry`
+- `validate_benchmark_data_index`
 - `validate_utc_timestamp`
 
 Namespaces:

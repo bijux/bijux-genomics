@@ -146,22 +146,25 @@ counts, computes SHA-256, makes the admitted raw files read-only, and writes
 the scientific catalog only after the complete cohort passes. Existing bytes
 are never trusted by path alone, and an existing catalog is never replaced.
 
-After materialization and format validation, build the path-stable scientific
-data index from the study catalog:
+After materialization and format validation, publish source-addressed catalog
+snapshots and a checked registry that identifies the current v2 snapshot for
+each corpus. Build the path-stable scientific data index from that registry:
 
 ```console
 commit=$(git rev-parse HEAD)
 evidence="$STUDY/data/evidence/indexes/$commit"
 cargo run -q -p bijux-dna -- bench data-index \
-  --catalog-root "$STUDY/data/catalog" \
+  --catalog-registry "$STUDY/data/catalog/registry.json" \
   --data-root "$STUDY/data" \
   --output "$evidence/data-index.json" \
   --report "$evidence/data-index.md" \
   --created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
-The `bijux-dna-bench` authority re-hashes every admitted file and publishes
-only `study://data/...` identities. A record remains ineligible when file
+The registry retains historical v1 snapshot paths and hashes for replay, but
+only a source-addressed v2 snapshot may be current. The `bijux-dna-bench`
+authority verifies the registry, re-hashes each selected catalog and every
+admitted file, and publishes only `study://data/...` identities. A record remains ineligible when file
 integrity, source identity, retrieval or admission time, access classification,
 redistribution policy, or known limitations are missing.
 
