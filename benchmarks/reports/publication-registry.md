@@ -7,7 +7,7 @@ Path presence does not confer current benchmark authority. Current products are 
 - Current governance products: **4**
 - Active stage reports: **0**
 - Historical stage reports: **7**
-- Quarantined tracked files: **91**
+- Quarantined tracked files: **83**
 
 ## Current products
 
@@ -34,4 +34,4 @@ Path presence does not confer current benchmark authority. Current products are 
 
 | Prefix | Files | Tree SHA-256 | Policy |
 |---|---:|---|---|
-| `benchmarks/readiness/` | 91 | `a131f7877b102592fd90d4354bf3b8df41c024db2e45c858be513d7692bcbda8` | Preserved migration evidence only; never admits campaigns, science, evidence books, or final gates. |
+| `benchmarks/readiness/` | 83 | `5dc52298e5f6c06cbc74fdfd3f6dc6df9f65ce448fb913d055f58aa174f16444` | Preserved migration evidence only; never admits campaigns, science, evidence books, or final gates. |
