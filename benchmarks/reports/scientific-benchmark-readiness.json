@@ -1018,7 +1018,7 @@
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "admitted comparative execution evidence is stale"
+        "no admitted comparative execution evidence"
       ]
     },
     {
@@ -1037,7 +1037,7 @@
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "admitted comparative execution evidence is stale"
+        "no admitted comparative execution evidence"
       ]
     },
     {

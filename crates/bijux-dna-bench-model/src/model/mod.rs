@@ -15,6 +15,7 @@ pub mod observation;
 pub mod planning;
 pub mod protocol;
 pub mod publication;
+pub mod publication_registry;
 pub mod replay;
 pub mod report;
 pub mod stage_result;
@@ -123,6 +124,13 @@ pub use publication::{
     benchmark_publication_receipt_schema, BenchmarkCitationAssetIdentity, BenchmarkCitationRecord,
     BenchmarkCitationToolIdentity, BenchmarkEvidenceBook, BenchmarkEvidenceBookEntry,
     BenchmarkEvidenceBookStatus, BenchmarkPublicationReceipt,
+};
+#[allow(unused_imports)]
+pub use publication_registry::{
+    benchmark_publication_registry_schema, BenchmarkCurrentPublication,
+    BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkStagePublication,
+    BenchmarkStagePublicationDisposition,
 };
 #[allow(unused_imports)]
 pub use replay::{

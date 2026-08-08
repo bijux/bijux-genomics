@@ -392,6 +392,7 @@ architecture-report
 artifact-contracts
 benchmark-campaign-cycle
 benchmark-integrity-mini
+benchmark-publication-registry
 benchmark-run-registry
 benchmark-scientific-readiness
 benchmark-smoke-level1
@@ -448,6 +449,11 @@ setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
+
+`benchmark-publication-registry` generates or checks the crate-owned classification of current
+governance products, active and historical stage reports, and quarantined legacy readiness files.
+It fails when stale stage evidence remains in the active namespace or historical report paths lose
+their source-commit identity.
 
 `benchmark-campaign-cycle prepare` composes benchmark-owned corpus and execution-spec preparation
 with runner-owned Slurm materialization. It selects crate-owned material by the source-locked run

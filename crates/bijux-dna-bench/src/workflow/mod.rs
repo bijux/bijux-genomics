@@ -21,6 +21,7 @@ mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod options;
+mod publication_registry;
 mod report_load;
 mod run_registry;
 mod run_suite;
@@ -123,6 +124,10 @@ pub use fastq_validate_reads::{
     FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
 };
 pub use options::BenchRunOptions;
+pub use publication_registry::{
+    derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
+    render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,
+};
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,
 };

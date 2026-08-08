@@ -1,7 +1,15 @@
 # Benchmark Readiness
 
-This directory stores tracked deterministic benchmark readiness proof, including governed `.json`,
-`.tsv`, and report artifacts that must survive deleting disposable local roots such as `target/`.
+This directory is a quarantined legacy readiness surface. Its tracked `.json`,
+`.tsv`, Markdown, rendered commands, fixtures, and local proof preserve migration
+evidence, but none of them can admit a benchmark campaign, satisfy scientific
+readiness, or override crate-owned publications under `benchmarks/reports/`.
+
+The crate-owned publication registry records the tracked file count and a
+content-addressed tree digest for this directory. New production lifecycle,
+admission, aggregation, evidence-book, or replay authority must not be added
+here. Durable functionality belongs in `bijux-dna-bench-model`,
+`bijux-dna-bench`, `bijux-dna-runtime`, and `bijux-dna-runner`.
 
 Deterministic local-ready proof now lives under `benchmarks/readiness/local-ready/`.
 Micro-benchmark execution proof now lives under `benchmarks/readiness/micro/`.
