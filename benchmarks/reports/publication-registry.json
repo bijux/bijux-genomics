@@ -5,7 +5,7 @@
     "active_stage_report_count": 0,
     "historical_stage_report_count": 7,
     "quarantined_surface_count": 1,
-    "quarantined_file_count": 64
+    "quarantined_file_count": 57
   },
   "current_products": [
     {
@@ -113,8 +113,8 @@
     {
       "path_prefix": "benchmarks/readiness/",
       "disposition": "quarantined_legacy_readiness",
-      "tracked_file_count": 64,
-      "tree_sha256": "0678d441c35ab4d4bb9372f9a379b27a3e353fd17157ba6e51a0461a694d329a",
+      "tracked_file_count": 57,
+      "tree_sha256": "23b4b562c8f848d236debbb6723f957399da3f846d141198fd9122de5ab65ccb",
       "authority_policy": "Preserved migration evidence only; never admits campaigns, science, evidence books, or final gates."
     }
   ]
