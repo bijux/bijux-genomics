@@ -24,6 +24,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `artifacts/benchmark-smoke/readiness/vcf/` holds disposable VCF readiness matrices, commands, parser coverage, local probes, report maps, stage gates, and the retained-tool aggregate for local validation.
 - `artifacts/benchmark-smoke/readiness/fastq/` holds disposable FASTQ readiness matrices, commands, parser coverage, local probes, report maps, and stage-slice gates for local validation.
 - `artifacts/benchmark-smoke/readiness/tools/` holds disposable cross-domain tool inventory, resolution, probe, contract, parser, and aggregate reports for local validation.
+- `artifacts/benchmark-smoke/readiness/crates/` holds disposable crate-boundary, dependency, metric, identity, cycle, and aggregate reports for local validation.
 
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.
