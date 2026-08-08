@@ -829,7 +829,7 @@ Visible aliases are part of the operator surface:
   active BAM row count.
 - `bijux-dna bench readiness render-bam-kinship-complete`
   `render-bam-kinship-complete` writes
-  `benchmarks/readiness/bam/stages/bam.kinship.complete.json` with every retained
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.kinship.complete.json` with every retained
   `bam.kinship` binding promoted into a stage-owned completion gate. The report keeps active-scope,
   command, output, parser, expected-result, report-map, and schema proofs explicit for `angsd`
   and `king`, while adding owned ready and insufficient-overlap kinship smoke evidence, parser-smoke
@@ -857,16 +857,16 @@ Visible aliases are part of the operator surface:
   stay explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-bam-overlap-correction-complete`
   `render-bam-overlap-correction-complete` writes
-  `benchmarks/readiness/bam/stages/bam.overlap_correction.complete.json` with the admitted
-  `bam.overlap_correction` / `bamutil` binding promoted into a stage-owned completion gate. The
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.overlap_correction.complete.json` with the
+  admitted `bam.overlap_correction` / `bamutil` binding promoted into a stage-owned completion gate. The
   report keeps active-scope, command, output, parser, expected-result, report-map, schema, and
   local-smoke proofs explicit while also locking the governed corrected-overlap metrics contract:
   `pair_count`, `corrected_pairs`, `corrected_overlap_bases`, their expected-vs-observed deltas,
   and the typed `overlap_correction.summary.json` plus `stage.metrics.json` artifacts.
 - `bijux-dna bench readiness render-bam-endogenous-content-complete`
   `render-bam-endogenous-content-complete` writes
-  `benchmarks/readiness/bam/stages/bam.endogenous_content.complete.json` with the admitted
-  `bam.endogenous_content` / `samtools` binding promoted into a stage-owned completion gate. The
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.endogenous_content.complete.json` with the
+  admitted `bam.endogenous_content` / `samtools` binding promoted into a stage-owned completion gate. The
   report keeps active-scope, command, output, parser, expected-result, report-map, schema, and
   local-smoke proofs explicit while also locking the governed endogenous metric contract:
   `mapped_reads`, `endogenous_reads`, `total_reads`, `endogenous_fraction`, method,
@@ -884,7 +884,7 @@ Visible aliases are part of the operator surface:
   benchmark surface.
 - `bijux-dna bench readiness render-bam-damage-complete`
   `render-bam-damage-complete` writes
-  `benchmarks/readiness/bam/stages/bam.damage.complete.json` with every retained
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.damage.complete.json` with every retained
   `bam.damage` binding promoted into a stage-owned completion gate. The report keeps active-scope,
   command, output, parser, expected-result, report-map, schema, and local-smoke proofs explicit
   for `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, and `pydamage`, while
@@ -895,7 +895,7 @@ Visible aliases are part of the operator surface:
   signal, and normalized per-sample deltas without drift.
 - `bijux-dna bench readiness render-bam-contamination-complete`
   `render-bam-contamination-complete` writes
-  `benchmarks/readiness/bam/stages/bam.contamination.complete.json` with every retained
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.contamination.complete.json` with every retained
   `bam.contamination` binding promoted into a stage-owned completion gate. The report keeps
   active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
   for `contammix`, `schmutzi`, and `verifybamid2`, while adding owned local-smoke proof for both
@@ -905,7 +905,7 @@ Visible aliases are part of the operator surface:
   and `mt_consensus.fasta` stay present and the insufficiency path keeps explicit refusal codes.
 - `bijux-dna bench readiness render-bam-haplogroups-complete`
   `render-bam-haplogroups-complete` writes
-  `benchmarks/readiness/bam/stages/bam.haplogroups.complete.json` with the retained
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.haplogroups.complete.json` with the retained
   `bam.haplogroups` binding promoted into a stage-owned completion gate. The report keeps
   active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
   for `yleaf`, while adding owned ready and coverage-gated local-smoke proof from the governed
@@ -915,7 +915,7 @@ Visible aliases are part of the operator surface:
   confidence, coverage gate, and explicit `coverage_gate_not_met` behavior coherent.
 - `bijux-dna bench readiness render-bam-recalibration-complete`
   `render-bam-recalibration-complete` writes
-  `benchmarks/readiness/bam/stages/bam.recalibration.complete.json` with the retained
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.recalibration.complete.json` with the retained
   `bam.recalibration` binding promoted into a stage-owned completion gate. The report keeps
   active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
   for `gatk`, then proves the governed local-smoke skip path stays deterministic. The gate fails
@@ -924,7 +924,7 @@ Visible aliases are part of the operator surface:
   explicit `coverage_below_gate` behavior all remain coherent.
 - `bijux-dna bench readiness render-bam-genotyping-complete`
   `render-bam-genotyping-complete` writes
-  `benchmarks/readiness/bam/stages/bam.genotyping.complete.json` with the retained
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.genotyping.complete.json` with the retained
   `bam.genotyping` binding promoted into a stage-owned completion gate. The report keeps
   active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
   for `angsd`, then proves the governed local-ready producer contract stays compatible with VCF
@@ -934,7 +934,8 @@ Visible aliases are part of the operator surface:
   variant-count, sample-count, and missingness evidence.
 - `bijux-dna bench readiness render-bam-sex-complete`
   `render-bam-sex-complete` writes
-  `benchmarks/readiness/bam/stages/bam.sex.complete.json` with every retained `bam.sex`
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.sex.complete.json` with every retained
+  `bam.sex`
   binding promoted into a stage-owned completion gate. The report keeps active-scope, command,
   output, parser, expected-result, report-map, and schema proofs explicit for `angsd`, `rxy`,
   and `yleaf`, while adding owned ready and insufficient local-smoke proof per tool. The gate
@@ -944,7 +945,7 @@ Visible aliases are part of the operator surface:
   `insufficient_chromosomes` evidence instead of passing without X/Y/autosome support.
 - `bijux-dna bench readiness render-bam-authenticity-complete`
   `render-bam-authenticity-complete` writes
-  `benchmarks/readiness/bam/stages/bam.authenticity.complete.json` with every retained
+  `artifacts/benchmark-smoke/readiness/bam/stages/bam.authenticity.complete.json` with every retained
   `bam.authenticity` binding promoted into a stage-owned completion gate. The report keeps
   active-scope, command, output, parser, expected-result, report-map, schema, and local-smoke
   proofs explicit for `authenticct`, `damageprofiler`, and `pmdtools`, while also locking the

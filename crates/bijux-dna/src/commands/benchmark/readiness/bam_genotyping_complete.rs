@@ -33,7 +33,7 @@ use crate::commands::cli::render;
 use std::fs;
 
 pub(crate) const DEFAULT_BAM_GENOTYPING_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/stages/bam.genotyping.complete.json";
+    "artifacts/benchmark-smoke/readiness/bam/stages/bam.genotyping.complete.json";
 const BAM_GENOTYPING_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_genotyping_complete.v1";
 const EXPECTED_STAGE_ID: &str = "bam.genotyping";

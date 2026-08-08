@@ -46,7 +46,7 @@ fn bench_readiness_bam_kinship_complete_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/stages/bam.kinship.complete.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/stages/bam.kinship.complete.json")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     assert_eq!(

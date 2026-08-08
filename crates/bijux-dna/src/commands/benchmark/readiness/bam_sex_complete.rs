@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_SEX_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/stages/bam.sex.complete.json";
+    "artifacts/benchmark-smoke/readiness/bam/stages/bam.sex.complete.json";
 const BAM_SEX_COMPLETE_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_sex_complete.v1";
 const EXPECTED_STAGE_ID: &str = "bam.sex";
 const EXPECTED_LOCAL_SMOKE_SCHEMA_VERSION: &str = "bijux.bam.sex.tool_smoke.report.v1";
