@@ -399,7 +399,8 @@ Visible aliases are part of the operator surface:
   visible while failed, missing, or insufficient micro evidence cannot quietly pass.
 - `bijux-dna bench readiness render-operational-benchmark-ready`
   `render-operational-benchmark-ready` writes
-  `benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`. It reruns the
+  `artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`.
+  It reruns the
   governed FASTQ/BAM readiness gate, the VCF catalog and local-smoke gates, the VCF adapter and
   parser gates, the all-domain expected-result, command, output, parser, resource, harness, and
   SLURM readiness surfaces, the essential pipeline readiness gate, and the full collector,

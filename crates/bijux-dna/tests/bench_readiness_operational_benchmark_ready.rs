@@ -5,25 +5,47 @@ use std::collections::BTreeSet;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn read_committed_json() -> serde_json::Value {
-    let repo_root = support::repo_root().expect("repo root");
-    let payload = std::fs::read(
-        repo_root.join("benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"),
+fn run_cli_json() -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let sandbox = support::RepoSandbox::new("operational-benchmark-ready-").expect("repo sandbox");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = sandbox
+        .bijux_dna_command()
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["bench", "readiness", "render-operational-benchmark-ready", "--json"])
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse operational benchmark gate");
+    let report_path = sandbox.path().join(
+        "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json",
+    );
+    let written_payload: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(&report_path)
+            .unwrap_or_else(|error| panic!("read {}: {error}", report_path.display())),
     )
-    .expect("read committed operational benchmark gate");
-    serde_json::from_slice(&payload).expect("parse committed operational benchmark gate")
+    .unwrap_or_else(|error| panic!("parse {}: {error}", report_path.display()));
+    assert_eq!(written_payload, payload, "JSON output must match the written report");
+    payload
 }
 
 #[test]
 fn bench_readiness_operational_benchmark_ready_reports_green_surface() {
-    let payload = read_committed_json();
-    let repo_root = support::repo_root().expect("repo root");
-    let active_matrix = std::fs::read_to_string(
-        repo_root
-            .join("artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"),
-    )
-    .expect("read active stage-tool matrix");
-    let active_row_count = active_matrix.lines().skip(1).count() as u64;
+    let payload = run_cli_json();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -31,11 +53,13 @@ fn bench_readiness_operational_benchmark_ready_reports_green_surface() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json")
+        Some(
+            "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
+        )
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(active_row_count)
+        Some(142)
     );
     assert_eq!(payload.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
