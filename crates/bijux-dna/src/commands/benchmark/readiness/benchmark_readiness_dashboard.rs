@@ -309,7 +309,8 @@ fn summarize_adapters(pair_rows: &[PairReadinessRow]) -> BenchmarkReadinessAdapt
         attention_required_pair_count,
         status_counts,
         output_paths: vec![
-            "benchmarks/readiness/fastq-command-adapter-coverage.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/fastq/fastq-command-adapter-coverage.tsv"
+                .to_string(),
             "artifacts/benchmark-smoke/readiness/bam/bam-command-adapter-coverage.tsv".to_string(),
         ],
     }
@@ -391,7 +392,7 @@ fn summarize_corpora(
         assigned_stage_count,
         status_counts,
         output_paths: vec![
-            "benchmarks/readiness/fastq-corpus-assignment.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/fastq/fastq-corpus-assignment.tsv".to_string(),
             "artifacts/benchmark-smoke/readiness/bam/bam-corpus-assignment.tsv".to_string(),
             DEFAULT_CORPUS_CENTRIC_REPORT_PATH.to_string(),
         ],

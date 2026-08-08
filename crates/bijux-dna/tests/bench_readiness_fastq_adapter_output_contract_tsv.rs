@@ -31,7 +31,8 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("benchmarks/readiness/fastq-adapter-output-contract.tsv");
+    let tsv_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/fastq/fastq-adapter-output-contract.tsv");
     assert!(tsv_path.is_file(), "FASTQ adapter output contract TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read FASTQ adapter output contract");
@@ -44,13 +45,15 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
     );
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty(), "TSV must retain governed FASTQ adapter rows");
+    assert!(rows
+        .iter()
+        .any(|row| { row.starts_with("fastuniq\tfastq.remove_duplicates\trunnable\tcomplete\t") }));
     assert!(rows.iter().all(|row| {
         let mut columns = row.split('\t');
         let tool_id = columns.next();
         let stage_id = columns.next();
-        tool_id != Some("fastuniq")
-            && (stage_id != Some("fastq.profile_read_lengths")
-                || matches!(tool_id, Some("seqfu" | "seqkit")))
+        stage_id != Some("fastq.profile_read_lengths")
+            || matches!(tool_id, Some("seqfu" | "seqkit"))
     }));
     assert!(
         rows.iter().any(|row| {

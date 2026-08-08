@@ -45,7 +45,7 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("fastq"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-tool-serving-map.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-tool-serving-map.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let stage_count = rows

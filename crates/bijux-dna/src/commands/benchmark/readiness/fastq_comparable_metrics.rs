@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_COMPARABLE_METRICS_PATH: &str =
-    "benchmarks/readiness/fastq-comparable-metrics.tsv";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-comparable-metrics.tsv";
 const FASTQ_COMPARABLE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_comparable_metrics.v1";
 

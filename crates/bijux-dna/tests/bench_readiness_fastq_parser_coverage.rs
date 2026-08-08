@@ -44,7 +44,7 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-parser-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-parser-coverage.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -71,14 +71,20 @@ fn bench_readiness_fastq_parser_coverage_reports_governed_rows() {
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|value| value.starts_with("fixture:") || value.starts_with("asset:"))
     }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastuniq")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.remove_duplicates")
+            && row.get("parser_status").and_then(serde_json::Value::as_str)
+                == Some("benchmark_normalized")
+    }));
     assert!(rows.iter().all(|row| {
-        row.get("tool_id").and_then(serde_json::Value::as_str) != Some("fastuniq")
-            && (row.get("stage_id").and_then(serde_json::Value::as_str)
-                != Some("fastq.profile_read_lengths")
-                || matches!(
-                    row.get("tool_id").and_then(serde_json::Value::as_str),
-                    Some("seqfu" | "seqkit")
-                ))
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            != Some("fastq.profile_read_lengths")
+            || matches!(
+                row.get("tool_id").and_then(serde_json::Value::as_str),
+                Some("seqfu" | "seqkit")
+            )
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")

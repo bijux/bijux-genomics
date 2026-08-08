@@ -681,7 +681,7 @@ Visible aliases are part of the operator surface:
   stderr, and stage-result manifest path templates used by local dry-run execution.
 - `bijux-dna bench readiness render-fastq-command-adapter-coverage`
   `render-fastq-command-adapter-coverage` writes
-  `benchmarks/readiness/fastq-command-adapter-coverage.tsv` with one governed row per FASTQ
+  `artifacts/benchmark-smoke/readiness/fastq/fastq-command-adapter-coverage.tsv` with one governed row per FASTQ
   stage-tool binding in the 27-stage benchmark slice, carrying `benchmark_status`,
   `adapter_coverage`, `readiness_gap`, and the underlying `support_status`, `adapter_status`,
   `parser_status`, and `corpus_status`. The report proves which FASTQ benchmark rows are already
@@ -689,14 +689,14 @@ Visible aliases are part of the operator surface:
   while keeping corpus-blocked and planned-contract rows explicit instead of hidden.
 - `bijux-dna bench readiness render-fastq-comparable-metrics`
   `render-fastq-comparable-metrics` writes
-  `benchmarks/readiness/fastq-comparable-metrics.tsv` with one governed row per FASTQ stage
+  `artifacts/benchmark-smoke/readiness/fastq/fastq-comparable-metrics.tsv` with one governed row per FASTQ stage
   that both participates in the observer-specialized comparable benchmark surface and still has
   more than one comparable tool. Each row carries the admitted comparable tools, the default tool,
   the current corpus-routing status, and the governed shared metric fields that make same-stage
   tool comparisons interpretable without relying on tool-private report details.
 - `bijux-dna bench readiness render-fastq-corpus-assignment`
   `render-fastq-corpus-assignment` writes
-  `benchmarks/readiness/fastq-corpus-assignment.tsv` with one governed row per FASTQ
+  `artifacts/benchmark-smoke/readiness/fastq/fastq-corpus-assignment.tsv` with one governed row per FASTQ
   stage-tool binding in the 27-stage benchmark slice, carrying `benchmark_status`,
   `support_status`, `adapter_status`, `parser_status`, and either an assigned
   `corpus_family_id` plus `fixture_id` or a precise `excluded_reason`. The report validates that
@@ -723,7 +723,7 @@ Visible aliases are part of the operator surface:
   extension, its durable extension ID, and the required normalized key count so schema drift
   cannot hide behind parser-specific report formats.
 - `bijux-dna bench readiness render-fastq-parser-coverage`
-  `render-fastq-parser-coverage` writes `benchmarks/readiness/fastq-parser-coverage.tsv` with
+  `render-fastq-parser-coverage` writes `artifacts/benchmark-smoke/readiness/fastq/fastq-parser-coverage.tsv` with
   one governed row per FASTQ stage-tool binding that already has governed support,
   adapter-backed command rendering, and fixture-backed corpus coverage. Each row carries
   `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
@@ -778,14 +778,14 @@ Visible aliases are part of the operator surface:
   `fastqvalidator`, `fqtools`, and `seqtk`.
 - `bijux-dna bench readiness render-fastq-adapter-output-contract`
   `render-fastq-adapter-output-contract` writes
-  `benchmarks/readiness/fastq-adapter-output-contract.tsv` with one governed row per FASTQ
+  `artifacts/benchmark-smoke/readiness/fastq/fastq-adapter-output-contract.tsv` with one governed row per FASTQ
   stage-tool binding in the 27-stage benchmark slice, proving whether each runnable or plannable
   adapter declares every governed stage artifact in both `tool.outputs` and
   `execution_contract.expected_outputs`, identifies the normalized metrics artifact and raw output
   artifacts, and records the deterministic stdout, stderr, and stage-result manifest path
   templates used by local dry-run execution.
 - `bijux-dna bench readiness render-fastq-tool-serving-map`
-  `render-fastq-tool-serving-map` writes `benchmarks/readiness/fastq-tool-serving-map.tsv`
+  `render-fastq-tool-serving-map` writes `artifacts/benchmark-smoke/readiness/fastq/fastq-tool-serving-map.tsv`
   with one governed row per FASTQ stage-tool binding in the 27-stage benchmark slice, carrying
   `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
   from the real FASTQ governance contracts and local corpus-compatibility matrix. The amplicon

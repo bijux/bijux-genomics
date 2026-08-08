@@ -66,11 +66,11 @@ fn bench_readiness_fastq_filter_stages_ready_writes_governed_json_file() {
     );
     assert_eq!(
         row.get("command_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-command-adapter-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-command-adapter-coverage.tsv")
     );
     assert_eq!(
         row.get("output_contract_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-adapter-output-contract.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-adapter-output-contract.tsv")
     );
     assert_eq!(
         row.get("reason").and_then(serde_json::Value::as_str),

@@ -29,7 +29,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH: &str =
-    "benchmarks/readiness/fastq-tool-serving-map.tsv";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-tool-serving-map.tsv";
 pub(crate) const DEFAULT_BAM_TOOL_SERVING_MAP_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/bam-tool-serving-map.tsv";
 const FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION: &str =

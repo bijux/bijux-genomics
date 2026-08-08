@@ -13,7 +13,7 @@ use crate::commands::cli::parse::{self, BenchSchemaDomainArg};
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_SCHEMA_VALIDATION_REPORT_PATH: &str =
-    "benchmarks/readiness/fastq-schema-validation.json";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-schema-validation.json";
 pub(crate) const DEFAULT_BAM_SCHEMA_VALIDATION_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/bam-schema-validation.json";
 pub(crate) const DEFAULT_VCF_SCHEMA_VALIDATION_REPORT_PATH: &str =

@@ -108,7 +108,7 @@ fn bench_readiness_fastq_trim_stages_ready_reports_complete_trim_bindings() {
     );
     assert_eq!(
         fastp_polyg.get("command_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-command-adapter-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-command-adapter-coverage.tsv")
     );
     assert_eq!(
         fastp_polyg.get("schema_proof_path").and_then(serde_json::Value::as_str),
