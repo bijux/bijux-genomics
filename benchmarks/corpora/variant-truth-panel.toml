@@ -1,0 +1,49 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authorities for variant, phasing, and imputation truth
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-08
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "variant-truth-panel"
+class = "production_real"
+access_classification = "mixed-controlled-public"
+redistribution_classification = "authority-specific-derived-results-only"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001224"
+attribution = "Cite Platinum Genomes, NCBI dbGaP, IGSR, the 1000 Genomes Project, and the selected map and call-set releases."
+projected_storage_bytes = 1000000000000
+projected_cpu_hours = 5000
+projection_basis = "The projection reserves 1 TB and 5,000 CPU-hours for the seventeen-person truth pedigree, immutable 1000 Genomes panel and map snapshots, masked-truth splits, and validation outputs."
+truth_roles = ["variant_truth", "masked_genotype_truth"]
+truth_strategy = "independently_curated_genotypes_with_masked_truth"
+known_limitations = [
+  "Platinum Genomes access and redistribution constraints must be resolved before materialization.",
+  "Mendelian consistency does not establish truth in every difficult genomic region or variant class.",
+  "Reference-panel and genetic-map releases must be frozen independently and may introduce population-specific bias.",
+]
+description = "Inheritance-supported Platinum Genomes truth with frozen IGSR reference-panel and map authorities defines calling, filtering, phasing, and masked-imputation inputs."
+data_types = ["bam", "genetic_map", "reference_panel", "vcf"]
+target_sample_count = 10
+
+[[collections]]
+id = "igsr-reference-panel"
+authority = "International Genome Sample Resource"
+accession = "1000G-NYGC-30X-3202"
+source_url = "https://www.internationalgenome.org/data-portal/data-collections/1000genomes_30x/"
+access_terms_url = "https://www.internationalgenome.org/data/"
+data_types = ["genetic_map", "reference_panel"]
+selection_scope = "One release-addressed phased 1000 Genomes reference panel, matching sample metadata, and a declared genetic-map build frozen before imputation planning."
+truth_basis = "IGSR publishes the 3,202-sample high-coverage collection, alignments, phased call sets, pedigree metadata, and reuse guidance."
+known_limitations = ["The panel is not globally representative and the exact map authority must be selected and checksum-bound during materialization."]
+
+[[collections]]
+id = "platinum-genomes-pedigree"
+authority = "NCBI database of Genotypes and Phenotypes"
+accession = "phs001224.v1.p1"
+source_url = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001224"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001224"
+data_types = ["bam", "vcf"]
+planned_sample_count = 17
+selection_scope = "At least ten pedigree members with deep sequence data and inheritance-consistent platinum genotypes, partitioned into immutable observed and masked truth."
+truth_basis = "Mendelian transmission across parents and eleven children supports an independently curated phased SNV and indel catalogue."
+known_limitations = ["Controlled access and consent restrictions can block acquisition even though the integration contract is complete."]

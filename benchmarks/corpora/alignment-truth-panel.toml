@@ -1,0 +1,49 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authorities for independently characterized alignment material
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-08
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "alignment-truth-panel"
+class = "production_real"
+access_classification = "controlled"
+redistribution_classification = "derived-results-only"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001224"
+attribution = "Cite Platinum Genomes, NCBI dbGaP, the GRCh38 assembly, and each selected sequencing accession."
+projected_storage_bytes = 1000000000000
+projected_cpu_hours = 5000
+projection_basis = "The projection reserves 1 TB and 5,000 CPU-hours for a bounded seventeen-person pedigree subset, authorized acquisition, GRCh38, alignments, orthogonal truth, supplementary challenges, and validation."
+truth_roles = ["alignment_truth"]
+truth_strategy = "real_reference_material_with_orthogonal_truth_and_supplementary_simulation"
+known_limitations = [
+  "Platinum Genomes molecular data may require dbGaP authorization and may not be redistributable.",
+  "Inheritance-consistent variant truth is not direct read-placement truth for repetitive or structurally complex regions.",
+  "Supplementary simulation may probe controlled placement edge cases but cannot satisfy the real-data requirement alone.",
+]
+description = "A controlled-access pedigree with inheritance-supported genotypes and an immutable GRCh38 reference defines the real-material anchor for alignment scoring."
+data_types = ["bam", "fasta", "fastq"]
+target_sample_count = 10
+
+[[collections]]
+id = "grch38-reference"
+authority = "NCBI Genome Reference Consortium assembly record"
+accession = "GCF_000001405.40"
+source_url = "https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["fasta"]
+selection_scope = "One exact GRCh38 assembly package, including sequence dictionary and decoy policy frozen during materialization."
+truth_basis = "The NCBI assembly accession and package manifest provide the external reference identity."
+known_limitations = ["A linear reference does not represent every alternate haplotype or population-specific sequence."]
+
+[[collections]]
+id = "platinum-genomes-pedigree"
+authority = "NCBI database of Genotypes and Phenotypes"
+accession = "phs001224.v1.p1"
+source_url = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001224"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001224"
+data_types = ["bam", "fastq"]
+planned_sample_count = 17
+selection_scope = "At least ten authorized pedigree members selected before acquisition, retaining family relationships and sequencing provenance."
+truth_basis = "Deep whole-genome sequencing and Mendelian transmission across a seventeen-member pedigree support independently curated genotype consistency."
+known_limitations = ["Authorization, consent restrictions, and available raw-data formats must be verified before any acquisition plan is admissible."]

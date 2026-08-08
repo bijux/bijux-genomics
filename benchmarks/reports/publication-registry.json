@@ -11,9 +11,9 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "f9cf23a5596a58be3e896f3e03ce150b506ffbd3eec4c8c2c714f5183ca081e0",
+      "json_sha256": "21d96d7a34bd00966008201852dd35ca950781d50452651b0fe7ba582788596b",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "5e0b3d2e3e1fb160dfb3bc4c3292350d32ef076a8870c503340a4a01c32e59f6"
+      "markdown_sha256": "aeb0ded9335c6db145a86c068d6e1075af4d32b81c1e50e6473b0fd945966aea"
     },
     {
       "product_id": "stage-universe",
