@@ -34,7 +34,14 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src")),
-        btree_set(&["bin/", "image_qa/", "lib.rs", "public_api.rs", "qualification/"]),
+        btree_set(&[
+            "bin/",
+            "image_qa/",
+            "lib.rs",
+            "public_api.rs",
+            "qualification/",
+            "security_verification/",
+        ]),
         "src tree must match the documented environment qa layout"
     );
 
@@ -91,6 +98,11 @@ fn source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/image_qa/runtime_verification")),
         btree_set(&["mod.rs", "workflow.rs"]),
         "runtime verification must isolate effectful catalog-wide probe orchestration"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/security_verification")),
+        btree_set(&["mod.rs", "workflow.rs"]),
+        "security verification must contain only effectful probe orchestration"
     );
 
     assert_eq!(

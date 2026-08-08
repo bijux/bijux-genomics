@@ -13,6 +13,8 @@ host command orchestration that must not leak into production crates.
   configured Dockerfiles and runs version smoke checks.
 - `runtime_verification`: Cargo binary at `src/bin/runtime_verification.rs`; executes bounded
   version/help probes for the exact catalog-locked Apptainer inventory or verifies its report.
+- `security_verification`: Cargo binary at `src/bin/security_verification.rs`; collects complete
+  raw security evidence for exact catalog-locked Apptainer images without deriving policy passes.
 
 ## Host Commands Managed By This Crate
 
@@ -26,6 +28,11 @@ host command orchestration that must not leak into production crates.
 - `date -u +%Y-%m-%dT%H:%M:%SZ`: captures OCI creation metadata for image builds.
 - Apptainer catalog QA composes `bijux-dna-containers::api::verify_apptainer_tool_contract` and
   `run_apptainer_smoke`; this crate owns catalog iteration, concurrency, and publication.
+- `syft scan`: emits a complete CycloneDX JSON SBOM from the exact SIF.
+- `grype sbom`: scans that SBOM against the admitted immutable Grype database.
+- `gitleaks detect`: scans a bounded sandbox extraction with redaction and full JSON output.
+- `apptainer verify`, `apptainer build --sandbox`, and `apptainer exec`: collect signature,
+  filesystem privilege, non-root, read-only-system, and isolated-network observations.
 
 ## Offline Defaults
 
@@ -43,6 +50,7 @@ explicit operator-provided study evidence root.
 - `src/image_qa/support/docker_exec/transform.rs`
 - `src/image_qa/support/docker_runtime.rs`
 - `src/image_qa/support/seqkit.rs`
+- `src/security_verification/workflow.rs`
 
 ## Verification
 

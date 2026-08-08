@@ -11,5 +11,8 @@ pub mod api {
     pub use crate::runtime_verification::{
         execute_runtime_verification, RuntimeVerificationRequest, RuntimeVerificationResult,
     };
+    pub use crate::security_verification::{
+        execute_security_verification, SecurityVerificationRequest, SecurityVerificationResult,
+    };
     pub use bijux_dna_containers::api::*;
 }

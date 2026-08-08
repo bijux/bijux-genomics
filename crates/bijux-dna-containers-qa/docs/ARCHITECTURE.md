@@ -6,7 +6,7 @@ dataset concerns.
 
 ## Source Layout
 
-- `src/bin/`: thin command wrappers for Docker QA, image QA, and Apptainer runtime verification.
+- `src/bin/`: thin command wrappers for Docker QA, image QA, and Apptainer evidence collection.
 - `src/lib.rs`: public module exports.
 - `src/public_api.rs`: stable facade that re-exports environment APIs for QA consumers.
 - `src/image_qa/contracts.rs`: QA stage roster and dataset contract models.
@@ -22,6 +22,9 @@ dataset concerns.
   execution, and reporting.
 - `src/image_qa/runtime_verification/`: catalog-wide Apptainer probe orchestration and immutable
   QA evidence publication.
+- `src/security_verification/`: exact-image SBOM, vulnerability, secret, signature, structural,
+  and runtime probe collection using container-owned evidence types, without policy or release
+  verdicts.
 - `src/qualification/`: pipeline-derived probe plans, declared-output validation, metric
   evaluation, and classified qualification verdicts consumed by execution backends.
 
@@ -31,9 +34,10 @@ dataset concerns.
 2. QA datasets are discovered or hydrated under declared QA inputs.
 3. Qualification pipelines become typed QA probe and acceptance plans before execution.
 4. Docker/Apptainer checks run only through explicit commands owned by execution backends.
-5. QA evaluates probe observations, declared outputs, and metrics into classified verdicts.
-6. Results become typed records persisted under governed evidence roots.
-7. Validation helpers read those records when higher layers require prior QA evidence.
+5. Security probes remain raw QA observations for policy-owned admission.
+6. QA evaluates stage probe observations, declared outputs, and metrics into classified verdicts.
+7. Results become typed records persisted under governed evidence roots.
+8. Validation helpers read those records when higher layers require prior QA evidence.
 
 ## Tree Rules
 

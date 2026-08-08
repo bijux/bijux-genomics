@@ -7,6 +7,7 @@
 - `qa_docker_images`
 - `qualification`
 - `runtime_verification`
+- `security_verification`
 
 ## Major Export Groups
 
@@ -17,6 +18,8 @@
 - `qualification`: typed pipeline-derived probe plans plus classified output and metric verdicts.
 - `runtime_verification`: bounded catalog-wide Apptainer probe execution and immutable evidence
   publication.
+- `security_verification`: bounded exact-image security probe execution using container-owned raw
+  evidence publication types; policy and release verdicts remain outside this crate.
 
 ## Stability Rules
 

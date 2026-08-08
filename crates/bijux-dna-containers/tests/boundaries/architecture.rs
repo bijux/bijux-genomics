@@ -190,6 +190,7 @@ fn inventory_source_tree_matches_ownership_contract() {
             "runtime_verification/",
             "schema.rs",
             "security_database/",
+            "security_probe/",
             "security_toolchain/",
             "selection.rs",
             "tool_contract/",
@@ -206,6 +207,11 @@ fn inventory_source_tree_matches_ownership_contract() {
         dir_entries(&root.join("src/evidence/security_database")),
         btree_set(&["mod.rs", "model.rs", "validation.rs"]),
         "security database evidence must separate persisted models from admission"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/security_probe")),
+        btree_set(&["mod.rs", "model.rs", "schema.rs"]),
+        "security probes must separate persisted models from generated schemas"
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence/security_toolchain")),

@@ -14,7 +14,7 @@ CLI, runner, planner, stage, and domain crates.
   remain separate.
 - `src/site_policy/`: site-governance declarations, host admission, and immutable repository
   freezing under policy-owned roots.
-- `src/evidence/`: typed image-inventory, selected-run, and runtime-verification
+- `src/evidence/`: typed image-inventory, selected-run, runtime-verification, and raw security-probe
   execution/publication, cross-publication evidence-chain validation, complete catalog and
   recipe-closure validation, catalog-derived embedded tool identity contracts, and parallel
   immutable smoke evidence.
@@ -46,8 +46,8 @@ CLI, runner, planner, stage, and domain crates.
 7. Tool-contract preparation hashes canonical catalog, recipe, source, interface, repository, and
    architecture inputs into a rendered definition; runtime inspection binds that non-circular
    identity to the externally computed immutable SIF digest.
-8. Runtime verification resolves only canonical inventory selections, executes bounded offline
-   probes in parallel, and binds immutable logs and manifests into the portable publication.
+8. QA-owned runtime and security collectors resolve only canonical inventory selections and bind
+   immutable raw observations to container-owned publication types and generated schemas.
 9. Credential-reference admission deserializes only declared metadata fields, rejects embedded
    values and inconsistent requirement flags, and supplies the generated checked schema.
 
