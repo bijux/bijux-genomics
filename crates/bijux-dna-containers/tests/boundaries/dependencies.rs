@@ -11,6 +11,7 @@ fn dependency_graph_matches_environment_boundary() {
     let expected_dependencies: BTreeSet<_> = [
         "anyhow",
         "bijux-dna-infra",
+        "chrono",
         "regex",
         "schemars",
         "serde",
