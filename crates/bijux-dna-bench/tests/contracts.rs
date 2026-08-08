@@ -23,6 +23,8 @@ mod mod_contracts_corpus_admission_rs;
 mod mod_contracts_corpus_materialization_rs;
 #[path = "contracts/data_index_derivation.rs"]
 mod mod_contracts_data_index_derivation_rs;
+#[path = "contracts/data_portfolio_audit.rs"]
+mod mod_contracts_data_portfolio_audit_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]
 mod mod_contracts_docs_fixtures_rs;
 #[path = "contracts/execution_planning.rs"]

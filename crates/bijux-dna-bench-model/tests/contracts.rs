@@ -13,6 +13,8 @@ mod mod_contracts_campaign_engine_rs;
 mod mod_contracts_compatibility_rs;
 #[path = "contracts/data_index.rs"]
 mod mod_contracts_data_index_rs;
+#[path = "contracts/data_portfolio_audit.rs"]
+mod mod_contracts_data_portfolio_audit_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/materialization.rs"]

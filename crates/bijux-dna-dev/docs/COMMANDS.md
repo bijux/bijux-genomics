@@ -391,6 +391,7 @@ acquire-reference
 architecture-report
 artifact-contracts
 benchmark-campaign-cycle
+benchmark-data-portfolio-audit
 benchmark-integrity-mini
 benchmark-publication-registry
 benchmark-run-registry
@@ -449,6 +450,12 @@ setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
+
+`benchmark-data-portfolio-audit` publishes an immutable typed join between the benchmark portfolio
+and one exact governed STUDY data index. It records catalog identity, access and redistribution
+classes, access terms, observed sample-count authority, verified storage, source projections,
+unbound holdings, and suspected toy, fixture, synthetic, or smoke contamination without promoting
+index eligibility to scientific admission.
 
 `benchmark-publication-registry` generates or checks the crate-owned classification of current
 governance products, active and historical stage reports, and quarantined legacy readiness files.

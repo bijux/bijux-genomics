@@ -77,6 +77,7 @@ pub enum NativeOpsCommandKey {
     ToolingArchitectureReport,
     ToolingArtifactContracts,
     ToolingBenchmarkCampaignCycle,
+    ToolingBenchmarkDataPortfolioAudit,
     ToolingBenchmarkPublicationRegistry,
     ToolingBenchmarkRunRegistry,
     ToolingBenchmarkScientificReadiness,

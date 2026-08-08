@@ -14,6 +14,7 @@ mod campaign_lifecycle;
 mod campaign_material;
 mod corpus_acquisition;
 mod corpus_materialization;
+mod data_portfolio_audit;
 mod evaluation;
 mod fastq_detect_adapters;
 mod fastq_expectations;
@@ -95,6 +96,11 @@ pub use corpus_acquisition::{
 };
 pub use corpus_materialization::{
     materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
+};
+pub use data_portfolio_audit::{
+    derive_benchmark_data_portfolio_audit, publish_benchmark_data_portfolio_audit,
+    render_benchmark_data_portfolio_audit_markdown, BenchmarkDataPortfolioAuditPublicationRequest,
+    BenchmarkDataPortfolioAuditRequest,
 };
 pub use evaluation::{compare, gate};
 pub use fastq_detect_adapters::{

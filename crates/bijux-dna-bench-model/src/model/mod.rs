@@ -5,6 +5,7 @@
 pub mod admission;
 pub mod campaign_engine;
 pub mod corpus;
+pub mod data_portfolio_audit;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
@@ -45,6 +46,12 @@ pub use corpus::{
     CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
     FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+};
+#[allow(unused_imports)]
+pub use data_portfolio_audit::{
+    benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
+    BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
+    BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
 };
 #[allow(unused_imports)]
 pub use execution::{
