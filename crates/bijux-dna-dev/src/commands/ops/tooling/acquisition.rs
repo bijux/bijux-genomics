@@ -828,17 +828,10 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             .map(|value| toml_value_string(&value))
             .collect::<Vec<_>>();
         let plan = read_json_value(&artifact_dir.join("plan.json"))?;
-        let got_stages = plan
-            .get("stages")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default()
-            .into_iter()
-            .map(|value| value_string(Some(&value)))
-            .collect::<Vec<_>>();
+        let got_stages = plan_pipeline(&plan);
         for stage in stages {
             if !got_stages.contains(&stage) {
-                errors.push(format!("{example_id}: stage {stage} missing in plan.json stages"));
+                errors.push(format!("{example_id}: stage {stage} missing in plan.json pipeline"));
             }
         }
         let logs = read_utf8(&artifact_dir.join("logs.txt")).unwrap_or_default();
@@ -998,9 +991,18 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
     Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr })
 }
 
+fn plan_pipeline(plan: &Value) -> Vec<String> {
+    plan.get("pipeline")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .map(|value| value_string(Some(value)))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{required_positive_u64, TomlValue};
+    use super::{plan_pipeline, required_positive_u64, TomlValue};
 
     #[test]
     fn acquisition_size_parser_accepts_positive_integer() {
@@ -1023,5 +1025,16 @@ mod tests {
                 "invalid size must fail: {raw}"
             );
         }
+    }
+
+    #[test]
+    fn frontend_plan_pipeline_uses_canonical_field() {
+        let plan = serde_json::json!({
+            "pipeline": ["vcf.filter", "vcf.qc"],
+            "stages": ["legacy.stage"]
+        });
+
+        assert_eq!(plan_pipeline(&plan), ["vcf.filter", "vcf.qc"]);
+        assert!(plan_pipeline(&serde_json::json!({"stages": ["legacy.stage"]})).is_empty());
     }
 }

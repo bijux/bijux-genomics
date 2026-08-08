@@ -10,3 +10,5 @@ tiny_inputs_contract = "tiny-inputs.json"
 expected_plan = "golden/plan.json"
 expected_evidence = "expected-evidence.json"
 expected_outputs = ["plan.json", "explain.json", "report.json"]
+coverage_decision = "decision.coverage_regime"
+coverage_profile = "modern_wgs_shotgun"

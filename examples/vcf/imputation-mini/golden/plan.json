@@ -5,5 +5,11 @@
     "validate_inputs",
     "run_bench",
     "collect_outputs"
+  ],
+  "pipeline": [
+    "vcf.prepare_reference_panel",
+    "vcf.phasing",
+    "vcf.impute",
+    "vcf.postprocess"
   ]
 }
