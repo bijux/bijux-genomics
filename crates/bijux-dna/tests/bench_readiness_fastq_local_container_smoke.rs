@@ -45,7 +45,7 @@ fn bench_readiness_fastq_local_container_smoke_reports_retained_wrapper_paths() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/fastq-local-container-smoke.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-local-container-smoke.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");

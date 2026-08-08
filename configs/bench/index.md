@@ -22,6 +22,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `artifacts/benchmark-smoke/readiness/bam/stages/` holds disposable stage-owned BAM completion reports when a single stage needs an explicit local validation artifact beyond broader BAM slice reports, including `bam.overlap_correction`, `bam.endogenous_content`, `bam.damage`, `bam.contamination`, `bam.haplogroups`, `bam.recalibration`, `bam.genotyping`, `bam.sex`, and `bam.authenticity`.
 - `artifacts/benchmark-smoke/readiness/bam/` holds disposable BAM aggregate readiness reports that combine governed stage, tool, parser, result, and science contracts for local validation.
 - `artifacts/benchmark-smoke/readiness/vcf/` holds disposable VCF readiness matrices, commands, parser coverage, local probes, report maps, stage gates, and the retained-tool aggregate for local validation.
+- `artifacts/benchmark-smoke/readiness/fastq/` holds disposable FASTQ readiness matrices, commands, parser coverage, local probes, report maps, and stage-slice gates for local validation.
 
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.

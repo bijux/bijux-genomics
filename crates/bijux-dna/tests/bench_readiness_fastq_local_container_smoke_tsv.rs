@@ -33,7 +33,10 @@ fn bench_readiness_fastq_local_container_smoke_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/fastq/fastq-local-container-smoke.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/fastq/fastq-local-container-smoke.tsv"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read FASTQ local-container smoke TSV");

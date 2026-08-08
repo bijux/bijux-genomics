@@ -44,7 +44,7 @@ fn bench_readiness_fastq_validate_reads_ready_reports_complete_active_validator_
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/validate-reads-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/fastq/validate-reads-ready.json")
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(5));

@@ -460,7 +460,7 @@ Visible aliases are part of the operator surface:
   `damage`, and `contamination` remain reviewer-visible with complete tool coverage and precise
   pending rows.
 - `bijux-dna bench readiness render-fastq-report-map`
-  `render-fastq-report-map` writes `benchmarks/readiness/fastq/fastq-report-map.tsv` with one
+  `render-fastq-report-map` writes `artifacts/benchmark-smoke/readiness/fastq/fastq-report-map.tsv` with one
   governed row per FASTQ benchmark-ready stage-tool result binding, fixing the report section and
   summary table that downstream benchmark reporting must use while preserving exact tool-level
   coverage for every retained FASTQ result row.
@@ -730,14 +730,14 @@ Visible aliases are part of the operator surface:
   of letting parser drift hide inside the broader readiness summary.
 - `bijux-dna bench readiness render-fastq-active-stage-tool-matrix`
   `render-fastq-active-stage-tool-matrix` writes
-  `benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv` with the governed FASTQ
+  `artifacts/benchmark-smoke/readiness/fastq/fastq-active-stage-tool-matrix.tsv` with the governed FASTQ
   job-bearing active rows only. The JSON report keeps the wider retained FASTQ surface explicit
   through retained-vs-removed counts, while the TSV fail-closes unless every retained active row
   stays `benchmark_ready` and none leak `planned_contract`, `declared_only`, or `planner_only`
   readiness states back into FASTQ job scope.
 - `bijux-dna bench readiness render-fastq-local-container-smoke`
   `render-fastq-local-container-smoke` writes
-  `benchmarks/readiness/fastq/fastq-local-container-smoke.tsv` with one governed row per retained
+  `artifacts/benchmark-smoke/readiness/fastq/fastq-local-container-smoke.tsv` with one governed row per retained
   FASTQ active stage-tool binding, resolving each row to either an exact host tiny-fixture stage
   smoke wrapper or the governed Docker/Apptainer smoke wrapper for the registered execution
   binary. Each row keeps the retained benchmark status, support class, corpus class, selected
@@ -745,7 +745,7 @@ Visible aliases are part of the operator surface:
   minimal smoke rationale so every retained FASTQ binding has an honest local exercise path.
 - `bijux-dna bench readiness render-fastq-duplicate-stages-ready`
   `render-fastq-duplicate-stages-ready` writes
-  `benchmarks/readiness/fastq/duplicate-stages-ready.json` with one governed row per admitted
+  `artifacts/benchmark-smoke/readiness/fastq/duplicate-stages-ready.json` with one governed row per admitted
   FASTQ duplicate binding across `fastq.detect_duplicates_premerge` and
   `fastq.remove_duplicates`. Each row ties active-scope coverage, command-adapter coverage,
   output declarations, parser coverage, expected benchmark results, report-map placement, and
@@ -753,14 +753,14 @@ Visible aliases are part of the operator surface:
   unique reads, and normalized output reads stay explicit in the governed benchmark surface.
 - `bijux-dna bench readiness render-fastq-filter-stages-ready`
   `render-fastq-filter-stages-ready` writes
-  `benchmarks/readiness/fastq/filter-stages-ready.json` with one governed row per admitted FASTQ
+  `artifacts/benchmark-smoke/readiness/fastq/filter-stages-ready.json` with one governed row per admitted FASTQ
   filtering binding across `fastq.filter_reads` and `fastq.filter_low_complexity`. Each row ties
   active-scope coverage, command-adapter coverage, output declarations, parser coverage, expected
   benchmark results, report-map placement, and normalized metric requirements together so kept
   reads, removed reads, removal reasons, low-complexity counts, and normalized FASTQ outputs stay
   explicit in the governed benchmark surface.
 - `bijux-dna bench readiness render-fastq-trim-stages-ready`
-  `render-fastq-trim-stages-ready` writes `benchmarks/readiness/fastq/trim-stages-ready.json`
+  `render-fastq-trim-stages-ready` writes `artifacts/benchmark-smoke/readiness/fastq/trim-stages-ready.json`
   with one governed row per admitted FASTQ trimming binding across `fastq.trim_reads`,
   `fastq.trim_terminal_damage`, and `fastq.trim_polyg_tails`. Each row ties active-scope
   coverage, command-adapter coverage, output declarations, parser coverage, expected benchmark
@@ -769,7 +769,7 @@ Visible aliases are part of the operator surface:
   benchmark surface.
 - `bijux-dna bench readiness render-fastq-validate-reads-ready`
   `render-fastq-validate-reads-ready` writes
-  `benchmarks/readiness/fastq/validate-reads-ready.json` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/fastq/validate-reads-ready.json` with one governed row per active
   `fastq.validate_reads` validator. Each row ties active-scope coverage, rendered command
   coverage, adapter output declarations, parser coverage, expected benchmark results, report-map
   placement, and local smoke normalization proof together so sample IDs, layout, read counts,

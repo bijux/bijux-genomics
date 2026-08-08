@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_LOCAL_CONTAINER_SMOKE_PATH: &str =
-    "benchmarks/readiness/fastq/fastq-local-container-smoke.tsv";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-local-container-smoke.tsv";
 const FASTQ_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_local_container_smoke.v1";
 

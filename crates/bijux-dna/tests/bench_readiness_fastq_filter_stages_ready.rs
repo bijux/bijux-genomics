@@ -44,7 +44,7 @@ fn bench_readiness_fastq_filter_stages_ready_reports_complete_filter_bindings() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/filter-stages-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/fastq/filter-stages-ready.json")
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(7));

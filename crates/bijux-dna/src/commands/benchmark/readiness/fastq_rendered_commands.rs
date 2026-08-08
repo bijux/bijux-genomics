@@ -11,7 +11,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_RENDERED_COMMANDS_PATH: &str =
-    "benchmarks/readiness/fastq/fastq-rendered-commands.sh";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-rendered-commands.sh";
 const FASTQ_RENDERED_COMMANDS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_rendered_commands.v1";
 const COMMAND_SOURCE_FASTQ_BAM_ADAPTER: &str = "fastq_bam_command_adapter";
@@ -384,15 +384,18 @@ mod tests {
                 .expect("render FASTQ commands");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.fastq_rendered_commands.v1");
-        assert_eq!(report.output_path, "benchmarks/readiness/fastq/fastq-rendered-commands.sh");
+        assert_eq!(
+            report.output_path,
+            "artifacts/benchmark-smoke/readiness/fastq/fastq-rendered-commands.sh"
+        );
         assert_eq!(
             report.argv_output_path,
-            "benchmarks/readiness/fastq/fastq-rendered-commands.argv.jsonl"
+            "artifacts/benchmark-smoke/readiness/fastq/fastq-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 71);
+        assert_eq!(report.row_count, 69);
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 42);
-        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&71));
+        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&69));
         assert!(report.rows.iter().all(|row| {
             row.benchmark_status == "benchmark_ready"
                 && row.command_source == "fastq_bam_command_adapter"

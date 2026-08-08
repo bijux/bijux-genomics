@@ -38,7 +38,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_VALIDATE_READS_READY_PATH: &str =
-    "benchmarks/readiness/fastq/validate-reads-ready.json";
+    "artifacts/benchmark-smoke/readiness/fastq/validate-reads-ready.json";
 const FASTQ_VALIDATE_READS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_validate_reads_ready.v1";
 const FASTQ_VALIDATE_READS_STAGE_ID: &str = "fastq.validate_reads";
@@ -772,7 +772,10 @@ mod tests {
         .expect("render fastq validate-reads readiness");
 
         assert_eq!(report.schema_version, FASTQ_VALIDATE_READS_READY_SCHEMA_VERSION);
-        assert_eq!(report.output_path, "benchmarks/readiness/fastq/validate-reads-ready.json");
+        assert_eq!(
+            report.output_path,
+            "artifacts/benchmark-smoke/readiness/fastq/validate-reads-ready.json"
+        );
         assert_eq!(report.active_row_count, 5);
         assert_eq!(report.complete_row_count, 5);
         assert_eq!(report.incomplete_row_count, 0);

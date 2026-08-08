@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
-    "benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-active-stage-tool-matrix.tsv";
 const FASTQ_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_active_stage_tool_matrix.v1";
 const ACTIVE_SCOPE_PROOF_PATH: &str =

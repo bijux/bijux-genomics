@@ -43,7 +43,7 @@ fn bench_readiness_fastq_trim_stages_ready_reports_complete_trim_bindings() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/trim-stages-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/fastq/trim-stages-ready.json")
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(18));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(18));

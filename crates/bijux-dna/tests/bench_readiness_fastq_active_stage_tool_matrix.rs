@@ -44,7 +44,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-active-stage-tool-matrix.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let stage_count = rows
