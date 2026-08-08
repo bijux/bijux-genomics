@@ -15,7 +15,7 @@
 - `build`: Docker metadata helpers plus Apptainer build requests, reports, append-only attempt paths,
   failure classification, bounded build execution, and canonical study image/evidence publication.
 - `evidence`: typed container image-inventory, selected-run, runtime-verification, and raw
-  security-probe publications with generated schemas;
+  security-probe publications with generated schemas and exact authority/artifact admission;
   owner-separated immutable attempt layouts with shared manifests and required evidence directories;
   strict embedded tool contracts; the complete canonical `ContainerCatalog` and
   `ContainerCatalogTool` model;

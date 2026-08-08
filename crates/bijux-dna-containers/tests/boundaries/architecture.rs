@@ -210,8 +210,8 @@ fn inventory_source_tree_matches_ownership_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence/security_probe")),
-        btree_set(&["mod.rs", "model.rs", "schema.rs"]),
-        "security probes must separate persisted models from generated schemas"
+        btree_set(&["admission.rs", "mod.rs", "model.rs", "schema.rs"]),
+        "security probes must separate persisted models, admission, and generated schemas"
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence/security_toolchain")),

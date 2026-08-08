@@ -1,8 +1,12 @@
 //! Persisted exact-image security probe evidence.
 
+mod admission;
 mod model;
 mod schema;
 
+pub use admission::{
+    admit_security_probe_publication, AdmittedSecurityProbePublication, SecurityProbeAuthority,
+};
 pub use model::{
     SecurityProbeArtifact, SecurityProbePublication, SecurityProbeStatus, ToolSecurityProbe,
     SECURITY_PROBE_PUBLICATION_SCHEMA_V1,

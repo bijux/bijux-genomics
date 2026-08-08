@@ -15,7 +15,7 @@ CLI, runner, planner, stage, and domain crates.
 - `src/site_policy/`: site-governance declarations, host admission, and immutable repository
   freezing under policy-owned roots.
 - `src/evidence/`: typed image-inventory, selected-run, runtime-verification, and raw security-probe
-  execution/publication, cross-publication evidence-chain validation, complete catalog and
+  publication/admission, cross-publication evidence-chain validation, complete catalog and
   recipe-closure validation, catalog-derived embedded tool identity contracts, and parallel
   immutable smoke evidence.
 - `src/build/`: Docker metadata, bounded Apptainer attempts, and canonical no-clobber image and
@@ -47,7 +47,8 @@ CLI, runner, planner, stage, and domain crates.
    architecture inputs into a rendered definition; runtime inspection binds that non-circular
    identity to the externally computed immutable SIF digest.
 8. QA-owned runtime and security collectors resolve only canonical inventory selections and bind
-   immutable raw observations to container-owned publication types and generated schemas.
+   immutable raw observations to container-owned publication types; container-owned admission
+   verifies exact authorities, governed paths, and every referenced artifact digest.
 9. Credential-reference admission deserializes only declared metadata fields, rejects embedded
    values and inconsistent requirement flags, and supplies the generated checked schema.
 

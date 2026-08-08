@@ -69,6 +69,10 @@ This crate owns the environment contracts consumed by API, runner, and environme
   exact file identity and historical run-reference authority through the source inventory.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
   `ContainerToolContract.expected_version_regex` contract.
+- `SecurityProbePublication`: exact raw SBOM, vulnerability, secret, signature, structural, and
+  runtime observations bound to repository, catalog, inventory, scanner, database, image, and tool
+  contract identities. Admission rejects authority drift, unsafe governed URIs, incomplete states,
+  and every missing or digest-mismatched referenced artifact without deriving a policy verdict.
 - `ExternalArtifactAdmission`: immutable no-copy admission for an operator-provided binary or SIF,
   including lawful-access basis, checksum, size, live cataloged version probe, permitted stage IDs,
   and an explicit non-redistribution decision. When access is unavailable, the same contract owns a
