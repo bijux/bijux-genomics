@@ -5,18 +5,53 @@ use std::collections::BTreeSet;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn read_committed_json() -> serde_json::Value {
-    let repo_root = support::repo_root().expect("repo root");
-    let payload = std::fs::read(repo_root.join(
+fn run_cli_json() -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let sandbox =
+        support::RepoSandbox::new("all-domain-operational-benchmark-json-").expect("repo sandbox");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = sandbox
+        .bijux_dna_command()
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args([
+            "bench",
+            "readiness",
+            "render-all-domain-local-operational-benchmark-complete",
+            "--json",
+        ])
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse operational benchmark gate");
+    let report_path = sandbox.path().join(
         "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json",
-    ))
-    .expect("read committed all-domain operational benchmark gate");
-    serde_json::from_slice(&payload).expect("parse committed all-domain operational benchmark gate")
+    );
+    let written_payload: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(&report_path)
+            .unwrap_or_else(|error| panic!("read {}: {error}", report_path.display())),
+    )
+    .unwrap_or_else(|error| panic!("parse {}: {error}", report_path.display()));
+    assert_eq!(written_payload, payload, "JSON output must match the written report");
+    payload
 }
 
 #[test]
 fn bench_readiness_all_domain_local_operational_benchmark_complete_reports_green_surface() {
-    let payload = read_committed_json();
+    let payload = run_cli_json();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -51,7 +86,7 @@ fn bench_readiness_all_domain_local_operational_benchmark_complete_reports_green
     ] {
         assert!(
             surface_ids.contains(required_surface),
-            "final Goal 400 gate must keep `{required_surface}` explicit"
+            "all-domain operational gate must keep `{required_surface}` explicit"
         );
     }
 }

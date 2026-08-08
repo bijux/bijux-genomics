@@ -1,19 +1,18 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli_json(args: &[&str]) -> serde_json::Value {
+fn run_cli_json(args: &[&str]) -> (serde_json::Value, String) {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox =
+        support::RepoSandbox::new("essential-pipeline-report-map-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -30,12 +29,20 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let rendered_path = payload
+        .get("output_path")
+        .and_then(serde_json::Value::as_str)
+        .expect("report map output path");
+    let rendered_tsv = std::fs::read_to_string(sandbox.path().join(rendered_path))
+        .expect("read essential pipeline report map TSV");
+    (payload, rendered_tsv)
 }
 
 #[test]
 fn bench_readiness_essential_pipeline_report_map_tracks_all_pipeline_outputs() {
-    let payload =
+    let (payload, rendered_tsv) =
         run_cli_json(&["bench", "readiness", "render-essential-pipeline-report-map", "--json"]);
 
     assert_eq!(
@@ -48,10 +55,27 @@ fn bench_readiness_essential_pipeline_report_map_tracks_all_pipeline_outputs() {
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(45));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(26));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(267));
     assert_eq!(payload.get("report_section_count").and_then(serde_json::Value::as_u64), Some(22));
     assert_eq!(payload.get("failure_column_count").and_then(serde_json::Value::as_u64), Some(1));
+    let mut lines = rendered_tsv.lines();
+    assert_eq!(
+        lines.next(),
+        Some("pipeline_id\tstage_id\ttool_id\toutput_metric\treport_section\tfailure_column")
+    );
+    assert!(lines.clone().any(|line| {
+        line
+            == "core-germline-fastq-bam-vcf\tvcf.call\tbcftools\tcalled_vcf\tvariant_calling\tfailure_reason"
+    }));
+    assert!(lines.clone().any(|line| {
+        line
+            == "edna-taxonomy-no-vcf\tfastq.screen_taxonomy\tkraken2\ttaxonomy_summary\tcontamination_screening\tfailure_reason"
+    }));
+    assert!(lines.any(|line| {
+        line
+            == "relatedness-segments-vcf\tvcf.demography\tibdne\tdemography_report\tdemography\tfailure_reason"
+    }));
     assert_eq!(
         payload
             .get("pipeline_row_counts")
@@ -152,4 +176,16 @@ fn bench_readiness_essential_pipeline_report_map_tracks_all_pipeline_outputs() {
         relatedness_demography.get("report_section").and_then(serde_json::Value::as_str),
         Some("demography")
     );
+
+    assert!(rows.iter().any(|row| {
+        row.get("pipeline_id").and_then(serde_json::Value::as_str)
+            == Some("bam-genotyping-to-vcf-downstream")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("pipeline_id").and_then(serde_json::Value::as_str) == Some("adna-gl-fastq-bam-vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
+    }));
 }
