@@ -2097,7 +2097,7 @@ Visible aliases are part of the operator surface:
   classification drifts from the governed dry-run result-collection contract.
 - `bijux-dna bench local render-hpc-candidate-run-manifest`
   `render-hpc-candidate-run-manifest` writes
-  `benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json`. The render reloads the governed
+  `artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json`. The render reloads the governed
   selected-job, asset-staging, execution-resolver, and resource-hint surfaces, then selects the
   smallest dependency-free benchmark representative for each admitted `(domain, execution_mode)`
   pair. The manifest proves the first HPC candidate run stays limited to small jobs with known
@@ -2105,13 +2105,13 @@ Visible aliases are part of the operator surface:
   rows until their execution modes are governed.
 - `bijux-dna bench local validate-hpc-candidate-run-manifest`
   `validate-hpc-candidate-run-manifest` reloads
-  `benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json` and rebuilds the expected representative
+  `artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json` and rebuilds the expected representative
   subset from the current dry-run inputs. The command fails closed if selected rows, exclusion
   reasons, small-job ceilings, or stop conditions drift from the governed first-run candidate
   contract.
 - `bijux-dna bench local render-hpc-dry-run-ready`
   `render-hpc-dry-run-ready` writes
-  `benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json`. The render validates the governed dry-run
+  `artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json`. The render validates the governed dry-run
   artifacts for Goals 481–489, cross-checks benchmark-job counts against the stage array and scratch
   layout, cross-checks essential-pipeline counts against the pipeline-node array, and proves the
   first-run candidate remains backed by known assets, explicit execution resolution, dependency
@@ -2119,7 +2119,7 @@ Visible aliases are part of the operator surface:
   submission begins.
 - `bijux-dna bench local validate-hpc-dry-run-ready`
   `validate-hpc-dry-run-ready` reloads
-  `benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json` and rebuilds the expected gate report from
+  `artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json` and rebuilds the expected gate report from
   the current dry-run inputs. The command fails closed if any governed Goal 481–489 artifact drifts,
   if cross-surface counts no longer align, or if the first HPC run still depends on manual or
   ambiguous execution handling.

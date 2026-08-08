@@ -13,7 +13,8 @@ pub(crate) const DEFAULT_BENCHMARK_PARSER_FIXTURE_ROOT_SUFFIX: &str = "tests/fix
 pub(crate) const DEFAULT_BENCHMARK_CORPORA_ROOT_SUFFIX: &str = "tests/fixtures/corpora";
 pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures/databases";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
-pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str = "benchmarks/readiness/hpc";
+pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str =
+    "artifacts/benchmark-smoke/readiness/hpc";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
     "artifacts/benchmark-smoke/readiness/local-ready";
 pub(crate) const DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE: &str = "runs/bench";
@@ -405,7 +406,7 @@ mod tests {
 
         ensure_path_stays_within_benchmark_readiness_root(
             repo_root,
-            Path::new("benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json"),
+            Path::new("benchmarks/readiness/local-ready/manifest.json"),
             "candidate manifest output",
         )
         .expect("readiness-root output should be accepted");
@@ -417,7 +418,7 @@ mod tests {
 
         ensure_path_stays_within_benchmark_readiness_hpc_root(
             repo_root,
-            Path::new("benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json"),
+            Path::new("artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json"),
             "HPC dry-run readiness output",
         )
         .expect("readiness-hpc-root output should be accepted");

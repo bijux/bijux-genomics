@@ -8,7 +8,7 @@ use std::process::Command;
 mod support;
 
 fn render_path(repo_root: &Path, label: &str) -> (tempfile::TempDir, PathBuf) {
-    let readiness_root = repo_root.join("benchmarks/readiness/hpc");
+    let readiness_root = repo_root.join("artifacts/benchmark-smoke/readiness/hpc");
     fs::create_dir_all(&readiness_root).expect("create readiness hpc root");
     let temp_dir = tempfile::Builder::new()
         .prefix(label)

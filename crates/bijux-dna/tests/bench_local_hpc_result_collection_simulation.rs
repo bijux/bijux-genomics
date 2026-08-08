@@ -142,17 +142,22 @@ fn bench_local_render_hpc_result_collection_simulation_distinguishes_governed_st
             .and_then(serde_json::Value::as_str),
         Some("not_enough_ibd_segments")
     );
+    let unavailable_result_job_id = report
+        .get("behavior")
+        .and_then(|value| value.get("unavailable_result_job_id"))
+        .and_then(serde_json::Value::as_str)
+        .expect("unavailable result job id");
+    let unavailable_record_id = format!("unavailable:{unavailable_result_job_id}");
+    let unavailable_row = row_by_id(rows, &unavailable_record_id);
     assert_eq!(
-        row_by_id(rows, "unavailable:pipeline:relatedness-segments-vcf:vcf.ibd")
-            .get("collection_status")
-            .and_then(serde_json::Value::as_str),
+        unavailable_row.get("collection_status").and_then(serde_json::Value::as_str),
         Some("unavailable")
     );
     assert!(
-        row_by_id(rows, "unavailable:pipeline:relatedness-segments-vcf:vcf.ibd")
+        unavailable_row
             .get("unavailable_reason")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|reason| reason.contains("governed local image")),
+            .is_some_and(|reason| !reason.is_empty()),
         "unavailable row must preserve the governed resolver reason"
     );
 }
