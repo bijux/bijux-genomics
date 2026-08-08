@@ -3,7 +3,7 @@
 # purpose = Governed primary-function family classification for local FASTQ, BAM, and VCF benchmark tools.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-06-02
+# last_updated = 2026-08-08
 
 schema_version = "bijux.bench.local_tool_families.v1"
 classification_scope = "primary_benchmark_function"
@@ -62,7 +62,7 @@ tool_ids = ["bayeshammer", "lighter", "musket", "rcorrector"]
 [[families]]
 family_id = "duplicate_handling"
 summary = "Tools whose primary benchmark role is identifying or removing duplicate reads."
-tool_ids = ["clumpify"]
+tool_ids = ["clumpify", "fastuniq"]
 
 [[families]]
 family_id = "umi_processing"
@@ -110,9 +110,14 @@ summary = "Tools whose primary benchmark role is genotyping, VCF-oriented varian
 tool_ids = ["gatk"]
 
 [[families]]
+family_id = "genotype_likelihood_analysis"
+summary = "Tools whose primary benchmark role is genotype-likelihood analysis for downstream inference."
+tool_ids = ["angsd"]
+
+[[families]]
 family_id = "damage_and_postmortem_bias"
 summary = "Tools whose primary benchmark role is profiling ancient-DNA damage or postmortem substitution bias."
-tool_ids = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
+tool_ids = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
 
 [[families]]
 family_id = "authenticity_assessment"

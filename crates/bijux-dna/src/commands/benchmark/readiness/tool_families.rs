@@ -320,8 +320,8 @@ mod tests {
 
         assert_eq!(report.schema_version, TOOL_FAMILIES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_benchmark_function");
-        assert_eq!(report.family_count, 31);
-        assert_eq!(report.tool_count, 71);
+        assert_eq!(report.family_count, 32);
+        assert_eq!(report.tool_count, 74);
         assert!(report.valid, "governed tool family config must validate cleanly");
 
         let bowtie2_build = report
@@ -340,6 +340,17 @@ mod tests {
 
         let addeam = report.rows.iter().find(|row| row.tool_id == "addeam").expect("addeam row");
         assert_eq!(addeam.family_id, "damage_and_postmortem_bias");
+
+        let ngsbriggs =
+            report.rows.iter().find(|row| row.tool_id == "ngsbriggs").expect("ngsbriggs row");
+        assert_eq!(ngsbriggs.family_id, "damage_and_postmortem_bias");
+
+        let fastuniq =
+            report.rows.iter().find(|row| row.tool_id == "fastuniq").expect("fastuniq row");
+        assert_eq!(fastuniq.family_id, "duplicate_handling");
+
+        let angsd = report.rows.iter().find(|row| row.tool_id == "angsd").expect("angsd row");
+        assert_eq!(angsd.family_id, "genotype_likelihood_analysis");
 
         let bcftools =
             report.rows.iter().find(|row| row.tool_id == "bcftools").expect("bcftools row");
