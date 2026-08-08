@@ -60,11 +60,11 @@ fn bench_local_vcf_imputation_metrics_smoke_reports_quality_contract() {
     );
     assert_eq!(
         payload.get("panel_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_mini")
+        Some("hsapiens_grch38_1kg_3202_chr22")
     );
     assert_eq!(
         payload.get("map_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_chr_map")
+        Some("hsapiens_grch38_glimpse_chr22")
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),

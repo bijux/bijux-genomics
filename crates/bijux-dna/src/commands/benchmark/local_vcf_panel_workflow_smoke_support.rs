@@ -20,8 +20,8 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 
 pub(crate) const GOVERNED_VCF_PANEL_SPECIES_ID: &str = "Homo sapiens";
 pub(crate) const GOVERNED_VCF_PANEL_BUILD_ID: &str = "GRCh38";
-pub(crate) const GOVERNED_VCF_PANEL_ID: &str = "hsapiens_grch38_mini";
-pub(crate) const GOVERNED_VCF_MAP_ID: &str = "hsapiens_grch38_chr_map";
+pub(crate) const GOVERNED_VCF_PANEL_ID: &str = "hsapiens_grch38_1kg_3202_chr22";
+pub(crate) const GOVERNED_VCF_MAP_ID: &str = "hsapiens_grch38_glimpse_chr22";
 pub(crate) const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -253,15 +253,15 @@ mod tests {
         assert_eq!(contract.stage_id, "vcf.phasing");
         assert_eq!(contract.tool_id, "shapeit5");
         assert_eq!(contract.corpus_id, "vcf_production_regression");
-        assert_eq!(contract.panel_id, "hsapiens_grch38_mini");
-        assert_eq!(contract.map_id, "hsapiens_grch38_chr_map");
+        assert_eq!(contract.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+        assert_eq!(contract.map_id, "hsapiens_grch38_glimpse_chr22");
     }
 
     #[test]
     fn governed_panel_workflow_asset_contract_resolves_without_materialization() {
         let report = resolve_governed_vcf_panel_asset_contract().expect("resolve asset contract");
-        assert_eq!(report.panel_id, "hsapiens_grch38_mini");
-        assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
+        assert_eq!(report.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+        assert_eq!(report.map_id, "hsapiens_grch38_glimpse_chr22");
         assert_eq!(report.fixture_class, "local_smoke_metadata_only");
         assert!(!report.panel_files.is_empty());
         assert!(!report.map_files.is_empty());

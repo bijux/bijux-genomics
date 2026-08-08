@@ -10,5 +10,5 @@ schema_version = "bijux.vcf.panel_deprecations.v1"
 [[deprecation]]
 panel_id = "hsapiens_grch38_legacy"
 phase = "remove"
-replacement = "hsapiens_grch38_mini"
-rationale = "legacy synthetic panel retired; lock/governance moved to keyed panel catalog"
+replacement = "hsapiens_grch38_1kg_3202_chr22"
+rationale = "legacy synthetic panel retired in favor of the source-verified chr22 qualification panel"

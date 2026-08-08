@@ -237,7 +237,7 @@ pub(super) fn hpc_run_frontend_mini_e2e(
     bijux_dna_infra::ensure_dir(&out_dir)?;
     let mut status = 0;
     for (example_id, label) in
-        [("vcf_downstream_vcf_full_mini", "vcf"), ("fastq_edna_mini", "fastq")]
+        [("vcf_downstream_chr22_reference", "vcf"), ("fastq_edna_mini", "fastq")]
     {
         let example_out = out_dir.join(label);
         bijux_dna_infra::ensure_dir(&example_out)?;
@@ -294,7 +294,7 @@ pub(super) fn hpc_run_frontend_mini_e2e(
             "out_dir": out_dir.display().to_string(),
             "status": if status == 0 { "ok" } else { "fail" },
             "examples": [
-                {"id": "vcf_downstream_vcf_full_mini", "artifact_dir": out_dir.join("vcf").display().to_string()},
+                {"id": "vcf_downstream_chr22_reference", "artifact_dir": out_dir.join("vcf").display().to_string()},
                 {"id": "fastq_edna_mini", "artifact_dir": out_dir.join("fastq").display().to_string()},
             ]
         }),

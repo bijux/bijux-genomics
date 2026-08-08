@@ -65,13 +65,13 @@ fn panel_and_map_resolution_work() {
 }
 
 #[test]
-fn minimac_requires_m3vcf_support() {
-    let panel = resolve_panel("Homo sapiens", "GRCh38", Some("hsapiens_grch38_full"))
+fn minimac_requires_declared_panel_support() {
+    let panel = resolve_panel("Homo sapiens", "GRCh38", Some("hsapiens_grch38_1kg_3202_chr22"))
         .unwrap_or_else(|err| panic!("resolve panel: {err}"));
-    let map = resolve_map("Homo sapiens", "GRCh38", Some("hsapiens_grch38_chr_map"))
+    let map = resolve_map("Homo sapiens", "GRCh38", Some("hsapiens_grch38_glimpse_chr22"))
         .unwrap_or_else(|err| panic!("resolve map: {err}"));
     let err = match validate_imputation_tool_compatibility("minimac4", &panel, &map) {
-        Ok(()) => panic!("full panel must refuse minimac4"),
+        Ok(()) => panic!("panel without minimac4 support must refuse minimac4"),
         Err(err) => err,
     };
     assert!(err.to_string().contains("minimac4"));
@@ -119,7 +119,7 @@ fn declared_build_guard_rejects_mismatch() {
 fn map_sex_organellar_and_reference_set_resolve() {
     let map = resolve_genetic_map_bank("Homo sapiens", "GRCh38", None)
         .unwrap_or_else(|err| panic!("resolve genetic map bank: {err}"));
-    assert_eq!(map.map_id, "hsapiens_grch38_chr_map");
+    assert_eq!(map.map_id, "hsapiens_grch38_glimpse_chr22");
 
     let sex = resolve_sex_chromosome_rule("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve sex chromosome rule: {err}"));
@@ -139,15 +139,15 @@ fn reference_bundle_resolver_contract_captures_panel_map_identity() {
     let report = resolve_reference_bundle_contract(
         "Homo sapiens",
         "GRCh38",
-        Some("hsapiens_grch38_mini"),
-        Some("hsapiens_grch38_chr_map"),
+        Some("hsapiens_grch38_1kg_3202_chr22"),
+        Some("hsapiens_grch38_glimpse_chr22"),
         Some("glimpse"),
     )
     .unwrap_or_else(|err| panic!("resolve bundle contract: {err}"));
 
     assert_eq!(report.bundle_id, "hsapiens_grch38_primary");
-    assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_mini"));
-    assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_chr_map"));
+    assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_1kg_3202_chr22"));
+    assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_glimpse_chr22"));
 }
 
 #[test]

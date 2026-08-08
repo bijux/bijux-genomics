@@ -253,8 +253,8 @@ fn scenario_grch_human_reference() -> Result<(Vec<String>, serde_json::Value)> {
     let resolved = resolve_reference_bundle_contract(
         "Homo sapiens",
         "GRCh38",
-        Some("hsapiens_grch38_mini"),
-        Some("hsapiens_grch38_chr_map"),
+        Some("hsapiens_grch38_1kg_3202_chr22"),
+        Some("hsapiens_grch38_glimpse_chr22"),
         Some("glimpse"),
     )?;
     Ok((
@@ -336,8 +336,8 @@ fn scenario_multi_reference_refusal() -> Result<(Vec<String>, serde_json::Value)
     let mismatch_panel = resolve_reference_bundle_contract(
         "Canis lupus",
         "CanFam4",
-        Some("hsapiens_grch38_mini"),
-        Some("hsapiens_grch38_chr_map"),
+        Some("hsapiens_grch38_1kg_3202_chr22"),
+        Some("hsapiens_grch38_glimpse_chr22"),
         Some("glimpse"),
     )
     .err()

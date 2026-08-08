@@ -439,15 +439,15 @@ mod tests {
         let report = resolve_reference_bundle_contract(
             "Homo sapiens",
             "GRCh38",
-            Some("hsapiens_grch38_mini"),
-            Some("hsapiens_grch38_chr_map"),
+            Some("hsapiens_grch38_1kg_3202_chr22"),
+            Some("hsapiens_grch38_glimpse_chr22"),
             Some("glimpse"),
         )
         .unwrap_or_else(|error| panic!("resolve reference bundle contract: {error}"));
 
         assert_eq!(report.schema_version, "bijux.reference_bundle_resolver.v1");
-        assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_mini"));
-        assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_chr_map"));
+        assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_1kg_3202_chr22"));
+        assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_glimpse_chr22"));
         assert!(report.contig_aliases.contains_key("chr1"));
     }
 

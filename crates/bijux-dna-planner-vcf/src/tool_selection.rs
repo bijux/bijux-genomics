@@ -17,6 +17,7 @@ pub fn choose_tool(
     inputs: &VcfPipelineInputs,
     resolved_coverage: CoverageRegime,
     panel: &PanelCatalogEntry,
+    map: &MapCatalogEntry,
     planned_stages: &[VcfDomainStage],
 ) -> Result<(String, String)> {
     let key = stage.as_str().to_string();
@@ -27,18 +28,27 @@ pub fn choose_tool(
         if resolved_coverage == CoverageRegime::LowCovGl {
             return Ok(("glimpse".to_string(), "lowcov_gl_default_glimpse".to_string()));
         }
+        let shared_support = |tool: &str| {
+            panel.compatibility.tool_tags.iter().any(|tag| tag == tool)
+                && map.compatibility.tool_tags.iter().any(|tag| tag == tool)
+        };
         let phased_gt_ready = planned_stages.contains(&VcfDomainStage::Phasing);
-        let big_panel = panel.id.contains("full");
-        if phased_gt_ready && big_panel {
-            if panel.compatibility.supports_minimac_m3vcf {
-                return Ok((
-                    "minimac4".to_string(),
-                    "phased_gt_plus_big_panel_minimac4".to_string(),
-                ));
-            }
-            return Ok(("impute5".to_string(), "phased_gt_plus_big_panel_impute5".to_string()));
+        if phased_gt_ready
+            && panel.compatibility.supports_minimac_m3vcf
+            && shared_support("minimac4")
+        {
+            return Ok(("minimac4".to_string(), "phased_gt_plus_m3vcf_minimac4".to_string()));
         }
-        return Ok(("beagle".to_string(), "fallback_beagle_rule".to_string()));
+        if shared_support("impute5") {
+            return Ok(("impute5".to_string(), "shared_source_format_impute5".to_string()));
+        }
+        if shared_support("beagle") {
+            return Ok(("beagle".to_string(), "shared_source_format_beagle".to_string()));
+        }
+        if shared_support("glimpse") {
+            return Ok(("glimpse".to_string(), "shared_source_format_glimpse".to_string()));
+        }
+        bail!("no imputation backend shares the selected panel and map source formats");
     }
     Ok((default_tool(stage, resolved_coverage).to_string(), "coverage_regime_default".to_string()))
 }
@@ -54,17 +64,9 @@ pub fn validate_selected_tool(
 ) -> Result<()> {
     if matches!(
         stage,
-        VcfDomainStage::PrepareReferencePanel
-            | VcfDomainStage::Phasing
-            | VcfDomainStage::ImputationMetrics
-            | VcfDomainStage::Impute
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute
     ) {
-        if !(stage == VcfDomainStage::Impute
-            && tool == "beagle"
-            && panel_catalog.compatibility.tool_tags.iter().any(|tag| tag == "beagle"))
-        {
-            validate_imputation_tool_compatibility(tool, panel_catalog, map_catalog)?;
-        }
+        validate_imputation_tool_compatibility(tool, panel_catalog, map_catalog)?;
     }
     if stage == VcfDomainStage::Phasing {
         if resolved_coverage == CoverageRegime::LowCovGl

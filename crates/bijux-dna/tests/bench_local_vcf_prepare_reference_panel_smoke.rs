@@ -61,11 +61,11 @@ fn bench_local_vcf_prepare_reference_panel_smoke_reports_real_governed_outputs()
     );
     assert_eq!(
         payload.get("panel_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_mini")
+        Some("hsapiens_grch38_1kg_3202_chr22")
     );
     assert_eq!(
         payload.get("map_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_chr_map")
+        Some("hsapiens_grch38_glimpse_chr22")
     );
     assert_eq!(
         payload.get("input_vcf_path").and_then(serde_json::Value::as_str),
@@ -76,7 +76,7 @@ fn bench_local_vcf_prepare_reference_panel_smoke_reports_real_governed_outputs()
     assert_eq!(
         payload.get("raw_panel_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/panel_store/hsapiens_grch38_mini/local-reference-panel/raw/panel.vcf.gz",
+            "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/panel_store/hsapiens_grch38_1kg_3202_chr22/local-reference-panel/raw/panel.vcf.gz",
         )
     );
     assert_eq!(

@@ -46,5 +46,13 @@ pub struct CatalogFileEntry {
     pub url: String,
     pub checksum_sha256: String,
     #[serde(default)]
+    pub size_bytes: u64,
+    #[serde(default)]
+    pub source_checksum_algorithm: String,
+    #[serde(default)]
+    pub source_checksum: String,
+    #[serde(default)]
+    pub source_authority_url: String,
+    #[serde(default)]
     pub required: bool,
 }

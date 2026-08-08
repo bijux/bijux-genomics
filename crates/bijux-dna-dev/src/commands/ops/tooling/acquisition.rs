@@ -293,13 +293,17 @@ pub(in super::super) fn tooling_acquire_panels(
             let rel_path = toml_string(file.get("path"))?;
             let url = toml_string(file.get("url"))?;
             let expected = toml_string(file.get("checksum_sha256"))?;
+            let expected_size_bytes = required_positive_u64(&file, "size_bytes")?;
+            let source_checksum_algorithm = toml_string(file.get("source_checksum_algorithm"))?;
+            let source_checksum = toml_string(file.get("source_checksum"))?;
+            let source_authority_url = toml_string(file.get("source_authority_url"))?;
             let format_name = toml_string(file.get("format"))?;
             let dest = raw_dir.join(&rel_path);
             let materialized = materialize_controlled_file(
                 &dest,
                 &url,
                 &expected,
-                None,
+                Some(expected_size_bytes),
                 download,
                 verbose,
                 &format!("{panel_id}:{name}"),
@@ -311,6 +315,10 @@ pub(in super::super) fn tooling_acquire_panels(
                 "materialized_path": dest.strip_prefix(&cache_root).unwrap_or(&dest).display().to_string(),
                 "url": url,
                 "checksum_sha256": expected,
+                "size_bytes": expected_size_bytes,
+                "source_checksum_algorithm": source_checksum_algorithm,
+                "source_checksum": source_checksum,
+                "source_authority_url": source_authority_url,
                 "observed_sha256": materialized.observed_sha256,
                 "format": format_name,
                 "action": materialized.action,
@@ -446,12 +454,16 @@ pub(in super::super) fn tooling_acquire_maps(
             let rel_path = toml_string(file.get("path"))?;
             let url = toml_string(file.get("url"))?;
             let expected = toml_string(file.get("checksum_sha256"))?;
+            let expected_size_bytes = required_positive_u64(&file, "size_bytes")?;
+            let source_checksum_algorithm = toml_string(file.get("source_checksum_algorithm"))?;
+            let source_checksum = toml_string(file.get("source_checksum"))?;
+            let source_authority_url = toml_string(file.get("source_authority_url"))?;
             let target = raw_dir.join(&rel_path);
             let materialized = materialize_controlled_file(
                 &target,
                 &url,
                 &expected,
-                None,
+                Some(expected_size_bytes),
                 download,
                 verbose,
                 &format!("{map_id}:{name}"),
@@ -460,6 +472,10 @@ pub(in super::super) fn tooling_acquire_maps(
             observed.push(json!({
                 "name": name,
                 "checksum_sha256": expected,
+                "size_bytes": expected_size_bytes,
+                "source_checksum_algorithm": source_checksum_algorithm,
+                "source_checksum": source_checksum,
+                "source_authority_url": source_authority_url,
                 "observed_sha256": materialized.observed_sha256,
                 "path": target.strip_prefix(&cache_root).unwrap_or(&target).display().to_string(),
                 "action": materialized.action,
@@ -484,6 +500,18 @@ pub(in super::super) fn tooling_acquire_maps(
     )?;
     stdout.push_str(&format!("wrote {}\n", workspace.rel(&run_log).display()));
     Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn required_positive_u64(table: &TomlValue, field: &str) -> Result<u64> {
+    let value = table
+        .get(field)
+        .and_then(TomlValue::as_integer)
+        .and_then(|value| u64::try_from(value).ok())
+        .with_context(|| format!("{field} must be a positive u64"))?;
+    if value == 0 {
+        return Err(anyhow::anyhow!("{field} must be positive"));
+    }
+    Ok(value)
 }
 
 pub(in super::super) fn tooling_benchmark_integrity_mini(
@@ -742,7 +770,10 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             "vcf_damage_aware_genotype_mini",
             workspace.path("examples/vcf/damage-aware-genotype-mini"),
         ),
-        ("vcf_downstream_vcf_full_mini", workspace.path("examples/vcf/downstream-vcf-full-mini")),
+        (
+            "vcf_downstream_chr22_reference",
+            workspace.path("examples/vcf/downstream-vcf-chr22-reference"),
+        ),
         (
             "vcf_downstream_demography_mini",
             workspace.path("examples/vcf/downstream-demography-mini"),
@@ -965,4 +996,32 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
         stderr.push_str(&format!("- {error}\n"));
     }
     Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{required_positive_u64, TomlValue};
+
+    #[test]
+    fn acquisition_size_parser_accepts_positive_integer() {
+        let table = toml::from_str::<TomlValue>("size_bytes = 42")
+            .unwrap_or_else(|error| panic!("parse TOML: {error}"));
+        let size = required_positive_u64(&table, "size_bytes")
+            .unwrap_or_else(|error| panic!("positive size: {error}"));
+
+        assert_eq!(size, 42);
+    }
+
+    #[test]
+    fn acquisition_size_parser_rejects_invalid_values() {
+        for raw in ["", "size_bytes = 0", "size_bytes = -1", "size_bytes = \"42\""] {
+            let table = toml::from_str::<TomlValue>(raw)
+                .unwrap_or_else(|error| panic!("parse TOML `{raw}`: {error}"));
+
+            assert!(
+                required_positive_u64(&table, "size_bytes").is_err(),
+                "invalid size must fail: {raw}"
+            );
+        }
+    }
 }

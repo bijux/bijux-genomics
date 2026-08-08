@@ -6,7 +6,9 @@ mod reference_assets;
 mod species;
 
 pub use compatibility::validate_imputation_tool_compatibility;
-pub(crate) use locks::{parse_lock_ref, validate_sha256};
+pub(crate) use locks::{
+    parse_lock_ref, validate_catalog_lock_files, validate_catalog_source_authority, validate_sha256,
+};
 pub use maps::{resolve_map, resolve_map_lock};
 pub use panels::{resolve_panel, resolve_panel_lock};
 pub(crate) use reference_assets::resolve_bundle_entry;

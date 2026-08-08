@@ -1,9 +1,6 @@
 {
-  "example_id": "vcf_downstream_vcf_full_mini",
-  "reasoning": [
-    "full downstream VCF mini path selected",
-    "toy VCF drives deterministic stage contract execution"
-  ],
+  "example_id": "vcf_downstream_chr22_reference",
+  "status": "ok",
   "coverage_regime": {
     "selected": "pseudohaploid",
     "thresholds_used": {
@@ -15,5 +12,16 @@
       "mean_depth_x": 3.9,
       "median_depth_x": 3.5
     }
+  },
+  "artifacts": [
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ],
+  "metrics_contract": {
+    "pca": "present",
+    "roh": "present",
+    "ibd": "present",
+    "demography": "present"
   }
 }

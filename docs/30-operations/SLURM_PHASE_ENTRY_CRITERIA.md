@@ -25,7 +25,7 @@ All items below must be true before enabling Slurm execution phase:
    - `cargo run -p bijux-dna-dev -- containers run apptainer-build-all`
    - smoke contracts, lock checks, SBOM/license/provenance checks pass.
 2. Two frontend mini E2E runs are green:
-   - VCF downstream mini (`vcf_downstream_vcf_full_mini`)
+   - VCF downstream chr22 reference (`vcf_downstream_chr22_reference`)
    - eDNA mini (`fastq_edna_mini`)
 3. Observability proof checks are green:
    - artifact/report contracts

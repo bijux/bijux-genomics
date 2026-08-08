@@ -109,7 +109,7 @@ pub(crate) fn check_bench_knob_discipline_downstream(
         return fail(check, "missing configs/bench/knobs.toml");
     }
     let suites = [
-        "examples/vcf/downstream-vcf-full-mini/bench-suite.toml",
+        "examples/vcf/downstream-vcf-chr22-reference/bench-suite.toml",
         "examples/vcf/downstream-demography-mini/bench-suite.toml",
         "examples/vcf/essential-qc/bench-suite.toml",
         "examples/vcf/imputation-mini/bench-suite.toml",

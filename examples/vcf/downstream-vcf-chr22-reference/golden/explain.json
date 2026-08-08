@@ -1,6 +1,9 @@
 {
-  "example_id": "vcf_downstream_vcf_full_mini",
-  "status": "ok",
+  "example_id": "vcf_downstream_chr22_reference",
+  "reasoning": [
+    "chr22 reference identities are explicit",
+    "small target VCF drives deterministic stage contract execution"
+  ],
   "coverage_regime": {
     "selected": "pseudohaploid",
     "thresholds_used": {
@@ -12,16 +15,5 @@
       "mean_depth_x": 3.9,
       "median_depth_x": 3.5
     }
-  },
-  "artifacts": [
-    "plan.json",
-    "explain.json",
-    "report.json"
-  ],
-  "metrics_contract": {
-    "pca": "present",
-    "roh": "present",
-    "ibd": "present",
-    "demography": "present"
   }
 }

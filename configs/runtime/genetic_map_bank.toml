@@ -1,31 +1,14 @@
-# schema_version = 1
+# schema_version = 2
 # owner = bijux-dna-db-ref
-# purpose = SSOT genetic map bank per species/build (optionally panel-scoped).
+# purpose = Verified genetic map source bank per species/build.
 # authority = bijux-dna-db-ref
 # stability = stable
-# last_updated = 2026-02-15
+# last_updated = 2026-08-08
 
 [[map]]
-id = "hsapiens_grch38_default"
+id = "hsapiens_grch38_glimpse_chr22_source"
 species_id = "Homo sapiens"
 build_id = "GRCh38"
-map_id = "hsapiens_grch38_chr_map"
-map_url = "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/working/20190404_genetic_maps/GRCh38_positions/"
-map_sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
-
-[[map]]
-id = "hsapiens_grch38_panel_1kg"
-species_id = "Homo sapiens"
-build_id = "GRCh38"
-panel_id = "hsapiens_grch38_1kg"
-map_id = "hsapiens_grch38_chr_map"
-map_url = "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000_genomes_project/working/20190404_genetic_maps/GRCh38_positions/"
-map_sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
-
-[[map]]
-id = "clupus_canfam4_default"
-species_id = "Canis lupus"
-build_id = "CanFam4"
-map_id = "clupus_canfam4_chr_map"
-map_url = "https://ftp.ensembl.org/pub/current_variation/vcf/canis_lupus_familiaris/"
-map_sha256 = "3333333333333333333333333333333333333333333333333333333333333333"
+map_id = "hsapiens_grch38_glimpse_chr22"
+map_url = "https://raw.githubusercontent.com/odelaneau/GLIMPSE/867113849925f3100bf8ff125e2b9eb1eff51b37/maps/genetic_maps.b38/chr22.b38.gmap.gz"
+map_sha256 = "c23663c6e65274bc15fc44facf26535e8d59f3200af4b6e7d347890ecb7a58da"

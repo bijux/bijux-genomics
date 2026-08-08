@@ -1,6 +1,6 @@
 use anyhow::{anyhow, bail, Result};
 
-use crate::resolution::validate_sha256;
+use crate::resolution::{validate_catalog_lock_files, validate_catalog_source_authority};
 use crate::runtime_config::{load_toml, workspace_root, MapLocksConfig, MapsConfig};
 use crate::{MapCatalogEntry, MapLockEntry};
 
@@ -24,19 +24,19 @@ pub fn resolve_map(species: &str, build: &str, map_id: Option<&str>) -> Result<M
     if map.lock_ref.trim().is_empty() {
         bail!("map {} missing required lock_ref metadata", map.id);
     }
-    validate_map_catalog_files(&map)?;
+    validate_map_catalog(&map)?;
     let _ = resolve_map_lock(&map)?;
     Ok(map)
 }
 
-fn validate_map_catalog_files(map: &MapCatalogEntry) -> Result<()> {
-    if map.files.is_empty() {
-        bail!("map {} has no catalog files", map.id);
-    }
-    for file in &map.files {
-        validate_sha256(&file.checksum_sha256, "map catalog checksum_sha256")?;
-    }
-    Ok(())
+fn validate_map_catalog(map: &MapCatalogEntry) -> Result<()> {
+    validate_catalog_source_authority(
+        "map",
+        &map.id,
+        &map.status,
+        map.citation.as_deref(),
+        &map.files,
+    )
 }
 
 /// # Errors
@@ -53,21 +53,17 @@ pub fn resolve_map_lock(map: &MapCatalogEntry) -> Result<MapLockEntry> {
     if entry.map_id != map.id
         || entry.species_id != map.species_id
         || entry.build_id != map.build_id
+        || entry.version != map.version
     {
         bail!("map lock entry does not match map identity {}", map.id);
     }
-    if entry.files.is_empty() {
-        bail!("map lock entry {} has no files", map.id);
-    }
-    for file in &entry.files {
-        crate::resolution::validate_sha256(&file.checksum_sha256, "map lock checksum_sha256")?;
-    }
+    validate_catalog_lock_files("map", &map.id, &map.files, &entry.files)?;
     Ok(entry)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::validate_map_catalog_files;
+    use super::validate_map_catalog;
     use crate::{CatalogFileEntry, MapCatalogEntry, MapCompatibility};
 
     #[test]
@@ -79,13 +75,17 @@ mod tests {
             status: "production".to_string(),
             version: "1.0.0".to_string(),
             lock_ref: "locks/map_locks.toml#locks.map".to_string(),
-            citation: None,
+            citation: Some("GLIMPSE2 official map".to_string()),
             files: vec![CatalogFileEntry {
                 name: "recombination_map_tsv".to_string(),
                 path: "map.tsv.gz".to_string(),
                 format: "tsv.gz".to_string(),
                 url: "https://example.org/map.tsv.gz".to_string(),
                 checksum_sha256: "BAD".to_string(),
+                size_bytes: 1,
+                source_checksum_algorithm: "git_blob_sha1".to_string(),
+                source_checksum: "a".repeat(40),
+                source_authority_url: "https://authority.example/map.json".to_string(),
                 required: true,
             }],
             compatibility: MapCompatibility {
@@ -94,10 +94,10 @@ mod tests {
             },
         };
 
-        let Err(error) = validate_map_catalog_files(&map) else {
+        let Err(error) = validate_map_catalog(&map) else {
             panic!("bad map checksum must fail");
         };
 
-        assert!(error.to_string().contains("map catalog checksum"));
+        assert!(error.to_string().contains("catalog checksum"));
     }
 }

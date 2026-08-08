@@ -1,5 +1,5 @@
 {
-  "example_id": "vcf_downstream_vcf_full_mini",
+  "example_id": "vcf_downstream_chr22_reference",
   "steps": [
     "ensure_images",
     "validate_inputs",

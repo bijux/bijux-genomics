@@ -674,10 +674,10 @@ fn materialize_panel_inputs(
     let genetic_map_path = report
         .materialized_files
         .iter()
-        .find(|path| path.ends_with("/recombination_map.tsv.gz"))
+        .find(|path| path.ends_with(".gmap.gz") || path.ends_with("/recombination_map.tsv.gz"))
         .cloned()
         .ok_or_else(|| {
-            anyhow!("local VCF panel fixture did not produce recombination_map.tsv.gz")
+            anyhow!("local VCF panel fixture did not produce a governed gzip genetic map")
         })?;
 
     Ok(MaterializedPanelInputs {

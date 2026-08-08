@@ -133,9 +133,9 @@
         "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
         "contig_naming_scheme": "deterministic_remap",
         "fasta_sha256": "11912a45a545bf01a10b2a7f10eb7a42924436b4d19b476b1899834fb7ba74a3",
-        "map_id": "hsapiens_grch38_chr_map",
+        "map_id": "hsapiens_grch38_glimpse_chr22",
         "normalization_policy": "StrictOnly",
-        "panel_id": "hsapiens_grch38_mini",
+        "panel_id": "hsapiens_grch38_1kg_3202_chr22",
         "schema_version": "bijux.vcf.reference_context_report.v1",
         "species_id": "Homo sapiens",
         "vcf_index_required": true
@@ -396,9 +396,9 @@
     "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
     "contig_naming_scheme": "deterministic_remap",
     "fasta_sha256": "11912a45a545bf01a10b2a7f10eb7a42924436b4d19b476b1899834fb7ba74a3",
-    "map_id": "hsapiens_grch38_chr_map",
+    "map_id": "hsapiens_grch38_glimpse_chr22",
     "normalization_policy": "StrictOnly",
-    "panel_id": "hsapiens_grch38_mini",
+    "panel_id": "hsapiens_grch38_1kg_3202_chr22",
     "schema_version": "bijux.vcf.reference_context_report.v1",
     "species_id": "Homo sapiens",
     "vcf_index_required": true
@@ -463,7 +463,7 @@
       "params_surface": {
         "license_policy": "panel_license_must_match_operator_constraints",
         "map_coordinate_system": "bp",
-        "map_id": "hsapiens_grch38_chr_map",
+        "map_id": "hsapiens_grch38_glimpse_chr22",
         "normalization_policy": {
           "duplicate_handling": "refuse_duplicate_records",
           "left_normalize": true,
@@ -1268,11 +1268,11 @@
           "phasing_manifest"
         ],
         "map_coordinate_system": "bp",
-        "map_id": "hsapiens_grch38_chr_map",
-        "max_iterations": 10,
+        "map_id": "hsapiens_grch38_glimpse_chr22",
         "panel_build_required": "GRCh38",
         "panel_id": "1000g_phase3",
         "panel_identity_required": true,
+        "pbwt_depth": 8,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1284,11 +1284,11 @@
         "schema_version": "bijux.vcf.phasing.params.v1",
         "seed": 42,
         "threads": 8,
-        "tool": "eagle",
-        "use_reference": true
+        "tool": "shapeit5",
+        "window_cM": 2.0
       },
-      "reason": "coverage regime Diploid selected tool eagle for vcf.phasing (stage_tool_override)",
-      "selected_tool": "eagle",
+      "reason": "coverage regime Diploid selected tool shapeit5 for vcf.phasing (stage_tool_override)",
+      "selected_tool": "shapeit5",
       "stage_id": "vcf.phasing"
     },
     {
@@ -1326,6 +1326,7 @@
           ],
           "stage": "impute"
         },
+        "buffer_mb": 0.2,
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -1947,10 +1948,10 @@
           "imputation_acceptance",
           "panel_mismatch_diagnostics"
         ],
+        "emit_gp": true,
         "imputation_acceptance_mode": "qc_gated",
         "map_coordinate_system": "bp",
-        "map_id": "hsapiens_grch38_chr_map",
-        "min_rsq": 0.3,
+        "map_id": "hsapiens_grch38_glimpse_chr22",
         "panel_build_required": "GRCh38",
         "panel_id": "1000g_phase3",
         "panel_identity_required": true,
@@ -1962,13 +1963,12 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "rounds": 5,
         "schema_version": "bijux.vcf.impute.params.v1",
-        "states": 200,
-        "tool": "minimac4"
+        "tool": "glimpse",
+        "window_size_mb": 2.0
       },
-      "reason": "coverage regime Diploid selected tool minimac4 for vcf.impute (stage_tool_override)",
-      "selected_tool": "minimac4",
+      "reason": "coverage regime Diploid selected tool glimpse for vcf.impute (stage_tool_override)",
+      "selected_tool": "glimpse",
       "stage_id": "vcf.impute"
     },
     {
