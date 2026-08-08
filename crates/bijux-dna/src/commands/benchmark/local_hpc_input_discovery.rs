@@ -7,8 +7,8 @@ use regex::Regex;
 use sha2::{Digest, Sha256};
 
 use super::local_stage_commands::local_stage_plans;
+use super::readiness::benchmark_command_rows::DEFAULT_STAGE_TOOL_COMMAND_ROOT;
 
-const GENERATED_BENCHMARK_OUTPUT_ROOTS: [&str; 1] = ["benchmarks/readiness/stage-tool-commands/"];
 const OUTPUT_FLAG_ARGS: [&str; 12] = [
     "-o",
     "-O",
@@ -459,7 +459,10 @@ fn is_repo_source_path(value: &str) -> bool {
 }
 
 fn is_generated_benchmark_output_path(value: &str) -> bool {
-    GENERATED_BENCHMARK_OUTPUT_ROOTS.iter().any(|root| value.starts_with(root))
+    value == DEFAULT_STAGE_TOOL_COMMAND_ROOT
+        || value
+            .strip_prefix(DEFAULT_STAGE_TOOL_COMMAND_ROOT)
+            .is_some_and(|suffix| suffix.starts_with('/'))
 }
 
 fn resolve_prefix_bundle(

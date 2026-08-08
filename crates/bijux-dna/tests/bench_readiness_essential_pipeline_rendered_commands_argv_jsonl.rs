@@ -37,6 +37,8 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_governed_argv_json
 
     let jsonl =
         std::fs::read_to_string(&jsonl_path).expect("read essential pipeline command argv JSONL");
+    assert!(jsonl.contains("artifacts/benchmark-smoke/readiness/stage-tool-commands/"));
+    assert!(!jsonl.contains("benchmarks/readiness/stage-tool-commands/"));
     let rows = jsonl.lines().collect::<Vec<_>>();
     assert_eq!(rows.len(), 93);
     assert!(rows.iter().all(|line| {

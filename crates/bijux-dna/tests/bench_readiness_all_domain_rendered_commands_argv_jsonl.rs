@@ -37,6 +37,8 @@ fn bench_readiness_all_domain_rendered_commands_write_governed_argv_jsonl() {
     assert!(jsonl_path.is_file(), "all-domain rendered command argv JSONL must exist");
 
     let jsonl = std::fs::read_to_string(&jsonl_path).expect("read all-domain command argv JSONL");
+    assert!(jsonl.contains("artifacts/benchmark-smoke/readiness/stage-tool-commands/"));
+    assert!(!jsonl.contains("benchmarks/readiness/stage-tool-commands/"));
     let rows = jsonl.lines().collect::<Vec<_>>();
     let result_ids = rows
         .iter()
