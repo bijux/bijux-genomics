@@ -134,7 +134,10 @@ pub(crate) fn render_essential_pipeline_commands(
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
-    let rendered_script = render_essential_pipeline_commands_shell_script(&rows);
+    let rendered_script = render_essential_pipeline_commands_shell_script(
+        &rows,
+        &repo_root_relative_to_output(repo_root, &output_path),
+    );
     bijux_dna_infra::atomic_write_bytes(&output_path, rendered_script.as_bytes())?;
     let argv_jsonl = render_essential_pipeline_command_argv_jsonl(&rows)
         .context("render essential pipeline command argv JSONL")?;
@@ -541,9 +544,12 @@ fn load_selected_bam_row(repo_root: &Path, stage_id: &str) -> Result<BenchmarkCo
 
 fn render_essential_pipeline_commands_shell_script(
     rows: &[EssentialPipelineRenderedCommandRow],
+    repo_root_relative_to_output: &str,
 ) -> String {
     let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
-    rendered.push_str("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"\n");
+    rendered.push_str(&format!(
+        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_relative_to_output}\" && pwd)\"\n"
+    ));
     rendered.push_str("cd \"$repo_root\"\n\n");
     for (index, row) in rows.iter().enumerate() {
         rendered.push_str(&format!(
@@ -752,6 +758,16 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
         path.to_path_buf()
     } else {
         repo_root.join(path)
+    }
+}
+
+fn repo_root_relative_to_output(repo_root: &Path, output_path: &Path) -> String {
+    let relative_output_path = output_path.strip_prefix(repo_root).unwrap_or(output_path);
+    let depth = relative_output_path.parent().map_or(0, |parent| parent.components().count());
+    if depth == 0 {
+        ".".to_string()
+    } else {
+        std::iter::repeat_n("..", depth).collect::<Vec<_>>().join("/")
     }
 }
 

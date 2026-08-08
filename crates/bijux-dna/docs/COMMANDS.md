@@ -548,11 +548,12 @@ Visible aliases are part of the operator surface:
   command rendering stays executable without shell placeholders or synthetic `echo execute` stubs.
 - `bijux-dna bench readiness render-all-domain-commands`
   `render-all-domain-commands` writes both
-  `benchmarks/readiness/rendered-commands-all-domains.sh` and
-  `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` with one governed row per
-  benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps the stable `result_id`,
-  domain identity, benchmark status, and structured command steps explicit, and the command fails
-  closed unless all governed rows render real commands with no placeholder execution text.
+  `artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh` and
+  `artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl` with
+  one governed row per benchmark-ready FASTQ, BAM, and VCF result binding. Each row keeps the stable
+  `result_id`, domain identity, benchmark status, and structured command steps explicit, and the
+  command fails closed unless all governed rows render real commands with no placeholder execution
+  text.
 - `bijux-dna bench readiness render-vcf-adapters-ready`
   `render-vcf-adapters-ready` writes `benchmarks/readiness/VCF_ADAPTERS_READY.json` and
   fail-closes across the governed VCF readiness slice for Goals 231 through 244. The gate reruns
@@ -2011,12 +2012,12 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local render-hpc-asset-staging-manifest`
   `render-hpc-asset-staging-manifest` writes
   `runs/bench/hpc-dry-run/asset-staging-manifest.json`, using the governed
-  `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` slice as the selected future HPC
-  benchmark job roster. Each job row lists the staged source assets it consumes, including the
-  original repo-relative source path, deterministic staged path under `runs/bench/hpc-dry-run/staged/`,
-  checksum, size, member count for prefix bundles or directories, and the canonical consumer
-  `result_id`, so hidden local benchmark dependencies stay explicit before any cluster transfer
-  logic is added.
+  `artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.argv.jsonl` slice as the
+  selected future HPC benchmark job roster. Each job row lists the staged source assets it consumes,
+  including the original repo-relative source path, deterministic staged path under
+  `runs/bench/hpc-dry-run/staged/`, checksum, size, member count for prefix bundles or directories,
+  and the canonical consumer `result_id`, so hidden local benchmark dependencies stay explicit
+  before any cluster transfer logic is added.
 - `bijux-dna bench local validate-hpc-asset-staging-manifest`
   `validate-hpc-asset-staging-manifest` reloads
   `runs/bench/hpc-dry-run/asset-staging-manifest.json`, enforces the governed schema and output

@@ -39,9 +39,8 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_bash_parseable_scr
     let script = std::fs::read_to_string(&script_path)
         .expect("read essential pipeline rendered command script");
     assert!(script.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n"));
-    assert!(
-        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
-    );
+    assert!(script
+        .contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../../../..\" && pwd)\""));
     assert!(script.contains("# core-germline-fastq-bam-vcf / vcf.call / vcf.call / bcftools"));
     assert!(script.contains("# reference-panel-imputation / vcf.phasing / vcf.phasing / shapeit5"));
     assert!(script.contains("bcftools mpileup"));

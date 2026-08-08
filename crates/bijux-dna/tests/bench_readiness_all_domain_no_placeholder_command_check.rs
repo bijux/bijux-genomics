@@ -53,11 +53,13 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     );
     assert_eq!(
         payload.get("script_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/rendered-commands-all-domains.sh")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
+        Some(
+            "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl"
+        )
     );
     let rows = support::json_array(&payload, "rows");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
