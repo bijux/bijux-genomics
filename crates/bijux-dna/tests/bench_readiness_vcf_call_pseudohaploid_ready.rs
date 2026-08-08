@@ -44,7 +44,7 @@ fn bench_readiness_vcf_call_pseudohaploid_ready_reports_complete_retained_caller
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/call-pseudohaploid-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/call-pseudohaploid-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));

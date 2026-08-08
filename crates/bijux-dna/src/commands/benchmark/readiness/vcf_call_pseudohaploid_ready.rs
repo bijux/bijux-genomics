@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH: &str =
-    "benchmarks/readiness/vcf/call-pseudohaploid-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/call-pseudohaploid-ready.json";
 const VCF_CALL_PSEUDOHAPLOID_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_call_pseudohaploid_ready.v1";
 const VCF_CALL_PSEUDOHAPLOID_STAGE_ID: &str = "vcf.call_pseudohaploid";

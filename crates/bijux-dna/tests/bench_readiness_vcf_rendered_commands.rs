@@ -45,11 +45,11 @@ fn bench_readiness_vcf_rendered_commands_report_tracks_canonical_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/vcf-rendered-commands.sh")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.argv.jsonl")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
 

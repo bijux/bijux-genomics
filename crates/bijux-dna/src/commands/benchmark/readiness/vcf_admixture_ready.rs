@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ADMIXTURE_READY_PATH: &str =
-    "benchmarks/readiness/vcf/admixture-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/admixture-ready.json";
 const VCF_ADMIXTURE_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_admixture_ready.v1";
 const VCF_ADMIXTURE_STAGE_ID: &str = "vcf.admixture";
 const REQUIRED_METRIC_NAMES: [&str; 12] = [

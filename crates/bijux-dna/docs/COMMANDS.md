@@ -542,8 +542,8 @@ Visible aliases are part of the operator surface:
   governed JSON row per benchmark command, preserving the executable and arguments as a separated
   `argv` array so local benchmark rendering is reproducible without shell-parsing ambiguity.
 - `bijux-dna bench readiness render-vcf-commands`
-  `render-vcf-commands` writes both `benchmarks/readiness/vcf/vcf-rendered-commands.sh` and
-  `benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl` for the active VCF slice. The shell
+  `render-vcf-commands` writes both `artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.sh` and
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.argv.jsonl` for the active VCF slice. The shell
   script preserves the real multi-step adapter pipelines in a `bash -n` parseable form, and the
   JSONL preserves one governed row per active VCF pair with structured `command_steps` argv so VCF
   command rendering stays executable without shell placeholders or synthetic `echo execute` stubs.
@@ -982,7 +982,7 @@ Visible aliases are part of the operator surface:
   the canonical VCF stage contracts.
 - `bijux-dna bench readiness render-vcf-active-stage-tool-matrix`
   `render-vcf-active-stage-tool-matrix` writes
-  `benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv` with one governed row per retained
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-active-stage-tool-matrix.tsv` with one governed row per retained
   VCF stage-tool binding from the VCF tool registries. Each row keeps `stage_id`, `tool_id`,
   merged `tool_status`, `stage_support_status`, `corpus_id`, `asset_profile_id`, `adapter_id`,
   `parser_id`, `schema_id`, `scope_state`, `scope_detail`, and the proof path that explains why
@@ -990,7 +990,7 @@ Visible aliases are part of the operator surface:
   unless every retained VCF binding is classified exactly once.
 - `bijux-dna bench readiness render-vcf-local-container-smoke`
   `render-vcf-local-container-smoke` writes
-  `benchmarks/readiness/vcf/vcf-local-container-smoke.tsv` with one governed row per retained VCF
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-local-container-smoke.tsv` with one governed row per retained VCF
   stage-tool binding, resolving each row to either an exact host tiny-fixture stage smoke wrapper
   or a governed Docker/Apptainer smoke wrapper for the registered external binary. Each row keeps
   `registered_binary`, retained-scope status, selected smoke runtime, the concrete wrapper
@@ -998,7 +998,7 @@ Visible aliases are part of the operator surface:
   registry so removed-from-scope VCF tools still have an honest local exercise path.
 - `bijux-dna bench readiness render-vcf-damage-filter-ready`
   `render-vcf-damage-filter-ready` writes
-  `benchmarks/readiness/vcf/damage-filter-ready.json` with one governed row per active retained
+  `artifacts/benchmark-smoke/readiness/vcf/damage-filter-ready.json` with one governed row per active retained
   `vcf.damage_filter` caller. Each row keeps the retained-scope proof, final active-row presence,
   rendered-command identity, output-contract paths, parser fixture proof, expected metrics,
   report-table placement, and real local smoke evidence for removed variants, retained variants,
@@ -1006,7 +1006,7 @@ Visible aliases are part of the operator surface:
   coverage. The command fails closed unless every active retained `vcf.damage_filter` caller is
   complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-filter-ready`
-  `render-vcf-filter-ready` writes `benchmarks/readiness/vcf/filter-ready.json` with one governed
+  `render-vcf-filter-ready` writes `artifacts/benchmark-smoke/readiness/vcf/filter-ready.json` with one governed
   row per active retained `vcf.filter` caller. Each row keeps the retained-scope proof, final
   active-row presence, rendered-command identity, output-contract paths, parser fixture proof,
   expected metrics, report-table placement, and real local smoke evidence for input variants,
@@ -1014,7 +1014,7 @@ Visible aliases are part of the operator surface:
   missingness thresholds. The command fails closed unless every active retained `vcf.filter`
   caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-call-ready`
-  `render-vcf-call-ready` writes `benchmarks/readiness/vcf/call-ready.json` with one governed row
+  `render-vcf-call-ready` writes `artifacts/benchmark-smoke/readiness/vcf/call-ready.json` with one governed row
   per retained `vcf.call` caller. Each row keeps the retained-scope proof, final active-row
   presence, rendered-command identity, output-contract paths, parser fixture proof, expected
   metrics, report-table placement, and real local smoke evidence for parseable VCF, index output,
@@ -1022,7 +1022,7 @@ Visible aliases are part of the operator surface:
   retained `vcf.call` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-prepare-reference-panel-ready`
   `render-vcf-prepare-reference-panel-ready` writes
-  `benchmarks/readiness/vcf/prepare-reference-panel-ready.json` with one governed row per retained
+  `artifacts/benchmark-smoke/readiness/vcf/prepare-reference-panel-ready.json` with one governed row per retained
   `vcf.prepare_reference_panel` caller. Each row keeps the retained-scope proof, final active-row
   presence, rendered-command identity, output-contract paths, parser fixture proof, expected
   metrics, report-table placement, and real local smoke evidence for non-empty output,
@@ -1030,7 +1030,7 @@ Visible aliases are part of the operator surface:
   closed unless every retained `vcf.prepare_reference_panel` caller is complete across those
   surfaces and the panel-preparation path is a real transformation instead of a copy operation.
 - `bijux-dna bench readiness render-vcf-call-diploid-ready`
-  `render-vcf-call-diploid-ready` writes `benchmarks/readiness/vcf/call-diploid-ready.json` with
+  `render-vcf-call-diploid-ready` writes `artifacts/benchmark-smoke/readiness/vcf/call-diploid-ready.json` with
   one governed row per retained `vcf.call_diploid` caller. Each row keeps the retained-scope
   proof, final active-row presence, rendered-command identity, output-contract paths, parser
   fixture proof, expected metrics, report-table placement, and real local smoke evidence for
@@ -1039,7 +1039,7 @@ Visible aliases are part of the operator surface:
   across those surfaces.
 - `bijux-dna bench readiness render-vcf-gl-propagation-ready`
   `render-vcf-gl-propagation-ready` writes
-  `benchmarks/readiness/vcf/gl-propagation-ready.json` with one governed row per active retained
+  `artifacts/benchmark-smoke/readiness/vcf/gl-propagation-ready.json` with one governed row per active retained
   `vcf.gl_propagation` caller. Each row keeps the retained-scope proof, final active-row
   presence, rendered-command identity, output-contract paths, parser fixture proof, expected
   metrics, report-table placement, and real local smoke evidence for input likelihood fields,
@@ -1047,7 +1047,7 @@ Visible aliases are part of the operator surface:
   transforms did not lose any retained likelihood fields. The command fails closed unless every
   active retained `vcf.gl_propagation` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-call-gl-ready`
-  `render-vcf-call-gl-ready` writes `benchmarks/readiness/vcf/call-gl-ready.json` with one
+  `render-vcf-call-gl-ready` writes `artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json` with one
   governed row per active retained `vcf.call_gl` caller. Each row keeps the retained-scope proof,
   final active-row presence, rendered-command identity, output-contract paths, parser fixture
   proof, expected metrics, report-table placement, and real local smoke evidence for
@@ -1057,7 +1057,7 @@ Visible aliases are part of the operator surface:
   those surfaces.
 - `bijux-dna bench readiness render-vcf-call-pseudohaploid-ready`
   `render-vcf-call-pseudohaploid-ready` writes
-  `benchmarks/readiness/vcf/call-pseudohaploid-ready.json` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/vcf/call-pseudohaploid-ready.json` with one governed row per active
   retained `vcf.call_pseudohaploid` caller. Each row keeps the retained-scope proof, final
   active-row presence, rendered-command identity, output-contract paths, parser fixture proof,
   expected metrics, report-table placement, and real local smoke evidence for covered sites,
@@ -1065,7 +1065,7 @@ Visible aliases are part of the operator surface:
   count. The command fails closed unless every active retained `vcf.call_pseudohaploid` caller is
   complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-admixture-ready`
-  `render-vcf-admixture-ready` writes `benchmarks/readiness/vcf/admixture-ready.json` with one
+  `render-vcf-admixture-ready` writes `artifacts/benchmark-smoke/readiness/vcf/admixture-ready.json` with one
   governed row per active retained `vcf.admixture` caller. Each row keeps the retained-scope
   proof, final active-row presence, rendered-command identity, tool-specific output-contract
   paths, parser fixture proof, expected metrics, report-table placement, and real local smoke
@@ -1075,7 +1075,7 @@ Visible aliases are part of the operator surface:
   across those surfaces.
 - `bijux-dna bench readiness render-vcf-population-structure-ready`
   `render-vcf-population-structure-ready` writes
-  `benchmarks/readiness/vcf/population-structure-ready.json` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/vcf/population-structure-ready.json` with one governed row per active
   retained `vcf.population_structure` caller. Each row keeps the retained-scope proof, final
   active-row presence, rendered-command identity, tool-specific output-contract paths, parser
   fixture proof, expected metrics, report-table placement, and real local smoke evidence that the
@@ -1084,14 +1084,14 @@ Visible aliases are part of the operator surface:
   retained `vcf.population_structure` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-all-retained-tools-complete`
   `render-vcf-all-retained-tools-complete` writes
-  `benchmarks/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json` with the governed final local
+  `artifacts/benchmark-smoke/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json` with the governed final local
   VCF completion gate for Goals 336 through 359. The gate validates the 44-row retained VCF
   matrix, every active stage-specific readiness surface, the retained phasing/imputation/descent
   family adapter reports, the full retained host-vs-container smoke surface, parser fixture
   coverage, rendered commands, and report-map alignment. The command fails closed unless the
   entire retained VCF local surface remains in the governed complete pass state.
 - `bijux-dna bench readiness render-vcf-pca-ready`
-  `render-vcf-pca-ready` writes `benchmarks/readiness/vcf/pca-ready.json` with one governed row
+  `render-vcf-pca-ready` writes `artifacts/benchmark-smoke/readiness/vcf/pca-ready.json` with one governed row
   per active retained `vcf.pca` caller. Each row keeps the retained-scope proof, final
   active-row presence, rendered-command identity, tool-specific output-contract paths, parser
   fixture proof, expected metrics, report-table placement, and real local smoke evidence that
@@ -1099,14 +1099,14 @@ Visible aliases are part of the operator surface:
   variant count, and population metadata joins. The command fails closed unless every active
   retained `vcf.pca` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-stats-ready`
-  `render-vcf-stats-ready` writes `benchmarks/readiness/vcf/stats-ready.json` with one governed
+  `render-vcf-stats-ready` writes `artifacts/benchmark-smoke/readiness/vcf/stats-ready.json` with one governed
   row per active retained `vcf.stats` caller. Each row keeps the retained-scope proof, final
   active-row presence, rendered-command identity, output-contract paths, parser fixture proof,
   expected metrics, report-table placement, and real local smoke evidence for variant count, SNP
   count, indel count, transition count, transversion count, Ti/Tv, and sample count. The command
   fails closed unless every active retained `vcf.stats` caller is complete across those surfaces.
 - `bijux-dna bench readiness render-vcf-qc-ready`
-  `render-vcf-qc-ready` writes `benchmarks/readiness/vcf/qc-ready.json` with one governed row per
+  `render-vcf-qc-ready` writes `artifacts/benchmark-smoke/readiness/vcf/qc-ready.json` with one governed row per
   active retained `vcf.qc` caller. Each row keeps the retained-scope proof, final active-row
   presence, rendered-command identity, output-contract paths, parser fixture proof, expected
   metrics, report-table placement, and real local smoke evidence for sample missingness, variant
@@ -1376,7 +1376,7 @@ Visible aliases are part of the operator surface:
   rows. The report fails closed unless exactly one row is visible as `missing_result` instead of
   disappearing from the table.
 - `bijux-dna bench readiness render-vcf-report-map`
-  `render-vcf-report-map` writes `benchmarks/readiness/vcf/vcf-report-map.tsv` with one row per
+  `render-vcf-report-map` writes `artifacts/benchmark-smoke/readiness/vcf/vcf-report-map.tsv` with one row per
   expected benchmark-ready VCF result. Each row keeps `stage_id`, `tool_id`, `section_id`,
   `summary_table`, `metric_columns`, and `failure_columns`, and the command fails closed unless
   every expected VCF result row maps to one governed report section and summary table.
@@ -1388,7 +1388,7 @@ Visible aliases are part of the operator surface:
   report mapping stay aligned on the same active VCF pair slice.
 - `bijux-dna bench readiness render-vcf-parser-fixture-coverage`
   `render-vcf-parser-fixture-coverage` writes
-  `benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv` with one row per active VCF
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-parser-fixture-coverage.tsv` with one row per active VCF
   stage-tool parser surface. Each row keeps `stage_id`, `tool_id`, `corpus_id`,
   `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, `parser_fixture_parser_id`,
   `parser_fixture_schema_id`, `parser_fixture_root_path`, `expected_normalized_path`,

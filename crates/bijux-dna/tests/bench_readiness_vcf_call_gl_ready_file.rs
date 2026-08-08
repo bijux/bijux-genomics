@@ -32,7 +32,7 @@ fn bench_readiness_vcf_call_gl_ready_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf/call-gl-ready.json");
+    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read VCF call_gl readiness report");

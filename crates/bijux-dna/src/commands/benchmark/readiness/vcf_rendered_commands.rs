@@ -10,7 +10,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_RENDERED_COMMANDS_PATH: &str =
-    "benchmarks/readiness/vcf/vcf-rendered-commands.sh";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.sh";
 const VCF_RENDERED_COMMANDS_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_rendered_commands.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -204,10 +204,13 @@ mod tests {
             .expect("render VCF commands");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_rendered_commands.v1");
-        assert_eq!(report.output_path, "benchmarks/readiness/vcf/vcf-rendered-commands.sh");
+        assert_eq!(
+            report.output_path,
+            "artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.sh"
+        );
         assert_eq!(
             report.argv_output_path,
-            "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl"
+            "artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.argv.jsonl"
         );
         assert_eq!(report.row_count, 24);
         assert!(report.rows.iter().any(|row| {

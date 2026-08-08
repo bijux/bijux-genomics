@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH: &str =
-    "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-parser-fixture-coverage.tsv";
 const VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_parser_fixture_coverage.v1";
 const VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION: &str = "bijux.fixture.vcf_raw_parser.v1";

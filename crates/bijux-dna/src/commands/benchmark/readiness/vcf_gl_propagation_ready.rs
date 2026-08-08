@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_GL_PROPAGATION_READY_PATH: &str =
-    "benchmarks/readiness/vcf/gl-propagation-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/gl-propagation-ready.json";
 const VCF_GL_PROPAGATION_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_gl_propagation_ready.v1";
 const VCF_GL_PROPAGATION_STAGE_ID: &str = "vcf.gl_propagation";

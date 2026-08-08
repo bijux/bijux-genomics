@@ -70,7 +70,7 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-active-stage-tool-matrix.tsv")
     );
     let row_count = payload["row_count"].as_u64().expect("row count");
     let active_row_count = payload["active_row_count"].as_u64().expect("active row count");

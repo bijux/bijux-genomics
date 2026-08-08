@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
-    "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-active-stage-tool-matrix.tsv";
 const VCF_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_active_stage_tool_matrix.v1";
 const ACTIVE_SCOPE_STATE: &str = "active";

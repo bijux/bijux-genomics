@@ -38,7 +38,7 @@ fn bench_readiness_vcf_qc_ready_reports_complete_retained_qc_callers() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/qc-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/qc-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(3));

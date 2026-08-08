@@ -44,7 +44,7 @@ fn bench_readiness_vcf_parser_fixture_coverage_reports_active_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-parser-fixture-coverage.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));

@@ -44,7 +44,7 @@ fn bench_readiness_vcf_population_structure_ready_reports_complete_active_retain
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/population-structure-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/population-structure-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));

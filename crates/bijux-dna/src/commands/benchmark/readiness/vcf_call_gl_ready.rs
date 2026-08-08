@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_CALL_GL_READY_PATH: &str =
-    "benchmarks/readiness/vcf/call-gl-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json";
 const VCF_CALL_GL_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_call_gl_ready.v1";
 const VCF_CALL_GL_STAGE_ID: &str = "vcf.call_gl";
 const REQUIRED_METRIC_NAMES: [&str; 5] = [
