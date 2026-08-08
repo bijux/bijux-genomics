@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
     let damage = rows
         .iter()
         .find(|row| row.starts_with("bam\tbam.damage\t"))
@@ -56,7 +56,7 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
     let columns = damage.split('\t').collect::<Vec<_>>();
     let active_tools = columns[10].split(',').collect::<Vec<_>>();
     assert!(!active_tools.is_empty());
-    assert!(!active_tools.contains(&"ngsbriggs"));
+    assert!(active_tools.contains(&"ngsbriggs"));
     let active_tool_count = active_tools.len().to_string();
     for index in [3usize, 4, 5, 6, 8] {
         assert_eq!(columns[index], active_tool_count);

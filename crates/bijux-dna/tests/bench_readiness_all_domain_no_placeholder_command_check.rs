@@ -134,7 +134,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     );
     assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(4)
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),

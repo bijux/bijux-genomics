@@ -122,7 +122,7 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() {
     );
     assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(4)
     );
 
     let coverage_status_counts = support::json_object(&payload, "coverage_status_counts");

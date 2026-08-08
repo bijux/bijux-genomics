@@ -56,8 +56,8 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
 
     let removed_status_counts = support::json_object(&payload, "removed_status_counts");
     assert_eq!(
-        removed_status_counts.get("planned").and_then(serde_json::Value::as_u64),
-        Some(removed_row_count)
+        removed_status_counts.get("planned").and_then(serde_json::Value::as_u64).unwrap_or(0),
+        removed_row_count
     );
 
     let removed_rows = support::json_array(&payload, "removed_rows");

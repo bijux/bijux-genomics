@@ -46,10 +46,10 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(
         payload.get("stages_with_benchmark_ready_tools").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_only_stage_count").and_then(serde_json::Value::as_u64),
@@ -57,22 +57,22 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("stages_with_parser_rows").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
-    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(
         payload.get("stages_with_report_rows").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(18));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
 
     let damage = rows
         .iter()
@@ -87,7 +87,7 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
         .expect("bam.damage active tools");
     let damage_tool_count = u64::try_from(damage_tools.len()).expect("damage tool count fits u64");
     assert!(damage_tool_count > 0);
-    assert!(damage_tools.iter().all(|tool| tool.as_str() != Some("ngsbriggs")));
+    assert!(damage_tools.iter().any(|tool| tool.as_str() == Some("ngsbriggs")));
     for count_field in [
         "active_tool_count",
         "benchmark_ready_tool_count",

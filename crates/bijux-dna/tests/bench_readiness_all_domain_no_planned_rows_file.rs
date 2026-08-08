@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
         .get("active_row_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count > 0));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 

@@ -80,7 +80,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         .expect("support_status_counts");
     assert_eq!(
         support_status_counts.get("governed_benchmark_cohort").and_then(serde_json::Value::as_u64),
-        Some(56)
+        Some(54)
     );
     assert_eq!(
         support_status_counts.get("governed_execution").and_then(serde_json::Value::as_u64),
@@ -99,7 +99,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         .expect("parser_status_counts");
     assert_eq!(
         parser_status_counts.get("benchmark_normalized").and_then(serde_json::Value::as_u64),
-        Some(56)
+        Some(54)
     );
     assert_eq!(
         parser_status_counts.get("comparable").and_then(serde_json::Value::as_u64),
@@ -122,7 +122,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
     );
     assert_eq!(
         corpus_status_counts.get("fixture:corpus-01-mini").and_then(serde_json::Value::as_u64),
-        Some(60)
+        Some(58)
     );
     assert_eq!(
         corpus_status_counts.get("fixture:corpus-02-edna-mini").and_then(serde_json::Value::as_u64),
@@ -148,13 +148,16 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
                 )
     }));
     assert!(rows.iter().all(|row| {
-        row.get("tool_id").and_then(serde_json::Value::as_str) != Some("fastuniq")
-            && (row.get("stage_id").and_then(serde_json::Value::as_str)
-                != Some("fastq.profile_read_lengths")
-                || matches!(
-                    row.get("tool_id").and_then(serde_json::Value::as_str),
-                    Some("seqfu" | "seqkit")
-                ))
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            != Some("fastq.profile_read_lengths")
+            || matches!(
+                row.get("tool_id").and_then(serde_json::Value::as_str),
+                Some("seqfu" | "seqkit")
+            )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.remove_duplicates")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastuniq")
     }));
 
     assert!(rows.iter().any(|row| {

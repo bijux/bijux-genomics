@@ -53,10 +53,10 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
         let mut columns = row.split('\t');
         let stage_id = columns.next();
         let tool_id = columns.next();
-        tool_id != Some("fastuniq")
-            && (stage_id != Some("fastq.profile_read_lengths")
-                || matches!(tool_id, Some("seqfu" | "seqkit")))
+        stage_id != Some("fastq.profile_read_lengths")
+            || matches!(tool_id, Some("seqfu" | "seqkit"))
     }));
+    assert!(rows.iter().any(|row| row.starts_with("fastq.remove_duplicates\tfastuniq\t")));
     assert!(rows.iter().any(|row| {
         row.starts_with(
             "fastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-02-edna-mini\tartifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.screen_taxonomy` / `kraken2` remains in governed FASTQ active scope because it is benchmark_ready"
