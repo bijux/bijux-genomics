@@ -11,6 +11,12 @@ stage-specific quality checks, and cross-tool tolerances pass the benchmark
 evidence validator. Reviewed small reports then belong in
 `benchmarks/reports/`.
 
+Permanent run identity and stage mapping are published in
+`benchmarks/contracts/run-registry.json`. Retries and fresh source, image, data,
+or site identities create new attempts under the same run ID; they never
+allocate another run. New stage protocols allocate monotonically from the
+registry frontier and must not infer identity from directory order.
+
 `bijux_dna_bench::workflow::bam_mapping_summary` owns the Picard and Samtools
 qualification campaign for `bam.mapping_summary`. It re-hashes one governed
 coordinate-sorted BAM and its BAI, normalizes both tools to one primary-read

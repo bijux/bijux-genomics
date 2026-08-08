@@ -96,18 +96,20 @@ pub use materialization::{
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
 pub use planning::{
-    benchmark_stage_coverage_schema, benchmark_stage_universe_schema, BenchmarkCachePolicy,
-    BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract, BenchmarkCorpusStatus,
-    BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
-    BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
-    BenchmarkProfileAssignment, BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
-    BenchmarkScientificReadinessDomain, BenchmarkScientificReadinessReport,
-    BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
-    BenchmarkScientificReadinessSummary, BenchmarkStageCampaignRegistry,
-    BenchmarkStageCampaignSpec, BenchmarkStageCoverage, BenchmarkStageCoverageRow,
-    BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
-    BenchmarkStageInterfaceStatus, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
-    BenchmarkStageUniverseSummary,
+    benchmark_run_registry_schema, benchmark_stage_coverage_schema,
+    benchmark_stage_universe_schema, BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance,
+    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition, BenchmarkEvidenceScope,
+    BenchmarkEvidenceTier, BenchmarkExecutionRuntime, BenchmarkExecutionScheduler,
+    BenchmarkMeasurementContract, BenchmarkPortfolio, BenchmarkProfileAssignment,
+    BenchmarkRunNamespacePolicy, BenchmarkRunRegistry, BenchmarkRunRegistryRow,
+    BenchmarkRunRegistryState, BenchmarkRunRegistrySummary, BenchmarkScientificProfile,
+    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
+    BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
+    BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
+    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus, BenchmarkStageUniverse,
+    BenchmarkStageUniverseRow, BenchmarkStageUniverseSummary,
 };
 #[allow(unused_imports)]
 pub use protocol::{

@@ -198,6 +198,42 @@ fn checked_in_stage_universe_publications_have_no_drift() -> Result<()> {
 }
 
 #[test]
+fn checked_in_run_registry_closes_the_permanent_namespace() -> Result<()> {
+    let reports_dir = bijux_dna_bench::bench_reports_dir();
+    let repository_root = reports_dir
+        .ancestors()
+        .find(|root| root.join(".git").exists())
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
+    let registry = bijux_dna_bench::publish_checked_in_benchmark_run_registry(
+        repository_root,
+        bijux_dna_bench::BenchmarkRunRegistryWriteMode::Check,
+    )?;
+
+    assert_eq!(registry.summary.run_count, 71);
+    assert_eq!(registry.summary.active_count, 9);
+    assert_eq!(registry.summary.reserved_count, 62);
+    assert_eq!(registry.namespace.next_run_number, 2072);
+    assert_eq!(registry.runs.first().map(|row| row.run_id.as_str()), Some("run-2001"));
+    assert_eq!(registry.runs.last().map(|row| row.run_id.as_str()), Some("run-2071"));
+    assert!(registry.runs.windows(2).all(|rows| rows[0].run_id < rows[1].run_id));
+    assert!(registry.runs.iter().all(|row| {
+        !row.tool_ids.is_empty()
+            && !row.required_corpus_roles.is_empty()
+            && row.introduced_at_commit.len() == 40
+    }));
+    assert!(registry
+        .runs
+        .iter()
+        .filter(|row| row.state == bijux_dna_bench::BenchmarkRunRegistryState::Active)
+        .all(|row| {
+            !row.accepted_input_contracts.is_empty()
+                && row.output_contract.is_some()
+                && row.normalized_result_contract.is_some()
+        }));
+    Ok(())
+}
+
+#[test]
 fn stage_report_admission_rejects_incomplete_tool_closure() -> Result<()> {
     let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
     let mut report =

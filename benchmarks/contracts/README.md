@@ -12,6 +12,13 @@ requirements. `stage-campaigns.toml` contains only executable campaigns whose
 complete retained-tool closure, inputs, parameters, resource measurements,
 quality metrics, interpretation, and limitations have been reviewed.
 
+`run-registry.json` is the generated permanent namespace authority for
+`run-2001` through `run-2071`. It records lifecycle, retained-tool closure,
+scientific profile and corpus roles, interface contracts, supersession fields,
+the immutable introduction commit, and the monotonic allocation frontier. Its
+reviewed bytes are bound by `run-registry.sha256`; regenerate or check all
+registry surfaces with `bijux-dna-dev tooling run benchmark-run-registry`.
+
 `stage-universe.json` is generated from the authoritative BAM, FASTQ, and VCF
 stage YAML contracts. It records an explicit benchmark disposition and rationale
 for every stage and binds every `benchmark_required` stage to exactly one

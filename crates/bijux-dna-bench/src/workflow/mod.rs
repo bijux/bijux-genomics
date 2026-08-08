@@ -22,6 +22,7 @@ mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod options;
 mod report_load;
+mod run_registry;
 mod run_suite;
 mod scientific_readiness;
 mod stage_coverage;
@@ -124,6 +125,10 @@ pub use fastq_validate_reads::{
 pub use options::BenchRunOptions;
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,
+};
+pub use run_registry::{
+    derive_benchmark_run_registry, publish_checked_in_benchmark_run_registry,
+    render_benchmark_run_registry_markdown, BenchmarkRunRegistryWriteMode,
 };
 pub use scientific_readiness::{
     derive_scientific_readiness, publish_checked_in_scientific_readiness,

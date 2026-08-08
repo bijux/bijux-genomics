@@ -169,6 +169,10 @@ fn checked_planning_schemas_match_model_authority() -> anyhow::Result<()> {
             serde_json::to_value(bijux_dna_bench_model::benchmark_portfolio_schema())?,
         ),
         (
+            "run-registry.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_run_registry_schema())?,
+        ),
+        (
             "stage-universe.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_stage_universe_schema())?,
         ),

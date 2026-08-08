@@ -392,6 +392,7 @@ architecture-report
 artifact-contracts
 benchmark-campaign-cycle
 benchmark-integrity-mini
+benchmark-run-registry
 benchmark-scientific-readiness
 benchmark-smoke-level1
 benchmark-stage-coverage

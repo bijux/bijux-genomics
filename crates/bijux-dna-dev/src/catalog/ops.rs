@@ -351,6 +351,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
         ),
         native(
+            "benchmark-run-registry",
+            "Generate or check the permanent benchmark run namespace and stage mapping.",
+            NativeOpsCommandKey::ToolingBenchmarkRunRegistry,
+        ),
+        native(
             "benchmark-scientific-readiness",
             "Generate or check scientific benchmark readiness from typed admitted evidence.",
             NativeOpsCommandKey::ToolingBenchmarkScientificReadiness,

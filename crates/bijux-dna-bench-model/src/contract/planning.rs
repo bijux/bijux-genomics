@@ -7,7 +7,8 @@ use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition, BenchmarkEvidenceScope,
     BenchmarkEvidenceTier, BenchmarkMeasurementContract, BenchmarkPortfolio,
-    BenchmarkProfileAssignment, BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
+    BenchmarkProfileAssignment, BenchmarkRunRegistry, BenchmarkRunRegistryRow,
+    BenchmarkRunRegistryState, BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
     BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
     BenchmarkStageCoverageRow, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
@@ -15,9 +16,9 @@ use crate::model::{
 };
 
 use super::{
-    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
-    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
-    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
+    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_RUN_REGISTRY_SCHEMA_V1,
+    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
 };
 
 const REQUIRED_PERFORMANCE_METRICS: &[&str] =
@@ -121,6 +122,168 @@ pub fn validate_benchmark_portfolio(portfolio: &BenchmarkPortfolio) -> Result<()
     let profile_ids = validate_profiles(&portfolio.profiles, &known_roles)?;
     validate_assignments(&portfolio.assignments, &profile_ids, &portfolio.stage_runs, &corpus_ids)?;
     Ok(())
+}
+
+/// # Errors
+/// Returns an error when the permanent benchmark namespace, source locks, lifecycle, or stage/run
+/// closure is malformed.
+pub fn validate_benchmark_run_registry(registry: &BenchmarkRunRegistry) -> Result<(), BenchError> {
+    if registry.schema_version != BENCHMARK_RUN_REGISTRY_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark run registry schema mismatch".to_string(),
+        ));
+    }
+    let namespace = &registry.namespace;
+    if namespace.prefix != "run-"
+        || namespace.minimum != 2001
+        || namespace.maximum != 2999
+        || namespace.next_run_number <= namespace.minimum
+        || namespace.next_run_number > namespace.maximum
+        || namespace.allocation_policy != "monotonic_only"
+        || namespace.identity_policy != "existing_ids_immutable"
+    {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark run namespace policy is invalid".to_string(),
+        ));
+    }
+    if registry.source_contract_sha256.is_empty()
+        || registry.source_contract_sha256.values().any(|digest| !valid_digest(digest))
+    {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark run registry source locks are invalid".to_string(),
+        ));
+    }
+    let mut run_ids = BTreeSet::new();
+    let mut stages = BTreeSet::new();
+    let mut previous_number = None;
+    let mut active = 0;
+    let mut reserved = 0;
+    let mut retired = 0;
+    for row in &registry.runs {
+        let number = parse_run_id(&row.run_id)
+            .filter(|number| {
+                (*number >= namespace.minimum) && (*number < namespace.next_run_number)
+            })
+            .ok_or_else(|| {
+                BenchError::InvalidPolicy(format!(
+                    "registry run id is outside the allocated range: {}",
+                    row.run_id
+                ))
+            })?;
+        if previous_number.is_some_and(|previous| previous >= number)
+            || !run_ids.insert(row.run_id.as_str())
+            || !stages.insert(row.stage_id.as_str())
+        {
+            return Err(BenchError::InvalidPolicy(
+                "benchmark registry rows are duplicated or unsorted".to_string(),
+            ));
+        }
+        previous_number = Some(number);
+        validate_run_registry_row(row)?;
+        update_run_registry_state_counts(row, &mut active, &mut reserved, &mut retired)?;
+    }
+    let summary = &registry.summary;
+    if summary.run_count != registry.runs.len()
+        || summary.active_count != active
+        || summary.reserved_count != reserved
+        || summary.retired_count != retired
+        || registry.runs.len() != (namespace.next_run_number - namespace.minimum) as usize
+    {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark run registry summary or allocated range is incomplete".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_run_registry_row(row: &BenchmarkRunRegistryRow) -> Result<(), BenchError> {
+    for value in [
+        row.stage_id.as_str(),
+        row.domain.as_str(),
+        row.title.as_str(),
+        row.slug.as_str(),
+        row.owner.as_str(),
+        row.purpose.as_str(),
+        row.profile_id.as_str(),
+        row.tool_exclusion_policy.as_str(),
+        row.measurement_policy_id.as_str(),
+        row.acceptance_policy_id.as_str(),
+    ] {
+        require_text(value, "benchmark run registry field")?;
+    }
+    if row.owner != "bijux-dna-bench"
+        || !row.stage_id.starts_with(&format!("{}.", row.domain))
+        || row.slug != row.stage_id.replace(['.', '_'], "-")
+        || row.tool_ids.is_empty()
+        || row.required_corpus_roles.is_empty()
+        || row.introduced_at_commit.len() != 40
+        || !row.introduced_at_commit.bytes().all(|byte| byte.is_ascii_hexdigit())
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "benchmark registry row is incomplete: {}",
+            row.run_id
+        )));
+    }
+    validate_text_list(&row.tool_ids, "registry tool_ids", false)?;
+    validate_text_list(&row.required_corpus_roles, "registry required_corpus_roles", false)?;
+    validate_text_list(&row.accepted_input_contracts, "registry accepted_input_contracts", true)?;
+    let mut supersedes = BTreeSet::new();
+    for superseded in &row.supersedes_run_ids {
+        if !is_portfolio_run_id(superseded)
+            || superseded == &row.run_id
+            || !supersedes.insert(superseded.as_str())
+        {
+            return Err(BenchError::InvalidPolicy(format!(
+                "benchmark registry supersession is invalid: {}",
+                row.run_id
+            )));
+        }
+    }
+    if row
+        .superseded_by_run_id
+        .as_deref()
+        .is_some_and(|successor| !is_portfolio_run_id(successor) || successor == row.run_id)
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "benchmark registry successor is invalid: {}",
+            row.run_id
+        )));
+    }
+    Ok(())
+}
+
+fn update_run_registry_state_counts(
+    row: &BenchmarkRunRegistryRow,
+    active: &mut usize,
+    reserved: &mut usize,
+    retired: &mut usize,
+) -> Result<(), BenchError> {
+    let has_reason = row.state_reason.as_deref().is_some_and(|reason| reason.trim().len() >= 20);
+    let has_interface = !row.accepted_input_contracts.is_empty()
+        && row.output_contract.is_some()
+        && row.normalized_result_contract.is_some();
+    match row.state {
+        BenchmarkRunRegistryState::Active if row.state_reason.is_none() && has_interface => {
+            *active += 1;
+        }
+        BenchmarkRunRegistryState::Reserved if has_reason && !has_interface => {
+            *reserved += 1;
+        }
+        BenchmarkRunRegistryState::Retired if has_reason => {
+            *retired += 1;
+        }
+        _ => {
+            return Err(BenchError::InvalidPolicy(format!(
+                "benchmark registry lifecycle is inconsistent: {}",
+                row.run_id
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn valid_digest(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 /// # Errors
