@@ -7,8 +7,8 @@
     "blocked_count": 71,
     "corpus_count": 9,
     "admitted_comparative_corpus_count": 1,
-    "qualification_campaign_count": 5,
-    "comparative_campaign_count": 2
+    "qualification_campaign_count": 6,
+    "comparative_campaign_count": 3
   },
   "domains": {
     "bam": {
@@ -771,14 +771,13 @@
         "fastqc"
       ],
       "available_comparative_samples": 20,
-      "campaign_run_id": null,
+      "campaign_run_id": "run-2030",
       "reserved_run_id": "run-2030",
-      "campaign_tier": null,
-      "interface_status": "missing",
+      "campaign_tier": "qualification",
+      "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "no closed stage interface is defined",
-        "no execution campaign is defined"
+        "active campaign is qualification-only"
       ]
     },
     {
@@ -1206,14 +1205,13 @@
         "seqtk"
       ],
       "available_comparative_samples": 20,
-      "campaign_run_id": null,
+      "campaign_run_id": "run-2051",
       "reserved_run_id": "run-2051",
-      "campaign_tier": null,
-      "interface_status": "missing",
+      "campaign_tier": "comparative",
+      "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "no closed stage interface is defined",
-        "no execution campaign is defined"
+        "no admitted comparative execution evidence"
       ]
     },
     {

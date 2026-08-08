@@ -10,8 +10,8 @@ the current repository identity all close over the retained tool set.
 - Scientifically ready stages: **0**
 - Blocked stages: **71**
 - Comparative-ready corpora: **1**
-- Qualification-only campaigns: **5**
-- Comparative campaigns: **2**
+- Qualification-only campaigns: **6**
+- Comparative campaigns: **3**
 
 ## Domain coverage
 
@@ -68,7 +68,7 @@ the current repository identity all close over the retained tool set.
 | `fastq.deplete_host` | `bowtie2` | `fastq-depletion` | `run-2027` | blocked | no closed stage interface is defined<br>corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)<br>no execution campaign is defined |
 | `fastq.deplete_reference_contaminants` | `bowtie2` | `fastq-depletion` | `run-2028` | blocked | no closed stage interface is defined<br>corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)<br>no execution campaign is defined |
 | `fastq.deplete_rrna` | `sortmerna` | `fastq-depletion` | `run-2029` | blocked | no closed stage interface is defined<br>corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)<br>no execution campaign is defined |
-| `fastq.detect_adapters` | `fastqc` | `fastq-observational-qc` | `run-2030` | blocked | no closed stage interface is defined<br>no execution campaign is defined |
+| `fastq.detect_adapters` | `fastqc` | `fastq-observational-qc` | `run-2030` (qualification) | blocked | active campaign is qualification-only |
 | `fastq.detect_duplicates_premerge` | `bijux_dna` | `fastq-observational-qc` | `run-2031` | blocked | no closed stage interface is defined<br>no execution campaign is defined |
 | `fastq.estimate_library_complexity_prealign` | `bijux_dna` | `fastq-observational-qc` | `run-2032` | blocked | no closed stage interface is defined<br>no execution campaign is defined |
 | `fastq.extract_umis` | `umi_tools` | `fastq-read-transformation` | `run-2033` | blocked | no closed stage interface is defined<br>corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)<br>no execution campaign is defined |
@@ -89,7 +89,7 @@ the current repository identity all close over the retained tool set.
 | `fastq.trim_polyg_tails` | `bbduk`, `fastp` | `fastq-read-transformation` | `run-2048` | blocked | no closed stage interface is defined<br>corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)<br>no execution campaign is defined |
 | `fastq.trim_reads` | `adapterremoval`, `alientrimmer`, `atropos`, `bbduk`, `cutadapt`, `fastp`, `fastx_clipper`, `leehom`, `prinseq`, `seqkit`, `seqprep`, `skewer`, `trim_galore`, `trimmomatic` | `fastq-read-transformation` | `run-2049` | blocked | no closed stage interface is defined<br>corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)<br>no execution campaign is defined |
 | `fastq.trim_terminal_damage` | `adapterremoval`, `cutadapt`, `seqkit` | `fastq-read-transformation` | `run-2050` | blocked | no closed stage interface is defined<br>corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)<br>no execution campaign is defined |
-| `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `fastq-observational-qc` | `run-2051` | blocked | no closed stage interface is defined<br>no execution campaign is defined |
+| `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `fastq-observational-qc` | `run-2051` (comparative) | blocked | no admitted comparative execution evidence |
 | `vcf.admixture` | `plink`, `plink2` | `vcf-population-inference` | `run-2052` | blocked | no closed stage interface is defined<br>corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)<br>corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)<br>available comparative sample count 0 is below 10<br>no execution campaign is defined |
 | `vcf.call` | `bcftools` | `vcf-calling` | `run-2053` | blocked | no closed stage interface is defined<br>corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)<br>corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)<br>available comparative sample count 0 is below 10<br>no execution campaign is defined |
 | `vcf.call_diploid` | `bcftools` | `vcf-calling` | `run-2054` | blocked | no closed stage interface is defined<br>corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)<br>corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)<br>available comparative sample count 0 is below 10<br>no execution campaign is defined |
