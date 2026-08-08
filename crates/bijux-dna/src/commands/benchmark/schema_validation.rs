@@ -15,7 +15,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_FASTQ_SCHEMA_VALIDATION_REPORT_PATH: &str =
     "benchmarks/readiness/fastq-schema-validation.json";
 pub(crate) const DEFAULT_BAM_SCHEMA_VALIDATION_REPORT_PATH: &str =
-    "benchmarks/readiness/bam-schema-validation.json";
+    "artifacts/benchmark-smoke/readiness/bam/bam-schema-validation.json";
 pub(crate) const DEFAULT_VCF_SCHEMA_VALIDATION_REPORT_PATH: &str =
     "benchmarks/readiness/vcf-schema-validation.json";
 pub(crate) const DEFAULT_ALL_DOMAIN_SCHEMA_VALIDATION_REPORT_PATH: &str =

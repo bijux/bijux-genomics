@@ -16,7 +16,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_STAGE_DECISION_TABLE_PATH: &str =
-    "benchmarks/readiness/bam-stage-decision-table.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-stage-decision-table.tsv";
 const BAM_STAGE_DECISION_TABLE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_stage_decision_table.v1";
 
@@ -584,8 +584,8 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"
                 && row.decision == BamStageDecisionKind::BenchmarkReady
-                && row.primary_tool_id.as_deref() == Some("angsd")
-                && row.selected_tool_id.as_deref() == Some("angsd")
+                && row.primary_tool_id.as_deref() == Some("bcftools")
+                && row.selected_tool_id.as_deref() == Some("bcftools")
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"

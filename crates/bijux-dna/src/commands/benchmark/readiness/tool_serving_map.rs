@@ -31,7 +31,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH: &str =
     "benchmarks/readiness/fastq-tool-serving-map.tsv";
 pub(crate) const DEFAULT_BAM_TOOL_SERVING_MAP_PATH: &str =
-    "benchmarks/readiness/bam-tool-serving-map.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-tool-serving-map.tsv";
 const FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_tool_serving_map.v1";
 const BAM_TOOL_SERVING_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_tool_serving_map.v1";

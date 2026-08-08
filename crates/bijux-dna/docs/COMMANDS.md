@@ -586,21 +586,22 @@ Visible aliases are part of the operator surface:
   `memory_gb`, `walltime_minutes`, and `scratch_gb` hints plus the declared resource-origin
   strategy used to derive those local benchmark defaults.
 - `bijux-dna bench readiness render-bam-stage-decision-table`
-  `render-bam-stage-decision-table` writes `benchmarks/readiness/bam-stage-decision-table.tsv`
+  `render-bam-stage-decision-table` writes `artifacts/benchmark-smoke/readiness/bam/bam-stage-decision-table.tsv`
   with one governed row per BAM stage in the 24-stage local benchmark slice, classifying each
   stage as `benchmark_ready`, `needs_adapter`, `needs_parser`, `needs_corpus`, or
   `future_not_in_hpc_round` from the current registry, adapter, parser, and corpus surfaces.
 - `bijux-dna bench readiness render-bam-command-adapter-coverage`
   `render-bam-command-adapter-coverage` writes
-  `benchmarks/readiness/bam-command-adapter-coverage.tsv` with one governed row per BAM
-  stage-tool binding in the 24-stage benchmark slice, carrying `benchmark_status`,
+  `artifacts/benchmark-smoke/readiness/bam/bam-command-adapter-coverage.tsv` with one governed row
+  per BAM stage-tool binding in the 24-stage benchmark slice, carrying `benchmark_status`,
   `adapter_coverage`, `readiness_gap`, and the underlying `support_status`, `adapter_status`,
   `parser_status`, and `corpus_status`. The report proves which BAM benchmark rows are already
   fully renderable with parser-fixture-validated outputs and fixture-backed corpus coverage while
   keeping parser-blocked, corpus-blocked, and support-blocked rows explicit.
 - `bijux-dna bench readiness render-bam-corpus-assignment`
-  `render-bam-corpus-assignment` writes `benchmarks/readiness/bam-corpus-assignment.tsv` with
-  one governed row per admitted BAM stage-tool binding, carrying the resolved
+  `render-bam-corpus-assignment` writes
+  `artifacts/benchmark-smoke/readiness/bam/bam-corpus-assignment.tsv` with one governed row per
+  admitted BAM stage-tool binding, carrying the resolved
   `corpus_family_id`, `fixture_id`, and the benchmark readiness context that proves whether a row
   belongs on the general FASTQ alignment corpus, the BAM mini corpus, the aDNA BAM fixture, the
   genotyping BAM corpus, or the kinship BAM corpus. Each governed BAM row also carries the owned
@@ -639,7 +640,7 @@ Visible aliases are part of the operator surface:
   cannot hide behind backend-specific metric layouts.
 - `bijux-dna bench readiness render-bam-comparable-metrics`
   `render-bam-comparable-metrics` writes
-  `benchmarks/readiness/bam-comparable-metrics.tsv` with one governed row per BAM stage that
+  `artifacts/benchmark-smoke/readiness/bam/bam-comparable-metrics.tsv` with one governed row per BAM stage that
   still has more than one admitted comparable tool in the BAM benchmark surface. Each row carries
   the admitted comparable tools, the default tool, the current corpus-routing status, and the
   governed shared metric fields that make same-stage BAM tool comparisons interpretable without
@@ -672,7 +673,7 @@ Visible aliases are part of the operator surface:
   on implicit reviewer judgment.
 - `bijux-dna bench readiness render-bam-adapter-output-contract`
   `render-bam-adapter-output-contract` writes
-  `benchmarks/readiness/bam-adapter-output-contract.tsv` with one governed row per BAM
+  `artifacts/benchmark-smoke/readiness/bam/bam-adapter-output-contract.tsv` with one governed row per BAM
   stage-tool binding in the 24-stage benchmark slice, proving whether each runnable or plannable
   adapter declares every governed stage artifact in both `tool.outputs` and
   `execution_contract.expected_outputs`, identifies the normalized metrics artifact and
@@ -792,8 +793,9 @@ Visible aliases are part of the operator surface:
   clustering, and abundance normalization all remain fixture-backed by
   `corpus-03-amplicon-mini`.
 - `bijux-dna bench readiness render-bam-tool-serving-map`
-  `render-bam-tool-serving-map` writes `benchmarks/readiness/bam-tool-serving-map.tsv`
-  with one governed row per BAM stage-tool binding in the 24-stage benchmark slice, carrying
+  `render-bam-tool-serving-map` writes
+  `artifacts/benchmark-smoke/readiness/bam/bam-tool-serving-map.tsv` with one governed row per BAM
+  stage-tool binding in the 24-stage benchmark slice, carrying
   `tool_id`, `stage_id`, `support_status`, `adapter_status`, `parser_status`, and `corpus_status`
   from the real BAM stage catalog, tool contracts, planner admission, and local corpus-compatibility
   matrix. Rows remain visible when a BAM tool binding is governed by stage metadata but lacks a BAM
