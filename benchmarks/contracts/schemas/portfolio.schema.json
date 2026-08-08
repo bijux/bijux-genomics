@@ -1,5 +1,17 @@
 {
   "$defs": {
+    "BenchmarkCorpusClass": {
+      "enum": [
+        "production_real",
+        "qualification_real",
+        "test_fixture",
+        "toy",
+        "synthetic",
+        "smoke",
+        "local_development"
+      ],
+      "type": "string"
+    },
     "BenchmarkCorpusContract": {
       "additionalProperties": false,
       "properties": {
@@ -8,6 +20,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "class": {
+          "$ref": "#/$defs/BenchmarkCorpusClass"
         },
         "data_types": {
           "items": {
@@ -34,9 +49,6 @@
             "integer",
             "null"
           ]
-        },
-        "real_data": {
-          "type": "boolean"
         },
         "roles": {
           "items": {
@@ -69,7 +81,7 @@
         "id",
         "status",
         "evidence_scope",
-        "real_data",
+        "class",
         "sample_count",
         "data_types",
         "roles",
@@ -210,7 +222,7 @@
       "type": "array"
     },
     "schema_version": {
-      "const": "bijux.benchmark.portfolio.v1",
+      "const": "bijux.benchmark.portfolio.v2",
       "type": "string"
     },
     "stage_runs": {

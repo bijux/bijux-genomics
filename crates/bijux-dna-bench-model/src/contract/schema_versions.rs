@@ -7,6 +7,8 @@ pub const BUNDLE_SCHEMA_V1: &str = "bijux.bench.bundle.v1";
 pub const BENCHMARK_DATA_INDEX_SCHEMA_V1: &str = "bijux.data_index.v1";
 pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1: &str =
     "bijux.benchmark.data_portfolio_audit.v1";
+pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2: &str =
+    "bijux.benchmark.data_portfolio_audit.v2";
 pub const CORPUS_ACQUISITION_SCHEMA_V1: &str = "bijux.benchmark.corpus_acquisition.v1";
 pub const BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1: &str =
     "bijux.benchmark.corpus_materialization_publication.v1";
@@ -47,7 +49,10 @@ pub const BENCHMARK_STAGE_COVERAGE_SCHEMA_V1: &str = "bijux.benchmark.stage_cove
 pub const BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1: &str = "bijux.benchmark.stage_universe.v1";
 pub const BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1: &str =
     "bijux.benchmark.scientific_readiness.v1";
+pub const BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2: &str =
+    "bijux.benchmark.scientific_readiness.v2";
 pub const BENCHMARK_PORTFOLIO_SCHEMA_V1: &str = "bijux.benchmark.portfolio.v1";
+pub const BENCHMARK_PORTFOLIO_SCHEMA_V2: &str = "bijux.benchmark.portfolio.v2";
 pub const BENCHMARK_RUN_REGISTRY_SCHEMA_V1: &str = "bijux.benchmark.run_registry.v1";
 pub const BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1: &str =
     "bijux.benchmark.publication_registry.v1";

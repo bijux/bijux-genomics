@@ -4,8 +4,8 @@
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1;
-use crate::model::{BenchmarkCorpusStatus, BenchmarkEvidenceScope};
+use crate::contract::BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2;
+use crate::model::{BenchmarkCorpusClass, BenchmarkCorpusStatus, BenchmarkEvidenceScope};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -43,6 +43,7 @@ pub struct BenchmarkCorpusDataAudit {
     pub corpus_id: String,
     pub status: BenchmarkCorpusStatus,
     pub evidence_scope: BenchmarkEvidenceScope,
+    pub class: BenchmarkCorpusClass,
     pub declared_sample_count: u32,
     pub minimum_sample_count: u32,
     pub data_types: Vec<String>,
@@ -116,7 +117,7 @@ pub fn benchmark_data_portfolio_audit_schema() -> Schema {
 fn data_portfolio_audit_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1,
+        "const": BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
     })
 }
 

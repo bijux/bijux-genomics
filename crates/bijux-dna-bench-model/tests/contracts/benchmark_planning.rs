@@ -4,12 +4,12 @@ use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_benchmark_publication_registry,
     validate_portfolio_campaign_alignment, validate_scientific_readiness,
     validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
-    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
-    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
-    BenchmarkCorpusStatus, BenchmarkCurrentPublication, BenchmarkDisposition,
-    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
+    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusClass,
+    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkCurrentPublication,
+    BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
     BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
     BenchmarkProfileAssignment, BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
     BenchmarkQuarantinedPublicationSurface, BenchmarkScientificProfile,
@@ -124,7 +124,7 @@ fn stage_campaign_registry() -> BenchmarkStageCampaignRegistry {
 
 fn benchmark_portfolio() -> BenchmarkPortfolio {
     BenchmarkPortfolio {
-        schema_version: BENCHMARK_PORTFOLIO_SCHEMA_V1.to_string(),
+        schema_version: BENCHMARK_PORTFOLIO_SCHEMA_V2.to_string(),
         measurement: BenchmarkMeasurementContract {
             warmup_repetitions: 1,
             measured_repetitions: 3,
@@ -154,7 +154,7 @@ fn benchmark_portfolio() -> BenchmarkPortfolio {
             id: "human-short-read-diversity".to_string(),
             status: BenchmarkCorpusStatus::Admitted,
             evidence_scope: BenchmarkEvidenceScope::Comparative,
-            real_data: true,
+            class: BenchmarkCorpusClass::ProductionReal,
             sample_count: 20,
             minimum_sample_count: Some(10),
             data_types: vec!["fastq".to_string()],
@@ -190,6 +190,17 @@ fn benchmark_planning_contracts_accept_aligned_registry_and_portfolio() -> anyho
     validate_benchmark_portfolio(&portfolio)?;
     validate_portfolio_campaign_alignment(&registry, &portfolio)?;
     Ok(())
+}
+
+#[test]
+fn benchmark_portfolio_rejects_fixture_class_from_production_namespace() {
+    let mut portfolio = benchmark_portfolio();
+    portfolio.corpora[0].class = BenchmarkCorpusClass::TestFixture;
+
+    let error = validate_benchmark_portfolio(&portfolio).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("class and evidence scope disagree")));
 }
 
 #[test]
@@ -265,7 +276,7 @@ fn benchmark_planning_alignment_rejects_run_id_drift() {
 
 fn scientific_readiness() -> BenchmarkScientificReadinessReport {
     let portfolio = benchmark_portfolio();
-    BenchmarkScientificReadinessReport::v1(
+    BenchmarkScientificReadinessReport::v2(
         BenchmarkScientificReadinessSummary {
             stage_count: 1,
             reserved_run_count: 1,
@@ -307,6 +318,7 @@ fn scientific_readiness() -> BenchmarkScientificReadinessReport {
             id: "human-short-read-diversity".to_string(),
             status: BenchmarkCorpusStatus::Admitted,
             evidence_scope: BenchmarkEvidenceScope::Comparative,
+            class: BenchmarkCorpusClass::ProductionReal,
             sample_count: 20,
             truth_strategy: "observational_only".to_string(),
             roles: vec!["short_read_diversity".to_string()],

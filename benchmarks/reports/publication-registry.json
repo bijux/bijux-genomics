@@ -11,9 +11,9 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "8cc0cc47c48fdcbe79b8f221466d49679be1d99eb53f0146e02eafe6479e0f78",
+      "json_sha256": "f9cf23a5596a58be3e896f3e03ce150b506ffbd3eec4c8c2c714f5183ca081e0",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "89ffe2cb5ec4987519dfffb2fb5f1b936793e49d2a0a66868e7669f91980853d"
+      "markdown_sha256": "5e0b3d2e3e1fb160dfb3bc4c3292350d32ef076a8870c503340a4a01c32e59f6"
     },
     {
       "product_id": "stage-universe",
@@ -32,9 +32,9 @@
     {
       "product_id": "scientific-benchmark-readiness",
       "json_path": "benchmarks/reports/scientific-benchmark-readiness.json",
-      "json_sha256": "712687f226101997c6f1505b9d51200713773417ce254ec589cf665f80d36547",
+      "json_sha256": "742739a216b0d16ec1834f5f76464e957e08ed59fd0d7ee33e2af0448041c3bf",
       "markdown_path": "benchmarks/reports/scientific-benchmark-readiness.md",
-      "markdown_sha256": "cc9599ccfa1ed3558e07c3365f0e7a2d261565d107735b74d0f397dcb181f6ef"
+      "markdown_sha256": "20ba45f18578160c8bec7878c4fc1b0baf256b16da33de56fc3b4ac478b567a1"
     }
   ],
   "stage_reports": [

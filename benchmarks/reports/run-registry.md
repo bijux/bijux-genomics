@@ -4,7 +4,7 @@
 
 Run IDs identify durable stage protocols, not attempts or publications. Existing IDs are immutable; additions allocate monotonically from the declared frontier.
 
-- Registry SHA-256: `8cc0cc47c48fdcbe79b8f221466d49679be1d99eb53f0146e02eafe6479e0f78`
+- Registry SHA-256: `f9cf23a5596a58be3e896f3e03ce150b506ffbd3eec4c8c2c714f5183ca081e0`
 - Registered protocols: **71**
 - Active protocols: **9**
 - Reserved protocols: **62**

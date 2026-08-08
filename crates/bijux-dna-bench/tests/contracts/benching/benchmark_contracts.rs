@@ -5,7 +5,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
     let (registry, portfolio, interfaces) =
         bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
     assert_eq!(registry.schema_version, bijux_dna_bench::BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,);
-    assert_eq!(portfolio.schema_version, bijux_dna_bench::BENCHMARK_PORTFOLIO_SCHEMA_V1,);
+    assert_eq!(portfolio.schema_version, bijux_dna_bench::BENCHMARK_PORTFOLIO_SCHEMA_V2,);
     assert_eq!(portfolio.stage_runs.len(), 71);
     assert!(
         registry.campaigns.len() >= 7,

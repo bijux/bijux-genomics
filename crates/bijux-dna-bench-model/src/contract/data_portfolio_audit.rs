@@ -4,12 +4,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::model::{
-    BenchmarkCorpusDataAudit, BenchmarkCorpusStatus, BenchmarkDataPortfolioAudit,
-    BenchmarkGovernedDataBinding,
+    BenchmarkCorpusClass, BenchmarkCorpusDataAudit, BenchmarkCorpusStatus,
+    BenchmarkDataPortfolioAudit, BenchmarkEvidenceScope, BenchmarkGovernedDataBinding,
 };
 use crate::BenchError;
 
-use super::BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1;
+use super::BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2;
 
 /// Validate identities, totals, bindings, projections, and publishable contamination closure.
 ///
@@ -40,7 +40,7 @@ struct AuditTotals {
 }
 
 fn validate_authorities(audit: &BenchmarkDataPortfolioAudit) -> Result<(), BenchError> {
-    if audit.schema_version != BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1 {
+    if audit.schema_version != BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2 {
         return Err(BenchError::InvalidPolicy("unsupported data-portfolio audit schema".into()));
     }
     validate_hex(&audit.source_commit, 40, "source commit")?;
@@ -84,6 +84,16 @@ fn validate_corpus(
         || corpus.truth_strategy.is_empty()
     {
         return Err(BenchError::InvalidPolicy("audited corpus scientific closure is empty".into()));
+    }
+    let valid_class = matches!(
+        (corpus.class, corpus.evidence_scope),
+        (BenchmarkCorpusClass::ProductionReal, BenchmarkEvidenceScope::Comparative)
+            | (BenchmarkCorpusClass::QualificationReal, BenchmarkEvidenceScope::Qualification)
+    );
+    if !valid_class {
+        return Err(BenchError::InvalidPolicy(
+            "audited corpus class is not publishable real data".into(),
+        ));
     }
     validate_source_specs(corpus)?;
     if corpus.publishable_data_ready {

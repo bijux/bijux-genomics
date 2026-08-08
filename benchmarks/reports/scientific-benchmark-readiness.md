@@ -23,17 +23,17 @@ the current repository identity all close over the retained tool set.
 
 ## Corpus portfolio
 
-| Corpus | Status | Scope | Samples | Truth strategy |
-|---|---|---|---:|---|
-| `human-short-read-diversity` | admitted | comparative | 20 | `observational_only` |
-| `ancient-horse-alignment-qualification` | admitted | qualification | 1 | `observational_only` |
-| `read-processing-challenge` | missing | comparative | 0 | `real_reads_with_calibrated_spike_ins` |
-| `environmental-taxonomy-challenge` | missing | comparative | 0 | `real_edna_with_mock_community_and_orthogonal_assays` |
-| `amplicon-community-challenge` | missing | comparative | 0 | `real_mock_communities_with_known_composition` |
-| `alignment-truth-panel` | missing | comparative | 0 | `real_reference_material_with_orthogonal_truth_and_supplementary_simulation` |
-| `ancient-dna-bam-diversity` | missing | comparative | 0 | `real_ancient_libraries_with_orthogonal_authentication` |
-| `variant-truth-panel` | missing | comparative | 0 | `independently_curated_genotypes_with_masked_truth` |
-| `ancient-population-panel` | missing | comparative | 0 | `real_cohort_with_independent_metadata_and_sensitivity_analysis` |
+| Corpus | Class | Status | Scope | Samples | Truth strategy |
+|---|---|---|---|---:|---|
+| `human-short-read-diversity` | production_real | admitted | comparative | 20 | `observational_only` |
+| `ancient-horse-alignment-qualification` | qualification_real | admitted | qualification | 1 | `observational_only` |
+| `read-processing-challenge` | production_real | missing | comparative | 0 | `real_reads_with_calibrated_spike_ins` |
+| `environmental-taxonomy-challenge` | production_real | missing | comparative | 0 | `real_edna_with_mock_community_and_orthogonal_assays` |
+| `amplicon-community-challenge` | production_real | missing | comparative | 0 | `real_mock_communities_with_known_composition` |
+| `alignment-truth-panel` | production_real | missing | comparative | 0 | `real_reference_material_with_orthogonal_truth_and_supplementary_simulation` |
+| `ancient-dna-bam-diversity` | production_real | missing | comparative | 0 | `real_ancient_libraries_with_orthogonal_authentication` |
+| `variant-truth-panel` | production_real | missing | comparative | 0 | `independently_curated_genotypes_with_masked_truth` |
+| `ancient-population-panel` | production_real | missing | comparative | 0 | `real_cohort_with_independent_metadata_and_sensitivity_analysis` |
 
 ## Stage readiness
 

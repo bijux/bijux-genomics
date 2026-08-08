@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.benchmark.scientific_readiness.v1",
+  "schema_version": "bijux.benchmark.scientific_readiness.v2",
   "summary": {
     "stage_count": 71,
     "reserved_run_count": 71,
@@ -53,6 +53,7 @@
       "id": "human-short-read-diversity",
       "status": "admitted",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 20,
       "truth_strategy": "observational_only",
       "roles": [
@@ -65,6 +66,7 @@
       "id": "ancient-horse-alignment-qualification",
       "status": "admitted",
       "evidence_scope": "qualification",
+      "class": "qualification_real",
       "sample_count": 1,
       "truth_strategy": "observational_only",
       "roles": [
@@ -75,6 +77,7 @@
       "id": "read-processing-challenge",
       "status": "missing",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 0,
       "truth_strategy": "real_reads_with_calibrated_spike_ins",
       "roles": [
@@ -86,6 +89,7 @@
       "id": "environmental-taxonomy-challenge",
       "status": "missing",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 0,
       "truth_strategy": "real_edna_with_mock_community_and_orthogonal_assays",
       "roles": [
@@ -97,6 +101,7 @@
       "id": "amplicon-community-challenge",
       "status": "missing",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 0,
       "truth_strategy": "real_mock_communities_with_known_composition",
       "roles": [
@@ -107,6 +112,7 @@
       "id": "alignment-truth-panel",
       "status": "missing",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 0,
       "truth_strategy": "real_reference_material_with_orthogonal_truth_and_supplementary_simulation",
       "roles": [
@@ -117,6 +123,7 @@
       "id": "ancient-dna-bam-diversity",
       "status": "missing",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 0,
       "truth_strategy": "real_ancient_libraries_with_orthogonal_authentication",
       "roles": [
@@ -128,6 +135,7 @@
       "id": "variant-truth-panel",
       "status": "missing",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 0,
       "truth_strategy": "independently_curated_genotypes_with_masked_truth",
       "roles": [
@@ -139,6 +147,7 @@
       "id": "ancient-population-panel",
       "status": "missing",
       "evidence_scope": "comparative",
+      "class": "production_real",
       "sample_count": 0,
       "truth_strategy": "real_cohort_with_independent_metadata_and_sensitivity_analysis",
       "roles": [

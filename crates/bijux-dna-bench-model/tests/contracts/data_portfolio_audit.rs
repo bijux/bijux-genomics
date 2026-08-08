@@ -1,15 +1,15 @@
 use anyhow::Context;
 use bijux_dna_bench_model::{
     benchmark_data_portfolio_audit_schema, validate_benchmark_data_portfolio_audit,
-    BenchmarkCorpusDataAudit, BenchmarkCorpusStatus, BenchmarkDataPortfolioAudit,
-    BenchmarkDataPortfolioAuditSummary, BenchmarkEvidenceScope, BenchmarkGovernedDataBinding,
-    BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1,
+    BenchmarkCorpusClass, BenchmarkCorpusDataAudit, BenchmarkCorpusStatus,
+    BenchmarkDataPortfolioAudit, BenchmarkDataPortfolioAuditSummary, BenchmarkEvidenceScope,
+    BenchmarkGovernedDataBinding, BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
 };
 use std::path::{Path, PathBuf};
 
 fn audit() -> BenchmarkDataPortfolioAudit {
     BenchmarkDataPortfolioAudit {
-        schema_version: BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1.to_string(),
+        schema_version: BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2.to_string(),
         source_commit: "1".repeat(40),
         portfolio_path: "benchmarks/contracts/portfolio.toml".to_string(),
         portfolio_sha256: "2".repeat(64),
@@ -35,6 +35,7 @@ fn audit() -> BenchmarkDataPortfolioAudit {
             corpus_id: "real-corpus".to_string(),
             status: BenchmarkCorpusStatus::Admitted,
             evidence_scope: BenchmarkEvidenceScope::Comparative,
+            class: BenchmarkCorpusClass::ProductionReal,
             declared_sample_count: 10,
             minimum_sample_count: 10,
             data_types: vec!["fastq".to_string()],
@@ -108,6 +109,16 @@ fn data_portfolio_audit_rejects_ready_corpus_without_sample_authority() {
     let error =
         validate_benchmark_data_portfolio_audit(&audit).err().map(|error| error.to_string());
     assert!(error.as_deref().is_some_and(|message| message.contains("governed evidence")));
+}
+
+#[test]
+fn data_portfolio_audit_rejects_fixture_class() {
+    let mut audit = audit();
+    audit.corpora[0].class = BenchmarkCorpusClass::TestFixture;
+
+    let error =
+        validate_benchmark_data_portfolio_audit(&audit).err().map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("not publishable real data")));
 }
 
 #[test]

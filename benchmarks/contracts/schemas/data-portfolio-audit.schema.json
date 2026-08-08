@@ -31,7 +31,7 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "bijux.benchmark.data_portfolio_audit.v1"
+      "const": "bijux.benchmark.data_portfolio_audit.v2"
     },
     "source_commit": {
       "type": "string",
@@ -61,6 +61,18 @@
     "publishable_contamination"
   ],
   "$defs": {
+    "BenchmarkCorpusClass": {
+      "type": "string",
+      "enum": [
+        "production_real",
+        "qualification_real",
+        "test_fixture",
+        "toy",
+        "synthetic",
+        "smoke",
+        "local_development"
+      ]
+    },
     "BenchmarkCorpusDataAudit": {
       "type": "object",
       "properties": {
@@ -75,6 +87,9 @@
           "items": {
             "$ref": "#/$defs/BenchmarkGovernedDataBinding"
           }
+        },
+        "class": {
+          "$ref": "#/$defs/BenchmarkCorpusClass"
         },
         "corpus_id": {
           "type": "string"
@@ -146,6 +161,7 @@
         "corpus_id",
         "status",
         "evidence_scope",
+        "class",
         "declared_sample_count",
         "minimum_sample_count",
         "data_types",

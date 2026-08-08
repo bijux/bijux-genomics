@@ -7,7 +7,7 @@ use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 use crate::contract::{
-    BENCHMARK_RUN_REGISTRY_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
+    BENCHMARK_RUN_REGISTRY_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
 };
 
@@ -117,13 +117,40 @@ pub enum BenchmarkEvidenceScope {
     Comparative,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkCorpusClass {
+    ProductionReal,
+    QualificationReal,
+    TestFixture,
+    Toy,
+    Synthetic,
+    Smoke,
+    LocalDevelopment,
+}
+
+impl BenchmarkCorpusClass {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::ProductionReal => "production_real",
+            Self::QualificationReal => "qualification_real",
+            Self::TestFixture => "test_fixture",
+            Self::Toy => "toy",
+            Self::Synthetic => "synthetic",
+            Self::Smoke => "smoke",
+            Self::LocalDevelopment => "local_development",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkCorpusContract {
     pub id: String,
     pub status: BenchmarkCorpusStatus,
     pub evidence_scope: BenchmarkEvidenceScope,
-    pub real_data: bool,
+    pub class: BenchmarkCorpusClass,
     pub sample_count: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub minimum_sample_count: Option<u32>,
@@ -296,6 +323,7 @@ pub struct BenchmarkScientificReadinessCorpus {
     pub id: String,
     pub status: BenchmarkCorpusStatus,
     pub evidence_scope: BenchmarkEvidenceScope,
+    pub class: BenchmarkCorpusClass,
     pub sample_count: u32,
     pub truth_strategy: String,
     pub roles: Vec<String>,
@@ -333,7 +361,7 @@ pub struct BenchmarkScientificReadinessReport {
 
 impl BenchmarkScientificReadinessReport {
     #[must_use]
-    pub fn v1(
+    pub fn v2(
         summary: BenchmarkScientificReadinessSummary,
         domains: BTreeMap<String, BenchmarkScientificReadinessDomain>,
         measurement: BenchmarkMeasurementContract,
@@ -341,7 +369,7 @@ impl BenchmarkScientificReadinessReport {
         stages: Vec<BenchmarkScientificReadinessStage>,
     ) -> Self {
         Self {
-            schema_version: BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1.to_string(),
+            schema_version: BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2.to_string(),
             summary,
             domains,
             measurement,
@@ -514,7 +542,7 @@ fn benchmark_stage_campaigns_schema_version(_: &mut SchemaGenerator) -> Schema {
 fn benchmark_portfolio_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": crate::contract::BENCHMARK_PORTFOLIO_SCHEMA_V1,
+        "const": crate::contract::BENCHMARK_PORTFOLIO_SCHEMA_V2,
     })
 }
 
@@ -528,7 +556,7 @@ fn benchmark_run_registry_schema_version(_: &mut SchemaGenerator) -> Schema {
 fn benchmark_scientific_readiness_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
+        "const": BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2,
     })
 }
 

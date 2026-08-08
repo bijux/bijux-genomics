@@ -5,9 +5,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition, BenchmarkEvidenceScope,
-    BenchmarkEvidenceTier, BenchmarkMeasurementContract, BenchmarkPortfolio,
-    BenchmarkProfileAssignment, BenchmarkRunRegistry, BenchmarkRunRegistryRow,
+    BenchmarkCorpusClass, BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition,
+    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkMeasurementContract,
+    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkRunRegistry, BenchmarkRunRegistryRow,
     BenchmarkRunRegistryState, BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
     BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
@@ -16,8 +16,8 @@ use crate::model::{
 };
 
 use super::{
-    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_RUN_REGISTRY_SCHEMA_V1,
-    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_RUN_REGISTRY_SCHEMA_V1,
+    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
 };
 
@@ -89,7 +89,7 @@ pub fn validate_stage_campaign_registry(
 /// # Errors
 /// Returns an error if the portfolio shape or invariants are invalid.
 pub fn validate_benchmark_portfolio(portfolio: &BenchmarkPortfolio) -> Result<(), BenchError> {
-    if portfolio.schema_version != BENCHMARK_PORTFOLIO_SCHEMA_V1 {
+    if portfolio.schema_version != BENCHMARK_PORTFOLIO_SCHEMA_V2 {
         return Err(BenchError::InvalidPolicy(format!(
             "benchmark portfolio schema mismatch: {}",
             portfolio.schema_version
@@ -312,7 +312,7 @@ pub fn validate_defined_campaign_portfolio_alignment(
 pub fn validate_scientific_readiness(
     report: &BenchmarkScientificReadinessReport,
 ) -> Result<(), BenchError> {
-    if report.schema_version != BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1 {
+    if report.schema_version != BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2 {
         return Err(BenchError::InvalidPolicy(
             "benchmark scientific readiness schema mismatch".to_string(),
         ));
@@ -329,6 +329,7 @@ pub fn validate_scientific_readiness(
         require_text(&corpus.id, "scientific readiness corpus id")?;
         require_text(&corpus.truth_strategy, "scientific readiness truth strategy")?;
         validate_text_list(&corpus.roles, "scientific readiness corpus roles", false)?;
+        validate_production_corpus_class(corpus.class, corpus.evidence_scope, &corpus.id)?;
     }
     validate_scientific_readiness_domains(report)?;
     validate_scientific_readiness_summary(report)
@@ -436,6 +437,7 @@ fn validate_scientific_readiness_summary(
         .filter(|corpus| {
             corpus.status == BenchmarkCorpusStatus::Admitted
                 && corpus.evidence_scope == BenchmarkEvidenceScope::Comparative
+                && corpus.class == BenchmarkCorpusClass::ProductionReal
         })
         .count();
     let observed_summary = (
@@ -1051,12 +1053,7 @@ fn validate_corpora(
                 corpus.id
             )));
         }
-        if !corpus.real_data {
-            return Err(BenchError::InvalidPolicy(format!(
-                "benchmark corpus must declare real data: {}",
-                corpus.id
-            )));
-        }
+        validate_production_corpus_class(corpus.class, corpus.evidence_scope, &corpus.id)?;
         let minimum_sample_count = corpus.minimum_sample_count.unwrap_or(corpus.sample_count);
         if minimum_sample_count < 1 {
             return Err(BenchError::InvalidPolicy(format!(
@@ -1097,6 +1094,24 @@ fn validate_corpora(
         role_ids.extend(corpus.roles.iter().cloned());
     }
     Ok((corpus_ids, role_ids))
+}
+
+fn validate_production_corpus_class(
+    class: BenchmarkCorpusClass,
+    scope: BenchmarkEvidenceScope,
+    id: &str,
+) -> Result<(), BenchError> {
+    let valid = matches!(
+        (class, scope),
+        (BenchmarkCorpusClass::ProductionReal, BenchmarkEvidenceScope::Comparative)
+            | (BenchmarkCorpusClass::QualificationReal, BenchmarkEvidenceScope::Qualification)
+    );
+    if !valid {
+        return Err(BenchError::InvalidPolicy(format!(
+            "benchmark production corpus class and evidence scope disagree: {id}"
+        )));
+    }
+    Ok(())
 }
 
 fn validate_profiles(

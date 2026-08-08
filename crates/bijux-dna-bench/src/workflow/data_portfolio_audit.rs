@@ -12,7 +12,7 @@ use bijux_dna_bench_model::{
     BenchmarkDataPortfolioAudit, BenchmarkDataPortfolioAuditSummary,
     BenchmarkDataSourceSpecIdentity, BenchmarkEligibility, BenchmarkEvidenceScope,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset, DataIntegrityStatus,
-    BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1,
+    BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
 };
 use serde_json::Value;
 
@@ -157,6 +157,7 @@ pub fn derive_benchmark_data_portfolio_audit(
             corpus_id: corpus.id.clone(),
             status: corpus.status,
             evidence_scope: corpus.evidence_scope,
+            class: corpus.class,
             declared_sample_count: corpus.sample_count,
             minimum_sample_count: corpus.minimum_sample_count.unwrap_or(corpus.sample_count),
             data_types: corpus.data_types.clone(),
@@ -183,7 +184,7 @@ pub fn derive_benchmark_data_portfolio_audit(
     unbound_assets.sort_by(|left, right| left.catalog_id.cmp(&right.catalog_id));
     let summary = summarize(&corpora, &unbound_assets, publishable_contamination.len())?;
     let audit = BenchmarkDataPortfolioAudit {
-        schema_version: BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1.to_string(),
+        schema_version: BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2.to_string(),
         source_commit: request.source_commit.clone(),
         portfolio_path: PORTFOLIO_PATH.to_string(),
         portfolio_sha256: bijux_dna_infra::hash_file_sha256(&portfolio_path)?,
@@ -235,8 +236,8 @@ pub fn render_benchmark_data_portfolio_audit_markdown(
         String::new(),
         "## Corpus inventory and projections".to_string(),
         String::new(),
-        "| Corpus | State | Samples | Catalogs | Verified bytes | Projected bytes | Projected CPU hours | Ready | Blockers |".to_string(),
-        "|---|---|---:|---:|---:|---:|---:|---|---|".to_string(),
+        "| Corpus | Class | State | Samples | Catalogs | Verified bytes | Projected bytes | Projected CPU hours | Ready | Blockers |".to_string(),
+        "|---|---|---|---:|---:|---:|---:|---:|---|---|".to_string(),
     ];
     for corpus in &audit.corpora {
         let blockers = if corpus.blockers.is_empty() {
@@ -245,8 +246,9 @@ pub fn render_benchmark_data_portfolio_audit_markdown(
             markdown_cell(&corpus.blockers.join("; "))
         };
         lines.push(format!(
-            "| `{}` | {} | {}/{} | {} | {} | {} | {} | {} | {} |",
+            "| `{}` | {} | {} | {}/{} | {} | {} | {} | {} | {} | {} |",
             corpus.corpus_id,
+            corpus.class.as_str(),
             corpus_status(corpus.status),
             corpus.declared_sample_count,
             corpus.minimum_sample_count,
