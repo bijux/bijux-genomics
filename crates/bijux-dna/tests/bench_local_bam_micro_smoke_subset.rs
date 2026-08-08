@@ -48,7 +48,7 @@ fn bench_local_bam_micro_smoke_subset_reports_one_governed_row_per_family() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json")
+        Some("artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json")
     );
     assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(

@@ -34,7 +34,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORE_GERMLINE_MICRO_PIPELINE_PATH: &str =
-    "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json";
+    "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json";
 const GOVERNED_MICRO_STARTED_AT: &str = "1704067200";
 const GOVERNED_MICRO_FINISHED_AT: &str = "1704067201";
 const GOVERNED_MICRO_ELAPSED_SECONDS: f64 = 1.0;

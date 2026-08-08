@@ -32,7 +32,10 @@ fn bench_local_fastq_micro_smoke_subset_writes_governed_summary_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json"
+    );
 
     let summary_path = repo_root.join(rendered_path.trim());
     assert!(summary_path.is_file(), "micro-smoke summary must exist");

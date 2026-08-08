@@ -17,7 +17,7 @@ use crate::commands::cli::render;
 use crate::commands::numeric::rounded_f64_to_u64;
 
 pub(crate) const DEFAULT_FASTQ_TOOL_SCORES_PATH: &str =
-    "runs/bench/micro/fastq/FASTQ_TOOL_SCORES.tsv";
+    "artifacts/benchmark-smoke/micro/fastq/FASTQ_TOOL_SCORES.tsv";
 
 const FASTQ_TOOL_SCORES_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_tool_scores.v1";
 const DEFAULT_FULL_BENCHMARK_REPORT_PATH: &str =
@@ -1091,7 +1091,7 @@ fn merge_screen_taxonomy_summary(
     rows: &mut BTreeMap<(String, String), FastqEvidenceAggregate>,
 ) -> Result<()> {
     let absolute_path = repo_root
-        .join("runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/report.json");
+        .join("artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/report.json");
     let Some(root) = load_optional_json_value(&absolute_path)? else {
         return Ok(());
     };

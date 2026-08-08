@@ -235,25 +235,25 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench corpus-materialization collect`
   Performs one observation and publishes terminal evidence only after scheduler accounting and the
   complete admitted catalog closure validate.
-  `run-micro` writes `runs/bench/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
-  for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`, and
+  `run-micro` writes `artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
+  for result rows, output rows, log rows, and normalized metrics under `artifacts/benchmark-smoke/micro/`, and
   also writes the governed Markdown and JSON micro benchmark report pair
-  `runs/bench/micro/MICRO_BENCHMARK_REPORT.md` and
-  `runs/bench/micro/MICRO_BENCHMARK_REPORT.json`. The command materializes the current real micro
+  `artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.md` and
+  `artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json`. The command materializes the current real micro
   execution slice by combining the all-domain `REAL_SMOKE_CORE_SUMMARY.json` report under
-  `runs/bench/micro/core/` with the retained FASTQ family summary under
-  `runs/bench/micro/fastq/`, the retained BAM family summary under `runs/bench/micro/bam/`, the
-  retained VCF family summary under `runs/bench/micro/vcf/`, the governed amplicon pipeline
-  summary under `runs/bench/micro/pipelines/amplicon/`, the governed aDNA pipeline summary under
-  `runs/bench/micro/pipelines/adna/`, the governed eDNA pipeline summary under
-  `runs/bench/micro/pipelines/edna/`, and the governed core germline pipeline summary under
-  `runs/bench/micro/pipelines/core-germline/`. It then flattens those real reports into one
+  `artifacts/benchmark-smoke/micro/core/` with the retained FASTQ family summary under
+  `artifacts/benchmark-smoke/micro/fastq/`, the retained BAM family summary under `artifacts/benchmark-smoke/micro/bam/`, the
+  retained VCF family summary under `artifacts/benchmark-smoke/micro/vcf/`, the governed amplicon pipeline
+  summary under `artifacts/benchmark-smoke/micro/pipelines/amplicon/`, the governed aDNA pipeline summary under
+  `artifacts/benchmark-smoke/micro/pipelines/adna/`, the governed eDNA pipeline summary under
+  `artifacts/benchmark-smoke/micro/pipelines/edna/`, and the governed core germline pipeline summary under
+  `artifacts/benchmark-smoke/micro/pipelines/core-germline/`. It then flattens those real reports into one
   micro-run contract with stable `run_id`, repo revision, written row counts, runtime and
   memory-source evidence, preserved unavailable rows, and filtered science-threshold rows so the
   report stays honest about what is complete, unavailable, missing, or insufficient.
   an explicit run log.
 - `bijux-dna bench local run-fastq-micro-smoke-subset`
-  `run-fastq-micro-smoke-subset` writes `runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
+  `run-fastq-micro-smoke-subset` writes `artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
   choosing one governed retained FASTQ binding per family from the canonical local-container smoke
   matrix. Families with a real governed `materialize-stage` smoke artifact record host-local
   evidence under `runs/bench/local-smoke/<stage>/`, while planner-backed families report the
@@ -1602,7 +1602,7 @@ Visible aliases are part of the operator surface:
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
 - `bijux-dna bench local run-bam-micro-smoke-subset`
-  `run-bam-micro-smoke-subset` writes `runs/bench/micro/bam/MICRO_BAM_SUMMARY.json`, choosing
+  `run-bam-micro-smoke-subset` writes `artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json`, choosing
   one governed retained BAM binding per family from the canonical local-smoke matrix. Host-backed
   families materialize the real tiny-fixture artifact under `runs/bench/local-smoke/<stage>/`,
   while container-backed families record the exact smoke command and checked-in support path
@@ -1616,7 +1616,7 @@ Visible aliases are part of the operator surface:
   the real governed report in `--json` mode, while TSV-backed stages report the artifact path and
   format without inventing extra metrics.
 - `bijux-dna bench local run-vcf-micro-smoke-subset`
-  `run-vcf-micro-smoke-subset` writes `runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json`, choosing one
+  `run-vcf-micro-smoke-subset` writes `artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json`, choosing one
   governed retained VCF binding per family from the canonical local-container smoke matrix.
   Families with a real governed local smoke wrapper materialize the exact stage-result manifest
   under `runs/bench/local-smoke/<stage>/`, while container-backed families record the exact smoke
@@ -2179,7 +2179,7 @@ Visible aliases are part of the operator surface:
   execution slice grounded in real outputs.
 - `bijux-dna bench local run-amplicon-micro-pipeline`
   `run-amplicon-micro-pipeline` writes
-  `runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json` and validates one governed
+  `artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json` and validates one governed
   amplicon-only FASTQ slice for `amplicon-asv-otu-no-vcf`. The report keeps eight stage rows and
   13 exact-path handoff checks across corpus validation, truth-bundle validation, primer
   normalization, ASV inference, chimera removal, OTU clustering, abundance normalization, and the
@@ -2189,7 +2189,7 @@ Visible aliases are part of the operator surface:
   expectations, so the proof cannot pass on file existence alone.
 - `bijux-dna bench local run-adna-micro-pipeline`
   `run-adna-micro-pipeline` writes
-  `runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json` and executes one governed local
+  `artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json` and executes one governed local
   aDNA FASTQ→BAM→VCF handoff slice for `adna-pseudohaploid-fastq-bam-vcf`. The report keeps 15
   stage rows, 21 exact-path handoff checks, real terminal-damage trimming and duplicate removal
   outputs, a real aligned BAM plus BAI, real `bam.damage` and `bam.authenticity` evidence, the
@@ -2198,7 +2198,7 @@ Visible aliases are part of the operator surface:
   coverage.
 - `bijux-dna bench local run-edna-micro-pipeline`
   `run-edna-micro-pipeline` writes
-  `runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json` and executes one governed local eDNA
+  `artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json` and executes one governed local eDNA
   FASTQ taxonomy slice for `edna-taxonomy-fastq`. The report keeps five stage rows and eight
   exact-path handoff checks across taxonomy database validation, eDNA corpus validation,
   `fastq.validate_reads`, `fastq.screen_taxonomy`, and taxonomy-output judgment, while recording
@@ -2207,7 +2207,7 @@ Visible aliases are part of the operator surface:
   instead of leaking into germline BAM/VCF reporting.
 - `bijux-dna bench local run-core-germline-micro-pipeline`
   `run-core-germline-micro-pipeline` writes
-  `runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json` and executes one real
+  `artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json` and executes one real
   local FASTQ→BAM→VCF handoff slice for `core-germline-fastq-bam-vcf`. The report keeps 12 stage
   rows, 19 exact-path handoff checks, the concrete FASTQ trim/filter outputs that feed `bam.align`,
   the real BAM plus BAI that feed `vcf.call`, and the downstream `vcf.filter`, `vcf.stats`, and

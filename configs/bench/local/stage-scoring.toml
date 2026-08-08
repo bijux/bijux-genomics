@@ -2,7 +2,7 @@ schema_version = "bijux.bench.local_stage_scoring.v1"
 active_stage_catalog_path = "benchmarks/readiness/all-domains/active-stage-catalog.tsv"
 scientific_threshold_config_path = "configs/bench/local/scientific-acceptance-thresholds.toml"
 full_benchmark_report_path = "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json"
-micro_benchmark_report_path = "runs/bench/micro/MICRO_BENCHMARK_REPORT.json"
+micro_benchmark_report_path = "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"
 failure_class_report_path = "benchmarks/readiness/failure-classification-all-domains.json"
 
 [[failure_classes]]
@@ -85,13 +85,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -100,7 +100,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -173,13 +173,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -188,7 +188,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -247,13 +247,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -262,7 +262,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -321,13 +321,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -336,7 +336,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -407,13 +407,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -422,7 +422,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -493,13 +493,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -508,7 +508,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -581,13 +581,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -596,7 +596,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -666,13 +666,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -681,7 +681,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -740,13 +740,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -755,7 +755,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -826,13 +826,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -841,7 +841,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -900,13 +900,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -915,7 +915,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -974,13 +974,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -989,7 +989,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1048,13 +1048,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1063,7 +1063,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1122,13 +1122,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1137,7 +1137,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1206,13 +1206,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1221,7 +1221,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1291,13 +1291,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1306,7 +1306,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1380,13 +1380,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1395,7 +1395,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1465,13 +1465,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1480,7 +1480,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1548,13 +1548,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1563,7 +1563,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1622,13 +1622,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1637,7 +1637,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1709,13 +1709,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1724,7 +1724,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1783,13 +1783,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1798,7 +1798,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1874,13 +1874,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1889,7 +1889,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -1960,13 +1960,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -1975,7 +1975,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2034,13 +2034,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2049,7 +2049,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2113,13 +2113,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2128,7 +2128,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2187,13 +2187,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2202,7 +2202,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2261,13 +2261,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2276,7 +2276,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2335,13 +2335,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2350,7 +2350,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2409,13 +2409,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2424,7 +2424,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2483,13 +2483,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2498,7 +2498,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2557,13 +2557,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2572,7 +2572,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2631,13 +2631,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2646,7 +2646,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2709,13 +2709,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2724,7 +2724,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2788,13 +2788,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2803,7 +2803,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2865,13 +2865,13 @@ metric_ids = ["index_build_exit_code"]
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2880,7 +2880,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -2939,13 +2939,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -2954,7 +2954,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3020,13 +3020,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3035,7 +3035,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3094,13 +3094,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3109,7 +3109,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3168,13 +3168,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3183,7 +3183,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3254,13 +3254,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3269,7 +3269,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3331,13 +3331,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3346,7 +3346,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3409,13 +3409,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3424,7 +3424,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3483,13 +3483,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3498,7 +3498,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3557,13 +3557,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3572,7 +3572,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3631,13 +3631,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3646,7 +3646,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3710,13 +3710,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3725,7 +3725,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3787,13 +3787,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3802,7 +3802,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3875,13 +3875,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3890,7 +3890,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -3953,13 +3953,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -3968,7 +3968,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4033,13 +4033,13 @@ metric_ids = ["format_validation_pass_rate"]
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4048,7 +4048,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4115,13 +4115,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4130,7 +4130,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4189,13 +4189,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4204,7 +4204,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4263,13 +4263,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4278,7 +4278,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4343,13 +4343,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4358,7 +4358,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4423,13 +4423,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4438,7 +4438,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4505,13 +4505,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4520,7 +4520,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4579,13 +4579,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4594,7 +4594,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4653,13 +4653,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4668,7 +4668,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4735,13 +4735,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4750,7 +4750,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4812,13 +4812,13 @@ metric_ids = ["pair_count"]
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4827,7 +4827,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4898,13 +4898,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -4913,7 +4913,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -4986,13 +4986,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5001,7 +5001,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5069,13 +5069,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5084,7 +5084,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5149,13 +5149,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5164,7 +5164,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5229,13 +5229,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5244,7 +5244,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5303,13 +5303,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5318,7 +5318,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5377,13 +5377,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5392,7 +5392,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5465,13 +5465,13 @@ metric_ids = [
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5480,7 +5480,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5539,13 +5539,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5554,7 +5554,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]
@@ -5613,13 +5613,13 @@ metric_ids = []
 gate = "not_applicable"
 
 [rows.runtime]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "elapsed_seconds"
 direction = "lower_is_better"
 missing_behavior = "exclude_from_ranking"
 
 [rows.memory]
-source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
 metric_id = "observed_memory_mb"
 fallback_metric_id = "declared_memory_mb"
 direction = "lower_is_better"
@@ -5628,7 +5628,7 @@ missing_behavior = "fallback_to_declared_memory"
 [rows.completion]
 source_report_paths = [
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
 ]
 required_row_statuses = ["present"]
 required_execution_statuses = ["succeeded"]

@@ -338,7 +338,7 @@ bench-stage-scoring-dry-run: ## Render then validate the governed stage-scoring 
 	@$(MAKE) bench-stage-scoring-render
 	@$(MAKE) bench-stage-scoring-validate
 
-bench-fastq-tool-scores-render: ## Render the governed FASTQ tool score table under runs/bench/micro/fastq/.
+bench-fastq-tool-scores-render: ## Render the governed FASTQ tool score table under artifacts/benchmark-smoke/micro/fastq/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-fastq-tool-scores-render
 
@@ -351,7 +351,7 @@ bench-fastq-tool-scores-dry-run: ## Render then validate the governed FASTQ tool
 	@$(MAKE) bench-fastq-tool-scores-render
 	@$(MAKE) bench-fastq-tool-scores-validate
 
-bench-bam-tool-scores-render: ## Render the governed BAM tool score table under runs/bench/micro/bam/.
+bench-bam-tool-scores-render: ## Render the governed BAM tool score table under artifacts/benchmark-smoke/micro/bam/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-bam-tool-scores-render
 

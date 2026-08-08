@@ -17,7 +17,7 @@ pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str = "benchmar
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
     "benchmarks/readiness/local-ready";
 pub(crate) const DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE: &str = "runs/bench";
-pub(crate) const DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE: &str = "runs/bench/micro";
+pub(crate) const DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE: &str = "artifacts/benchmark-smoke/micro";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench/local-smoke";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str =
     "runs/bench/local-fake-runs";
@@ -212,11 +212,25 @@ pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
     bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE}`");
 }
 
+pub(crate) fn ensure_path_stays_within_benchmark_micro_root(
+    repo_root: &Path,
+    candidate: &Path,
+    output_kind: &str,
+) -> Result<()> {
+    let resolved = absolutize(repo_root, candidate);
+    let micro_root = repo_root.join(DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE);
+    if resolved == micro_root || resolved.starts_with(&micro_root) {
+        return Ok(());
+    }
+    bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE}`");
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
         ensure_path_stays_outside_benchmark_readiness_root,
+        ensure_path_stays_within_benchmark_micro_root,
         ensure_path_stays_within_benchmark_readiness_hpc_root,
         ensure_path_stays_within_benchmark_readiness_root,
         ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
@@ -444,5 +458,22 @@ mod tests {
             error.to_string().contains("must resolve inside `runs/bench`"),
             "unexpected error: {error}"
         );
+    }
+
+    #[test]
+    fn benchmark_micro_guard_accepts_only_disposable_smoke_artifacts() {
+        let repo_root = Path::new("/workspace/repo");
+        ensure_path_stays_within_benchmark_micro_root(
+            repo_root,
+            Path::new("artifacts/benchmark-smoke/micro/report.json"),
+            "micro report",
+        )
+        .expect("micro artifact should be accepted");
+        assert!(ensure_path_stays_within_benchmark_micro_root(
+            repo_root,
+            Path::new("runs/bench/micro/report.json"),
+            "micro report",
+        )
+        .is_err());
     }
 }

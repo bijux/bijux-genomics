@@ -40,13 +40,13 @@ use super::local_vcf_micro_smoke_subset::{
 };
 use super::path_resolution::{
     ensure_path_stays_outside_benchmark_readiness_root,
-    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+    ensure_path_stays_within_benchmark_micro_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_MICRO_BENCHMARK_RUN_MANIFEST_PATH: &str =
-    "runs/bench/micro/MICRO_BENCHMARK_RUN.json";
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_RUN.json";
 const MICRO_BENCHMARK_RUN_SCHEMA_VERSION: &str = "bijux.bench.local_micro_benchmark_run.v1";
 const MICRO_BENCHMARK_RUN_COMMAND: &str = "bijux-dna bench run-micro";
 const MICRO_BENCHMARK_RESULT_ROWS_NAME: &str = "MICRO_RESULT_ROWS.json";
@@ -199,7 +199,11 @@ pub(crate) fn render_micro_benchmark_run(
         &manifest_output_path,
         "micro benchmark manifest output",
     )?;
-    ensure_path_stays_within_benchmark_runs_root(repo_root, &run_root, "micro benchmark run root")?;
+    ensure_path_stays_within_benchmark_micro_root(
+        repo_root,
+        &run_root,
+        "micro benchmark run root",
+    )?;
 
     for directory in [
         run_root.as_path(),
@@ -943,9 +947,9 @@ fn ensure_micro_benchmark_run_contract(
     log_rows: &[MicroBenchmarkLogRow],
     normalized_metric_rows: &[MicroBenchmarkNormalizedMetricRow],
 ) -> Result<()> {
-    if manifest.run_root != "runs/bench/micro" {
+    if manifest.run_root != "artifacts/benchmark-smoke/micro" {
         bail!(
-            "micro benchmark run root must stay `runs/bench/micro`, found `{}`",
+            "micro benchmark run root must stay `artifacts/benchmark-smoke/micro`, found `{}`",
             manifest.run_root
         );
     }
@@ -983,9 +987,9 @@ fn ensure_micro_benchmark_run_contract(
                 component.report_path
             );
         }
-        if !component.report_path.starts_with("runs/bench/micro/") {
+        if !component.report_path.starts_with("artifacts/benchmark-smoke/micro/") {
             bail!(
-                "micro benchmark component report `{}` must stay under `runs/bench/micro`, found `{}`",
+                "micro benchmark component report `{}` must stay under `artifacts/benchmark-smoke/micro`, found `{}`",
                 component.component_id,
                 component.report_path
             );
@@ -1179,7 +1183,7 @@ fn worktree_has_source_changes(repo_root: &Path) -> Result<bool> {
             "--untracked-files=no",
             "--",
             ".",
-            ":(exclude)runs/bench/micro",
+            ":(exclude)artifacts/benchmark-smoke/micro",
             ":(exclude)benchmarks/readiness/micro",
         ],
     )?
@@ -1205,37 +1209,46 @@ mod tests {
     fn micro_benchmark_contract_accepts_governed_row_sets() {
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
-        let component_core = repo_root.join("runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json");
-        let component_fastq = repo_root.join("runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json");
-        let component_bam = repo_root.join("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json");
-        let component_vcf = repo_root.join("runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json");
-        let component_amplicon =
-            repo_root.join("runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json");
-        let adna_component =
-            repo_root.join("runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json");
-        let edna_component =
-            repo_root.join("runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json");
-        let component_pipeline =
-            repo_root.join("runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json");
+        let component_core =
+            repo_root.join("artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json");
+        let component_fastq =
+            repo_root.join("artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json");
+        let component_bam =
+            repo_root.join("artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json");
+        let component_vcf =
+            repo_root.join("artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json");
+        let component_amplicon = repo_root
+            .join("artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json");
+        let adna_component = repo_root
+            .join("artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json");
+        let edna_component = repo_root
+            .join("artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json");
+        let component_pipeline = repo_root.join(
+            "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json",
+        );
         let evidence_path =
             repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
         let fastq_evidence_path =
             repo_root.join("runs/bench/local-smoke/fastq.validate_reads/report.json");
         let vcf_evidence_path =
             repo_root.join("runs/bench/local-smoke/vcf.call/bcftools/stage-result.json");
-        let adna_evidence_path =
-            repo_root.join("runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json");
+        let adna_evidence_path = repo_root
+            .join("artifacts/benchmark-smoke/micro/pipelines/adna/artifacts/vcf.stats/report.json");
         let edna_evidence_path = repo_root
-            .join("runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json");
+            .join("artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json");
         let pipeline_evidence_path = repo_root
-            .join("runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/report.json");
+            .join("artifacts/benchmark-smoke/micro/pipelines/core-germline/artifacts/vcf.call/report.json");
         let output_path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.txt");
-        let log_path = repo_root.join("runs/bench/micro/logs/MICRO_RUN.log");
-        let result_rows_path = repo_root.join("runs/bench/micro/results/MICRO_RESULT_ROWS.json");
-        let output_rows_path = repo_root.join("runs/bench/micro/outputs/MICRO_OUTPUT_ROWS.json");
-        let log_rows_path = repo_root.join("runs/bench/micro/logs/MICRO_LOG_ROWS.json");
-        let normalized_metrics_path =
-            repo_root.join("runs/bench/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json");
+        let log_path = repo_root.join("artifacts/benchmark-smoke/micro/logs/MICRO_RUN.log");
+        let result_rows_path =
+            repo_root.join("artifacts/benchmark-smoke/micro/results/MICRO_RESULT_ROWS.json");
+        let output_rows_path =
+            repo_root.join("artifacts/benchmark-smoke/micro/outputs/MICRO_OUTPUT_ROWS.json");
+        let log_rows_path =
+            repo_root.join("artifacts/benchmark-smoke/micro/logs/MICRO_LOG_ROWS.json");
+        let normalized_metrics_path = repo_root.join(
+            "artifacts/benchmark-smoke/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json",
+        );
 
         for path in [
             &component_core,
@@ -1278,7 +1291,7 @@ mod tests {
                 status: MicroBenchmarkExecutionStatus::Succeeded,
                 reason: "real_smoke_execution".to_string(),
                 command: Some("bcftools stats".to_string()),
-                source_report_path: "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json"
+                source_report_path: "artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json"
                     .to_string(),
                 evidence_path: Some(
                     "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json".to_string(),
@@ -1303,7 +1316,7 @@ mod tests {
                     "bijux-dna bench local materialize-stage --stage-id fastq.validate_reads"
                         .to_string(),
                 ),
-                source_report_path: "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
+                source_report_path: "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
                 evidence_path: Some(
                     "runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
                 ),
@@ -1326,7 +1339,7 @@ mod tests {
                 command: Some(
                     "bijux-dna bench local run-bam-stage-smoke --stage-id bam.align".to_string(),
                 ),
-                source_report_path: "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
+                source_report_path: "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
                 evidence_path: None,
                 stage_result_manifest_path: None,
                 normalized_metric_count: 0,
@@ -1347,7 +1360,7 @@ mod tests {
                 command: Some(
                     "bijux-dna bench local run-vcf-call-smoke --tool-id bcftools".to_string(),
                 ),
-                source_report_path: "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
+                source_report_path: "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
                 evidence_path: Some(
                     "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
                 ),
@@ -1368,10 +1381,10 @@ mod tests {
                 status: MicroBenchmarkExecutionStatus::Succeeded,
                 reason: "adna_micro_pipeline_execution".to_string(),
                 command: Some("bijux-dna bench local run-adna-micro-pipeline".to_string()),
-                source_report_path: "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
+                source_report_path: "artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
                     .to_string(),
                 evidence_path: Some(
-                    "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
+                    "artifacts/benchmark-smoke/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
                 ),
                 stage_result_manifest_path: None,
                 normalized_metric_count: 3,
@@ -1390,10 +1403,10 @@ mod tests {
                 status: MicroBenchmarkExecutionStatus::Succeeded,
                 reason: "edna_micro_pipeline_execution".to_string(),
                 command: Some("bijux-dna bench local run-edna-micro-pipeline".to_string()),
-                source_report_path: "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json"
+                source_report_path: "artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json"
                     .to_string(),
                 evidence_path: Some(
-                    "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json"
+                    "artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json"
                         .to_string(),
                 ),
                 stage_result_manifest_path: None,
@@ -1414,10 +1427,10 @@ mod tests {
                 reason: "core_germline_pipeline_execution".to_string(),
                 command: Some("bijux-dna bench local run-core-germline-micro-pipeline".to_string()),
                 source_report_path:
-                    "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
+                    "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
                         .to_string(),
                 evidence_path: Some(
-                    "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/report.json"
+                    "artifacts/benchmark-smoke/micro/pipelines/core-germline/artifacts/vcf.call/report.json"
                         .to_string(),
                 ),
                 stage_result_manifest_path: None,
@@ -1459,7 +1472,7 @@ mod tests {
                 component_id: "adna_micro_pipeline".to_string(),
                 artifact_id: "evidence".to_string(),
                 role: "pipeline_stage_evidence".to_string(),
-                path: "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
+                path: "artifacts/benchmark-smoke/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
                 exists: true,
                 source: "adna_micro_pipeline".to_string(),
             },
@@ -1468,7 +1481,7 @@ mod tests {
                 component_id: "edna_micro_pipeline".to_string(),
                 artifact_id: "evidence".to_string(),
                 role: "pipeline_stage_evidence".to_string(),
-                path: "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json"
+                path: "artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json"
                     .to_string(),
                 exists: true,
                 source: "edna_micro_pipeline".to_string(),
@@ -1478,7 +1491,7 @@ mod tests {
                 component_id: "core_germline_micro_pipeline".to_string(),
                 artifact_id: "evidence".to_string(),
                 role: "pipeline_stage_evidence".to_string(),
-                path: "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/report.json"
+                path: "artifacts/benchmark-smoke/micro/pipelines/core-germline/artifacts/vcf.call/report.json"
                     .to_string(),
                 exists: true,
                 source: "core_germline_micro_pipeline".to_string(),
@@ -1488,7 +1501,7 @@ mod tests {
             execution_id: "micro.run".to_string(),
             component_id: "micro_benchmark_run".to_string(),
             role: "run_log".to_string(),
-            path: "runs/bench/micro/logs/MICRO_RUN.log".to_string(),
+            path: "artifacts/benchmark-smoke/micro/logs/MICRO_RUN.log".to_string(),
             exists: true,
             source: "micro_benchmark_run".to_string(),
         }];
@@ -1511,7 +1524,7 @@ mod tests {
         let mut manifest = MicroBenchmarkRunManifest {
             schema_version: MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
             manifest_path: DEFAULT_MICRO_BENCHMARK_RUN_MANIFEST_PATH.to_string(),
-            run_root: "runs/bench/micro".to_string(),
+            run_root: "artifacts/benchmark-smoke/micro".to_string(),
             run_id: "micro-benchmark-123456789abc".to_string(),
             repo_revision: "0123456789abcdef0123456789abcdef01234567".to_string(),
             worktree_dirty: false,
@@ -1520,55 +1533,55 @@ mod tests {
             component_reports: vec![
                 MicroBenchmarkComponentReport {
                     component_id: "real_smoke_core_subset".to_string(),
-                    report_path: "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json".to_string(),
+                    report_path: "artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json".to_string(),
                     row_count: 1,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "fastq_micro_smoke_subset".to_string(),
-                    report_path: "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
+                    report_path: "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
                     row_count: 1,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "bam_micro_smoke_subset".to_string(),
-                    report_path: "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
+                    report_path: "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
                     row_count: 1,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "vcf_micro_smoke_subset".to_string(),
-                    report_path: "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
+                    report_path: "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
                     row_count: 1,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "amplicon_micro_pipeline".to_string(),
-                    report_path: "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json"
+                    report_path: "artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json"
                         .to_string(),
                     row_count: 8,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "adna_micro_pipeline".to_string(),
-                    report_path: "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
+                    report_path: "artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
                         .to_string(),
                     row_count: 15,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "edna_micro_pipeline".to_string(),
-                    report_path: "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json"
+                    report_path: "artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json"
                         .to_string(),
                     row_count: 5,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "core_germline_micro_pipeline".to_string(),
                     report_path:
-                        "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
+                        "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
                             .to_string(),
                     row_count: 12,
                 },
             ],
-            result_rows_path: "runs/bench/micro/results/MICRO_RESULT_ROWS.json".to_string(),
-            output_rows_path: "runs/bench/micro/outputs/MICRO_OUTPUT_ROWS.json".to_string(),
-            log_rows_path: "runs/bench/micro/logs/MICRO_LOG_ROWS.json".to_string(),
+            result_rows_path: "artifacts/benchmark-smoke/micro/results/MICRO_RESULT_ROWS.json".to_string(),
+            output_rows_path: "artifacts/benchmark-smoke/micro/outputs/MICRO_OUTPUT_ROWS.json".to_string(),
+            log_rows_path: "artifacts/benchmark-smoke/micro/logs/MICRO_LOG_ROWS.json".to_string(),
             normalized_metrics_path:
-                "runs/bench/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json".to_string(),
+                "artifacts/benchmark-smoke/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json".to_string(),
             result_row_count: result_rows.len(),
             output_row_count: output_rows.len(),
             log_row_count: log_rows.len(),
