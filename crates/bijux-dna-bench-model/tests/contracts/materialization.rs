@@ -1,10 +1,11 @@
 use bijux_dna_bench_model::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
-    validate_governed_data_catalog, BenchmarkCorpusClass, CorpusAcquisitionFile,
-    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    validate_governed_data_catalog, validate_governed_data_catalog_document, BenchmarkCorpusClass,
+    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
     CorpusMaterializationDisposition, CorpusMaterializationPublication, CorpusSourcePolicy,
-    FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile,
-    GovernedDataCatalogSample, BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1,
+    FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog,
+    GovernedDataCatalogDocument, GovernedDataCatalogFile, GovernedDataCatalogSample,
+    GovernedPreservedDataCatalog, BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1,
     CORPUS_ACQUISITION_SCHEMA_V2, FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 
@@ -61,6 +62,20 @@ fn checked_fastq_source_schema_matches_model() -> anyhow::Result<()> {
 fn acquisition_and_admission_contracts_accept_complete_fastq_identity() {
     assert!(validate_corpus_acquisition_plan(&acquisition_plan()).is_ok());
     assert!(validate_governed_data_catalog(&catalog()).is_ok());
+}
+
+#[test]
+fn preservation_contract_binds_heterogeneous_v1_authority() {
+    let preserved = preserved_catalog();
+    let document = GovernedDataCatalogDocument::Preserved(preserved.clone());
+    assert!(validate_governed_data_catalog_document(&document).is_ok());
+
+    let mut drifted = preserved;
+    drifted.preserved_catalog["id"] = "different-catalog".into();
+    assert!(validate_governed_data_catalog_document(&GovernedDataCatalogDocument::Preserved(
+        drifted
+    ))
+    .is_err_and(|error| error.to_string().contains("identity disagrees")));
 }
 
 #[test]
@@ -172,6 +187,26 @@ fn acquisition_plan() -> CorpusAcquisitionPlan {
         file_count: 1,
         total_size_bytes: 42,
         samples: vec![acquisition_sample()],
+    }
+}
+
+fn preserved_catalog() -> GovernedPreservedDataCatalog {
+    GovernedPreservedDataCatalog {
+        schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
+        id: "ancient-horse-bam".to_string(),
+        source_catalog_path: "study://data/catalog/ancient-horse-bam.json".to_string(),
+        source_catalog_sha256: "d".repeat(64),
+        source_catalog_size_bytes: 42,
+        source_catalog_schema_version: "bijux.data_catalog.v1".to_string(),
+        preserved_at_utc: "2026-08-07T00:00:00Z".to_string(),
+        preserved_catalog: serde_json::json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "ancient-horse-bam",
+            "purpose": "real ancient horse qualification alignment",
+            "access_classification": "public",
+            "redistribution_classification": "accession-referenced",
+            "known_limitations": ["one sample does not represent a population"]
+        }),
     }
 }
 

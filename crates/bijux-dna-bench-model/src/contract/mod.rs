@@ -44,7 +44,8 @@ pub use lifecycle::{
 };
 pub use materialization::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
-    validate_governed_data_catalog, validate_utc_timestamp,
+    validate_governed_data_catalog, validate_governed_data_catalog_document,
+    validate_governed_preserved_data_catalog, validate_utc_timestamp,
 };
 pub use planning::{
     validate_benchmark_portfolio, validate_benchmark_run_registry,

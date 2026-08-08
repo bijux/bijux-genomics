@@ -8,7 +8,8 @@ use chrono::{DateTime, FixedOffset};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
-    CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile,
+    CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogDocument,
+    GovernedDataCatalogFile, GovernedPreservedDataCatalog,
 };
 
 use super::{
@@ -292,6 +293,71 @@ pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(
     Ok(())
 }
 
+/// Validate either native v2 materialization or an exact preservation of a historical catalog.
+///
+/// # Errors
+/// Returns an error when either representation violates its identity or provenance contract.
+pub fn validate_governed_data_catalog_document(
+    catalog: &GovernedDataCatalogDocument,
+) -> Result<(), BenchError> {
+    match catalog {
+        GovernedDataCatalogDocument::Materialized(catalog) => {
+            validate_governed_data_catalog(catalog)
+        }
+        GovernedDataCatalogDocument::Preserved(catalog) => {
+            validate_governed_preserved_data_catalog(catalog)
+        }
+    }
+}
+
+/// Validate the preservation envelope used for heterogeneous v1 catalog authorities.
+///
+/// # Errors
+/// Returns an error when the source identity, timestamp, or embedded v1 document is malformed.
+pub fn validate_governed_preserved_data_catalog(
+    catalog: &GovernedPreservedDataCatalog,
+) -> Result<(), BenchError> {
+    if catalog.schema_version != GOVERNED_DATA_CATALOG_SCHEMA_V2 {
+        return Err(invalid("preserved data catalog schema mismatch"));
+    }
+    validate_catalog_identifier(&catalog.id)?;
+    let expected_path = format!("study://data/catalog/{}.json", catalog.id);
+    if catalog.source_catalog_path != expected_path {
+        return Err(invalid("preserved data catalog source path disagrees with identity"));
+    }
+    validate_sha256(&catalog.source_catalog_sha256, "source catalog")?;
+    if catalog.source_catalog_size_bytes == 0 {
+        return Err(invalid("preserved data catalog source size is zero"));
+    }
+    if catalog.source_catalog_schema_version != super::GOVERNED_DATA_CATALOG_SCHEMA_V1 {
+        return Err(invalid("preserved data catalog source schema is not v1"));
+    }
+    validate_utc_timestamp(&catalog.preserved_at_utc, "catalog preservation")?;
+    let preserved = catalog
+        .preserved_catalog
+        .as_object()
+        .ok_or_else(|| invalid("preserved data catalog payload is not an object"))?;
+    if preserved.get("schema_version").and_then(serde_json::Value::as_str)
+        != Some(super::GOVERNED_DATA_CATALOG_SCHEMA_V1)
+        || preserved.get("id").and_then(serde_json::Value::as_str) != Some(catalog.id.as_str())
+    {
+        return Err(invalid("preserved data catalog payload identity disagrees with envelope"));
+    }
+    for field in ["purpose", "access_classification", "redistribution_classification"] {
+        if preserved.get(field).and_then(serde_json::Value::as_str).is_none_or(str::is_empty) {
+            return Err(invalid("preserved data catalog payload lacks required policy fields"));
+        }
+    }
+    if preserved
+        .get("known_limitations")
+        .and_then(serde_json::Value::as_array)
+        .is_none_or(Vec::is_empty)
+    {
+        return Err(invalid("preserved data catalog payload lacks known limitations"));
+    }
+    Ok(())
+}
+
 fn validate_layout_files(
     layout: CorpusAcquisitionLayout,
     files: &[CorpusAcquisitionFile],
@@ -307,6 +373,18 @@ fn validate_layout_files(
         }
         _ => Err(invalid("acquisition file count or mate identity disagrees with layout")),
     }
+}
+
+fn validate_catalog_identifier(value: &str) -> Result<(), BenchError> {
+    let mut bytes = value.bytes();
+    if !bytes.next().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        || !bytes.all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'.' | b'_' | b'-')
+        })
+    {
+        return Err(invalid("preserved data catalog identity is malformed"));
+    }
+    Ok(())
 }
 
 fn validate_acquisition_file(file: &CorpusAcquisitionFile) -> Result<(), BenchError> {

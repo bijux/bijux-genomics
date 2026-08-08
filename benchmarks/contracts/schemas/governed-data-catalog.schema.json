@@ -26,6 +26,119 @@
       ],
       "type": "string"
     },
+    "GovernedDataCatalog": {
+      "additionalProperties": false,
+      "properties": {
+        "access_classification": {
+          "type": "string"
+        },
+        "access_terms_url": {
+          "type": "string"
+        },
+        "admitted_at_utc": {
+          "type": "string"
+        },
+        "attribution": {
+          "type": "string"
+        },
+        "class": {
+          "$ref": "#/$defs/BenchmarkCorpusClass"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/GovernedDataCatalogFile"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "known_limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "projected_cpu_hours": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "projected_storage_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "projection_basis": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "redistribution_classification": {
+          "type": "string"
+        },
+        "retrieved_at_utc": {
+          "type": "string"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/GovernedDataCatalogSample"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.data_catalog.v2",
+          "type": "string"
+        },
+        "scientific_name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "source_record": {
+          "type": "string"
+        },
+        "source_record_sha256": {
+          "type": "string"
+        },
+        "truth_roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "truth_strategy": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "purpose",
+        "source",
+        "class",
+        "access_classification",
+        "redistribution_classification",
+        "access_terms_url",
+        "attribution",
+        "projected_storage_bytes",
+        "projected_cpu_hours",
+        "projection_basis",
+        "truth_roles",
+        "truth_strategy",
+        "known_limitations",
+        "source_record",
+        "source_record_sha256",
+        "retrieved_at_utc",
+        "admitted_at_utc",
+        "scientific_name",
+        "samples",
+        "files"
+      ],
+      "type": "object"
+    },
     "GovernedDataCatalogFile": {
       "additionalProperties": false,
       "properties": {
@@ -192,119 +305,59 @@
         "last_updated"
       ],
       "type": "object"
+    },
+    "GovernedPreservedDataCatalog": {
+      "additionalProperties": false,
+      "description": "Source-addressed preservation of a governed catalog whose domain-specific shape predates v2.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "preserved_at_utc": {
+          "type": "string"
+        },
+        "preserved_catalog": true,
+        "schema_version": {
+          "const": "bijux.data_catalog.v2",
+          "type": "string"
+        },
+        "source_catalog_path": {
+          "type": "string"
+        },
+        "source_catalog_schema_version": {
+          "type": "string"
+        },
+        "source_catalog_sha256": {
+          "type": "string"
+        },
+        "source_catalog_size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "source_catalog_path",
+        "source_catalog_sha256",
+        "source_catalog_size_bytes",
+        "source_catalog_schema_version",
+        "preserved_at_utc",
+        "preserved_catalog"
+      ],
+      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "properties": {
-    "access_classification": {
-      "type": "string"
+  "anyOf": [
+    {
+      "$ref": "#/$defs/GovernedDataCatalog"
     },
-    "access_terms_url": {
-      "type": "string"
-    },
-    "admitted_at_utc": {
-      "type": "string"
-    },
-    "attribution": {
-      "type": "string"
-    },
-    "class": {
-      "$ref": "#/$defs/BenchmarkCorpusClass"
-    },
-    "files": {
-      "items": {
-        "$ref": "#/$defs/GovernedDataCatalogFile"
-      },
-      "type": "array"
-    },
-    "id": {
-      "type": "string"
-    },
-    "known_limitations": {
-      "items": {
-        "type": "string"
-      },
-      "type": "array"
-    },
-    "projected_cpu_hours": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    },
-    "projected_storage_bytes": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    },
-    "projection_basis": {
-      "type": "string"
-    },
-    "purpose": {
-      "type": "string"
-    },
-    "redistribution_classification": {
-      "type": "string"
-    },
-    "retrieved_at_utc": {
-      "type": "string"
-    },
-    "samples": {
-      "items": {
-        "$ref": "#/$defs/GovernedDataCatalogSample"
-      },
-      "type": "array"
-    },
-    "schema_version": {
-      "const": "bijux.data_catalog.v2",
-      "type": "string"
-    },
-    "scientific_name": {
-      "type": "string"
-    },
-    "source": {
-      "type": "string"
-    },
-    "source_record": {
-      "type": "string"
-    },
-    "source_record_sha256": {
-      "type": "string"
-    },
-    "truth_roles": {
-      "items": {
-        "type": "string"
-      },
-      "type": "array"
-    },
-    "truth_strategy": {
-      "type": "string"
+    {
+      "$ref": "#/$defs/GovernedPreservedDataCatalog"
     }
-  },
-  "required": [
-    "schema_version",
-    "id",
-    "purpose",
-    "source",
-    "class",
-    "access_classification",
-    "redistribution_classification",
-    "access_terms_url",
-    "attribution",
-    "projected_storage_bytes",
-    "projected_cpu_hours",
-    "projection_basis",
-    "truth_roles",
-    "truth_strategy",
-    "known_limitations",
-    "source_record",
-    "source_record_sha256",
-    "retrieved_at_utc",
-    "admitted_at_utc",
-    "scientific_name",
-    "samples",
-    "files"
   ],
-  "title": "GovernedDataCatalog",
-  "type": "object"
+  "description": "A v2 catalog is either native typed materialization or a digest-bound historical authority.",
+  "title": "GovernedDataCatalogDocument"
 }

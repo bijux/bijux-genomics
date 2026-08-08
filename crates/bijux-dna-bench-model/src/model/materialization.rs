@@ -200,6 +200,29 @@ pub struct GovernedDataCatalog {
     pub files: Vec<GovernedDataCatalogFile>,
 }
 
+/// Source-addressed preservation of a governed catalog whose domain-specific shape predates v2.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct GovernedPreservedDataCatalog {
+    #[schemars(schema_with = "governed_data_catalog_schema_version")]
+    pub schema_version: String,
+    pub id: String,
+    pub source_catalog_path: String,
+    pub source_catalog_sha256: String,
+    pub source_catalog_size_bytes: u64,
+    pub source_catalog_schema_version: String,
+    pub preserved_at_utc: String,
+    pub preserved_catalog: serde_json::Value,
+}
+
+/// A v2 catalog is either native typed materialization or a digest-bound historical authority.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum GovernedDataCatalogDocument {
+    Materialized(Box<GovernedDataCatalog>),
+    Preserved(GovernedPreservedDataCatalog),
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct CorpusMaterializationPublication {
@@ -225,7 +248,7 @@ pub fn fastq_corpus_source_spec_schema() -> Schema {
 
 #[must_use]
 pub fn governed_data_catalog_schema() -> Schema {
-    schemars::schema_for!(GovernedDataCatalog)
+    schemars::schema_for!(GovernedDataCatalogDocument)
 }
 
 #[must_use]

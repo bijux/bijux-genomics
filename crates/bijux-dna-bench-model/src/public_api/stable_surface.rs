@@ -17,7 +17,8 @@ pub use crate::contract::{
     validate_campaign_plan, validate_corpus_acquisition_plan, validate_cycle_status_v1,
     validate_cycle_status_v2, validate_execution_spec, validate_fastq_corpus_source_spec,
     validate_fastq_read_length_expectations, validate_governed_data_catalog,
-    validate_governed_data_catalog_registry, validate_scheduler_observation,
+    validate_governed_data_catalog_document, validate_governed_data_catalog_registry,
+    validate_governed_preserved_data_catalog, validate_scheduler_observation,
     validate_scientific_readiness, validate_stage_universe, validate_utc_timestamp,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
@@ -109,7 +110,7 @@ pub use crate::model::lifecycle::{
 pub use crate::model::materialization::{
     corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
     fastq_corpus_source_spec_schema, governed_data_catalog_schema,
-    CorpusMaterializationPublication,
+    CorpusMaterializationPublication, GovernedDataCatalogDocument, GovernedPreservedDataCatalog,
 };
 pub use crate::model::normalized_result;
 pub use crate::model::observation::benchmark_observation_schema;
