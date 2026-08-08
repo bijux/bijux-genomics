@@ -20,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CROSS_DOMAIN_SAMPLE_CONSISTENCY_PATH: &str =
-    "benchmarks/readiness/science/cross-domain-sample-consistency.json";
+    "artifacts/benchmark-smoke/readiness/science/cross-domain-sample-consistency.json";
 const CROSS_DOMAIN_SAMPLE_CONSISTENCY_SCHEMA_VERSION: &str =
     "bijux.bench.cross_domain_sample_consistency.v1";
 const COHORT_VARIANT_ROLES: &[&str] = &["multisample", "phased"];

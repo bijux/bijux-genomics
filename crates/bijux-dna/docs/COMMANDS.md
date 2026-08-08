@@ -659,10 +659,10 @@ Visible aliases are part of the operator surface:
   interpretation.
 - `bijux-dna bench readiness render-science-truth-sets-complete`
   `render-science-truth-sets-complete` writes
-  `benchmarks/readiness/science/SCIENCE_TRUTH_SETS_COMPLETE.json`. It fail-closes unless every
-  governed science truth fixture is present and valid, the governed cross-domain FASTQ/BAM/VCF
-  sample-consistency report stays compatible, and every science stage that requires scientific
-  acceptance semantics is still covered by the governed threshold table.
+  `artifacts/benchmark-smoke/readiness/science/SCIENCE_TRUTH_SETS_COMPLETE.json`. It fail-closes
+  unless every governed science truth fixture is present and valid, the governed cross-domain
+  FASTQ/BAM/VCF sample-consistency report stays compatible, and every science stage that requires
+  scientific acceptance semantics is still covered by the governed threshold table.
 - `bijux-dna bench readiness render-bam-science-thresholds-ready`
   `render-bam-science-thresholds-ready` writes
   `artifacts/benchmark-smoke/readiness/bam/BAM_SCIENCE_THRESHOLDS_READY.json` with one governed row per

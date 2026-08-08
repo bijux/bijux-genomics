@@ -36,12 +36,12 @@ fn bench_local_cross_domain_sample_consistency_writes_governed_json_file() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "benchmarks/readiness/science/cross-domain-sample-consistency.json"
+        "artifacts/benchmark-smoke/readiness/science/cross-domain-sample-consistency.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path =
-        repo_root.join("benchmarks/readiness/science/cross-domain-sample-consistency.json");
+    let report_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/science/cross-domain-sample-consistency.json");
     let raw = std::fs::read_to_string(&report_path).expect("read report");
     let payload: serde_json::Value = serde_json::from_str(&raw).expect("parse report json");
 
