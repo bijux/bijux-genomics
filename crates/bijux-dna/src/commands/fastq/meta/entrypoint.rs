@@ -110,6 +110,18 @@ pub(crate) fn handle_meta_commands(
                     println!("index={}", args.output.display());
                     println!("report={}", args.report.display());
                 }
+                BenchCommand::CatalogRegistry { command } => match command {
+                    cli::BenchCatalogRegistryCommand::Publish(args) => {
+                        let publication =
+                            bijux_dna_api::v1::api::bench::publish_governed_data_catalog_registry(
+                                &bijux_dna_api::v1::api::bench::GovernedDataCatalogRegistryPublicationRequest {
+                                    data_root: args.data_root.clone(),
+                                    source_commit: args.source_commit.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&publication)?;
+                    }
+                },
                 BenchCommand::AcquireFastqCorpus(args) => {
                     let plan = bijux_dna_api::v1::api::bench::acquire_fastq_corpus(
                         &bijux_dna_api::v1::api::bench::CorpusAcquisitionRequest {

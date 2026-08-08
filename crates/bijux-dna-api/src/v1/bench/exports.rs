@@ -11,6 +11,7 @@ pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
     acquire_fastq_corpus, materialize_fastq_corpus, publish_benchmark_data_index,
+    publish_governed_data_catalog_registry,
 };
 use bijux_dna_bench::{
     admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
@@ -24,6 +25,7 @@ pub use bijux_dna_bench::{
     BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkPipelineParameterConfig,
     BenchmarkStageInterfaceCatalog, BenchmarkStageReport, CorpusAcquisitionRequest,
     CorpusMaterializationPublication, CorpusMaterializationRequest,
+    GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,

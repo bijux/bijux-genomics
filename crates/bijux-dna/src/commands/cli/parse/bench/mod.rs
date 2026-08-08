@@ -24,7 +24,9 @@ pub use self::config::{
     BenchWriteScreenTaxonomyDatabaseLineageArgs,
 };
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
-pub use self::data_index::BenchDataIndexArgs;
+pub use self::data_index::{
+    BenchCatalogRegistryCommand, BenchCatalogRegistryPublishArgs, BenchDataIndexArgs,
+};
 pub use self::fastq::BenchFastqCommand;
 pub use self::fastq::{
     BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDepleteHostArgs,
@@ -238,6 +240,11 @@ pub enum BenchCommand {
     RunMicro(BenchRunMicroArgs),
     #[command(name = "data-index")]
     DataIndex(BenchDataIndexArgs),
+    #[command(name = "catalog-registry")]
+    CatalogRegistry {
+        #[command(subcommand)]
+        command: BenchCatalogRegistryCommand,
+    },
     #[command(name = "acquire-fastq-corpus")]
     AcquireFastqCorpus(BenchAcquireFastqCorpusArgs),
     #[command(name = "materialize-fastq-corpus")]

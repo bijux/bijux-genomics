@@ -2,6 +2,7 @@
 //! Run repositories for bench.
 
 mod bam_corpus_authority;
+mod catalog_registry_authority;
 mod corpus_authority;
 mod data_index_authority;
 mod repo_root;
@@ -13,6 +14,10 @@ mod workspace_paths;
 
 pub use bam_corpus_authority::{
     admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, AdmittedBamGenotypingCorpus,
+};
+pub use catalog_registry_authority::{
+    publish_governed_data_catalog_registry, GovernedDataCatalogRegistryPublication,
+    GovernedDataCatalogRegistryPublicationRequest,
 };
 pub use corpus_authority::admit_fastq_benchmark_corpus;
 pub use data_index_authority::{

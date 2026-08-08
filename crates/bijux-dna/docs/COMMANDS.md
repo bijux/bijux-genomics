@@ -220,6 +220,9 @@ Visible aliases are part of the operator surface:
   outside `benchmarks/`.
 - `bijux-dna bench run`
 - `bijux-dna bench run-micro`
+- `bijux-dna bench data-index`
+- `bijux-dna bench catalog-registry publish`
+- `bijux-dna bench acquire-fastq-corpus`
 - `bijux-dna bench materialize-fastq-corpus`
 - `bijux-dna bench corpus-materialization prepare`
   Validates a typed scheduler specification and publishes immutable runner-owned Slurm material,

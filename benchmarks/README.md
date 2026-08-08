@@ -150,6 +150,21 @@ the scientific catalog only after the complete cohort passes. Existing bytes
 are never trusted by path alone, and an existing catalog is never replaced.
 
 After materialization and format validation, publish source-addressed catalog
+registry authority from
+`$STUDY/data/evidence/catalog-registries/$commit/registry.json`:
+
+```console
+bijux-dna bench catalog-registry publish \
+  --data-root "$STUDY/data" \
+  --source-commit "$commit"
+```
+
+The Rust publisher re-hashes every declared snapshot and verifies its exact
+source-addressed path, catalog ID, schema, and digest before publishing
+`data/catalog/registries/<source-commit>.json`. Existing equivalent authority
+is revalidated without mutation; conflicting authority is rejected.
+
+After materialization and registry publication, publish source-addressed catalog
 snapshots and a checked registry that identifies the current v2 snapshot for
 each corpus. Build the path-stable scientific data index from that registry:
 
@@ -157,7 +172,7 @@ each corpus. Build the path-stable scientific data index from that registry:
 commit=$(git rev-parse HEAD)
 evidence="$STUDY/data/evidence/indexes/$commit"
 cargo run -q -p bijux-dna -- bench data-index \
-  --catalog-registry "$STUDY/data/catalog/registry.json" \
+  --catalog-registry "$STUDY/data/catalog/registries/$commit.json" \
   --data-root "$STUDY/data" \
   --output "$evidence/data-index.json" \
   --report "$evidence/data-index.md" \

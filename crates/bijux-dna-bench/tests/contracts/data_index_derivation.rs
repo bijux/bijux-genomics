@@ -3,8 +3,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    build_benchmark_data_index, publish_benchmark_data_index, BenchmarkDataIndexPublicationRequest,
-    BenchmarkDataIndexRequest, BenchmarkEligibility,
+    build_benchmark_data_index, publish_benchmark_data_index,
+    publish_governed_data_catalog_registry, BenchmarkDataIndexPublicationRequest,
+    BenchmarkDataIndexRequest, BenchmarkEligibility, GovernedDataCatalogRegistryPublicationRequest,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -15,6 +16,64 @@ struct DataIndexFixture {
     catalog_registry_path: PathBuf,
     catalog_path: PathBuf,
     governed_file: PathBuf,
+}
+
+#[test]
+fn publishes_and_revalidates_source_addressed_registry() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let source_commit = "2".repeat(40);
+    let candidate = fixture
+        .data_root
+        .join("evidence/catalog-registries")
+        .join(&source_commit)
+        .join("registry.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    fs::copy(&fixture.catalog_registry_path, &candidate)?;
+    let request = GovernedDataCatalogRegistryPublicationRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: source_commit.clone(),
+    };
+
+    let first = publish_governed_data_catalog_registry(&request)?;
+    let published_bytes = fs::read(&first.registry_path)?;
+    let replay = publish_governed_data_catalog_registry(&request)?;
+
+    assert_eq!(first, replay);
+    assert_eq!(fs::read(&replay.registry_path)?, published_bytes);
+    assert_eq!(
+        first.registry_path,
+        fixture.data_root.join("catalog/registries").join(format!("{source_commit}.json"))
+    );
+    assert_eq!(first.registry.records.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn registry_publication_rejects_snapshot_drift_and_invalid_commit_before_io() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let source_commit = "2".repeat(40);
+    let candidate = fixture
+        .data_root
+        .join("evidence/catalog-registries")
+        .join(&source_commit)
+        .join("registry.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    fs::copy(&fixture.catalog_registry_path, candidate)?;
+    fs::write(&fixture.catalog_path, b"drifted")?;
+    let request = GovernedDataCatalogRegistryPublicationRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit,
+    };
+    assert!(publish_governed_data_catalog_registry(&request)
+        .is_err_and(|error| format!("{error:#}").contains("digest drifted")));
+
+    let invalid = GovernedDataCatalogRegistryPublicationRequest {
+        data_root: "/missing/data".into(),
+        source_commit: "A".repeat(40),
+    };
+    assert!(publish_governed_data_catalog_registry(&invalid)
+        .is_err_and(|error| error.to_string().contains("lowercase 40-character")));
+    Ok(())
 }
 
 #[test]
@@ -182,6 +241,8 @@ fn rejects_symlinked_governed_files() -> Result<()> {
 fn data_index_fixture() -> Result<DataIndexFixture> {
     let temp = tempfile::tempdir()?;
     let data_root = temp.path().join("data");
+    fs::create_dir(&data_root)?;
+    let data_root = data_root.canonicalize()?;
     let source_commit = "1".repeat(40);
     let catalog_root = data_root.join("catalog/snapshots").join(&source_commit);
     let catalog_registry_path = data_root.join("catalog/registry.json");
