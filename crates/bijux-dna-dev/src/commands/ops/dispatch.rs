@@ -135,6 +135,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkCampaignCycle => {
             tooling::tooling_benchmark_campaign_cycle(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkDataCatalogSnapshots => {
+            tooling::tooling_benchmark_data_catalog_snapshots(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkDataPortfolioAudit => {
             tooling::tooling_benchmark_data_portfolio_audit(workspace, args)
         }

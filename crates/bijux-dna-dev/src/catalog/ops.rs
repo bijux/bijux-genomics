@@ -351,6 +351,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
         ),
         native(
+            "benchmark-data-catalog-snapshots",
+            "Preserve flat catalog authorities and publish a complete source-addressed registry.",
+            NativeOpsCommandKey::ToolingBenchmarkDataCatalogSnapshots,
+        ),
+        native(
             "benchmark-data-portfolio-audit",
             "Publish a typed audit joining benchmark corpora to governed STUDY data.",
             NativeOpsCommandKey::ToolingBenchmarkDataPortfolioAudit,

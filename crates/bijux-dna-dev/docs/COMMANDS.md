@@ -391,6 +391,7 @@ acquire-reference
 architecture-report
 artifact-contracts
 benchmark-campaign-cycle
+benchmark-data-catalog-snapshots
 benchmark-data-portfolio-audit
 benchmark-integrity-mini
 benchmark-publication-registry
@@ -450,6 +451,11 @@ setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
+
+`benchmark-data-catalog-snapshots publish` preserves each flat v1 governed catalog inside a
+digest-bound v2 authority, retains current v2 records from an explicit prior registry, and
+publishes the complete source-addressed registry. Existing identical publications are replayed;
+conflicting snapshot or registry bytes are rejected without replacement.
 
 `benchmark-data-portfolio-audit` publishes an immutable typed join between the benchmark portfolio
 and one exact governed STUDY data index. It records catalog identity, access and redistribution
