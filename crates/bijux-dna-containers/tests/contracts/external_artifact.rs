@@ -221,7 +221,17 @@ fn every_license_restricted_tool_has_an_explicit_blocked_access_record() -> Resu
         .is_err());
         assert_eq!(load_external_artifact_admission(&path)?, record);
     }
-    assert_eq!(blocked_stages.values().map(Vec::len).sum::<usize>(), 10);
+    let blocked_pairs = blocked_stages
+        .iter()
+        .flat_map(|(tool_id, stage_ids)| {
+            stage_ids.iter().map(|stage_id| (stage_id.clone(), (*tool_id).to_string()))
+        })
+        .collect::<BTreeSet<_>>();
+    let binding_pairs = bindings
+        .bindings()
+        .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(blocked_pairs, binding_pairs);
     Ok(())
 }
 
