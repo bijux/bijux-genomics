@@ -70,7 +70,7 @@ fn bench_readiness_vcf_call_diploid_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "diploid_vcf=benchmarks/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz",
+                        "diploid_vcf=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz",
                     )
             }))
     );
@@ -80,7 +80,7 @@ fn bench_readiness_vcf_call_diploid_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "diploid_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz.tbi",
+                        "diploid_vcf_tbi=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz.tbi",
                     )
             }))
     );

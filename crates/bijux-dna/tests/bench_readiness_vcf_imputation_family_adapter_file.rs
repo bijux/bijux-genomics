@@ -31,7 +31,8 @@ fn bench_readiness_vcf_imputation_family_adapter_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let report_path = repo_root.join("benchmarks/readiness/adapters/imputation-family.vcf.json");
+    let report_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/adapters/imputation-family.vcf.json");
     assert!(report_path.is_file(), "VCF imputation-family adapter JSON must exist");
 
     let payload = serde_json::from_slice::<serde_json::Value>(
@@ -102,7 +103,7 @@ fn bench_readiness_vcf_imputation_family_adapter_writes_governed_json_file() {
     assert_eq!(
         beagle_metrics.get("quality_output_path").and_then(serde_json::Value::as_str),
         Some(
-            "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
+            "artifacts/benchmark-smoke/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
         )
     );
     assert!(

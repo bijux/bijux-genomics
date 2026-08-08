@@ -70,7 +70,7 @@ fn bench_readiness_vcf_damage_filter_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "damage_filtered_vcf=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz",
+                        "damage_filtered_vcf=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz",
                     )
             }))
     );
@@ -80,7 +80,7 @@ fn bench_readiness_vcf_damage_filter_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "damage_filtered_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz.tbi",
+                        "damage_filtered_vcf_tbi=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz.tbi",
                     )
             }))
     );

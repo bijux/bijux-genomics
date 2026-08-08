@@ -74,7 +74,7 @@ fn bench_readiness_vcf_prepare_reference_panel_ready_writes_governed_json_file()
         outputs.iter().any(|value| {
             value.as_str()
                 == Some(
-                    "prepared_panel=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz",
+                    "prepared_panel=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz",
                 )
         })
     }));
@@ -84,7 +84,7 @@ fn bench_readiness_vcf_prepare_reference_panel_ready_writes_governed_json_file()
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "prepared_panel_tbi=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz.tbi",
+                        "prepared_panel_tbi=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz.tbi",
                     )
             }))
     );

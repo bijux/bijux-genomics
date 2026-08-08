@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH: &str =
-    "benchmarks/readiness/adapters/descent-family.vcf.json";
+    "artifacts/benchmark-smoke/readiness/adapters/descent-family.vcf.json";
 const VCF_DESCENT_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_descent_family_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
@@ -225,8 +225,10 @@ fn build_descent_family_row(
                 "vcf_cohort".to_string()
             }
         });
-    let output_root =
-        format!("benchmarks/readiness/adapters/descent/{}/{}", registry_tool.tool_id, stage_id);
+    let output_root = format!(
+        "artifacts/benchmark-smoke/readiness/adapters/descent/{}/{}",
+        registry_tool.tool_id, stage_id
+    );
     let (
         input_vcf_path,
         input_ibd_segments_path,
@@ -624,7 +626,7 @@ fn run_missing_input_probe(
     let input = required_inputs.first().expect("governed descent rows must keep a required input");
     let expected = format!("required input `{}`", input.artifact_id);
     let observed = format!(
-        "VCF descent-family adapter for `{stage_id}` is missing required input `{}` at `artifacts/bench-readiness/adapters/probes/{stage_id}/{}.missing`",
+        "VCF descent-family adapter for `{stage_id}` is missing required input `{}` at `artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing`",
         input.artifact_id, input.artifact_id
     );
     (input.artifact_id.clone(), expected.clone(), observed.clone(), observed.contains(&expected))

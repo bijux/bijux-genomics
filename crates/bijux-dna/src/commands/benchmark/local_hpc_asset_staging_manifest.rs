@@ -10,9 +10,7 @@ use super::local_hpc_input_discovery::{
     path_relative_to_repo, LocalHpcDiscoveredSourceInput, LocalHpcStageInputHint,
 };
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
-use crate::commands::benchmark::readiness::all_domain_rendered_commands::{
-    render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
-};
+use crate::commands::benchmark::readiness::all_domain_rendered_commands::render_all_domain_commands;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -21,7 +19,9 @@ const LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION: &str =
 pub(crate) const DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH: &str =
     "runs/bench/hpc-dry-run/asset-staging-manifest.json";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
-    "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl";
+    "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.argv.jsonl";
+const DEFAULT_HPC_RENDERED_COMMANDS_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.sh";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcAssetStagingManifest {
@@ -322,10 +322,8 @@ fn build_hpc_asset_staging_manifest(
 
 fn load_rendered_command_argv_rows(repo_root: &Path) -> Result<Vec<RenderedCommandArgvFileRow>> {
     let argv_path = repo_root.join(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH);
-    if !argv_path.is_file() {
-        render_all_domain_commands(repo_root, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH.into())
-            .with_context(|| format!("render {}", argv_path.display()))?;
-    }
+    render_all_domain_commands(repo_root, DEFAULT_HPC_RENDERED_COMMANDS_PATH.into())
+        .with_context(|| format!("render {}", argv_path.display()))?;
     let body =
         fs::read_to_string(&argv_path).with_context(|| format!("read {}", argv_path.display()))?;
     let mut rows = body
@@ -621,7 +619,7 @@ mod tests {
             .expect("locate bcftools benchmark job");
         assert!(bcftools.staged_inputs.iter().any(|entry| {
             entry.source_path
-                == "benchmarks/readiness/adapters/bcftools/vcf.call/artifacts/reference/corpus_01_bam_reference.fasta"
+                == "artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call/artifacts/reference/corpus_01_bam_reference.fasta"
                 && entry.source_kind == "file"
         }));
         assert!(bcftools.staged_inputs.iter().any(|entry| {

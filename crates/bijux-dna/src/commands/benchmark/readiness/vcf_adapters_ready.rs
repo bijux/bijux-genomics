@@ -307,7 +307,7 @@ pub(crate) fn render_vcf_adapters_ready(
         &mut checks,
         237,
         "vcf plink family adapters",
-        Some("benchmarks/readiness/adapters/plink.vcf.json".to_string()),
+        Some("artifacts/benchmark-smoke/readiness/adapters/plink.vcf.json".to_string()),
         || {
             let plink_report = render_vcf_plink_family_adapter(
                 repo_root,

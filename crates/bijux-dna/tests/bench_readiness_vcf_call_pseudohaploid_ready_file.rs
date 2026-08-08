@@ -73,7 +73,7 @@ fn bench_readiness_vcf_call_pseudohaploid_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "pseudohaploid_vcf=benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz",
+                        "pseudohaploid_vcf=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz",
                     )
             }))
     );
@@ -83,7 +83,7 @@ fn bench_readiness_vcf_call_pseudohaploid_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "pseudohaploid_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz.tbi",
+                        "pseudohaploid_vcf_tbi=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz.tbi",
                     )
             }))
     );

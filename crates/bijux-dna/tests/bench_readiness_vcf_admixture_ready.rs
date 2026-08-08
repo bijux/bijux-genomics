@@ -148,7 +148,7 @@ fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller()
         outputs.iter().any(|value| {
             value.as_str()
                 == Some(
-                    "admixture_proxy_eigenvec=benchmarks/readiness/adapters/plink2/vcf.admixture/admixture.eigenvec",
+                    "admixture_proxy_eigenvec=artifacts/benchmark-smoke/readiness/adapters/plink2/vcf.admixture/admixture.eigenvec",
                 )
         })
     }));

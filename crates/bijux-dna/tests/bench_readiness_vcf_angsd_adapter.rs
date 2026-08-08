@@ -49,7 +49,7 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/angsd.vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/adapters/angsd.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
@@ -98,7 +98,9 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
         .expect("call_gl row");
     assert_eq!(
         call_gl.get("bam_list_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list")
+        Some(
+            "artifacts/benchmark-smoke/readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list"
+        )
     );
     assert_eq!(
         call_gl.get("likelihood_model").and_then(serde_json::Value::as_str),

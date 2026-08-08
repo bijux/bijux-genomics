@@ -71,7 +71,7 @@ fn bench_readiness_vcf_stats_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "bcftools_stats_txt=benchmarks/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt",
+                        "bcftools_stats_txt=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt",
                     )
             }))
     );
@@ -81,7 +81,7 @@ fn bench_readiness_vcf_stats_ready_writes_governed_json_file() {
         .is_some_and(|outputs| outputs.iter().any(|value| {
             value.as_str()
                 == Some(
-                    "stats_json=benchmarks/readiness/adapters/bcftools/vcf.stats/stats_json.json",
+                    "stats_json=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.stats/stats_json.json",
                 )
         })));
     assert_eq!(

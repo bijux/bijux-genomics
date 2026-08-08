@@ -46,7 +46,7 @@ fn bench_readiness_vcf_eigensoft_adapter_reports_governed_rows() {
     assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/eigensoft.vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/adapters/eigensoft.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(

@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH: &str =
-    "benchmarks/readiness/adapters/imputation-family.vcf.json";
+    "artifacts/benchmark-smoke/readiness/adapters/imputation-family.vcf.json";
 const VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_imputation_family_adapter.v1";
 const GOVERNED_IMPUTATION_STAGE_IDS: [&str; 2] = ["vcf.imputation_metrics", "vcf.impute"];
@@ -263,8 +263,10 @@ fn build_imputation_family_row(
         .map_or_else(|| "vcf_production_regression".to_string(), |row| row.corpus_id.clone());
     let asset_profile_id = matrix_row
         .map_or_else(|| "vcf_cohort_with_panel".to_string(), |row| row.asset_profile_id.clone());
-    let output_root =
-        format!("benchmarks/readiness/adapters/imputation/{}/{}", registry_tool.tool_id, stage_id);
+    let output_root = format!(
+        "artifacts/benchmark-smoke/readiness/adapters/imputation/{}/{}",
+        registry_tool.tool_id, stage_id
+    );
     let output_prefix = format!("{output_root}/imputed");
     let materialized_inputs = materialize_panel_inputs(repo_root, &output_root)?;
     let (target_vcf_path, target_vcf_index_path) = materialize_indexed_vcf_input(
@@ -838,11 +840,15 @@ fn run_missing_input_probe(
 ) -> (String, String, String, bool) {
     let mut mutated_inputs = inputs.to_vec();
     let probe = mutated_inputs.first().cloned().unwrap_or_else(|| {
-        artifact("missing_input", "unknown", "artifacts/bench-readiness/adapters/none.missing")
+        artifact(
+            "missing_input",
+            "unknown",
+            "artifacts/benchmark-smoke/readiness/adapters/none.missing",
+        )
     });
     if let Some(first) = mutated_inputs.first_mut() {
         first.path = format!(
-            "artifacts/bench-readiness/adapters/probes/{stage_id}/{}.missing",
+            "artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing",
             first.artifact_id
         );
     }

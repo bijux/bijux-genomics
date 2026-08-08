@@ -19,9 +19,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PLINK_ADAPTER_PATH: &str =
-    "benchmarks/readiness/adapters/plink.vcf.json";
+    "artifacts/benchmark-smoke/readiness/adapters/plink.vcf.json";
 pub(crate) const DEFAULT_VCF_PLINK2_ADAPTER_PATH: &str =
-    "benchmarks/readiness/adapters/plink2.vcf.json";
+    "artifacts/benchmark-smoke/readiness/adapters/plink2.vcf.json";
 const VCF_PLINK_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_plink_adapter.v1";
 const VCF_PLINK2_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_plink2_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
@@ -237,8 +237,10 @@ fn build_plink_family_row(
         .map_or_else(|| "vcf_production_regression".to_string(), |row| row.corpus_id.clone());
     let asset_profile_id =
         matrix_row.map_or_else(|| "vcf_cohort".to_string(), |row| row.asset_profile_id.clone());
-    let output_root =
-        format!("benchmarks/readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
+    let output_root = format!(
+        "artifacts/benchmark-smoke/readiness/adapters/{}/{}",
+        registry_tool.tool_id, stage_id
+    );
     let output_prefix = format!("{output_root}/{}", stage_output_name_hint(stage));
     let fixture_inputs = load_governed_vcf_fixture_inputs(repo_root)?;
     let required_inputs = governed_inputs_for_stage(stage, &fixture_inputs.sample_metadata_path);
@@ -869,11 +871,15 @@ fn run_missing_input_probe(
 ) -> (String, String, String, bool) {
     let mut mutated_inputs = inputs.to_vec();
     let probe = mutated_inputs.first().cloned().unwrap_or_else(|| {
-        artifact("missing_input", "unknown", "artifacts/bench-readiness/adapters/none.missing")
+        artifact(
+            "missing_input",
+            "unknown",
+            "artifacts/benchmark-smoke/readiness/adapters/none.missing",
+        )
     });
     if let Some(first) = mutated_inputs.first_mut() {
         first.path = format!(
-            "artifacts/bench-readiness/adapters/probes/{stage_id}/{}.missing",
+            "artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing",
             first.artifact_id
         );
     }

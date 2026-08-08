@@ -388,7 +388,7 @@ fn run_missing_input_probe(
     let mut mutated_inputs = inputs.to_vec();
     if let Some(probe) = mutated_inputs.iter_mut().find(|input| input.artifact_id == artifact_id) {
         probe.path = format!(
-            "artifacts/bench-readiness/adapters/probes/{stage_id}/{}.missing",
+            "artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing",
             probe.artifact_id
         );
     }
