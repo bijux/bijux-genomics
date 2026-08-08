@@ -45,7 +45,7 @@ fn bench_local_check_manifest_completion_reports_incomplete_stage_when_manifest_
     let fake_run_root =
         "artifacts/benchmark-smoke/simulated-runs/stages-manifest-completion-missing-cli";
     let report_output =
-        "benchmarks/readiness/local-ready/manifest-completion-report.missing-cli.json";
+        "artifacts/benchmark-smoke/readiness/local-ready/manifest-completion-report.missing-cli.json";
     let fake_run_manifest = run_cli_json(&[
         "bench",
         "local",

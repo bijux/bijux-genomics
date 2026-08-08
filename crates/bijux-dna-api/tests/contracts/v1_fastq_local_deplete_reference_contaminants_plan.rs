@@ -32,8 +32,9 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
 ) -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir =
-        repo_root.join("benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants");
+    let output_dir = repo_root.join(
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants",
+    );
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -43,7 +44,7 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
     assert_eq!(
         plan_path,
         repo_root.join(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json"
         )
     );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
@@ -80,13 +81,13 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
     assert_eq!(
         payload["params"]["removed_reads_r1"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
         )
     );
     assert_eq!(
         payload["params"]["removed_reads_r2"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
         )
     );
     assert_eq!(
@@ -101,10 +102,10 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
                 part == "assets/reference/contaminants/references/toy_contaminant_reference"
             }) && command.iter().any(|part| {
                 part
-                    == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
+                    == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
             }) && command.iter().any(|part| {
                 part
-                    == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R%.fastq.gz"
+                    == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R%.fastq.gz"
             })),
         "local-ready plan command must carry the governed Bowtie2 contaminant-depletion command"
     );

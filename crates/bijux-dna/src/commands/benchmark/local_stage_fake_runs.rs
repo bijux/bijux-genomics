@@ -30,7 +30,7 @@ pub(crate) const DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT: &str =
 const DEFAULT_LOCAL_STAGE_FAKE_FAILURE_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/failures";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
-    "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
+    "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalStageFakeRunOutputEntry {
@@ -585,7 +585,7 @@ mod tests {
         let root = repo_root();
         let error = fake_run_local_stage_commands(
             &root,
-            PathBuf::from("benchmarks/readiness/local-ready/fake-runs"),
+            PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fake-runs"),
         )
         .expect_err("fake-run output outside simulated root must fail");
 

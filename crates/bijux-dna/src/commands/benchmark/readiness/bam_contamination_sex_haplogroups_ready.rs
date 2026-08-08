@@ -97,14 +97,14 @@ const CONTAMINATION_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS: [&str; 4] = [
     "adna_contamination_panel_screen.sam.bai",
     "adna_bam_reference.fasta",
     "adna_contamination_panel.dat",
-    "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.summary.json",
 ];
 const HAPLOGROUPS_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS: [&str; 5] = [
     "adna_y_haplogroup_panel.sam",
     "adna_y_haplogroup_panel.sam.bai",
     "adna_y_haplogroup_panel.tsv",
     "--reference_genome hg38",
-    "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups",
 ];
 
 fn bam_binding_specs() -> Vec<BamBindingSpec> {

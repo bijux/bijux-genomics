@@ -297,15 +297,15 @@ fn build_bam_genotyping_complete_report(
     let parser_row = render_bam_genotyping_parser_smoke_row(repo_root)?;
     let vcf_stats = render_vcf_stats_ready(repo_root, PathBuf::from(DEFAULT_VCF_STATS_READY_PATH))?;
     let vcf_qc = render_vcf_qc_ready(repo_root, PathBuf::from(DEFAULT_VCF_QC_READY_PATH))?;
-    let bam_pipeline_report_path =
-        repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json");
+    let bam_pipeline_report_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping.json");
     let bam_pipeline = validate_pipeline_dag_path(
         repo_root,
         &benchmark_local_pipeline_config_path(repo_root, EXPECTED_BAM_PIPELINE_ID),
         &bam_pipeline_report_path,
     )?;
     let cross_pipeline_report_path = repo_root.join(
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
     );
     let cross_pipeline = validate_pipeline_dag_path(
         repo_root,

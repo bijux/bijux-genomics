@@ -5,7 +5,7 @@ use std::process::Command;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> std::process::Output {
+fn run_cli_and_read_report(args: &[&str], report_path: &str) -> (std::process::Output, String) {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _repo_lock =
         support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
@@ -14,7 +14,7 @@ fn run_cli(args: &[&str]) -> std::process::Output {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -22,12 +22,19 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
         .args(args)
         .output()
-        .expect("run cli")
+        .expect("run cli");
+    let report = std::fs::read_to_string(repo_root.join(report_path)).expect("read report");
+    (output, report)
 }
 
 #[test]
 fn bench_local_validate_vcf_stage_catalog_ready_writes_governed_json_file() {
-    let output = run_cli(&["bench", "local", "validate-vcf-stage-catalog-ready"]);
+    let report_path =
+        "artifacts/benchmark-smoke/readiness/local-ready/VCF_STAGE_CATALOG_READY.json";
+    let (output, raw) = run_cli_and_read_report(
+        &["bench", "local", "validate-vcf-stage-catalog-ready"],
+        report_path,
+    );
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -36,15 +43,8 @@ fn bench_local_validate_vcf_stage_catalog_ready_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    assert_eq!(
-        String::from_utf8_lossy(&output.stdout).trim(),
-        "benchmarks/readiness/local-ready/VCF_STAGE_CATALOG_READY.json"
-    );
+    assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), report_path);
 
-    let repo_root = support::repo_root().expect("repo root");
-    let report_path =
-        repo_root.join("benchmarks/readiness/local-ready/VCF_STAGE_CATALOG_READY.json");
-    let raw = std::fs::read_to_string(&report_path).expect("read report");
     let parsed: serde_json::Value = serde_json::from_str(&raw).expect("parse report");
 
     assert_eq!(

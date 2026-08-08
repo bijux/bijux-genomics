@@ -60,7 +60,6 @@ fn write_benchmark_root(root: &Path) {
     write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
     write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
     write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
-    write_text(&root.join("benchmarks/readiness/local-ready/README.md"), "# Local-Ready Proof\n");
     write_text(
         &root.join("benchmarks/readiness/all-domain-schema-validation.json"),
         "{\n  \"ok\": true\n}\n",

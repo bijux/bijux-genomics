@@ -41,7 +41,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 #[test]
 fn bench_local_check_output_completion_json_reports_governed_51_stage_slice_complete() {
     let fake_run_root = "artifacts/benchmark-smoke/simulated-runs/stages-output-completion-cli";
-    let report_output = "benchmarks/readiness/local-ready/output-completion-report.cli.json";
+    let report_output =
+        "artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.cli.json";
 
     let _fake_run_manifest = run_cli_json(&[
         "bench",

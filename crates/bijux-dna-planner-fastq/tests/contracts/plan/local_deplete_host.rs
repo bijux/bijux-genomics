@@ -40,7 +40,10 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.tool_id.as_str(), "bowtie2");
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
-    assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_host"));
+    assert_eq!(
+        plan.out_dir,
+        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host")
+    );
     for (name, expected) in [
         ("reads_r1", "assets/toy/core-v1/fastq/reads_1.fastq"),
         ("reads_r2", "assets/toy/core-v1/fastq/reads_2.fastq"),
@@ -51,23 +54,23 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
     for (name, expected) in [
         (
             "host_depleted_reads_r1",
-            "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz",
         ),
         (
             "host_depleted_reads_r2",
-            "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R2.fastq.gz",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/host_depleted_R2.fastq.gz",
         ),
         (
             "removed_host_reads_r1",
-            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz",
         ),
         (
             "removed_host_reads_r2",
-            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz",
         ),
         (
             "host_depletion_report_json",
-            "benchmarks/readiness/local-ready/fastq.deplete_host/host_depletion_report.json",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/host_depletion_report.json",
         ),
     ] {
         assert_eq!(output_path(&plan, name), Path::new(expected));
@@ -84,13 +87,13 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
         (
             "removed_host_r1",
             serde_json::json!(
-                "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz"
+                "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz"
             ),
         ),
         (
             "removed_host_r2",
             serde_json::json!(
-                "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz"
+                "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz"
             ),
         ),
     ] {
@@ -103,15 +106,15 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
         command.iter().any(|part| part == "assets/reference/host/references/toy_host_reference")
             && command.iter().any(|part| {
                 part
-                    == "benchmarks/readiness/local-ready/fastq.deplete_host/bowtie2.host.metrics.txt"
+                    == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/bowtie2.host.metrics.txt"
             })
             && command.iter().any(|part| {
                 part
-                    == "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R%.fastq.gz"
+                    == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/host_depleted_R%.fastq.gz"
             })
             && command.iter().any(|part| {
                 part
-                    == "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R%.fastq.gz"
+                    == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host/removed_host_R%.fastq.gz"
             }),
         "local-ready plan command must materialize the governed Bowtie2 host index and metrics path"
     );

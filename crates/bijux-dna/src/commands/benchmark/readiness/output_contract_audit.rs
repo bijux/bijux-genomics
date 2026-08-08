@@ -1147,7 +1147,8 @@ mod tests {
     #[test]
     fn local_stage_proof_output_path_isolated_from_plan_evidence() {
         let root = tempfile::tempdir().expect("tempdir");
-        let stage_root = root.path().join("benchmarks/readiness/local-ready/bam.contamination");
+        let stage_root =
+            root.path().join("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination");
         fs::create_dir_all(&stage_root).expect("create stage root");
         let plan_path = stage_root.join("plan.json");
         let output_path = stage_root.join("summary.json");

@@ -546,7 +546,7 @@ fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result
         "bowtie2_build",
         "reference_index_output",
         "reference_index",
-        "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
         "FASTQ reference indexing",
     )?;
     ensure_stage_tool_asset_row(
@@ -564,7 +564,7 @@ fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result
         "star",
         "reference_index_output",
         "reference_index",
-        "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/star",
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/reference_index/star",
         "FASTQ reference indexing",
     )?;
     Ok(())
@@ -1229,7 +1229,7 @@ mod tests {
                 && row.asset_role == "reference_index_output"
                 && row.asset_id == "reference_index"
                 && row.asset_path
-                    == "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
+                    == "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.index_reference"
@@ -1244,7 +1244,7 @@ mod tests {
                 && row.asset_role == "reference_index_output"
                 && row.asset_id == "reference_index"
                 && row.asset_path
-                    == "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/star"
+                    == "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/reference_index/star"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.contamination"

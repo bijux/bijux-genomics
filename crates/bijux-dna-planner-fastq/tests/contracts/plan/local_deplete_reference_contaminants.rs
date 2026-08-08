@@ -23,7 +23,9 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
         plan.out_dir,
-        PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants")
+        PathBuf::from(
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants"
+        )
     );
 
     let input_r1 = plan
@@ -63,7 +65,7 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(
         retained_reads.path,
         PathBuf::from(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz"
         )
     );
     let retained_reads_r2 = plan
@@ -77,7 +79,7 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(
         retained_reads_r2.path,
         PathBuf::from(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R2.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R2.fastq.gz"
         )
     );
 
@@ -92,7 +94,7 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(
         removed_reads.path,
         PathBuf::from(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
         )
     );
     let removed_reads_r2 = plan
@@ -106,7 +108,7 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(
         removed_reads_r2.path,
         PathBuf::from(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
         )
     );
 
@@ -121,7 +123,7 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(
         report_json.path,
         PathBuf::from(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json"
         )
     );
 
@@ -139,13 +141,13 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(
         plan.params["removed_reads_r1"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
         )
     );
     assert_eq!(
         plan.params["removed_reads_r2"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
         )
     );
     assert_eq!(
@@ -161,13 +163,13 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
             part == "assets/reference/contaminants/references/toy_contaminant_reference"
         }) && plan.command.template.iter().any(|part| {
             part
-                == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
+                == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
         }) && plan.command.template.iter().any(|part| {
             part
-                == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R%.fastq.gz"
+                == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R%.fastq.gz"
         }) && plan.command.template.iter().any(|part| {
             part
-                == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R%.fastq.gz"
+                == "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R%.fastq.gz"
         }),
         "local-ready plan command must materialize the governed contaminant Bowtie2 index and metrics path"
     );

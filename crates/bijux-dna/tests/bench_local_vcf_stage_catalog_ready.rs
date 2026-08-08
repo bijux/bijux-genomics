@@ -45,7 +45,7 @@ fn bench_local_validate_vcf_stage_catalog_ready_reports_governed_goal_slice() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/VCF_STAGE_CATALOG_READY.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/VCF_STAGE_CATALOG_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(9));
@@ -104,7 +104,7 @@ fn bench_local_validate_vcf_stage_catalog_ready_reports_governed_goal_slice() {
     );
     assert_eq!(
         goal_209.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/vcf/no-empty-output-check.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/vcf/no-empty-output-check.json")
     );
     assert!(goal_209
         .get("detail")

@@ -116,9 +116,9 @@ const GENOTYPING_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS: [&str; 7] = [
     "corpus_01_bam_reference.fasta",
     "human_like_genotyping_candidate_sites.vcf",
     "human_like_genotyping_target_regions.txt",
-    "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
-    "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
-    "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.gl.json",
 ];
 
 fn bam_binding_specs() -> Vec<BamBindingSpec> {

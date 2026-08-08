@@ -31,7 +31,8 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("benchmarks/readiness/local-ready/fastq.deplete_rrna");
+    let output_dir =
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_rrna");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -39,7 +40,8 @@ fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result
     let plan_path = bijux_dna_api::v1::api::fastq::write_local_deplete_rrna_plan()?;
     assert_eq!(
         plan_path,
-        repo_root.join("benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json")
+        repo_root
+            .join("artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_rrna/plan.json")
     );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
@@ -74,13 +76,13 @@ fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result
     assert_eq!(
         payload["params"]["removed_reads_r1"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R1.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R1.fastq.gz"
         )
     );
     assert_eq!(
         payload["params"]["removed_reads_r2"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R2.fastq.gz"
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R2.fastq.gz"
         )
     );
     assert_eq!(payload["effective_params"]["emit_removed_reads"], serde_json::json!(true));

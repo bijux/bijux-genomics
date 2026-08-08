@@ -151,7 +151,7 @@ pub(crate) fn collect_essential_pipeline_corpus_asset_rows(
                 pipeline_id,
             );
         let report_path = repo_root
-            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
             .join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         for node in &report.nodes {

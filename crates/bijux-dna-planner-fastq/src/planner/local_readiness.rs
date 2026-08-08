@@ -26,15 +26,15 @@ const LOCAL_DEPLETE_RRNA_CONFIG_PATH: &str = "configs/bench/local/fastq-deplete-
 const LOCAL_SCREEN_TAXONOMY_CONFIG_PATH: &str = "configs/bench/local/fastq-screen-taxonomy.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_OUTPUT_DIR: &str =
-    "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants";
+    "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants";
 const DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR: &str =
-    "benchmarks/readiness/local-ready/fastq.index_reference";
+    "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference";
 const DEFAULT_LOCAL_DEPLETE_HOST_OUTPUT_DIR: &str =
-    "benchmarks/readiness/local-ready/fastq.deplete_host";
+    "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host";
 const DEFAULT_LOCAL_DEPLETE_RRNA_OUTPUT_DIR: &str =
-    "benchmarks/readiness/local-ready/fastq.deplete_rrna";
+    "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_rrna";
 const DEFAULT_LOCAL_SCREEN_TAXONOMY_OUTPUT_DIR: &str =
-    "benchmarks/readiness/local-ready/fastq.screen_taxonomy";
+    "artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy";
 
 #[derive(Debug, Deserialize)]
 struct LocalIndexReferencePlanConfig {

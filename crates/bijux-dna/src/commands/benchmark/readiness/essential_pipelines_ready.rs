@@ -210,7 +210,7 @@ pub(crate) fn render_essential_pipelines_ready(
 
     for expectation in PIPELINE_GOAL_EXPECTATIONS {
         let output_path = format!(
-            "benchmarks/readiness/local-ready/pipeline-dag/{}.json",
+            "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/{}.json",
             expectation.pipeline_id
         );
         record_goal_check(
@@ -226,7 +226,7 @@ pub(crate) fn render_essential_pipelines_ready(
                         expectation.pipeline_id,
                     ),
                     &repo_root
-                        .join("benchmarks/readiness/local-ready/pipeline-dag")
+                        .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
                         .join(format!("{}.json", expectation.pipeline_id)),
                 )?;
                 if !report.valid

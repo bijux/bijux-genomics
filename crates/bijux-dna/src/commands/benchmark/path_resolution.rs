@@ -15,7 +15,7 @@ pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures
 pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str = "benchmarks/readiness/hpc";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
-    "benchmarks/readiness/local-ready";
+    "artifacts/benchmark-smoke/readiness/local-ready";
 pub(crate) const DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE: &str = "runs/bench";
 pub(crate) const DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE: &str = "artifacts/benchmark-smoke/micro";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench/local-smoke";
@@ -446,7 +446,7 @@ mod tests {
 
         let error = ensure_path_stays_within_benchmark_readiness_hpc_root(
             repo_root,
-            Path::new("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json"),
             "HPC dry-run readiness output",
         )
         .expect_err("non-hpc readiness output should be rejected");
@@ -463,7 +463,7 @@ mod tests {
 
         let error = ensure_path_stays_within_benchmark_runs_root(
             repo_root,
-            Path::new("benchmarks/readiness/local-ready"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready"),
             "slurm dry-run output",
         )
         .expect_err("path outside runs root should be rejected");

@@ -43,7 +43,10 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(plan.tool_id.as_str(), "bcftools");
     assert_eq!(plan.resources.threads, 2);
     assert_eq!(plan.resources.mem_gb, 8);
-    assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping"));
+    assert_eq!(
+        plan.out_dir,
+        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping")
+    );
 
     let bam = plan
         .io
@@ -118,7 +121,9 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .unwrap_or_else(|| panic!("genotyping_bcf output missing from local-ready plan"));
     assert_eq!(
         bcf.path,
-        PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
+        PathBuf::from(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf"
+        )
     );
 
     let vcf = plan
@@ -129,7 +134,9 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .unwrap_or_else(|| panic!("genotyping_vcf output missing from local-ready plan"));
     assert_eq!(
         vcf.path,
-        PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
+        PathBuf::from(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"
+        )
     );
 
     let output_ids = plan
@@ -171,11 +178,15 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     );
     assert_eq!(
         plan.params["producer_contract"]["bcf"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf"
+        )
     );
     assert_eq!(
         plan.params["producer_contract"]["vcf"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"
+        )
     );
     assert_eq!(
         plan.params["sample_id"],
@@ -205,8 +216,8 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
             && command.contains(
                 "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
             )
-            && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
-            && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
+            && command.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf")
+            && command.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
             && command.contains("bcftools mpileup")
             && command.contains("bcftools +tag2tag")
             && command.contains("--PL-to-GP")
@@ -242,7 +253,7 @@ sample_id = " "
 min_posterior = 0.9
 min_call_rate = 0.5
 threads = 2
-output_dir = "benchmarks/readiness/local-ready/bam.genotyping"
+output_dir = "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping"
 "#,
             bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
             bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
@@ -280,7 +291,7 @@ sample_id = "bad-posterior-threshold"
 min_posterior = 1.1
 min_call_rate = 0.5
 threads = 2
-output_dir = "benchmarks/readiness/local-ready/bam.genotyping"
+output_dir = "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping"
 "#,
             bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
             bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
@@ -321,7 +332,7 @@ sample_id = "bad-call-rate-threshold"
 min_posterior = 0.9
 min_call_rate = -0.1
 threads = 2
-output_dir = "benchmarks/readiness/local-ready/bam.genotyping"
+output_dir = "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping"
 "#,
             bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
             bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),

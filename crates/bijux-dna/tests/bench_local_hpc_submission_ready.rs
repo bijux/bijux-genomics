@@ -45,7 +45,8 @@ fn run_hpc_submission_ready_report() -> serde_json::Value {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json");
+    let report_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json");
     serde_json::from_slice::<serde_json::Value>(&fs::read(&report_path).expect("read report"))
         .expect("parse report")
 }
@@ -79,7 +80,7 @@ fn bench_local_validate_hpc_submission_ready_reports_governed_blockers() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(99));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(97));
@@ -137,7 +138,8 @@ fn bench_local_validate_hpc_submission_ready_writes_governed_report_path() {
     let _payload = run_hpc_submission_ready_report();
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json");
+    let report_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json");
     assert!(report_path.is_file(), "HPC submission readiness report must exist");
 
     let report =
@@ -145,7 +147,7 @@ fn bench_local_validate_hpc_submission_ready_writes_governed_report_path() {
             .expect("parse report");
     assert_eq!(
         report.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json")
     );
     assert_eq!(report.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(2));
 }

@@ -73,7 +73,7 @@ fn bench_local_collect_runtime_metrics_rejects_stage_manifest_missing_runtime() 
             "--fake-run-root",
             fake_run_root,
             "--output",
-            "benchmarks/readiness/local-ready/runtime-metrics.missing-runtime.cli.json",
+            "artifacts/benchmark-smoke/readiness/local-ready/runtime-metrics.missing-runtime.cli.json",
             "--json",
         ])
         .output()

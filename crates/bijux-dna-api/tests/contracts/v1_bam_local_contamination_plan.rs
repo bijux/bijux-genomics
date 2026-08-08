@@ -33,7 +33,8 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_contamination_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.contamination");
+    let output_dir =
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -41,7 +42,8 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     let plan_path = bijux_dna_api::v1::api::bam::write_local_contamination_plan()?;
     assert_eq!(
         plan_path,
-        repo_root.join("benchmarks/readiness/local-ready/bam.contamination/plan.json")
+        repo_root
+            .join("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/plan.json")
     );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
@@ -153,7 +155,9 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         });
     assert_eq!(
         contamination_report["path"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.contamination/contamination.json")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.json"
+        )
     );
     let contamination_summary = outputs
         .iter()
@@ -164,7 +168,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
     assert_eq!(
         contamination_summary["path"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json"
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.summary.json"
         )
     );
     let stage_metrics = outputs
@@ -175,7 +179,9 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
         });
     assert_eq!(
         stage_metrics["path"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/stage.metrics.json"
+        )
     );
     assert!(
         payload["command"]["template"].as_array().is_some_and(|command| command.iter().any(
@@ -198,7 +204,7 @@ fn write_local_contamination_plan_materializes_governed_target_output() -> Resul
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json")
+                shell.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.summary.json")
             })
         )),
         "local-ready contamination command must carry the governed BAI, reference, panel, and summary-output paths"

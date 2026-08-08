@@ -48,7 +48,7 @@ fn plan_validate_popgen_structure_pipeline_reports_governed_profile() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),

@@ -14,7 +14,7 @@ fn plan_validate_local_pipeline_writes_governed_report_file() {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
     let output_path = repo_root
-        .join("benchmarks/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json");
+        .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json");
 
     if output_path.exists() {
         fs::remove_file(&output_path).expect("remove stale output");
@@ -39,7 +39,7 @@ fn plan_validate_local_pipeline_writes_governed_report_file() {
     );
     assert_eq!(
         String::from_utf8(output.stdout).expect("stdout utf8").trim(),
-        "benchmarks/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json"
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json"
     );
 
     let payload = fs::read_to_string(&output_path).expect("read output file");
