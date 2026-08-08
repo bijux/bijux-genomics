@@ -27,6 +27,7 @@ mod report_load;
 mod run_registry;
 mod run_suite;
 mod scientific_readiness;
+mod source_authority;
 mod stage_coverage;
 mod stage_report;
 mod stage_universe;
@@ -146,6 +147,7 @@ pub use scientific_readiness::{
     derive_scientific_readiness, publish_checked_in_scientific_readiness,
     render_scientific_readiness_markdown,
 };
+pub use source_authority::load_benchmark_data_source_spec;
 pub use stage_coverage::{
     derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
     BenchmarkCoverageWriteMode,

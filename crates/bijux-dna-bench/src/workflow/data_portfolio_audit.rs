@@ -12,11 +12,14 @@ use bijux_dna_bench_model::{
     BenchmarkDataPortfolioAudit, BenchmarkDataPortfolioAuditSummary,
     BenchmarkDataSourceSpecIdentity, BenchmarkEligibility, BenchmarkEvidenceScope,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset, DataIntegrityStatus,
-    BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
+    BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2, BENCHMARK_DATA_SOURCE_SCHEMA_V1,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1,
 };
 use serde::Deserialize;
 
-use crate::{load_benchmark_portfolio, load_fastq_corpus_source_spec};
+use crate::{
+    load_benchmark_data_source_spec, load_benchmark_portfolio, load_fastq_corpus_source_spec,
+};
 
 const PORTFOLIO_PATH: &str = "benchmarks/contracts/portfolio.toml";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
@@ -28,6 +31,11 @@ struct DataCatalogAuditMetadata {
     sample_accession: Option<String>,
     accession: Option<String>,
     access_terms: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct SourceSpecHeader {
+    schema_version: String,
 }
 
 #[derive(Deserialize)]
@@ -111,6 +119,7 @@ pub fn derive_benchmark_data_portfolio_audit(
             corpus.class,
             &corpus.roles,
             &corpus.truth_strategy,
+            &corpus.data_types,
         )?;
         let mut bindings = Vec::with_capacity(corpus.catalog_ids.len());
         let mut blockers = Vec::new();
@@ -448,28 +457,75 @@ fn source_spec_identities(
     class: BenchmarkCorpusClass,
     truth_roles: &[String],
     truth_strategy: &str,
+    data_types: &[String],
 ) -> Result<Vec<BenchmarkDataSourceSpecIdentity>> {
     let mut identities = Vec::with_capacity(paths.len());
     for relative in paths {
         let path = governed_file(repository_root, &repository_root.join(relative), "source spec")?;
         let bytes = read_bounded(&path, "source spec")?;
-        let spec = load_fastq_corpus_source_spec(&path)?;
-        if spec.portfolio_id != corpus_id
-            || spec.policy.class != class
-            || spec.policy.truth_roles != truth_roles
-            || spec.policy.truth_strategy != truth_strategy
-        {
-            bail!("FASTQ source specification disagrees with portfolio corpus {corpus_id}");
-        }
+        let header: SourceSpecHeader = toml::from_str(
+            std::str::from_utf8(&bytes).context("source specification is not UTF-8")?,
+        )
+        .with_context(|| format!("parse source specification header {}", path.display()))?;
+        let policy = match header.schema_version.as_str() {
+            FASTQ_CORPUS_SOURCE_SCHEMA_V1 => {
+                let spec = load_fastq_corpus_source_spec(&path)?;
+                ensure_source_identity(
+                    corpus_id,
+                    class,
+                    truth_roles,
+                    truth_strategy,
+                    &spec.portfolio_id,
+                    &spec.policy,
+                )?;
+                spec.policy
+            }
+            BENCHMARK_DATA_SOURCE_SCHEMA_V1 => {
+                let spec = load_benchmark_data_source_spec(&path)?;
+                ensure_source_identity(
+                    corpus_id,
+                    class,
+                    truth_roles,
+                    truth_strategy,
+                    &spec.portfolio_id,
+                    &spec.policy,
+                )?;
+                if spec.data_types != data_types {
+                    bail!(
+                        "benchmark data source specification disagrees with portfolio data types for {corpus_id}"
+                    );
+                }
+                spec.policy
+            }
+            schema => bail!("unsupported benchmark source specification schema {schema}"),
+        };
         identities.push(BenchmarkDataSourceSpecIdentity {
             path: relative.clone(),
             sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
-            projected_storage_bytes: Some(spec.policy.projected_storage_bytes),
-            projected_cpu_hours: Some(spec.policy.projected_cpu_hours),
+            projected_storage_bytes: Some(policy.projected_storage_bytes),
+            projected_cpu_hours: Some(policy.projected_cpu_hours),
         });
     }
     identities.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(identities)
+}
+
+fn ensure_source_identity(
+    corpus_id: &str,
+    class: BenchmarkCorpusClass,
+    truth_roles: &[String],
+    truth_strategy: &str,
+    source_portfolio_id: &str,
+    policy: &bijux_dna_bench_model::CorpusSourcePolicy,
+) -> Result<()> {
+    if source_portfolio_id != corpus_id
+        || policy.class != class
+        || policy.truth_roles != truth_roles
+        || policy.truth_strategy != truth_strategy
+    {
+        bail!("source specification disagrees with portfolio corpus {corpus_id}");
+    }
+    Ok(())
 }
 
 fn observed_sample_count(

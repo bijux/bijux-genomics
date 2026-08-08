@@ -95,7 +95,7 @@ pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result
     Ok(())
 }
 
-fn validate_source_policy(policy: &CorpusSourcePolicy) -> Result<(), BenchError> {
+pub(super) fn validate_source_policy(policy: &CorpusSourcePolicy) -> Result<(), BenchError> {
     if !matches!(
         policy.class,
         BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
@@ -449,7 +449,7 @@ fn validate_fastq_name(value: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
+pub(super) fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
     let mut bytes = value.bytes();
     if !bytes.next().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
         || !bytes.all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
@@ -459,14 +459,14 @@ fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_nonempty(value: &str, label: &str) -> Result<(), BenchError> {
+pub(super) fn validate_nonempty(value: &str, label: &str) -> Result<(), BenchError> {
     if value.trim().is_empty() || value != value.trim() {
         return Err(invalid(&format!("{label} is empty or malformed")));
     }
     Ok(())
 }
 
-fn validate_nonempty_list(values: &[String], label: &str) -> Result<(), BenchError> {
+pub(super) fn validate_nonempty_list(values: &[String], label: &str) -> Result<(), BenchError> {
     if values.is_empty() {
         return Err(invalid(&format!("{label} list is empty")));
     }
@@ -476,7 +476,7 @@ fn validate_nonempty_list(values: &[String], label: &str) -> Result<(), BenchErr
     Ok(())
 }
 
-fn validate_https(value: &str, label: &str) -> Result<(), BenchError> {
+pub(super) fn validate_https(value: &str, label: &str) -> Result<(), BenchError> {
     if value.strip_prefix("https://").is_none_or(str::is_empty)
         || value.chars().any(|ch| ch.is_ascii_whitespace() || ch == '\0')
     {
