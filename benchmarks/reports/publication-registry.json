@@ -4,8 +4,8 @@
     "current_product_count": 4,
     "active_stage_report_count": 0,
     "historical_stage_report_count": 7,
-    "quarantined_surface_count": 1,
-    "quarantined_file_count": 5
+    "quarantined_surface_count": 0,
+    "quarantined_file_count": 0
   },
   "current_products": [
     {
@@ -109,13 +109,5 @@
       "markdown_sha256": "5799d1adbb7c9a73e3744da4ac752a0b089f1ce0827b1b7d5ac5acfeace2f2d9"
     }
   ],
-  "quarantined_surfaces": [
-    {
-      "path_prefix": "benchmarks/readiness/",
-      "disposition": "quarantined_legacy_readiness",
-      "tracked_file_count": 5,
-      "tree_sha256": "eb98deeee3a9e3db30bc6ad73d0f19521a4ccc5af758637c7f3a74ccd35725b7",
-      "authority_policy": "Preserved migration evidence only; never admits campaigns, science, evidence books, or final gates."
-    }
-  ]
+  "quarantined_surfaces": []
 }

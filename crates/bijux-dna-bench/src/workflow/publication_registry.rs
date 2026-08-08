@@ -47,7 +47,8 @@ pub fn derive_benchmark_publication_registry(
             .then_with(|| left.source_commit.cmp(&right.source_commit))
             .then_with(|| left.json_path.cmp(&right.json_path))
     });
-    let quarantined_surfaces = vec![quarantined_readiness_surface(repository_root)?];
+    let quarantined_surfaces: Vec<BenchmarkQuarantinedPublicationSurface> =
+        quarantined_readiness_surface(repository_root)?.into_iter().collect();
     let summary = BenchmarkPublicationRegistrySummary {
         current_product_count: current_products.len(),
         active_stage_report_count: stage_reports
@@ -120,7 +121,7 @@ pub fn render_benchmark_publication_registry_markdown(
         "<!-- source: bijux-dna-bench::workflow::publication_registry -->".to_string(),
         "# Benchmark publication registry".to_string(),
         String::new(),
-        "Path presence does not confer current benchmark authority. Current products are deterministic crate-owned governance reports; stage evidence is active only in the top-level report namespace and historical only below its exact source commit; legacy readiness output is quarantined.".to_string(),
+        "Path presence does not confer current benchmark authority. Current products are deterministic crate-owned governance reports; stage evidence is active only in the top-level report namespace and historical only below its exact source commit; any tracked legacy readiness output is quarantined until removed.".to_string(),
         String::new(),
         format!("- Current governance products: **{}**", summary.current_product_count),
         format!("- Active stage reports: **{}**", summary.active_stage_report_count),
@@ -334,7 +335,7 @@ fn stage_publication(
 
 fn quarantined_readiness_surface(
     repository_root: &Path,
-) -> Result<BenchmarkQuarantinedPublicationSurface> {
+) -> Result<Option<BenchmarkQuarantinedPublicationSurface>> {
     let output = Command::new("git")
         .arg("-C")
         .arg(repository_root)
@@ -354,20 +355,20 @@ fn quarantined_readiness_surface(
         .collect::<Result<Vec<_>>>()?;
     paths.sort();
     if paths.is_empty() {
-        bail!("quarantined readiness surface has no tracked files");
+        return Ok(None);
     }
     let mut tree_basis = Vec::new();
     for path in &paths {
         let digest = file_sha256(&repository_root.join(path))?;
         tree_basis.extend_from_slice(format!("{digest}  {path}\n").as_bytes());
     }
-    Ok(BenchmarkQuarantinedPublicationSurface {
+    Ok(Some(BenchmarkQuarantinedPublicationSurface {
         path_prefix: "benchmarks/readiness/".to_string(),
         disposition: "quarantined_legacy_readiness".to_string(),
         tracked_file_count: paths.len(),
         tree_sha256: bijux_dna_infra::hash_bytes_sha256(&tree_basis),
         authority_policy: "Preserved migration evidence only; never admits campaigns, science, evidence books, or final gates.".to_string(),
-    })
+    }))
 }
 
 fn file_sha256(path: &Path) -> Result<String> {

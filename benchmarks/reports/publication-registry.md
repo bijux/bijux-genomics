@@ -2,12 +2,12 @@
 <!-- source: bijux-dna-bench::workflow::publication_registry -->
 # Benchmark publication registry
 
-Path presence does not confer current benchmark authority. Current products are deterministic crate-owned governance reports; stage evidence is active only in the top-level report namespace and historical only below its exact source commit; legacy readiness output is quarantined.
+Path presence does not confer current benchmark authority. Current products are deterministic crate-owned governance reports; stage evidence is active only in the top-level report namespace and historical only below its exact source commit; any tracked legacy readiness output is quarantined until removed.
 
 - Current governance products: **4**
 - Active stage reports: **0**
 - Historical stage reports: **7**
-- Quarantined tracked files: **5**
+- Quarantined tracked files: **0**
 
 ## Current products
 
@@ -34,4 +34,3 @@ Path presence does not confer current benchmark authority. Current products are 
 
 | Prefix | Files | Tree SHA-256 | Policy |
 |---|---:|---|---|
-| `benchmarks/readiness/` | 5 | `eb98deeee3a9e3db30bc6ad73d0f19521a4ccc5af758637c7f3a74ccd35725b7` | Preserved migration evidence only; never admits campaigns, science, evidence books, or final gates. |

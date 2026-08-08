@@ -1184,7 +1184,6 @@ fn worktree_has_source_changes(repo_root: &Path) -> Result<bool> {
             "--",
             ".",
             ":(exclude)artifacts/benchmark-smoke/micro",
-            ":(exclude)benchmarks/readiness/micro",
         ],
     )?
     .trim()

@@ -59,15 +59,6 @@ fn write_benchmark_root(root: &Path) {
     write_text(&root.join("benchmarks/configs/README.md"), "# Benchmark Configs\n");
     write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
     write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
-    write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
-    write_text(
-        &root.join("benchmarks/readiness/all-domain-schema-validation.json"),
-        "{\n  \"ok\": true\n}\n",
-    );
-    write_text(
-        &root.join("benchmarks/readiness/all-domain-stage-tool-table.tsv"),
-        "stage_id\ttool_id\nfastq.validate_reads\tfastp\n",
-    );
     write_text(&root.join("benchmarks/tests/fixtures/.gitkeep"), "");
 }
 
@@ -105,26 +96,22 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
         &repo_root.path().join("configs/ci/tools/images.toml"),
     );
     stage_all(repo_root.path());
-    write_text(
-        &repo_root.path().join("benchmarks/readiness/untracked-snapshot.json"),
-        "{\n  \"ok\": false\n}\n",
-    );
     seed_disposable_root(&disposable_root_path(
         repo_root.path(),
         "target",
-        "goal-315-json",
+        "cleanup-json",
         "sentinel.txt",
     ));
     seed_disposable_root(&disposable_root_path(
         repo_root.path(),
         "artifacts",
-        "goal-315-json",
+        "cleanup-json",
         "sentinel.txt",
     ));
     seed_disposable_root(&disposable_root_path(
         repo_root.path(),
         "runs",
-        "goal-315-json",
+        "cleanup-json",
         "sentinel.txt",
     ));
 
@@ -154,11 +141,11 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json")
+        Some("artifacts/benchmark-smoke/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json")
     );
     assert_eq!(
         payload.get("validator_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/benchmark-paths-validation.json")
+        Some("artifacts/benchmark-smoke/readiness/benchmark-paths-validation.json")
     );
     assert_eq!(payload.get("validator_ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
@@ -167,11 +154,11 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
     );
     assert_eq!(
         payload.get("validator_readiness_json_snapshot_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
     assert_eq!(
         payload.get("validator_readiness_tsv_snapshot_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
     assert_eq!(payload.get("deleted_root_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(

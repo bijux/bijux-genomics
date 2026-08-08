@@ -204,20 +204,22 @@ Visible aliases are part of the operator surface:
   coverage, output-contract coverage, expected-result coverage, and report-map coverage. The
   command fails closed if any fast active-scope surface drifts.
 - `bijux-dna bench paths validate`
-  `paths validate --strict` writes `benchmarks/readiness/benchmark-paths-validation.json` and
-  proves that the tracked `benchmarks/`, `benchmarks/configs/`, `benchmarks/schemas/`,
-  `benchmarks/tests/`, and `benchmarks/readiness/` roots exist, are not ignored by git, and each
-  carries a tracked marker file. It fails closed when any benchmark root is missing, ignored, or
-  only present as an untracked local directory. Benchmark-owned config, schema, fixture, and
-  pipeline consumers resolve fixtures directly through the shared benchmark path contract, with
-  explicit `--benchmark-root` taking precedence over `BIJUX_BENCHMARK_ROOT`, and the repository
-  default falling back to `benchmarks/`.
+  `paths validate --strict` writes
+  `artifacts/benchmark-smoke/readiness/benchmark-paths-validation.json` and proves that the tracked
+  `benchmarks/`, `benchmarks/configs/`, `benchmarks/schemas/`, and `benchmarks/tests/` roots exist,
+  are not ignored by git, and each carries a tracked marker file. It fails closed when any durable
+  benchmark root is missing or ignored, or when generated output is tracked under
+  `benchmarks/readiness/`. Benchmark-owned config, schema, fixture, and pipeline consumers resolve
+  fixtures directly through the shared benchmark path contract, with explicit `--benchmark-root`
+  taking precedence over `BIJUX_BENCHMARK_ROOT`, and the repository default falling back to
+  `benchmarks/`.
 - `bijux-dna bench paths prove-disposable-root-cleanup`
   `paths prove-disposable-root-cleanup` deletes the disposable repository roots `target/`,
   `artifacts/`, and `runs/`, reruns strict benchmark path validation, and writes
-  `benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json`. The proof fails closed if
-  any disposable root survives the cleanup step or if tracked benchmark truth depends on files
-  outside `benchmarks/`.
+  `artifacts/benchmark-smoke/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json`. The proof
+  fails closed if any disposable root survives the cleanup step or if tracked benchmark truth
+  depends on generated readiness output. The command recreates `artifacts/` only to publish its
+  validation and cleanup receipts.
 - `bijux-dna bench run`
 - `bijux-dna bench run-micro`
 - `bijux-dna bench data-index`
@@ -1429,7 +1431,7 @@ Visible aliases are part of the operator surface:
   index outputs where compressed VCF or BCF artifacts require them. The report fails closed unless
   every benchmark-ready VCF row has complete output declarations.
 - `bijux-dna bench readiness render-vcf-angsd-adapter`
-  `render-vcf-angsd-adapter` writes `benchmarks/readiness/adapters/angsd.vcf.json` with one
+  `render-vcf-angsd-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/angsd.vcf.json` with one
   governed row per admitted VCF `angsd` registry binding. Each row keeps the materialized BAM-list
   helper when the stage is BAM-backed, the governed reference and sites inputs, the declared
   likelihood model, the output prefix, the parser output ids, the concrete `angsd` argv, and a
@@ -1438,7 +1440,7 @@ Visible aliases are part of the operator surface:
   contract.
 - `bijux-dna bench readiness render-vcf-descent-family-adapter`
   `render-vcf-descent-family-adapter` writes
-  `benchmarks/readiness/adapters/descent-family.vcf.json` with one governed row per retained VCF
+  `artifacts/benchmark-smoke/readiness/adapters/descent-family.vcf.json` with one governed row per retained VCF
   descent binding across `plink2` for `vcf.roh`, `germline`, `ibdseq`, and `ibdhap` for `vcf.ibd`,
   and `ibdne` for `vcf.demography`. Each row keeps the cohort VCF or materialized IBD-segment TSV
   input, the normalized ROH, IBD, or demography output, the raw side outputs, the parser output
@@ -1446,7 +1448,7 @@ Visible aliases are part of the operator surface:
   benchmark status by keeping `plink2`, `germline`, and `ibdne` benchmark-ready while `ibdseq` and
   `ibdhap` remain explicit retained rows that are still not benchmark-ready.
 - `bijux-dna bench readiness render-vcf-eigensoft-adapter`
-  `render-vcf-eigensoft-adapter` writes `benchmarks/readiness/adapters/eigensoft.vcf.json` with
+  `render-vcf-eigensoft-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/eigensoft.vcf.json` with
   one governed row per admitted VCF `eigensoft` registry binding. Each row keeps the concrete
   `convertf` par file, the declared `.geno`, `.snp`, and `.ind` conversion outputs, the
   `smartpca` par file, the declared `.evec`, `.eval`, and `.smartpca.log` outputs, plus the
@@ -1454,7 +1456,7 @@ Visible aliases are part of the operator surface:
   unless both governed EIGENSOFT rows retain real conversion and PCA command rendering instead of
   drifting back to manual conversion or placeholder argv.
 - `bijux-dna bench readiness render-vcf-shapeit5-adapter`
-  `render-vcf-shapeit5-adapter` writes `benchmarks/readiness/adapters/shapeit5.vcf.json` with
+  `render-vcf-shapeit5-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/shapeit5.vcf.json` with
   the governed benchmark-ready `vcf.phasing` row for `shapeit5`. The report materializes the owned
   reference panel and genetic map, keeps the input cohort VCF, phased output VCF, index output,
   phase-block and switch-proxy reports, parser-visible phasing QC and phasing manifest outputs,
@@ -1462,7 +1464,7 @@ Visible aliases are part of the operator surface:
   retained benchmark phasing backend cannot drift back to placeholders or implicit panel/map
   wiring.
 - `bijux-dna bench readiness render-vcf-eagle-adapter`
-  `render-vcf-eagle-adapter` writes `benchmarks/readiness/adapters/eagle.vcf.json` with the
+  `render-vcf-eagle-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/eagle.vcf.json` with the
   retained-but-not-benchmark-ready `vcf.phasing` row for `eagle`. The report keeps the governed
   input cohort VCF, owned reference panel and genetic map, phased VCF, index output, phasing QC
   and phasing manifest parser outputs, log output, concrete `eagle --vcfTarget ... --vcfRef ...
@@ -1470,7 +1472,7 @@ Visible aliases are part of the operator surface:
   phasing coverage stays reviewer-visible instead of hiding behind the matrix’s single benchmark
   row.
 - `bijux-dna bench readiness render-vcf-beagle-adapter`
-  `render-vcf-beagle-adapter` writes `benchmarks/readiness/adapters/beagle.vcf.json` with the
+  `render-vcf-beagle-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/beagle.vcf.json` with the
   retained-but-not-benchmark-ready `vcf.phasing` row for `beagle`. The report keeps the governed
   input cohort VCF, owned reference panel and genetic map, phased VCF, index output, phasing QC
   and phasing manifest parser outputs, log output, concrete `beagle gt=... ref=... map=... out=...`
@@ -1478,7 +1480,7 @@ Visible aliases are part of the operator surface:
   parser-complete even when it is not the current benchmark binding.
 - `bijux-dna bench readiness render-vcf-imputation-family-adapter`
   `render-vcf-imputation-family-adapter` writes
-  `benchmarks/readiness/adapters/imputation-family.vcf.json` with one governed row per retained
+  `artifacts/benchmark-smoke/readiness/adapters/imputation-family.vcf.json` with one governed row per retained
   VCF imputation binding across `beagle`, `glimpse`, `impute5`, and `minimac4` for both
   `vcf.imputation_metrics` and `vcf.impute`. Each row keeps the target cohort VCF, owned reference panel
   VCF and `panel.m3vcf.gz` when required, genetic map or region literal when required, the
@@ -1487,7 +1489,7 @@ Visible aliases are part of the operator surface:
   The report stays honest about benchmark status by keeping `beagle` as the only benchmark-ready
   imputation backend while the other retained rows remain explicit and `not_benchmark_ready`.
 - `bijux-dna bench readiness render-vcf-plink-adapter`
-  `render-vcf-plink-adapter` writes `benchmarks/readiness/adapters/plink.vcf.json` with one
+  `render-vcf-plink-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/plink.vcf.json` with one
   governed row per admitted VCF `plink` registry binding. Each row keeps the concrete cohort
   command argv, declared input artifacts, raw PLINK outputs such as `.imiss`, `.lmiss`, `.frq`,
   `.het`, `.hwe`, `.bed`, `.bim`, `.fam`, and `.log`, plus the normalized metrics mapping to
@@ -1495,7 +1497,7 @@ Visible aliases are part of the operator surface:
   missing-input probe result and an explicit normalized-report mapping instead of leaving raw
   PLINK outputs unmapped.
 - `bijux-dna bench readiness render-vcf-plink2-adapter`
-  `render-vcf-plink2-adapter` writes `benchmarks/readiness/adapters/plink2.vcf.json` with one
+  `render-vcf-plink2-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/plink2.vcf.json` with one
   governed row per benchmarked VCF `plink2` matrix binding. Each row keeps the concrete command
   argv, declared input artifacts, raw PLINK2 outputs such as `.smiss`, `.vmiss`, `.afreq`,
   `.het`, `.hardy`, `.eigenvec`, `.eigenval`, `.hom`, `.prune.in`, `.prune.out`, and `.log`,
@@ -1504,7 +1506,7 @@ Visible aliases are part of the operator surface:
   PLINK2 PCA-proxy contract by keeping eigen outputs explicit instead of pretending PLINK2 owns a
   native Q-matrix artifact.
 - `bijux-dna bench readiness render-vcf-bcftools-adapter`
-  `render-vcf-bcftools-adapter` writes `benchmarks/readiness/adapters/bcftools.vcf.json` with
+  `render-vcf-bcftools-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/bcftools.vcf.json` with
   one governed row per retained VCF `bcftools` matrix binding. Each row keeps the concrete
   command-step argv, declared input artifacts, raw output artifacts, parser output artifacts, and
   a real missing-input probe result, so calling, filtering, GL propagation, postprocess, stats,

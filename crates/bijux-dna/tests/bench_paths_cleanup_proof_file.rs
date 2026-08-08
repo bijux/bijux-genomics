@@ -59,15 +59,6 @@ fn write_benchmark_root(root: &Path) {
     write_text(&root.join("benchmarks/configs/README.md"), "# Benchmark Configs\n");
     write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
     write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
-    write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
-    write_text(
-        &root.join("benchmarks/readiness/all-domain-schema-validation.json"),
-        "{\n  \"ok\": true\n}\n",
-    );
-    write_text(
-        &root.join("benchmarks/readiness/all-domain-stage-tool-table.tsv"),
-        "stage_id\ttool_id\nfastq.validate_reads\tfastp\n",
-    );
     write_text(&root.join("benchmarks/tests/fixtures/.gitkeep"), "");
 }
 
@@ -88,7 +79,7 @@ fn disposable_root_path(
 }
 
 #[test]
-fn bench_paths_cleanup_proof_writes_tracked_report_after_deleting_disposable_roots() {
+fn bench_paths_cleanup_proof_writes_artifact_report_after_deleting_disposable_roots() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let home = tempfile::tempdir().expect("tempdir");
@@ -107,11 +98,11 @@ fn bench_paths_cleanup_proof_writes_tracked_report_after_deleting_disposable_roo
     stage_all(repo_root.path());
 
     let target_sentinel =
-        disposable_root_path(repo_root.path(), "target", "goal-315-proof", "sentinel.txt");
+        disposable_root_path(repo_root.path(), "target", "cleanup-proof", "sentinel.txt");
     let artifacts_sentinel =
-        disposable_root_path(repo_root.path(), "artifacts", "goal-315-proof", "sentinel.txt");
+        disposable_root_path(repo_root.path(), "artifacts", "cleanup-proof", "sentinel.txt");
     let runs_sentinel =
-        disposable_root_path(repo_root.path(), "runs", "goal-315-proof", "sentinel.txt");
+        disposable_root_path(repo_root.path(), "runs", "cleanup-proof", "sentinel.txt");
     seed_disposable_root(&target_sentinel);
     seed_disposable_root(&artifacts_sentinel);
     seed_disposable_root(&runs_sentinel);
@@ -137,17 +128,17 @@ fn bench_paths_cleanup_proof_writes_tracked_report_after_deleting_disposable_roo
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json"
+        "artifacts/benchmark-smoke/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json"
     );
     assert!(!repo_root.path().join("target").exists());
-    assert!(!repo_root.path().join("artifacts").exists());
+    assert!(repo_root.path().join("artifacts").is_dir());
     assert!(!repo_root.path().join("runs").exists());
     assert!(!target_sentinel.exists());
     assert!(!artifacts_sentinel.exists());
     assert!(!runs_sentinel.exists());
     assert!(repo_root
         .path()
-        .join("benchmarks/readiness/benchmark-paths-validation.json")
+        .join("artifacts/benchmark-smoke/readiness/benchmark-paths-validation.json")
         .is_file());
 
     let payload: serde_json::Value = serde_json::from_slice(
@@ -166,11 +157,11 @@ fn bench_paths_cleanup_proof_writes_tracked_report_after_deleting_disposable_roo
     );
     assert_eq!(
         payload.get("validator_readiness_json_snapshot_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
     assert_eq!(
         payload.get("validator_readiness_tsv_snapshot_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 }
