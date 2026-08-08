@@ -14,12 +14,21 @@ use bijux_dna_bench_model::{
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset, DataIntegrityStatus,
     BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
 };
-use serde_json::Value;
+use serde::Deserialize;
 
 use crate::{load_benchmark_portfolio, load_fastq_corpus_source_spec};
 
 const PORTFOLIO_PATH: &str = "benchmarks/contracts/portfolio.toml";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
+
+#[derive(Deserialize)]
+struct DataCatalogAuditMetadata {
+    sample_count: Option<u64>,
+    samples: Option<Vec<serde::de::IgnoredAny>>,
+    sample_accession: Option<String>,
+    accession: Option<String>,
+    access_terms: Option<String>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BenchmarkDataPortfolioAuditRequest {
@@ -374,7 +383,7 @@ fn binding_from_record(
     if bijux_dna_infra::hash_bytes_sha256(&bytes) != record.catalog_sha256 {
         bail!("data catalog digest differs from index: {}", record.id);
     }
-    let catalog: Value = serde_json::from_slice(&bytes)
+    let catalog: DataCatalogAuditMetadata = serde_json::from_slice(&bytes)
         .with_context(|| format!("parse data catalog {}", catalog_path.display()))?;
     let (observed_sample_count, sample_count_authority) = observed_sample_count(&catalog)?;
     let access_terms = catalog_access_terms(&catalog)?;
@@ -451,31 +460,29 @@ fn source_spec_identities(
     Ok(identities)
 }
 
-fn observed_sample_count(catalog: &Value) -> Result<(Option<u64>, Option<String>)> {
-    let object = catalog.as_object().context("data catalog root must be an object")?;
-    if let Some(count) = object.get("sample_count").and_then(Value::as_u64) {
+fn observed_sample_count(
+    catalog: &DataCatalogAuditMetadata,
+) -> Result<(Option<u64>, Option<String>)> {
+    if let Some(count) = catalog.sample_count {
         return Ok((Some(count), Some("catalog.sample_count".to_string())));
     }
-    if let Some(samples) = object.get("samples").and_then(Value::as_array) {
+    if let Some(samples) = &catalog.samples {
         return Ok((
             Some(u64::try_from(samples.len()).context("sample count overflow")?),
             Some("catalog.samples".to_string()),
         ));
     }
-    if object.get("sample_accession").and_then(Value::as_str).is_some()
-        || object.get("accession").and_then(Value::as_str).is_some()
-    {
+    if catalog.sample_accession.is_some() || catalog.accession.is_some() {
         return Ok((Some(1), Some("catalog.sample_identity".to_string())));
     }
     Ok((None, None))
 }
 
-fn catalog_access_terms(catalog: &Value) -> Result<String> {
-    let object = catalog.as_object().context("data catalog root must be an object")?;
-    match object.get("access_terms") {
-        Some(Value::String(value)) if !value.trim().is_empty() => Ok(value.clone()),
-        None | Some(Value::Null) => Ok("not declared by governed catalog".to_string()),
-        _ => bail!("data catalog access_terms must be a non-empty string or null"),
+fn catalog_access_terms(catalog: &DataCatalogAuditMetadata) -> Result<String> {
+    match &catalog.access_terms {
+        Some(value) if !value.trim().is_empty() => Ok(value.clone()),
+        None => Ok("not declared by governed catalog".to_string()),
+        Some(_) => bail!("data catalog access_terms must be a non-empty string or null"),
     }
 }
 
