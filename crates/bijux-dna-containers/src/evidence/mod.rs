@@ -12,6 +12,7 @@ mod qualification_registry;
 mod run_evidence;
 mod runtime_verification;
 mod schema;
+mod security_toolchain;
 mod selection;
 pub mod tool_contract;
 mod validation;
@@ -104,6 +105,12 @@ pub use schema::{
     image_inventory_publication_schema, image_inventory_scan_schema,
     runtime_verification_publication_schema, write_image_inventory_publication_schema,
     write_image_inventory_scan_schema, write_runtime_verification_publication_schema,
+};
+pub use security_toolchain::{
+    load_security_scanner_toolchain_contract, verify_security_scanner_toolchain,
+    SecurityScannerBinary, SecurityScannerTool, SecurityScannerToolchainCompletion,
+    SecurityScannerToolchainContract, SECURITY_SCANNER_TOOLCHAIN_COMPLETION_SCHEMA_V1,
+    SECURITY_SCANNER_TOOLCHAIN_CONTRACT_SCHEMA_V1,
 };
 pub use selection::{resolve_catalog_locked_apptainer_image, CurrentApptainerImage};
 pub use tool_contract::{

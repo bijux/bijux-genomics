@@ -21,25 +21,27 @@ mod mod_contracts_image_selection_rs;
 mod mod_contracts_image_storage_reconciliation_rs;
 #[path = "contracts/matrix.rs"]
 mod mod_contracts_matrix_rs;
-#[path = "contracts/pipeline.rs"]
-mod mod_contracts_pipeline_rs;
 #[path = "contracts/pipeline_currentization.rs"]
 mod mod_contracts_pipeline_currentization_rs;
+#[path = "contracts/pipeline.rs"]
+mod mod_contracts_pipeline_rs;
 #[path = "contracts/pipeline_site_admission.rs"]
 mod mod_contracts_pipeline_site_admission_rs;
 #[path = "contracts/qualification_run_registry.rs"]
 mod mod_contracts_qualification_run_registry_rs;
 #[path = "contracts/registry_projection.rs"]
 mod mod_contracts_registry_projection_rs;
-#[path = "contracts/resolve_runtime.rs"]
-mod mod_contracts_resolve_runtime_rs;
-#[path = "contracts/run_evidence.rs"]
-mod mod_contracts_run_evidence_rs;
-#[path = "contracts/result_layout.rs"]
-mod mod_contracts_result_layout_rs;
-#[path = "contracts/run_shell_capture.rs"]
-mod mod_contracts_run_shell_capture_rs;
 #[path = "contracts/repository_freeze.rs"]
 mod mod_contracts_repository_freeze_rs;
+#[path = "contracts/resolve_runtime.rs"]
+mod mod_contracts_resolve_runtime_rs;
+#[path = "contracts/result_layout.rs"]
+mod mod_contracts_result_layout_rs;
+#[path = "contracts/run_evidence.rs"]
+mod mod_contracts_run_evidence_rs;
+#[path = "contracts/run_shell_capture.rs"]
+mod mod_contracts_run_shell_capture_rs;
+#[path = "contracts/security_toolchain.rs"]
+mod mod_contracts_security_toolchain_rs;
 #[path = "contracts/tool_contract.rs"]
 mod mod_contracts_tool_contract_rs;
