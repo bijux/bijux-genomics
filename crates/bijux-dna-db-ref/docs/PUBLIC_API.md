@@ -41,3 +41,4 @@ The remaining source modules are crate-private implementation namespaces:
    `docs/ARCHITECTURE.md`, this file, and boundary tests.
 4. Do not expose planner, runner, stage, environment, CLI, or API behavior
    through this crate.
+5. Do not expose materialization or fixture-writing operations; this crate is read-only.

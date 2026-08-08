@@ -13,6 +13,5 @@ pub(crate) use catalogs::{MapLocksConfig, MapsConfig, PanelLocksConfig, PanelsCo
 pub(crate) use load::{load_json, load_toml};
 pub(crate) use paths::workspace_root;
 pub(crate) use references::{
-    AssetHydrationConfig, AssetLocksConfig, GeneticMapBankConfig, OrganellarPolicyConfig,
-    ReferenceBankConfig, ReferenceSetConfig,
+    GeneticMapBankConfig, OrganellarPolicyConfig, ReferenceBankConfig, ReferenceSetConfig,
 };

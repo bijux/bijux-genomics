@@ -16,6 +16,7 @@ read-only library entrypoints.
 | `enforce-build-contigs` | `enforce_declared_build_and_contigs` | Validate declared build and observed contigs against authority metadata. |
 | `resolve-reference-bank` | `resolve_reference_bank` | Resolve reference bank metadata and checksum contract. |
 | `resolve-reference-bundle` | `resolve_reference_bundle` | Resolve a locked reference bundle and normalization policy. |
+| `resolve-reference-source-lock` | `resolve_reference_source_lock` | Validate exact source identity and acquisition-evidence closure for every bank entry. |
 | `normalize-contig-name` | `normalize_contig_name` | Normalize or reject contig names according to the bundle policy. |
 | `reference-provenance` | `reference_provenance` | Build provenance metadata from a resolved bundle. |
 | `resolve-genetic-map-bank` | `resolve_genetic_map_bank` | Resolve genetic map bank metadata for a species/build and optional panel. |

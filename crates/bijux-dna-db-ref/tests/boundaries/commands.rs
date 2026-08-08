@@ -13,6 +13,7 @@ fn commands_doc_lists_managed_operations() {
         "enforce-build-contigs",
         "resolve-reference-bank",
         "resolve-reference-bundle",
+        "resolve-reference-source-lock",
         "normalize-contig-name",
         "reference-provenance",
         "resolve-genetic-map-bank",
@@ -29,6 +30,37 @@ fn commands_doc_lists_managed_operations() {
     ];
 
     assert_eq!(operations, expected, "COMMANDS.md must list resolver operations in stable order");
+}
+
+#[test]
+fn resolver_source_remains_read_only() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut source = String::new();
+    collect_rust_source(&root, &mut source);
+
+    for forbidden in [
+        "std::fs::copy",
+        "std::fs::create_dir",
+        "std::fs::remove_",
+        "std::fs::rename",
+        "std::fs::write",
+        "std::process::Command",
+    ] {
+        assert!(!source.contains(forbidden), "read-only resolver source contains `{forbidden}`");
+    }
+}
+
+fn collect_rust_source(path: &Path, source: &mut String) {
+    for entry in
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
+    {
+        let path = entry.unwrap_or_else(|err| panic!("read entry: {err}")).path();
+        if path.is_dir() {
+            collect_rust_source(&path, source);
+        } else if path.extension().is_some_and(|extension| extension == "rs") {
+            source.push_str(&read_to_string(&path));
+        }
+    }
 }
 
 fn table_keys_after_heading(content: &str, heading: &str) -> Vec<String> {

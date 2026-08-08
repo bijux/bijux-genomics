@@ -25,6 +25,8 @@ src/
 - `runtime_config/` owns workspace path discovery, TOML loading, and config DTOs grouped by concern.
 
 This boundary keeps runtime loading, data contracts, and lookup behavior from collapsing back into broad root files.
+It also keeps fixture generation, downloads, index creation, and database materialization in their
+execution-owning crates rather than the metadata resolver.
 
 ## Test Tree
 
