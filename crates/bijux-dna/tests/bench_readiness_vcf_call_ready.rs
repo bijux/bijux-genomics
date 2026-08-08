@@ -85,7 +85,7 @@ fn bench_readiness_vcf_call_ready_reports_complete_retained_callers() {
     );
     assert_eq!(
         row.get("retained_scope_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
     assert_eq!(
         row.get("all_domain_active_row_present").and_then(serde_json::Value::as_bool),

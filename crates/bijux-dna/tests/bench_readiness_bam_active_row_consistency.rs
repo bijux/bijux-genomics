@@ -47,7 +47,7 @@ fn bench_readiness_bam_active_row_consistency_reports_governed_surface_alignment
     );
     assert_eq!(
         payload.get("active_matrix_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("passed_surface_count").and_then(serde_json::Value::as_u64), Some(6));

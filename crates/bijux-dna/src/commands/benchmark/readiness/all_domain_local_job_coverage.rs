@@ -16,7 +16,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_LOCAL_JOB_COVERAGE_PATH: &str =
-    "benchmarks/readiness/all-domains/local-job-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/local-job-coverage.tsv";
 const ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_local_job_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";

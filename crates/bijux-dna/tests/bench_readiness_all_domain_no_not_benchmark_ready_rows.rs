@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json")
     );
     let executable_active_row_count = support::json_u64(&payload, "executable_active_row_count")
         .expect("executable_active_row_count");

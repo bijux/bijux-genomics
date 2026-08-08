@@ -17,7 +17,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH: &str =
-    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json";
 const ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_local_operational_benchmark_complete.v1";
 
@@ -468,7 +468,7 @@ mod tests {
         assert_eq!(
             report.get("output_path").and_then(serde_json::Value::as_str),
             Some(
-                "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json"
+                "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json"
             )
         );
         assert_eq!(

@@ -32,7 +32,10 @@ fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domains/no-planned-rows.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/all-domains/no-planned-rows.json"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read all-domain no-planned-rows report");

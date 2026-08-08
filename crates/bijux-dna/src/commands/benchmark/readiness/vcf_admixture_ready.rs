@@ -408,7 +408,10 @@ fn build_vcf_admixture_ready_row(
         all_domain_active_row_present,
         all_domain_active_row_proof_path: binding.active_row.as_ref().map_or_else(
             || NO_VALUE.to_string(),
-            |_| "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+            |_| {
+                "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
+                    .to_string()
+            },
         ),
         command_ready,
         command_source: binding

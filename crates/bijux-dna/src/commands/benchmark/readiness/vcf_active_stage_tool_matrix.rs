@@ -29,12 +29,12 @@ const COMPLETE_SCOPE_DETAIL: &str = "complete";
 const LIFECYCLE_NOT_ACTIVE_SCOPE_DETAIL: &str = "lifecycle_not_active";
 const BENCHMARK_NOT_READY_SCOPE_DETAIL: &str = "benchmark_not_ready";
 const ACTIVE_SCOPE_PROOF_PATH: &str =
-    "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv";
 const COMPLETE_SCOPE_PROOF_PATH: &str = "benchmarks/readiness/vcf-expected-benchmark-results.tsv";
 const LIFECYCLE_NOT_ACTIVE_SCOPE_PROOF_PATH: &str =
-    "benchmarks/readiness/all-domains/no-planned-rows.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/no-planned-rows.json";
 const BENCHMARK_NOT_READY_SCOPE_PROOF_PATH: &str =
-    "benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {

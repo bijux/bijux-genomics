@@ -44,7 +44,7 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/active-stage-catalog.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(

@@ -21,7 +21,7 @@ pub(crate) const DEFAULT_FASTQ_TOOL_SCORES_PATH: &str =
 
 const FASTQ_TOOL_SCORES_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_tool_scores.v1";
 const DEFAULT_FULL_BENCHMARK_REPORT_PATH: &str =
-    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH: &str =
     "benchmarks/tests/fixtures/science/amplicon-truth/expected.json";
 const DEFAULT_AMPLICON_NORMALIZE_PRIMERS_MANIFEST_PATH: &str =

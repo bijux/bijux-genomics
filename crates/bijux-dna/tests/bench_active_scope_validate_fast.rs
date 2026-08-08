@@ -99,7 +99,9 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_active_stage_tool_matrix")
             && check.get("output_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
             && check.get("detail").and_then(serde_json::Value::as_str)
                 == Some("row_count=141, stage_count=69, tool_count=71")
     }));

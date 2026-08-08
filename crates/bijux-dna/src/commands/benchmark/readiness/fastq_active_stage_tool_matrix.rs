@@ -17,7 +17,7 @@ pub(crate) const DEFAULT_FASTQ_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
 const FASTQ_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_active_stage_tool_matrix.v1";
 const ACTIVE_SCOPE_PROOF_PATH: &str =
-    "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv";
 const REMOVED_FROM_SCOPE_PROOF_PATH: &str = "benchmarks/readiness/removed-from-scope.tsv";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
 const PLANNED_SUPPORT_STATUS: &str = "planned_contract";

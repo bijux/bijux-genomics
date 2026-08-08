@@ -49,7 +49,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/no-placeholder-command-check.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/no-placeholder-command-check.json")
     );
     assert_eq!(
         payload.get("script_output_path").and_then(serde_json::Value::as_str),

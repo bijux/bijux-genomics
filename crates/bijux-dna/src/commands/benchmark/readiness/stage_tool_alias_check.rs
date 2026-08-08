@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_ALIAS_CHECK_PATH: &str =
-    "benchmarks/readiness/all-domains/stage-tool-alias-check.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/stage-tool-alias-check.json";
 const STAGE_TOOL_ALIAS_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.stage_tool_alias_check.v1";
 const ACCEPTED_SCOPE_MIGRATION_VALIDATION_ONLY: &str = "migration_validation_only";

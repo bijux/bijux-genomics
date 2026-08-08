@@ -319,7 +319,7 @@ Visible aliases are part of the operator surface:
   identities stay unique and stable across all governed benchmark-ready domains.
 - `bijux-dna bench readiness render-all-domain-local-harness-complete`
   `render-all-domain-local-harness-complete` writes
-  `benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json` and fail-closes across
+  `artifacts/benchmark-smoke/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json` and fail-closes across
   Goal 398.
   The gate reruns the governed all-domain stage inventory, stage-tool table, expected-result
   table, rendered commands, output declarations, fake-runner, fake failures, completion checker,
@@ -372,8 +372,8 @@ Visible aliases are part of the operator surface:
   distinct from unsupported pairs.
 - `bijux-dna bench readiness render-full-benchmark-dashboard`
   `render-full-benchmark-dashboard` writes
-  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
-  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the
+  `artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
+  `artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the
   required summary counts for total stages, total tools, total expected jobs, ready jobs,
   blocked jobs, missing parsers, missing adapters, missing assets, and failed real smokes
   directly from the governed all-domain stage inventory, expected-result, rendered-command,
@@ -381,8 +381,8 @@ Visible aliases are part of the operator surface:
   dashboard number matches those machine-readable source surfaces exactly.
 - `bijux-dna bench readiness render-full-benchmark-report`
   `render-full-benchmark-report` writes
-  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
-  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one
+  `artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
+  `artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one
   canonical report row per all-domain expected benchmark binding, keeps the governed
   missing-result rows visible, appends the explicit unsupported pair row, and then builds the
   required stage-centric, tool-centric, corpus-centric, pipeline-centric, runtime, memory,
@@ -1114,7 +1114,7 @@ Visible aliases are part of the operator surface:
   appears exactly once in the unified cross-domain view.
 - `bijux-dna bench readiness render-all-domain-active-stage-catalog`
   `render-all-domain-active-stage-catalog` writes
-  `benchmarks/readiness/all-domains/active-stage-catalog.tsv` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv` with one governed row per active
   FASTQ, BAM, and VCF stage across the unified local benchmark surface. Each row keeps `domain`,
   `stage_id`, `readiness_kind`, `active_tool_count`, `benchmark_ready_tool_count`,
   `parser_row_count`, `parser_covered_row_count`, `schema_present`, `report_row_count`,
@@ -1125,7 +1125,7 @@ Visible aliases are part of the operator surface:
   stages stay represented without drift.
 - `bijux-dna bench readiness render-all-domain-parser-fixture-coverage`
   `render-all-domain-parser-fixture-coverage` writes
-  `benchmarks/readiness/all-domains/parser-fixture-coverage.tsv` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/all-domains/parser-fixture-coverage.tsv` with one governed row per active
   FASTQ, BAM, and VCF job-bearing binding. Each row keeps `domain`, `stage_id`, `tool_id`,
   `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`,
   `parser_fixture_parser_id`, `parser_fixture_schema_id`, `parser_fixture_reference_kind`,
@@ -1134,7 +1134,7 @@ Visible aliases are part of the operator surface:
   retains covered parser proof from the domain-local parser coverage surfaces.
 - `bijux-dna bench readiness render-all-domain-active-stage-tool-matrix`
   `render-all-domain-active-stage-tool-matrix` writes
-  `benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv` with one governed row per
+  `artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv` with one governed row per
   active FASTQ, BAM, and VCF stage-tool binding. Each row keeps `domain`, `stage_id`, `tool_id`,
   `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, and unified lifecycle
   `status` explicit. Active scope excludes `planned`, `future`, and equivalent not-yet-active
@@ -1144,7 +1144,7 @@ Visible aliases are part of the operator surface:
   its stage coverage matches the all-domain active stage catalog.
 - `bijux-dna bench readiness render-all-domain-adapter-coverage`
   `render-all-domain-adapter-coverage` writes
-  `benchmarks/readiness/all-domains/adapter-coverage.tsv` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/all-domains/adapter-coverage.tsv` with one governed row per active
   FASTQ, BAM, and VCF result binding in final job-bearing active scope. Each row keeps
   `result_id`, `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
   `readiness_kind`, `command_source`, explicit command-step identity, primary executables,
@@ -1152,7 +1152,7 @@ Visible aliases are part of the operator surface:
   retains executable rendered-command proof and active-scope command coverage stays at 100%.
 - `bijux-dna bench readiness render-all-domain-expected-result-coverage`
   `render-all-domain-expected-result-coverage` writes
-  `benchmarks/readiness/all-domains/expected-result-coverage.tsv` with one governed row per
+  `artifacts/benchmark-smoke/readiness/all-domains/expected-result-coverage.tsv` with one governed row per
   active FASTQ, BAM, and VCF result binding in final job-bearing active scope. Each row keeps
   `result_id`, `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
   `parser_id`, `schema_id`, expected outputs, expected metrics, the governed `report_section`,
@@ -1160,7 +1160,7 @@ Visible aliases are part of the operator surface:
   active binding retains one canonical expected-result row.
 - `bijux-dna bench readiness render-all-domain-active-scope-blockers`
   `render-all-domain-active-scope-blockers` writes
-  `benchmarks/readiness/all-domains/active-scope-blockers.tsv` with one governed row per
+  `artifacts/benchmark-smoke/readiness/all-domains/active-scope-blockers.tsv` with one governed row per
   candidate FASTQ, BAM, and VCF binding that is intentionally outside the final job-bearing
   active scope. Each row keeps `domain`, `stage_id`, `tool_id`, `corpus_id`,
   `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, `status`, `adapter_status`,
@@ -1170,7 +1170,7 @@ Visible aliases are part of the operator surface:
   exact blocker row and remains absent from those governed active downstream surfaces.
 - `bijux-dna bench readiness render-all-domain-active-scope-complete`
   `render-all-domain-active-scope-complete` writes
-  `benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json` and fail-closes unless the
+  `artifacts/benchmark-smoke/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json` and fail-closes unless the
   governed final all-domain active scope is non-ambiguous. The report keeps active and removed
   row counts explicit, records one check row per retained-tool, active-catalog, active-matrix,
   active-scope reduction, removed-scope, alias, parser, adapter, output-contract, expected-result,
@@ -1179,7 +1179,7 @@ Visible aliases are part of the operator surface:
   paths.
 - `bijux-dna bench readiness render-all-domain-local-job-coverage`
   `render-all-domain-local-job-coverage` writes
-  `benchmarks/readiness/all-domains/local-job-coverage.tsv` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/all-domains/local-job-coverage.tsv` with one governed row per active
   FASTQ, BAM, and VCF result binding in final job-bearing active scope. Each row keeps
   `result_id`, `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
   `parser_id`, `schema_id`, `readiness_kind`, `benchmark_status`, `command_source`,
@@ -1189,7 +1189,7 @@ Visible aliases are part of the operator surface:
   local benchmark job row.
 - `bijux-dna bench readiness render-all-domain-no-placeholder-command-check`
   `render-all-domain-no-placeholder-command-check` writes
-  `benchmarks/readiness/all-domains/no-placeholder-command-check.json` and audits every active
+  `artifacts/benchmark-smoke/readiness/all-domains/no-placeholder-command-check.json` and audits every active
   FASTQ, BAM, and VCF command step in the governed all-domain rendered-command surface. The
   report keeps row, stage, tool, command-source, and shell-wrapper counts explicit, records
   per-step `command_heads`, real-invocation booleans, and row-level finding sets, and fails
@@ -1197,7 +1197,7 @@ Visible aliases are part of the operator surface:
   unconditional success stubs, an empty executable, or a missing real tool invocation.
 - `bijux-dna bench readiness render-all-domain-report-map-coverage`
   `render-all-domain-report-map-coverage` writes
-  `benchmarks/readiness/all-domains/report-map-coverage.tsv` with one governed row per active
+  `artifacts/benchmark-smoke/readiness/all-domains/report-map-coverage.tsv` with one governed row per active
   FASTQ, BAM, and VCF result binding in final job-bearing active scope. Each row keeps
   `result_id`, `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
   `parser_id`, `schema_id`, expected and observed report sections, `summary_table_id`,
@@ -1205,7 +1205,7 @@ Visible aliases are part of the operator surface:
   closed unless every active binding appears in a governed report-map section.
 - `bijux-dna bench readiness render-all-domain-output-contract-coverage`
   `render-all-domain-output-contract-coverage` writes
-  `benchmarks/readiness/all-domains/output-contract-coverage.tsv` with one governed row per
+  `artifacts/benchmark-smoke/readiness/all-domains/output-contract-coverage.tsv` with one governed row per
   active FASTQ, BAM, and VCF result binding in final job-bearing active scope. Each row keeps
   `result_id`, `domain`, `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`,
   the domain-owned `proof_source`, source and all-domain output-contract statuses, declared raw
@@ -1214,14 +1214,14 @@ Visible aliases are part of the operator surface:
   outputs, normalized metrics, logs, manifest, and required index declarations.
 - `bijux-dna bench readiness render-all-domain-no-declared-only-rows`
   `render-all-domain-no-declared-only-rows` writes
-  `benchmarks/readiness/all-domains/no-declared-only-rows.json` and audits the governed
+  `artifacts/benchmark-smoke/readiness/all-domains/no-declared-only-rows.json` and audits the governed
   all-domain active scope after requiring executable adapter coverage. The report keeps
   lifecycle-active and final active row, stage, and tool counts explicit, records any
   lifecycle-active rows removed for non-executable adapter statuses, and fails closed if any
   active row still lacks a `runnable` or `plannable` adapter contract.
 - `bijux-dna bench readiness render-all-domain-no-not-benchmark-ready-rows`
   `render-all-domain-no-not-benchmark-ready-rows` writes
-  `benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json` and audits the governed
+  `artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json` and audits the governed
   all-domain active scope after executable-active rows are reduced to benchmark-ready job scope.
   The report keeps executable-active and final active row, stage, and tool counts explicit,
   records each removed `not_benchmark_ready` row, and fails closed if any active row still carries
@@ -1326,7 +1326,7 @@ Visible aliases are part of the operator surface:
   does not yield a parseable version, or misses its governed version regex.
 - `bijux-dna bench readiness render-stage-tool-alias-check`
   `render-stage-tool-alias-check` writes
-  `benchmarks/readiness/all-domains/stage-tool-alias-check.json` and audits the governed
+  `artifacts/benchmark-smoke/readiness/all-domains/stage-tool-alias-check.json` and audits the governed
   all-domain candidate, active, expected-result, and rendered-command surfaces for stale stage or
   tool aliases. The report keeps the accepted migration-validation stage alias inventory explicit,
   discovers any separator-folded tool alias clusters from the governed candidate surface, and
@@ -1342,7 +1342,7 @@ Visible aliases are part of the operator surface:
   closed unless every removed binding is absent from those governed active downstream surfaces.
 - `bijux-dna bench readiness render-all-domain-no-planned-rows`
   `render-all-domain-no-planned-rows` writes
-  `benchmarks/readiness/all-domains/no-planned-rows.json` and audits the governed all-domain
+  `artifacts/benchmark-smoke/readiness/all-domains/no-planned-rows.json` and audits the governed all-domain
   active scope after removing `planned`, `future`, and equivalent not-yet-active lifecycle rows.
   The report keeps active row, stage, and tool counts explicit, records the removed non-active
   rows and their status counts, and fails closed if any disallowed row remains in active scope.

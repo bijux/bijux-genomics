@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_PATH: &str =
-    "benchmarks/readiness/all-domains/expected-result-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/expected-result-coverage.tsv";
 const ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_expected_result_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";

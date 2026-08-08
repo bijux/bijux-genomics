@@ -143,7 +143,9 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
                 != Some("declared_only")
             && row.get("corpus_status").and_then(serde_json::Value::as_str) != Some("planner_only")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().all(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) != Some("fastuniq")

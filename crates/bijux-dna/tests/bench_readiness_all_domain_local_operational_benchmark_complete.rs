@@ -8,7 +8,7 @@ mod support;
 fn read_committed_json() -> serde_json::Value {
     let repo_root = support::repo_root().expect("repo root");
     let payload = std::fs::read(repo_root.join(
-        "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json",
+        "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json",
     ))
     .expect("read committed all-domain operational benchmark gate");
     serde_json::from_slice(&payload).expect("parse committed all-domain operational benchmark gate")
@@ -25,7 +25,7 @@ fn bench_readiness_all_domain_local_operational_benchmark_complete_reports_green
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some(
-            "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json"
+            "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json"
         )
     );
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(3));

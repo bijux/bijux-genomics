@@ -13,13 +13,14 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_SCOPE_BLOCKERS_PATH: &str =
-    "benchmarks/readiness/all-domains/active-scope-blockers.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/active-scope-blockers.tsv";
 const DEFAULT_REMOVED_FROM_SCOPE_SOURCE_PATH: &str = "benchmarks/readiness/removed-from-scope.tsv";
-const DEFAULT_NO_PLANNED_ROWS_PATH: &str = "benchmarks/readiness/all-domains/no-planned-rows.json";
+const DEFAULT_NO_PLANNED_ROWS_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/all-domains/no-planned-rows.json";
 const DEFAULT_NO_NOT_BENCHMARK_READY_ROWS_PATH: &str =
-    "benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json";
 const DEFAULT_NO_DECLARED_ONLY_ROWS_PATH: &str =
-    "benchmarks/readiness/all-domains/no-declared-only-rows.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/no-declared-only-rows.json";
 const ALL_DOMAIN_ACTIVE_SCOPE_BLOCKERS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_active_scope_blockers.v1";
 const BLOCKER_TYPE_LIFECYCLE_NOT_ACTIVE: &str = "lifecycle_not_active";

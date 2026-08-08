@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/local-job-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/local-job-coverage.tsv")
     );
     assert_eq!(
         payload.get("script_output_path").and_then(serde_json::Value::as_str),

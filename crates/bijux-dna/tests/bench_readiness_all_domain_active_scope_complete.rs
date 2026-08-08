@@ -42,7 +42,7 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json")
     );
     assert!(payload
         .get("active_row_count")
