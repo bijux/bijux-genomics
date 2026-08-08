@@ -3,13 +3,13 @@ site:
   id: lunarc
   hostname_regex: '^(cosmos[0-9]+(\.int\.lunarc)?|cn[0-9]+(\.int(\.lunarc)?)?)$'
 paths:
-  study_root: /home/bijan/lu2024-12-24/Dardel/STUDY
-  containers_root: /home/bijan/lu2024-12-24/Dardel/STUDY/containers
-  data_root: /home/bijan/lu2024-12-24/Dardel/STUDY/data
-  results_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results
-  finalization_root: /home/bijan/lu2024-12-24/Dardel/STUDY/evidence/finalization
+  study_root: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY
+  containers_root: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers
+  data_root: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/data
+  results_root: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results
+  finalization_root: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/evidence/finalization
   active_repository: /home/bijan/bijux/bijux-genomics
-  frozen_repositories: /home/bijan/lu2024-12-24/Dardel/STUDY/data/evidence/source-checkouts
+  frozen_repositories: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/data/evidence/source-checkouts
 runtime:
   apptainer_architecture: linux/amd64
 slurm:

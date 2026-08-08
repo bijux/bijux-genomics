@@ -42,7 +42,7 @@ roster through one resumable campaign owner:
 
 ```console
 cargo run -p bijux-dna -- env ensure-images \
-  --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
+  --hpc-root /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY \
   --all-retained \
   --campaign \
   --jobs 4 \
@@ -74,7 +74,7 @@ commit-addressed checkout. Both outputs are immutable and the command refuses
 to replace either path:
 
 ```console
-study_root="/home/bijan/lu2024-12-24/Dardel/STUDY"
+study_root="/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY"
 image_commit="${image_commit:?set exact image campaign commit}"
 source_repository="${study_root}/artifacts/source-checkouts/bijux-genomics-${image_commit:0:10}"
 image_root="${study_root}/containers/staging/${image_commit}"
@@ -194,15 +194,15 @@ Slurm execution so hostname-sensitive runtimes behave consistently without
 restoring network access:
 
 ```console
-runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
+runtime_root="/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
 publication_root="${runtime_root}/publication"
 
 cargo run -p bijux-dna-containers-qa --bin runtime_verification -- execute \
   "${source_repository}" \
-  /home/bijan/lu2024-12-24/Dardel/STUDY \
+  /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY \
   "${canonical_inventory}" \
   "$(command -v apptainer)" \
-  /home/bijan/lu2024-12-24/Dardel/STUDY/data \
+  /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/data \
   "${runtime_root}" \
   "${publication_root}/runtime-verification.json" \
   "${publication_root}/runtime-verification.md" \
@@ -268,7 +268,7 @@ the domain-appropriate reader, and record its SHA-256 in `config-pipeline.yml`.
 For the paired FASTQ corpus used by the current real-run examples:
 
 ```console
-data_root="/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817"
+data_root="/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817"
 gzip -t "${data_root}/ERR1021817.read-prefix-100000_1.fastq.gz"
 gzip -t "${data_root}/ERR1021817.read-prefix-100000_2.fastq.gz"
 sha256sum "${data_root}/ERR1021817.read-prefix-100000_1.fastq.gz" \
@@ -284,7 +284,7 @@ container runtime contracts. Container runs consume its verified index
 instead of encoding knowledge of individual catalog shapes:
 
 ```console
-study=/home/bijan/lu2024-12-24/Dardel/STUDY
+study=/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY
 evidence="$study/data/evidence/indexes/$(git rev-parse HEAD)"
 cargo run -q -p bijux-dna -- bench data-index \
   --catalog-root "$study/data/catalog" \
@@ -315,7 +315,7 @@ cargo build --locked --release -p bijux-dna-dev
 operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
 test -x "${operator_program}"
 
-run_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1125-trimmomatic"
+run_spec="/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/evidence/specifications/run-1125-trimmomatic"
 attempt_id=attempt-001
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
   "${attempt_id}" \
@@ -325,7 +325,7 @@ cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
   "${operator_program}" \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1125-trimmomatic/attempts/${attempt_id}/qualification-spec.json"
+qualification_spec="/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/evidence/submissions/run-1125-trimmomatic/attempts/${attempt_id}/qualification-spec.json"
 cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
   "${qualification_spec}"
 ```
@@ -333,7 +333,7 @@ cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
 To validate every staged specification before submitting any of them, run:
 
 ```console
-spec_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications"
+spec_root="/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/evidence/specifications"
 for run_spec in "${spec_root}"/run-*-*; do
   cargo run -q -p bijux-dna-dev -- containers run credential-reference -- validate \
     "${run_spec}/config-credential.yml"
@@ -399,7 +399,7 @@ Import one completed run by bounding the identifier. For a full replay, use an
 empty artifact directory so existing tracked evidence is never overwritten:
 
 ```console
-result_root="/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation"
+result_root="/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation"
 
 # One run
 cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
