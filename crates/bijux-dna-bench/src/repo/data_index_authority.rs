@@ -7,9 +7,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_benchmark_data_index, validate_governed_data_catalog_registry, BenchmarkDataIndex,
-    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
-    BenchmarkEligibility, BenchmarkTemporalProvenance, DataIntegrityStatus,
+    validate_benchmark_data_index, validate_governed_data_catalog_document,
+    validate_governed_data_catalog_registry, BenchmarkDataIndex, BenchmarkDataIndexFile,
+    BenchmarkDataIndexRecord, BenchmarkDataIndexSummary, BenchmarkEligibility,
+    BenchmarkTemporalProvenance, DataIntegrityStatus, GovernedDataCatalogDocument,
     GovernedDataCatalogRegistry, GovernedDataCatalogSnapshot, BENCHMARK_DATA_INDEX_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
@@ -215,6 +216,20 @@ fn normalize_record(
     if stable_data_path(catalog_path, data_root)? != snapshot.catalog_path {
         bail!("catalog snapshot path drifted: {}", catalog_path.display());
     }
+    let document: GovernedDataCatalogDocument = serde_json::from_value(value.clone())
+        .with_context(|| {
+            format!("parse governed v2 catalog document {}", catalog_path.display())
+        })?;
+    validate_governed_data_catalog_document(&document).with_context(|| {
+        format!("validate governed v2 catalog document {}", catalog_path.display())
+    })?;
+    let record = match &document {
+        GovernedDataCatalogDocument::Preserved(catalog) => catalog
+            .preserved_catalog
+            .as_object()
+            .context("preserved catalog payload is not an object")?,
+        GovernedDataCatalogDocument::Materialized(_) => record,
+    };
     let purpose = required_text(record, "purpose", id)?.to_string();
     let access_classification = required_text(record, "access_classification", id)?.to_string();
     let redistribution_classification =

@@ -3,6 +3,7 @@
 
 mod bam_corpus_authority;
 mod catalog_registry_authority;
+mod catalog_snapshot_authority;
 mod corpus_authority;
 mod data_index_authority;
 mod repo_root;
@@ -18,6 +19,10 @@ pub use bam_corpus_authority::{
 pub use catalog_registry_authority::{
     publish_governed_data_catalog_registry, GovernedDataCatalogRegistryPublication,
     GovernedDataCatalogRegistryPublicationRequest,
+};
+pub use catalog_snapshot_authority::{
+    publish_governed_data_catalog_snapshots, GovernedDataCatalogSnapshotPublication,
+    GovernedDataCatalogSnapshotRequest,
 };
 pub use corpus_authority::admit_fastq_benchmark_corpus;
 pub use data_index_authority::{

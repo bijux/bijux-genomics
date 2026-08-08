@@ -5,7 +5,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::{validate_governed_data_catalog_registry, GovernedDataCatalogRegistry};
+use bijux_dna_bench_model::{
+    validate_governed_data_catalog_document, validate_governed_data_catalog_registry,
+    GovernedDataCatalogDocument, GovernedDataCatalogRegistry,
+};
 use serde::Serialize;
 
 const MAX_REGISTRY_BYTES: usize = 16 * 1024 * 1024;
@@ -113,15 +116,22 @@ fn verify_registry_closure(registry: &GovernedDataCatalogRegistry, data_root: &P
             if observed != snapshot.catalog_sha256 {
                 bail!("catalog snapshot digest drifted: {}", path.display());
             }
-            let value: serde_json::Value = serde_json::from_slice(
-                &bijux_dna_infra::read_to_end_bounded(&path, MAX_REGISTRY_BYTES)?,
-            )
-            .with_context(|| format!("parse catalog snapshot {}", path.display()))?;
+            let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_REGISTRY_BYTES)?;
+            let value: serde_json::Value = serde_json::from_slice(&bytes)
+                .with_context(|| format!("parse catalog snapshot {}", path.display()))?;
             if value.get("id").and_then(serde_json::Value::as_str) != Some(record.id.as_str())
                 || value.get("schema_version").and_then(serde_json::Value::as_str)
                     != Some(snapshot.catalog_schema_version.as_str())
             {
                 bail!("catalog snapshot identity or schema drifted: {}", path.display());
+            }
+            if snapshot.catalog_schema_version
+                == bijux_dna_bench_model::GOVERNED_DATA_CATALOG_SCHEMA_V2
+            {
+                let document: GovernedDataCatalogDocument = serde_json::from_slice(&bytes)
+                    .with_context(|| format!("parse v2 catalog snapshot {}", path.display()))?;
+                validate_governed_data_catalog_document(&document)
+                    .with_context(|| format!("validate v2 catalog snapshot {}", path.display()))?;
             }
         }
     }

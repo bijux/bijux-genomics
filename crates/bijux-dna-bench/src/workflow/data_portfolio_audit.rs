@@ -30,6 +30,13 @@ struct DataCatalogAuditMetadata {
     access_terms: Option<String>,
 }
 
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum AuditableDataCatalog {
+    Preserved { preserved_catalog: DataCatalogAuditMetadata },
+    Native(DataCatalogAuditMetadata),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BenchmarkDataPortfolioAuditRequest {
     pub repository_root: PathBuf,
@@ -163,9 +170,10 @@ pub fn derive_benchmark_data_portfolio_audit(
         })?;
         let projected_storage_bytes =
             sum_projection(source_specs.iter().map(|source| source.projected_storage_bytes))?
-        .or_else(|| {
-            (corpus.status == BenchmarkCorpusStatus::Admitted).then_some(verified_storage_bytes)
-        });
+                .or_else(|| {
+                    (corpus.status == BenchmarkCorpusStatus::Admitted)
+                        .then_some(verified_storage_bytes)
+                });
         let projected_cpu_hours =
             sum_projection(source_specs.iter().map(|source| source.projected_cpu_hours))?;
         corpora.push(BenchmarkCorpusDataAudit {
@@ -383,10 +391,14 @@ fn binding_from_record(
     if bijux_dna_infra::hash_bytes_sha256(&bytes) != record.catalog_sha256 {
         bail!("data catalog digest differs from index: {}", record.id);
     }
-    let catalog: DataCatalogAuditMetadata = serde_json::from_slice(&bytes)
+    let catalog: AuditableDataCatalog = serde_json::from_slice(&bytes)
         .with_context(|| format!("parse data catalog {}", catalog_path.display()))?;
-    let (observed_sample_count, sample_count_authority) = observed_sample_count(&catalog)?;
-    let access_terms = catalog_access_terms(&catalog)?;
+    let catalog = match &catalog {
+        AuditableDataCatalog::Preserved { preserved_catalog } => preserved_catalog,
+        AuditableDataCatalog::Native(catalog) => catalog,
+    };
+    let (observed_sample_count, sample_count_authority) = observed_sample_count(catalog)?;
+    let access_terms = catalog_access_terms(catalog)?;
     let mut file_roles = record.files.iter().map(|file| file.role.clone()).collect::<Vec<_>>();
     file_roles.sort();
     file_roles.dedup();

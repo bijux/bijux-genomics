@@ -14,9 +14,10 @@ pub use crate::repo::{
     bench_portfolio_path, bench_reports_dir, bench_stage_campaigns_path,
     bench_stage_interfaces_path, bench_suites_dir, build_benchmark_data_index,
     publish_benchmark_data_index, publish_governed_data_catalog_registry,
-    render_benchmark_data_index_markdown, AdmittedBamGenotypingCorpus,
-    BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
+    publish_governed_data_catalog_snapshots, render_benchmark_data_index_markdown,
+    AdmittedBamGenotypingCorpus, BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
     GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
+    GovernedDataCatalogSnapshotPublication, GovernedDataCatalogSnapshotRequest,
 };
 pub use crate::workflow::{
     acquire_fastq_corpus, admit_benchmark_campaign_evidence, aggregate_benchmark_case_observations,

@@ -135,7 +135,7 @@ fn write_catalog(
     fs::write(&data_path, id.as_bytes())?;
     let digest = bijux_dna_infra::hash_file_sha256(&data_path)?;
     let mut catalog = json!({
-        "schema_version": "bijux.data_catalog.v2",
+        "schema_version": "bijux.data_catalog.v1",
         "id": id,
         "purpose": purpose,
         "source": format!("https://example.invalid/{id}"),
@@ -153,7 +153,20 @@ fn write_catalog(
     if let Some(sample_count) = sample_count {
         catalog["sample_count"] = json!(sample_count);
     }
-    fs::write(catalog_root.join(format!("{id}.json")), serde_json::to_vec_pretty(&catalog)?)?;
+    let source_catalog = data_root.join("catalog").join(format!("{id}.json"));
+    fs::create_dir_all(source_catalog.parent().context("source catalog parent")?)?;
+    fs::write(&source_catalog, serde_json::to_vec_pretty(&catalog)?)?;
+    let preserved = json!({
+        "schema_version": "bijux.data_catalog.v2",
+        "id": id,
+        "source_catalog_path": format!("study://data/catalog/{id}.json"),
+        "source_catalog_sha256": bijux_dna_infra::hash_file_sha256(&source_catalog)?,
+        "source_catalog_size_bytes": fs::metadata(&source_catalog)?.len(),
+        "source_catalog_schema_version": "bijux.data_catalog.v1",
+        "preserved_at_utc": "2026-08-08T00:00:00Z",
+        "preserved_catalog": catalog,
+    });
+    fs::write(catalog_root.join(format!("{id}.json")), serde_json::to_vec_pretty(&preserved)?)?;
     Ok(())
 }
 

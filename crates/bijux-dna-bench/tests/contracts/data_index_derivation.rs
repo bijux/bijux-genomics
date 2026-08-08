@@ -4,8 +4,9 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_dna_bench::{
     build_benchmark_data_index, publish_benchmark_data_index,
-    publish_governed_data_catalog_registry, BenchmarkDataIndexPublicationRequest,
-    BenchmarkDataIndexRequest, BenchmarkEligibility, GovernedDataCatalogRegistryPublicationRequest,
+    publish_governed_data_catalog_registry, publish_governed_data_catalog_snapshots,
+    BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest, BenchmarkEligibility,
+    GovernedDataCatalogRegistryPublicationRequest, GovernedDataCatalogSnapshotRequest,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -45,6 +46,60 @@ fn publishes_and_revalidates_source_addressed_registry() -> Result<()> {
         fixture.data_root.join("catalog/registries").join(format!("{source_commit}.json"))
     );
     assert_eq!(first.registry.records.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn preserves_heterogeneous_catalogs_and_composes_complete_registry() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let source_commit = "3".repeat(40);
+    let mut additional: Value = serde_json::from_slice(&fs::read(
+        fixture.data_root.join("catalog/ancient-horse-bam.json"),
+    )?)?;
+    additional["id"] = "ancient-horse-reference".into();
+    additional["purpose"] = "real ancient horse reference authority".into();
+    write_json(&fixture.data_root.join("catalog/ancient-horse-reference.json"), &additional)?;
+    let request = GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: source_commit.clone(),
+        preserved_at_utc: "2026-08-07T00:00:00Z".to_string(),
+        previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+    };
+
+    let publication = publish_governed_data_catalog_snapshots(&request)?;
+    let replay = publish_governed_data_catalog_snapshots(&request)?;
+
+    assert_eq!(publication, replay);
+    assert_eq!(publication.preserved_snapshot_count, 1);
+    assert_eq!(publication.retained_snapshot_count, 1);
+    assert_eq!(publication.registry.records.len(), 2);
+    let preserved_path = fixture
+        .data_root
+        .join("catalog/snapshots")
+        .join(&source_commit)
+        .join("ancient-horse-reference.json");
+    let preserved: Value = serde_json::from_slice(&fs::read(&preserved_path)?)?;
+    assert_eq!(preserved["schema_version"], "bijux.data_catalog.v2");
+    assert_eq!(preserved["preserved_catalog"]["schema_version"], "bijux.data_catalog.v1");
+    assert_eq!(
+        preserved["source_catalog_sha256"],
+        bijux_dna_infra::hash_file_sha256(
+            &fixture.data_root.join("catalog/ancient-horse-reference.json")
+        )?
+    );
+
+    let registry =
+        publish_governed_data_catalog_registry(&GovernedDataCatalogRegistryPublicationRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit,
+        })?;
+    let index = build_benchmark_data_index(&BenchmarkDataIndexRequest {
+        catalog_registry_path: registry.registry_path,
+        data_root: fixture.data_root.clone(),
+        created_at_utc: "2026-08-07T00:00:00Z".to_string(),
+    })?;
+    assert_eq!(index.schema_version, "bijux.data_index.v2");
+    assert_eq!(index.records.len(), 2);
     Ok(())
 }
 
@@ -251,8 +306,8 @@ fn data_index_fixture() -> Result<DataIndexFixture> {
     fs::create_dir_all(governed_file.parent().expect("corpus parent"))?;
     fs::write(&governed_file, b"governed-bam")?;
     let catalog_path = catalog_root.join("ancient-horse-bam.json");
-    let catalog = json!({
-        "schema_version": "bijux.data_catalog.v2",
+    let legacy_catalog = json!({
+        "schema_version": "bijux.data_catalog.v1",
         "id": "ancient-horse-bam",
         "purpose": "real ancient horse alignment",
         "source": "ENA",
@@ -276,6 +331,18 @@ fn data_index_fixture() -> Result<DataIndexFixture> {
             "kind": "coordinate-sorted-bam",
         }],
         "known_limitations": ["one sample does not represent a population"],
+    });
+    let source_catalog = data_root.join("catalog/ancient-horse-bam.json");
+    write_json(&source_catalog, &legacy_catalog)?;
+    let catalog = json!({
+        "schema_version": "bijux.data_catalog.v2",
+        "id": "ancient-horse-bam",
+        "source_catalog_path": "study://data/catalog/ancient-horse-bam.json",
+        "source_catalog_sha256": bijux_dna_infra::hash_file_sha256(&source_catalog)?,
+        "source_catalog_size_bytes": fs::metadata(&source_catalog)?.len(),
+        "source_catalog_schema_version": "bijux.data_catalog.v1",
+        "preserved_at_utc": "2026-08-06T00:00:00Z",
+        "preserved_catalog": legacy_catalog,
     });
     write_json(&catalog_path, &catalog)?;
     write_registry(&catalog_registry_path, &catalog_path, &source_commit)?;
@@ -337,7 +404,11 @@ fn write_registry(path: &Path, catalog_path: &Path, source_commit: &str) -> Resu
 
 fn mutate_catalog(path: &Path, mutation: impl FnOnce(&mut Value)) -> Result<()> {
     let mut value: Value = serde_json::from_slice(&fs::read(path)?)?;
-    mutation(&mut value);
+    if value.get("preserved_catalog").is_some() {
+        mutation(&mut value["preserved_catalog"]);
+    } else {
+        mutation(&mut value);
+    }
     write_json(path, &value)
 }
 
