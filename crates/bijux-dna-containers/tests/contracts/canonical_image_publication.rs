@@ -88,10 +88,12 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
     let inventory = derive_image_inventory_evidence(&ImageInventoryDerivationRequest {
         repository_root: repository.path().to_path_buf(),
         study_root: study.path().to_path_buf(),
-        image_root: study.path().join(format!("containers/staging/{commit}")),
-        build_evidence_root: study
-            .path()
-            .join(format!("containers/evidence/image-campaigns/{commit}")),
+        evidence_roots: vec![bijux_dna_containers::evidence::ImageInventoryEvidenceRoots {
+            image_root: study.path().join(format!("containers/staging/{commit}")),
+            build_evidence_root: study
+                .path()
+                .join(format!("containers/evidence/image-campaigns/{commit}")),
+        }],
         run_evidence_root: run_root,
     })?;
     assert_eq!(inventory.publication.tools.len(), 1);

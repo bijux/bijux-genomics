@@ -100,6 +100,13 @@ automation binary to inventory an older exact-commit image campaign without
 misstating the campaign's repository identity or scanning an unrelated active
 image tree.
 
+When a current single-tool campaign supersedes one image from an otherwise
+compatible prior campaign, append its image root and matching build-evidence
+root as an additional pair. The container owner scans every declared pair as
+one evidence set, rejects duplicate roots and image digests, and applies the
+current repository recipes to the combined candidates. Prior campaign roots
+remain immutable; no copied or synthetic build evidence is admitted.
+
 ## Activate a reviewed image campaign
 
 Activation is a separate no-clobber transaction. It selects the unique

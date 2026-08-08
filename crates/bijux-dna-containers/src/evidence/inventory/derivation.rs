@@ -14,8 +14,8 @@ use crate::evidence::{
 
 use super::source::{
     load_build_evidence, load_run_references, portable_evidence_path, scan_images,
-    scan_staged_images, ImageInventoryDerivationRequest, ImageInventoryScan,
-    ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V1,
+    scan_staged_images, validate_evidence_roots, ImageInventoryDerivationRequest,
+    ImageInventoryScan, ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V1,
 };
 
 type CandidateWithReference = (ContainerImageCandidate, bool);
@@ -44,6 +44,7 @@ pub fn derive_image_inventory_publication(
 pub fn derive_image_inventory_evidence(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<DerivedImageInventory> {
+    validate_evidence_roots(request)?;
     let repository_commit = repository_head_commit(&request.repository_root)?;
     let catalog_path = request.repository_root.join("containers/contracts/catalog.toml");
     let catalog_bytes = fs::read(&catalog_path)

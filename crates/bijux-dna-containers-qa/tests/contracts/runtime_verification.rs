@@ -75,8 +75,10 @@ fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
     let inventory_request = ImageInventoryDerivationRequest {
         repository_root: repository.clone(),
         study_root: study.clone(),
-        image_root: study.join("containers/apptainer"),
-        build_evidence_root: study.join("containers/evidence"),
+        evidence_roots: vec![bijux_dna_containers_qa::api::ImageInventoryEvidenceRoots {
+            image_root: study.join("containers/apptainer"),
+            build_evidence_root: study.join("containers/evidence"),
+        }],
         run_evidence_root: repository.join("containers/runs"),
     };
     let inventory = derive_image_inventory_evidence(&inventory_request)?.publication;

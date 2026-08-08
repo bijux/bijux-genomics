@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -14,9 +14,48 @@ pub const RAW_INVENTORY_SCHEMA_V1: &str = "bijux.container.image_inventory_scan.
 pub struct ImageInventoryDerivationRequest {
     pub repository_root: PathBuf,
     pub study_root: PathBuf,
+    pub evidence_roots: Vec<ImageInventoryEvidenceRoots>,
+    pub run_evidence_root: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImageInventoryEvidenceRoots {
     pub image_root: PathBuf,
     pub build_evidence_root: PathBuf,
-    pub run_evidence_root: PathBuf,
+}
+
+pub(super) fn validate_evidence_roots(request: &ImageInventoryDerivationRequest) -> Result<()> {
+    if request.evidence_roots.is_empty() {
+        bail!("image inventory requires at least one paired image and build-evidence root");
+    }
+    let study_root = request
+        .study_root
+        .canonicalize()
+        .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
+    let mut image_roots = BTreeSet::new();
+    let mut build_evidence_roots = BTreeSet::new();
+    for roots in &request.evidence_roots {
+        let image_root = roots
+            .image_root
+            .canonicalize()
+            .with_context(|| format!("canonicalize image root {}", roots.image_root.display()))?;
+        let build_evidence_root = roots.build_evidence_root.canonicalize().with_context(|| {
+            format!("canonicalize build-evidence root {}", roots.build_evidence_root.display())
+        })?;
+        if !image_root.starts_with(&study_root) || !build_evidence_root.starts_with(&study_root) {
+            bail!("image inventory evidence roots must be contained by the governed study root");
+        }
+        if image_root == build_evidence_root {
+            bail!("image and build-evidence roots must be distinct");
+        }
+        if !image_roots.insert(image_root) {
+            bail!("image inventory contains a duplicate image root");
+        }
+        if !build_evidence_roots.insert(build_evidence_root) {
+            bail!("image inventory contains a duplicate build-evidence root");
+        }
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -157,19 +196,30 @@ pub(super) fn scan_images(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<Vec<(PathBuf, ImageInventoryScannedImage)>> {
     let mut images = Vec::new();
-    for path in regular_files_with_suffix(&request.image_root, ".sif")? {
-        let metadata = fs::metadata(&path)
-            .with_context(|| format!("inspect container image {}", path.display()))?;
-        let sha256 = bijux_dna_infra::hash_file_sha256(&path)
-            .with_context(|| format!("hash container image {}", path.display()))?;
-        images.push((
-            path.clone(),
-            ImageInventoryScannedImage {
-                path: portable_evidence_path(&path, request)?,
-                sha256,
-                size_bytes: metadata.len(),
-            },
-        ));
+    for roots in &request.evidence_roots {
+        for path in regular_files_with_suffix(&roots.image_root, ".sif")? {
+            let metadata = fs::metadata(&path)
+                .with_context(|| format!("inspect container image {}", path.display()))?;
+            let sha256 = bijux_dna_infra::hash_file_sha256(&path)
+                .with_context(|| format!("hash container image {}", path.display()))?;
+            images.push((
+                path.clone(),
+                ImageInventoryScannedImage {
+                    path: portable_evidence_path(&path, request)?,
+                    sha256,
+                    size_bytes: metadata.len(),
+                },
+            ));
+        }
+    }
+    images.sort_by(|left, right| left.1.path.cmp(&right.1.path));
+    let mut digests = BTreeSet::new();
+    if let Some(duplicate) = images
+        .iter()
+        .map(|(_, image)| image.sha256.as_str())
+        .find(|digest| !digests.insert((*digest).to_string()))
+    {
+        bail!("image inventory source roots repeat image digest {duplicate}");
     }
     Ok(images)
 }
@@ -177,21 +227,24 @@ pub(super) fn scan_images(
 pub(super) fn scan_staged_images(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<Vec<ImageInventoryScannedImage>> {
-    let root = request.image_root.join(".building");
-    if !root.is_dir() {
-        return Ok(Vec::new());
-    }
     let mut images = Vec::new();
-    for path in regular_files_with_suffix(&root, ".sif")? {
-        let metadata = fs::metadata(&path)
-            .with_context(|| format!("inspect staged image {}", path.display()))?;
-        images.push(ImageInventoryScannedImage {
-            path: portable_evidence_path(&path, request)?,
-            sha256: bijux_dna_infra::hash_file_sha256(&path)
-                .with_context(|| format!("hash staged image {}", path.display()))?,
-            size_bytes: metadata.len(),
-        });
+    for roots in &request.evidence_roots {
+        let root = roots.image_root.join(".building");
+        if !root.is_dir() {
+            continue;
+        }
+        for path in regular_files_with_suffix(&root, ".sif")? {
+            let metadata = fs::metadata(&path)
+                .with_context(|| format!("inspect staged image {}", path.display()))?;
+            images.push(ImageInventoryScannedImage {
+                path: portable_evidence_path(&path, request)?,
+                sha256: bijux_dna_infra::hash_file_sha256(&path)
+                    .with_context(|| format!("hash staged image {}", path.display()))?,
+                size_bytes: metadata.len(),
+            });
+        }
     }
+    images.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(images)
 }
 
@@ -200,51 +253,93 @@ pub(super) fn load_build_evidence(
 ) -> Result<LoadedBuildEvidence> {
     let mut by_digest = BTreeMap::<String, Vec<IndexedBuildEvidence>>::new();
     let mut identities = Vec::new();
-    for path in regular_files_with_suffix(&request.build_evidence_root, ".build.json")? {
-        let bytes = fs::read(&path)
-            .with_context(|| format!("read container build evidence {}", path.display()))?;
-        let mut document: BuildEvidenceDocument = serde_json::from_slice(&bytes)
-            .with_context(|| format!("parse container build evidence {}", path.display()))?;
-        if document.schema_version != "bijux.container.build_evidence.v1" {
-            bail!("unsupported container build evidence schema in {}", path.display());
+    for roots in &request.evidence_roots {
+        for path in regular_files_with_suffix(&roots.build_evidence_root, ".build.json")? {
+            let bytes = fs::read(&path)
+                .with_context(|| format!("read container build evidence {}", path.display()))?;
+            let mut document: BuildEvidenceDocument = serde_json::from_slice(&bytes)
+                .with_context(|| format!("parse container build evidence {}", path.display()))?;
+            if document.schema_version != "bijux.container.build_evidence.v1" {
+                bail!("unsupported container build evidence schema in {}", path.display());
+            }
+            let identity = document.normalize_identity().with_context(|| {
+                format!("normalize container build evidence {}", path.display())
+            })?;
+            validate_sha256(&identity.definition.sha256, "build-evidence definition")?;
+            validate_sha256(&identity.image.sha256, "build-evidence image")?;
+            if request.evidence_roots.len() > 1 && identity.image.path.is_none() {
+                bail!(
+                    "composite image inventory requires path-bound build evidence in {}",
+                    path.display()
+                );
+            }
+            if let Some(image_path) = identity.image.path.as_deref() {
+                validate_build_image_root(image_path, roots, request).with_context(|| {
+                    format!("validate build-evidence image authority in {}", path.display())
+                })?;
+            }
+            let image_name = identity
+                .image
+                .path
+                .as_deref()
+                .map(Path::new)
+                .map(|path| {
+                    path.file_name()
+                        .and_then(|name| name.to_str())
+                        .context("build-evidence image path has no UTF-8 filename")
+                        .map(str::to_string)
+                })
+                .transpose()?;
+            let indexed = IndexedBuildEvidence {
+                tool: document.tool,
+                version: document.version,
+                definition_path: identity.definition.path,
+                image_name,
+                image_size_bytes: identity.image.size_bytes,
+                evidence: ContainerBuildEvidence {
+                    status: document.status,
+                    definition_sha256: identity.definition.sha256,
+                    repository_commit: document.repository_commit,
+                    build_context: document.build_context,
+                },
+            };
+            by_digest.entry(identity.image.sha256).or_default().push(indexed);
+            identities.push(ImageInventorySourceFile {
+                path: portable_evidence_path(&path, request)?,
+                sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
+            });
         }
-        let identity = document
-            .normalize_identity()
-            .with_context(|| format!("normalize container build evidence {}", path.display()))?;
-        validate_sha256(&identity.definition.sha256, "build-evidence definition")?;
-        validate_sha256(&identity.image.sha256, "build-evidence image")?;
-        let image_name = identity
-            .image
-            .path
-            .as_deref()
-            .map(Path::new)
-            .map(|path| {
-                path.file_name()
-                    .and_then(|name| name.to_str())
-                    .context("build-evidence image path has no UTF-8 filename")
-                    .map(str::to_string)
-            })
-            .transpose()?;
-        let indexed = IndexedBuildEvidence {
-            tool: document.tool,
-            version: document.version,
-            definition_path: identity.definition.path,
-            image_name,
-            image_size_bytes: identity.image.size_bytes,
-            evidence: ContainerBuildEvidence {
-                status: document.status,
-                definition_sha256: identity.definition.sha256,
-                repository_commit: document.repository_commit,
-                build_context: document.build_context,
-            },
-        };
-        by_digest.entry(identity.image.sha256).or_default().push(indexed);
-        identities.push(ImageInventorySourceFile {
-            path: portable_evidence_path(&path, request)?,
-            sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
-        });
     }
+    identities.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(LoadedBuildEvidence { by_digest, identities })
+}
+
+fn validate_build_image_root(
+    value: &str,
+    roots: &ImageInventoryEvidenceRoots,
+    request: &ImageInventoryDerivationRequest,
+) -> Result<()> {
+    let path = if let Some(relative) = value.strip_prefix("study://") {
+        request.study_root.join(relative)
+    } else if let Some(relative) = value.strip_prefix("repository://") {
+        request.repository_root.join(relative)
+    } else {
+        let path = PathBuf::from(value);
+        if !path.is_absolute() {
+            bail!("build-evidence image path must be absolute or use a governed URI scheme");
+        }
+        path
+    };
+    let image = path
+        .canonicalize()
+        .with_context(|| format!("canonicalize build-evidence image {}", path.display()))?;
+    let image_root = roots.image_root.canonicalize().with_context(|| {
+        format!("canonicalize paired image root {}", roots.image_root.display())
+    })?;
+    if !image.starts_with(image_root) {
+        bail!("build-evidence image is outside its paired image root");
+    }
+    Ok(())
 }
 
 pub(super) fn load_run_references(

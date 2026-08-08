@@ -7,6 +7,7 @@ use bijux_dna_containers::evidence::{
     apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
     derive_image_inventory_publication, repository_head_commit, ContainerImageState,
     DetachedImageDisposition, ImageCandidateDisposition, ImageInventoryDerivationRequest,
+    ImageInventoryEvidenceRoots,
 };
 use serde_json::json;
 use tempfile::TempDir;
@@ -44,8 +45,10 @@ impl Fixture {
         let request = ImageInventoryDerivationRequest {
             repository_root: repository.clone(),
             study_root: study.clone(),
-            image_root: study.join("containers/apptainer"),
-            build_evidence_root: study.join("containers/evidence"),
+            evidence_roots: vec![ImageInventoryEvidenceRoots {
+                image_root: study.join("containers/apptainer"),
+                build_evidence_root: study.join("containers/evidence"),
+            }],
             run_evidence_root: repository.join("containers/runs"),
         };
         let fixture = Self { _temporary: temporary, repository, study, request };
@@ -54,9 +57,24 @@ impl Fixture {
     }
 
     fn add_admitted_image(&self, bytes: &[u8]) -> Result<String> {
+        self.add_admitted_image_to(
+            bytes,
+            &self.study.join("containers/apptainer"),
+            &self.study.join("containers/evidence"),
+        )
+    }
+
+    fn add_admitted_image_to(
+        &self,
+        bytes: &[u8],
+        image_root: &Path,
+        build_evidence_root: &Path,
+    ) -> Result<String> {
         let digest = bijux_dna_infra::hash_bytes_sha256(bytes);
         let filename = format!("example-1.0.0-linux-amd64-{digest:.12}.sif");
-        let image = self.study.join("containers/apptainer").join(&filename);
+        fs::create_dir_all(image_root)?;
+        fs::create_dir_all(build_evidence_root)?;
+        let image = image_root.join(&filename);
         fs::write(&image, bytes)?;
         let commit = repository_head_commit(&self.repository)?;
         let recipe = apptainer_recipe_identity_at_commit(
@@ -82,7 +100,7 @@ impl Fixture {
             },
         });
         fs::write(
-            self.study.join("containers/evidence").join(format!("{digest}.build.json")),
+            build_evidence_root.join(format!("{digest}.build.json")),
             serde_json::to_vec_pretty(&evidence)?,
         )?;
         Ok(digest)
@@ -119,6 +137,44 @@ impl Fixture {
         fs::write(evidence_path, serde_json::to_vec_pretty(&flattened)?)?;
         Ok(())
     }
+}
+
+#[test]
+fn composes_current_single_tool_campaign_with_prior_campaign_evidence() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let prior_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n\n%files\n  containers/tools/example/example /usr/local/bin/example\n\n%post\n  true\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "change example recipe"])?;
+    let current_images = fixture.study.join("containers/staging/current");
+    let current_evidence = fixture.study.join("containers/evidence/image-campaigns/current");
+    let current_digest = fixture.add_admitted_image_to(
+        b"current single-tool campaign image",
+        &current_images,
+        &current_evidence,
+    )?;
+    let mut request = fixture.request.clone();
+    request.evidence_roots.push(ImageInventoryEvidenceRoots {
+        image_root: current_images,
+        build_evidence_root: current_evidence,
+    });
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(current_digest.as_str()));
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == prior_digest
+            && candidate.disposition == ImageCandidateDisposition::UnreferencedObsolete
+    }));
+    assert_eq!(evidence.publication.summary.unreferenced_obsolete_count, 1);
+    assert_eq!(evidence.scan.images.len(), 2);
+    assert_eq!(evidence.scan.build_evidence.len(), 2);
+    Ok(())
 }
 
 #[test]

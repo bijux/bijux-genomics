@@ -9,6 +9,6 @@ pub use derivation::{
 };
 pub use report::render_image_inventory_markdown;
 pub use source::{
-    ImageInventoryDerivationRequest, ImageInventoryScan, ImageInventoryScannedImage,
-    ImageInventorySourceFile, RAW_INVENTORY_SCHEMA_V1,
+    ImageInventoryDerivationRequest, ImageInventoryEvidenceRoots, ImageInventoryScan,
+    ImageInventoryScannedImage, ImageInventorySourceFile, RAW_INVENTORY_SCHEMA_V1,
 };

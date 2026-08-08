@@ -10,7 +10,7 @@ const PUBLICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/image-inventory-publication.v2.json";
 const PUBLICATION_PATH: &str = "containers/reports/image-inventory.json";
 const REPORT_PATH: &str = "containers/reports/image-inventory.md";
-const GENERATE_USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output>";
+const GENERATE_USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output> [<additional-image-root> <additional-build-evidence-root>]...";
 
 pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
@@ -42,17 +42,29 @@ fn parse_generate_args(
     std::path::PathBuf,
     std::path::PathBuf,
 )> {
-    let [repository_root, study_root, image_root, build_evidence_root, run_evidence_root, scan_output, publication_output] =
+    let [repository_root, study_root, image_root, build_evidence_root, run_evidence_root, scan_output, publication_output, additional_roots @ ..] =
         args
     else {
         anyhow::bail!(GENERATE_USAGE);
     };
+    if additional_roots.len() % 2 != 0 {
+        anyhow::bail!(GENERATE_USAGE);
+    }
+    let mut evidence_roots = vec![bijux_dna_containers::evidence::ImageInventoryEvidenceRoots {
+        image_root: path_from_arg(workspace, image_root),
+        build_evidence_root: path_from_arg(workspace, build_evidence_root),
+    }];
+    for pair in additional_roots.chunks_exact(2) {
+        evidence_roots.push(bijux_dna_containers::evidence::ImageInventoryEvidenceRoots {
+            image_root: path_from_arg(workspace, &pair[0]),
+            build_evidence_root: path_from_arg(workspace, &pair[1]),
+        });
+    }
     Ok((
         bijux_dna_containers::evidence::ImageInventoryDerivationRequest {
             repository_root: path_from_arg(workspace, repository_root),
             study_root: path_from_arg(workspace, study_root),
-            image_root: path_from_arg(workspace, image_root),
-            build_evidence_root: path_from_arg(workspace, build_evidence_root),
+            evidence_roots,
             run_evidence_root: path_from_arg(workspace, run_evidence_root),
         },
         path_from_arg(workspace, scan_output),
@@ -186,14 +198,48 @@ mod tests {
 
         assert_eq!(request.repository_root, std::path::Path::new("/source"));
         assert_eq!(request.study_root, std::path::Path::new("/study"));
-        assert_eq!(request.image_root, std::path::Path::new("/study/containers/staging/commit"));
+        assert_eq!(request.evidence_roots.len(), 1);
         assert_eq!(
-            request.build_evidence_root,
+            request.evidence_roots[0].image_root,
+            std::path::Path::new("/study/containers/staging/commit")
+        );
+        assert_eq!(
+            request.evidence_roots[0].build_evidence_root,
             std::path::Path::new("/study/containers/evidence/image-campaigns/commit")
         );
         assert_eq!(request.run_evidence_root, std::path::Path::new("/runs"));
         assert_eq!(scan, std::path::Path::new("/evidence/scan.json"));
         assert_eq!(publication, std::path::Path::new("/evidence/publication.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn generation_preserves_additional_campaign_evidence_roots() -> Result<()> {
+        let workspace = Workspace { root: "/automation".into() };
+        let args = [
+            "/source",
+            "/study",
+            "/study/containers/staging/base",
+            "/study/containers/evidence/image-campaigns/base",
+            "/runs",
+            "/evidence/scan.json",
+            "/evidence/publication.json",
+            "/study/containers/staging/current",
+            "/study/containers/evidence/image-campaigns/current",
+        ]
+        .map(str::to_string);
+
+        let (request, _, _) = parse_generate_args(&workspace, &args)?;
+
+        assert_eq!(request.evidence_roots.len(), 2);
+        assert_eq!(
+            request.evidence_roots[1].image_root,
+            std::path::Path::new("/study/containers/staging/current")
+        );
+        assert_eq!(
+            request.evidence_roots[1].build_evidence_root,
+            std::path::Path::new("/study/containers/evidence/image-campaigns/current")
+        );
         Ok(())
     }
 
