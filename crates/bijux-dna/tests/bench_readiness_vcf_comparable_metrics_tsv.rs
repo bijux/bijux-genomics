@@ -32,7 +32,10 @@ fn bench_readiness_vcf_comparable_metrics_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf-comparable-metrics.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/vcf/vcf-comparable-metrics.tsv"
+    );
 
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read VCF comparable metrics TSV");
@@ -42,7 +45,7 @@ fn bench_readiness_vcf_comparable_metrics_writes_governed_tsv_columns() {
         Some("stage_id\tmetric_id\tmetric_name\tunit\tdirection\trequired\ttools_covered")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 35);
+    assert_eq!(rows.len(), 29);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf.call_gl\tsites_with_likelihoods\tsites with likelihoods\tsites\thigher_is_better\ttrue\tangsd,bcftools"

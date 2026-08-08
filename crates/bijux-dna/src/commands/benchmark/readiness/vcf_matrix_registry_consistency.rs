@@ -11,7 +11,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_MATRIX_REGISTRY_CONSISTENCY_PATH: &str =
-    "benchmarks/readiness/vcf-matrix-registry-consistency.json";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-matrix-registry-consistency.json";
 const VCF_MATRIX_REGISTRY_CONSISTENCY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_matrix_registry_consistency.v1";
 

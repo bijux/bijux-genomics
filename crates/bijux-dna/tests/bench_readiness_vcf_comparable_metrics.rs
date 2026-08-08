@@ -43,18 +43,18 @@ fn bench_readiness_vcf_comparable_metrics_reports_governed_metric_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-comparable-metrics.tsv")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-comparable-metrics.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(12));
-    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(
         payload.get("retained_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(32)
+        Some(28)
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(35));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(29));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 35);
+    assert_eq!(rows.len(), 29);
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call_gl")

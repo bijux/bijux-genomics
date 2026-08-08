@@ -35,7 +35,10 @@ fn bench_readiness_vcf_matrix_registry_consistency_file_writes_self_describing_r
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf-matrix-registry-consistency.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/vcf/vcf-matrix-registry-consistency.json"
+    );
 
     let repo_root = support::repo_root().expect("repo root");
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
@@ -49,7 +52,7 @@ fn bench_readiness_vcf_matrix_registry_consistency_file_writes_self_describing_r
     assert_eq!(report.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(report.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(report.get("matrix_row_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(report.get("registry_pair_count").and_then(serde_json::Value::as_u64), Some(41));
+    assert_eq!(report.get("registry_pair_count").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(
         report.get("benchmark_ready_registry_pair_count").and_then(serde_json::Value::as_u64),
         Some(20)

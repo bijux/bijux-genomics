@@ -31,7 +31,8 @@ fn bench_readiness_vcf_parser_failure_audit_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let report_path = repo_root.join("benchmarks/readiness/vcf-parser-failure-tests.json");
+    let report_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/vcf/vcf-parser-failure-tests.json");
     assert!(report_path.is_file(), "VCF parser failure report JSON must exist");
 
     let payload: serde_json::Value =

@@ -556,7 +556,7 @@ Visible aliases are part of the operator surface:
   command fails closed unless all governed rows render real commands with no placeholder execution
   text.
 - `bijux-dna bench readiness render-vcf-adapters-ready`
-  `render-vcf-adapters-ready` writes `benchmarks/readiness/VCF_ADAPTERS_READY.json` and
+  `render-vcf-adapters-ready` writes `artifacts/benchmark-smoke/readiness/vcf/VCF_ADAPTERS_READY.json` and
   fail-closes across the governed VCF readiness slice for Goals 231 through 244. The gate reruns
   each owned VCF readiness surface, keeps one explicit row per goal with `goal_id`, `surface`,
   `output_path`, `ok`, and `detail`, and also verifies that the canonical benchmark-ready VCF pair
@@ -976,7 +976,7 @@ Visible aliases are part of the operator surface:
   rationale so every retained BAM tool has an explicit local exercise path even when the host
   smoke contract only covers one governed stage tool.
 - `bijux-dna bench readiness render-vcf-tool-serving-map`
-  `render-vcf-tool-serving-map` writes `benchmarks/readiness/vcf-tool-serving-map.tsv` with one
+  `render-vcf-tool-serving-map` writes `artifacts/benchmark-smoke/readiness/vcf/vcf-tool-serving-map.tsv` with one
   governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
   `support_status`, `adapter_status`, `parser_status`, `corpus_status`, `asset_status`, and
   `benchmark_status` from the owned VCF stage catalog and matrix. The report fails closed unless
@@ -1359,14 +1359,14 @@ Visible aliases are part of the operator surface:
   The report keeps active row, stage, and tool counts explicit, records the removed non-active
   rows and their status counts, and fails closed if any disallowed row remains in active scope.
 - `bijux-dna bench readiness render-vcf-comparable-metrics`
-  `render-vcf-comparable-metrics` writes `benchmarks/readiness/vcf-comparable-metrics.tsv`
+  `render-vcf-comparable-metrics` writes `artifacts/benchmark-smoke/readiness/vcf/vcf-comparable-metrics.tsv`
   with one governed row per shared normalized metric across the retained multi-tool VCF stage
   slice. Each row keeps `stage_id`, `metric_id`, `metric_name`, `unit`, `direction`, `required`,
   and `tools_covered`, and the command fails closed unless every retained multi-tool stage has at
   least one governed normalized metric shared across all covered tools.
 - `bijux-dna bench readiness render-vcf-expected-benchmark-results`
   `render-vcf-expected-benchmark-results` writes
-  `benchmarks/readiness/vcf-expected-benchmark-results.tsv` with one row per benchmark-ready VCF
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-expected-benchmark-results.tsv` with one row per benchmark-ready VCF
   stage-tool-corpus-asset binding. Each row keeps `domain`, `stage_id`, `tool_id`, `corpus_id`,
   `asset_profile_id`, `expected_outputs`, `expected_metrics`, and `report_section`, and the
   command fails closed unless the owned benchmark-ready VCF slice retains complete expected-result
@@ -1383,7 +1383,7 @@ Visible aliases are part of the operator surface:
   `summary_table`, `metric_columns`, and `failure_columns`, and the command fails closed unless
   every expected VCF result row maps to one governed report section and summary table.
 - `bijux-dna bench readiness render-vcf-parsers-report-ready`
-  `render-vcf-parsers-report-ready` writes `benchmarks/readiness/VCF_PARSERS_REPORT_READY.json`
+  `render-vcf-parsers-report-ready` writes `artifacts/benchmark-smoke/readiness/vcf/VCF_PARSERS_REPORT_READY.json`
   and fail-closes across Goals 246–260. The gate reruns the governed VCF schema, parser-fixture,
   parser-failure, parser-fixture-coverage, expected-result, missing-result, comparable-metric,
   and report-map surfaces, then validates that parser fixture coverage, expected results, and
@@ -1406,7 +1406,7 @@ Visible aliases are part of the operator surface:
   one shared schema family instead of drifting into tool-private JSON shapes.
 - `bijux-dna bench readiness render-vcf-parser-failure-tests`
   `render-vcf-parser-failure-tests` writes
-  `benchmarks/readiness/vcf-parser-failure-tests.json` with seven governed malformed-output
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-parser-failure-tests.json` with seven governed malformed-output
   probes across the retained VCF parser surfaces: empty output, malformed VCF, missing index,
   missing sample column, malformed PCA table, malformed imputation quality JSON, and malformed
   segment TSV. Each passing row must retain `parser_id`, `stage_id`, `tool_id`, and a structured
@@ -1414,7 +1414,7 @@ Visible aliases are part of the operator surface:
   output.
 - `bijux-dna bench readiness render-vcf-adapter-missing-input-tests`
   `render-vcf-adapter-missing-input-tests` writes
-  `benchmarks/readiness/vcf-adapter-missing-input-tests.json` with one governed missing-input
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-adapter-missing-input-tests.json` with one governed missing-input
   probe row for each required Goal 243 VCF role: `bam`, `bai`, `fasta`, `fai`, `vcf`,
   `vcf_index`, `sites_bed`, `panel_vcf`, `map_file`, and `sample_metadata`. The report replays
   adapter-contract validation before any external tool argv can run, and it keeps the one honest
@@ -1422,7 +1422,7 @@ Visible aliases are part of the operator surface:
   contract because no retained VCF adapter currently consumes a target-sites BED directly.
 - `bijux-dna bench readiness render-vcf-adapter-output-coverage`
   `render-vcf-adapter-output-coverage` writes
-  `benchmarks/readiness/vcf-adapter-output-coverage.tsv` with one governed row per retained VCF
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-adapter-output-coverage.tsv` with one governed row per retained VCF
   adapter binding across `bcftools`, `angsd`, `plink`, `plink2`, `eigensoft`, `shapeit5`,
   `eagle`, `beagle`, `germline`, `ibdseq`, `ibdhap`, and `ibdne`. Each row keeps explicit raw
   outputs, normalized parser-facing outputs, deterministic stdout/stderr/stage-result paths, and
@@ -1516,20 +1516,20 @@ Visible aliases are part of the operator surface:
   and `reason`, and every orphan row is forced into an explicit disposition:
   `register_to_stage`, `remove_from_scope`, or `future_tool`.
 - `bijux-dna bench readiness render-vcf-orphan-tools`
-  `render-vcf-orphan-tools` writes `benchmarks/readiness/vcf-orphan-tools.tsv` with one governed
+  `render-vcf-orphan-tools` writes `artifacts/benchmark-smoke/readiness/vcf/vcf-orphan-tools.tsv` with one governed
   row per VCF tool that is still registered and required in the VCF tool catalogs but serves zero
   current VCF matrix rows. Each row carries `tool_id`, `registered_binary`, `served_stage_count`,
   and `decision`, and the detector fails closed unless every orphan is explicitly
   `future_not_benchmark_ready` or `remove_from_scope`.
 - `bijux-dna bench readiness render-vcf-undercovered-stages`
-  `render-vcf-undercovered-stages` writes `benchmarks/readiness/vcf-undercovered-stages.tsv`
+  `render-vcf-undercovered-stages` writes `artifacts/benchmark-smoke/readiness/vcf/vcf-undercovered-stages.tsv`
   with one governed row per VCF stage that admits multiple registered tool backends but currently
   benchmarks only one. Each row carries `stage_id`, `valid_tool_classes`, `registered_tools`,
   `missing_tools`, and `decision`, and the detector fails closed unless every undercovered stage is
   explicitly `future_not_benchmark_ready` or `limit_to_specialized_tool`.
 - `bijux-dna bench readiness render-vcf-matrix-registry-consistency`
   `render-vcf-matrix-registry-consistency` writes
-  `benchmarks/readiness/vcf-matrix-registry-consistency.json` and fails closed unless every VCF
+  `artifacts/benchmark-smoke/readiness/vcf/vcf-matrix-registry-consistency.json` and fails closed unless every VCF
   matrix row is admitted by the VCF registry and every benchmark-ready VCF registry pair is present
   in the matrix. The report keeps `matrix_row_unregistered` and
   `benchmark_ready_registry_pair_missing_from_matrix` drift rows explicit when disagreement returns.

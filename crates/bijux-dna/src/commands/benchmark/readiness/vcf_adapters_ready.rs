@@ -45,7 +45,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ADAPTERS_READY_PATH: &str =
-    "benchmarks/readiness/VCF_ADAPTERS_READY.json";
+    "artifacts/benchmark-smoke/readiness/vcf/VCF_ADAPTERS_READY.json";
 const VCF_ADAPTERS_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_adapters_ready.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -911,7 +911,9 @@ mod tests {
             VcfAdaptersReadyGoalCheck {
                 goal_id: 231,
                 surface: "vcf tool-serving map".to_string(),
-                output_path: Some("benchmarks/readiness/vcf-tool-serving-map.tsv".to_string()),
+                output_path: Some(
+                    "artifacts/benchmark-smoke/readiness/vcf/vcf-tool-serving-map.tsv".to_string(),
+                ),
                 ok: true,
                 detail: "ok".to_string(),
             },
