@@ -190,7 +190,9 @@ mod tests {
         let root = repo_root();
         let report = render_local_tool_comparison_template(
             &root,
-            PathBuf::from("runs/bench/local-fake-runs/stages-tool-comparison-template"),
+            PathBuf::from(
+                "artifacts/benchmark-smoke/simulated-runs/stages-tool-comparison-template",
+            ),
             PathBuf::from(DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH),
         )
         .expect("render tool comparison template");

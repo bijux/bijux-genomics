@@ -368,14 +368,17 @@ mod tests {
         let root = repo_root();
         let report = render_local_benchmark_summary(
             &root,
-            PathBuf::from("runs/bench/local-fake-runs/stages-benchmark-summary"),
+            PathBuf::from("artifacts/benchmark-smoke/simulated-runs/stages-benchmark-summary"),
             PathBuf::from(DEFAULT_BENCHMARK_SUMMARY_JSON_PATH),
             PathBuf::from(DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH),
         )
         .expect("render local benchmark summary");
 
         assert_eq!(report.schema_version, LOCAL_BENCHMARK_SUMMARY_SCHEMA_VERSION);
-        assert_eq!(report.fake_run_root, "runs/bench/local-fake-runs/stages-benchmark-summary");
+        assert_eq!(
+            report.fake_run_root,
+            "artifacts/benchmark-smoke/simulated-runs/stages-benchmark-summary"
+        );
         assert_eq!(report.stage_count, report.stages.len());
         assert_eq!(
             report.ready_stage_count + report.incomplete_stage_count + report.failed_stage_count,

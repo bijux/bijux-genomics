@@ -144,7 +144,8 @@ mod tests {
     #[test]
     fn runtime_metrics_report_tracks_fake_run_runtime_fields() {
         let root = repo_root();
-        let fake_run_root = PathBuf::from("runs/bench/local-fake-runs/stages-runtime-metrics");
+        let fake_run_root =
+            PathBuf::from("artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics");
         fake_run_local_stage_commands(&root, fake_run_root.clone())
             .expect("fake-run local stage commands");
         let report = collect_local_stage_runtime_metrics(
@@ -155,7 +156,10 @@ mod tests {
         .expect("collect local stage runtime metrics");
 
         assert_eq!(report.schema_version, LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION);
-        assert_eq!(report.fake_run_root, "runs/bench/local-fake-runs/stages-runtime-metrics");
+        assert_eq!(
+            report.fake_run_root,
+            "artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics"
+        );
         assert_eq!(report.stage_count, report.stages.len());
         assert!(!report.stages.is_empty(), "runtime metrics report should contain stage metrics");
         assert!(report.stages.iter().all(|stage| {
@@ -171,8 +175,9 @@ mod tests {
     #[test]
     fn runtime_metrics_report_refuses_stage_manifest_missing_runtime_fields() {
         let root = repo_root();
-        let fake_run_root =
-            PathBuf::from("runs/bench/local-fake-runs/stages-runtime-metrics-missing-runtime");
+        let fake_run_root = PathBuf::from(
+            "artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics-missing-runtime",
+        );
         let report_output_path =
             PathBuf::from("benchmarks/readiness/local-ready/runtime-metrics.missing.json");
         let fake_runs = fake_run_local_stage_commands(&root, fake_run_root.clone())

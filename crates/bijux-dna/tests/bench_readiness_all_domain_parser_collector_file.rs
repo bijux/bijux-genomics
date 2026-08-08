@@ -58,7 +58,9 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
         Some(u64::try_from(rows.len()).expect("row count fits u64"))
     );
 
-    let fixture_root = repo_root.join("runs/bench/readiness-probes/all-domains/parser-collector");
+    let fixture_root = repo_root.join(
+        "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector",
+    );
     assert!(fixture_root.is_dir(), "collector fixture root must exist");
     let fake_run_root = fixture_root.join("fake-runs");
     assert!(fake_run_root.is_dir(), "collector fake-run root must exist");

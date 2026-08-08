@@ -20,11 +20,11 @@ pub(crate) const DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE: &str = "runs/bench";
 pub(crate) const DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE: &str = "artifacts/benchmark-smoke/micro";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench/local-smoke";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str =
-    "runs/bench/local-fake-runs";
+    "artifacts/benchmark-smoke/simulated-runs";
 pub(crate) const DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/hpc-dry-run";
 pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/slurm-dry-run";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE: &str =
-    "runs/bench/readiness-probes";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes";
 
 #[derive(Debug, Clone)]
 pub(crate) struct BenchmarkPathResolver {
@@ -225,6 +225,19 @@ pub(crate) fn ensure_path_stays_within_benchmark_micro_root(
     bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE}`");
 }
 
+pub(crate) fn ensure_path_stays_within_benchmark_simulated_run_root(
+    repo_root: &Path,
+    candidate: &Path,
+    output_kind: &str,
+) -> Result<()> {
+    let resolved = absolutize(repo_root, candidate);
+    let simulated_root = repo_root.join(DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE);
+    if resolved == simulated_root || resolved.starts_with(&simulated_root) {
+        return Ok(());
+    }
+    bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE}`");
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
@@ -233,8 +246,9 @@ mod tests {
         ensure_path_stays_within_benchmark_micro_root,
         ensure_path_stays_within_benchmark_readiness_hpc_root,
         ensure_path_stays_within_benchmark_readiness_root,
-        ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
-        DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE,
+        ensure_path_stays_within_benchmark_runs_root,
+        ensure_path_stays_within_benchmark_simulated_run_root, BenchmarkPathResolver,
+        BENCHMARK_ROOT_ENV, DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE, DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE,
@@ -473,6 +487,23 @@ mod tests {
             repo_root,
             Path::new("runs/bench/micro/report.json"),
             "micro report",
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn benchmark_simulated_run_guard_rejects_production_run_namespace() {
+        let repo_root = Path::new("/workspace/repo");
+        ensure_path_stays_within_benchmark_simulated_run_root(
+            repo_root,
+            Path::new("artifacts/benchmark-smoke/simulated-runs/stages/manifest.json"),
+            "simulated run",
+        )
+        .expect("simulated artifact should be accepted");
+        assert!(ensure_path_stays_within_benchmark_simulated_run_root(
+            repo_root,
+            Path::new("runs/bench/run-2042-fastq-profile-read-lengths/manifest.json"),
+            "simulated run",
         )
         .is_err());
     }

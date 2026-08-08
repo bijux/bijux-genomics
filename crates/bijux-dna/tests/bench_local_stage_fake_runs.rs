@@ -48,7 +48,7 @@ fn bench_local_fake_run_stages_json_reports_governed_51_stage_fake_run_slice() {
     );
     assert_eq!(
         payload.get("fake_run_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-fake-runs/stages")
+        Some("artifacts/benchmark-smoke/simulated-runs/stages")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(

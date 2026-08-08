@@ -18,7 +18,7 @@ use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
 use crate::commands::benchmark::local_stage_result_manifest::{
     load_validated_stage_result_manifest_path, BenchStageResultManifestV1, BenchStageResultStatus,
 };
-use crate::commands::benchmark::path_resolution::ensure_path_stays_within_benchmark_runs_root;
+use crate::commands::benchmark::path_resolution::ensure_path_stays_within_benchmark_simulated_run_root;
 use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -26,7 +26,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH: &str =
     "benchmarks/readiness/completion-check-all-domains.json";
 const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_FIXTURE_ROOT: &str =
-    "runs/bench/readiness-probes/all-domains/completion-check";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/completion-check";
 const ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_completion_check.v1";
 
@@ -144,7 +144,7 @@ pub(crate) fn render_all_domain_completion_check(
 
     let fixture_root =
         benchmark_paths.benchmark_readiness_probe_root().join("all-domains/completion-check");
-    ensure_path_stays_within_benchmark_runs_root(
+    ensure_path_stays_within_benchmark_simulated_run_root(
         repo_root,
         &fixture_root,
         "all-domain completion fixture root",

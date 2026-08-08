@@ -48,7 +48,7 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     );
     assert_eq!(
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/readiness-probes/all-domains/completion-check")
+        Some("artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/completion-check")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     let complete_row_count =

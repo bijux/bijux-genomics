@@ -72,8 +72,9 @@ fn bench_readiness_all_domain_missing_result_audit_writes_governed_report_and_fi
         .expect("present_result_row_count");
     assert_eq!(present_result_row_count + 3, expected_row_count);
 
-    let fixture_root =
-        repo_root.join("runs/bench/readiness-probes/all-domains/missing-result-test");
+    let fixture_root = repo_root.join(
+        "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/missing-result-test",
+    );
     assert!(fixture_root.is_dir(), "all-domain missing-result fixture root must exist");
     assert!(
         fixture_root.join("manifest.json").is_file(),

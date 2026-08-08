@@ -24,7 +24,7 @@ use super::vcf_parser_failure_audit::{
 };
 use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
 use crate::commands::benchmark::path_resolution::{
-    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+    ensure_path_stays_within_benchmark_simulated_run_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -32,7 +32,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH: &str =
     "benchmarks/readiness/failure-classification-all-domains.json";
 const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_FIXTURE_ROOT: &str =
-    "runs/bench/readiness-probes/all-domains/failure-classification";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/failure-classification";
 const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_failure_classification.v1";
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
@@ -117,7 +117,7 @@ pub(crate) fn render_all_domain_failure_classification(
 
     let fixture_root =
         benchmark_paths.benchmark_readiness_probe_root().join("all-domains/failure-classification");
-    ensure_path_stays_within_benchmark_runs_root(
+    ensure_path_stays_within_benchmark_simulated_run_root(
         repo_root,
         &fixture_root,
         "all-domain failure-classification fixture root",
@@ -584,7 +584,7 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH);
         assert_eq!(
             report.fixture_root,
-            "runs/bench/readiness-probes/all-domains/failure-classification"
+            "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/failure-classification"
         );
         assert_eq!(report.row_count, 7);
         assert_eq!(report.triggered_row_count, 7);

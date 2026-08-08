@@ -16,7 +16,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
 use super::path_resolution::{
-    ensure_path_stays_outside_benchmark_readiness_root, BenchmarkPathResolver,
+    ensure_path_stays_within_benchmark_simulated_run_root, BenchmarkPathResolver,
 };
 use super::readiness::essential_pipeline_corpus_assets::{
     collect_essential_pipeline_corpus_asset_rows, EssentialPipelineCorpusAssetsRow,
@@ -29,7 +29,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_FAKE_RUN_ROOT: &str =
-    "runs/bench/local-fake-runs/pipelines/essential";
+    "artifacts/benchmark-smoke/simulated-runs/pipelines/essential";
 const ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_VERSION: &str =
     "bijux.bench.local_essential_pipeline_fake_runs.v1";
 const ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_VERSION: &str =
@@ -163,7 +163,7 @@ pub(crate) fn fake_run_essential_pipelines(
     output_root: PathBuf,
 ) -> Result<EssentialPipelineFakeRunsReport> {
     let absolute_output_root = repo_relative_path(repo_root, &output_root);
-    ensure_path_stays_outside_benchmark_readiness_root(
+    ensure_path_stays_within_benchmark_simulated_run_root(
         repo_root,
         &absolute_output_root,
         "essential pipeline fake-run output root",

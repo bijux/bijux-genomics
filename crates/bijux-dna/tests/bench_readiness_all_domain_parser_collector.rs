@@ -48,11 +48,11 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
     );
     assert_eq!(
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/readiness-probes/all-domains/parser-collector")
+        Some("artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector")
     );
     assert_eq!(
         payload.get("fake_run_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/readiness-probes/all-domains/parser-collector/fake-runs")
+        Some("artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector/fake-runs")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     let fake_run_row_count =

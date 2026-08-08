@@ -15,7 +15,8 @@ fn bench_local_collect_runtime_metrics_rejects_stage_manifest_missing_runtime() 
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let fake_run_root = "runs/bench/local-fake-runs/stages-runtime-metrics-missing-runtime-cli";
+    let fake_run_root =
+        "artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics-missing-runtime-cli";
     let fake_run_output = Command::new("cargo")
         .current_dir(&repo_root)
         .env("HOME", home.path())

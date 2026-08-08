@@ -46,7 +46,7 @@ fn bench_readiness_all_domain_failure_classification_reports_each_required_class
     );
     assert_eq!(
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/readiness-probes/all-domains/failure-classification")
+        Some("artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/failure-classification")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("triggered_row_count").and_then(serde_json::Value::as_u64), Some(7));

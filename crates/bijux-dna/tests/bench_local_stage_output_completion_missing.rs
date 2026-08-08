@@ -42,7 +42,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 fn bench_local_check_output_completion_reports_incomplete_stage_when_fake_output_is_missing() {
     let repo_root = support::repo_root().expect("repo root");
 
-    let fake_run_root = "runs/bench/local-fake-runs/stages-output-completion-missing-cli";
+    let fake_run_root =
+        "artifacts/benchmark-smoke/simulated-runs/stages-output-completion-missing-cli";
     let report_output =
         "benchmarks/readiness/local-ready/output-completion-report.missing-cli.json";
     let fake_run_manifest = run_cli_json(&[

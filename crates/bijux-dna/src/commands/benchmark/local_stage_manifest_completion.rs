@@ -178,8 +178,9 @@ mod tests {
     #[test]
     fn manifest_completion_reports_stage_incomplete_when_stage_manifest_is_missing() {
         let root = repo_root();
-        let fake_run_root =
-            PathBuf::from("runs/bench/local-fake-runs/stages-manifest-completion-missing");
+        let fake_run_root = PathBuf::from(
+            "artifacts/benchmark-smoke/simulated-runs/stages-manifest-completion-missing",
+        );
         let report_output_path = PathBuf::from(
             "benchmarks/readiness/local-ready/manifest-completion-report.missing.json",
         );

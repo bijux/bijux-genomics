@@ -51,7 +51,7 @@ const PROOF_SURFACE_MISSING_TOOL_STAGE_SMOKE: &str = "missing_tool_stage_smoke";
 const RUNTIME_PROOF_SURFACE_EXPECTED_RESULT_PATHS: &str = "expected_benchmark_result_paths";
 const RUNTIME_PROOF_SURFACE_DECLARED_VCF_PATHS: &str = "declared_vcf_result_paths";
 const DIRECT_OUTPUT_CONTRACT_PROOF_ROOT: &str =
-    "runs/bench/readiness-probes/tools/output-contract-tests";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/tools/output-contract-tests";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct OutputContractTestRow {
@@ -1153,7 +1153,9 @@ mod tests {
         let output_path = stage_root.join("summary.json");
         fs::write(&plan_path, b"governed plan").expect("write plan");
         fs::write(&output_path, b"stale output").expect("write output");
-        let proof_root = root.path().join("runs/bench/readiness-probes/output-contracts");
+        let proof_root = root
+            .path()
+            .join("artifacts/benchmark-smoke/simulated-runs/readiness-probes/output-contracts");
 
         let proof_output = local_stage_proof_output_path(root.path(), &proof_root, &output_path)
             .expect("derive isolated proof output");
