@@ -8,7 +8,7 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec, CorpusAcquisitionFile,
     CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    FastqCorpusSourceSample, FastqCorpusSourceSpec, CORPUS_ACQUISITION_SCHEMA_V1,
+    FastqCorpusSourceSample, FastqCorpusSourceSpec, CORPUS_ACQUISITION_SCHEMA_V2,
 };
 use bijux_dna_db_ena::{
     EnaClient, EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaSourcePreference,
@@ -131,12 +131,14 @@ fn derive_plan(
             total.checked_add(file.size_bytes).context("corpus acquisition size overflows")
         })?;
     let plan = CorpusAcquisitionPlan {
-        schema_version: CORPUS_ACQUISITION_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_ACQUISITION_SCHEMA_V2.to_string(),
         corpus_id: spec.corpus_id.clone(),
         portfolio_id: spec.portfolio_id.clone(),
         species: spec.species.clone(),
         retrieved_at_utc: retrieved_at_utc.to_string(),
         source_authority: spec.source_authority.clone(),
+        description: spec.description.clone(),
+        policy: spec.policy.clone(),
         source_spec: spec_path.display().to_string(),
         source_spec_sha256: bijux_dna_infra::hash_file_sha256(spec_path)
             .context("hash corpus specification")?,
@@ -271,10 +273,10 @@ mod tests {
         )?;
 
         assert_eq!(source.samples.len(), 20);
-        assert_eq!(source.projected_storage_bytes, 5_457_128_348);
-        assert_eq!(source.projected_cpu_hours, 240);
-        assert!(source.access_terms_url.contains("ebi.ac.uk/ena"));
-        assert_eq!(source.truth_strategy, "observational_only");
+        assert_eq!(source.policy.projected_storage_bytes, 5_457_128_348);
+        assert_eq!(source.policy.projected_cpu_hours, 240);
+        assert!(source.policy.access_terms_url.contains("ebi.ac.uk/ena"));
+        assert_eq!(source.policy.truth_strategy, "observational_only");
         Ok(())
     }
 
@@ -330,6 +332,9 @@ mod tests {
         assert_eq!(plan.sample_count, 2);
         assert_eq!(plan.file_count, 3);
         assert_eq!(plan.total_size_bytes, 606);
+        assert_eq!(plan.policy.projected_storage_bytes, 1000);
+        assert_eq!(plan.policy.projected_cpu_hours, 2);
+        assert_eq!(plan.policy.truth_strategy, "archive_metadata");
         assert_eq!(plan.samples[1].files[1].mate, Some(2));
         assert_eq!(plan.samples[1].files[1].source_md5, "b".repeat(32));
         assert_eq!(plan.samples[0].library_selection, "RANDOM");

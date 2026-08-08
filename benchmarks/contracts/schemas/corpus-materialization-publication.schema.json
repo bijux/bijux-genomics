@@ -1,5 +1,17 @@
 {
   "$defs": {
+    "BenchmarkCorpusClass": {
+      "enum": [
+        "production_real",
+        "qualification_real",
+        "test_fixture",
+        "toy",
+        "synthetic",
+        "smoke",
+        "local_development"
+      ],
+      "type": "string"
+    },
     "CorpusAcquisitionLayout": {
       "enum": [
         "se",
@@ -20,11 +32,17 @@
         "access_classification": {
           "type": "string"
         },
-        "access_terms": {
+        "access_terms_url": {
           "type": "string"
         },
         "admitted_at_utc": {
           "type": "string"
+        },
+        "attribution": {
+          "type": "string"
+        },
+        "class": {
+          "$ref": "#/$defs/BenchmarkCorpusClass"
         },
         "files": {
           "items": {
@@ -40,6 +58,19 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "projected_cpu_hours": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "projected_storage_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "projection_basis": {
+          "type": "string"
         },
         "purpose": {
           "type": "string"
@@ -57,7 +88,7 @@
           "type": "array"
         },
         "schema_version": {
-          "const": "bijux.data_catalog.v1",
+          "const": "bijux.data_catalog.v2",
           "type": "string"
         },
         "scientific_name": {
@@ -71,6 +102,15 @@
         },
         "source_record_sha256": {
           "type": "string"
+        },
+        "truth_roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "truth_strategy": {
+          "type": "string"
         }
       },
       "required": [
@@ -78,17 +118,24 @@
         "id",
         "purpose",
         "source",
+        "class",
+        "access_classification",
+        "redistribution_classification",
+        "access_terms_url",
+        "attribution",
+        "projected_storage_bytes",
+        "projected_cpu_hours",
+        "projection_basis",
+        "truth_roles",
+        "truth_strategy",
+        "known_limitations",
         "source_record",
         "source_record_sha256",
         "retrieved_at_utc",
         "admitted_at_utc",
-        "access_classification",
-        "redistribution_classification",
-        "access_terms",
         "scientific_name",
         "samples",
-        "files",
-        "known_limitations"
+        "files"
       ],
       "type": "object"
     },

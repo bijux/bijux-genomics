@@ -55,6 +55,12 @@ class, archive authority, access and redistribution terms, attribution,
 scientific truth limits, and bounded storage and compute projection before
 live metadata resolution or materialization.
 
+`schemas/corpus-acquisition.schema.json` and
+`schemas/governed-data-catalog.schema.json` preserve that same source policy in
+v2 acquisition and admission records. Historical v1 catalogs remain readable,
+but new materialization cannot reconstruct or override policy with local
+hardcoded values.
+
 The checked `suite`, `corpus`, `bundle`, `observation`, `summary`, and `decision`
 schemas are also generated from `bijux-dna-bench-model`. `GateDecision` is the
 only persisted decision record; schema changes must originate in the model

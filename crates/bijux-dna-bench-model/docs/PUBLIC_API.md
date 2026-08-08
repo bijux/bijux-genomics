@@ -75,6 +75,7 @@ Model contracts:
 - `CorpusAcquisitionSample`
 - `CorpusAcquisitionFile`
 - `CorpusAcquisitionLayout`
+- `CorpusSourcePolicy`
 - `GovernedDataCatalog`
 - `GovernedDataCatalogSample`
 - `GovernedDataCatalogFile`
@@ -129,8 +130,10 @@ Policy and diagnostics:
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
 - `CORPUS_ACQUISITION_SCHEMA_V1`
+- `CORPUS_ACQUISITION_SCHEMA_V2`
 - `FASTQ_CORPUS_SOURCE_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
+- `GOVERNED_DATA_CATALOG_SCHEMA_V2`
 
 Statistics:
 

@@ -7,8 +7,8 @@ use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
 use crate::contract::{
-    BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V2,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use crate::model::BenchmarkCorpusClass;
 
@@ -17,6 +17,22 @@ use crate::model::BenchmarkCorpusClass;
 pub enum CorpusAcquisitionLayout {
     Se,
     Pe,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CorpusSourcePolicy {
+    pub class: BenchmarkCorpusClass,
+    pub access_classification: String,
+    pub redistribution_classification: String,
+    pub access_terms_url: String,
+    pub attribution: String,
+    pub projected_storage_bytes: u64,
+    pub projected_cpu_hours: u64,
+    pub projection_basis: String,
+    pub truth_roles: Vec<String>,
+    pub truth_strategy: String,
+    pub known_limitations: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -37,7 +53,8 @@ pub struct FastqCorpusSourceSpec {
     pub schema_version: String,
     pub corpus_id: String,
     pub portfolio_id: String,
-    pub class: BenchmarkCorpusClass,
+    #[serde(flatten)]
+    pub policy: CorpusSourcePolicy,
     pub species: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub species_id: Option<String>,
@@ -45,16 +62,6 @@ pub struct FastqCorpusSourceSpec {
     pub preferred_root: Option<String>,
     pub description: String,
     pub source_authority: String,
-    pub access_classification: String,
-    pub redistribution_classification: String,
-    pub access_terms_url: String,
-    pub attribution: String,
-    pub projected_storage_bytes: u64,
-    pub projected_cpu_hours: u64,
-    pub projection_basis: String,
-    pub truth_roles: Vec<String>,
-    pub truth_strategy: String,
-    pub known_limitations: Vec<String>,
     pub target_total: usize,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target_ancient_se: Option<usize>,
@@ -112,6 +119,9 @@ pub struct CorpusAcquisitionPlan {
     pub species: String,
     pub retrieved_at_utc: String,
     pub source_authority: String,
+    pub description: String,
+    #[serde(flatten)]
+    pub policy: CorpusSourcePolicy,
     pub source_spec: String,
     pub source_spec_sha256: String,
     pub sample_count: u64,
@@ -179,17 +189,15 @@ pub struct GovernedDataCatalog {
     pub id: String,
     pub purpose: String,
     pub source: String,
+    #[serde(flatten)]
+    pub policy: CorpusSourcePolicy,
     pub source_record: String,
     pub source_record_sha256: String,
     pub retrieved_at_utc: String,
     pub admitted_at_utc: String,
-    pub access_classification: String,
-    pub redistribution_classification: String,
-    pub access_terms: String,
     pub scientific_name: String,
     pub samples: Vec<GovernedDataCatalogSample>,
     pub files: Vec<GovernedDataCatalogFile>,
-    pub known_limitations: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -226,7 +234,7 @@ pub fn corpus_materialization_publication_schema() -> Schema {
 }
 
 fn corpus_acquisition_schema_version(_: &mut SchemaGenerator) -> Schema {
-    json_schema!({"type": "string", "const": CORPUS_ACQUISITION_SCHEMA_V1})
+    json_schema!({"type": "string", "const": CORPUS_ACQUISITION_SCHEMA_V2})
 }
 
 fn fastq_corpus_source_schema_version(_: &mut SchemaGenerator) -> Schema {
@@ -234,7 +242,7 @@ fn fastq_corpus_source_schema_version(_: &mut SchemaGenerator) -> Schema {
 }
 
 fn governed_data_catalog_schema_version(_: &mut SchemaGenerator) -> Schema {
-    json_schema!({"type": "string", "const": GOVERNED_DATA_CATALOG_SCHEMA_V1})
+    json_schema!({"type": "string", "const": GOVERNED_DATA_CATALOG_SCHEMA_V2})
 }
 
 fn materialization_publication_schema_version(_: &mut SchemaGenerator) -> Schema {

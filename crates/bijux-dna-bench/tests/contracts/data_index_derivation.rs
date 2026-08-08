@@ -184,12 +184,20 @@ fn data_index_fixture() -> Result<DataIndexFixture> {
     fs::write(&governed_file, b"governed-bam")?;
     let catalog_path = catalog_root.join("ancient-horse-bam.json");
     let catalog = json!({
-        "schema_version": "bijux.data_catalog.v1",
+        "schema_version": "bijux.data_catalog.v2",
         "id": "ancient-horse-bam",
         "purpose": "real ancient horse alignment",
         "source": "ENA",
         "access_classification": "public",
         "redistribution_classification": "accession-referenced",
+        "class": "production_real",
+        "access_terms_url": "https://www.ebi.ac.uk/ena/browser/about/policies",
+        "attribution": "cite source study and accession",
+        "projected_storage_bytes": 12,
+        "projected_cpu_hours": 1,
+        "projection_basis": "bounded contract-test projection",
+        "truth_roles": ["alignment_context"],
+        "truth_strategy": "observational_only",
         "retrieved_at_utc": "2026-08-03T00:00:00Z",
         "scientific_name": "Equus caballus",
         "reference_assembly": null,

@@ -8,10 +8,10 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_benchmark_data_index, AdmittedBamCorpus, AdmittedBamCorpusFile, BenchmarkDataIndex,
     BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility, DataIntegrityStatus,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use serde::Deserialize;
 
-const DATA_CATALOG_SCHEMA: &str = "bijux.data_catalog.v1";
 const BAM_ROLE: &str = "coordinate-sorted-deduplicated-bam";
 const BAI_ROLE: &str = "bam-index";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
@@ -112,7 +112,11 @@ pub fn admit_bam_benchmark_corpus(
     }
     let catalog: DataCatalog = serde_json::from_slice(&catalog_bytes)
         .with_context(|| format!("parse BAM corpus catalog {}", catalog_path.display()))?;
-    if catalog.schema_version != DATA_CATALOG_SCHEMA || catalog.id != corpus_id {
+    if !matches!(
+        catalog.schema_version.as_str(),
+        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+    ) || catalog.id != corpus_id
+    {
         bail!("BAM corpus catalog identity is unsupported");
     }
     validate_identifier(&catalog.run_accession, "BAM sample")?;
@@ -248,7 +252,11 @@ fn admit_record_catalog(
         bail!("genotyping catalog digest differs from the data index: {}", record.id);
     }
     let catalog: GenericDataCatalog = serde_json::from_slice(&bytes).context("parse catalog")?;
-    if catalog.schema_version != DATA_CATALOG_SCHEMA || catalog.id != record.id {
+    if !matches!(
+        catalog.schema_version.as_str(),
+        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+    ) || catalog.id != record.id
+    {
         bail!("genotyping catalog identity is unsupported: {}", record.id);
     }
     validate_record_catalog_closure(study_root, record, &catalog.files)?;

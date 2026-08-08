@@ -8,11 +8,11 @@ use chrono::{DateTime, FixedOffset};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
-    FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile,
+    CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile,
 };
 
 use super::{
-    CORPUS_ACQUISITION_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V2, FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 
 /// Validate a production FASTQ source declaration before archive resolution or acquisition.
@@ -27,7 +27,7 @@ pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result
     validate_identifier(&spec.corpus_id, "corpus")?;
     validate_identifier(&spec.portfolio_id, "portfolio")?;
     if !matches!(
-        spec.class,
+        spec.policy.class,
         BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
     ) {
         return Err(invalid("FASTQ corpus source class is not publishable real data"));
@@ -36,11 +36,11 @@ pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result
         (&spec.species, "species"),
         (&spec.description, "description"),
         (&spec.source_authority, "source authority"),
-        (&spec.access_classification, "access classification"),
-        (&spec.redistribution_classification, "redistribution classification"),
-        (&spec.attribution, "attribution"),
-        (&spec.projection_basis, "projection basis"),
-        (&spec.truth_strategy, "truth strategy"),
+        (&spec.policy.access_classification, "access classification"),
+        (&spec.policy.redistribution_classification, "redistribution classification"),
+        (&spec.policy.attribution, "attribution"),
+        (&spec.policy.projection_basis, "projection basis"),
+        (&spec.policy.truth_strategy, "truth strategy"),
     ] {
         validate_nonempty(value, label)?;
     }
@@ -52,12 +52,12 @@ pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result
             validate_nonempty(value, label)?;
         }
     }
-    validate_https(&spec.access_terms_url, "access terms")?;
-    if spec.projected_storage_bytes == 0 || spec.projected_cpu_hours == 0 {
+    validate_https(&spec.policy.access_terms_url, "access terms")?;
+    if spec.policy.projected_storage_bytes == 0 || spec.policy.projected_cpu_hours == 0 {
         return Err(invalid("FASTQ corpus storage and compute projections must be positive"));
     }
-    validate_nonempty_list(&spec.truth_roles, "truth role")?;
-    validate_nonempty_list(&spec.known_limitations, "known limitation")?;
+    validate_nonempty_list(&spec.policy.truth_roles, "truth role")?;
+    validate_nonempty_list(&spec.policy.known_limitations, "known limitation")?;
     if spec.samples.is_empty() || spec.samples.len() != spec.target_total {
         return Err(invalid("FASTQ corpus target total disagrees with samples"));
     }
@@ -94,12 +94,37 @@ pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result
     Ok(())
 }
 
+fn validate_source_policy(policy: &CorpusSourcePolicy) -> Result<(), BenchError> {
+    if !matches!(
+        policy.class,
+        BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
+    ) {
+        return Err(invalid("corpus source policy class is not publishable real data"));
+    }
+    for (value, label) in [
+        (&policy.access_classification, "access classification"),
+        (&policy.redistribution_classification, "redistribution classification"),
+        (&policy.attribution, "attribution"),
+        (&policy.projection_basis, "projection basis"),
+        (&policy.truth_strategy, "truth strategy"),
+    ] {
+        validate_nonempty(value, label)?;
+    }
+    validate_https(&policy.access_terms_url, "access terms")?;
+    if policy.projected_storage_bytes == 0 || policy.projected_cpu_hours == 0 {
+        return Err(invalid("corpus source storage and compute projections must be positive"));
+    }
+    validate_nonempty_list(&policy.truth_roles, "truth role")?;
+    validate_nonempty_list(&policy.known_limitations, "known limitation")?;
+    Ok(())
+}
+
 /// Validate acquisition identity, source checksums, sample context, and aggregate closure.
 ///
 /// # Errors
 /// Returns an error when a source plan cannot safely authorize corpus materialization.
 pub fn validate_corpus_acquisition_plan(plan: &CorpusAcquisitionPlan) -> Result<(), BenchError> {
-    if plan.schema_version != CORPUS_ACQUISITION_SCHEMA_V1 {
+    if plan.schema_version != CORPUS_ACQUISITION_SCHEMA_V2 {
         return Err(invalid("corpus acquisition schema mismatch"));
     }
     validate_identifier(&plan.corpus_id, "corpus")?;
@@ -108,11 +133,13 @@ pub fn validate_corpus_acquisition_plan(plan: &CorpusAcquisitionPlan) -> Result<
         (&plan.species, "species"),
         (&plan.source_authority, "source authority"),
         (&plan.source_spec, "source specification"),
+        (&plan.description, "description"),
     ] {
         validate_nonempty(value, label)?;
     }
     validate_utc_timestamp(&plan.retrieved_at_utc, "retrieval")?;
     validate_sha256(&plan.source_spec_sha256, "source specification")?;
+    validate_source_policy(&plan.policy)?;
     if plan.samples.is_empty() {
         return Err(invalid("corpus acquisition contains no samples"));
     }
@@ -180,16 +207,13 @@ pub fn validate_corpus_acquisition_plan(plan: &CorpusAcquisitionPlan) -> Result<
 /// # Errors
 /// Returns an error when the catalog cannot authorize benchmark corpus consumption.
 pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(), BenchError> {
-    if catalog.schema_version != GOVERNED_DATA_CATALOG_SCHEMA_V1 {
+    if catalog.schema_version != GOVERNED_DATA_CATALOG_SCHEMA_V2 {
         return Err(invalid("governed data catalog schema mismatch"));
     }
     validate_identifier(&catalog.id, "catalog")?;
     for (value, label) in [
         (&catalog.purpose, "catalog purpose"),
         (&catalog.source, "catalog source"),
-        (&catalog.access_classification, "access classification"),
-        (&catalog.redistribution_classification, "redistribution classification"),
-        (&catalog.access_terms, "access terms"),
         (&catalog.scientific_name, "scientific name"),
     ] {
         validate_nonempty(value, label)?;
@@ -198,16 +222,9 @@ pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(
     validate_sha256(&catalog.source_record_sha256, "source record")?;
     validate_utc_timestamp(&catalog.retrieved_at_utc, "retrieval")?;
     validate_utc_timestamp(&catalog.admitted_at_utc, "admission")?;
+    validate_source_policy(&catalog.policy)?;
     if catalog.samples.is_empty() || catalog.files.is_empty() {
         return Err(invalid("governed data catalog must contain samples and files"));
-    }
-    if catalog.known_limitations.is_empty()
-        || catalog
-            .known_limitations
-            .iter()
-            .any(|value| validate_nonempty(value, "known limitation").is_err())
-    {
-        return Err(invalid("governed data catalog limitations are incomplete"));
     }
 
     let mut samples = BTreeMap::new();

@@ -98,8 +98,9 @@ pub use materialization::{
     corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
     fastq_corpus_source_spec_schema, governed_data_catalog_schema, CorpusAcquisitionFile,
     CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, CorpusMaterializationPublication, FastqCorpusSourceSample,
-    FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
+    CorpusMaterializationDisposition, CorpusMaterializationPublication, CorpusSourcePolicy,
+    FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile,
+    GovernedDataCatalogSample,
 };
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]

@@ -3,9 +3,9 @@ use std::io::Write as _;
 
 use anyhow::Context as _;
 use bijux_dna_bench::{
-    materialize_fastq_corpus, CorpusAcquisitionFile, CorpusAcquisitionLayout,
+    materialize_fastq_corpus, BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout,
     CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusMaterializationDisposition,
-    CorpusMaterializationRequest, CORPUS_ACQUISITION_SCHEMA_V1,
+    CorpusMaterializationRequest, CorpusSourcePolicy, CORPUS_ACQUISITION_SCHEMA_V2,
 };
 use flate2::write::GzEncoder;
 use flate2::Compression;
@@ -142,6 +142,29 @@ fn existing_catalog_source_drift_is_preserved_and_rejected() -> anyhow::Result<(
 }
 
 #[test]
+fn existing_catalog_policy_drift_is_preserved_and_rejected() -> anyhow::Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let data_root = temporary.path().canonicalize()?.join("data");
+    fs::create_dir(&data_root)?;
+    let data_root = data_root.canonicalize()?;
+    let fastq_bytes = compressed_fastq()?;
+    let plan_path = write_plan_and_fastq(&data_root, &fastq_bytes)?;
+    let publication = materialize_fastq_corpus(&request(plan_path.clone(), data_root.clone()))?;
+    let mut drifted = publication.catalog;
+    drifted.policy.attribution = "unbound attribution".to_string();
+    let drifted_bytes = serde_json::to_vec_pretty(&drifted)?;
+    fs::write(&publication.catalog_path, &drifted_bytes)?;
+
+    let Err(error) = materialize_fastq_corpus(&request(plan_path, data_root)) else {
+        anyhow::bail!("catalog policy drift must fail replay admission");
+    };
+
+    assert!(format!("{error:#}").contains("differs from acquisition plan identity"));
+    assert_eq!(fs::read(publication.catalog_path)?, drifted_bytes);
+    Ok(())
+}
+
+#[test]
 fn materialization_rejects_non_utc_admission_before_io() {
     let mut request = request("/missing/plan.json".into(), "/missing/data".into());
     request.admitted_at_utc = "2026-08-06T03:00:00+02:00".to_string();
@@ -211,12 +234,27 @@ fn request(
 
 fn acquisition_plan(fastq: &[u8]) -> anyhow::Result<CorpusAcquisitionPlan> {
     Ok(CorpusAcquisitionPlan {
-        schema_version: CORPUS_ACQUISITION_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_ACQUISITION_SCHEMA_V2.to_string(),
         corpus_id: "corpus-01".to_string(),
         portfolio_id: "human-short-read-diversity".to_string(),
         species: "Homo sapiens".to_string(),
         retrieved_at_utc: "2026-08-06T00:00:00+00:00".to_string(),
         source_authority: "European Nucleotide Archive".to_string(),
+        description: "real human short-read diversity corpus for comparative FASTQ campaigns"
+            .to_string(),
+        policy: CorpusSourcePolicy {
+            class: BenchmarkCorpusClass::ProductionReal,
+            access_classification: "public".to_string(),
+            redistribution_classification: "public-source-copy".to_string(),
+            access_terms_url: "https://www.ebi.ac.uk/ena/browser/about/policies".to_string(),
+            attribution: "cite source studies and accessions".to_string(),
+            projected_storage_bytes: u64::try_from(fastq.len())?,
+            projected_cpu_hours: 1,
+            projection_basis: "bounded contract-test projection".to_string(),
+            truth_roles: vec!["archive_context".to_string()],
+            truth_strategy: "observational_only".to_string(),
+            known_limitations: vec!["not population representative".to_string()],
+        },
         source_spec: "benchmarks/corpora/human-short-read-diversity.toml".to_string(),
         source_spec_sha256: "a".repeat(64),
         sample_count: 1,

@@ -1,9 +1,10 @@
 use std::fs;
 
 use bijux_dna_bench_model::{
-    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, GovernedDataCatalog, GovernedDataCatalogFile,
-    GovernedDataCatalogSample, CORPUS_ACQUISITION_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
+    CorpusAcquisitionSample, CorpusMaterializationDisposition, CorpusSourcePolicy,
+    GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
+    CORPUS_ACQUISITION_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use bijux_dna_runner::api::{
     collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_spec,
@@ -238,12 +239,14 @@ fn fixture() -> anyhow::Result<Fixture> {
 
 fn acquisition_plan(size_bytes: u64) -> CorpusAcquisitionPlan {
     CorpusAcquisitionPlan {
-        schema_version: CORPUS_ACQUISITION_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_ACQUISITION_SCHEMA_V2.to_string(),
         corpus_id: "corpus-01".to_string(),
         portfolio_id: "human-short-read-diversity".to_string(),
         species: "Homo sapiens".to_string(),
         retrieved_at_utc: "2026-08-06T10:00:00Z".to_string(),
         source_authority: "European Nucleotide Archive".to_string(),
+        description: "real benchmark corpus".to_string(),
+        policy: source_policy(size_bytes),
         source_spec: "benchmarks/corpora/human-short-read-diversity.toml".to_string(),
         source_spec_sha256: "b".repeat(64),
         sample_count: 1,
@@ -313,17 +316,15 @@ fn publish_catalog(fixture: &Fixture) -> anyhow::Result<GovernedDataCatalog> {
         last_updated: sample.last_updated.clone(),
     };
     let catalog = GovernedDataCatalog {
-        schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V1.to_string(),
+        schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
         id: fixture.spec.portfolio_id.clone(),
         purpose: "real benchmark corpus".to_string(),
         source: "European Nucleotide Archive".to_string(),
+        policy: fixture.plan.policy.clone(),
         source_record: "study://data/evidence/acquisition-plans/plan.json".to_string(),
         source_record_sha256: fixture.spec.plan_sha256.clone(),
         retrieved_at_utc: fixture.plan.retrieved_at_utc.clone(),
         admitted_at_utc: fixture.spec.admitted_at_utc.clone(),
-        access_classification: "public".to_string(),
-        redistribution_classification: "accession-referenced".to_string(),
-        access_terms: "ENA public data access terms apply".to_string(),
         scientific_name: fixture.plan.species.clone(),
         samples: vec![catalog_sample],
         files: vec![GovernedDataCatalogFile {
@@ -344,13 +345,28 @@ fn publish_catalog(fixture: &Fixture) -> anyhow::Result<GovernedDataCatalog> {
             source_md5: sample.files[0].source_md5.clone(),
             materialization_status: CorpusMaterializationDisposition::Downloaded,
         }],
-        known_limitations: vec!["not population representative".to_string()],
     };
     let catalog_path =
         fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
     fs::create_dir_all(catalog_path.parent().ok_or_else(|| anyhow::anyhow!("catalog parent"))?)?;
     fs::write(catalog_path, serde_json::to_vec_pretty(&catalog)?)?;
     Ok(catalog)
+}
+
+fn source_policy(projected_storage_bytes: u64) -> CorpusSourcePolicy {
+    CorpusSourcePolicy {
+        class: BenchmarkCorpusClass::ProductionReal,
+        access_classification: "public".to_string(),
+        redistribution_classification: "public-source-copy".to_string(),
+        access_terms_url: "https://www.ebi.ac.uk/ena/browser/about/policies".to_string(),
+        attribution: "cite source studies and accessions".to_string(),
+        projected_storage_bytes,
+        projected_cpu_hours: 1,
+        projection_basis: "bounded scheduler contract projection".to_string(),
+        truth_roles: vec!["archive_context".to_string()],
+        truth_strategy: "observational_only".to_string(),
+        known_limitations: vec!["not population representative".to_string()],
+    }
 }
 
 #[cfg(unix)]

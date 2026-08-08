@@ -154,10 +154,9 @@ pub fn derive_benchmark_data_portfolio_audit(
         })?;
         let projected_storage_bytes =
             sum_projection(source_specs.iter().map(|source| source.projected_storage_bytes))?
-                .or_else(|| {
-                    (corpus.status == BenchmarkCorpusStatus::Admitted)
-                        .then_some(verified_storage_bytes)
-                });
+        .or_else(|| {
+            (corpus.status == BenchmarkCorpusStatus::Admitted).then_some(verified_storage_bytes)
+        });
         let projected_cpu_hours =
             sum_projection(source_specs.iter().map(|source| source.projected_cpu_hours))?;
         corpora.push(BenchmarkCorpusDataAudit {
@@ -435,17 +434,17 @@ fn source_spec_identities(
         let bytes = read_bounded(&path, "source spec")?;
         let spec = load_fastq_corpus_source_spec(&path)?;
         if spec.portfolio_id != corpus_id
-            || spec.class != class
-            || spec.truth_roles != truth_roles
-            || spec.truth_strategy != truth_strategy
+            || spec.policy.class != class
+            || spec.policy.truth_roles != truth_roles
+            || spec.policy.truth_strategy != truth_strategy
         {
             bail!("FASTQ source specification disagrees with portfolio corpus {corpus_id}");
         }
         identities.push(BenchmarkDataSourceSpecIdentity {
             path: relative.clone(),
             sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
-            projected_storage_bytes: Some(spec.projected_storage_bytes),
-            projected_cpu_hours: Some(spec.projected_cpu_hours),
+            projected_storage_bytes: Some(spec.policy.projected_storage_bytes),
+            projected_cpu_hours: Some(spec.policy.projected_cpu_hours),
         });
     }
     identities.sort_by(|left, right| left.path.cmp(&right.path));

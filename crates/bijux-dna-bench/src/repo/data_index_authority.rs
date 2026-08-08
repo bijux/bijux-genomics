@@ -10,12 +10,12 @@ use bijux_dna_bench_model::{
     validate_benchmark_data_index, BenchmarkDataIndex, BenchmarkDataIndexFile,
     BenchmarkDataIndexRecord, BenchmarkDataIndexSummary, BenchmarkEligibility,
     BenchmarkTemporalProvenance, DataIntegrityStatus, BENCHMARK_DATA_INDEX_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use chrono::{DateTime, FixedOffset};
 use serde_json::{Map, Value};
 use walkdir::WalkDir;
 
-const DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 const TEMPORAL_FIELDS: [&str; 4] = [
     "retrieved_at_utc",
     "admitted_at_utc",
@@ -177,8 +177,10 @@ fn normalize_record(
         .with_context(|| format!("parse data catalog {}", catalog_path.display()))?;
     let record = value.as_object().context("data catalog root must be an object")?;
     let id = required_text(record, "id", "data catalog")?;
-    if record.get("schema_version").and_then(Value::as_str) != Some(DATA_CATALOG_SCHEMA_V1)
-        || !valid_identifier(id)
+    if !matches!(
+        record.get("schema_version").and_then(Value::as_str),
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2)
+    ) || !valid_identifier(id)
         || catalog_path.file_stem().and_then(|value| value.to_str()) != Some(id)
     {
         bail!("catalog identity is invalid: {}", catalog_path.display());
