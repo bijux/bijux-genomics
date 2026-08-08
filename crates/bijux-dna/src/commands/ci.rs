@@ -8,14 +8,16 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 const DEFAULT_NO_REPEATED_FAST_GATE_PATH: &str =
-    "benchmarks/readiness/ci/no-repeated-fast-gate.json";
+    "artifacts/benchmark-smoke/readiness/ci/no-repeated-fast-gate.json";
 const DEFAULT_CHANGED_PATH_TEST_MAP_PATH: &str =
-    "benchmarks/readiness/ci/changed-path-test-map.tsv";
+    "artifacts/benchmark-smoke/readiness/ci/changed-path-test-map.tsv";
 const DEFAULT_DEFAULT_FEATURE_AUDIT_PATH: &str =
-    "benchmarks/readiness/ci/default-feature-audit.json";
+    "artifacts/benchmark-smoke/readiness/ci/default-feature-audit.json";
 const DEFAULT_SLOW_TIER_MANUAL_ONLY_PATH: &str =
-    "benchmarks/readiness/ci/slow-tier-manual-only.json";
-const DEFAULT_FAST_NO_BLEEDING_GATE_PATH: &str = "benchmarks/readiness/ci/FAST_CI_NO_BLEEDING.json";
+    "artifacts/benchmark-smoke/readiness/ci/slow-tier-manual-only.json";
+const DEFAULT_FAST_NO_BLEEDING_GATE_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/ci/FAST_CI_NO_BLEEDING.json";
+const DEFAULT_FAST_CI_BUDGET_PATH: &str = "configs/ci/budgets/fast.toml";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct WorkflowTargetUsage {
@@ -215,9 +217,9 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "all-domain readiness tests cover the active benchmark surface",
     },
     ChangedPathRule {
-        matcher: "benchmarks/readiness/",
+        matcher: "configs/bench/local/",
         command: "make bench-active-fast",
-        reason: "tracked readiness outputs must stay aligned with active fast proofs",
+        reason: "benchmark contract changes must preserve active fast proofs",
     },
     ChangedPathRule {
         matcher: "crates/bijux-dna/tests/bench_readiness_parser_failure_tests",
@@ -552,7 +554,7 @@ pub(crate) fn budget_check(
     budget_file: Option<&Path>,
 ) -> Result<BudgetCheckReport> {
     let absolute_budget_file = budget_file.map_or_else(
-        || repo_root.join("benchmarks/readiness/ci/fast-ci-budget.toml"),
+        || repo_root.join(DEFAULT_FAST_CI_BUDGET_PATH),
         |path| resolve_path(repo_root, path),
     );
     let parsed = toml::from_str::<BudgetFile>(
@@ -624,7 +626,7 @@ pub(crate) fn gate_fast_no_bleeding(
         |path| resolve_path(repo_root, path),
     );
     let absolute_budget_file = budget_file.map_or_else(
-        || repo_root.join("benchmarks/readiness/ci/fast-ci-budget.toml"),
+        || repo_root.join(DEFAULT_FAST_CI_BUDGET_PATH),
         |path| resolve_path(repo_root, path),
     );
 

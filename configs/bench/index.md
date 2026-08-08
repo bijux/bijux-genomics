@@ -27,6 +27,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `artifacts/benchmark-smoke/readiness/crates/` holds disposable crate-boundary, dependency, metric, identity, cycle, and aggregate reports for local validation.
 - `artifacts/benchmark-smoke/readiness/science/` holds disposable cross-domain sample consistency and scientific truth-set gate reports for local validation.
 - `artifacts/benchmark-smoke/readiness/hpc/` holds disposable local candidate-selection and HPC dry-run readiness manifests before governed scheduler submission.
+- `artifacts/benchmark-smoke/readiness/ci/` holds disposable workflow, feature, changed-path, and fast-tier gate reports for local validation.
 
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.
