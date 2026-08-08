@@ -61,7 +61,17 @@ struct AuditSummary {
     classification_counts: BTreeMap<String, usize>,
     scope_counts: BTreeMap<String, usize>,
     dependency_consumers: BTreeMap<String, Vec<String>>,
-    legacy_authority_callers: BTreeMap<String, Vec<String>>,
+    legacy_authorities: Vec<LegacyAuthorityRow>,
+}
+
+#[derive(Debug, JsonSchema, Serialize)]
+struct LegacyAuthorityRow {
+    path: String,
+    status: String,
+    callers: Vec<String>,
+    target_owner: String,
+    replacement: String,
+    removal_gate: String,
 }
 
 #[derive(Debug, JsonSchema, Serialize)]
@@ -111,7 +121,7 @@ pub(crate) fn check_ownership_audit(
 
 fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
     ensure!(
-        audit.schema_version == "bijux.architecture.ownership_audit.v1",
+        audit.schema_version == "bijux.architecture.ownership_audit.v2",
         "unexpected ownership audit schema version"
     );
     ensure!(
@@ -152,20 +162,53 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
             );
         }
     }
-    for authority in ROOT_PYTHON_AUTHORITIES {
+    ensure!(
+        audit.summary.legacy_authorities.len() == ROOT_PYTHON_AUTHORITIES.len(),
+        "legacy authority inventory must contain exactly {} rows",
+        ROOT_PYTHON_AUTHORITIES.len()
+    );
+    let mut authority_paths = BTreeSet::new();
+    for authority in &audit.summary.legacy_authorities {
         ensure!(
-            audit.summary.legacy_authority_callers.contains_key(authority),
-            "legacy authority caller inventory missing {authority}"
+            authority_paths.insert(authority.path.as_str()),
+            "duplicate legacy authority row for {}",
+            authority.path
         );
-        if audit.files.iter().any(|row| row.path == authority) {
-            ensure!(
-                audit.files.iter().any(|row| {
-                    row.path == authority && row.classification == "duplicate legacy logic"
-                }),
-                "present legacy authority is not classified as duplicate logic: {authority}"
-            );
+        ensure!(
+            ROOT_PYTHON_AUTHORITIES.contains(&authority.path.as_str()),
+            "unknown legacy authority {}",
+            authority.path
+        );
+        ensure!(!authority.target_owner.is_empty(), "{} has no target owner", authority.path);
+        ensure!(!authority.replacement.is_empty(), "{} has no replacement", authority.path);
+        ensure!(!authority.removal_gate.is_empty(), "{} has no removal gate", authority.path);
+        let present = audit.files.iter().any(|row| row.path == authority.path);
+        match authority.status.as_str() {
+            "present" => {
+                ensure!(present, "present legacy authority is absent: {}", authority.path);
+                ensure!(
+                    audit.files.iter().any(|row| {
+                        row.path == authority.path && row.classification == "duplicate legacy logic"
+                    }),
+                    "present legacy authority is not classified as duplicate logic: {}",
+                    authority.path
+                );
+            }
+            "removed" => {
+                ensure!(!present, "removed legacy authority is present: {}", authority.path);
+                ensure!(
+                    authority.callers.is_empty(),
+                    "removed legacy authority still has executable callers: {}",
+                    authority.path
+                );
+            }
+            status => anyhow::bail!("invalid legacy authority status `{status}`"),
         }
     }
+    ensure!(
+        ROOT_PYTHON_AUTHORITIES.iter().all(|authority| authority_paths.contains(authority)),
+        "legacy authority inventory is incomplete"
+    );
     let bench_consumers = audit
         .summary
         .dependency_consumers
@@ -195,7 +238,7 @@ fn build_audit(workspace: &Workspace) -> Result<OwnershipAudit> {
     }
 
     Ok(OwnershipAudit {
-        schema_version: "bijux.architecture.ownership_audit.v1",
+        schema_version: "bijux.architecture.ownership_audit.v2",
         summary: AuditSummary {
             generated_from_commit: git_value(workspace, &["rev-parse", "HEAD"])?.trim().to_string(),
             total_files: rows.len(),
@@ -206,7 +249,7 @@ fn build_audit(workspace: &Workspace) -> Result<OwnershipAudit> {
             classification_counts,
             scope_counts,
             dependency_consumers: dependency_consumers(&files),
-            legacy_authority_callers: callers,
+            legacy_authorities: legacy_authorities(&rows, callers),
         },
         files: rows,
     })
@@ -459,6 +502,9 @@ fn current_owner(path: &str) -> String {
 }
 
 fn target_owner(path: &str, classification: &str) -> String {
+    if let Some(owner) = legacy_target_owner(path) {
+        return owner.to_string();
+    }
     if classification == "canonical crate logic" || classification == "declarative product asset" {
         return current_owner(path);
     }
@@ -475,6 +521,33 @@ fn target_owner(path: &str, classification: &str) -> String {
         return "bijux-dna-science".to_string();
     }
     "bijux-dna-bench and bijux-dna-bench-model".to_string()
+}
+
+fn legacy_target_owner(path: &str) -> Option<&'static str> {
+    match path {
+        "benchmarks/corpus_acquisition.py" => {
+            Some("bijux-dna-bench, bijux-dna-runner, and data-source crates")
+        }
+        "benchmarks/corpus_catalog_enrichment.py" | "benchmarks/data_catalog.py" => {
+            Some("bijux-dna-bench-model and bijux-dna-bench")
+        }
+        "benchmarks/corpus_materialization.py" => {
+            Some("bijux-dna-bench, bijux-dna-runner, and bijux-dna-runtime")
+        }
+        "benchmarks/corpus_materialization_spec.py" => {
+            Some("bijux-dna-bench and bijux-dna-runner")
+        }
+        "containers/contracts/container_validation.py" => Some(
+            "bijux-dna-runner, bijux-dna-runtime, bijux-dna-containers-qa, and bijux-dna-stage-contract",
+        ),
+        "containers/runs/manage.py" => {
+            Some("bijux-dna-containers and bijux-dna-runtime")
+        }
+        "containers/runs/result_layout.py" => {
+            Some("bijux-dna-infra, bijux-dna-runtime, and bijux-dna-containers")
+        }
+        _ => None,
+    }
 }
 
 fn scope_for(path: &str) -> String {
@@ -502,17 +575,55 @@ fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
         .collect()
 }
 
+fn legacy_authorities(
+    files: &[OwnershipRow],
+    callers: BTreeMap<String, Vec<String>>,
+) -> Vec<LegacyAuthorityRow> {
+    ROOT_PYTHON_AUTHORITIES
+        .iter()
+        .map(|authority| {
+            let present = files.iter().any(|row| row.path == *authority);
+            let target_owner = target_owner(authority, "duplicate legacy logic");
+            LegacyAuthorityRow {
+                path: (*authority).to_string(),
+                status: if present { "present" } else { "removed" }.to_string(),
+                callers: callers.get(*authority).cloned().unwrap_or_default(),
+                replacement: if present {
+                    format!("replace with typed services owned by {target_owner}")
+                } else {
+                    format!("authority removed; retained behavior is owned by {target_owner}")
+                },
+                removal_gate: if present {
+                    "remove after golden, negative, real-STUDY import, application, CLI, and replay parity; production caller search must be empty".to_string()
+                } else {
+                    "retain absence and zero executable callers".to_string()
+                },
+                target_owner,
+            }
+        })
+        .collect()
+}
+
 fn references_legacy_authority(path: &str, content: &str, authority: &str) -> bool {
     let authority_path = Path::new(authority);
     let name = authority_path.file_name().and_then(|value| value.to_str()).unwrap_or(authority);
     if content.contains(authority) || content.contains(name) {
         return true;
     }
-    Path::new(path).extension().and_then(|value| value.to_str()) == Some("py")
-        && authority_path
-            .file_stem()
-            .and_then(|value| value.to_str())
-            .is_some_and(|stem| content.contains(stem))
+    if Path::new(path).extension().and_then(|value| value.to_str()) != Some("py") {
+        return false;
+    }
+    authority_path.file_stem().and_then(|value| value.to_str()).is_some_and(|stem| {
+        let qualified = authority.trim_end_matches(".py").replace('/', ".");
+        content.lines().map(str::trim).any(|line| {
+            line == format!("import {stem}")
+                || line.starts_with(&format!("import {stem} as "))
+                || line.starts_with(&format!("from {stem} import "))
+                || line == format!("import {qualified}")
+                || line.starts_with(&format!("import {qualified} as "))
+                || line.starts_with(&format!("from {qualified} import "))
+        })
+    })
 }
 
 fn is_executable_reference(path: &str) -> bool {
@@ -580,8 +691,13 @@ fn render_markdown(audit: &OwnershipAudit) -> String {
         lines.push(format!("- `{classification}`: `{count}`"));
     }
     lines.extend([String::new(), "## Legacy Authority Callers".to_string(), String::new()]);
-    for (authority, callers) in &audit.summary.legacy_authority_callers {
-        lines.push(format!("- `{authority}`: `{}` caller(s)", callers.len()));
+    for authority in &audit.summary.legacy_authorities {
+        lines.push(format!(
+            "- `{}`: `{}`, `{}` caller(s)",
+            authority.path,
+            authority.status,
+            authority.callers.len()
+        ));
     }
     lines.extend([
         String::new(),
@@ -600,8 +716,9 @@ mod tests {
     use regex::Regex;
 
     use super::{
-        classify, legacy_callers, render_markdown, validate_audit, AuditSummary, OwnershipAudit,
-        SourceFile, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
+        classify, legacy_authorities, legacy_callers, render_markdown, validate_audit,
+        AuditSummary, OwnershipAudit, OwnershipRow, SourceFile, OWNERSHIP_AUDIT_SOURCE,
+        ROOT_PYTHON_AUTHORITIES,
     };
 
     #[test]
@@ -693,6 +810,40 @@ mod tests {
     }
 
     #[test]
+    fn legacy_authority_rows_distinguish_present_and_removed_files() {
+        let files = vec![OwnershipRow {
+            path: "containers/contracts/container_validation.py".to_string(),
+            scope: "containers".to_string(),
+            file_type: ".py".to_string(),
+            classification: "duplicate legacy logic".to_string(),
+            current_owner: "containers".to_string(),
+            target_owner: "bijux-dna-containers".to_string(),
+            callers: Vec::new(),
+            replacement: "replacement".to_string(),
+            removal_gate: "gate".to_string(),
+            reasons: vec!["reason".to_string()],
+            schema_refs: Vec::new(),
+            bridges_legacy_control_plane: true,
+        }];
+        let callers =
+            ROOT_PYTHON_AUTHORITIES.iter().map(|path| ((*path).to_string(), Vec::new())).collect();
+        let rows = legacy_authorities(&files, callers);
+        assert_eq!(rows.len(), ROOT_PYTHON_AUTHORITIES.len());
+        assert_eq!(
+            rows.iter()
+                .find(|row| row.path == "containers/contracts/container_validation.py")
+                .map(|row| row.status.as_str()),
+            Some("present")
+        );
+        assert_eq!(
+            rows.iter()
+                .find(|row| row.path == "benchmarks/data_catalog.py")
+                .map(|row| row.status.as_str()),
+            Some("removed")
+        );
+    }
+
+    #[test]
     fn unknown_product_paths_fail_closed() -> anyhow::Result<()> {
         let row = classify(
             &SourceFile {
@@ -721,9 +872,23 @@ mod tests {
     }
 
     #[test]
+    fn similarly_named_python_adapters_do_not_imply_legacy_script_calls() -> anyhow::Result<()> {
+        let row = classify(
+            &SourceFile {
+                path: "benchmarks/adapters/tests/test_materialization.py".to_string(),
+                content: "ADAPTERS / \"corpus_materialization_slurm.py\"".to_string(),
+            },
+            &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,
+            &BTreeMap::new(),
+        );
+        assert!(!row.bridges_legacy_control_plane);
+        Ok(())
+    }
+
+    #[test]
     fn markdown_rendering_is_deterministic() {
         let audit = OwnershipAudit {
-            schema_version: "bijux.architecture.ownership_audit.v1",
+            schema_version: "bijux.architecture.ownership_audit.v2",
             summary: AuditSummary {
                 generated_from_commit: "abc123".to_string(),
                 total_files: 0,
@@ -731,7 +896,7 @@ mod tests {
                 classification_counts: BTreeMap::new(),
                 scope_counts: BTreeMap::new(),
                 dependency_consumers: BTreeMap::new(),
-                legacy_authority_callers: BTreeMap::new(),
+                legacy_authorities: Vec::new(),
             },
             files: Vec::new(),
         };
@@ -741,7 +906,7 @@ mod tests {
     #[test]
     fn semantic_validation_rejects_an_empty_audit() {
         let audit = OwnershipAudit {
-            schema_version: "bijux.architecture.ownership_audit.v1",
+            schema_version: "bijux.architecture.ownership_audit.v2",
             summary: AuditSummary {
                 generated_from_commit: "a".repeat(40),
                 total_files: 0,
@@ -749,7 +914,7 @@ mod tests {
                 classification_counts: BTreeMap::new(),
                 scope_counts: BTreeMap::new(),
                 dependency_consumers: BTreeMap::new(),
-                legacy_authority_callers: BTreeMap::new(),
+                legacy_authorities: Vec::new(),
             },
             files: Vec::new(),
         };
