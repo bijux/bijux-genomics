@@ -5,8 +5,9 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 
 use super::{
-    SecurityProbeArtifact, SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeReport,
-    SecurityStructuralReport, ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    SecurityFilesystemObservation, SecurityProbeArtifact, SecurityProbePublication,
+    SecurityProbeStatus, SecurityRuntimeReport, SecurityStructuralReport, ToolSecurityProbe,
+    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -219,6 +220,39 @@ fn validate_structural_report(report: &SecurityStructuralReport) -> Result<()> {
         {
             bail!("security {label} paths are unsafe, duplicated, or unsorted");
         }
+    }
+    validate_structural_observations(
+        "SUID/SGID",
+        &report.suid_sgid_paths,
+        &report.suid_sgid_observations,
+        0o6000,
+    )?;
+    validate_structural_observations(
+        "world-writable",
+        &report.world_writable_paths,
+        &report.world_writable_observations,
+        0o002,
+    )?;
+    Ok(())
+}
+
+fn validate_structural_observations(
+    label: &str,
+    paths: &[String],
+    observations: &[SecurityFilesystemObservation],
+    required_mode: u32,
+) -> Result<()> {
+    if observations.is_empty() {
+        return Ok(());
+    }
+    if observations.len() != paths.len()
+        || observations.iter().zip(paths).any(|(observation, path)| {
+            observation.path != *path
+                || observation.mode > 0o7777
+                || observation.mode & required_mode == 0
+        })
+    {
+        bail!("security {label} observations differ from their path projection");
     }
     Ok(())
 }

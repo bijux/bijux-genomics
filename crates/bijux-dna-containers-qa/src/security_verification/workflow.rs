@@ -16,9 +16,10 @@ use bijux_dna_containers::api::{
     load_image_inventory_publication, resolve_catalog_locked_apptainer_image,
     resolve_current_apptainer_contract_commit, validate_container_inventory_catalog,
     validate_container_recipe_evidence_chain, verify_grype_database,
-    verify_security_scanner_toolchain, ContainerToolContract, SecurityProbeArtifact,
-    SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport,
-    SecurityStructuralReport, ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    verify_security_scanner_toolchain, ContainerToolContract, SecurityFilesystemKind,
+    SecurityFilesystemObservation, SecurityProbeArtifact, SecurityProbePublication,
+    SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport,
+    ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 const NON_ROOT_PROBE_SCRIPT: &str = "uid=$(id -u); printf '%s\\n' \"$uid\"; test \"$uid\" -ne 0";
@@ -412,8 +413,8 @@ fn collect_runtime(
 
 fn inspect_structure(root: &Path) -> Result<SecurityStructuralReport> {
     let mut pending = vec![root.to_path_buf()];
-    let mut suid_sgid_paths = Vec::new();
-    let mut world_writable_paths = Vec::new();
+    let mut suid_sgid_observations = Vec::new();
+    let mut world_writable_observations = Vec::new();
     while let Some(directory) = pending.pop() {
         for entry in fs::read_dir(&directory)? {
             let entry = entry?;
@@ -426,17 +427,35 @@ fn inspect_structure(root: &Path) -> Result<SecurityStructuralReport> {
             }
             let mode = metadata.permissions().mode();
             let relative = format!("/{}", entry.path().strip_prefix(root)?.display());
+            let kind = if metadata.is_dir() {
+                SecurityFilesystemKind::Directory
+            } else if metadata.is_file() {
+                SecurityFilesystemKind::File
+            } else {
+                SecurityFilesystemKind::Other
+            };
+            let observation =
+                SecurityFilesystemObservation { path: relative, mode: mode & 0o7777, kind };
             if mode & 0o6000 != 0 {
-                suid_sgid_paths.push(relative.clone());
+                suid_sgid_observations.push(observation.clone());
             }
             if mode & 0o002 != 0 {
-                world_writable_paths.push(relative);
+                world_writable_observations.push(observation);
             }
         }
     }
-    suid_sgid_paths.sort();
-    world_writable_paths.sort();
-    Ok(SecurityStructuralReport { suid_sgid_paths, world_writable_paths })
+    suid_sgid_observations.sort_by(|left, right| left.path.cmp(&right.path));
+    world_writable_observations.sort_by(|left, right| left.path.cmp(&right.path));
+    let suid_sgid_paths =
+        suid_sgid_observations.iter().map(|observation| observation.path.clone()).collect();
+    let world_writable_paths =
+        world_writable_observations.iter().map(|observation| observation.path.clone()).collect();
+    Ok(SecurityStructuralReport {
+        suid_sgid_paths,
+        world_writable_paths,
+        suid_sgid_observations,
+        world_writable_observations,
+    })
 }
 
 fn run_bounded(
@@ -595,7 +614,7 @@ mod tests {
 
     use super::{
         ensure_immutable_json, inspect_structure, run_bounded, validate_request,
-        SecurityVerificationRequest, NON_ROOT_PROBE_SCRIPT,
+        SecurityFilesystemKind, SecurityVerificationRequest, NON_ROOT_PROBE_SCRIPT,
     };
 
     #[test]
@@ -627,16 +646,24 @@ mod tests {
 
         let root = bijux_dna_testkit::tempdir_for("security-structural-probe");
         let privileged = root.path().join("privileged");
+        let sticky = root.path().join("sticky");
         let writable = root.path().join("writable");
         fs::write(&privileged, b"fixture")?;
+        fs::create_dir(&sticky)?;
         fs::write(&writable, b"fixture")?;
         fs::set_permissions(&privileged, fs::Permissions::from_mode(0o4755))?;
+        fs::set_permissions(&sticky, fs::Permissions::from_mode(0o1777))?;
         fs::set_permissions(&writable, fs::Permissions::from_mode(0o666))?;
 
         let report = inspect_structure(root.path())?;
 
         assert_eq!(report.suid_sgid_paths, ["/privileged"]);
-        assert_eq!(report.world_writable_paths, ["/writable"]);
+        assert_eq!(report.suid_sgid_observations[0].mode, 0o4755);
+        assert_eq!(report.world_writable_paths, ["/sticky", "/writable"]);
+        assert_eq!(report.world_writable_observations[0].mode, 0o1777);
+        assert_eq!(report.world_writable_observations[0].kind, SecurityFilesystemKind::Directory);
+        assert_eq!(report.world_writable_observations[1].mode, 0o666);
+        assert_eq!(report.world_writable_observations[1].kind, SecurityFilesystemKind::File);
         Ok(())
     }
 

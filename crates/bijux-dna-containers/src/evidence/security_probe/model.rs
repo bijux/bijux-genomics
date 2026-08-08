@@ -25,6 +25,26 @@ pub struct SecurityProbeArtifact {
 pub struct SecurityStructuralReport {
     pub suid_sgid_paths: Vec<String>,
     pub world_writable_paths: Vec<String>,
+    #[serde(default)]
+    pub suid_sgid_observations: Vec<SecurityFilesystemObservation>,
+    #[serde(default)]
+    pub world_writable_observations: Vec<SecurityFilesystemObservation>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct SecurityFilesystemObservation {
+    pub path: String,
+    pub mode: u32,
+    pub kind: SecurityFilesystemKind,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum SecurityFilesystemKind {
+    Directory,
+    File,
+    Other,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

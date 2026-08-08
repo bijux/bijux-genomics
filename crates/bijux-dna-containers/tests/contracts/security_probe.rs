@@ -4,9 +4,10 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
-    admit_security_probe_publication, SecurityProbeArtifact, SecurityProbeAuthority,
-    SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport,
-    SecurityStructuralReport, ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    admit_security_probe_publication, SecurityFilesystemKind, SecurityFilesystemObservation,
+    SecurityProbeArtifact, SecurityProbeAuthority, SecurityProbePublication, SecurityProbeStatus,
+    SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport, ToolSecurityProbe,
+    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 fn digest(value: char) -> String {
@@ -28,7 +29,13 @@ fn fixture() -> Result<(tempfile::TempDir, PathBuf, SecurityProbeAuthority, Secu
         &structural_path,
         serde_json::to_vec_pretty(&SecurityStructuralReport {
             suid_sgid_paths: Vec::new(),
-            world_writable_paths: Vec::new(),
+            world_writable_paths: vec!["/tmp".to_string()],
+            suid_sgid_observations: Vec::new(),
+            world_writable_observations: vec![SecurityFilesystemObservation {
+                path: "/tmp".to_string(),
+                mode: 0o1777,
+                kind: SecurityFilesystemKind::Directory,
+            }],
         })?,
     )?;
     let structural = SecurityProbeArtifact {
@@ -164,6 +171,34 @@ fn rejects_raw_manifest_omission() -> Result<()> {
     fs::write(&publication_path, serde_json::to_vec_pretty(&publication)?)?;
     assert!(admit_security_probe_publication(&publication_path, study.path(), &authority)
         .is_err_and(|error| error.to_string().contains("omits or changes")));
+    Ok(())
+}
+
+#[test]
+fn rejects_structural_observation_projection_drift() -> Result<()> {
+    let (study, publication_path, authority, _) = fixture()?;
+    let structural_path = study.path().join("evidence/structural.json");
+    let mut structural: SecurityStructuralReport =
+        serde_json::from_slice(&fs::read(&structural_path)?)?;
+    structural.world_writable_observations[0].path = "/different".to_string();
+    fs::write(&structural_path, serde_json::to_vec_pretty(&structural)?)?;
+    let structural_sha256 = bijux_dna_infra::hash_file_sha256(&structural_path)?;
+
+    let manifest_path = study.path().join("evidence/raw-manifest.json");
+    let mut manifest: BTreeMap<String, String> =
+        serde_json::from_slice(&fs::read(&manifest_path)?)?;
+    manifest.insert("structural.json".to_string(), structural_sha256.clone());
+    fs::write(&manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
+
+    let mut publication: SecurityProbePublication =
+        serde_json::from_slice(&fs::read(&publication_path)?)?;
+    let tool = publication.tools.get_mut("samtools").context("samtools fixture")?;
+    tool.structural_report.as_mut().context("structural artifact")?.sha256 = structural_sha256;
+    tool.raw_manifest.sha256 = bijux_dna_infra::hash_file_sha256(&manifest_path)?;
+    fs::write(&publication_path, serde_json::to_vec_pretty(&publication)?)?;
+
+    assert!(admit_security_probe_publication(&publication_path, study.path(), &authority)
+        .is_err_and(|error| error.to_string().contains("path projection")));
     Ok(())
 }
 

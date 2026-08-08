@@ -170,6 +170,7 @@ fn compose(
             .structural
             .clone()
             .with_context(|| format!("admission omits structural report for {tool_id}"))?;
+        let world_writable_paths = policy_world_writable_paths(&structural);
         let runtime = reports
             .runtime
             .as_ref()
@@ -209,7 +210,7 @@ fn compose(
                 signature_evidence_sha256,
                 signature,
                 suid_sgid_paths: structural.suid_sgid_paths,
-                world_writable_paths: structural.world_writable_paths,
+                world_writable_paths,
             },
             sbom_sha256: required_artifact(raw.sbom.as_ref(), tool_id, "SBOM")?.sha256.clone(),
             vulnerability_report: ScannerReportObservation {
@@ -296,6 +297,21 @@ fn classify_signature(verified: bool, stderr: &[u8]) -> ImageSignatureDispositio
     }
 }
 
+fn policy_world_writable_paths(report: &containers::SecurityStructuralReport) -> Vec<String> {
+    if report.world_writable_observations.is_empty() {
+        return report.world_writable_paths.clone();
+    }
+    report
+        .world_writable_observations
+        .iter()
+        .filter(|observation| {
+            observation.kind != containers::SecurityFilesystemKind::Directory
+                || observation.mode & 0o1000 == 0
+        })
+        .map(|observation| observation.path.clone())
+        .collect()
+}
+
 fn parse_observed_uid(raw: &[u8]) -> Result<u32> {
     let value = std::str::from_utf8(raw)?.trim();
     if value.is_empty() || value.lines().count() != 1 {
@@ -369,5 +385,33 @@ mod tests {
         assert!(parse_observed_uid(b"").is_err());
         assert!(parse_observed_uid(b"1000\n1001\n").is_err());
         Ok(())
+    }
+
+    #[test]
+    fn policy_excludes_only_observed_sticky_directories() {
+        let report = containers::SecurityStructuralReport {
+            suid_sgid_paths: Vec::new(),
+            world_writable_paths: vec!["/tmp".to_string(), "/unsafe".to_string()],
+            suid_sgid_observations: Vec::new(),
+            world_writable_observations: vec![
+                containers::SecurityFilesystemObservation {
+                    path: "/tmp".to_string(),
+                    mode: 0o1777,
+                    kind: containers::SecurityFilesystemKind::Directory,
+                },
+                containers::SecurityFilesystemObservation {
+                    path: "/unsafe".to_string(),
+                    mode: 0o777,
+                    kind: containers::SecurityFilesystemKind::Directory,
+                },
+            ],
+        };
+        assert_eq!(policy_world_writable_paths(&report), ["/unsafe"]);
+
+        let legacy = containers::SecurityStructuralReport {
+            world_writable_observations: Vec::new(),
+            ..report
+        };
+        assert_eq!(policy_world_writable_paths(&legacy), ["/tmp", "/unsafe"]);
     }
 }
