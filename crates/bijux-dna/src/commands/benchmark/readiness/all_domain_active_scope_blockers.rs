@@ -14,7 +14,7 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_SCOPE_BLOCKERS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/active-scope-blockers.tsv";
-const DEFAULT_REMOVED_FROM_SCOPE_SOURCE_PATH: &str = "benchmarks/readiness/removed-from-scope.tsv";
+const DEFAULT_REMOVED_FROM_SCOPE_SOURCE_PATH: &str = "artifacts/benchmark-smoke/readiness/removed-from-scope.tsv";
 const DEFAULT_NO_PLANNED_ROWS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/no-planned-rows.json";
 const DEFAULT_NO_NOT_BENCHMARK_READY_ROWS_PATH: &str =

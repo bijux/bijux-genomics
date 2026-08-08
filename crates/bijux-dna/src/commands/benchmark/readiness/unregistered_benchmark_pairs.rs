@@ -14,7 +14,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_UNREGISTERED_BENCHMARK_PAIRS_PATH: &str =
-    "benchmarks/readiness/unregistered-benchmark-pairs.tsv";
+    "artifacts/benchmark-smoke/readiness/unregistered-benchmark-pairs.tsv";
 const UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.unregistered_benchmark_pairs.v1";
 

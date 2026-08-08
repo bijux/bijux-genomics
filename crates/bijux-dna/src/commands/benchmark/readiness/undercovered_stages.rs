@@ -14,7 +14,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_UNDERCOVERED_STAGES_PATH: &str =
-    "benchmarks/readiness/undercovered-stages.tsv";
+    "artifacts/benchmark-smoke/readiness/undercovered-stages.tsv";
 const UNDERCOVERED_STAGES_SCHEMA_VERSION: &str = "bijux.bench.readiness.undercovered_stages.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

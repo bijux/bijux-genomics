@@ -71,7 +71,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
     assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("removed_from_scope_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/removed-from-scope.tsv")
+        Some("artifacts/benchmark-smoke/readiness/removed-from-scope.tsv")
     );
 
     let support_status_counts = payload

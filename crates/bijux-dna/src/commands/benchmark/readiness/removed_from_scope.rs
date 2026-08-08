@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_REMOVED_FROM_SCOPE_PATH: &str =
-    "benchmarks/readiness/removed-from-scope.tsv";
+    "artifacts/benchmark-smoke/readiness/removed-from-scope.tsv";
 const REMOVED_FROM_SCOPE_SCHEMA_VERSION: &str = "bijux.bench.readiness.removed_from_scope.v1";
 const TRACKED_FULL_BENCHMARK_REPORT_JSON_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";

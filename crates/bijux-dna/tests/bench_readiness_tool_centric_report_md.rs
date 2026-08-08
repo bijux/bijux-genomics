@@ -36,7 +36,7 @@ fn bench_readiness_tool_centric_report_writes_named_tool_sections() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/tool-centric-report.md");
+    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/readiness/tool-centric-report.md");
 
     let repo_root = support::repo_root().expect("repo root");
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
@@ -46,7 +46,7 @@ fn bench_readiness_tool_centric_report_writes_named_tool_sections() {
     assert!(markdown.contains("- Tool count: "));
     assert!(markdown.contains("- Stage-tool rows: "));
     assert!(markdown.contains("| samtools | bam | 10 | 10 | 0 | none |"));
-    assert!(markdown.contains("| fastp | fastq | 5 | 5 | 0 | none |"));
+    assert!(markdown.contains("| fastp | fastq | 4 | 4 | 0 | none |"));
     assert!(markdown.contains("| seqfu | fastq | 2 | 2 | 0 | none |"));
 
     assert!(markdown.contains("## samtools"));

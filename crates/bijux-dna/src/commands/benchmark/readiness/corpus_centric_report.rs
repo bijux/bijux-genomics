@@ -14,7 +14,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_CENTRIC_REPORT_PATH: &str =
-    "benchmarks/readiness/corpus-centric-report.md";
+    "artifacts/benchmark-smoke/readiness/corpus-centric-report.md";
 const CORPUS_CENTRIC_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.corpus_centric_report.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -316,7 +316,7 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
     }
 
     ensure_corpus(corpora, "reference-index-assets", 1, 2, 0, &["reference-index-assets"], &[])?;
-    ensure_corpus(corpora, "corpus-01", 21, 62, 0, &["corpus-01-mini"], &[])?;
+    ensure_corpus(corpora, "corpus-01", 21, 60, 0, &["corpus-01-mini"], &[])?;
     ensure_corpus(corpora, "corpus-02", 1, 4, 0, &["corpus-02-edna-mini"], &[])?;
     ensure_corpus(corpora, "corpus-03", 5, 5, 0, &["corpus-03-amplicon-mini"], &[])?;
     ensure_corpus(

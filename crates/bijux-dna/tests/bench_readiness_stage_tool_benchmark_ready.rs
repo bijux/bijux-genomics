@@ -49,7 +49,7 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_a_fully_governed_ready_slic
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json")
     );
     assert_eq!(payload.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
     let expected_pair_count = payload

@@ -14,7 +14,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_ID_NORMALIZATION_PATH: &str =
-    "benchmarks/readiness/tool-id-normalization.tsv";
+    "artifacts/benchmark-smoke/readiness/tool-id-normalization.tsv";
 const TOOL_ID_NORMALIZATION_SCHEMA_VERSION: &str = "bijux.bench.readiness.tool_id_normalization.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

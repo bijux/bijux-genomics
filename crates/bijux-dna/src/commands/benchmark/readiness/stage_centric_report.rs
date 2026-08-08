@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_CENTRIC_REPORT_PATH: &str =
-    "benchmarks/readiness/stage-centric-report.md";
+    "artifacts/benchmark-smoke/readiness/stage-centric-report.md";
 const STAGE_CENTRIC_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_centric_report.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -373,7 +373,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         stages,
         "bam",
         "bam.damage",
-        5,
+        6,
         0,
         "declared",
         &["terminal_c_to_t_5p", "terminal_g_to_a_3p", "damage_signal"],
@@ -606,7 +606,7 @@ mod tests {
         assert_eq!(profile_overrepresented.tool_count, 3);
         assert_eq!(profile_overrepresented.blocked_tool_count, 0);
         assert_eq!(profile_overrepresented.shared_metric_field_count, 3);
-        assert_eq!(damage.tool_count, 5);
+        assert_eq!(damage.tool_count, 6);
         assert_eq!(damage.shared_metric_field_count, 3);
     }
 

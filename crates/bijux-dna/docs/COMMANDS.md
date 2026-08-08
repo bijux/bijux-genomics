@@ -416,13 +416,13 @@ Visible aliases are part of the operator surface:
   governed taxonomy result manifest, and proves that the report keeps the missing binding visible
   as a `missing_result` row instead of dropping it.
 - `bijux-dna bench readiness render-pair-readiness`
-  `render-pair-readiness` writes `benchmarks/readiness/pair-readiness.tsv` with one governed
+  `render-pair-readiness` writes `artifacts/benchmark-smoke/readiness/pair-readiness.tsv` with one governed
   row per FASTQ or BAM stage-tool pair, carrying the exact `adapter_status`, `parser_status`,
   `corpus_status`, and `asset_status` columns plus the resolved `readiness_gap` so incomplete
   bindings stay reviewable by the precise missing component instead of collapsing into a generic
   not-ready bucket.
 - `bijux-dna bench readiness render-corpus-centric-report`
-  `render-corpus-centric-report` writes `benchmarks/readiness/corpus-centric-report.md` with
+  `render-corpus-centric-report` writes `artifacts/benchmark-smoke/readiness/corpus-centric-report.md` with
   one governed section per FASTQ or BAM corpus family, carrying the stage inventory that corpus
   exercises plus exact fixture IDs, ready-vs-blocked tool counts, shared metric visibility, and
   blocked tool rows. Taxonomy stays reviewer-visible under `corpus-02`, ASV or OTU or chimera
@@ -430,28 +430,28 @@ Visible aliases are part of the operator surface:
   remain bound to their owned BAM corpora.
 - `bijux-dna bench readiness render-benchmark-readiness-dashboard`
   `render-benchmark-readiness-dashboard` writes
-  `benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md` and
-  `benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json`, aggregating the governed matrix,
+  `artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md` and
+  `artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json`, aggregating the governed matrix,
   adapter, parser, corpus, asset, and report surfaces into one local dashboard. The summary keeps
   total expected pairs, ready pairs, blocked pairs, exact blocker counts, and every blocked
   `stage_id × tool_id` row reviewer-visible in one place.
 - `bijux-dna bench readiness render-stage-tool-benchmark-ready`
   `render-stage-tool-benchmark-ready` writes
-  `benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json`, proving that the
+  `artifacts/benchmark-smoke/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json`, proving that the
   benchmark-ready FASTQ/BAM slice is complete enough to generate local HPC benchmark jobs and
   report expectations while keeping every excluded `not_benchmark_ready` pair explicit. The gate
   passes only when the ready slice retains matrix, registry, adapter, parser, corpus, asset,
   expected-result, and report-map coverage; excluded pairs stay visible with exact readiness gaps
   and explicit confirmation that they are omitted from generated jobs and expected results.
 - `bijux-dna bench readiness render-tool-centric-report`
-  `render-tool-centric-report` writes `benchmarks/readiness/tool-centric-report.md` with one
+  `render-tool-centric-report` writes `artifacts/benchmark-smoke/readiness/tool-centric-report.md` with one
   governed section per benchmarked tool, carrying the full FASTQ/BAM stage list that tool serves
   plus exact `benchmark_status`, `readiness_gap`, `support_status`, `adapter_status`,
   `parser_status`, `corpus_status`, and `asset_status` columns so named tools such as
   `samtools`, `picard`, `fastp`, `vsearch`, `kraken2`, `bowtie2`, and `gatk` stay reviewer-visible
   with complete stage coverage and precise blockers.
 - `bijux-dna bench readiness render-stage-centric-report`
-  `render-stage-centric-report` writes `benchmarks/readiness/stage-centric-report.md` with one
+  `render-stage-centric-report` writes `artifacts/benchmark-smoke/readiness/stage-centric-report.md` with one
   governed section per FASTQ or BAM benchmark stage, carrying the full tool list benchmarked
   against that stage plus exact `benchmark_status`, `readiness_gap`, `support_status`,
   `adapter_status`, `parser_status`, `corpus_status`, and `asset_status` columns. Multi-tool
@@ -708,7 +708,7 @@ Visible aliases are part of the operator surface:
   `corpus-03-amplicon-mini`.
 - `bijux-dna bench readiness render-corpus-incompatibility`
   `render-corpus-incompatibility` writes
-  `benchmarks/readiness/corpus-incompatibility.tsv` with one governed row per benchmark-ready
+  `artifacts/benchmark-smoke/readiness/corpus-incompatibility.tsv` with one governed row per benchmark-ready
   FASTQ or BAM stage-tool binding against each incompatible alternative fixture, carrying the
   incompatible fixture IDs, the required governed replacement, the `incompatibility_kind`, any
   required stage assets, and the exact contract evidence that blocks the mismatch. The report is
@@ -1345,7 +1345,7 @@ Visible aliases are part of the operator surface:
   fails closed unless those aliases remain confined to migration validation instead of entering
   benchmark-owned active or generated-job surfaces.
 - `bijux-dna bench readiness render-removed-from-scope`
-  `render-removed-from-scope` writes `benchmarks/readiness/removed-from-scope.tsv` with one
+  `render-removed-from-scope` writes `artifacts/benchmark-smoke/readiness/removed-from-scope.tsv` with one
   governed row per candidate FASTQ, BAM, and VCF stage-tool binding that is outside the final
   job-bearing active benchmark scope. Each row keeps `domain`, `stage_id`, `tool_id`,
   `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, `status`,
@@ -1510,7 +1510,7 @@ Visible aliases are part of the operator surface:
   a real missing-input probe result, so calling, filtering, GL propagation, postprocess, stats,
   and panel-preparation rows cannot fall back to placeholder execution or silent input drift.
 - `bijux-dna bench readiness render-orphan-tools`
-  `render-orphan-tools` writes `benchmarks/readiness/orphan-tools.tsv` with one governed row per
+  `render-orphan-tools` writes `artifacts/benchmark-smoke/readiness/orphan-tools.tsv` with one governed row per
   FASTQ or BAM tool contract that exists in scope but serves no currently rendered benchmark stage.
   Each row carries `domain`, `tool_id`, `decision`, `declared_stage_ids`, `benchmark_stage_ids`,
   and `reason`, and every orphan row is forced into an explicit disposition:
@@ -1535,14 +1535,14 @@ Visible aliases are part of the operator surface:
   `benchmark_ready_registry_pair_missing_from_matrix` drift rows explicit when disagreement returns.
 - `bijux-dna bench readiness render-missing-benchmark-pairs`
   `render-missing-benchmark-pairs` writes
-  `benchmarks/readiness/missing-benchmark-pairs.tsv` with one governed row per FASTQ or BAM
+  `artifacts/benchmark-smoke/readiness/missing-benchmark-pairs.tsv` with one governed row per FASTQ or BAM
   stage-tool pair that is admitted by the domain contracts but missing from the current benchmark
   matrix. Each row carries `domain`, `stage_id`, `tool_id`, `support_status`,
   `registered_tool_ids`, and `reason` so compatible pairs cannot disappear silently before
   readiness review.
 - `bijux-dna bench readiness render-tool-id-normalization`
   `render-tool-id-normalization` writes
-  `benchmarks/readiness/tool-id-normalization.tsv` with one governed row per separator-folded
+  `artifacts/benchmark-smoke/readiness/tool-id-normalization.tsv` with one governed row per separator-folded
   FASTQ or BAM tool-ID alias cluster, carrying `normalized_tool_id`, `canonical_tool_id`,
   `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
   cannot drift without an explicit canonical mapping.
@@ -1567,7 +1567,7 @@ Visible aliases are part of the operator surface:
   and governed benchmark stage scope.
 - `bijux-dna bench readiness render-stage-registry-extra-pairs`
   `render-stage-registry-extra-pairs` writes
-  `benchmarks/readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
+  `artifacts/benchmark-smoke/readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
   scoped stage-registry pair that is present in `configs/ci/registry/tool_registry.toml` but not
   admitted by the domain tool contracts. Each row carries `domain`, `stage_id`, `tool_id`,
   `contract_status`, `registry_sources`, `registered_stage_ids`, `documented_exception_status`,
@@ -1575,13 +1575,13 @@ Visible aliases are part of the operator surface:
   domain truth.
 - `bijux-dna bench readiness render-unregistered-benchmark-pairs`
   `render-unregistered-benchmark-pairs` writes
-  `benchmarks/readiness/unregistered-benchmark-pairs.tsv` with one governed row per FASTQ or
+  `artifacts/benchmark-smoke/readiness/unregistered-benchmark-pairs.tsv` with one governed row per FASTQ or
   BAM benchmark-matrix pair that is missing from `configs/ci/registry/tool_registry.toml`. Each
   row carries `domain`, `stage_id`, `tool_id`, `support_status`, `registry_status`,
   `registered_stage_ids`, and `reason` so benchmark scope cannot silently outrun the production
   tool registry.
 - `bijux-dna bench readiness render-undercovered-stages`
-  `render-undercovered-stages` writes `benchmarks/readiness/undercovered-stages.tsv` with one
+  `render-undercovered-stages` writes `artifacts/benchmark-smoke/readiness/undercovered-stages.tsv` with one
   governed row per benchmark stage that admits multiple tool options in the domain tool contracts
   but currently registers only one tool in the benchmark serving map. Each row carries `domain`,
   `stage_id`, `valid_tool_count`, `registered_tool_count`, `valid_tool_ids`,
