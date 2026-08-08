@@ -10,6 +10,15 @@ use bijux_dna_bench::{
 use flate2::write::GzEncoder;
 use flate2::Compression;
 
+const REPOSITORY_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+fn catalog_snapshot_path(data_root: &std::path::Path) -> std::path::PathBuf {
+    data_root
+        .join("catalog/snapshots")
+        .join(REPOSITORY_COMMIT)
+        .join("human-short-read-diversity.json")
+}
+
 #[test]
 fn materialization_reverifies_existing_fastq_and_publishes_catalog() -> anyhow::Result<()> {
     let temporary = tempfile::tempdir()?;
@@ -29,6 +38,7 @@ fn materialization_reverifies_existing_fastq_and_publishes_catalog() -> anyhow::
     let publication = materialize_fastq_corpus(&CorpusMaterializationRequest {
         plan_path,
         data_root: data_root.clone(),
+        repository_commit: REPOSITORY_COMMIT.to_string(),
         maximum_parallelism: 1,
         retries: 0,
         timeout_seconds: 10,
@@ -68,28 +78,26 @@ fn malformed_fastq_never_receives_catalog_admission() -> anyhow::Result<()> {
     };
 
     assert!(format!("{error:#}").contains("invalid FASTQ record"));
-    assert!(!data_root.join("catalog/human-short-read-diversity.json").exists());
+    assert!(!catalog_snapshot_path(&data_root).exists());
     Ok(())
 }
 
 #[test]
-fn existing_catalog_is_preserved_without_materialization() -> anyhow::Result<()> {
+fn legacy_flat_catalog_is_preserved_while_snapshot_is_published() -> anyhow::Result<()> {
     let temporary = tempfile::tempdir()?;
     let data_root = temporary.path().canonicalize()?.join("data");
     fs::create_dir(&data_root)?;
     let data_root = data_root.canonicalize()?;
     let fastq_bytes = compressed_fastq()?;
     let plan_path = write_plan_and_fastq(&data_root, &fastq_bytes)?;
-    let catalog_path = data_root.join("catalog/human-short-read-diversity.json");
-    fs::create_dir_all(catalog_path.parent().context("catalog parent")?)?;
-    fs::write(&catalog_path, b"existing authority")?;
+    let legacy_catalog_path = data_root.join("catalog/human-short-read-diversity.json");
+    fs::create_dir_all(legacy_catalog_path.parent().context("catalog parent")?)?;
+    fs::write(&legacy_catalog_path, b"legacy v1 authority")?;
 
-    let Err(error) = materialize_fastq_corpus(&request(plan_path, data_root)) else {
-        anyhow::bail!("existing catalog authority must reject replacement");
-    };
+    let publication = materialize_fastq_corpus(&request(plan_path, data_root.clone()))?;
 
-    assert!(format!("{error:#}").contains("parse admitted catalog"));
-    assert_eq!(fs::read(catalog_path)?, b"existing authority");
+    assert_eq!(publication.catalog_path, catalog_snapshot_path(&data_root));
+    assert_eq!(fs::read(legacy_catalog_path)?, b"legacy v1 authority");
     Ok(())
 }
 
@@ -177,6 +185,18 @@ fn materialization_rejects_non_utc_admission_before_io() {
 }
 
 #[test]
+fn materialization_rejects_invalid_repository_commit_before_io() {
+    let mut request = request("/missing/plan.json".into(), "/missing/data".into());
+    request.repository_commit = "A".repeat(40);
+
+    let Err(error) = materialize_fastq_corpus(&request) else {
+        panic!("invalid repository commit must fail");
+    };
+
+    assert!(error.to_string().contains("lowercase 40-character Git object id"));
+}
+
+#[test]
 fn oversized_fastq_line_never_receives_catalog_admission() -> anyhow::Result<()> {
     let temporary = tempfile::tempdir()?;
     let data_root = temporary.path().canonicalize()?.join("data");
@@ -194,7 +214,7 @@ fn oversized_fastq_line_never_receives_catalog_admission() -> anyhow::Result<()>
     };
 
     assert!(format!("{error:#}").contains("exceeds 16777216 bytes"));
-    assert!(!data_root.join("catalog/human-short-read-diversity.json").exists());
+    assert!(!catalog_snapshot_path(&data_root).exists());
     Ok(())
 }
 
@@ -225,6 +245,7 @@ fn request(
     CorpusMaterializationRequest {
         plan_path,
         data_root,
+        repository_commit: REPOSITORY_COMMIT.to_string(),
         maximum_parallelism: 1,
         retries: 0,
         timeout_seconds: 10,

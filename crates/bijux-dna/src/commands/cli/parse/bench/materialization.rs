@@ -74,6 +74,8 @@ pub struct BenchMaterializeFastqCorpusArgs {
     pub plan: PathBuf,
     #[arg(long)]
     pub data_root: PathBuf,
+    #[arg(long)]
+    pub repository_commit: String,
     #[arg(long, default_value_t = 4)]
     pub jobs: usize,
     #[arg(long, default_value_t = 2)]

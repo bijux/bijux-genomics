@@ -80,6 +80,7 @@ Materialize the resolved plan under the governed data root:
 bijux-dna bench materialize-fastq-corpus \
   --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
   --data-root "$STUDY/data" \
+  --repository-commit "$commit" \
   --jobs 4 \
   --retries 2 \
   --timeout-seconds 120 \
@@ -93,7 +94,9 @@ repository path and commit, Linux `bijux-dna` executable path and SHA-256,
 acquisition plan path and SHA-256, governed data and evidence roots, scheduler
 resources, transfer limits, and admission timestamp. For an idempotent replay
 of an admitted corpus, `existing_catalog_sha256` binds the exact governed
-catalog that must already exist; omit it only for first admission.
+`data/catalog/snapshots/<repository-commit>/<portfolio-id>.json` catalog that
+must already exist; omit it only for first admission. Legacy flat catalog
+authorities remain immutable and are never replaced by materialization.
 
 Prepare immutable scheduler material from that specification, then submit it
 exactly once without waiting:

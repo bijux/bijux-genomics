@@ -126,6 +126,7 @@ pub(crate) fn handle_meta_commands(
                             &bijux_dna_api::v1::api::bench::CorpusMaterializationRequest {
                                 plan_path: args.plan.clone(),
                                 data_root: args.data_root.clone(),
+                                repository_commit: args.repository_commit.clone(),
                                 maximum_parallelism: args.jobs,
                                 retries: args.retries,
                                 timeout_seconds: args.timeout_seconds,

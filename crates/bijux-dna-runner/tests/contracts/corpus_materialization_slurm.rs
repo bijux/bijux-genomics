@@ -29,6 +29,7 @@ fn preparation_binds_exact_authorities_and_renders_rust_cli() -> anyhow::Result<
 
     assert!(script.contains("#SBATCH --cpus-per-task=2"));
     assert!(script.contains("'bench' 'materialize-fastq-corpus'"));
+    assert!(script.contains("'--repository-commit' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'"));
     assert!(script.contains(&fixture.spec.executable_sha256));
     assert!(script.contains(&fixture.spec.plan_sha256));
     assert!(!script.contains("python"));
@@ -49,8 +50,7 @@ fn preparation_binds_exact_authorities_and_renders_rust_cli() -> anyhow::Result<
 fn preparation_binds_an_existing_catalog_for_idempotent_replay() -> anyhow::Result<()> {
     let mut fixture = fixture()?;
     publish_catalog(&fixture)?;
-    let catalog_path =
-        fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(&fixture);
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
     fixture.spec.existing_catalog_sha256 = Some(catalog_sha256.clone());
 
@@ -121,8 +121,7 @@ fn submission_is_duplicate_safe_and_terminal_collection_verifies_catalog() -> an
         }))?,
     )?;
     let catalog = publish_catalog(&fixture)?;
-    let catalog_path =
-        fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(&fixture);
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
     fs::write(
         fixture.spec.evidence_root.join("materialization-publication.json"),
@@ -346,11 +345,19 @@ fn publish_catalog(fixture: &Fixture) -> anyhow::Result<GovernedDataCatalog> {
             materialization_status: CorpusMaterializationDisposition::Downloaded,
         }],
     };
-    let catalog_path =
-        fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(fixture);
     fs::create_dir_all(catalog_path.parent().ok_or_else(|| anyhow::anyhow!("catalog parent"))?)?;
     fs::write(catalog_path, serde_json::to_vec_pretty(&catalog)?)?;
     Ok(catalog)
+}
+
+fn catalog_snapshot_path(fixture: &Fixture) -> std::path::PathBuf {
+    fixture
+        .spec
+        .data_root
+        .join("catalog/snapshots")
+        .join(&fixture.spec.repository_commit)
+        .join(format!("{}.json", fixture.spec.portfolio_id))
 }
 
 fn source_policy(projected_storage_bytes: u64) -> CorpusSourcePolicy {

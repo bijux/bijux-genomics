@@ -26,7 +26,7 @@ These operations are exported through the crate root and `public_api`.
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
 | `acquire-fastq-corpus` | `acquire_fastq_corpus(request)` | Resolve a reviewed corpus specification against exact ENA run metadata and atomically publish a checksum-pinned acquisition plan. |
 | `derive-fastq-corpus-acquisition-plan` | `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` | Deterministically replay acquisition-plan derivation from typed offline ENA records. |
-| `materialize-fastq-corpus` | `materialize_fastq_corpus(request)` | Re-verify or transfer checksum-pinned ENA files, validate every gzip FASTQ record, make admitted bytes read-only, and atomically publish the governed catalog. |
+| `materialize-fastq-corpus` | `materialize_fastq_corpus(request)` | Re-verify or transfer checksum-pinned ENA files, validate every gzip FASTQ record, make admitted bytes read-only, and atomically publish a source-addressed governed catalog snapshot. |
 | `build-benchmark-data-index` | `build_benchmark_data_index(request)` | Verify a catalog registry, select each source-addressed current v2 snapshot, and re-hash its governed data closure. |
 | `publish-benchmark-data-index` | `publish_benchmark_data_index(request)` | Publish one immutable registry-bound data index and human-readable report. |
 | `admit-fastq-benchmark-corpus` | `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` | Verify exact data-index/catalog closure and re-hash every governed FASTQ file. |
@@ -84,7 +84,7 @@ Managed benchmark artifacts are:
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/attempt.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/transitions/<sequence>.json`
 - `data/evidence/benchmark-expectations/<catalog-sha256>/fastq-profile-read-lengths/manifest.json`
-- `data/catalog/<portfolio-id>.json`
+- `data/catalog/snapshots/<repository-commit>/<portfolio-id>.json`
 
 `bijux-dna-bench` writes suite, summary, decision, and migration artifacts only
 under declared benchmark output roots. Attempt lifecycle files are persisted and
