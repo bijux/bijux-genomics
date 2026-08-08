@@ -112,6 +112,7 @@ fn assert_evidence_and_test_trees(root: &Path) {
         entries([
             "OWNER.toml",
             "admission.rs",
+            "derivation.rs",
             "gitleaks.rs",
             "grype.rs",
             "mod.rs",
@@ -119,7 +120,7 @@ fn assert_evidence_and_test_trees(root: &Path) {
             "schema.rs",
             "validation.rs"
         ]),
-        "security evidence must separate admission, scanner parsing, models, schemas, and validation"
+        "security evidence must separate derivation, admission, scanner parsing, models, schemas, and validation"
     );
 
     assert_eq!(

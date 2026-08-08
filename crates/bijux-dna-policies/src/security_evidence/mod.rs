@@ -1,4 +1,5 @@
 mod admission;
+mod derivation;
 mod gitleaks;
 mod grype;
 mod model;
@@ -6,6 +7,11 @@ mod schema;
 mod validation;
 
 pub use admission::{admit_security_evidence, AdmittedSecurityEvidence};
+pub use derivation::{
+    derive_security_evidence, CollectedSecurityToolObservation, RuntimeProbeObservation,
+    ScannerReportObservation, SecurityEvidenceDerivationRequest, SecurityToolObservation,
+    StructuralProbeObservation,
+};
 pub use gitleaks::{parse_gitleaks_report, ParsedSecretScanReport};
 pub use grype::{parse_grype_vulnerability_report, ParsedVulnerabilityReport};
 pub use model::{
