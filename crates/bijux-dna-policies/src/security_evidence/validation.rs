@@ -32,6 +32,11 @@ pub fn validate_security_evidence_publication(
     validate_sha256(&publication.raw_evidence.sha256, "raw evidence")?;
     validate_nonempty(&publication.scanner.name, "scanner name")?;
     validate_nonempty(&publication.scanner.version, "scanner version")?;
+    if publication.scanner.database.maximum_age_days == 0
+        || publication.scanner.database.maximum_age_days > 30
+    {
+        bail!("vulnerability database maximum age is outside policy bounds");
+    }
     match publication.scanner.database.status {
         VulnerabilityDatabaseStatus::Current => {
             let updated_at = parse_database_timestamp(publication)?;
@@ -41,7 +46,8 @@ pub fn validate_security_evidence_publication(
             )?;
             let age = evaluated_at.signed_duration_since(updated_at);
             if age.num_seconds() < 0
-                || age.num_days() > i64::from(publication.scanner.database.maximum_age_days)
+                || age.num_seconds()
+                    > i64::from(publication.scanner.database.maximum_age_days) * 86_400
             {
                 bail!("vulnerability database marked current outside its maximum age");
             }
@@ -54,7 +60,8 @@ pub fn validate_security_evidence_publication(
             )?;
             let age = evaluated_at.signed_duration_since(updated_at);
             if age.num_seconds() < 0
-                || age.num_days() <= i64::from(publication.scanner.database.maximum_age_days)
+                || age.num_seconds()
+                    <= i64::from(publication.scanner.database.maximum_age_days) * 86_400
             {
                 bail!("vulnerability database marked stale while inside its maximum age");
             }
@@ -228,8 +235,22 @@ fn validate_passing_controls(
         anyhow::anyhow!("retained tool {} lacks vulnerability evidence", evidence.tool_id)
     })?;
     for finding in &vulnerabilities.findings {
-        if finding.severity == VulnerabilitySeverity::Critical && finding.waiver_id.is_none() {
-            bail!("tool {} has unwaived critical vulnerability {}", evidence.tool_id, finding.id);
+        if finding.waiver_id.is_none() {
+            match finding.severity {
+                VulnerabilitySeverity::Critical => bail!(
+                    "tool {} has unwaived critical vulnerability {}",
+                    evidence.tool_id,
+                    finding.id
+                ),
+                VulnerabilitySeverity::High => bail!(
+                    "tool {} has unwaived high vulnerability {}",
+                    evidence.tool_id,
+                    finding.id
+                ),
+                VulnerabilitySeverity::Medium
+                | VulnerabilitySeverity::Low
+                | VulnerabilitySeverity::Unknown => {}
+            }
         }
     }
     Ok(())
@@ -559,6 +580,16 @@ mod tests {
     }
 
     #[test]
+    fn database_age_must_not_round_down_to_whole_days() -> Result<()> {
+        let mut publication = valid_publication()?;
+        publication.scanner.database.maximum_age_days = 30;
+        publication.scanner.database.updated_at_utc = Some("2026-07-04T23:59:59Z".to_string());
+        assert!(validate_security_evidence_publication(&publication)
+            .is_err_and(|error| error.to_string().contains("outside its maximum age")));
+        Ok(())
+    }
+
+    #[test]
     fn expired_waiver_cannot_pass() -> Result<()> {
         let mut publication = valid_publication()?;
         let Some(evidence) = publication.tools.get_mut("samtools") else {
@@ -582,6 +613,24 @@ mod tests {
         vulnerabilities.findings[0].waiver_id = None;
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("unwaived critical")));
+        Ok(())
+    }
+
+    #[test]
+    fn unwaived_high_finding_cannot_pass() -> Result<()> {
+        let mut publication = valid_publication()?;
+        let Some(evidence) = publication.tools.get_mut("samtools") else {
+            anyhow::bail!("security fixture lacks samtools evidence");
+        };
+        let Some(vulnerabilities) = evidence.vulnerabilities.as_mut() else {
+            anyhow::bail!("security fixture lacks vulnerability evidence");
+        };
+        vulnerabilities.findings[0].severity = VulnerabilitySeverity::High;
+        vulnerabilities.findings[0].waiver_id = None;
+        vulnerabilities.severity_counts.critical = 0;
+        vulnerabilities.severity_counts.high = 1;
+        assert!(validate_security_evidence_publication(&publication)
+            .is_err_and(|error| error.to_string().contains("unwaived high")));
         Ok(())
     }
 
