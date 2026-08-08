@@ -77,7 +77,9 @@ fn validate_schema_identity(index: &BenchmarkDataIndex) -> Result<(), BenchError
         (BENCHMARK_DATA_INDEX_SCHEMA_V1, None, None) => Ok(()),
         (BENCHMARK_DATA_INDEX_SCHEMA_V2, Some(path), Some(digest)) => {
             validate_study_uri(path, "catalog registry")?;
-            if !path.starts_with("study://data/catalog/") || !path.ends_with(".json") {
+            if !path.starts_with("study://data/catalog/")
+                || std::path::Path::new(path).extension() != Some(std::ffi::OsStr::new("json"))
+            {
                 return Err(invalid("benchmark data-index catalog registry path is invalid"));
             }
             validate_digest(digest, "catalog registry")

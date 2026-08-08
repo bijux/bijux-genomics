@@ -47,6 +47,11 @@ fn governed_data_index_v2_requires_exact_registry_identity() {
     index.catalog_registry_sha256 = None;
     assert!(validate_benchmark_data_index(&index)
         .is_err_and(|error| error.to_string().contains("disagrees with schema")));
+
+    index.catalog_registry_sha256 = Some("c".repeat(64));
+    index.catalog_registry_path = Some("study://data/catalog/registry.JSON".to_string());
+    assert!(validate_benchmark_data_index(&index)
+        .is_err_and(|error| error.to_string().contains("path is invalid")));
 }
 
 fn valid_index() -> BenchmarkDataIndex {
