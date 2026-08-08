@@ -8,14 +8,63 @@ use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
 use crate::contract::{
     BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
 };
+use crate::model::BenchmarkCorpusClass;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum CorpusAcquisitionLayout {
     Se,
     Pe,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqCorpusSourceSample {
+    pub accession: String,
+    pub study_accession: String,
+    pub era: String,
+    pub layout: CorpusAcquisitionLayout,
+    pub size_band: String,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqCorpusSourceSpec {
+    #[schemars(schema_with = "fastq_corpus_source_schema_version")]
+    pub schema_version: String,
+    pub corpus_id: String,
+    pub portfolio_id: String,
+    pub class: BenchmarkCorpusClass,
+    pub species: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub species_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preferred_root: Option<String>,
+    pub description: String,
+    pub source_authority: String,
+    pub access_classification: String,
+    pub redistribution_classification: String,
+    pub access_terms_url: String,
+    pub attribution: String,
+    pub projected_storage_bytes: u64,
+    pub projected_cpu_hours: u64,
+    pub projection_basis: String,
+    pub truth_roles: Vec<String>,
+    pub truth_strategy: String,
+    pub known_limitations: Vec<String>,
+    pub target_total: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_ancient_se: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_ancient_pe: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_modern_se: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_modern_pe: Option<usize>,
+    pub samples: Vec<FastqCorpusSourceSample>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -162,6 +211,11 @@ pub fn corpus_acquisition_plan_schema() -> Schema {
 }
 
 #[must_use]
+pub fn fastq_corpus_source_spec_schema() -> Schema {
+    schemars::schema_for!(FastqCorpusSourceSpec)
+}
+
+#[must_use]
 pub fn governed_data_catalog_schema() -> Schema {
     schemars::schema_for!(GovernedDataCatalog)
 }
@@ -173,6 +227,10 @@ pub fn corpus_materialization_publication_schema() -> Schema {
 
 fn corpus_acquisition_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "const": CORPUS_ACQUISITION_SCHEMA_V1})
+}
+
+fn fastq_corpus_source_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": FASTQ_CORPUS_SOURCE_SCHEMA_V1})
 }
 
 fn governed_data_catalog_schema_version(_: &mut SchemaGenerator) -> Schema {

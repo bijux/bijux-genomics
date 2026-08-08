@@ -41,7 +41,8 @@ pub use lifecycle::{
     validate_scheduler_observation,
 };
 pub use materialization::{
-    validate_corpus_acquisition_plan, validate_governed_data_catalog, validate_utc_timestamp,
+    validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
+    validate_governed_data_catalog, validate_utc_timestamp,
 };
 pub use planning::{
     validate_benchmark_portfolio, validate_benchmark_run_registry,
@@ -88,9 +89,9 @@ pub use schema_versions::{
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
     BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BUNDLE_SCHEMA_V1,
     CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
-    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use stage_result::validate_benchmark_stage_result_manifest;
 pub use suite::validate_suite;

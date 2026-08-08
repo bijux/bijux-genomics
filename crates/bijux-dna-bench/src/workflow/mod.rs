@@ -92,7 +92,8 @@ pub use campaign_material::{
     BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
 };
 pub use corpus_acquisition::{
-    acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, CorpusAcquisitionRequest,
+    acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, load_fastq_corpus_source_spec,
+    CorpusAcquisitionRequest,
 };
 pub use corpus_materialization::{
     materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,

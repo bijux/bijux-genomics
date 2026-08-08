@@ -7,11 +7,92 @@ use chrono::{DateTime, FixedOffset};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, GovernedDataCatalog,
-    GovernedDataCatalogFile,
+    BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
+    FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile,
 };
 
-use super::{CORPUS_ACQUISITION_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1};
+use super::{
+    CORPUS_ACQUISITION_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+};
+
+/// Validate a production FASTQ source declaration before archive resolution or acquisition.
+///
+/// # Errors
+/// Returns an error when identity, production class, access, truth, projection, or sample closure
+/// is incomplete or internally inconsistent.
+pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result<(), BenchError> {
+    if spec.schema_version != FASTQ_CORPUS_SOURCE_SCHEMA_V1 {
+        return Err(invalid("FASTQ corpus source schema mismatch"));
+    }
+    validate_identifier(&spec.corpus_id, "corpus")?;
+    validate_identifier(&spec.portfolio_id, "portfolio")?;
+    if !matches!(
+        spec.class,
+        BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
+    ) {
+        return Err(invalid("FASTQ corpus source class is not publishable real data"));
+    }
+    for (value, label) in [
+        (&spec.species, "species"),
+        (&spec.description, "description"),
+        (&spec.source_authority, "source authority"),
+        (&spec.access_classification, "access classification"),
+        (&spec.redistribution_classification, "redistribution classification"),
+        (&spec.attribution, "attribution"),
+        (&spec.projection_basis, "projection basis"),
+        (&spec.truth_strategy, "truth strategy"),
+    ] {
+        validate_nonempty(value, label)?;
+    }
+    for (value, label) in [
+        (spec.species_id.as_deref(), "species identifier"),
+        (spec.preferred_root.as_deref(), "preferred root"),
+    ] {
+        if let Some(value) = value {
+            validate_nonempty(value, label)?;
+        }
+    }
+    validate_https(&spec.access_terms_url, "access terms")?;
+    if spec.projected_storage_bytes == 0 || spec.projected_cpu_hours == 0 {
+        return Err(invalid("FASTQ corpus storage and compute projections must be positive"));
+    }
+    validate_nonempty_list(&spec.truth_roles, "truth role")?;
+    validate_nonempty_list(&spec.known_limitations, "known limitation")?;
+    if spec.samples.is_empty() || spec.samples.len() != spec.target_total {
+        return Err(invalid("FASTQ corpus target total disagrees with samples"));
+    }
+    let cohort_targets = [
+        spec.target_ancient_se,
+        spec.target_ancient_pe,
+        spec.target_modern_se,
+        spec.target_modern_pe,
+    ];
+    if cohort_targets.iter().any(Option::is_some)
+        && (cohort_targets.iter().any(Option::is_none)
+            || cohort_targets.into_iter().flatten().sum::<usize>() != spec.target_total)
+    {
+        return Err(invalid("FASTQ corpus cohort targets do not close over target total"));
+    }
+    let mut accessions = BTreeSet::new();
+    for sample in &spec.samples {
+        if !accessions.insert(sample.accession.as_str()) {
+            return Err(invalid("FASTQ corpus source repeats a run accession"));
+        }
+        for (value, label) in [
+            (&sample.accession, "run accession"),
+            (&sample.study_accession, "study accession"),
+            (&sample.era, "era"),
+            (&sample.size_band, "size band"),
+            (&sample.reason, "selection reason"),
+        ] {
+            validate_nonempty(value, label)?;
+        }
+        if !matches!(sample.era.as_str(), "ancient" | "modern") {
+            return Err(invalid("FASTQ corpus sample era is unsupported"));
+        }
+    }
+    Ok(())
+}
 
 /// Validate acquisition identity, source checksums, sample context, and aggregate closure.
 ///
@@ -286,6 +367,16 @@ fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
 fn validate_nonempty(value: &str, label: &str) -> Result<(), BenchError> {
     if value.trim().is_empty() || value != value.trim() {
         return Err(invalid(&format!("{label} is empty or malformed")));
+    }
+    Ok(())
+}
+
+fn validate_nonempty_list(values: &[String], label: &str) -> Result<(), BenchError> {
+    if values.is_empty() {
+        return Err(invalid(&format!("{label} list is empty")));
+    }
+    for value in values {
+        validate_nonempty(value, label)?;
     }
     Ok(())
 }

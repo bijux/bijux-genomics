@@ -49,6 +49,12 @@ repository commit is counted as admitted.
 `schemas/stage-universe.schema.json` is generated from the typed canonical-stage
 registry and must drift whenever a stage is added, removed, or reclassified.
 
+`schemas/fastq-corpus-source.schema.json` is generated from the model-owned
+production FASTQ source contract. A source declaration records its production
+class, archive authority, access and redistribution terms, attribution,
+scientific truth limits, and bounded storage and compute projection before
+live metadata resolution or materialization.
+
 The checked `suite`, `corpus`, `bundle`, `observation`, `summary`, and `decision`
 schemas are also generated from `bijux-dna-bench-model`. `GateDecision` is the
 only persisted decision record; schema changes must originate in the model

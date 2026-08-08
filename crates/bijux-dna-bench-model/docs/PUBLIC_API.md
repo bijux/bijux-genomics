@@ -36,6 +36,8 @@ Model contracts:
 - `BenchmarkMeasurementContract`
 - `BenchmarkCorpusContract`
 - `BenchmarkCorpusClass`
+- `FastqCorpusSourceSpec`
+- `FastqCorpusSourceSample`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -127,6 +129,7 @@ Policy and diagnostics:
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
 - `CORPUS_ACQUISITION_SCHEMA_V1`
+- `FASTQ_CORPUS_SOURCE_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 
 Statistics:
@@ -152,10 +155,12 @@ Schema derivation:
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
 - `corpus_acquisition_plan_schema`
+- `fastq_corpus_source_spec_schema`
 - `governed_data_catalog_schema`
 - `validate_scheduler_observation`
 - `validate_execution_spec`
 - `validate_corpus_acquisition_plan`
+- `validate_fastq_corpus_source_spec`
 - `validate_governed_data_catalog`
 - `validate_utc_timestamp`
 

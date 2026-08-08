@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_benchmark_data_index, validate_benchmark_data_portfolio_audit,
+    validate_benchmark_data_index, validate_benchmark_data_portfolio_audit, BenchmarkCorpusClass,
     BenchmarkCorpusDataAudit, BenchmarkCorpusStatus, BenchmarkDataIndex, BenchmarkDataIndexRecord,
     BenchmarkDataPortfolioAudit, BenchmarkDataPortfolioAuditSummary,
     BenchmarkDataSourceSpecIdentity, BenchmarkEligibility, BenchmarkEvidenceScope,
@@ -16,7 +16,7 @@ use bijux_dna_bench_model::{
 };
 use serde_json::Value;
 
-use crate::load_benchmark_portfolio;
+use crate::{load_benchmark_portfolio, load_fastq_corpus_source_spec};
 
 const PORTFOLIO_PATH: &str = "benchmarks/contracts/portfolio.toml";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
@@ -88,7 +88,14 @@ pub fn derive_benchmark_data_portfolio_audit(
     let mut publishable_contamination = Vec::new();
 
     for corpus in &portfolio.corpora {
-        let source_specs = source_spec_identities(&repository_root, &corpus.source_specs)?;
+        let source_specs = source_spec_identities(
+            &repository_root,
+            &corpus.source_specs,
+            &corpus.id,
+            corpus.class,
+            &corpus.roles,
+            &corpus.truth_strategy,
+        )?;
         let mut bindings = Vec::with_capacity(corpus.catalog_ids.len());
         let mut blockers = Vec::new();
         for catalog_id in &corpus.catalog_ids {
@@ -417,27 +424,28 @@ fn missing_binding(catalog_id: &str) -> BenchmarkGovernedDataBinding {
 fn source_spec_identities(
     repository_root: &Path,
     paths: &[String],
+    corpus_id: &str,
+    class: BenchmarkCorpusClass,
+    truth_roles: &[String],
+    truth_strategy: &str,
 ) -> Result<Vec<BenchmarkDataSourceSpecIdentity>> {
     let mut identities = Vec::with_capacity(paths.len());
     for relative in paths {
         let path = governed_file(repository_root, &repository_root.join(relative), "source spec")?;
         let bytes = read_bounded(&path, "source spec")?;
-        let value: toml::Value =
-            toml::from_str(std::str::from_utf8(&bytes).context("source spec is not UTF-8")?)
-                .with_context(|| format!("parse source spec {}", path.display()))?;
+        let spec = load_fastq_corpus_source_spec(&path)?;
+        if spec.portfolio_id != corpus_id
+            || spec.class != class
+            || spec.truth_roles != truth_roles
+            || spec.truth_strategy != truth_strategy
+        {
+            bail!("FASTQ source specification disagrees with portfolio corpus {corpus_id}");
+        }
         identities.push(BenchmarkDataSourceSpecIdentity {
             path: relative.clone(),
             sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
-            projected_storage_bytes: value
-                .get("projected_storage_bytes")
-                .and_then(toml::Value::as_integer)
-                .map(integer_to_u64)
-                .transpose()?,
-            projected_cpu_hours: value
-                .get("projected_cpu_hours")
-                .and_then(toml::Value::as_integer)
-                .map(integer_to_u64)
-                .transpose()?,
+            projected_storage_bytes: Some(spec.projected_storage_bytes),
+            projected_cpu_hours: Some(spec.projected_cpu_hours),
         });
     }
     identities.sort_by(|left, right| left.path.cmp(&right.path));
@@ -592,10 +600,6 @@ fn sum_projection(values: impl Iterator<Item = Option<u64>>) -> Result<Option<u6
         .try_fold(0_u64, u64::checked_add)
         .map(Some)
         .context("source-spec projection total overflow")
-}
-
-fn integer_to_u64(value: i64) -> Result<u64> {
-    value.try_into().context("source-spec projection must be non-negative")
 }
 
 fn canonical_directory(path: &Path, label: &str) -> Result<PathBuf> {

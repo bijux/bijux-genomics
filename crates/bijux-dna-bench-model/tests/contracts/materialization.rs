@@ -1,11 +1,41 @@
 use bijux_dna_bench_model::{
-    validate_corpus_acquisition_plan, validate_governed_data_catalog, CorpusAcquisitionFile,
+    validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
+    validate_governed_data_catalog, BenchmarkCorpusClass, CorpusAcquisitionFile,
     CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, CorpusMaterializationPublication, GovernedDataCatalog,
-    GovernedDataCatalogFile, GovernedDataCatalogSample,
+    CorpusMaterializationDisposition, CorpusMaterializationPublication, FastqCorpusSourceSample,
+    FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
     BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
 };
+
+#[test]
+fn fastq_source_contract_accepts_real_data_and_rejects_fixtures() {
+    let source = fastq_source_spec();
+    assert!(validate_fastq_corpus_source_spec(&source).is_ok());
+
+    let mut fixture = source;
+    fixture.class = BenchmarkCorpusClass::TestFixture;
+    assert!(validate_fastq_corpus_source_spec(&fixture)
+        .is_err_and(|error| error.to_string().contains("publishable real data")));
+}
+
+#[test]
+fn checked_fastq_source_schema_matches_model() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let path = repository_root.join("benchmarks/contracts/schemas/fastq-corpus-source.schema.json");
+    let generated = serde_json::to_value(bijux_dna_bench_model::fastq_corpus_source_spec_schema())?;
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(&generated)?;
+        bytes.push(b'\n');
+        std::fs::write(&path, bytes)?;
+    }
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+    assert_eq!(checked, generated);
+    Ok(())
+}
 
 #[test]
 fn acquisition_and_admission_contracts_accept_complete_fastq_identity() {
@@ -115,6 +145,43 @@ fn acquisition_plan() -> CorpusAcquisitionPlan {
         file_count: 1,
         total_size_bytes: 42,
         samples: vec![acquisition_sample()],
+    }
+}
+
+fn fastq_source_spec() -> FastqCorpusSourceSpec {
+    FastqCorpusSourceSpec {
+        schema_version: FASTQ_CORPUS_SOURCE_SCHEMA_V1.to_string(),
+        corpus_id: "corpus-01".to_string(),
+        portfolio_id: "human-short-read-diversity".to_string(),
+        class: BenchmarkCorpusClass::ProductionReal,
+        species: "Homo sapiens".to_string(),
+        species_id: Some("homo-sapiens".to_string()),
+        preferred_root: Some("${BIJUX_CORPUS_01_ROOT}".to_string()),
+        description: "real human short-read diversity panel".to_string(),
+        source_authority: "European Nucleotide Archive".to_string(),
+        access_classification: "public".to_string(),
+        redistribution_classification: "public-source-copy".to_string(),
+        access_terms_url: "https://www.ebi.ac.uk/ena/browser/about/policies".to_string(),
+        attribution: "cite source studies and accessions".to_string(),
+        projected_storage_bytes: 100,
+        projected_cpu_hours: 1,
+        projection_basis: "bounded test projection".to_string(),
+        truth_roles: vec!["read_diversity".to_string()],
+        truth_strategy: "archive_metadata".to_string(),
+        known_limitations: vec!["observational source metadata".to_string()],
+        target_total: 1,
+        target_ancient_se: None,
+        target_ancient_pe: None,
+        target_modern_se: None,
+        target_modern_pe: None,
+        samples: vec![FastqCorpusSourceSample {
+            accession: "ERR000001".to_string(),
+            study_accession: "PRJEB1".to_string(),
+            era: "modern".to_string(),
+            layout: CorpusAcquisitionLayout::Se,
+            size_band: "small".to_string(),
+            reason: "single-end production coverage".to_string(),
+        }],
     }
 }
 

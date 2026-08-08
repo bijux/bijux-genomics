@@ -15,9 +15,10 @@ pub use crate::contract::{
     validate_benchmark_run_definition, validate_benchmark_run_definition_revision,
     validate_benchmark_run_registry, validate_benchmark_stage_result_manifest,
     validate_campaign_plan, validate_corpus_acquisition_plan, validate_cycle_status_v1,
-    validate_cycle_status_v2, validate_execution_spec, validate_fastq_read_length_expectations,
-    validate_governed_data_catalog, validate_scheduler_observation, validate_scientific_readiness,
-    validate_stage_universe, validate_utc_timestamp, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    validate_cycle_status_v2, validate_execution_spec, validate_fastq_corpus_source_spec,
+    validate_fastq_read_length_expectations, validate_governed_data_catalog,
+    validate_scheduler_observation, validate_scientific_readiness, validate_stage_universe,
+    validate_utc_timestamp, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
     BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
@@ -38,9 +39,9 @@ pub use crate::contract::{
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
     BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BUNDLE_SCHEMA_V1,
     CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
-    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use crate::diagnostics::BenchError;
 pub use crate::model::admission::{
@@ -100,7 +101,8 @@ pub use crate::model::lifecycle::{
 };
 pub use crate::model::materialization::{
     corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
-    governed_data_catalog_schema, CorpusMaterializationPublication,
+    fastq_corpus_source_spec_schema, governed_data_catalog_schema,
+    CorpusMaterializationPublication,
 };
 pub use crate::model::normalized_result;
 pub use crate::model::observation::benchmark_observation_schema;
@@ -175,7 +177,8 @@ pub use crate::model::{
     BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusAcquisitionFile,
     CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusDatasetSpec,
     CorpusDomain, CorpusMaterializationDisposition, CorpusScale, DataIntegrityStatus,
-    DriftScenarioSpec, FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
+    DriftScenarioSpec, FastqCorpusSourceSample, FastqCorpusSourceSpec,
+    FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, GovernedDataCatalog, GovernedDataCatalogFile,
     GovernedDataCatalogSample, TruthSetHook, TruthSetStatus,
 };
