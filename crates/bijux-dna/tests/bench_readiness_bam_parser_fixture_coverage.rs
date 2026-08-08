@@ -45,7 +45,7 @@ fn bench_readiness_bam_parser_fixture_coverage_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-parser-fixture-coverage.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let stage_count = rows
@@ -108,11 +108,17 @@ fn bench_readiness_bam_parser_fixture_coverage_reports_governed_rows() {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
     }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+    }));
     assert!(rows.iter().all(|row| {
-        !matches!(
-            row.get("tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd" | "ngsbriggs")
-        )
+        !(row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping"))
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")

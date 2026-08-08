@@ -21,7 +21,8 @@ use crate::commands::benchmark::local_stage_inventory::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_BAM_REPORT_MAP_PATH: &str = "benchmarks/readiness/bam/bam-report-map.tsv";
+pub(crate) const DEFAULT_BAM_REPORT_MAP_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/bam/bam-report-map.tsv";
 const BAM_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_report_map.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -703,7 +704,7 @@ mod tests {
         assert!(report.expected_result_row_count > 0);
         assert_eq!(report.row_count, report.expected_result_row_count);
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 25);
+        assert_eq!(report.tool_count, 26);
         assert_eq!(report.section_count, 7);
         assert_eq!(report.summary_table_count, 7);
 

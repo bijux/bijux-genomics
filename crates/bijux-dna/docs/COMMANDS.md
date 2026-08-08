@@ -465,7 +465,8 @@ Visible aliases are part of the operator surface:
   summary table that downstream benchmark reporting must use while preserving exact tool-level
   coverage for every retained FASTQ result row.
 - `bijux-dna bench readiness render-bam-report-map`
-  `render-bam-report-map` writes `benchmarks/readiness/bam/bam-report-map.tsv` with one governed
+  `render-bam-report-map` writes
+  `artifacts/benchmark-smoke/readiness/bam/bam-report-map.tsv` with one governed
   row per BAM benchmark-ready expected-result binding. Each row carries the owned
   `result_row_id`, `tool_id`, `corpus_family_id`, `fixture_id`, `sample_scope`, tool
   `support_status`, stage anchor tool, report section, summary table, optional workflow branch,
@@ -611,19 +612,22 @@ Visible aliases are part of the operator surface:
   the BAM domain-owned routing contract against the local corpus compatibility matrix and the
   governed BAM fixture/config evidence so corpus drift cannot hide behind stage-level labels.
 - `bijux-dna bench readiness render-bam-parser-fixture-coverage`
-  `render-bam-parser-fixture-coverage` writes `benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv` with one
-  governed row per BAM stage-tool binding that is already benchmark-ready. Each row carries
+  `render-bam-parser-fixture-coverage` writes
+  `artifacts/benchmark-smoke/readiness/bam/bam-parser-fixture-coverage.tsv` with one governed row per
+  BAM stage-tool binding that is already benchmark-ready. Each row carries
   `parser_fixture_reference_kind`, `parser_fixture_reference`, `coverage_status`,
   `parser_status`, `support_status`, `adapter_status`, and `reason`, proving that the
   benchmark-ready BAM slice stays fully parser-fixture-validated while keeping the governed
   fixture corpus bound to each active row and surfacing any excluded non-benchmark-ready gaps in
   the JSON summary instead of hiding coverage drift behind aggregate percentages.
 - `bijux-dna bench readiness render-bam-commands`
-  `render-bam-commands` writes `benchmarks/readiness/bam/bam-rendered-commands.sh` and
-  `benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl` with exactly one governed row per
-  active BAM stage-tool binding. Each row carries the owned `corpus_id`, `asset_profile_id`,
-  `adapter_id`, `parser_id`, `schema_id`, `command_source`, and explicit command-step argv so the
-  benchmark-ready BAM slice keeps a durable execution contract instead of relying on ad hoc shell
+  `render-bam-commands` writes
+  `artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.sh` and
+  `artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.argv.jsonl` with exactly one
+  governed row per active BAM stage-tool binding. Each row carries the owned `corpus_id`,
+  `asset_profile_id`, `adapter_id`, `parser_id`, `schema_id`, `command_source`, and explicit
+  command-step argv, so the benchmark-ready BAM slice keeps a durable execution contract instead
+  of relying on ad hoc shell
   reconstruction. The shell script is emitted from the same governed row set and is validated with
   `bash -n`, which makes command drift visible as a BAM-owned readiness failure instead of a late
   execution surprise.
@@ -961,10 +965,10 @@ Visible aliases are part of the operator surface:
   explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-bam-local-container-smoke`
   `render-bam-local-container-smoke` writes
-  `benchmarks/readiness/bam/bam-local-container-smoke.tsv` with one governed row per retained BAM
-  stage-tool binding, resolving each row either to the governed BAM tiny-fixture host smoke
-  contract for that stage or to the registered Docker/Apptainer smoke wrapper for the external
-  binary. Each row keeps `registered_binary`, retained readiness status, selected smoke runtime,
+  `artifacts/benchmark-smoke/readiness/bam/bam-local-container-smoke.tsv` with one governed row per
+  retained BAM stage-tool binding, resolving each row either to the governed BAM tiny-fixture host
+  smoke contract for that stage or to the registered Docker/Apptainer smoke wrapper for the
+  external binary. Each row keeps `registered_binary`, retained readiness status, selected runtime,
   the concrete wrapper command, the tracked support path, and any registry-carried minimal-smoke
   rationale so every retained BAM tool has an explicit local exercise path even when the host
   smoke contract only covers one governed stage tool.

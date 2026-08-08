@@ -17,7 +17,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_LOCAL_CONTAINER_SMOKE_PATH: &str =
-    "benchmarks/readiness/bam/bam-local-container-smoke.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-local-container-smoke.tsv";
 const BAM_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_local_container_smoke.v1";
 

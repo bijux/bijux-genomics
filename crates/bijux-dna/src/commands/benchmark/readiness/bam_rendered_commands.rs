@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_RENDERED_COMMANDS_PATH: &str =
-    "benchmarks/readiness/bam/bam-rendered-commands.sh";
+    "artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.sh";
 const BAM_RENDERED_COMMANDS_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_rendered_commands.v1";
 const BAM_DOMAIN: &str = "bam";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
@@ -404,14 +404,17 @@ mod tests {
             .expect("render BAM commands");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.bam_rendered_commands.v1");
-        assert_eq!(report.output_path, "benchmarks/readiness/bam/bam-rendered-commands.sh");
+        assert_eq!(
+            report.output_path,
+            "artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.sh"
+        );
         assert_eq!(
             report.argv_output_path,
-            "benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl"
+            "artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.argv.jsonl"
         );
         assert_eq!(report.row_count, 49);
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 25);
+        assert_eq!(report.tool_count, 26);
         assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&49));
         assert!(report.bash_syntax_passed);
         assert!(report.rows.iter().all(|row| {
@@ -441,7 +444,7 @@ mod tests {
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"
-                && row.tool_id == "angsd"
+                && row.tool_id == "bcftools"
                 && row.command_steps[0].argv.first().map(String::as_str) == Some("cargo")
         }));
     }
