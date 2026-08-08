@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 612475f7096a976dc2327b1fb157340e2acbea30
+# source_commit: 8ac9ff518ae6c91938467194190d5b8856bf949c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -2227,7 +2227,7 @@ requires_reporting = false
 id = "bam.damage"
 required_tool_roles = ["transform"]
 primary_tools = ["mapdamage2"]
-optional_alternatives = ["addeam", "damageprofiler", "pmdtools", "pydamage"]
+optional_alternatives = ["addeam", "damageprofiler", "ngsbriggs", "pmdtools", "pydamage"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2323,7 +2323,7 @@ requires_reporting = false
 id = "bam.kinship"
 required_tool_roles = ["transform"]
 primary_tools = ["king"]
-optional_alternatives = []
+optional_alternatives = ["angsd"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2419,7 +2419,7 @@ requires_reporting = false
 id = "bam.sex"
 required_tool_roles = ["transform"]
 primary_tools = ["rxy"]
-optional_alternatives = ["yleaf"]
+optional_alternatives = ["angsd", "yleaf"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2683,10 +2683,10 @@ requires_reporting = false
 id = "fastq.remove_duplicates"
 required_tool_roles = ["transform"]
 primary_tools = ["clumpify"]
-optional_alternatives = []
+optional_alternatives = ["fastuniq"]
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = ["fastuniq"]
+planned_out_of_scope = []
 default_rationale = "Default deduplication uses pair-aware duplicate removal with deterministic mate preservation."
 requires_validation = false
 requires_reporting = false

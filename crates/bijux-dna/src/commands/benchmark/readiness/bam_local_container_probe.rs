@@ -8,6 +8,7 @@ use serde::Serialize;
 use super::bam_command_adapter_coverage::{
     collect_bam_command_adapter_coverage_rows, BamBenchmarkStatus, BamCommandAdapterCoverageRow,
 };
+use super::catalog::load_external_artifact_tool_contracts;
 use crate::commands::benchmark::local_stage_commands::{
     bam_stage_smoke_command, bam_stage_smoke_support_path, governed_bam_local_smoke_tool_id,
     has_bam_local_ready_only_contract,
@@ -22,6 +23,7 @@ const BAM_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION: &str =
 
 const BAM_REGISTRY_PATHS: &[&str] = &[
     "configs/ci/registry/tool_registry.toml",
+    "configs/ci/registry/tool_registry_experimental.toml",
     "configs/ci/registry/tool_registry_container_experimental.toml",
 ];
 
@@ -54,6 +56,7 @@ pub(crate) struct BamLocalContainerSmokeReport {
     pub(crate) tool_count: usize,
     pub(crate) host_stage_smoke_row_count: usize,
     pub(crate) container_smoke_row_count: usize,
+    pub(crate) external_artifact_row_count: usize,
     pub(crate) runtime_counts: BTreeMap<String, usize>,
     pub(crate) rows: Vec<BamLocalContainerSmokeRow>,
 }
@@ -106,7 +109,17 @@ pub(crate) fn render_bam_local_container_smoke(
     }
     let host_stage_smoke_row_count =
         rows.iter().filter(|row| row.smoke_path_kind == "host_stage_smoke").count();
-    let container_smoke_row_count = rows.len().saturating_sub(host_stage_smoke_row_count);
+    let container_smoke_row_count = rows
+        .iter()
+        .filter(|row| {
+            matches!(
+                row.smoke_path_kind.as_str(),
+                "docker_container_smoke" | "apptainer_container_smoke"
+            )
+        })
+        .count();
+    let external_artifact_row_count =
+        rows.iter().filter(|row| row.smoke_path_kind == "external_artifact_admission").count();
 
     Ok(BamLocalContainerSmokeReport {
         schema_version: BAM_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION,
@@ -116,6 +129,7 @@ pub(crate) fn render_bam_local_container_smoke(
         tool_count: rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len(),
         host_stage_smoke_row_count,
         container_smoke_row_count,
+        external_artifact_row_count,
         runtime_counts,
         rows,
     })
@@ -131,11 +145,20 @@ pub(crate) fn collect_bam_local_container_smoke_rows(
         .collect::<Vec<_>>();
     let retained_tool_ids =
         retained_rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>();
+    let external_artifact_tool_ids = load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .map(|contract| contract.tool_id)
+        .collect::<BTreeSet<_>>();
     let registry_by_tool = load_bam_registry_smoke_records(repo_root, &retained_tool_ids)?;
 
     let mut rows = Vec::with_capacity(retained_rows.len());
     for retained_row in &retained_rows {
-        rows.push(build_bam_local_container_smoke_row(repo_root, retained_row, &registry_by_tool)?);
+        rows.push(build_bam_local_container_smoke_row(
+            repo_root,
+            retained_row,
+            &registry_by_tool,
+            &external_artifact_tool_ids,
+        )?);
     }
 
     rows.sort_by(|left, right| {
@@ -149,6 +172,7 @@ fn build_bam_local_container_smoke_row(
     repo_root: &Path,
     retained_row: &BamCommandAdapterCoverageRow,
     registry_by_tool: &BTreeMap<String, BamRegistrySmokeRecord>,
+    external_artifact_tool_ids: &BTreeSet<String>,
 ) -> Result<BamLocalContainerSmokeRow> {
     let registry_row = registry_by_tool.get(retained_row.tool_id.as_str()).ok_or_else(|| {
         anyhow!(
@@ -156,6 +180,30 @@ fn build_bam_local_container_smoke_row(
             retained_row.tool_id
         )
     })?;
+
+    if external_artifact_tool_ids.contains(&retained_row.tool_id) {
+        return Ok(BamLocalContainerSmokeRow {
+            stage_id: retained_row.stage_id.clone(),
+            tool_id: retained_row.tool_id.clone(),
+            registered_binary: registry_row.registered_binary.clone(),
+            tool_status: registry_row.tool_status.clone(),
+            benchmark_status: benchmark_status_label(retained_row.benchmark_status).to_string(),
+            support_status: retained_row.support_status.clone(),
+            adapter_status: retained_row.adapter_status.clone(),
+            parser_status: retained_row.parser_status.clone(),
+            corpus_status: retained_row.corpus_status.clone(),
+            smoke_path_kind: "external_artifact_admission".to_string(),
+            smoke_runtime: "external".to_string(),
+            smoke_tool_id: registry_row.registered_binary.clone(),
+            smoke_command: format!("{} --version", registry_row.registered_binary),
+            smoke_support_path: "containers/contracts/catalog.toml".to_string(),
+            smoke_minimal_cmd: registry_row.smoke_minimal_cmd.clone(),
+            reason: format!(
+                "binding `{}` / `{}` requires checksum-admitted operator-provided artifact evidence; no redistributable container wrapper is authorized",
+                retained_row.stage_id, retained_row.tool_id
+            ),
+        });
+    }
 
     let governed_local_smoke_tool_id =
         governed_bam_local_smoke_tool_id(repo_root, &retained_row.stage_id)?;

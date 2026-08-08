@@ -44,7 +44,7 @@ fn external_artifact_catalog_and_stage_bindings_have_exact_pairwise_closure() ->
     );
     assert_eq!(binding_tools, catalog_tools);
     assert_eq!(binding_pairs, catalog_pairs);
-    assert_eq!(binding_pairs.len(), 10);
+    assert_eq!(binding_pairs.len(), 8);
 
     let artifact_contracts = canonical_artifact_contract_catalog()
         .contracts

@@ -355,10 +355,10 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_COMPARABLE_METRICS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_COMPARABLE_METRICS_PATH);
-        assert_eq!(report.stage_count, 12);
-        assert_eq!(report.multi_tool_stage_count, 12);
-        assert_eq!(report.retained_tool_row_count, 32);
-        assert_eq!(report.row_count, 35);
+        assert_eq!(report.stage_count, 10);
+        assert_eq!(report.multi_tool_stage_count, 10);
+        assert_eq!(report.retained_tool_row_count, 28);
+        assert_eq!(report.row_count, 29);
 
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call_gl"

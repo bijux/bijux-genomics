@@ -1,19 +1,19 @@
 {
   "schema_version": "bijux.bench.readiness.output_contract_audit.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
-  "row_count": 138,
-  "passed_row_count": 135,
+  "row_count": 142,
+  "passed_row_count": 139,
   "blocked_row_count": 3,
   "failed_row_count": 0,
   "domain_counts": {
-    "bam": 46,
-    "fastq": 68,
+    "bam": 49,
+    "fastq": 69,
     "vcf": 24
   },
   "output_proof_surface_counts": {
-    "direct_declared_output_proof": 6,
+    "direct_declared_output_proof": 8,
     "direct_tool_smoke": 24,
-    "shared_stage_smoke": 108
+    "shared_stage_smoke": 110
   },
   "blocked_stage_ids": [
     "vcf.demography",
@@ -995,6 +995,70 @@
       "reason": "binding `bam.damage` / `mapdamage2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/bam.damage/ngsbriggs/runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
+      "proof_tool_id": "ngsbriggs",
+      "runtime_path_proof_surface": "expected_benchmark_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
+      "declared_raw_output_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_parameters"
+      ],
+      "observed_raw_output_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_parameters"
+      ],
+      "declared_normalized_metric_ids": [
+        "damage_report"
+      ],
+      "observed_normalized_metric_ids": [
+        "damage_report"
+      ],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/bam.damage/ngsbriggs/runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/bam.damage/ngsbriggs/runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/bam.damage/ngsbriggs/runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/bam.damage/ngsbriggs/runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_parameters.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/bam.damage/ngsbriggs/runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/bam.damage/ngsbriggs/runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
+      ],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": true,
+      "execution_blocker": null,
+      "passed": true,
+      "reason": "binding `bam.damage` / `ngsbriggs` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+    },
+    {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
       "domain": "bam",
       "stage_id": "bam.damage",
@@ -1740,6 +1804,64 @@
       "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.insert_size` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+    },
+    {
+      "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-kinship-mini",
+      "asset_profile_id": "corpus_only",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd (result ids: bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd)",
+      "proof_tool_id": "angsd",
+      "runtime_path_proof_surface": "expected_benchmark_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
+      "declared_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics"
+      ],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics"
+      ],
+      "declared_normalized_metric_ids": [
+        "kinship_report"
+      ],
+      "observed_normalized_metric_ids": [
+        "kinship_report"
+      ],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/kinship_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/population_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/summary/proof.json"
+      ],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": true,
+      "execution_blocker": null,
+      "passed": true,
+      "reason": "binding `bam.kinship` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -2587,6 +2709,64 @@
       "execution_blocker": null,
       "passed": true,
       "reason": "binding `bam.recalibration` / `gatk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd (result ids: bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd)",
+      "proof_tool_id": "angsd",
+      "runtime_path_proof_surface": "expected_benchmark_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
+      "declared_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics"
+      ],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics"
+      ],
+      "declared_normalized_metric_ids": [
+        "sex_report"
+      ],
+      "observed_normalized_metric_ids": [
+        "sex_report"
+      ],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/population_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/sex_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/summary/proof.json"
+      ],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": true,
+      "execution_blocker": null,
+      "passed": true,
+      "reason": "binding `bam.sex` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -5172,6 +5352,67 @@
       "execution_blocker": null,
       "passed": true,
       "reason": "binding `fastq.remove_duplicates` / `clumpify` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/fastq.remove_duplicates/clumpify/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
+      "proof_tool_id": "clumpify",
+      "runtime_path_proof_surface": "expected_benchmark_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stage-result.json",
+      "declared_raw_output_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json"
+      ],
+      "observed_raw_output_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json"
+      ],
+      "declared_normalized_metric_ids": [
+        "report_json"
+      ],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/fastq.remove_duplicates/clumpify/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/fastq.remove_duplicates/clumpify/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R2.fastq.gz",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/fastq.remove_duplicates/clumpify/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/deduplicate_report.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/fastq.remove_duplicates/clumpify/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_classes.tsv",
+        "runs/bench/readiness-probes/tools/output-contract-tests/shared-stage/fastq.remove_duplicates/clumpify/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_provenance.json"
+      ],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stage-result.json",
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": true,
+      "execution_blocker": null,
+      "passed": true,
+      "reason": "binding `fastq.remove_duplicates` / `fastuniq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",

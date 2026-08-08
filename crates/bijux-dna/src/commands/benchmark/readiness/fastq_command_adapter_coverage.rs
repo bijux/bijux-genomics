@@ -320,7 +320,13 @@ mod tests {
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.benchmark_ready_adapter_covered_row_count, report.row_count);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        assert!(report.rows.iter().all(|row| row.tool_id != "fastuniq"));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "fastuniq"
+                && row.stage_id == "fastq.remove_duplicates"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
+                && super::readiness_gap_label(row.readiness_gap) == "none"
+        }));
         assert!(report.readiness_gap_counts.is_empty());
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),

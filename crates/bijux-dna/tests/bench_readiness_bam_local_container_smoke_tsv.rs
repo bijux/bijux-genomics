@@ -46,10 +46,18 @@ fn bench_readiness_bam_local_container_smoke_writes_governed_tsv_file() {
 
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty());
-    assert!(rows.iter().all(|row| {
-        let tool_id = row.split('\t').nth(1);
-        tool_id != Some("angsd") && tool_id != Some("ngsbriggs")
-    }));
+    for (stage_id, tool_id) in
+        [("bam.damage", "ngsbriggs"), ("bam.kinship", "angsd"), ("bam.sex", "angsd")]
+    {
+        assert!(rows.iter().any(|row| {
+            let columns = row.split('\t').collect::<Vec<_>>();
+            columns[0] == stage_id
+                && columns[1] == tool_id
+                && columns[9] == "external_artifact_admission"
+                && columns[10] == "external"
+                && columns[13] == "containers/contracts/catalog.toml"
+        }));
+    }
     assert!(rows.iter().any(|row| {
         row == &"bam.validate\tsamtools\tsamtools\tproduction\tbenchmark_ready\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\thost_stage_smoke\thost\tsamtools\tbijux-dna bench local run-bam-stage-smoke --stage-id bam.validate\tcrates/bijux-dna/src/commands/benchmark/local_bam_stage_smoke.rs\t\tbinding `bam.validate` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
@@ -57,7 +65,7 @@ fn bench_readiness_bam_local_container_smoke_writes_governed_tsv_file() {
         row == &"bam.coverage\tsamtools\tsamtools\tproduction\tbenchmark_ready\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\thost_stage_smoke\thost\tsamtools\tbijux-dna bench local run-bam-stage-smoke --stage-id bam.coverage\tcrates/bijux-dna/src/commands/benchmark/local_bam_stage_smoke.rs\t\tbinding `bam.coverage` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"bam.coverage\tmosdepth\tmosdepth\tproduction\tbenchmark_ready\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tdocker_container_smoke\tdocker-arm64\tmosdepth\tbijux-dna env smoke docker-arm64 mosdepth\tcontainers/docker/Dockerfile.arm64.mosdepth\t\tbinding `bam.coverage` / `mosdepth` does not match the governed BAM local-smoke contract tool `samtools`, so the governed container smoke wrapper is the available local exercise path for `bam.coverage` / `mosdepth`"
+        row == &"bam.coverage\tmosdepth\tmosdepth\tproduction\tbenchmark_ready\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-bam-mini\tapptainer_container_smoke\tapptainer\tmosdepth\tbijux-dna env smoke apptainer mosdepth\tcontainers/apptainer/mosdepth.def\t\tbinding `bam.coverage` / `mosdepth` does not match the governed BAM local-smoke contract tool `samtools`, so the governed container smoke wrapper is the available local exercise path for `bam.coverage` / `mosdepth`"
     }));
     assert!(rows.iter().any(|row| {
         row == &"bam.align\tbwa\tbwa\tproduction\tbenchmark_ready\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-mini\tdocker_container_smoke\tdocker-arm64\tbwa\tbijux-dna env smoke docker-arm64 bwa\tcontainers/docker/Dockerfile.arm64.bwa\t\tstage `bam.align` keeps governed local-ready plan coverage but no BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.align` / `bwa`"

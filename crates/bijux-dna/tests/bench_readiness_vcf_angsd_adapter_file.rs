@@ -43,12 +43,10 @@ fn bench_readiness_vcf_angsd_adapter_writes_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.vcf_angsd_adapter.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
 
-    for stage_id in
-        ["vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation"]
-    {
+    for stage_id in ["vcf.call_gl", "vcf.call_pseudohaploid"] {
         assert!(
             rows.iter().any(|row| {
                 row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
@@ -66,34 +64,5 @@ fn bench_readiness_vcf_angsd_adapter_writes_governed_json_file() {
     assert_eq!(
         std::fs::read_to_string(&call_gl_bam_list).expect("read call_gl bam.list"),
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam\n"
-    );
-
-    let damage_filter = rows
-        .iter()
-        .find(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.damage_filter")
-        })
-        .expect("damage_filter row");
-    assert_eq!(
-        damage_filter.get("raw_output_ids").and_then(serde_json::Value::as_array),
-        Some(&vec![
-            serde_json::Value::String("damage_report_txt".to_string()),
-            serde_json::Value::String("angsd_arg".to_string()),
-        ])
-    );
-
-    let gl_propagation = rows
-        .iter()
-        .find(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.gl_propagation")
-        })
-        .expect("gl_propagation row");
-    assert_eq!(
-        gl_propagation
-            .get("declared_outputs")
-            .and_then(serde_json::Value::as_array)
-            .map(Vec::len),
-        Some(3),
-        "gl_propagation row must retain raw VCF, angsd arg, and normalized parser output declarations"
     );
 }

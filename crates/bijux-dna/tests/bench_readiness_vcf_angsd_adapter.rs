@@ -43,30 +43,33 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
     );
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("angsd"));
-    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("planned"));
+    assert_eq!(
+        payload.get("tool_status").and_then(serde_json::Value::as_str),
+        Some("external_artifact")
+    );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/angsd.vcf.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         payload.get("supported_stage_row_count").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(2)
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
-    assert_eq!(payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(2)
     );
-    assert_eq!(payload.get("bam_list_row_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("bam_list_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 4);
+    assert_eq!(rows.len(), 2);
 
     let has_stage = |stage_id: &str, stage_status: &str, benchmark_status: &str| {
         rows.iter().any(|row| {
@@ -89,15 +92,6 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
         has_stage("vcf.call_pseudohaploid", "supported", "not_benchmark_ready"),
         "report must retain the governed angsd pseudohaploid row"
     );
-    assert!(
-        has_stage("vcf.damage_filter", "supported", "not_benchmark_ready"),
-        "report must retain the governed angsd damage-aware row"
-    );
-    assert!(
-        has_stage("vcf.gl_propagation", "supported", "not_benchmark_ready"),
-        "report must retain the governed angsd GL propagation row"
-    );
-
     let call_gl = rows
         .iter()
         .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call_gl"))
@@ -122,36 +116,10 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
         "call_gl row must keep ANGSD genotype-likelihood flags"
     );
 
-    let damage_filter = rows
-        .iter()
-        .find(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.damage_filter")
-        })
-        .expect("damage_filter row");
-    assert_eq!(
-        damage_filter.get("parser_output_ids").and_then(serde_json::Value::as_array),
-        Some(&vec![serde_json::Value::String("damage_bias_audit_report".to_string())])
-    );
-
-    let gl_propagation = rows
-        .iter()
-        .find(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.gl_propagation")
-        })
-        .expect("gl_propagation row");
-    assert_eq!(gl_propagation.get("bam_list_path").and_then(serde_json::Value::as_str), None);
-    let gl_propagation_argv = gl_propagation
-        .get("command_steps")
-        .and_then(serde_json::Value::as_array)
-        .and_then(|steps| steps.first())
-        .and_then(|step| step.get("argv"))
-        .and_then(serde_json::Value::as_array)
-        .expect("gl_propagation argv");
-    assert!(
-        gl_propagation_argv
-            .iter()
-            .filter_map(serde_json::Value::as_str)
-            .any(|part| part == "-vcf-gl"),
-        "gl_propagation row must keep the ANGSD VCF-GL input contract"
-    );
+    assert!(rows.iter().all(|row| {
+        matches!(
+            row.get("stage_id").and_then(serde_json::Value::as_str),
+            Some("vcf.call_gl" | "vcf.call_pseudohaploid")
+        )
+    }));
 }

@@ -105,6 +105,8 @@ pub(super) struct ContainerToolContract {
     pub(super) support_disposition: String,
     #[serde(default)]
     pub(super) support_reason: String,
+    #[serde(default)]
+    pub(super) external_artifact_supported: bool,
     pub(super) upstream: String,
     pub(super) license: String,
     #[serde(default)]
@@ -128,6 +130,10 @@ pub(super) struct ContainerToolContract {
 }
 
 impl ContainerToolContract {
+    pub(super) fn is_benchmark_integrated(&self) -> bool {
+        self.support_disposition == "retained" || self.external_artifact_supported
+    }
+
     pub(super) fn source_identity(&self) -> String {
         if !self.source_sha256.is_empty() {
             return format!("sha256:{}", self.source_sha256);

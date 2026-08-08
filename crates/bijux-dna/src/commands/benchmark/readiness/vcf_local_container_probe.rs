@@ -617,8 +617,8 @@ mod tests {
         assert_eq!(report.host_stage_smoke_row_count, 20);
         assert_eq!(report.container_smoke_row_count, 15);
         assert_eq!(report.runtime_counts.get("host").copied(), Some(20));
-        assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(14));
-        assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(1));
+        assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(11));
+        assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(4));
 
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call"

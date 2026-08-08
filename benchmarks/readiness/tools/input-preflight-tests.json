@@ -1,27 +1,27 @@
 {
   "schema_version": "bijux.bench.readiness.input_preflight_audit.v1",
   "output_path": "benchmarks/readiness/tools/input-preflight-tests.json",
-  "row_count": 261,
-  "passed_row_count": 261,
+  "row_count": 269,
+  "passed_row_count": 269,
   "failed_row_count": 0,
   "retained_tool_count": 75,
   "covered_tool_count": 75,
   "domain_counts": {
-    "bam": 98,
-    "fastq": 110,
-    "vcf": 53
+    "bam": 106,
+    "fastq": 112,
+    "vcf": 51
   },
   "missing_input_class_counts": {
-    "bam": 64,
+    "bam": 66,
     "database": 10,
-    "fastq": 93,
+    "fastq": 95,
     "metadata": 1,
-    "panel": 9,
-    "reference": 43,
+    "panel": 10,
+    "reference": 47,
     "report": 1,
     "segments": 1,
     "table": 1,
-    "vcf": 38
+    "vcf": 37
   },
   "covered_tool_ids": [
     "adapterremoval",
@@ -612,6 +612,19 @@
       "domain": "bam",
       "stage_id": "bam.damage",
       "tool_id": "ngsbriggs",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "bam",
+      "missing_input_class": "bam",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam",
+      "expected_error_fragment": "missing required input bam",
+      "observed_error": "input contract violation: missing required input bam (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/damage/ngsbriggs/bam.sam)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.damage` / `ngsbriggs` fails before external execution through runtime input validation"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
       "contract_surface": "external_artifact_execution_contract",
       "missing_input_role": "bam",
       "missing_input_class": "bam",
@@ -620,6 +633,19 @@
       "observed_error": "input contract violation: missing required input bam (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/damage/ngsbriggs/bam.missing)",
       "passed": true,
       "reason": "operator-provided tool `ngsbriggs` fails before artifact admission or execution when required `bam` input is absent"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "reference",
+      "missing_input_class": "reference",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta",
+      "expected_error_fragment": "missing required input reference",
+      "observed_error": "input contract violation: missing required input reference (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/damage/ngsbriggs/reference.fasta)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.damage` / `ngsbriggs` fails before external execution through runtime input validation"
     },
     {
       "domain": "bam",
@@ -924,6 +950,19 @@
       "domain": "bam",
       "stage_id": "bam.kinship",
       "tool_id": "angsd",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "bam",
+      "missing_input_class": "bam",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam",
+      "expected_error_fragment": "missing required input bam",
+      "observed_error": "input contract violation: missing required input bam (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/kinship/angsd/bam.sam)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.kinship` / `angsd` fails before external execution through runtime input validation"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
       "contract_surface": "external_artifact_execution_contract",
       "missing_input_role": "bam",
       "missing_input_class": "bam",
@@ -932,6 +971,32 @@
       "observed_error": "input contract violation: missing required input bam (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/kinship/angsd/bam.missing)",
       "passed": true,
       "reason": "operator-provided tool `angsd` fails before artifact admission or execution when required `bam` input is absent"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "reference_fasta",
+      "missing_input_class": "reference",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "expected_error_fragment": "missing required input reference_fasta",
+      "observed_error": "input contract violation: missing required input reference_fasta (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/kinship/angsd/reference_fasta.fasta)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.kinship` / `angsd` fails before external execution through runtime input validation"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "reference_panel",
+      "missing_input_class": "panel",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_relatedness_panel.tsv",
+      "expected_error_fragment": "missing required input reference_panel",
+      "observed_error": "input contract violation: missing required input reference_panel (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/kinship/angsd/reference_panel.tsv)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.kinship` / `angsd` fails before external execution through runtime input validation"
     },
     {
       "domain": "bam",
@@ -1171,6 +1236,19 @@
       "domain": "bam",
       "stage_id": "bam.sex",
       "tool_id": "angsd",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "bam",
+      "missing_input_class": "bam",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam",
+      "expected_error_fragment": "missing required input bam",
+      "observed_error": "input contract violation: missing required input bam (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/sex/angsd/bam.sam)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.sex` / `angsd` fails before external execution through runtime input validation"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
       "contract_surface": "external_artifact_execution_contract",
       "missing_input_role": "bam",
       "missing_input_class": "bam",
@@ -1179,6 +1257,32 @@
       "observed_error": "input contract violation: missing required input bam (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/sex/angsd/bam.missing)",
       "passed": true,
       "reason": "operator-provided tool `angsd` fails before artifact admission or execution when required `bam` input is absent"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "reference",
+      "missing_input_class": "reference",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "expected_error_fragment": "missing required input reference",
+      "observed_error": "input contract violation: missing required input reference (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/sex/angsd/reference.fasta)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.sex` / `angsd` fails before external execution through runtime input validation"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "reference_fasta",
+      "missing_input_class": "reference",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "expected_error_fragment": "missing required input reference_fasta",
+      "observed_error": "input contract violation: missing required input reference_fasta (artifacts/bench-readiness/input-preflight-tests/missing/bam/bam/sex/angsd/reference_fasta.fasta)",
+      "passed": true,
+      "reason": "governed bam benchmark-ready binding `bam.sex` / `angsd` fails before external execution through runtime input validation"
     },
     {
       "domain": "bam",
@@ -2237,6 +2341,19 @@
       "domain": "fastq",
       "stage_id": "fastq.remove_duplicates",
       "tool_id": "fastuniq",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "reads_r1",
+      "missing_input_class": "fastq",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz",
+      "expected_error_fragment": "missing required input reads_r1",
+      "observed_error": "input contract violation: missing required input reads_r1 (artifacts/bench-readiness/input-preflight-tests/missing/fastq/fastq/remove_duplicates/fastuniq/reads_r1.fastq.gz)",
+      "passed": true,
+      "reason": "governed fastq benchmark-ready binding `fastq.remove_duplicates` / `fastuniq` fails before external execution through runtime input validation"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
       "contract_surface": "external_artifact_execution_contract",
       "missing_input_role": "reads_r1",
       "missing_input_class": "fastq",
@@ -2245,6 +2362,19 @@
       "observed_error": "input contract violation: missing required input reads_r1 (artifacts/bench-readiness/input-preflight-tests/missing/fastq/fastq/remove_duplicates/fastuniq/reads_r1.missing)",
       "passed": true,
       "reason": "operator-provided tool `fastuniq` fails before artifact admission or execution when required `reads_r1` input is absent"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "contract_surface": "runtime_validation",
+      "missing_input_role": "reads_r2",
+      "missing_input_class": "fastq",
+      "artifact_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz",
+      "expected_error_fragment": "missing required input reads_r2",
+      "observed_error": "input contract violation: missing required input reads_r2 (artifacts/bench-readiness/input-preflight-tests/missing/fastq/fastq/remove_duplicates/fastuniq/reads_r2.fastq.gz)",
+      "passed": true,
+      "reason": "governed fastq benchmark-ready binding `fastq.remove_duplicates` / `fastuniq` fails before external execution through runtime input validation"
     },
     {
       "domain": "fastq",
@@ -2977,19 +3107,6 @@
     {
       "domain": "vcf",
       "stage_id": "vcf.damage_filter",
-      "tool_id": "angsd",
-      "contract_surface": "adapter_contract",
-      "missing_input_role": "bam_list",
-      "missing_input_class": "bam",
-      "artifact_path": "benchmarks/readiness/adapters/angsd/vcf.damage_filter/angsd-inputs.bam.list",
-      "expected_error_fragment": "required input `bam_list`",
-      "observed_error": "VCF angsd adapter for `vcf.damage_filter` is missing required input `bam_list` at `artifacts/bench-readiness/adapters/probes/vcf.damage_filter/bam_list.missing`",
-      "passed": true,
-      "reason": "row `vcf.damage_filter` / `angsd` renders concrete angsd argv with 1 declared command step(s), 3 required input(s), 2 raw output id(s), and 1 parser output id(s)"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.damage_filter",
       "tool_id": "bcftools",
       "contract_surface": "adapter_contract",
       "missing_input_role": "vcf",
@@ -3025,19 +3142,6 @@
       "observed_error": "VCF bcftools adapter for `vcf.filter` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.filter/vcf.missing`",
       "passed": true,
       "reason": "row `vcf.filter` / `bcftools` renders concrete bcftools argv with 2 declared command step(s), 1 required input(s), and 1 stage output id(s)"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.gl_propagation",
-      "tool_id": "angsd",
-      "contract_surface": "adapter_contract",
-      "missing_input_role": "vcf",
-      "missing_input_class": "vcf",
-      "artifact_path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
-      "expected_error_fragment": "required input `vcf`",
-      "observed_error": "VCF angsd adapter for `vcf.gl_propagation` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.gl_propagation/vcf.missing`",
-      "passed": true,
-      "reason": "row `vcf.gl_propagation` / `angsd` renders concrete angsd argv with 1 declared command step(s), 2 required input(s), 2 raw output id(s), and 1 parser output id(s)"
     },
     {
       "domain": "vcf",

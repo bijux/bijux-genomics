@@ -350,7 +350,7 @@ mod tests {
         assert!(report.passes_gate);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.matrix_row_count, 24);
-        assert_eq!(report.registry_pair_count, 41);
+        assert_eq!(report.registry_pair_count, 39);
         assert_eq!(report.benchmark_ready_registry_pair_count, 20);
         assert_eq!(report.unregistered_matrix_pair_count, 0);
         assert_eq!(report.missing_benchmark_ready_registry_pair_count, 0);

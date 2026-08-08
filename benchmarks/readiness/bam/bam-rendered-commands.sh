@@ -93,10 +93,10 @@ addeam --bam benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligne
 damageprofiler --input benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam --output benchmarks/readiness/stage-tool-commands/bam/bam/damage/damageprofiler/damage.profiler.json
 
 # bam.damage / mapdamage2
-/bin/sh -c 'mapDamage --bam benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam --folder benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2 && if [ -f benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2/misincorporation.txt ]; then cp benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2/misincorporation.txt benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2/damage.mapdamage2.txt; elif [ -f benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2/5pCtoT.txt ]; then cp benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2/5pCtoT.txt benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2/damage.mapdamage2.txt; else : > benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2/damage.mapdamage2.txt; fi'
+mapdamage2 analyze --bam benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam --reference benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta --out-dir benchmarks/readiness/stage-tool-commands/bam/bam/damage/mapdamage2
 
 # bam.damage / ngsbriggs
-ngsbriggs --input benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam --json-out benchmarks/readiness/stage-tool-commands/bam/bam/damage/ngsbriggs/damage.ngsbriggs.json
+ngsbriggs analyze --bam benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam --reference benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta --json-out benchmarks/readiness/stage-tool-commands/bam/bam/damage/ngsbriggs/damage.ngsbriggs.json --model nb
 
 # bam.damage / pmdtools
 /bin/sh -c 'pmdtools --input benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam > /dev/null && python3 - <<'"'"'PY'"'"' > benchmarks/readiness/stage-tool-commands/bam/bam/damage/pmdtools/damage.pmdtools.json
@@ -170,7 +170,7 @@ PY'
 # bam.gc_bias / picard
 picard CollectGcBiasMetrics 'I=benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam' 'R=benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta' 'O=benchmarks/readiness/stage-tool-commands/bam/bam/gc_bias/picard/gc_bias.metrics.txt' 'S=benchmarks/readiness/stage-tool-commands/bam/bam/gc_bias/picard/gc_bias.summary.json' 'CHART=benchmarks/readiness/stage-tool-commands/bam/bam/gc_bias/picard/gc_bias.plot.pdf'
 
-# bam.genotyping / angsd
+# bam.genotyping / bcftools
 cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.genotyping
 
 # bam.haplogroups / yleaf
@@ -300,11 +300,7 @@ print(json.dumps(payload, indent=2))
 PY'
 
 # bam.sex / rxy
-/bin/sh -c 'rxy --input benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam > benchmarks/readiness/stage-tool-commands/bam/bam/sex/rxy/sex.json && python - <<'"'"'PY'"'"' > benchmarks/readiness/stage-tool-commands/bam/bam/sex/rxy/sex.summary.json
-import json
-payload = {"method": "rxy", "x_to_y_ratio": 0.0, "confidence": 0.0}
-print(json.dumps(payload, indent=2))
-PY'
+/bin/sh -c 'rxy --input benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam > benchmarks/readiness/stage-tool-commands/bam/bam/sex/rxy/sex.json && cp benchmarks/readiness/stage-tool-commands/bam/bam/sex/rxy/sex.json benchmarks/readiness/stage-tool-commands/bam/bam/sex/rxy/sex.summary.json'
 
 # bam.sex / yleaf
 /bin/sh -c 'yleaf -bam benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam -o benchmarks/readiness/stage-tool-commands/bam/bam/sex/yleaf/sex --reference_genome hg38 && python - <<'"'"'PY'"'"' > benchmarks/readiness/stage-tool-commands/bam/bam/sex/yleaf/sex.json

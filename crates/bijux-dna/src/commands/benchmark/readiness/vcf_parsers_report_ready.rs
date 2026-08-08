@@ -160,13 +160,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
         validate_parser_fixture_family(
             repo_root,
             "angsd",
-            &[
-                VcfDomainStage::CallGl,
-                VcfDomainStage::CallPseudohaploid,
-                VcfDomainStage::DamageFilter,
-                VcfDomainStage::GlPropagation,
-            ],
-            "validated 4 governed ANGSD VCF parser fixture rows",
+            &[VcfDomainStage::CallGl, VcfDomainStage::CallPseudohaploid],
+            "validated 2 governed ANGSD VCF parser fixture rows",
         )
     });
 
@@ -297,10 +292,10 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_COMPARABLE_METRICS_PATH),
             )?;
-            if report.stage_count != 12
-                || report.multi_tool_stage_count != 12
-                || report.retained_tool_row_count != 32
-                || report.row_count != 35
+            if report.stage_count != 10
+                || report.multi_tool_stage_count != 10
+                || report.retained_tool_row_count != 28
+                || report.row_count != 29
             {
                 bail!("VCF comparable metrics report drifted from the governed retained slice");
             }

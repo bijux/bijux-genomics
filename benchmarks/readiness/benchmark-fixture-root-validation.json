@@ -5,9 +5,9 @@
   "required_subroot_count": 4,
   "parser_domain_count": 3,
   "checked_fixture_count": 54,
-  "valid_fixture_count": 54,
-  "invalid_fixture_count": 0,
-  "ok": true,
+  "valid_fixture_count": 52,
+  "invalid_fixture_count": 2,
+  "ok": false,
   "rows": [
     {
       "fixture_kind": "corpus",
@@ -184,10 +184,10 @@
       "fixture_kind": "expected_truth",
       "fixture_id": "fastq-duplicates-truth",
       "manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
-      "detail_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/expected.json",
-      "schema_version": "bijux.bench.fastq_duplicates_truth.validation.v1",
-      "valid": true,
-      "detail": "validated_cases=3"
+      "detail_path": null,
+      "schema_version": null,
+      "valid": false,
+      "detail": "FASTQ duplicates truth drifted for stage `fastq.detect_duplicates_premerge`"
     },
     {
       "fixture_kind": "expected_truth",
@@ -259,7 +259,7 @@
       "detail_path": "benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json",
       "schema_version": "bijux.bench.vcf_filter_truth.validation.v1",
       "valid": true,
-      "detail": "validated_cases=3"
+      "detail": "validated_cases=2"
     },
     {
       "fixture_kind": "expected_truth",
@@ -314,6 +314,15 @@
       "schema_version": null,
       "valid": true,
       "detail": "present"
+    },
+    {
+      "fixture_kind": "manifest",
+      "fixture_id": "fastq-duplicates-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_duplicates_truth.v1",
+      "valid": false,
+      "detail": "FASTQ duplicates truth drifted for stage `fastq.detect_duplicates_premerge`"
     },
     {
       "fixture_kind": "parser_fixture_domain",
@@ -402,15 +411,6 @@
       "manifest_path": "benchmarks/tests/fixtures/science/endogenous-truth/manifest.toml",
       "detail_path": null,
       "schema_version": "bijux.bench.bam_endogenous_truth.v1",
-      "valid": true,
-      "detail": "valid"
-    },
-    {
-      "fixture_kind": "science_fixture",
-      "fixture_id": "fastq-duplicates-truth",
-      "manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
-      "detail_path": null,
-      "schema_version": "bijux.bench.fastq_duplicates_truth.v1",
       "valid": true,
       "detail": "valid"
     },

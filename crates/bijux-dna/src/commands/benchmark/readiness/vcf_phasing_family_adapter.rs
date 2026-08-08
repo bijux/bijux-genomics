@@ -818,8 +818,8 @@ mod tests {
         .expect("render beagle adapter");
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_beagle_adapter.v1");
         assert_eq!(report.tool_id, "beagle");
-        assert_eq!(report.row_count, 1);
-        assert_eq!(report.benchmark_ready_row_count, 0);
-        assert_eq!(report.indexed_row_count, 1);
+        assert_eq!(report.row_count, 3);
+        assert_eq!(report.benchmark_ready_row_count, 2);
+        assert_eq!(report.indexed_row_count, 3);
     }
 }

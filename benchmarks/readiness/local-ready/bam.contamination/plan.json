@@ -26,6 +26,7 @@
         "name": "bam",
         "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
         "role": "bam",
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "optional": false
       },
       {
@@ -38,12 +39,14 @@
         "name": "reference",
         "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
         "role": "reference",
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "optional": false
       },
       {
         "name": "reference_panel",
         "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat",
         "role": "reference",
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "optional": false
       }
     ],
@@ -52,24 +55,28 @@
         "name": "contamination_report",
         "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "contamination_estimate",
         "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
-        "role": "unknown",
+        "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "summary",
         "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "stage_metrics",
         "path": "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json",
         "role": "metrics_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       }
     ]

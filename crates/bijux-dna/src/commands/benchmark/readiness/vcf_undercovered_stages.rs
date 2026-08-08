@@ -274,20 +274,6 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
             "future_not_benchmark_ready",
         ),
         (
-            "vcf.damage_filter",
-            &["genotype_likelihood_calling", "variant_processing"][..],
-            &["bcftools"][..],
-            &["angsd"][..],
-            "future_not_benchmark_ready",
-        ),
-        (
-            "vcf.gl_propagation",
-            &["genotype_likelihood_calling", "variant_processing"][..],
-            &["bcftools"][..],
-            &["angsd"][..],
-            "future_not_benchmark_ready",
-        ),
-        (
             "vcf.imputation_metrics",
             &["imputation", "phasing"][..],
             &["beagle"][..],
@@ -428,8 +414,8 @@ mod tests {
         assert_eq!(report.schema_version, VCF_UNDERCOVERED_STAGES_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.undercovered_stage_count, 9);
-        assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(7));
+        assert_eq!(report.undercovered_stage_count, 7);
+        assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(5));
         assert_eq!(report.decision_counts.get("limit_to_specialized_tool").copied(), Some(2));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"

@@ -611,11 +611,11 @@ mod tests {
         .expect("render VCF adapter output coverage");
 
         assert_eq!(report.schema_version, VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 40);
+        assert_eq!(report.row_count, 38);
         assert_eq!(report.benchmark_ready_row_count, 24);
         assert_eq!(report.benchmark_ready_complete_row_count, 24);
         assert_eq!(report.benchmark_ready_incomplete_row_count, 0);
-        assert_eq!(report.complete_row_count, 37);
+        assert_eq!(report.complete_row_count, 35);
         assert_eq!(report.incomplete_row_count, 3);
 
         let call = report

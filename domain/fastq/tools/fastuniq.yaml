@@ -48,7 +48,7 @@ upstream: "https://sourceforge.net/projects/fastuniq/"
 versioning_strategy: "external"
 pin_strategy: "external_tool"
 default_version: "1.1"
-install_kind: "external_tool"
+install_kind: "external"
 license: "NOASSERTION"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3527383/"
 stage_ids: ["fastq.remove_duplicates"]

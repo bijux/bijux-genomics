@@ -18,7 +18,7 @@ pub(crate) const DEFAULT_VCF_ANGSD_ADAPTER_PATH: &str =
     "benchmarks/readiness/adapters/angsd.vcf.json";
 const VCF_ANGSD_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_angsd_adapter.v1";
 const GOVERNED_ANGSD_TOOL_ID: &str = "angsd";
-const GOVERNED_ANGSD_TOOL_STATUS: &str = "planned";
+const GOVERNED_ANGSD_TOOL_STATUS: &str = "external_artifact";
 const GOVERNED_CORPUS_ID: &str = "vcf_production_regression";
 const GOVERNED_BAM_PATH: &str =
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam";
@@ -26,8 +26,6 @@ const GOVERNED_REFERENCE_FASTA_PATH: &str =
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta";
 const GOVERNED_SITES_VCF_PATH: &str =
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf";
-const GOVERNED_RAW_SINGLE_SAMPLE_VCF_PATH: &str =
-    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfAngsdAdapterArtifact {
@@ -317,15 +315,9 @@ fn governed_inputs_for_stage(
     bam_list_path: Option<&str>,
 ) -> Vec<VcfAngsdAdapterArtifact> {
     match stage {
-        VcfDomainStage::CallGl
-        | VcfDomainStage::CallPseudohaploid
-        | VcfDomainStage::DamageFilter => vec![
+        VcfDomainStage::CallGl | VcfDomainStage::CallPseudohaploid => vec![
             artifact("bam_list", "bam_list", bam_list_path.expect("bam list path")),
             artifact("reference_fasta", "reference", GOVERNED_REFERENCE_FASTA_PATH),
-            artifact("sites_vcf", "sites_vcf", GOVERNED_SITES_VCF_PATH),
-        ],
-        VcfDomainStage::GlPropagation => vec![
-            artifact("vcf", "variant", GOVERNED_RAW_SINGLE_SAMPLE_VCF_PATH),
             artifact("sites_vcf", "sites_vcf", GOVERNED_SITES_VCF_PATH),
         ],
         other => {
@@ -353,7 +345,6 @@ fn build_stage_adapter_contract(
 )> {
     let vcf_output_path = |name: &str| format!("{output_root}/{name}.vcf.gz");
     let json_output_path = |name: &str| format!("{output_root}/{name}.json");
-    let text_output_path = |name: &str| format!("{output_root}/{name}.txt");
     let arg_output_path = |prefix: &str| format!("{prefix}.arg");
 
     let contract = match stage {
@@ -455,96 +446,6 @@ fn build_stage_adapter_contract(
                 )],
             )
         }
-        VcfDomainStage::DamageFilter => {
-            let prefix = format!("{output_root}/damage");
-            (
-                "domain/vcf/fixtures/vcf.damage_filter/angsd.txt".to_string(),
-                Some(input_by_id(inputs, "reference_fasta")?.to_string()),
-                Some(input_by_id(inputs, "sites_vcf")?.to_string()),
-                Some("doDamage1_pmd1".to_string()),
-                prefix.clone(),
-                vec!["damage_report_txt".to_string(), "damage_bias_audit_report".to_string()],
-                vec!["damage_report_txt".to_string(), "angsd_arg".to_string()],
-                vec!["damage_bias_audit_report".to_string()],
-                vec![
-                    artifact("damage_report_txt", "report", &text_output_path("damage_report")),
-                    artifact("angsd_arg", "report", &arg_output_path(&prefix)),
-                    artifact(
-                        "damage_bias_audit_report",
-                        "report_json",
-                        &json_output_path("damage_bias_audit_report"),
-                    ),
-                ],
-                vec![step(
-                    "damage_filter",
-                    "damage_aware",
-                    vec![
-                        "angsd",
-                        "-b",
-                        input_by_id(inputs, "bam_list")?,
-                        "-ref",
-                        input_by_id(inputs, "reference_fasta")?,
-                        "-sites",
-                        input_by_id(inputs, "sites_vcf")?,
-                        "-out",
-                        &prefix,
-                        "-doDamage",
-                        "1",
-                        "-minMapQ",
-                        "30",
-                        "-minQ",
-                        "20",
-                        "-pmd",
-                        "1",
-                    ],
-                    &["damage_report_txt", "angsd_arg"],
-                )],
-            )
-        }
-        VcfDomainStage::GlPropagation => {
-            let prefix = format!("{output_root}/gl_propagation");
-            (
-                "registry:configs/ci/registry/tool_registry_vcf_downstream.toml".to_string(),
-                None,
-                Some(input_by_id(inputs, "sites_vcf")?.to_string()),
-                Some("vcf_gl_input_doPost1_doVcf1".to_string()),
-                prefix.clone(),
-                vec!["gl_propagated_vcf".to_string(), "gl_propagation_report".to_string()],
-                vec!["gl_propagated_vcf".to_string(), "angsd_arg".to_string()],
-                vec!["gl_propagation_report".to_string()],
-                vec![
-                    artifact("gl_propagated_vcf", "variant", &vcf_output_path("gl_propagation")),
-                    artifact("angsd_arg", "report", &arg_output_path(&prefix)),
-                    artifact(
-                        "gl_propagation_report",
-                        "report_json",
-                        &json_output_path("gl_propagation_report"),
-                    ),
-                ],
-                vec![step(
-                    "gl_propagation",
-                    "normalize_gl",
-                    vec![
-                        "angsd",
-                        "-vcf-gl",
-                        input_by_id(inputs, "vcf")?,
-                        "-sites",
-                        input_by_id(inputs, "sites_vcf")?,
-                        "-doMajorMinor",
-                        "1",
-                        "-doMaf",
-                        "1",
-                        "-doPost",
-                        "1",
-                        "-doVcf",
-                        "1",
-                        "-out",
-                        &prefix,
-                    ],
-                    &["gl_propagated_vcf", "angsd_arg"],
-                )],
-            )
-        }
         other => {
             return Err(anyhow!(
                 "VCF angsd adapter does not govern stage `{}` for Goal 236",
@@ -558,19 +459,13 @@ fn build_stage_adapter_contract(
 
 fn asset_profile_id_for_stage(stage: VcfDomainStage) -> &'static str {
     match stage {
-        VcfDomainStage::CallGl
-        | VcfDomainStage::CallPseudohaploid
-        | VcfDomainStage::DamageFilter => "bam_bundle",
-        VcfDomainStage::GlPropagation => "vcf_single_sample",
+        VcfDomainStage::CallGl | VcfDomainStage::CallPseudohaploid => "bam_bundle",
         other => panic!("unsupported angsd asset profile stage `{}`", other.as_str()),
     }
 }
 
 fn uses_bam_inputs(stage: VcfDomainStage) -> bool {
-    matches!(
-        stage,
-        VcfDomainStage::CallGl | VcfDomainStage::CallPseudohaploid | VcfDomainStage::DamageFilter
-    )
+    matches!(stage, VcfDomainStage::CallGl | VcfDomainStage::CallPseudohaploid)
 }
 
 fn materialize_bam_list(
@@ -655,18 +550,6 @@ fn validate_command_steps(stage_id: &str, steps: &[VcfAngsdAdapterCommandStep]) 
             ensure_arg_present(stage_id, argv, "-doHaploCall")?;
             ensure_arg_present(stage_id, argv, "-seed")?;
         }
-        "vcf.damage_filter" => {
-            ensure_arg_present(stage_id, argv, "-b")?;
-            ensure_arg_present(stage_id, argv, "-ref")?;
-            ensure_arg_present(stage_id, argv, "-sites")?;
-            ensure_arg_present(stage_id, argv, "-doDamage")?;
-        }
-        "vcf.gl_propagation" => {
-            ensure_arg_present(stage_id, argv, "-vcf-gl")?;
-            ensure_arg_present(stage_id, argv, "-sites")?;
-            ensure_arg_present(stage_id, argv, "-doPost")?;
-            ensure_arg_present(stage_id, argv, "-doVcf")?;
-        }
         _ => {}
     }
     Ok(())
@@ -710,18 +593,13 @@ fn run_missing_input_probe(
 }
 
 fn ensure_vcf_angsd_adapter_contract(rows: &[VcfAngsdAdapterRow]) -> Result<()> {
-    if rows.len() != 4 {
+    if rows.len() != 2 {
         return Err(anyhow!(
-            "VCF angsd adapter must cover exactly 4 admitted registry rows, found {}",
+            "VCF angsd adapter must cover exactly 2 admitted registry rows, found {}",
             rows.len()
         ));
     }
-    let expected_stages = BTreeSet::from([
-        "vcf.call_gl",
-        "vcf.call_pseudohaploid",
-        "vcf.damage_filter",
-        "vcf.gl_propagation",
-    ]);
+    let expected_stages = BTreeSet::from(["vcf.call_gl", "vcf.call_pseudohaploid"]);
     let observed_stages = rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>();
     if observed_stages != expected_stages {
         return Err(anyhow!(
@@ -731,7 +609,7 @@ fn ensure_vcf_angsd_adapter_contract(rows: &[VcfAngsdAdapterRow]) -> Result<()> 
     for row in rows {
         if row.tool_status != GOVERNED_ANGSD_TOOL_STATUS {
             return Err(anyhow!(
-                "VCF angsd adapter row `{}` drifted from planned tool status: {}",
+                "VCF angsd adapter row `{}` drifted from external-artifact tool status: {}",
                 row.stage_id,
                 row.tool_status
             ));
@@ -820,14 +698,14 @@ mod tests {
         assert_eq!(report.schema_version, VCF_ANGSD_ADAPTER_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.tool_id, "angsd");
-        assert_eq!(report.tool_status, "planned");
-        assert_eq!(report.row_count, 4);
-        assert_eq!(report.supported_stage_row_count, 4);
+        assert_eq!(report.tool_status, "external_artifact");
+        assert_eq!(report.row_count, 2);
+        assert_eq!(report.supported_stage_row_count, 2);
         assert_eq!(report.benchmark_ready_row_count, 0);
-        assert_eq!(report.argv_valid_row_count, 4);
-        assert_eq!(report.missing_input_test_passed_row_count, 4);
-        assert_eq!(report.bam_list_row_count, 3);
-        assert_eq!(report.parser_output_row_count, 4);
+        assert_eq!(report.argv_valid_row_count, 2);
+        assert_eq!(report.missing_input_test_passed_row_count, 2);
+        assert_eq!(report.bam_list_row_count, 2);
+        assert_eq!(report.parser_output_row_count, 2);
 
         let call_gl =
             report.rows.iter().find(|row| row.stage_id == "vcf.call_gl").expect("call_gl row");
@@ -838,15 +716,8 @@ mod tests {
             "call_gl row must keep ANGSD genotype-likelihood flags"
         );
 
-        let gl_propagation = report
-            .rows
-            .iter()
-            .find(|row| row.stage_id == "vcf.gl_propagation")
-            .expect("gl_propagation row");
-        assert_eq!(gl_propagation.bam_list_path, None);
-        assert!(
-            gl_propagation.command_steps[0].argv.iter().any(|part| part == "-vcf-gl"),
-            "gl_propagation row must keep the ANGSD VCF-GL input contract"
-        );
+        assert!(report.rows.iter().all(|row| {
+            matches!(row.stage_id.as_str(), "vcf.call_gl" | "vcf.call_pseudohaploid")
+        }));
     }
 }

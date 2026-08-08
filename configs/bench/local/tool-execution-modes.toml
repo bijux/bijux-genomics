@@ -75,6 +75,13 @@ tool_ids = [
 ]
 
 [[modes]]
+execution_mode = "external"
+expected_install_kind = "external"
+required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
+summary = "Non-redistributable tools executed only from checksum-admitted operator-provided artifacts."
+tool_ids = ["angsd", "fastuniq", "ngsbriggs"]
+
+[[modes]]
 execution_mode = "python"
 expected_install_kind = "container"
 required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]

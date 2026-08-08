@@ -32,8 +32,6 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
         angsd_sex(),
         angsd_call_gl(),
         angsd_call_pseudohaploid(),
-        angsd_damage_filter(),
-        angsd_gl_propagation(),
         fastuniq_remove_duplicates(),
         impute5_imputation_metrics(),
         impute5_impute(),
@@ -136,63 +134,6 @@ fn angsd_call_pseudohaploid() -> ToolBindingV1 {
         ],
         resources(8, 24, 16),
         "parse_angsd_call_pseudohaploid_metrics",
-        &["native_angsd_prefix_requires_governed_vcf_materialization"],
-    )
-}
-
-fn angsd_damage_filter() -> ToolBindingV1 {
-    external_binding(
-        "vcf.damage_filter",
-        "angsd",
-        &["bam_input", "ancient_dna_damage_evidence"],
-        &[input("bam", BAM), input("reference", FASTA)],
-        &[output("damage_report", JSON)],
-        &[
-            "${executable}",
-            "-i",
-            "${input:bam}",
-            "-ref",
-            "${input:reference}",
-            "-doDamage",
-            "1",
-            "-pmd",
-            "1",
-            "-out",
-            "${output:damage_report}",
-        ],
-        resources(8, 24, 16),
-        "parse_angsd_damage_filter_metrics",
-        &[
-            "angsd_emits_damage_evidence_not_a_filtered_vcf",
-            "governed_filter_adapter_must_apply_the_declared_vcf_damage_policy",
-        ],
-    )
-}
-
-fn angsd_gl_propagation() -> ToolBindingV1 {
-    external_binding(
-        "vcf.gl_propagation",
-        "angsd",
-        &["vcf_input", "genotype_likelihood_propagation"],
-        &[input("gl_sites_vcf", VCF)],
-        &[output("gl_propagated_vcf", VCF)],
-        &[
-            "${executable}",
-            "-vcf-gl",
-            "${input:gl_sites_vcf}",
-            "-doMajorMinor",
-            "1",
-            "-doMaf",
-            "1",
-            "-doPost",
-            "1",
-            "-doVcf",
-            "1",
-            "-out",
-            "${output:gl_propagated_vcf}",
-        ],
-        resources(8, 24, 16),
-        "parse_angsd_gl_propagation_metrics",
         &["native_angsd_prefix_requires_governed_vcf_materialization"],
     )
 }

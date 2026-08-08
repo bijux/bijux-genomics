@@ -5,11 +5,11 @@
   "passed_goal_count": 15,
   "failed_goal_count": 0,
   "failing_goal_ids": [],
-  "parser_fixture_row_count": 39,
+  "parser_fixture_row_count": 37,
   "active_parser_fixture_row_count": 24,
   "expected_result_row_count": 24,
   "report_map_row_count": 24,
-  "comparable_metric_row_count": 35,
+  "comparable_metric_row_count": 29,
   "ok": true,
   "checks": [
     {
@@ -31,7 +31,7 @@
       "surface": "vcf angsd parser fixtures",
       "output_path": null,
       "ok": true,
-      "detail": "validated 4 governed ANGSD VCF parser fixture rows"
+      "detail": "validated 2 governed ANGSD VCF parser fixture rows"
     },
     {
       "goal_id": 249,

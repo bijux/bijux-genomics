@@ -98,9 +98,7 @@
         "bam.kinship",
         "bam.sex",
         "vcf.call_gl",
-        "vcf.call_pseudohaploid",
-        "vcf.damage_filter",
-        "vcf.gl_propagation"
+        "vcf.call_pseudohaploid"
       ],
       "resolution_kind": "external_artifact",
       "resolution_target": "external-artifact://angsd",
@@ -117,6 +115,7 @@
         "domain/vcf/tools/angsd.yaml"
       ],
       "registry_paths": [
+        "configs/ci/registry/tool_registry_experimental.toml",
         "configs/ci/registry/tool_registry_vcf.toml",
         "containers/contracts/catalog.toml"
       ],
@@ -359,7 +358,7 @@
         "vcf.impute"
       ],
       "resolution_kind": "apptainer_image",
-      "resolution_target": "containers/apptainer/lunarc/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f",
+      "resolution_target": "containers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f",
       "version_probe_status": "ready",
       "command_entrypoint": "beagle",
       "version_cmd": "beagle --version",
@@ -681,7 +680,7 @@
         "vcf.pca"
       ],
       "resolution_kind": "apptainer_image",
-      "resolution_target": "containers/apptainer/lunarc/eigensoft.def@sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9",
+      "resolution_target": "containers/apptainer/eigensoft.def@sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9",
       "version_probe_status": "ready",
       "command_entrypoint": "smartpca",
       "version_cmd": "smartpca --version",
@@ -830,6 +829,7 @@
         "domain/fastq/tools/fastuniq.yaml"
       ],
       "registry_paths": [
+        "configs/ci/registry/tool_registry_experimental.toml",
         "containers/contracts/catalog.toml"
       ],
       "unavailable_reason": null
@@ -1331,6 +1331,7 @@
         "domain/bam/tools/ngsbriggs.yaml"
       ],
       "registry_paths": [
+        "configs/ci/registry/tool_registry_experimental.toml",
         "containers/contracts/catalog.toml"
       ],
       "unavailable_reason": null

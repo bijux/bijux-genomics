@@ -21,7 +21,7 @@ The VCF domain mixes currently supported calling stages with many planned downst
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
 | bcftools | `vcf.call`, `vcf.call_gl`, `vcf.call_diploid`, `vcf.call_pseudohaploid`, `vcf.damage_filter`, `vcf.gl_propagation`, `vcf.filter`, `vcf.qc`, `vcf.stats` | DOI captured in governed tool contract | https://github.com/samtools/bcftools |
-| angsd | `vcf.call_gl`, `vcf.call_pseudohaploid`, `vcf.damage_filter`, `vcf.gl_propagation` | paper-style citation captured in governed tool contract; runtime promotion still planned | https://github.com/ANGSD/angsd |
+| angsd | `vcf.call_gl`, `vcf.call_pseudohaploid` | paper-style citation captured in governed tool contract; execution requires an admitted operator-provided artifact | https://github.com/ANGSD/angsd |
 
 ## Downstream Inference Families
 | Tool | Applies to | Reference status | Primary locator |

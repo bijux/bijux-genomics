@@ -56,7 +56,9 @@ const BAM_MAPPING_SUMMARY_TOOL_ID: &str = "samtools";
 const BAM_COVERAGE_TOOL_ID: &str = "samtools";
 const BAM_DAMAGE_TOOL_ID: &str = "mapdamage2";
 const BAM_AUTHENTICITY_TOOL_ID: &str = "pmdtools";
+const VCF_CALL_GL_TOOL_ID: &str = "angsd";
 const VCF_CALL_PSEUDOHAPLOID_TOOL_ID: &str = "bcftools";
+const VCF_GL_PROPAGATION_TOOL_ID: &str = "bcftools";
 const VCF_DAMAGE_FILTER_TOOL_ID: &str = "bcftools";
 const VCF_STATS_TOOL_ID: &str = "bcftools";
 
@@ -265,13 +267,13 @@ pub(crate) fn render_adna_micro_pipeline(
     let gl_call_row = skipped_row(
         "vcf.call_gl",
         "vcf",
-        "angsd",
+        VCF_CALL_GL_TOOL_ID,
         "aDNA micro execution chooses the governed pseudohaploid branch; likelihood-bearing calling remains covered by dedicated GL smoke proof",
     );
     let gl_propagation_row = skipped_row(
         "vcf.gl_propagation",
         "vcf",
-        "angsd",
+        VCF_GL_PROPAGATION_TOOL_ID,
         "aDNA micro execution does not produce a GL-bearing VCF because the pseudohaploid branch is the active governed path for this summary",
     );
     let damage_filter_row =

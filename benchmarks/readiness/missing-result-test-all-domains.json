@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_audit.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 138,
-  "present_result_row_count": 135,
+  "expected_row_count": 142,
+  "present_result_row_count": 139,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -17,8 +17,8 @@
     "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json"
   ],
   "domain_counts": {
-    "bam": 46,
-    "fastq": 68,
+    "bam": 49,
+    "fastq": 69,
     "vcf": 24
   },
   "rows": [
@@ -536,6 +536,41 @@
       "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2` remains present with a validated fake-run manifest"
     },
     {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_parameters",
+        "damage_report"
+      ],
+      "observed_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_parameters",
+        "damage_report"
+      ],
+      "expected_metrics": [
+        "damage_report",
+        "damage_signal",
+        "terminal_c_to_t_5p",
+        "terminal_g_to_a_3p"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs` remains present with a validated fake-run manifest"
+    },
+    {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
       "domain": "bam",
       "stage_id": "bam.damage",
@@ -925,6 +960,38 @@
       ],
       "report_section": "coverage_quality",
       "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-kinship-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/corpus_only/angsd/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/corpus_only/angsd/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "kinship_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "kinship_report"
+      ],
+      "expected_metrics": [
+        "kinship_report",
+        "observed_max_overlap_snps",
+        "pair_count",
+        "pairwise_results",
+        "status"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -1389,6 +1456,40 @@
       ],
       "report_section": "downstream_readiness",
       "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/corpus_only/angsd/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/corpus_only/angsd/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "sex_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "sex_report"
+      ],
+      "expected_metrics": [
+        "autosomal_coverage",
+        "call",
+        "confidence",
+        "sex_report",
+        "status",
+        "x_coverage",
+        "y_coverage"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -2680,6 +2781,37 @@
       ],
       "report_section": "read_cleanup",
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "dedup_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",

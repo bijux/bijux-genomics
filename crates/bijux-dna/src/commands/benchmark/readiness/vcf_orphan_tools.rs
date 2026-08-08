@@ -327,10 +327,10 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_ORPHAN_TOOLS_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
-        assert_eq!(report.orphan_count, 8);
+        assert_eq!(report.orphan_count, 7);
         assert_eq!(report.required_tool_count, 16);
         assert_eq!(report.registered_tool_count, 16);
-        assert_eq!(report.served_tool_count, 8);
+        assert_eq!(report.served_tool_count, 9);
         assert!(report.rows.iter().all(|row| row.served_stage_count == 0));
         assert!(report.rows.iter().all(|row| row.decision == "future_not_benchmark_ready"));
         assert!(report.rows.iter().any(|row| {

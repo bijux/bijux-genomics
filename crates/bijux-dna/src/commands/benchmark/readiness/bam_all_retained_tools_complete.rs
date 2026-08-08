@@ -117,7 +117,7 @@ const BAM_STAGE_COMPLETION_GOALS: &[BamStageCompletionGoal] = &[
         goal_id: 440,
         stage_id: "bam.kinship",
         output_path: bam_kinship_complete::DEFAULT_BAM_KINSHIP_COMPLETE_PATH,
-        expected_active_row_count: 1,
+        expected_active_row_count: 2,
         expected_checked_surface_count: 19,
     },
 ];
@@ -167,6 +167,7 @@ pub(crate) struct BamAllRetainedToolsCompleteReport {
     pub(crate) local_smoke_row_count: usize,
     pub(crate) local_smoke_host_stage_row_count: usize,
     pub(crate) local_smoke_container_row_count: usize,
+    pub(crate) local_smoke_external_artifact_row_count: usize,
     pub(crate) report_map_row_count: usize,
     pub(crate) active_row_consistency_surface_count: usize,
     pub(crate) micro_smoke_family_count: usize,
@@ -315,16 +316,19 @@ pub(crate) fn render_bam_all_retained_tools_complete(
             if local_smoke.row_count != expected_retained_row_count
                 || local_smoke.stage_count != expected_retained_stage_count
                 || local_smoke.tool_count != expected_retained_tool_count
-                || local_smoke.host_stage_smoke_row_count + local_smoke.container_smoke_row_count
+                || local_smoke.host_stage_smoke_row_count
+                    + local_smoke.container_smoke_row_count
+                    + local_smoke.external_artifact_row_count
                     != expected_retained_row_count
             {
                 bail!(
-                    "BAM local/container smoke drifted: rows={}, stages={}, tools={}, host_stage_smokes={}, container_smokes={}",
+                    "BAM local/container smoke drifted: rows={}, stages={}, tools={}, host_stage_smokes={}, container_smokes={}, external_artifacts={}",
                     local_smoke.row_count,
                     local_smoke.stage_count,
                     local_smoke.tool_count,
                     local_smoke.host_stage_smoke_row_count,
-                    local_smoke.container_smoke_row_count
+                    local_smoke.container_smoke_row_count,
+                    local_smoke.external_artifact_row_count
                 );
             }
             ensure_binding_subset(
@@ -334,9 +338,10 @@ pub(crate) fn render_bam_all_retained_tools_complete(
                 &local_smoke_bindings,
             )?;
             Ok(format!(
-                "validated host-vs-container smoke coverage for every retained BAM binding with {} host smoke row(s) and {} container smoke row(s)",
+                "validated runtime smoke coverage for every retained BAM binding with {} host row(s), {} container row(s), and {} external-artifact admission row(s)",
                 local_smoke.host_stage_smoke_row_count,
-                local_smoke.container_smoke_row_count
+                local_smoke.container_smoke_row_count,
+                local_smoke.external_artifact_row_count
             ))
         },
     );
@@ -603,6 +608,7 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         local_smoke_row_count: local_smoke.row_count,
         local_smoke_host_stage_row_count: local_smoke.host_stage_smoke_row_count,
         local_smoke_container_row_count: local_smoke.container_smoke_row_count,
+        local_smoke_external_artifact_row_count: local_smoke.external_artifact_row_count,
         report_map_row_count: report_map.row_count,
         active_row_consistency_surface_count: active_row_consistency.checked_surface_count,
         micro_smoke_family_count: micro_smoke_summary.family_count,
@@ -1126,7 +1132,9 @@ mod tests {
         assert_eq!(report.parser_fixture_row_count, report.retained_row_count);
         assert_eq!(report.local_smoke_row_count, report.retained_row_count);
         assert_eq!(
-            report.local_smoke_host_stage_row_count + report.local_smoke_container_row_count,
+            report.local_smoke_host_stage_row_count
+                + report.local_smoke_container_row_count
+                + report.local_smoke_external_artifact_row_count,
             report.retained_row_count
         );
         assert_eq!(report.report_map_row_count, report.retained_row_count);

@@ -24,7 +24,7 @@ metrics:
   - name: "gl_fields_retained"
   - name: "genotyped_sites"
   - name: "gl_propagation_pass_rate"
-compatible_tools: ["bcftools", "angsd"]
+compatible_tools: ["bcftools"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "GL/PL tags are retained through filtering and post-processing."

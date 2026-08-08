@@ -15,6 +15,7 @@ bam	bam.coverage	samtools	corpus-01-bam-mini	corpus_only	bam.adapter.coverage	ba
 bam	bam.damage	addeam	corpus-01-adna-damage-mini	corpus_only	bam.adapter.damage	bam.parser.damage	benchmark_ready
 bam	bam.damage	damageprofiler	corpus-01-adna-damage-mini	corpus_only	bam.adapter.damage	bam.parser.damage	benchmark_ready
 bam	bam.damage	mapdamage2	corpus-01-adna-damage-mini	corpus_only	bam.adapter.damage	bam.parser.damage	benchmark_ready
+bam	bam.damage	ngsbriggs	corpus-01-adna-damage-mini	corpus_only	bam.adapter.damage	bam.parser.damage	benchmark_ready
 bam	bam.damage	pmdtools	corpus-01-adna-damage-mini	corpus_only	bam.adapter.damage	bam.parser.damage	benchmark_ready
 bam	bam.damage	pydamage	corpus-01-adna-damage-mini	corpus_only	bam.adapter.damage	bam.parser.damage	benchmark_ready
 bam	bam.duplication_metrics	picard	corpus-01-bam-mini	corpus_only	bam.adapter.duplication_metrics	bam.parser.duplication_metrics	benchmark_ready
@@ -27,6 +28,7 @@ bam	bam.gc_bias	picard	corpus-01-bam-mini	corpus_only	bam.adapter.gc_bias	bam.pa
 bam	bam.genotyping	bcftools	corpus-01-genotyping-mini	reference_fasta+regions+sites_vcf	bam.adapter.genotyping	bam.parser.genotyping	benchmark_ready
 bam	bam.haplogroups	yleaf	corpus-01-adna-bam-mini	reference_fasta+reference_panel	bam.adapter.haplogroups	bam.parser.haplogroups	benchmark_ready
 bam	bam.insert_size	picard	corpus-01-bam-mini	corpus_only	bam.adapter.insert_size	bam.parser.insert_size	benchmark_ready
+bam	bam.kinship	angsd	corpus-01-kinship-mini	corpus_only	bam.adapter.kinship	bam.parser.kinship	benchmark_ready
 bam	bam.kinship	king	corpus-01-kinship-mini	reference_fasta+reference_panel	bam.adapter.kinship	bam.parser.kinship	benchmark_ready
 bam	bam.length_filter	picard	corpus-01-bam-mini	corpus_only	bam.adapter.length_filter	bam.parser.length_filter	benchmark_ready
 bam	bam.length_filter	samtools	corpus-01-bam-mini	corpus_only	bam.adapter.length_filter	bam.parser.length_filter	benchmark_ready
@@ -40,6 +42,7 @@ bam	bam.overlap_correction	bamutil	corpus-01-bam-mini	corpus_only	bam.adapter.ov
 bam	bam.qc_pre	multiqc	corpus-01-bam-mini	corpus_only	bam.adapter.qc_pre	bam.parser.qc_pre	benchmark_ready
 bam	bam.qc_pre	samtools	corpus-01-bam-mini	corpus_only	bam.adapter.qc_pre	bam.parser.qc_pre	benchmark_ready
 bam	bam.recalibration	gatk	corpus-01-bam-mini	known_sites+reference_fasta	bam.adapter.recalibration	bam.parser.recalibration	benchmark_ready
+bam	bam.sex	angsd	corpus-01-adna-bam-mini	corpus_only	bam.adapter.sex	bam.parser.sex	benchmark_ready
 bam	bam.sex	rxy	corpus-01-adna-bam-mini	reference_fasta	bam.adapter.sex	bam.parser.sex	benchmark_ready
 bam	bam.sex	yleaf	corpus-01-adna-bam-mini	reference_fasta	bam.adapter.sex	bam.parser.sex	benchmark_ready
 bam	bam.validate	bamtools	corpus-01-bam-mini	corpus_only	bam.adapter.validate	bam.parser.validate	benchmark_ready
@@ -85,6 +88,7 @@ fastq	fastq.profile_reads	seqkit	corpus-01-mini	corpus_only	fastq.adapter.profil
 fastq	fastq.profile_reads	seqkit_stats	corpus-01-mini	corpus_only	fastq.adapter.profile_reads	fastq.parser.profile_reads	benchmark_ready
 fastq	fastq.remove_chimeras	vsearch	corpus-03-amplicon-mini	corpus_only	fastq.adapter.remove_chimeras	fastq.parser.remove_chimeras	benchmark_ready
 fastq	fastq.remove_duplicates	clumpify	corpus-01-mini	corpus_only	fastq.adapter.remove_duplicates	fastq.parser.remove_duplicates	benchmark_ready
+fastq	fastq.remove_duplicates	fastuniq	corpus-01-mini	corpus_only	fastq.adapter.remove_duplicates	fastq.parser.remove_duplicates	benchmark_ready
 fastq	fastq.report_qc	multiqc	corpus-01-mini	corpus_only	fastq.adapter.report_qc	fastq.parser.report_qc	benchmark_ready
 fastq	fastq.screen_taxonomy	centrifuge	corpus-02-edna-mini	database_artifact_id+taxonomy_database_root	fastq.adapter.screen_taxonomy	fastq.parser.screen_taxonomy	benchmark_ready
 fastq	fastq.screen_taxonomy	kaiju	corpus-02-edna-mini	database_artifact_id+taxonomy_database_root	fastq.adapter.screen_taxonomy	fastq.parser.screen_taxonomy	benchmark_ready

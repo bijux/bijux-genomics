@@ -522,12 +522,12 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "ibdne"
                 && row.stage_id == "vcf.demography"
-                && row.support_status == "planned"
-                && row.adapter_status == "declared_only"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
                 && row.parser_status == "parse_normalized"
                 && row.corpus_status == "fixture:vcf_production_regression"
                 && row.asset_status == "not_required"
-                && row.benchmark_status == "not_benchmark_ready"
+                && row.benchmark_status == "benchmark_ready"
         }));
     }
 }

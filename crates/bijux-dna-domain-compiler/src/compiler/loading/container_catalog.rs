@@ -63,6 +63,13 @@ fn validate_contract(
             contract.support_disposition
         );
     }
+    if contract.external_artifact_supported && contract.support_disposition != "unsupported" {
+        bail!(
+            "{}: external artifact tool {} must use the unsupported redistribution disposition",
+            catalog_path.display(),
+            contract.id
+        );
+    }
     validate_runtime_recipe(
         workspace_root,
         catalog_path,

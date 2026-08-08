@@ -2,7 +2,7 @@ tool_id	domains	active_stage_ids	install_kind	resolution_kind	resolution_target	
 adapterremoval	fastq	fastq.merge_pairs,fastq.trim_reads,fastq.trim_terminal_damage	container	docker_image	bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d	AdapterRemoval	domain/fastq/tools/adapterremoval.yaml
 addeam	bam	bam.damage	container	docker_image	bijuxdna/addeam:1.0.0	addeam	domain/bam/tools/addeam.yaml
 alientrimmer	fastq	fastq.trim_reads	container	docker_image	bijuxdna/alientrimmer	alientrimmer	domain/fastq/tools/alientrimmer.yaml
-angsd	bam,vcf	bam.kinship,bam.sex,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.gl_propagation	external_artifact	external_artifact	external-artifact://angsd	angsd	domain/bam/tools/angsd.yaml,domain/vcf/tools/angsd.yaml
+angsd	bam,vcf	bam.kinship,bam.sex,vcf.call_gl,vcf.call_pseudohaploid	external_artifact	external_artifact	external-artifact://angsd	angsd	domain/bam/tools/angsd.yaml,domain/vcf/tools/angsd.yaml
 atropos	fastq	fastq.trim_reads	container	docker_image	bijuxdna/atropos@sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d	atropos	domain/fastq/tools/atropos.yaml
 authenticct	bam	bam.authenticity	container	docker_image	bijuxdna/authenticct:1.0.0	authenticct	domain/bam/tools/authenticct.yaml
 bamtools	bam	bam.filter,bam.mapq_filter,bam.validate	container	docker_image	bijuxdna/bamtools:2.5.2	bamtools	domain/bam/tools/bamtools.yaml
@@ -11,7 +11,7 @@ bayeshammer	fastq	fastq.correct_errors	container	docker_image	bijuxdna/bayeshamm
 bbduk	fastq	fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads	container	docker_image	bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4	bbduk	domain/fastq/tools/bbduk.yaml
 bbmerge	fastq	fastq.merge_pairs	container	docker_image	bijuxdna/bbmerge@sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54	bbmerge	domain/fastq/tools/bbmerge.yaml
 bcftools	bam,vcf	bam.genotyping,vcf.call,vcf.call_diploid,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.filter,vcf.gl_propagation,vcf.postprocess,vcf.prepare_reference_panel,vcf.qc,vcf.stats	container	docker_image	quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6	bcftools	domain/bam/tools/bcftools.yaml,domain/vcf/tools/bcftools.yaml
-beagle	vcf	vcf.imputation_metrics,vcf.impute	container	apptainer_image	containers/apptainer/lunarc/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f	beagle	domain/vcf/tools/beagle.yaml
+beagle	vcf	vcf.imputation_metrics,vcf.impute	container	apptainer_image	containers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f	beagle	domain/vcf/tools/beagle.yaml
 bedtools	bam	bam.coverage,bam.filter,bam.validate	container	docker_image	bijuxdna/bedtools:2.31.1	bedtools	domain/bam/tools/bedtools.yaml
 bijux_dna	fastq	fastq.detect_duplicates_premerge,fastq.estimate_library_complexity_prealign	workspace_binary	host_binary	bijux-dna	bijux-dna	domain/fastq/tools/bijux_dna.yaml
 bowtie2	bam,fastq	bam.align,fastq.deplete_host,fastq.deplete_reference_contaminants	container	docker_image	bijuxdna/bowtie2	bowtie2	domain/bam/tools/bowtie2.yaml,domain/fastq/tools/bowtie2.yaml
@@ -23,7 +23,7 @@ contammix	bam	bam.contamination	container	docker_image	bijuxdna/contammix	contam
 cutadapt	fastq	fastq.normalize_primers,fastq.trim_reads,fastq.trim_terminal_damage	container	docker_image	bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba	cutadapt	domain/fastq/tools/cutadapt.yaml
 dada2	fastq	fastq.infer_asvs	container	docker_image	bijuxdna/dada2@sha256:930e06fb8e27965ccafae61d4161ab5e32933aea2555e68ad409ef7af43c8245	dada2	domain/fastq/tools/dada2.yaml
 damageprofiler	bam	bam.authenticity,bam.damage	container	docker_image	bijuxdna/damageprofiler:1.1	damageprofiler	domain/bam/tools/damageprofiler.yaml
-eigensoft	vcf	vcf.pca	container	apptainer_image	containers/apptainer/lunarc/eigensoft.def@sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9	smartpca	domain/vcf/tools/eigensoft.yaml
+eigensoft	vcf	vcf.pca	container	apptainer_image	containers/apptainer/eigensoft.def@sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9	smartpca	domain/vcf/tools/eigensoft.yaml
 fastp	fastq	fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads	container	docker_image	bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10	fastp	domain/fastq/tools/fastp.yaml
 fastq_scan	fastq	fastq.profile_overrepresented_sequences,fastq.validate_reads	container	docker_image	bijuxdna/fastq_scan@sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad	fastq_scan	domain/fastq/tools/fastq_scan.yaml
 fastqc	fastq	fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads	container	docker_image	bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789	fastqc	domain/fastq/tools/fastqc.yaml

@@ -7,6 +7,7 @@ use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_fastq::default_execution_tool_for_stage;
 use serde::Serialize;
 
+use super::catalog::load_external_artifact_tool_contracts;
 use super::fastq_active_stage_tool_matrix::{
     collect_fastq_active_stage_tool_matrix_rows, FastqActiveStageToolMatrixRow,
 };
@@ -51,6 +52,7 @@ pub(crate) struct FastqLocalContainerSmokeReport {
     pub(crate) tool_count: usize,
     pub(crate) host_stage_smoke_row_count: usize,
     pub(crate) container_smoke_row_count: usize,
+    pub(crate) external_artifact_row_count: usize,
     pub(crate) runtime_counts: BTreeMap<String, usize>,
     pub(crate) rows: Vec<FastqLocalContainerSmokeRow>,
 }
@@ -103,7 +105,17 @@ pub(crate) fn render_fastq_local_container_smoke(
     }
     let host_stage_smoke_row_count =
         rows.iter().filter(|row| row.smoke_path_kind == "host_stage_smoke").count();
-    let container_smoke_row_count = rows.len().saturating_sub(host_stage_smoke_row_count);
+    let container_smoke_row_count = rows
+        .iter()
+        .filter(|row| {
+            matches!(
+                row.smoke_path_kind.as_str(),
+                "docker_container_smoke" | "apptainer_container_smoke"
+            )
+        })
+        .count();
+    let external_artifact_row_count =
+        rows.iter().filter(|row| row.smoke_path_kind == "external_artifact_admission").count();
 
     Ok(FastqLocalContainerSmokeReport {
         schema_version: FASTQ_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION,
@@ -113,6 +125,7 @@ pub(crate) fn render_fastq_local_container_smoke(
         tool_count: rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len(),
         host_stage_smoke_row_count,
         container_smoke_row_count,
+        external_artifact_row_count,
         runtime_counts,
         rows,
     })
@@ -128,6 +141,10 @@ pub(crate) fn collect_fastq_local_container_smoke_rows(
         .collect::<BTreeSet<_>>();
     let retained_tool_ids =
         retained_rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>();
+    let external_artifact_tool_ids = load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .map(|contract| contract.tool_id)
+        .collect::<BTreeSet<_>>();
     let registry_by_tool = load_fastq_registry_smoke_records(repo_root, &retained_tool_ids)?;
 
     let mut rows = Vec::with_capacity(retained_rows.len());
@@ -136,6 +153,7 @@ pub(crate) fn collect_fastq_local_container_smoke_rows(
             repo_root,
             &retained_row,
             &registry_by_tool,
+            &external_artifact_tool_ids,
         )?);
     }
 
@@ -150,6 +168,7 @@ fn build_fastq_local_container_smoke_row(
     repo_root: &Path,
     retained_row: &FastqActiveStageToolMatrixRow,
     registry_by_tool: &BTreeMap<String, FastqRegistrySmokeRecord>,
+    external_artifact_tool_ids: &BTreeSet<String>,
 ) -> Result<FastqLocalContainerSmokeRow> {
     let registry_row = registry_by_tool.get(retained_row.tool_id.as_str()).ok_or_else(|| {
         anyhow!(
@@ -157,6 +176,28 @@ fn build_fastq_local_container_smoke_row(
             retained_row.tool_id
         )
     })?;
+
+    if external_artifact_tool_ids.contains(&retained_row.tool_id) {
+        return Ok(FastqLocalContainerSmokeRow {
+            stage_id: retained_row.stage_id.clone(),
+            tool_id: retained_row.tool_id.clone(),
+            registered_binary: registry_row.registered_binary.clone(),
+            tool_status: registry_row.tool_status.clone(),
+            benchmark_status: retained_row.benchmark_status.clone(),
+            support_status: retained_row.support_status.clone(),
+            corpus_status: retained_row.corpus_status.clone(),
+            smoke_path_kind: "external_artifact_admission".to_string(),
+            smoke_runtime: "external".to_string(),
+            smoke_tool_id: registry_row.registered_binary.clone(),
+            smoke_command: format!("{} --version", registry_row.registered_binary),
+            smoke_support_path: "containers/contracts/catalog.toml".to_string(),
+            smoke_minimal_cmd: registry_row.smoke_minimal_cmd.clone(),
+            reason: format!(
+                "binding `{}` / `{}` requires checksum-admitted operator-provided artifact evidence; no redistributable container wrapper is authorized",
+                retained_row.stage_id, retained_row.tool_id
+            ),
+        });
+    }
 
     let is_governed_default =
         default_execution_tool_for_stage(&StageId::new(retained_row.stage_id.clone()))

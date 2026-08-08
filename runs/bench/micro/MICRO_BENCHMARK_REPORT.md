@@ -1,14 +1,14 @@
 # Micro Benchmark Report
 
 - Result rows: 77
-- Complete rows: 69
+- Complete rows: 68
 - Failed rows: 0
 - Missing rows: 0
-- Unavailable rows: 8
+- Unavailable rows: 9
 - Insufficient-data rows: 0
 - Runtime rows: 77
 - Memory-source rows: 77
-- Science-threshold rows: 72
+- Science-threshold rows: 66
 
 ## Complete
 
@@ -40,7 +40,6 @@
 | bam.duplicate_handling | bam_micro_smoke_subset | bam | bam.markdup | samtools | 0 | 1 | 0 | binding `bam.markdup` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.filtering | bam_micro_smoke_subset | bam | bam.filter | samtools | 0 | 1 | 0 | binding `bam.filter` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.insert_size_gc_bias | bam_micro_smoke_subset | bam | bam.insert_size | picard | 0 | 1 | 0 | binding `bam.insert_size` / `picard` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
-| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | 0 | 1 | 0 | binding `bam.kinship` / `king` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.overlap_endogenous_content | bam_micro_smoke_subset | bam | bam.overlap_correction | bamutil | 0 | 1 | 0 | binding `bam.overlap_correction` / `bamutil` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.recalibration_genotyping | bam_micro_smoke_subset | bam | bam.recalibration | gatk | 0 | 1 | 0 | binding `bam.recalibration` / `gatk` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.validation_core_qc | bam_micro_smoke_subset | bam | bam.validate | samtools | 0 | 1 | 0 | binding `bam.validate` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
@@ -100,9 +99,10 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | bam.contamination | adna_micro_pipeline | bam | bam.contamination | verifybamid2 | unavailable | synthetic aDNA micro execution does not claim panel-backed contamination evidence; authenticity stays damage-driven in this run |
 | vcf.call_gl | adna_micro_pipeline | vcf | vcf.call_gl | angsd | unavailable | aDNA micro execution chooses the governed pseudohaploid branch; likelihood-bearing calling remains covered by dedicated GL smoke proof |
-| vcf.gl_propagation | adna_micro_pipeline | vcf | vcf.gl_propagation | angsd | unavailable | aDNA micro execution does not produce a GL-bearing VCF because the pseudohaploid branch is the active governed path for this summary |
+| vcf.gl_propagation | adna_micro_pipeline | vcf | vcf.gl_propagation | bcftools | unavailable | aDNA micro execution does not produce a GL-bearing VCF because the pseudohaploid branch is the active governed path for this summary |
 | bam.align | bam_micro_smoke_subset | bam | bam.align | bwa | container_needed | stage `bam.align` keeps governed local-ready plan coverage but no BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.align` / `bwa` |
 | bam.coverage | bam_micro_smoke_subset | bam | bam.coverage | mosdepth | container_needed | binding `bam.coverage` / `mosdepth` does not match the governed BAM local-smoke contract tool `samtools`, so the governed container smoke wrapper is the available local exercise path for `bam.coverage` / `mosdepth` |
+| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | container_needed | retained tool `king` has no exact BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.kinship` / `king` |
 | fastq.depletion | fastq_micro_smoke_subset | fastq | fastq.deplete_host | bowtie2 | container_needed | binding `fastq.deplete_host` / `bowtie2` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path |
 | fastq.index_reference | fastq_micro_smoke_subset | fastq | fastq.index_reference | bowtie2_build | container_needed | binding `fastq.index_reference` / `bowtie2_build` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path |
 | fastq.taxonomy | fastq_micro_smoke_subset | fastq | fastq.screen_taxonomy | kraken2 | container_needed | binding `fastq.screen_taxonomy` / `kraken2` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path |
@@ -129,7 +129,7 @@
 | vcf.call_gl | adna_micro_pipeline | vcf | vcf.call_gl | angsd | unavailable |  | not_applicable |
 | vcf.call_pseudohaploid | adna_micro_pipeline | vcf | vcf.call_pseudohaploid | bcftools | succeeded |  | not_available |
 | vcf.damage_filter | adna_micro_pipeline | vcf | vcf.damage_filter | bcftools | succeeded |  | not_available |
-| vcf.gl_propagation | adna_micro_pipeline | vcf | vcf.gl_propagation | angsd | unavailable |  | not_applicable |
+| vcf.gl_propagation | adna_micro_pipeline | vcf | vcf.gl_propagation | bcftools | unavailable |  | not_applicable |
 | vcf.stats | adna_micro_pipeline | vcf | vcf.stats | bcftools | succeeded |  | not_available |
 | benchmark.amplicon_corpus_fixture | amplicon_micro_pipeline | benchmark | benchmark.amplicon_corpus_fixture | bijux | succeeded |  | not_available |
 | benchmark.amplicon_output_judgment | amplicon_micro_pipeline | benchmark | benchmark.amplicon_output_judgment | bijux | succeeded |  | not_available |
@@ -147,7 +147,7 @@
 | bam.duplicate_handling | bam_micro_smoke_subset | bam | bam.markdup | samtools | succeeded |  | not_available |
 | bam.filtering | bam_micro_smoke_subset | bam | bam.filter | samtools | succeeded |  | not_available |
 | bam.insert_size_gc_bias | bam_micro_smoke_subset | bam | bam.insert_size | picard | succeeded |  | not_available |
-| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | succeeded |  | not_available |
+| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | container_needed |  | not_applicable |
 | bam.overlap_endogenous_content | bam_micro_smoke_subset | bam | bam.overlap_correction | bamutil | succeeded |  | not_available |
 | bam.recalibration_genotyping | bam_micro_smoke_subset | bam | bam.recalibration | gatk | succeeded |  | not_available |
 | bam.validation_core_qc | bam_micro_smoke_subset | bam | bam.validate | samtools | succeeded |  | not_available |
@@ -211,7 +211,7 @@
 | vcf.call_gl | adna_micro_pipeline | vcf | vcf.call_gl | angsd | unavailable |  |  |  |  | not_applicable |
 | vcf.call_pseudohaploid | adna_micro_pipeline | vcf | vcf.call_pseudohaploid | bcftools | succeeded | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf.damage_filter | adna_micro_pipeline | vcf | vcf.damage_filter | bcftools | succeeded | 4096.000 | 2 |  |  | declared_stage_tool_resource |
-| vcf.gl_propagation | adna_micro_pipeline | vcf | vcf.gl_propagation | angsd | unavailable |  |  |  |  | not_applicable |
+| vcf.gl_propagation | adna_micro_pipeline | vcf | vcf.gl_propagation | bcftools | unavailable |  |  |  |  | not_applicable |
 | vcf.stats | adna_micro_pipeline | vcf | vcf.stats | bcftools | succeeded | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | benchmark.amplicon_corpus_fixture | amplicon_micro_pipeline | benchmark | benchmark.amplicon_corpus_fixture | bijux | succeeded |  |  |  |  | not_available |
 | benchmark.amplicon_output_judgment | amplicon_micro_pipeline | benchmark | benchmark.amplicon_output_judgment | bijux | succeeded |  |  |  |  | not_available |
@@ -229,7 +229,7 @@
 | bam.duplicate_handling | bam_micro_smoke_subset | bam | bam.markdup | samtools | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.filtering | bam_micro_smoke_subset | bam | bam.filter | samtools | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.insert_size_gc_bias | bam_micro_smoke_subset | bam | bam.insert_size | picard | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
-| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
+| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | container_needed |  |  |  |  | not_applicable |
 | bam.overlap_endogenous_content | bam_micro_smoke_subset | bam | bam.overlap_correction | bamutil | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.recalibration_genotyping | bam_micro_smoke_subset | bam | bam.recalibration | gatk | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.validation_core_qc | bam_micro_smoke_subset | bam | bam.validate | samtools | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
@@ -268,7 +268,7 @@
 | fastq.validate_reads | real_smoke_core_subset | fastq | fastq.validate_reads | fastqc | succeeded | 8192.000 | 4 |  |  | declared_stage_tool_resource |
 | vcf.stats | real_smoke_core_subset | vcf | vcf.stats | bcftools | succeeded | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf.calling | vcf_micro_smoke_subset | vcf | vcf.call | bcftools | succeeded | 4096.000 | 2 |  |  | declared_stage_tool_resource |
-| vcf.descent_and_demography | vcf_micro_smoke_subset | vcf | vcf.ibd | germline | succeeded |  |  |  |  | not_available |
+| vcf.descent_and_demography | vcf_micro_smoke_subset | vcf | vcf.ibd | germline | succeeded | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf.imputation | vcf_micro_smoke_subset | vcf | vcf.impute | beagle | succeeded | 16384.000 | 8 |  |  | declared_stage_tool_resource |
 | vcf.phasing | vcf_micro_smoke_subset | vcf | vcf.phasing | shapeit5 | succeeded | 4096.000 | 8 |  |  | declared_stage_tool_resource |
 | vcf.population_structure | vcf_micro_smoke_subset | vcf | vcf.population_structure | plink2 | succeeded | 4096.000 | 2 |  |  | declared_stage_tool_resource |
@@ -331,12 +331,6 @@
 | vcf | vcf.call_gl | sites_with_likelihoods | sites with likelihoods | sites | higher_is_better | relative_fraction | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | angsd |
 | vcf | vcf.call_pseudohaploid | called_sites | called sites | sites | higher_is_better | relative_fraction | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | bcftools |
 | vcf | vcf.call_pseudohaploid | missing_sites | missing sites | sites | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.damage_filter | removed_variants | removed variants | variants | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.damage_filter | retained_variants | retained variants | variants | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.damage_filter | terminal_damage_filtered_variants | terminal damage filtered variants | variants | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.gl_propagation | sample_count | sample count | samples | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | angsd |
-| vcf | vcf.gl_propagation | site_count_after | site count after propagation | sites | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | angsd |
-| vcf | vcf.gl_propagation | site_count_before | site count before propagation | sites | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | angsd |
 | vcf | vcf.ibd | pair_count | pair count | pairs | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | germline |
 | vcf | vcf.impute | imputed_genotypes | imputed genotypes | genotypes | higher_is_better | relative_fraction | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | beagle |
 | vcf | vcf.impute | low_confidence_count | low-confidence sites | sites | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | beagle |

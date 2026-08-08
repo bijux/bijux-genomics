@@ -84,8 +84,13 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         .get("local_smoke_host_stage_row_count")
         .and_then(serde_json::Value::as_u64)
         .expect("host smoke rows");
-    let expected_container_smoke_row_count =
-        retained_row_count - expected_host_stage_smoke_row_count;
+    let expected_external_artifact_row_count = payload
+        .get("local_smoke_external_artifact_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("external artifact smoke rows");
+    let expected_container_smoke_row_count = retained_row_count
+        - expected_host_stage_smoke_row_count
+        - expected_external_artifact_row_count;
     assert_eq!(
         payload.get("local_smoke_host_stage_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_host_stage_smoke_row_count)
@@ -94,6 +99,7 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_container_smoke_row_count)
     );
+    assert_eq!(expected_external_artifact_row_count, 3);
     assert_eq!(
         payload.get("report_map_row_count").and_then(serde_json::Value::as_u64),
         Some(retained_row_count)

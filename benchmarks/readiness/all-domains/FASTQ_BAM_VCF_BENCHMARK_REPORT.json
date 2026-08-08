@@ -2,30 +2,30 @@
   "schema_version": "bijux.bench.readiness.full_benchmark_report.v1",
   "markdown_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
   "json_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-  "row_count": 139,
-  "expected_result_row_count": 138,
+  "row_count": 143,
+  "expected_result_row_count": 142,
   "explicit_unsupported_row_count": 1,
-  "present_row_count": 135,
+  "present_row_count": 139,
   "missing_result_row_count": 3,
   "unsupported_pair_row_count": 1,
   "stage_centric_row_count": 71,
-  "tool_centric_row_count": 71,
+  "tool_centric_row_count": 74,
   "corpus_centric_row_count": 11,
   "pipeline_centric_row_count": 10,
-  "runtime_row_count": 139,
-  "memory_row_count": 139,
-  "comparable_metric_row_count": 91,
-  "failure_row_count": 138,
+  "runtime_row_count": 143,
+  "memory_row_count": 143,
+  "comparable_metric_row_count": 85,
+  "failure_row_count": 142,
   "failure_class_row_count": 7,
   "passes_behavior_test": true,
   "domain_counts": {
-    "bam": 46,
-    "fastq": 68,
+    "bam": 49,
+    "fastq": 69,
     "vcf": 25
   },
   "row_status_counts": {
     "missing_result": 3,
-    "present": 135,
+    "present": 139,
     "unsupported_pair": 1
   },
   "rows": [
@@ -453,6 +453,31 @@
       "detail": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2` remains present with a validated fake-run manifest"
     },
     {
+      "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+      "row_status": "present",
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "ancient_signal",
+      "pipeline_ids": [],
+      "expected_output_count": 6,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
+      "detail": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs` remains present with a validated fake-run manifest"
+    },
+    {
       "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
       "row_status": "present",
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
@@ -690,9 +715,7 @@
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
       "report_section": "downstream_readiness",
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ],
+      "pipeline_ids": [],
       "expected_output_count": 7,
       "expected_metric_count": 1,
       "comparable_metric_count": 0,
@@ -756,6 +779,31 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/stage-result.json",
       "detail": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+      "row_status": "present",
+      "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-kinship-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "sample_identity",
+      "pipeline_ids": [],
+      "expected_output_count": 5,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 4,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 2048.0,
+      "declared_cpu_threads": 3,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/corpus_only/angsd/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/corpus_only/angsd/stage-result.json",
+      "detail": "expected all-domain benchmark result `bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -1091,6 +1139,31 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/stage-result.json",
       "detail": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+      "row_status": "present",
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "sample_identity",
+      "pipeline_ids": [],
+      "expected_output_count": 5,
+      "expected_metric_count": 7,
+      "comparable_metric_count": 6,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 2048.0,
+      "declared_cpu_threads": 3,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/corpus_only/angsd/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/corpus_only/angsd/stage-result.json",
+      "detail": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -1693,7 +1766,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 12,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -1947,7 +2020,7 @@
       "pipeline_ids": [
         "amplicon-asv-otu-no-vcf"
       ],
-      "expected_output_count": 10,
+      "expected_output_count": 12,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2049,7 +2122,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "quality_profiling",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 12,
       "expected_metric_count": 4,
       "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
@@ -2245,6 +2318,31 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/stage-result.json",
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "row_status": "present",
+      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "report_section": "read_cleanup",
+      "pipeline_ids": [],
+      "expected_output_count": 5,
+      "expected_metric_count": 2,
+      "comparable_metric_count": 0,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 8192.0,
+      "declared_cpu_threads": 4,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
@@ -2666,7 +2764,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 12,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2819,7 +2917,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 12,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -3115,7 +3213,7 @@
       ],
       "expected_output_count": 1,
       "expected_metric_count": 9,
-      "comparable_metric_count": 3,
+      "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.5,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -3223,7 +3321,7 @@
       ],
       "expected_output_count": 1,
       "expected_metric_count": 6,
-      "comparable_metric_count": 3,
+      "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.5,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -3782,14 +3880,15 @@
     {
       "domain": "bam",
       "stage_id": "bam.damage",
-      "row_count": 5,
-      "present_row_count": 5,
+      "row_count": 6,
+      "present_row_count": 6,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
         "addeam",
         "damageprofiler",
         "mapdamage2",
+        "ngsbriggs",
         "pmdtools",
         "pydamage"
       ],
@@ -3895,9 +3994,7 @@
       "corpus_ids": [
         "corpus-01-genotyping-mini"
       ],
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ],
+      "pipeline_ids": [],
       "report_sections": [
         "downstream_readiness"
       ]
@@ -3941,11 +4038,12 @@
     {
       "domain": "bam",
       "stage_id": "bam.kinship",
-      "row_count": 1,
-      "present_row_count": 1,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
+        "angsd",
         "king"
       ],
       "corpus_ids": [
@@ -4100,11 +4198,12 @@
     {
       "domain": "bam",
       "stage_id": "bam.sex",
-      "row_count": 2,
-      "present_row_count": 2,
+      "row_count": 3,
+      "present_row_count": 3,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
+        "angsd",
         "rxy",
         "yleaf"
       ],
@@ -4544,12 +4643,13 @@
     {
       "domain": "fastq",
       "stage_id": "fastq.remove_duplicates",
-      "row_count": 1,
-      "present_row_count": 1,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
-        "clumpify"
+        "clumpify",
+        "fastuniq"
       ],
       "corpus_ids": [
         "corpus-01-mini"
@@ -5186,6 +5286,25 @@
       "pipeline_ids": []
     },
     {
+      "tool_id": "angsd",
+      "row_count": 2,
+      "present_row_count": 2,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "bam"
+      ],
+      "stage_ids": [
+        "bam.kinship",
+        "bam.sex"
+      ],
+      "corpus_ids": [
+        "corpus-01-adna-bam-mini",
+        "corpus-01-kinship-mini"
+      ],
+      "pipeline_ids": []
+    },
+    {
       "tool_id": "atropos",
       "row_count": 1,
       "present_row_count": 1,
@@ -5691,6 +5810,23 @@
       ]
     },
     {
+      "tool_id": "fastuniq",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "fastq"
+      ],
+      "stage_ids": [
+        "fastq.remove_duplicates"
+      ],
+      "corpus_ids": [
+        "corpus-01-mini"
+      ],
+      "pipeline_ids": []
+    },
+    {
       "tool_id": "fastx_clipper",
       "row_count": 1,
       "present_row_count": 1,
@@ -5997,6 +6133,23 @@
       ],
       "corpus_ids": [
         "corpus-01-mini"
+      ],
+      "pipeline_ids": []
+    },
+    {
+      "tool_id": "ngsbriggs",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "bam"
+      ],
+      "stage_ids": [
+        "bam.damage"
+      ],
+      "corpus_ids": [
+        "corpus-01-adna-damage-mini"
       ],
       "pipeline_ids": []
     },
@@ -6512,8 +6665,8 @@
   "corpus_centric": [
     {
       "corpus_id": "corpus-01-adna-bam-mini",
-      "row_count": 6,
-      "present_row_count": 6,
+      "row_count": 7,
+      "present_row_count": 7,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6525,6 +6678,7 @@
         "bam.sex"
       ],
       "tool_ids": [
+        "angsd",
         "contammix",
         "rxy",
         "schmutzi",
@@ -6538,8 +6692,8 @@
     },
     {
       "corpus_id": "corpus-01-adna-damage-mini",
-      "row_count": 8,
-      "present_row_count": 8,
+      "row_count": 9,
+      "present_row_count": 9,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6554,6 +6708,7 @@
         "authenticct",
         "damageprofiler",
         "mapdamage2",
+        "ngsbriggs",
         "pmdtools",
         "pydamage"
       ],
@@ -6624,14 +6779,12 @@
       "tool_ids": [
         "bcftools"
       ],
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ]
+      "pipeline_ids": []
     },
     {
       "corpus_id": "corpus-01-kinship-mini",
-      "row_count": 1,
-      "present_row_count": 1,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6641,14 +6794,15 @@
         "bam.kinship"
       ],
       "tool_ids": [
+        "angsd",
         "king"
       ],
       "pipeline_ids": []
     },
     {
       "corpus_id": "corpus-01-mini",
-      "row_count": 59,
-      "present_row_count": 59,
+      "row_count": 60,
+      "present_row_count": 60,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6694,6 +6848,7 @@
         "fastq_scan",
         "fastqc",
         "fastqvalidator",
+        "fastuniq",
         "fastx_clipper",
         "flash2",
         "fqtools",
@@ -6863,7 +7018,7 @@
   ],
   "pipeline_centric": {
     "row_count": 10,
-    "unmapped_row_count": 94,
+    "unmapped_row_count": 99,
     "rows": [
       {
         "pipeline_id": "adna-gl-fastq-bam-vcf",
@@ -6979,8 +7134,8 @@
       },
       {
         "pipeline_id": "bam-genotyping-to-vcf-downstream",
-        "row_count": 9,
-        "present_row_count": 7,
+        "row_count": 8,
+        "present_row_count": 6,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6990,7 +7145,6 @@
         "stage_ids": [
           "bam.coverage",
           "bam.filter",
-          "bam.genotyping",
           "bam.recalibration",
           "vcf.filter",
           "vcf.pca",
@@ -7352,6 +7506,17 @@
       "runtime_source": "fake_run_simulated"
     },
     {
+      "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
       "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
       "domain": "bam",
       "stage_id": "bam.damage",
@@ -7477,6 +7642,17 @@
       "domain": "bam",
       "stage_id": "bam.insert_size",
       "tool_id": "picard",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -7620,6 +7796,17 @@
       "domain": "bam",
       "stage_id": "bam.recalibration",
       "tool_id": "gatk",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -8115,6 +8302,17 @@
       "domain": "fastq",
       "stage_id": "fastq.remove_duplicates",
       "tool_id": "clumpify",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -8899,6 +9097,18 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
+      "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "row_status": "present",
+      "declared_memory_mb": 1024.0,
+      "declared_cpu_threads": 1,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
       "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
       "domain": "bam",
       "stage_id": "bam.damage",
@@ -9035,6 +9245,18 @@
       "domain": "bam",
       "stage_id": "bam.insert_size",
       "tool_id": "picard",
+      "row_status": "present",
+      "declared_memory_mb": 2048.0,
+      "declared_cpu_threads": 3,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
       "row_status": "present",
       "declared_memory_mb": 2048.0,
       "declared_cpu_threads": 3,
@@ -9191,6 +9413,18 @@
       "domain": "bam",
       "stage_id": "bam.recalibration",
       "tool_id": "gatk",
+      "row_status": "present",
+      "declared_memory_mb": 2048.0,
+      "declared_cpu_threads": 3,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
       "row_status": "present",
       "declared_memory_mb": 2048.0,
       "declared_cpu_threads": 3,
@@ -9731,6 +9965,18 @@
       "domain": "fastq",
       "stage_id": "fastq.remove_duplicates",
       "tool_id": "clumpify",
+      "row_status": "present",
+      "declared_memory_mb": 8192.0,
+      "declared_cpu_threads": 4,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
       "row_status": "present",
       "declared_memory_mb": 8192.0,
       "declared_cpu_threads": 4,
@@ -10376,11 +10622,11 @@
     }
   ],
   "failures": {
-    "simulated_failure_row_count": 138,
+    "simulated_failure_row_count": 142,
     "failure_class_row_count": 7,
     "simulated_failure_domain_counts": {
-      "bam": 46,
-      "fastq": 68,
+      "bam": 49,
+      "fastq": 69,
       "vcf": 24
     },
     "rows": [
@@ -10529,6 +10775,15 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
+        "record_id": "fake-failure:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+        "domain": "bam",
+        "stage_id": "bam.damage",
+        "tool_id": "ngsbriggs",
+        "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
         "record_id": "fake-failure:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
         "domain": "bam",
         "stage_id": "bam.damage",
@@ -10634,6 +10889,15 @@
         "tool_id": "picard",
         "result_id": "bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+        "domain": "bam",
+        "stage_id": "bam.kinship",
+        "tool_id": "angsd",
+        "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-kinship-mini/bam.kinship/corpus_only/angsd/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -10751,6 +11015,15 @@
         "tool_id": "gatk",
         "result_id": "bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+        "domain": "bam",
+        "stage_id": "bam.sex",
+        "tool_id": "angsd",
+        "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-adna-bam-mini/bam.sex/corpus_only/angsd/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -11156,6 +11429,15 @@
         "tool_id": "clumpify",
         "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+        "domain": "fastq",
+        "stage_id": "fastq.remove_duplicates",
+        "tool_id": "fastuniq",
+        "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -12996,120 +13278,6 @@
       ],
       "contract_status": "declared",
       "reason": "governed VCF comparable metric published for `vcf.call_pseudohaploid` across 2 retained tools"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.damage_filter",
-      "metric_id": "removed_variants",
-      "metric_name": "removed variants",
-      "unit": "variants",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "tool_ids": [
-        "angsd",
-        "bcftools"
-      ],
-      "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.damage_filter` across 2 retained tools"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.damage_filter",
-      "metric_id": "retained_variants",
-      "metric_name": "retained variants",
-      "unit": "variants",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "tool_ids": [
-        "angsd",
-        "bcftools"
-      ],
-      "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.damage_filter` across 2 retained tools"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.damage_filter",
-      "metric_id": "terminal_damage_filtered_variants",
-      "metric_name": "terminal damage filtered variants",
-      "unit": "variants",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "tool_ids": [
-        "angsd",
-        "bcftools"
-      ],
-      "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.damage_filter` across 2 retained tools"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.gl_propagation",
-      "metric_id": "sample_count",
-      "metric_name": "sample count",
-      "unit": "samples",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "tool_ids": [
-        "angsd",
-        "bcftools"
-      ],
-      "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.gl_propagation` across 2 retained tools"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.gl_propagation",
-      "metric_id": "site_count_after",
-      "metric_name": "site count after propagation",
-      "unit": "sites",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "tool_ids": [
-        "angsd",
-        "bcftools"
-      ],
-      "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.gl_propagation` across 2 retained tools"
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.gl_propagation",
-      "metric_id": "site_count_before",
-      "metric_name": "site count before propagation",
-      "unit": "sites",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "tool_ids": [
-        "angsd",
-        "bcftools"
-      ],
-      "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.gl_propagation` across 2 retained tools"
     },
     {
       "domain": "vcf",

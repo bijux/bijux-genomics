@@ -277,7 +277,7 @@
     {
       "stage_id": "vcf.gl_propagation",
       "domain": "vcf",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "execution_mode": "not_executed",
       "status": "skipped",
       "reason": "aDNA micro execution does not produce a GL-bearing VCF because the pseudohaploid branch is the active governed path for this summary",

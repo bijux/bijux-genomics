@@ -4,30 +4,30 @@
   "json_output_path": "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
   "micro_run_manifest_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
   "result_row_count": 77,
-  "complete_row_count": 69,
+  "complete_row_count": 68,
   "failed_row_count": 0,
   "missing_row_count": 0,
-  "unavailable_row_count": 8,
+  "unavailable_row_count": 9,
   "insufficient_data_row_count": 0,
   "runtime_row_count": 77,
   "memory_source_row_count": 77,
-  "science_threshold_row_count": 72,
+  "science_threshold_row_count": 66,
   "passes_behavior_test": true,
   "execution_status_counts": {
-    "container_needed": 5,
-    "succeeded": 69,
+    "container_needed": 6,
+    "succeeded": 68,
     "unavailable": 3
   },
   "runtime_source_counts": {
     "governed_runtime": 2,
-    "not_applicable": 8,
-    "not_available": 67
+    "not_applicable": 9,
+    "not_available": 66
   },
   "memory_source_counts": {
     "declared_stage_tool_resource": 58,
     "evidence_report": 4,
-    "not_applicable": 8,
-    "not_available": 7
+    "not_applicable": 9,
+    "not_available": 6
   },
   "complete_rows": [
     {
@@ -390,20 +390,6 @@
       "evidence_path": "runs/bench/local-smoke/bam.insert_size/insert_size.json",
       "command": "bijux-dna bench local run-bam-stage-smoke --stage-id bam.insert_size",
       "reason": "binding `bam.insert_size` / `picard` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host",
-      "normalized_metric_count": 0,
-      "output_count": 1,
-      "log_count": 0
-    },
-    {
-      "execution_id": "bam.kinship",
-      "component_id": "bam_micro_smoke_subset",
-      "domain": "bam",
-      "stage_id": "bam.kinship",
-      "tool_id": "king",
-      "source_report_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
-      "evidence_path": "runs/bench/local-smoke/bam.kinship/kinship.json",
-      "command": "bijux-dna bench local run-bam-stage-smoke --stage-id bam.kinship",
-      "reason": "binding `bam.kinship` / `king` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host",
       "normalized_metric_count": 0,
       "output_count": 1,
       "log_count": 0
@@ -1027,7 +1013,7 @@
       "component_id": "adna_micro_pipeline",
       "domain": "vcf",
       "stage_id": "vcf.gl_propagation",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "execution_status": "unavailable",
       "source_report_path": "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json",
       "command": "bijux-dna bench local run-adna-micro-pipeline",
@@ -1052,8 +1038,19 @@
       "tool_id": "mosdepth",
       "execution_status": "container_needed",
       "source_report_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
-      "command": "bijux-dna env smoke docker-arm64 mosdepth",
+      "command": "bijux-dna env smoke apptainer mosdepth",
       "reason": "binding `bam.coverage` / `mosdepth` does not match the governed BAM local-smoke contract tool `samtools`, so the governed container smoke wrapper is the available local exercise path for `bam.coverage` / `mosdepth`"
+    },
+    {
+      "execution_id": "bam.kinship",
+      "component_id": "bam_micro_smoke_subset",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "king",
+      "execution_status": "container_needed",
+      "source_report_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
+      "command": "bijux-dna env smoke docker-arm64 king",
+      "reason": "retained tool `king` has no exact BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.kinship` / `king`"
     },
     {
       "execution_id": "fastq.depletion",
@@ -1226,7 +1223,7 @@
       "component_id": "adna_micro_pipeline",
       "domain": "vcf",
       "stage_id": "vcf.gl_propagation",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "execution_status": "unavailable",
       "elapsed_seconds": null,
       "runtime_source": "not_applicable"
@@ -1407,9 +1404,9 @@
       "domain": "bam",
       "stage_id": "bam.kinship",
       "tool_id": "king",
-      "execution_status": "succeeded",
+      "execution_status": "container_needed",
       "elapsed_seconds": null,
-      "runtime_source": "not_available"
+      "runtime_source": "not_applicable"
     },
     {
       "execution_id": "bam.overlap_endogenous_content",
@@ -2050,7 +2047,7 @@
       "component_id": "adna_micro_pipeline",
       "domain": "vcf",
       "stage_id": "vcf.gl_propagation",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "execution_status": "unavailable",
       "declared_memory_mb": null,
       "declared_cpu_threads": null,
@@ -2303,13 +2300,13 @@
       "domain": "bam",
       "stage_id": "bam.kinship",
       "tool_id": "king",
-      "execution_status": "succeeded",
-      "declared_memory_mb": 2048.0,
-      "declared_cpu_threads": 3,
+      "execution_status": "container_needed",
+      "declared_memory_mb": null,
+      "declared_cpu_threads": null,
       "observed_memory_mb": null,
       "observed_cpu_threads": null,
-      "memory_source": "declared_stage_tool_resource",
-      "resource_origin": "tool_constraints_with_tiny_bam_stage_estimate"
+      "memory_source": "not_applicable",
+      "resource_origin": null
     },
     {
       "execution_id": "bam.overlap_endogenous_content",
@@ -2850,12 +2847,12 @@
       "stage_id": "vcf.ibd",
       "tool_id": "germline",
       "execution_status": "succeeded",
-      "declared_memory_mb": null,
-      "declared_cpu_threads": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
       "observed_memory_mb": null,
       "observed_cpu_threads": null,
-      "memory_source": "not_available",
-      "resource_origin": null
+      "memory_source": "declared_stage_tool_resource",
+      "resource_origin": "planner_stage_constraints_with_stage_walltime_profile"
     },
     {
       "execution_id": "vcf.imputation",
@@ -3818,108 +3815,6 @@
       "declaration_origin": "vcf_comparable_metric_policy",
       "covered_tool_ids": [
         "bcftools"
-      ]
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.damage_filter",
-      "metric_id": "removed_variants",
-      "metric_name": "removed variants",
-      "unit": "variants",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "declaration_origin": "vcf_comparable_metric_policy",
-      "covered_tool_ids": [
-        "bcftools"
-      ]
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.damage_filter",
-      "metric_id": "retained_variants",
-      "metric_name": "retained variants",
-      "unit": "variants",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "declaration_origin": "vcf_comparable_metric_policy",
-      "covered_tool_ids": [
-        "bcftools"
-      ]
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.damage_filter",
-      "metric_id": "terminal_damage_filtered_variants",
-      "metric_name": "terminal damage filtered variants",
-      "unit": "variants",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "declaration_origin": "vcf_comparable_metric_policy",
-      "covered_tool_ids": [
-        "bcftools"
-      ]
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.gl_propagation",
-      "metric_id": "sample_count",
-      "metric_name": "sample count",
-      "unit": "samples",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "declaration_origin": "vcf_comparable_metric_policy",
-      "covered_tool_ids": [
-        "angsd"
-      ]
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.gl_propagation",
-      "metric_id": "site_count_after",
-      "metric_name": "site count after propagation",
-      "unit": "sites",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "declaration_origin": "vcf_comparable_metric_policy",
-      "covered_tool_ids": [
-        "angsd"
-      ]
-    },
-    {
-      "domain": "vcf",
-      "stage_id": "vcf.gl_propagation",
-      "metric_id": "site_count_before",
-      "metric_name": "site count before propagation",
-      "unit": "sites",
-      "direction": "exact_match_preferred",
-      "tolerance_kind": "exact_match",
-      "tolerance_value": 0.0,
-      "pass_rule": "match_reference",
-      "insufficiency_behavior": "refuse_stage_comparison",
-      "required": true,
-      "declaration_origin": "vcf_comparable_metric_policy",
-      "covered_tool_ids": [
-        "angsd"
       ]
     },
     {

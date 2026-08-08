@@ -1229,7 +1229,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         "Execution evidence and image integrity are independent from catalog metadata:".to_string(),
         "[real LUNARC runs](../../reports/run-evidence.md) and [immutable image inventory](../../reports/image-inventory.md).".to_string(),
         String::new(),
-        "| Tool | Purpose | Version | Disposition | Domains and stages | Runtimes | License | Limitation |".to_string(),
+        "| Tool | Purpose | Version | Distribution | Domains and stages | Execution | License | Limitation |".to_string(),
         "|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for (tool, version_row) in &versions {
@@ -1242,6 +1242,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             .unwrap_or("unknown");
         let support_reason =
             catalog_row.get("support_reason").and_then(toml::Value::as_str).unwrap_or_default();
+        let external_artifact_supported = table_bool(&catalog_row, "external_artifact_supported");
         let purpose = catalog_row
             .get("purpose")
             .and_then(toml::Value::as_str)
@@ -1292,8 +1293,11 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         if table_bool(&network_row, "runtime_network") {
             limitations.push("runtime network required".to_string());
         }
-        if runtimes.is_empty() {
+        if runtimes.is_empty() && !external_artifact_supported {
             limitations.push("no runtime implementation".to_string());
+        }
+        if external_artifact_supported {
+            limitations.push("licensed artifact admission required".to_string());
         }
         if !support_reason.is_empty() {
             limitations.push(support_reason.replace('|', "\\|"));
@@ -1315,7 +1319,13 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             "| {tool_label} | {purpose} | `{}` | {support_disposition} | {} | {} | `{license}` | {} |",
             table_string(version_row, "version"),
             if domain_stage.is_empty() { "not applicable" } else { &domain_stage },
-            if runtimes.is_empty() { "none".to_string() } else { runtimes.join(", ") },
+            if external_artifact_supported {
+                "external artifact".to_string()
+            } else if runtimes.is_empty() {
+                "none".to_string()
+            } else {
+                runtimes.join(", ")
+            },
             limitations.join("; ")
         ));
     }

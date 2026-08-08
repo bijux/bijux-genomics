@@ -30,7 +30,7 @@
       "surface": "vcf undercovered stages",
       "output_path": "benchmarks/readiness/vcf-undercovered-stages.tsv",
       "ok": true,
-      "detail": "validated 9 governed undercovered VCF stages with explicit future vs specialized decisions"
+      "detail": "validated 7 governed undercovered VCF stages with explicit future vs specialized decisions"
     },
     {
       "goal_id": 234,

@@ -2,17 +2,18 @@
   "schema_version": "bijux.bench.readiness.retained_toolset_executable_local.v1",
   "output_path": "benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json",
   "checked_goal_count": 9,
-  "passed_goal_count": 8,
-  "failed_goal_count": 1,
+  "passed_goal_count": 7,
+  "failed_goal_count": 2,
   "failing_goal_ids": [
-    425
+    425,
+    429
   ],
   "retained_tool_count": 75,
   "executable_resolution_row_count": 75,
   "version_probe_row_count": 75,
   "host_smoke_tool_count": 1,
   "container_smoke_tool_count": 74,
-  "parser_family_count": 31,
+  "parser_family_count": 0,
   "ok": false,
   "checks": [
     {
@@ -20,7 +21,7 @@
       "surface": "retained_tool_inventory",
       "output_path": "benchmarks/readiness/tools/retained-tool-inventory.tsv",
       "ok": true,
-      "detail": "row_count=75, benchmark_ready_tool_count=71"
+      "detail": "row_count=75, benchmark_ready_tool_count=74"
     },
     {
       "goal_id": 422,
@@ -62,21 +63,21 @@
       "surface": "retained_tool_input_preflight",
       "output_path": "benchmarks/readiness/tools/input-preflight-tests.json",
       "ok": true,
-      "detail": "row_count=261, passed_row_count=261, covered_tool_count=75"
+      "detail": "row_count=269, passed_row_count=269, covered_tool_count=75"
     },
     {
       "goal_id": 428,
       "surface": "retained_tool_output_contracts",
       "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
       "ok": true,
-      "detail": "row_count=138, passed_row_count=135, blocked_row_count=3, failed_row_count=0"
+      "detail": "row_count=142, passed_row_count=139, blocked_row_count=3, failed_row_count=0"
     },
     {
       "goal_id": 429,
       "surface": "retained_tool_real_output_parser_smoke",
       "output_path": "benchmarks/readiness/tools/real-output-parser-smoke.json",
-      "ok": true,
-      "detail": "family_count=31, passed_family_count=31, failed_family_count=0"
+      "ok": false,
+      "detail": "tool family config is missing 3 benchmark tool ids: angsd, fastuniq, ngsbriggs"
     }
   ]
 }

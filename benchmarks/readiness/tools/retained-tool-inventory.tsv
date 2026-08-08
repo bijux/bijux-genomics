@@ -2,7 +2,7 @@ tool_id	domains	active_stage_count	benchmark_ready_stage_count	active_binding_co
 adapterremoval	fastq	3	3	3	3	benchmark_ready	fastq.merge_pairs,fastq.trim_reads,fastq.trim_terminal_damage	fastq.merge_pairs,fastq.trim_reads,fastq.trim_terminal_damage
 addeam	bam	1	1	1	1	benchmark_ready	bam.damage	bam.damage
 alientrimmer	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads
-angsd	bam,vcf	6	0	6	0	not_benchmark_ready	bam.kinship,bam.sex,vcf.call_gl,vcf.call_pseudohaploid,vcf.damage_filter,vcf.gl_propagation	none
+angsd	bam,vcf	4	2	4	2	benchmark_ready,not_benchmark_ready	bam.kinship,bam.sex,vcf.call_gl,vcf.call_pseudohaploid	bam.kinship,bam.sex
 atropos	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads
 authenticct	bam	1	1	1	1	benchmark_ready	bam.authenticity	bam.authenticity
 bamtools	bam	3	3	3	3	benchmark_ready	bam.filter,bam.mapq_filter,bam.validate	bam.filter,bam.mapq_filter,bam.validate
@@ -28,7 +28,7 @@ fastp	fastq	4	4	4	4	benchmark_ready	fastq.filter_low_complexity,fastq.filter_rea
 fastq_scan	fastq	2	2	2	2	benchmark_ready	fastq.profile_overrepresented_sequences,fastq.validate_reads	fastq.profile_overrepresented_sequences,fastq.validate_reads
 fastqc	fastq	3	3	3	3	benchmark_ready	fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads	fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads
 fastqvalidator	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
-fastuniq	fastq	1	0	1	0	not_benchmark_ready	fastq.remove_duplicates	none
+fastuniq	fastq	1	1	1	1	benchmark_ready,not_benchmark_ready	fastq.remove_duplicates	fastq.remove_duplicates
 fastx_clipper	fastq	1	1	1	1	benchmark_ready	fastq.trim_reads	fastq.trim_reads
 flash2	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
 fqtools	fastq	1	1	1	1	benchmark_ready	fastq.validate_reads	fastq.validate_reads
@@ -47,7 +47,7 @@ mapdamage2	bam	2	2	2	2	benchmark_ready	bam.bias_mitigation,bam.damage	bam.bias_m
 mosdepth	bam	1	1	1	1	benchmark_ready	bam.coverage	bam.coverage
 multiqc	bam,fastq	2	2	2	2	benchmark_ready	bam.qc_pre,fastq.report_qc	bam.qc_pre,fastq.report_qc
 musket	fastq	1	1	1	1	benchmark_ready	fastq.correct_errors	fastq.correct_errors
-ngsbriggs	bam	1	0	1	0	not_benchmark_ready	bam.damage	none
+ngsbriggs	bam	1	1	1	1	benchmark_ready,not_benchmark_ready	bam.damage	bam.damage
 pear	fastq	1	1	1	1	benchmark_ready	fastq.merge_pairs	fastq.merge_pairs
 picard	bam	6	6	6	6	benchmark_ready	bam.duplication_metrics,bam.gc_bias,bam.insert_size,bam.length_filter,bam.mapping_summary,bam.markdup	bam.duplication_metrics,bam.gc_bias,bam.insert_size,bam.length_filter,bam.mapping_summary,bam.markdup
 plink	vcf	1	1	1	1	benchmark_ready	vcf.qc	vcf.qc
