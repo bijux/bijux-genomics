@@ -62,13 +62,15 @@ pub fn validate_benchmark_data_source_spec(
                 "source collection data type is absent from the corpus declaration",
             ));
         }
-        if collection.planned_sample_count == 0 {
+        if collection.planned_sample_count == Some(0) {
             return Err(invalid("source collection planned sample count is zero"));
         }
         validate_nonempty_list(&collection.known_limitations, "source collection limitation")?;
-        planned_samples = planned_samples
-            .checked_add(collection.planned_sample_count)
-            .ok_or_else(|| invalid("source collection sample count overflows"))?;
+        if let Some(collection_samples) = collection.planned_sample_count {
+            planned_samples = planned_samples
+                .checked_add(collection_samples)
+                .ok_or_else(|| invalid("source collection sample count overflows"))?;
+        }
     }
     if planned_samples < spec.target_sample_count {
         return Err(invalid("source collections do not satisfy the target sample count"));

@@ -78,7 +78,7 @@ mod tests {
                 source_url: "https://example.org/record".to_string(),
                 access_terms_url: "https://example.org/access".to_string(),
                 data_types: vec!["bam".to_string(), "vcf".to_string()],
-                planned_sample_count: 10,
+                planned_sample_count: Some(10),
                 selection_scope: "All ten independently characterized samples.".to_string(),
                 truth_basis: "Orthogonal measurements define benchmark genotypes.".to_string(),
                 known_limitations: vec![

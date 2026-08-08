@@ -16,7 +16,7 @@ pub struct BenchmarkDataSourceCollection {
     pub source_url: String,
     pub access_terms_url: String,
     pub data_types: Vec<String>,
-    pub planned_sample_count: u64,
+    pub planned_sample_count: Option<u64>,
     pub selection_scope: String,
     pub truth_basis: String,
     pub known_limitations: Vec<String>,

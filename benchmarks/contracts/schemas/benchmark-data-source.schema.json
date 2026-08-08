@@ -42,7 +42,10 @@
         "planned_sample_count": {
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "selection_scope": {
           "type": "string"
@@ -61,7 +64,6 @@
         "source_url",
         "access_terms_url",
         "data_types",
-        "planned_sample_count",
         "selection_scope",
         "truth_basis",
         "known_limitations"

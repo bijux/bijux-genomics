@@ -64,17 +64,34 @@ fn source_spec() -> BenchmarkDataSourceSpec {
         description: "Public reference material for variant benchmarking.".to_string(),
         data_types: vec!["bam".to_string(), "vcf".to_string()],
         target_sample_count: 10,
-        collections: vec![BenchmarkDataSourceCollection {
-            id: "reference-material".to_string(),
-            authority: "Reference authority".to_string(),
-            accession: "REFERENCE-001".to_string(),
-            source_url: "https://example.org/record".to_string(),
-            access_terms_url: "https://example.org/access".to_string(),
-            data_types: vec!["bam".to_string(), "vcf".to_string()],
-            planned_sample_count: 10,
-            selection_scope: "All ten independently characterized samples.".to_string(),
-            truth_basis: "Orthogonal measurements define benchmark genotypes.".to_string(),
-            known_limitations: vec!["Difficult regions remain outside the benchmark.".to_string()],
-        }],
+        collections: vec![
+            BenchmarkDataSourceCollection {
+                id: "reference-material".to_string(),
+                authority: "Reference authority".to_string(),
+                accession: "REFERENCE-001".to_string(),
+                source_url: "https://example.org/record".to_string(),
+                access_terms_url: "https://example.org/access".to_string(),
+                data_types: vec!["bam".to_string(), "vcf".to_string()],
+                planned_sample_count: Some(10),
+                selection_scope: "All ten independently characterized samples.".to_string(),
+                truth_basis: "Orthogonal measurements define benchmark genotypes.".to_string(),
+                known_limitations: vec![
+                    "Difficult regions remain outside the benchmark.".to_string()
+                ],
+            },
+            BenchmarkDataSourceCollection {
+                id: "supporting-map".to_string(),
+                authority: "Reference authority".to_string(),
+                accession: "MAP-001".to_string(),
+                source_url: "https://example.org/map".to_string(),
+                access_terms_url: "https://example.org/access".to_string(),
+                data_types: vec!["vcf".to_string()],
+                planned_sample_count: None,
+                selection_scope: "One immutable supporting map.".to_string(),
+                truth_basis: "The authority publishes the map independently of samples."
+                    .to_string(),
+                known_limitations: vec!["The map is population specific.".to_string()],
+            },
+        ],
     }
 }
