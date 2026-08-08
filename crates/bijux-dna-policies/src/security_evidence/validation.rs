@@ -8,6 +8,7 @@ use super::model::{
     SecuritySourceIdentity, ToolSecurityEvidence, VulnerabilityDatabaseStatus,
     VulnerabilitySeverity, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
 };
+use super::security_evidence_policy_sha256;
 use crate::qualification::{EvidenceVerdict, SupportDisposition};
 
 /// Validate a complete container security publication and its policy verdicts.
@@ -28,6 +29,9 @@ pub fn validate_security_evidence_publication(
     validate_sha256(&publication.catalog_sha256, "catalog")?;
     validate_sha256(&publication.inventory_sha256, "inventory")?;
     validate_sha256(&publication.policy_sha256, "policy")?;
+    if publication.policy_sha256 != security_evidence_policy_sha256() {
+        bail!("security publication policy identity differs from the implemented policy");
+    }
     validate_artifact_uri(&publication.raw_evidence.uri, "raw evidence")?;
     validate_sha256(&publication.raw_evidence.sha256, "raw evidence")?;
     validate_nonempty(&publication.scanner.name, "scanner name")?;
@@ -438,7 +442,8 @@ mod tests {
     use super::*;
 
     fn valid_publication() -> Result<ContainerSecurityEvidencePublication> {
-        Ok(serde_json::from_value(serde_json::json!({
+        let mut publication: ContainerSecurityEvidencePublication =
+            serde_json::from_value(serde_json::json!({
             "schema_version": "bijux.container.security_evidence.v1",
             "evaluated_at_utc": "2026-08-04T00:00:00Z",
             "repository_commit": "a".repeat(40),
@@ -527,12 +532,23 @@ mod tests {
                     "reasons": []
                 }
             }
-        }))?)
+            }))?;
+        publication.policy_sha256 = security_evidence_policy_sha256();
+        Ok(publication)
     }
 
     #[test]
     fn complete_security_evidence_passes() -> Result<()> {
         validate_security_evidence_publication(&valid_publication()?)
+    }
+
+    #[test]
+    fn publication_cannot_claim_a_different_policy_identity() -> Result<()> {
+        let mut publication = valid_publication()?;
+        publication.policy_sha256 = "d".repeat(64);
+        assert!(validate_security_evidence_publication(&publication)
+            .is_err_and(|error| error.to_string().contains("implemented policy")));
+        Ok(())
     }
 
     #[test]

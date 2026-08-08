@@ -327,6 +327,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GrypeDatabase,
         ),
         native(
+            "security-evidence",
+            "Compose admitted exact-image observations into policy-owned security evidence.",
+            NativeContainerCommandKey::SecurityEvidence,
+        ),
+        native(
             "security-toolchain",
             "Admit an immutable security scanner toolchain acquisition.",
             NativeContainerCommandKey::SecurityToolchain,

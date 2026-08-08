@@ -29,6 +29,7 @@ mod registry_catalog;
 mod run_evidence;
 mod runtime;
 mod runtime_verification;
+mod security_evidence;
 mod security_toolchain;
 mod site_policy;
 mod storage;

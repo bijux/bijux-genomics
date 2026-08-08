@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::{bail, Result};
+use chrono::DateTime;
 use sha2::{Digest, Sha256};
 
 use super::{
@@ -20,12 +21,50 @@ pub struct SecurityEvidenceDerivationRequest {
     pub repository_commit: String,
     pub catalog_sha256: String,
     pub inventory_sha256: String,
-    pub policy_sha256: String,
     pub raw_evidence: SecurityArtifactIdentity,
     pub scanner: VulnerabilityScannerIdentity,
     pub sbom_generator_version: String,
     pub secret_scanner_version: String,
     pub tools: BTreeMap<String, SecurityToolObservation>,
+}
+
+const SECURITY_EVIDENCE_POLICY_V1: &[u8] = br#"{"database":"current","runtime":{"network":"denied","non_root_uid":"greater_than_zero","system":"read_only"},"secrets":{"maximum_findings":0},"signature":["signed_verified","unsigned_policy_accepted"],"structural":{"suid_sgid_paths":0,"world_writable_paths":0},"vulnerabilities":{"maximum_unwaived_critical":0,"maximum_unwaived_high":0}}"#;
+
+/// Return the immutable identity of the policy implemented by this derivation.
+#[must_use]
+pub fn security_evidence_policy_sha256() -> String {
+    sha256_hex(SECURITY_EVIDENCE_POLICY_V1)
+}
+
+/// Classify one immutable vulnerability database relative to the evidence evaluation time.
+///
+/// # Errors
+/// Returns an error for malformed timestamps, impossible future identities, or invalid policy
+/// bounds.
+pub fn classify_vulnerability_database(
+    evaluated_at_utc: &str,
+    updated_at_utc: &str,
+    sha256: String,
+    maximum_age_days: u16,
+) -> Result<super::VulnerabilityDatabaseIdentity> {
+    let evaluated_at = DateTime::parse_from_rfc3339(evaluated_at_utc)?;
+    let updated_at = DateTime::parse_from_rfc3339(updated_at_utc)?;
+    if maximum_age_days == 0 || maximum_age_days > 30 || updated_at > evaluated_at {
+        bail!("vulnerability database classification identity is invalid");
+    }
+    let maximum_age_seconds = i64::from(maximum_age_days) * 86_400;
+    let status =
+        if evaluated_at.signed_duration_since(updated_at).num_seconds() <= maximum_age_seconds {
+            VulnerabilityDatabaseStatus::Current
+        } else {
+            VulnerabilityDatabaseStatus::Stale
+        };
+    Ok(super::VulnerabilityDatabaseIdentity {
+        status,
+        updated_at_utc: Some(updated_at_utc.to_string()),
+        sha256: Some(sha256),
+        maximum_age_days,
+    })
 }
 
 #[derive(Debug, Clone)]
@@ -114,7 +153,7 @@ pub fn derive_security_evidence(
         repository_commit: request.repository_commit,
         catalog_sha256: request.catalog_sha256,
         inventory_sha256: request.inventory_sha256,
-        policy_sha256: request.policy_sha256,
+        policy_sha256: security_evidence_policy_sha256(),
         raw_evidence: request.raw_evidence,
         scanner: request.scanner,
         tools,
@@ -350,7 +389,6 @@ mod tests {
             repository_commit: "a".repeat(40),
             catalog_sha256: digest('b'),
             inventory_sha256: digest('c'),
-            policy_sha256: digest('d'),
             raw_evidence: SecurityArtifactIdentity {
                 uri: "study://security/raw.json".to_string(),
                 sha256: digest('e'),
@@ -378,6 +416,19 @@ mod tests {
     fn complete_clean_observation_derives_a_pass() -> Result<()> {
         let publication = derive_security_evidence(request(collected()))?;
         assert_eq!(publication.tools["samtools"].verdict, EvidenceVerdict::Passed);
+        assert_eq!(publication.policy_sha256, security_evidence_policy_sha256());
+        Ok(())
+    }
+
+    #[test]
+    fn database_classification_preserves_fractional_day_age() -> Result<()> {
+        let database = classify_vulnerability_database(
+            "2026-08-08T22:00:01Z",
+            "2026-08-03T22:00:00Z",
+            digest('f'),
+            5,
+        )?;
+        assert_eq!(database.status, VulnerabilityDatabaseStatus::Stale);
         Ok(())
     }
 

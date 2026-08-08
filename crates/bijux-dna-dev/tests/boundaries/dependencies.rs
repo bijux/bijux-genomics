@@ -17,6 +17,7 @@ fn dependency_graph_matches_dev_boundary() {
         "bijux-dna-db-ref",
         "bijux-dna-containers",
         "bijux-dna-infra",
+        "bijux-dna-policies",
         "bijux-dna-runtime",
         "bijux-dna-runner",
         "bijux-dna-stage-contract",
@@ -39,7 +40,7 @@ fn dependency_graph_matches_dev_boundary() {
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
     let expected_dev_dependencies: BTreeSet<_> =
-        ["bijux-dna-policies", "tempfile"].into_iter().map(str::to_string).collect();
+        ["tempfile"].into_iter().map(str::to_string).collect();
     assert_eq!(dev_dependencies, expected_dev_dependencies, "unexpected dev dependency shape");
 
     assert!(

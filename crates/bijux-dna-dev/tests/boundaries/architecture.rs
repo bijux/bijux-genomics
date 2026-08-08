@@ -135,6 +135,7 @@ fn dev_tree_matches_architecture_contract() {
         "site_policy.rs",
         "runtime/",
         "runtime_verification.rs",
+        "security_evidence.rs",
         "security_toolchain.rs",
         "storage.rs",
         "validation/",

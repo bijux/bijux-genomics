@@ -26,9 +26,9 @@ pub use qualification::{
     SECURITY_EVIDENCE_RULE_V1, SOURCE_IDENTITY_RULE_V1, SUPPORT_DISPOSITION_RULE_V1,
 };
 pub use security_evidence::{
-    admit_security_evidence, derive_security_evidence, parse_gitleaks_report,
-    parse_grype_vulnerability_report, security_evidence_schema,
-    validate_security_evidence_publication, AdmittedSecurityEvidence,
+    admit_security_evidence, classify_vulnerability_database, derive_security_evidence,
+    parse_gitleaks_report, parse_grype_vulnerability_report, security_evidence_policy_sha256,
+    security_evidence_schema, validate_security_evidence_publication, AdmittedSecurityEvidence,
     CollectedSecurityToolObservation, ContainerSecurityEvidencePublication,
     ImageSignatureDisposition, ParsedSecretScanReport, ParsedVulnerabilityReport,
     RuntimeAccessPolicy, RuntimeProbeObservation, RuntimeSecurityEvidence, SbomEvidence,

@@ -8,9 +8,9 @@ mod validation;
 
 pub use admission::{admit_security_evidence, AdmittedSecurityEvidence};
 pub use derivation::{
-    derive_security_evidence, CollectedSecurityToolObservation, RuntimeProbeObservation,
-    ScannerReportObservation, SecurityEvidenceDerivationRequest, SecurityToolObservation,
-    StructuralProbeObservation,
+    classify_vulnerability_database, derive_security_evidence, security_evidence_policy_sha256,
+    CollectedSecurityToolObservation, RuntimeProbeObservation, ScannerReportObservation,
+    SecurityEvidenceDerivationRequest, SecurityToolObservation, StructuralProbeObservation,
 };
 pub use gitleaks::{parse_gitleaks_report, ParsedSecretScanReport};
 pub use grype::{parse_grype_vulnerability_report, ParsedVulnerabilityReport};
