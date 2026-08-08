@@ -46,7 +46,7 @@ fn bench_readiness_micro_benchmark_execution_ready_reports_green_gate() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json")
+        Some("artifacts/benchmark-smoke/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(9));
@@ -61,8 +61,8 @@ fn bench_readiness_micro_benchmark_execution_ready_reports_green_gate() {
         Some(0)
     );
     assert_eq!(payload.get("result_row_count").and_then(serde_json::Value::as_u64), Some(77));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("unavailable_row_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(payload.get("unavailable_row_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");

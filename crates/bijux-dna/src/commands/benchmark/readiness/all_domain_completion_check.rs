@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH: &str =
-    "benchmarks/readiness/completion-check-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/completion-check-all-domains.json";
 const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_FIXTURE_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/completion-check";
 const ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION: &str =

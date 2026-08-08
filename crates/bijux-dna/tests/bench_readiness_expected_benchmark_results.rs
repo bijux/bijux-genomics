@@ -48,7 +48,7 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/expected-benchmark-results.tsv")
+        Some("artifacts/benchmark-smoke/readiness/expected-benchmark-results.tsv")
     );
     let row_count =
         payload.get("row_count").and_then(serde_json::Value::as_u64).expect("row count");

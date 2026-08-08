@@ -7,7 +7,8 @@ use super::benchmark_command_rows::{collect_benchmark_command_rows, render_shell
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_RENDERED_COMMANDS_PATH: &str = "benchmarks/readiness/rendered-commands.sh";
+pub(crate) const DEFAULT_RENDERED_COMMANDS_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/rendered-commands.sh";
 const RENDERED_COMMANDS_SCHEMA_VERSION: &str = "bijux.bench.readiness.rendered_commands.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -143,7 +144,7 @@ mod tests {
             .expect("render commands");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.rendered_commands.v1");
-        assert_eq!(report.output_path, "benchmarks/readiness/rendered-commands.sh");
+        assert_eq!(report.output_path, "artifacts/benchmark-smoke/readiness/rendered-commands.sh");
         assert!(report.row_count > 0);
         assert_eq!(report.rows.len(), report.row_count);
         assert!(report.rows.iter().all(|row| {

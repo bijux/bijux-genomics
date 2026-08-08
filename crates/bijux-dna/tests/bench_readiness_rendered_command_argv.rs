@@ -45,7 +45,7 @@ fn bench_readiness_render_command_argv_reports_governed_benchmark_ready_row_slic
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/rendered-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/rendered-commands.argv.jsonl")
     );
     let row_count =
         payload.get("row_count").and_then(serde_json::Value::as_u64).expect("row count");

@@ -145,7 +145,7 @@ fn assert_metadata(payload: &serde_json::Value) {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/benchmark-fixture-root-validation.json")
+        Some("artifacts/benchmark-smoke/readiness/benchmark-fixture-root-validation.json")
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),

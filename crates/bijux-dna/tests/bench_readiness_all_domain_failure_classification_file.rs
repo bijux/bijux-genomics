@@ -48,8 +48,8 @@ fn bench_readiness_all_domain_failure_classification_writes_governed_report_and_
         "--json",
     ]);
 
-    let report_path =
-        repo_root.join("benchmarks/readiness/failure-classification-all-domains.json");
+    let report_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json");
     assert!(report_path.is_file(), "all-domain failure-classification report must exist");
 
     let persisted: serde_json::Value = serde_json::from_slice(

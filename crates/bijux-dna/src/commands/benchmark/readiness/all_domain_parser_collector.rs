@@ -21,7 +21,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH: &str =
-    "benchmarks/readiness/parser-collector-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/parser-collector-all-domains.json";
 const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector";
 const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION: &str =

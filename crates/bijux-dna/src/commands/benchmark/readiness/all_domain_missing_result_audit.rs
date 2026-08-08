@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH: &str =
-    "benchmarks/readiness/missing-result-test-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/missing-result-test-all-domains.json";
 const DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/missing-result-test";
 const ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION: &str =

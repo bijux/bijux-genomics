@@ -30,7 +30,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH: &str =
-    "benchmarks/readiness/failure-classification-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json";
 const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_FIXTURE_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/failure-classification";
 const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =

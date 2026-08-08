@@ -35,7 +35,7 @@ const STAGE_SCORING_FULL_BENCHMARK_SOURCE: &str =
 const STAGE_SCORING_MICRO_SOURCE: &str =
     "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json";
 const STAGE_SCORING_FAILURE_CLASS_SOURCE: &str =
-    "benchmarks/readiness/failure-classification-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json";
 const STAGE_SCORING_ACTIVE_STAGE_SOURCE: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv";
 const STAGE_SCORING_THRESHOLD_SOURCE: &str =

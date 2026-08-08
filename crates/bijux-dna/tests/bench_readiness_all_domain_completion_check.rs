@@ -44,7 +44,7 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/completion-check-all-domains.json")
+        Some("artifacts/benchmark-smoke/readiness/completion-check-all-domains.json")
     );
     assert_eq!(
         payload.get("fixture_root").and_then(serde_json::Value::as_str),

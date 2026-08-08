@@ -33,10 +33,11 @@ fn bench_readiness_all_domain_completion_check_writes_governed_fixture_tree() {
     );
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "benchmarks/readiness/completion-check-all-domains.json"
+        "artifacts/benchmark-smoke/readiness/completion-check-all-domains.json"
     );
 
-    let report_path = repo_root.join("benchmarks/readiness/completion-check-all-domains.json");
+    let report_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/completion-check-all-domains.json");
     assert!(report_path.is_file(), "expected completion-check report");
     let report_json: serde_json::Value =
         serde_json::from_slice(&fs::read(&report_path).expect("read completion-check report"))

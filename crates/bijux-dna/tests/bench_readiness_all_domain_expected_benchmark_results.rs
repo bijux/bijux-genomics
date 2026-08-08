@@ -49,7 +49,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/expected-benchmark-results-all-domains.tsv")
+        Some("artifacts/benchmark-smoke/readiness/expected-benchmark-results-all-domains.tsv")
     );
     let rows = support::json_array(&payload, "rows");
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
@@ -72,7 +72,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert_eq!(support::json_u64(&payload, "stage_count"), Some(stage_count));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(10));
-    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(14));
+    assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(15));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
     for domain in ["fastq", "bam", "vcf"] {

@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/output-declarations-all-domains.tsv")
+        Some("artifacts/benchmark-smoke/readiness/output-declarations-all-domains.tsv")
     );
     let rows = support::json_array(&payload, "rows");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");

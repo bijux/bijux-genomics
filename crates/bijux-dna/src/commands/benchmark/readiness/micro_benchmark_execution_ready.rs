@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_MICRO_BENCHMARK_EXECUTION_READY_PATH: &str =
-    "benchmarks/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json";
+    "artifacts/benchmark-smoke/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json";
 const MICRO_BENCHMARK_EXECUTION_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.micro_benchmark_execution_ready.v1";
 

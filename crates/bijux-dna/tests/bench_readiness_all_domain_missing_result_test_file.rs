@@ -48,7 +48,8 @@ fn bench_readiness_all_domain_missing_result_audit_writes_governed_report_and_fi
         "--json",
     ]);
 
-    let report_path = repo_root.join("benchmarks/readiness/missing-result-test-all-domains.json");
+    let report_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/missing-result-test-all-domains.json");
     assert!(report_path.is_file(), "all-domain missing-result report must exist");
 
     let persisted: serde_json::Value =
@@ -56,7 +57,7 @@ fn bench_readiness_all_domain_missing_result_audit_writes_governed_report_and_fi
             .expect("parse missing-result report");
     assert_eq!(
         persisted.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/missing-result-test-all-domains.json")
+        Some("artifacts/benchmark-smoke/readiness/missing-result-test-all-domains.json")
     );
     assert_eq!(
         persisted.get("missing_result_row_count").and_then(serde_json::Value::as_u64),

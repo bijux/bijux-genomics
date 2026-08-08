@@ -44,7 +44,7 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/parser-collector-all-domains.json")
+        Some("artifacts/benchmark-smoke/readiness/parser-collector-all-domains.json")
     );
     assert_eq!(
         payload.get("fixture_root").and_then(serde_json::Value::as_str),

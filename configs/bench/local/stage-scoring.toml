@@ -3,7 +3,7 @@ active_stage_catalog_path = "artifacts/benchmark-smoke/readiness/all-domains/act
 scientific_threshold_config_path = "configs/bench/local/scientific-acceptance-thresholds.toml"
 full_benchmark_report_path = "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json"
 micro_benchmark_report_path = "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"
-failure_class_report_path = "benchmarks/readiness/failure-classification-all-domains.json"
+failure_class_report_path = "artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"
 
 [[failure_classes]]
 class_id = "missing_input"
@@ -111,7 +111,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -199,7 +199,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -273,7 +273,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -347,7 +347,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -433,7 +433,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -519,7 +519,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -607,7 +607,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -692,7 +692,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -766,7 +766,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -852,7 +852,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -926,7 +926,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1000,7 +1000,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1074,7 +1074,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1148,7 +1148,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1232,7 +1232,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1317,7 +1317,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1406,7 +1406,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1491,7 +1491,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1574,7 +1574,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1648,7 +1648,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1735,7 +1735,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1809,7 +1809,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1900,7 +1900,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -1986,7 +1986,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2060,7 +2060,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2139,7 +2139,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2213,7 +2213,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2287,7 +2287,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2361,7 +2361,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2435,7 +2435,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2509,7 +2509,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2583,7 +2583,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2657,7 +2657,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2735,7 +2735,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2814,7 +2814,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2891,7 +2891,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -2965,7 +2965,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3046,7 +3046,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3120,7 +3120,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3194,7 +3194,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3280,7 +3280,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3357,7 +3357,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3435,7 +3435,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3509,7 +3509,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3583,7 +3583,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3657,7 +3657,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3736,7 +3736,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3813,7 +3813,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3901,7 +3901,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -3979,7 +3979,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4059,7 +4059,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4141,7 +4141,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4215,7 +4215,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4289,7 +4289,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4369,7 +4369,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4449,7 +4449,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4531,7 +4531,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4605,7 +4605,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4679,7 +4679,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4761,7 +4761,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4838,7 +4838,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -4924,7 +4924,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5012,7 +5012,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5095,7 +5095,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5175,7 +5175,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5255,7 +5255,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5329,7 +5329,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5403,7 +5403,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5491,7 +5491,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5565,7 +5565,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",
@@ -5639,7 +5639,7 @@ non_scoring_execution_statuses = [
 required_success_ratio = 1.0
 
 [rows.failure_class]
-source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
     "tool_not_found",

@@ -12,7 +12,8 @@ pub(crate) const DEFAULT_BENCHMARK_FIXTURE_ROOT_SUFFIX: &str = "tests/fixtures";
 pub(crate) const DEFAULT_BENCHMARK_PARSER_FIXTURE_ROOT_SUFFIX: &str = "tests/fixtures/bench";
 pub(crate) const DEFAULT_BENCHMARK_CORPORA_ROOT_SUFFIX: &str = "tests/fixtures/corpora";
 pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures/databases";
-pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
+pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str =
+    "artifacts/benchmark-smoke/readiness";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str =
     "artifacts/benchmark-smoke/readiness/hpc";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
@@ -389,7 +390,7 @@ mod tests {
 
         let error = ensure_path_stays_outside_benchmark_readiness_root(
             repo_root,
-            Path::new("benchmarks/readiness/local-ready/fastq.validate_reads"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready/fastq.validate_reads"),
             "local-smoke output",
         )
         .expect_err("readiness-root output should be rejected");
@@ -406,7 +407,7 @@ mod tests {
 
         ensure_path_stays_within_benchmark_readiness_root(
             repo_root,
-            Path::new("benchmarks/readiness/local-ready/manifest.json"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready/manifest.json"),
             "candidate manifest output",
         )
         .expect("readiness-root output should be accepted");
@@ -436,7 +437,7 @@ mod tests {
         .expect_err("non-readiness output should be rejected");
 
         assert!(
-            error.to_string().contains("must resolve inside `benchmarks/readiness`"),
+            error.to_string().contains("must resolve inside `artifacts/benchmark-smoke/readiness`"),
             "unexpected error: {error}"
         );
     }
