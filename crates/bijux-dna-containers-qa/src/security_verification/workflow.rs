@@ -21,6 +21,8 @@ use bijux_dna_containers::api::{
     SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
+const NON_ROOT_PROBE_SCRIPT: &str = "uid=$(id -u); printf '%s\\n' \"$uid\"; test \"$uid\" -ne 0";
+
 #[derive(Debug, Clone)]
 pub struct SecurityVerificationRequest {
     pub repository_root: PathBuf,
@@ -369,7 +371,7 @@ fn collect_runtime(
     output: &Path,
 ) -> Result<()> {
     let probes = [
-        ("non_root_uid", "test \"$(id -u)\" -ne 0"),
+        ("non_root_uid", NON_ROOT_PROBE_SCRIPT),
         ("system_read_only", "test ! -w /usr"),
         ("network_isolated", "test ! -e /sys/class/net/eth0"),
     ];
@@ -424,7 +426,7 @@ fn inspect_structure(root: &Path) -> Result<StructuralReport> {
                 pending.push(entry.path());
             }
             let mode = metadata.permissions().mode();
-            let relative = entry.path().strip_prefix(root)?.display().to_string();
+            let relative = format!("/{}", entry.path().strip_prefix(root)?.display());
             if mode & 0o6000 != 0 {
                 suid_sgid_paths.push(relative.clone());
             }
@@ -594,7 +596,7 @@ mod tests {
 
     use super::{
         ensure_immutable_json, inspect_structure, run_bounded, validate_request,
-        SecurityVerificationRequest,
+        SecurityVerificationRequest, NON_ROOT_PROBE_SCRIPT,
     };
 
     #[test]
@@ -634,9 +636,15 @@ mod tests {
 
         let report = inspect_structure(root.path())?;
 
-        assert_eq!(report.suid_sgid_paths, ["privileged"]);
-        assert_eq!(report.world_writable_paths, ["writable"]);
+        assert_eq!(report.suid_sgid_paths, ["/privileged"]);
+        assert_eq!(report.world_writable_paths, ["/writable"]);
         Ok(())
+    }
+
+    #[test]
+    fn non_root_probe_emits_the_observed_uid() {
+        assert!(NON_ROOT_PROBE_SCRIPT.contains("printf '%s\\n'"));
+        assert!(NON_ROOT_PROBE_SCRIPT.ends_with("test \"$uid\" -ne 0"));
     }
 
     #[test]
