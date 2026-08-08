@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna
+# purpose = Govern deterministic local benchmark stage scoring inputs and recommendation gates.
+# authority = bijux-dna
+# stability = evolving
+# last_updated = 2026-08-08
+
 schema_version = "bijux.bench.local_stage_scoring.v1"
 active_stage_catalog_path = "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv"
 scientific_threshold_config_path = "configs/bench/local/scientific-acceptance-thresholds.toml"

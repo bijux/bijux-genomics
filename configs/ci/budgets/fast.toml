@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna
+# purpose = Govern commands and elapsed-time limits for the fast CI profile.
+# authority = bijux-dna
+# stability = stable
+# last_updated = 2026-08-08
+
 [profile.fast]
 max_parallel_window_seconds = 1200.0
 targets = [
