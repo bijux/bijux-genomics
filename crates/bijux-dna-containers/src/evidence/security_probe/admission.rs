@@ -31,6 +31,7 @@ pub struct AdmittedSecurityProbePublication {
 pub struct AdmittedSecurityProbeReports {
     pub structural: Option<SecurityStructuralReport>,
     pub runtime: Option<SecurityRuntimeReport>,
+    pub raw_manifest: BTreeMap<String, String>,
 }
 
 impl AdmittedSecurityProbePublication {
@@ -135,7 +136,65 @@ fn admit_reports(
             admit_artifact(study_root, artifact, artifacts)?;
         }
     }
-    Ok(AdmittedSecurityProbeReports { structural, runtime })
+    let raw_manifest =
+        read_json_artifact::<BTreeMap<String, String>>(&tool.raw_manifest, artifacts)?;
+    admit_raw_manifest(tool, runtime.as_ref(), &raw_manifest, study_root, artifacts)?;
+    Ok(AdmittedSecurityProbeReports { structural, runtime, raw_manifest })
+}
+
+fn admit_raw_manifest(
+    tool: &ToolSecurityProbe,
+    runtime: Option<&SecurityRuntimeReport>,
+    manifest: &BTreeMap<String, String>,
+    study_root: &Path,
+    artifacts: &mut BTreeMap<String, (String, PathBuf)>,
+) -> Result<()> {
+    if manifest.is_empty() {
+        bail!("security raw manifest is empty for {}", tool.tool_id);
+    }
+    let manifest_relative = tool
+        .raw_manifest
+        .uri
+        .strip_prefix("study://")
+        .context("security raw manifest URI is not rooted at study://")?;
+    let manifest_parent =
+        Path::new(manifest_relative).parent().context("security raw manifest has no parent")?;
+    let mut manifested = BTreeMap::new();
+    for (name, digest) in manifest {
+        if !safe_file_name(name) || matches!(name.as_str(), "raw-manifest.json" | "result.json") {
+            bail!("security raw manifest contains an unsafe path for {}", tool.tool_id);
+        }
+        validate_sha256(digest, "raw manifest entry")?;
+        let relative = manifest_parent.join(name);
+        let relative = relative.to_str().context("security raw manifest path is not UTF-8")?;
+        let artifact =
+            SecurityProbeArtifact { uri: format!("study://{relative}"), sha256: digest.clone() };
+        admit_artifact(study_root, &artifact, artifacts)?;
+        manifested.insert(artifact.uri, artifact.sha256);
+    }
+    for artifact in tool_artifacts(tool).filter(|artifact| artifact.uri != tool.raw_manifest.uri) {
+        if manifested.get(&artifact.uri) != Some(&artifact.sha256) {
+            bail!("security raw manifest omits or changes referenced artifact {}", artifact.uri);
+        }
+    }
+    if let Some(report) = runtime {
+        for artifact in [
+            &report.network_isolated.stdout,
+            &report.network_isolated.stderr,
+            &report.non_root_uid.stdout,
+            &report.non_root_uid.stderr,
+            &report.system_read_only.stdout,
+            &report.system_read_only.stderr,
+        ] {
+            if manifested.get(&artifact.uri) != Some(&artifact.sha256) {
+                bail!(
+                    "security raw manifest omits or changes referenced artifact {}",
+                    artifact.uri
+                );
+            }
+        }
+    }
+    Ok(())
 }
 
 fn read_json_artifact<T: serde::de::DeserializeOwned>(
@@ -316,4 +375,10 @@ fn safe_identifier(value: &str) -> bool {
         && value
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+}
+
+fn safe_file_name(value: &str) -> bool {
+    !value.is_empty()
+        && Path::new(value).components().count() == 1
+        && Path::new(value).components().all(|component| matches!(component, Component::Normal(_)))
 }

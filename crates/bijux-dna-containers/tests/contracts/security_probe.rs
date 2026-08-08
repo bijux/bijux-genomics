@@ -56,6 +56,20 @@ fn fixture() -> Result<(tempfile::TempDir, PathBuf, SecurityProbeAuthority, Secu
         uri: "study://evidence/runtime.json".to_string(),
         sha256: bijux_dna_infra::hash_file_sha256(&runtime_path)?,
     };
+    let manifest_path = study.path().join("evidence/raw-manifest.json");
+    fs::write(
+        &manifest_path,
+        serde_json::to_vec_pretty(&BTreeMap::from([
+            ("artifact.json".to_string(), artifact.sha256.clone()),
+            ("runtime-stream.txt".to_string(), stream.sha256),
+            ("runtime.json".to_string(), runtime.sha256.clone()),
+            ("structural.json".to_string(), structural.sha256.clone()),
+        ]))?,
+    )?;
+    let raw_manifest = SecurityProbeArtifact {
+        uri: "study://evidence/raw-manifest.json".to_string(),
+        sha256: bijux_dna_infra::hash_file_sha256(&manifest_path)?,
+    };
     let authority = SecurityProbeAuthority {
         repository_commit: "a".repeat(40),
         catalog_sha256: digest('b'),
@@ -78,7 +92,7 @@ fn fixture() -> Result<(tempfile::TempDir, PathBuf, SecurityProbeAuthority, Secu
         signature_verified: true,
         structural_report: Some(structural),
         runtime_report: Some(runtime),
-        raw_manifest: artifact.clone(),
+        raw_manifest,
         error: None,
     };
     let publication = SecurityProbePublication {
@@ -104,6 +118,7 @@ fn admits_exact_authority_and_rechecks_artifacts() -> Result<()> {
     let reports = admitted.reports.get("samtools").context("admitted samtools reports")?;
     assert!(reports.structural.is_some());
     assert_eq!(reports.runtime.as_ref().context("runtime report")?.non_root_uid.exit_code, 0);
+    assert_eq!(reports.raw_manifest.len(), 4);
     Ok(())
 }
 
@@ -131,6 +146,24 @@ fn rejects_nested_runtime_stream_digest_drift() -> Result<()> {
     fs::write(study.path().join("evidence/runtime-stream.txt"), b"changed")?;
     assert!(admit_security_probe_publication(&publication_path, study.path(), &authority)
         .is_err_and(|error| error.to_string().contains("digest differs")));
+    Ok(())
+}
+
+#[test]
+fn rejects_raw_manifest_omission() -> Result<()> {
+    let (study, publication_path, authority, _) = fixture()?;
+    let manifest_path = study.path().join("evidence/raw-manifest.json");
+    let mut manifest: BTreeMap<String, String> =
+        serde_json::from_slice(&fs::read(&manifest_path)?)?;
+    manifest.remove("runtime-stream.txt");
+    fs::write(&manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
+    let mut publication: SecurityProbePublication =
+        serde_json::from_slice(&fs::read(&publication_path)?)?;
+    publication.tools.get_mut("samtools").context("samtools fixture")?.raw_manifest.sha256 =
+        bijux_dna_infra::hash_file_sha256(&manifest_path)?;
+    fs::write(&publication_path, serde_json::to_vec_pretty(&publication)?)?;
+    assert!(admit_security_probe_publication(&publication_path, study.path(), &authority)
+        .is_err_and(|error| error.to_string().contains("omits or changes")));
     Ok(())
 }
 
