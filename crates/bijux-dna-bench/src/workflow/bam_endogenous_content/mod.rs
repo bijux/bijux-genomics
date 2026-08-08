@@ -108,15 +108,10 @@ pub fn prepare_bam_endogenous_content_material_from_corpus(
         &corpus.sample_id,
         BamParameterPolicy {
             stage_id: STAGE_ID,
-            schema_version: "bijux.bam.params.endogenous_content.v1",
             defaults_provider:
                 "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)",
         },
         BTreeMap::from([
-            (
-                "schema_version".to_string(),
-                EffectiveValue::Text("bijux.bam.params.endogenous_content.v1".to_string()),
-            ),
             ("primary_exclude_flags".to_string(), EffectiveValue::Integer(2304)),
             ("mapped_primary_exclude_flags".to_string(), EffectiveValue::Integer(2308)),
             (

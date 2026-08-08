@@ -14,6 +14,7 @@ use bijux_dna_bench_model::{
     BenchmarkStageDownstreamProbe, BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec,
     BenchmarkStageParameterConfig,
 };
+use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
 
 fn interface_catalog() -> BenchmarkStageInterfaceCatalog {
     BenchmarkStageInterfaceCatalog {
@@ -25,7 +26,7 @@ fn interface_catalog() -> BenchmarkStageInterfaceCatalog {
             normalized_result_contract:
                 "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json"
                     .to_string(),
-            parameter_schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+            parameter_schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
             default_provider:
                 "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults".to_string(),
             parameter_config: "benchmarks/contracts/config-pipeline-parameters.yml".to_string(),
@@ -80,7 +81,7 @@ fn parameter_config() -> BenchmarkPipelineParameterConfig {
         stages: BTreeMap::from([(
             "fastq.profile_read_lengths".to_string(),
             BenchmarkStageParameterConfig {
-                parameter_schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+                parameter_schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
                 defaults_provider:
                     "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults"
                         .to_string(),

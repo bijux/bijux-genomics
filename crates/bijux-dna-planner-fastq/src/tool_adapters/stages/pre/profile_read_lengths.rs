@@ -189,6 +189,7 @@ mod tests {
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
         ToolVersion,
     };
+    use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
     use std::path::Path;
 
     fn seqkit_tool() -> ToolExecutionSpecV1 {
@@ -304,9 +305,6 @@ mod tests {
         assert_eq!(plan.effective_params["threads"], 2);
         assert_eq!(plan.effective_params["histogram_bins"], 100);
         assert_eq!(plan.effective_params["paired_mode"], "single_end");
-        assert_eq!(
-            plan.effective_params["schema_version"],
-            "bijux.fastq.params.read_length_profile.v1"
-        );
+        assert_eq!(plan.effective_params["schema_version"], READ_LENGTH_PROFILE_SCHEMA_VERSION);
     }
 }

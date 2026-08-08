@@ -15,6 +15,7 @@ use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication, ContainerCatalog,
     CurrentApptainerImage,
 };
+use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
 
 fn plan() -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
@@ -73,7 +74,7 @@ fn material() -> BenchmarkExecutionMaterial {
         measured_command: shell("printf measured"),
         negative_command: shell("seqkit missing.fastq"),
         parameters: BenchmarkExecutionParameterEvidence {
-            parameter_schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+            parameter_schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
             defaults_provider: "bijux_dna_domain_fastq::read_length_profile_defaults".to_string(),
             overrides_path: "config-pipeline-parameters.yml".to_string(),
             overrides_sha256: "2".repeat(64),

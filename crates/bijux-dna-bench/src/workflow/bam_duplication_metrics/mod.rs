@@ -108,15 +108,10 @@ pub fn prepare_bam_duplication_metrics_material_from_corpus(
         &corpus.sample_id,
         BamParameterPolicy {
             stage_id: STAGE_ID,
-            schema_version: "bijux.bam.params.duplication_metrics.v1",
             defaults_provider:
                 "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)",
         },
         BTreeMap::from([
-            (
-                "schema_version".to_string(),
-                EffectiveValue::Text("bijux.bam.params.duplication_metrics.v1".to_string()),
-            ),
             ("optical_duplicates".to_string(), EffectiveValue::Text("mark_only".to_string())),
             ("umi_policy".to_string(), EffectiveValue::Text("ignore".to_string())),
             ("duplicate_action".to_string(), EffectiveValue::Text("mark".to_string())),

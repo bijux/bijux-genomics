@@ -22,6 +22,7 @@ mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod options;
+mod parameter_authority;
 mod publication_registry;
 mod report_load;
 mod run_registry;

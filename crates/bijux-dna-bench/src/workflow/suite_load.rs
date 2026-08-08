@@ -24,6 +24,8 @@ use bijux_dna_bench_model::{
     BenchmarkStageInterfaceCatalog,
 };
 
+use super::parameter_authority::load_stage_parameter_authority;
+
 const STAGE_INTERFACE_REGISTRY_PATH: &str = "benchmarks/contracts/stage-interfaces.toml";
 
 /// Exact render-only authority used while publishing a benchmark report.
@@ -307,6 +309,11 @@ pub fn load_checked_in_benchmark_planning_contracts(
     let registry = load_stage_campaign_registry(&bench_stage_campaigns_path())?;
     let portfolio = load_benchmark_portfolio(&bench_portfolio_path())?;
     let interfaces = load_stage_interface_catalog(&bench_stage_interfaces_path())?;
+    let repo_root = crate::repo::resolve_repo_root().context("resolve repository root")?;
+    for interface in &interfaces.interfaces {
+        load_stage_parameter_authority(&repo_root, &interface.stage_id)
+            .with_context(|| format!("validate parameter registry for {}", interface.stage_id))?;
+    }
     validate_defined_campaign_portfolio_alignment(&registry, &portfolio)
         .context("validate defined benchmark campaigns against portfolio reservations")?;
     validate_defined_interface_campaign_alignment(&interfaces, &registry)
