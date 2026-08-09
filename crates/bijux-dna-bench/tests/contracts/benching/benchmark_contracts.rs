@@ -263,13 +263,36 @@ fn checked_in_run_registry_closes_the_permanent_namespace() -> Result<()> {
 }
 
 #[test]
+fn checked_in_run_index_covers_every_protocol_without_hidden_publications() -> Result<()> {
+    let repository_root = repository_root()?;
+    let index = bijux_dna_bench::publish_checked_in_benchmark_run_index(
+        &repository_root,
+        bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
+    )?;
+    assert_eq!(index.summary.registered_run_count, 71);
+    assert_eq!(index.summary.citable_publication_count, 0);
+    assert_eq!(index.summary.unpublished_run_count, 71);
+    assert!(index.runs.iter().all(|run| {
+        run.selected_publication.is_none()
+            && !run.limitations.is_empty()
+            && run.citation_key == format!("bijux-benchmark-{}", run.run_id)
+    }));
+    assert!(index.runs.iter().any(|run| {
+        run.run_id == "run-2062"
+            && run.stage_id == "vcf.imputation_metrics"
+            && run.tool_ids.iter().any(|tool| tool == "impute5")
+    }));
+    Ok(())
+}
+
+#[test]
 fn checked_in_publication_registry_has_no_drift() -> Result<()> {
     let repository_root = repository_root()?;
     let registry = bijux_dna_bench::publish_checked_in_benchmark_publication_registry(
         &repository_root,
         bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
     )?;
-    assert_eq!(registry.summary.current_product_count, 4);
+    assert_eq!(registry.summary.current_product_count, 5);
     assert_eq!(registry.summary.active_stage_report_count, 0);
     assert_eq!(registry.summary.historical_stage_report_count, 10);
     assert_eq!(registry.summary.quarantined_surface_count, 0);

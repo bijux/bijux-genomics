@@ -366,6 +366,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkPublicationRegistry,
         ),
         native(
+            "benchmark-run-index",
+            "Generate or check the paper-facing run index and publication-selection closure.",
+            NativeOpsCommandKey::ToolingBenchmarkRunIndex,
+        ),
+        native(
             "benchmark-run-registry",
             "Generate or check the permanent benchmark run namespace and stage mapping.",
             NativeOpsCommandKey::ToolingBenchmarkRunRegistry,

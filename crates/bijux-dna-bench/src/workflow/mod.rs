@@ -25,6 +25,7 @@ mod options;
 mod parameter_authority;
 mod publication_registry;
 mod report_load;
+mod run_index;
 mod run_registry;
 mod run_suite;
 mod scientific_readiness;
@@ -148,6 +149,10 @@ pub use publication_registry::{
 };
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,
+};
+pub use run_index::{
+    derive_benchmark_run_index, publish_checked_in_benchmark_run_index,
+    render_benchmark_run_index_markdown, BenchmarkRunIndexWriteMode,
 };
 pub use run_registry::{
     derive_benchmark_run_registry, publish_checked_in_benchmark_run_registry,

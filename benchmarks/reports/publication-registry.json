@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.benchmark.publication_registry.v1",
   "summary": {
-    "current_product_count": 4,
+    "current_product_count": 5,
     "active_stage_report_count": 0,
     "historical_stage_report_count": 10,
     "quarantined_surface_count": 0,
@@ -14,6 +14,13 @@
       "json_sha256": "d4ea354af30634d59712679b2c8315bbe50908dac4010d91a8033ad35ab846af",
       "markdown_path": "benchmarks/reports/run-registry.md",
       "markdown_sha256": "6aadbdf1f08eb354bfc81617efd3c682721134ff5a7909b834337a3caf6ac6fa"
+    },
+    {
+      "product_id": "paper-run-index",
+      "json_path": "benchmarks/runs/RUN_INDEX.json",
+      "json_sha256": "d19c1a1e7ed581688e2f193d2762adcda7ff70e441705f00e8361b459effee59",
+      "markdown_path": "benchmarks/runs/RUN_INDEX.md",
+      "markdown_sha256": "2e67175e321329027c0a2584b9918481b85b1386668b9592a679846a2c245d86"
     },
     {
       "product_id": "stage-universe",

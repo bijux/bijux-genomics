@@ -20,6 +20,10 @@ scientific profile and corpus roles, interface contracts, supersession fields,
 the immutable introduction commit, and the monotonic allocation frontier. Its
 reviewed bytes are bound by `run-registry.sha256`; regenerate or check all
 registry surfaces with `bijux-dna-dev tooling run benchmark-run-registry`.
+`schemas/run-index.schema.json` is generated from the benchmark-model run-index
+authority. The corresponding `benchmarks/runs/RUN_INDEX.json` publication adds
+stable citation keys and selected-publication closure without treating a
+registered protocol as executed evidence.
 
 `stage-universe.json` is generated from the authoritative BAM, FASTQ, and VCF
 stage YAML contracts. It records an explicit benchmark disposition and rationale

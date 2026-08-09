@@ -181,6 +181,7 @@ fn current_products(repository_root: &Path) -> Result<Vec<BenchmarkCurrentPublic
             "benchmarks/contracts/run-registry.json",
             "benchmarks/reports/run-registry.md",
         ),
+        ("paper-run-index", "benchmarks/runs/RUN_INDEX.json", "benchmarks/runs/RUN_INDEX.md"),
         (
             "stage-universe",
             "benchmarks/contracts/stage-universe.json",

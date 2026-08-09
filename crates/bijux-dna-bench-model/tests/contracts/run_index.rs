@@ -1,6 +1,7 @@
 use bijux_dna_bench_model::{
-    validate_benchmark_run_index, BenchmarkRunIndex, BenchmarkRunIndexEntry,
-    BenchmarkRunIndexFileReference, BenchmarkRunIndexSummary, BenchmarkRunRegistryState,
+    benchmark_run_index_schema, validate_benchmark_run_index, BenchmarkRunIndex,
+    BenchmarkRunIndexEntry, BenchmarkRunIndexFileReference, BenchmarkRunIndexSummary,
+    BenchmarkRunRegistryState,
 };
 
 fn run_index() -> BenchmarkRunIndex {
@@ -67,5 +68,18 @@ fn run_index_rejects_unknown_fields() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("run index must be an object"))?
         .insert("unexpected".to_string(), serde_json::json!(true));
     assert!(serde_json::from_value::<BenchmarkRunIndex>(value).is_err());
+    Ok(())
+}
+
+#[test]
+fn checked_run_index_schema_matches_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        repository_root.join("benchmarks/contracts/schemas/run-index.schema.json"),
+    )?)?;
+    assert_eq!(checked, serde_json::to_value(benchmark_run_index_schema())?);
     Ok(())
 }

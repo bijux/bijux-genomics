@@ -401,6 +401,7 @@ benchmark-data-catalog-snapshots
 benchmark-data-portfolio-audit
 benchmark-integrity-mini
 benchmark-publication-registry
+benchmark-run-index
 benchmark-run-registry
 benchmark-scientific-readiness
 benchmark-smoke-level1
