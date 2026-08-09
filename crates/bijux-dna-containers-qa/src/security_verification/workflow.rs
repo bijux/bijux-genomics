@@ -668,7 +668,10 @@ fn validate_request(request: &SecurityVerificationRequest, publication_path: &Pa
     let publication_parent =
         publication_path.parent().context("security publication has no parent")?;
     let publication_parent = publication_parent.canonicalize()?;
-    if !evidence.starts_with(&study) || !publication_parent.starts_with(&evidence) {
+    if !evidence.starts_with(&study)
+        || !publication_parent.starts_with(&study)
+        || evidence.parent() != Some(publication_parent.as_path())
+    {
         bail!("security evidence outputs must remain under the governed study root");
     }
     Ok(())
@@ -837,10 +840,11 @@ mod tests {
     }
 
     #[test]
-    fn publication_parent_cannot_escape_evidence_root() -> Result<()> {
+    fn publication_and_evidence_use_governed_sibling_layout() -> Result<()> {
         let study = bijux_dna_testkit::tempdir_for("security-publication-path");
-        let evidence = study.path().join("evidence");
-        fs::create_dir(&evidence)?;
+        let attempt = study.path().join("attempt");
+        let evidence = attempt.join("evidence");
+        fs::create_dir_all(&evidence)?;
         fs::create_dir(study.path().join("escaped"))?;
         let request = SecurityVerificationRequest {
             repository_root: study.path().to_path_buf(),
@@ -857,7 +861,9 @@ mod tests {
             timeout: Duration::from_secs(1),
         };
 
-        let Err(error) = validate_request(&request, &evidence.join("../escaped/publication.json"))
+        validate_request(&request, &attempt.join("publication.json"))?;
+
+        let Err(error) = validate_request(&request, &study.path().join("escaped/publication.json"))
         else {
             anyhow::bail!("escaped publication path was accepted");
         };
