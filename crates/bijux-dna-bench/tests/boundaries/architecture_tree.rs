@@ -51,6 +51,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/repo")),
         entries([
             "bam_corpus_authority.rs",
+            "case_corpus_authority.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",
             "corpus_authority.rs",

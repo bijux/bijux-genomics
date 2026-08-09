@@ -13,9 +13,10 @@ pub use crate::repo::{
     bench_data_dir, bench_fastq_local_stage_matrix_path, bench_local_config_dir,
     bench_portfolio_path, bench_reports_dir, bench_stage_campaigns_path,
     bench_stage_interfaces_path, bench_suites_dir, build_benchmark_data_index,
-    publish_benchmark_data_index, publish_governed_data_catalog_registry,
-    publish_governed_data_catalog_snapshots, render_benchmark_data_index_markdown,
-    AdmittedBamGenotypingCorpus, BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
+    derive_benchmark_corpus_snapshots, publish_benchmark_data_index,
+    publish_governed_data_catalog_registry, publish_governed_data_catalog_snapshots,
+    render_benchmark_data_index_markdown, AdmittedBamGenotypingCorpus,
+    BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
     GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
     GovernedDataCatalogSnapshotPublication, GovernedDataCatalogSnapshotRequest,
 };

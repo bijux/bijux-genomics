@@ -2,6 +2,7 @@
 //! Run repositories for bench.
 
 mod bam_corpus_authority;
+mod case_corpus_authority;
 mod catalog_registry_authority;
 mod catalog_snapshot_authority;
 mod corpus_authority;
@@ -16,6 +17,7 @@ mod workspace_paths;
 pub use bam_corpus_authority::{
     admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, AdmittedBamGenotypingCorpus,
 };
+pub use case_corpus_authority::derive_benchmark_corpus_snapshots;
 pub use catalog_registry_authority::{
     publish_governed_data_catalog_registry, GovernedDataCatalogRegistryPublication,
     GovernedDataCatalogRegistryPublicationRequest,
