@@ -17,13 +17,14 @@ const UNSORTED_SAM: &str = "bijux.sam.artifact.unsorted.v1";
 const GENOTYPING_STAGE: &str = "bam.genotyping";
 const COVERAGE_STAGE: &str = "bam.coverage";
 const ENDOGENOUS_CONTENT_STAGE: &str = "bam.endogenous_content";
+const MAPPING_SUMMARY_STAGE: &str = "bam.mapping_summary";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 7);
+    assert_eq!(retained.bindings().len(), 9);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -46,8 +47,41 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 15);
+    assert_eq!(all.bindings().len(), 17);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_mapping_summary_bindings_close_run_2004_native_reports() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(MAPPING_SUMMARY_STAGE));
+
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["picard", "samtools"]
+    );
+    for binding in &bindings {
+        assert_eq!(binding.resources.threads, 1);
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.bam.mapping_summary.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_bam::tool_adapters::bam::mapping_summary"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.bam.mapping_summary.compare");
+        assert_eq!(binding.outputs.len(), 1);
+        assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.auxiliary.artifact.table.v1");
+    }
+    assert_eq!(bindings[0].outputs[0].name, "alignment_summary_metrics");
+    assert!(bindings[0]
+        .command_template
+        .iter()
+        .any(|token| token == "CollectAlignmentSummaryMetrics"));
+    assert_eq!(bindings[1].outputs[0].name, "flagstat");
+    assert!(bindings[1].command_template[2].contains("flagstat -@ 1"));
     Ok(())
 }
 

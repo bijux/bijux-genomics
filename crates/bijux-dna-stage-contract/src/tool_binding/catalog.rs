@@ -56,8 +56,10 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bowtie2_align(),
         bwa_align(),
         mosdepth_coverage(),
+        picard_mapping_summary(),
         samtools_coverage(),
         samtools_endogenous_content(),
+        samtools_mapping_summary(),
     ] {
         registry.insert(binding)?;
     }
@@ -164,6 +166,45 @@ fn samtools_endogenous_content() -> ToolBindingV1 {
             "mapped_primary_counts_also_exclude_unmapped_records",
             "mapped_nonduplicate_primary_counts_also_exclude_unmapped_and_duplicate_records",
         ],
+    )
+}
+
+fn picard_mapping_summary() -> ToolBindingV1 {
+    retained_binding(
+        "bam.mapping_summary",
+        "picard",
+        &["bam_input", "alignment_summary_metrics", "pair_and_unpaired_categories"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("alignment_summary_metrics", TABLE)],
+        &[
+            "${executable}",
+            "CollectAlignmentSummaryMetrics",
+            "I=${input:bam}",
+            "O=${output:alignment_summary_metrics}",
+        ],
+        "bijux.benchmark.bam.mapping_summary.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::mapping_summary",
+        "benchmark.bam.mapping_summary.compare",
+        resources(1, 16, 8),
+        &["pair_and_unpaired_categories_are_aggregated_without_first_or_second_of_pair_rows"],
+    )
+}
+
+fn samtools_mapping_summary() -> ToolBindingV1 {
+    retained_binding(
+        "bam.mapping_summary",
+        "samtools",
+        &["bam_input", "primary_mapping_counts", "native_flagstat_output"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("flagstat", TABLE)],
+        &["/bin/sh", "-c", "'${executable}' flagstat -@ 1 '${input:bam}' > '${output:flagstat}'"],
+        "bijux.benchmark.bam.mapping_summary.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::mapping_summary",
+        "benchmark.bam.mapping_summary.compare",
+        resources(1, 8, 8),
+        &["primary_counts_are_read_from_the_native_flagstat_categories"],
     )
 }
 
