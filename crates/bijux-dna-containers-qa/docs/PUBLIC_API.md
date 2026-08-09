@@ -16,8 +16,8 @@
   functions used by QA workflows.
 - `qa_docker_images`: Docker image catalog probe command implementation.
 - `qualification`: typed pipeline-derived probe plans plus classified output and metric verdicts.
-- `runtime_verification`: bounded catalog-wide Apptainer probe execution and immutable evidence
-  publication.
+- `runtime_verification`: bounded changed-image Apptainer probe execution, digest-verified baseline
+  reuse, and immutable full-catalog evidence publication.
 - `security_verification`: bounded exact-image security probe execution using container-owned raw
   evidence publication types; policy and release verdicts remain outside this crate.
 

@@ -12,7 +12,9 @@ host command orchestration that must not leak into production crates.
 - `build_docker_images`: Cargo binary at `src/bin/build_docker_images.rs`; builds Docker images from
   configured Dockerfiles and runs version smoke checks.
 - `runtime_verification`: Cargo binary at `src/bin/runtime_verification.rs`; executes bounded
-  version/help probes for the exact catalog-locked Apptainer inventory or verifies its report.
+  version/help probes for the exact catalog-locked Apptainer inventory or verifies its report. The
+  optional `--baseline <publication>` input reuses unchanged passing tool evidence only after
+  checking both referenced identity and manifest files against their recorded SHA-256 digests.
 - `security_verification`: Cargo binary at `src/bin/security_verification.rs`; collects complete
   raw security evidence for exact catalog-locked Apptainer images without deriving policy passes.
 

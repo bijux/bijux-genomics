@@ -9,9 +9,10 @@ use anyhow::{bail, Context, Result};
 
 use bijux_dna_containers::api::{
     clean_repository_head_commit, derive_apptainer_tool_contract, load_container_catalog,
-    load_image_inventory_publication, render_runtime_verification_markdown,
-    resolve_catalog_locked_apptainer_image, resolve_current_apptainer_contract_commit,
-    run_apptainer_smoke, validate_container_evidence_chain, validate_container_inventory_catalog,
+    load_image_inventory_publication, load_runtime_verification_publication,
+    render_runtime_verification_markdown, resolve_catalog_locked_apptainer_image,
+    resolve_current_apptainer_contract_commit, run_apptainer_smoke,
+    validate_container_evidence_chain, validate_container_inventory_catalog,
     validate_container_recipe_evidence_chain, validate_runtime_verification_publication,
     validate_tool_image_identity_evidence, verify_apptainer_tool_contract, ApptainerSmokeManifest,
     ApptainerSmokeRequest, ContainerRuntimeEvidence, ContainerToolContract, EvidenceSourceIdentity,
@@ -27,6 +28,7 @@ pub struct RuntimeVerificationRequest {
     pub apptainer_executable: PathBuf,
     pub data_root: PathBuf,
     pub evidence_root: PathBuf,
+    pub baseline_publication_path: Option<PathBuf>,
     pub worker_count: usize,
     pub timeout: Duration,
 }
@@ -36,6 +38,8 @@ pub struct RuntimeVerificationResult {
     pub publication: RuntimeVerificationPublication,
     pub passed: usize,
     pub failed: usize,
+    pub executed: usize,
+    pub reused: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -129,10 +133,12 @@ pub fn execute_runtime_verification(
     if tasks.is_empty() {
         bail!("runtime verification has no retained Apptainer tools");
     }
+    let (mut tools, pending) = partition_runtime_tasks(request, &catalog_sha256, &tasks)?;
+    let reused = tools.len();
     bijux_dna_infra::ensure_dir(&request.evidence_root)?;
-    let results = execute_tasks(request, &commit, &catalog_sha256, &tasks)?;
-    let mut tools = BTreeMap::new();
-    let mut passed = 0;
+    let results = execute_tasks(request, &commit, &catalog_sha256, &pending)?;
+    let executed = results.len();
+    let mut passed = reused;
     for result in results {
         passed += usize::from(result.status == RuntimeEvidenceStatus::Passed);
         tools.insert(
@@ -146,19 +152,13 @@ pub fn execute_runtime_verification(
             },
         );
     }
-    let publication = RuntimeVerificationPublication {
-        schema_version: CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2.to_string(),
-        catalog: EvidenceSourceIdentity {
-            path: "repository://containers/contracts/catalog.toml".to_string(),
-            sha256: catalog_sha256.clone(),
-        },
-        inventory: EvidenceSourceIdentity {
-            path: portable_path(&request.inventory_path, &request.study_root, "study")?,
-            sha256: inventory.publication.raw_sha256.clone(),
-        },
-        repository_commit: commit,
+    let publication = compose_runtime_publication(
+        request,
+        &commit,
+        &catalog_sha256,
+        &inventory.publication.raw_sha256,
         tools,
-    };
+    )?;
     if passed == tasks.len() {
         validate_container_evidence_chain(&catalog_sha256, &catalog, &inventory, &publication)?;
     } else {
@@ -169,7 +169,107 @@ pub fn execute_runtime_verification(
         markdown_path,
         render_runtime_verification_markdown(&publication).as_bytes(),
     )?;
-    Ok(RuntimeVerificationResult { publication, passed, failed: tasks.len() - passed })
+    Ok(RuntimeVerificationResult {
+        publication,
+        passed,
+        failed: tasks.len() - passed,
+        executed,
+        reused,
+    })
+}
+
+fn compose_runtime_publication(
+    request: &RuntimeVerificationRequest,
+    repository_commit: &str,
+    catalog_sha256: &str,
+    inventory_sha256: &str,
+    tools: BTreeMap<String, ContainerRuntimeEvidence>,
+) -> Result<RuntimeVerificationPublication> {
+    Ok(RuntimeVerificationPublication {
+        schema_version: CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2.to_string(),
+        catalog: EvidenceSourceIdentity {
+            path: "repository://containers/contracts/catalog.toml".to_string(),
+            sha256: catalog_sha256.to_string(),
+        },
+        inventory: EvidenceSourceIdentity {
+            path: portable_path(&request.inventory_path, &request.study_root, "study")?,
+            sha256: inventory_sha256.to_string(),
+        },
+        repository_commit: repository_commit.to_string(),
+        tools,
+    })
+}
+
+fn partition_runtime_tasks(
+    request: &RuntimeVerificationRequest,
+    catalog_sha256: &str,
+    tasks: &[ToolTask],
+) -> Result<(BTreeMap<String, ContainerRuntimeEvidence>, Vec<ToolTask>)> {
+    let Some(path) = &request.baseline_publication_path else {
+        return Ok((BTreeMap::new(), tasks.to_vec()));
+    };
+    let baseline = load_runtime_verification_publication(path)
+        .context("load runtime-verification baseline publication")?;
+    if baseline.catalog.sha256 != catalog_sha256 {
+        bail!("runtime-verification baseline catalog identity differs");
+    }
+    let mut reused = BTreeMap::new();
+    let mut pending = Vec::new();
+    for task in tasks {
+        let Some(evidence) = baseline.tools.get(&task.tool_id) else {
+            pending.push(task.clone());
+            continue;
+        };
+        if evidence.version != task.version
+            || evidence.image_sha256 != task.image_sha256
+            || evidence.status != RuntimeEvidenceStatus::Passed
+        {
+            pending.push(task.clone());
+            continue;
+        }
+        verify_reused_evidence(request, &task.tool_id, evidence)?;
+        reused.insert(task.tool_id.clone(), evidence.clone());
+    }
+    Ok((reused, pending))
+}
+
+fn verify_reused_evidence(
+    request: &RuntimeVerificationRequest,
+    tool_id: &str,
+    evidence: &ContainerRuntimeEvidence,
+) -> Result<()> {
+    for (label, source) in
+        [("identity", evidence.identity.as_ref()), ("manifest", evidence.manifest.as_ref())]
+    {
+        let source =
+            source.with_context(|| format!("runtime baseline omits {label} for {tool_id}"))?;
+        let path = study_path(&request.study_root, &source.path)
+            .with_context(|| format!("resolve runtime baseline {label} for {tool_id}"))?;
+        let metadata = fs::symlink_metadata(&path)
+            .with_context(|| format!("inspect runtime baseline {label} for {tool_id}"))?;
+        if metadata.file_type().is_symlink() || !metadata.is_file() {
+            bail!("runtime baseline {label} for {tool_id} is not a regular file");
+        }
+        if bijux_dna_infra::hash_file_sha256(&path)? != source.sha256 {
+            bail!("runtime baseline {label} digest differs for {tool_id}");
+        }
+    }
+    Ok(())
+}
+
+fn study_path(study_root: &Path, value: &str) -> Result<PathBuf> {
+    let relative =
+        value.strip_prefix("study://").context("runtime baseline evidence is not study-scoped")?;
+    let relative = Path::new(relative);
+    if relative.as_os_str().is_empty()
+        || relative.is_absolute()
+        || relative.components().any(|component| {
+            matches!(component, Component::CurDir | Component::ParentDir | Component::RootDir)
+        })
+    {
+        bail!("runtime baseline evidence path escapes governed STUDY");
+    }
+    Ok(study_root.join(relative))
 }
 
 fn execute_tasks(

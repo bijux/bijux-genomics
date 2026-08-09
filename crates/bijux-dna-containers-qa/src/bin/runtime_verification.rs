@@ -23,6 +23,8 @@ enum Command {
         evidence_root: PathBuf,
         json_output: PathBuf,
         markdown_output: PathBuf,
+        #[arg(long)]
+        baseline: Option<PathBuf>,
         workers: usize,
         timeout_seconds: u64,
     },
@@ -41,6 +43,7 @@ fn main() -> Result<()> {
             evidence_root,
             json_output,
             markdown_output,
+            baseline,
             workers,
             timeout_seconds,
         } => {
@@ -52,6 +55,7 @@ fn main() -> Result<()> {
                     apptainer_executable: apptainer,
                     data_root,
                     evidence_root,
+                    baseline_publication_path: baseline,
                     worker_count: workers,
                     timeout: Duration::from_secs(timeout_seconds),
                 },
@@ -65,7 +69,10 @@ fn main() -> Result<()> {
                     result.failed
                 );
             }
-            println!("runtime verification completed: {} passed, 0 failed", result.passed);
+            println!(
+                "runtime verification completed: {} passed, 0 failed, {} executed, {} reused",
+                result.passed, result.executed, result.reused
+            );
             Ok(())
         }
         Command::CheckReport { json_output, markdown_output } => {

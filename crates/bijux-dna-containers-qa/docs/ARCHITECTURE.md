@@ -20,8 +20,8 @@ dataset concerns.
   resolution, layout helpers, and seqkit metrics.
 - `src/image_qa/qa_docker_images/`: Docker catalog probe planning, runtime abstraction, probe
   execution, and reporting.
-- `src/image_qa/runtime_verification/`: catalog-wide Apptainer probe orchestration and immutable
-  QA evidence publication.
+- `src/image_qa/runtime_verification/`: full-catalog Apptainer evidence publication with bounded
+  execution for changed images and digest-verified reuse of unchanged baseline evidence.
 - `src/security_verification/`: exact-image SBOM, vulnerability, secret, signature, structural,
   and runtime probe collection using container-owned evidence types, without policy or release
   verdicts.
