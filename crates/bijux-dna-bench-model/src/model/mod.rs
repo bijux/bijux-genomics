@@ -32,10 +32,13 @@ pub use admission::{
 };
 #[allow(unused_imports)]
 pub use campaign_engine::{
-    benchmark_admitted_case_observation_schema, benchmark_case_aggregation_schema,
-    benchmark_case_matrix_schema, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
-    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
-    BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
+    benchmark_admitted_case_observation_schema, benchmark_admitted_case_observation_v2_schema,
+    benchmark_case_aggregation_schema, benchmark_case_aggregation_v2_schema,
+    benchmark_case_matrix_schema, BenchmarkAdmittedCaseObservationV1,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationV1, BenchmarkCaseAggregationV2,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixV1,
+    BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
 };
 #[allow(unused_imports)]
 pub use corpus::{

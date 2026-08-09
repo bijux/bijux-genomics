@@ -3,10 +3,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use anyhow::Result;
 use bijux_dna_bench::{
     aggregate_benchmark_case_observations, load_checked_in_benchmark_planning_contracts,
-    plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV1,
-    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1,
-    BenchmarkScientificValue, BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV2,
+    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest,
+    BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1, BenchmarkReportImage,
+    BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkScientificValue,
+    BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
 };
 use bijux_dna_core::{
     contract::ToolConstraints,
@@ -238,6 +240,27 @@ fn aggregation_refuses_incomplete_or_nondeterministic_evidence() -> Result<()> {
         .expect_err("metric closure drift must fail")
         .to_string()
         .contains("metric closure"));
+
+    let mut observations = admitted_observations(&matrix);
+    observations[0].execution.image.sha256 = "invalid".to_string();
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("invalid image provenance must fail")
+        .to_string()
+        .contains("image digest"));
+
+    let mut observations = admitted_observations(&matrix);
+    observations[0].execution.input_bytes.clear();
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("incomplete input-byte closure must fail")
+        .to_string()
+        .contains("input-byte closure"));
+
+    let mut observations = admitted_observations(&matrix);
+    observations[0].execution.slurm.allocated_cpus = "999".to_string();
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("scheduler CPU drift must fail")
+        .to_string()
+        .contains("CPU evidence"));
     Ok(())
 }
 
@@ -323,17 +346,43 @@ fn binding(
 
 fn admitted_observations(
     matrix: &bijux_dna_bench::BenchmarkCaseMatrixV1,
-) -> Vec<BenchmarkAdmittedCaseObservationV1> {
+) -> Vec<BenchmarkAdmittedCaseObservationV2> {
     matrix
         .cases
         .iter()
-        .map(|case| BenchmarkAdmittedCaseObservationV1 {
-            schema_version: BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1.to_string(),
+        .map(|case| BenchmarkAdmittedCaseObservationV2 {
+            schema_version: BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2.to_string(),
             case_id: case.case_id.clone(),
             repository_commit: matrix.repository_commit.clone(),
             admission_sha256: "5".repeat(64),
             input_lock_sha256: "6".repeat(64),
             parameter_lock_sha256: "7".repeat(64),
+            execution: BenchmarkCaseExecutionEvidenceV1 {
+                image: BenchmarkReportImage {
+                    name: format!("{}.sif", case.tool_id),
+                    sha256: "d".repeat(64),
+                    size_bytes: 1024,
+                },
+                slurm: BenchmarkReportSlurmJob {
+                    job_id: "123456".to_string(),
+                    host: "compute-01".to_string(),
+                    elapsed: "00:00:01".to_string(),
+                    allocated_cpus: case.measurement.allocated_cpus.to_string(),
+                },
+                source_evidence_sha256: "e".repeat(64),
+                input_locks: vec![BenchmarkReportInputLock {
+                    id: case.corpus.corpus_id.clone(),
+                    kind: "corpus_snapshot".to_string(),
+                    mount_path: "/inputs/corpus".to_string(),
+                    sha256: case.corpus.snapshot_sha256.clone(),
+                }],
+                input_bytes: case
+                    .campaign
+                    .input_size_keys
+                    .iter()
+                    .map(|key| (key.clone(), 1024))
+                    .collect(),
+            },
             repetitions: (1..=case.measurement.measured_repetitions)
                 .map(|repetition| BenchmarkCaseRepetitionObservationV1 {
                     repetition,

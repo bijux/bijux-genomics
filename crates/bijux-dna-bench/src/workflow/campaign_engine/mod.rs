@@ -6,10 +6,10 @@ mod planning;
 
 pub use aggregation::aggregate_benchmark_case_observations;
 pub use bijux_dna_bench_model::{
-    BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1, BenchmarkCaseDefinitionV1,
-    BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
-    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V1,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1,
+    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
+    BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
     BENCHMARK_CASE_MATRIX_SCHEMA_V1,
 };
 pub use planning::{
