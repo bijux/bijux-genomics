@@ -2,6 +2,13 @@
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
   "profile": "generic-fastq",
   "stages": {
+    "bam.align": {
+      "parameter_schema_version": "bijux.bam.params.align.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Align)",
+      "overrides": {
+        "threads": 8
+      }
+    },
     "bam.genotyping": {
       "parameter_schema_version": "bijux.bam.params.genotyping.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",

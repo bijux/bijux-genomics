@@ -8,7 +8,7 @@
     "corpus_count": 9,
     "admitted_comparative_corpus_count": 1,
     "qualification_campaign_count": 6,
-    "comparative_campaign_count": 3
+    "comparative_campaign_count": 4
   },
   "domains": {
     "bam": {
@@ -75,7 +75,7 @@
     },
     {
       "id": "read-processing-challenge",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
@@ -87,7 +87,7 @@
     },
     {
       "id": "environmental-taxonomy-challenge",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
@@ -99,7 +99,7 @@
     },
     {
       "id": "amplicon-community-challenge",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
@@ -110,7 +110,7 @@
     },
     {
       "id": "alignment-truth-panel",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
@@ -121,7 +121,7 @@
     },
     {
       "id": "ancient-dna-bam-diversity",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
@@ -133,7 +133,7 @@
     },
     {
       "id": "variant-truth-panel",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
@@ -145,7 +145,7 @@
     },
     {
       "id": "ancient-population-panel",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
@@ -166,16 +166,17 @@
         "bwa"
       ],
       "available_comparative_samples": 0,
-      "campaign_run_id": null,
+      "campaign_run_id": "run-2005",
       "reserved_run_id": "run-2005",
-      "campaign_tier": null,
-      "interface_status": "missing",
+      "campaign_tier": "comparative",
+      "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "no closed stage interface is defined",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
-        "no execution campaign is defined"
+        "campaign corpora are not comparative-ready: [\"alignment-truth-panel\"]",
+        "campaign real sample count 0 is below 10",
+        "no admitted comparative execution evidence"
       ]
     },
     {
@@ -195,8 +196,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -216,8 +217,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -237,7 +238,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -259,9 +260,9 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -282,7 +283,7 @@
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
@@ -306,8 +307,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -327,7 +328,7 @@
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
@@ -346,7 +347,7 @@
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
@@ -368,8 +369,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -389,7 +390,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -408,9 +409,9 @@
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
@@ -430,9 +431,9 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -452,7 +453,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -472,9 +473,9 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -495,8 +496,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -516,7 +517,7 @@
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
@@ -537,8 +538,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -559,8 +560,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -580,8 +581,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -602,7 +603,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -622,8 +623,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -644,9 +645,9 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -668,7 +669,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -688,7 +689,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
+        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -711,7 +712,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -730,7 +731,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
+        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -749,7 +750,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
+        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -768,7 +769,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
+        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -840,7 +841,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -861,7 +862,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -883,7 +884,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -903,7 +904,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
+        "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -923,7 +924,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
+        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -949,7 +950,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -968,7 +969,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
+        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -988,7 +989,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -1064,7 +1065,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
+        "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1084,7 +1085,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -1124,7 +1125,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
+        "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1145,7 +1146,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -1177,7 +1178,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -1198,7 +1199,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
+        "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -1239,8 +1240,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
-        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
+        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1260,8 +1261,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1281,8 +1282,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1302,8 +1303,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1323,8 +1324,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1344,8 +1345,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1365,8 +1366,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
-        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
+        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1386,8 +1387,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1407,8 +1408,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1430,8 +1431,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
-        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
+        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1453,8 +1454,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1476,8 +1477,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1498,8 +1499,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
-        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
+        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1522,8 +1523,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1545,8 +1546,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
-        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
+        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1566,8 +1567,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1587,8 +1588,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1610,8 +1611,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1631,8 +1632,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
-        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
+        "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
+        "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1652,8 +1653,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
-        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
+        "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
+        "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]

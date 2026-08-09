@@ -251,6 +251,67 @@ performance_columns = [
 ]
 
 [[interfaces]]
+stage_id = "bam.align"
+accepted_input_contracts = [
+  "bijux.fastq.artifact.paired_end.v1",
+  "bijux.reference.artifact.fasta.v1",
+  "bijux.auxiliary.artifact.index.v1",
+]
+output_contract = "bijux.benchmark.bam.align.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-align-result.schema.json"
+parameter_schema_version = "bijux.bam.params.align.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Align)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = ["threads"]
+input_derived_parameters = ["reference", "reference_digest", "read_group"]
+immutable_parameters = ["schema_version", "strategy_id", "preset", "mode", "rg_policy", "sensitivity_profile", "seed_length", "build_indices", "emit_stats"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["bowtie2", "bwa"]
+provenance_sources = [
+  "domain/bam/stages/align.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_core.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_pre.rs",
+  "crates/bijux-dna-stage-contract/src/tool_binding/catalog.rs",
+  "benchmarks/execution/bam_align.awk",
+]
+
+[interfaces.parameter_projections]
+bowtie2 = { threads = "Project the governed CPU allocation to Bowtie2 -p." }
+bwa = { threads = "Project the governed CPU allocation to BWA -t." }
+
+[interfaces.adapters]
+bowtie2 = "bijux_dna_planner_bam::tool_adapters::bam::align"
+bwa = "bijux_dna_planner_bam::tool_adapters::bam::align"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.align.compare"
+input_contract = "bijux.benchmark.bam.align.bundle.v1"
+source = "benchmarks/execution/bam_align.awk"
+assertions = [
+  "every primary observed read has exactly one independently declared truth record",
+  "exact placement requires matching read end, reference name, and leftmost position",
+  "every aligner output remains subject to validation, mapping summary, coverage, filtering, and variant-recovery probes before scientific admission",
+]
+
+[interfaces.report_presentation]
+report_file_stem = "run-2005-bam-align"
+generated_source = "bijux-dna-bench::workflow::campaign_engine::reporting"
+title_class = "comparative"
+separate_accuracy_claim = false
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "cpu_utilization_percent", heading = "CPU utilization, %", format = "number1" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "input_bytes", heading = "Input bytes", format = "number0" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
+  { metric = "throughput_input_bytes_per_second", heading = "Input throughput, B/s", format = "number1" },
+]
+
+[[interfaces]]
 stage_id = "fastq.profile_read_lengths"
 accepted_input_contracts = [
   "bijux.fastq.artifact.single_end.v1",

@@ -8,17 +8,17 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **9**
+- Defined campaigns: **10**
 - Qualification-only campaigns: **6**
-- Comparative campaigns: **3**
+- Comparative campaigns: **4**
 - Admitted campaigns: **0**
 - Stale campaigns: **0**
 - Failed campaigns: **0**
-- Missing campaigns: **62**
+- Missing campaigns: **61**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
-| `bam.align` | `bowtie2`, `bwa` | - | missing | not_defined |
+| `bam.align` | `bowtie2`, `bwa` | `run-2005` | comparative | not_admitted |
 | `bam.authenticity` | `authenticct`, `damageprofiler`, `pmdtools` | - | missing | not_defined |
 | `bam.bias_mitigation` | `mapdamage2` | - | missing | not_defined |
 | `bam.complexity` | `preseq` | - | missing | not_defined |

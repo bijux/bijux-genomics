@@ -10,14 +10,14 @@
   },
   "source_contract_sha256": {
     "benchmarks/contracts/portfolio.toml": "498523a0cfe154dfbda36e194f249043e2cc5f587b22a5dd614abf6fd89c1ba4",
-    "benchmarks/contracts/stage-campaigns.toml": "a1500156eeb4638ce1d771bb176b5989f4356eea193b4ab5f9601b84a38c8dd6",
-    "benchmarks/contracts/stage-interfaces.toml": "fede73196e76b0cbb00577efdba316c3d63c2e9712dc20d1266a7bdafe94d549",
+    "benchmarks/contracts/stage-campaigns.toml": "7d0dc537b5472d8f3f5b02367ab5dc63319c54f7cf3e398eac99208284436b22",
+    "benchmarks/contracts/stage-interfaces.toml": "5695f54b3726e114142220a823a155e3305f3796b8ff1e29229ec43da0f2ee8f",
     "containers/contracts/catalog.toml": "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b"
   },
   "summary": {
     "run_count": 71,
-    "active_count": 9,
-    "reserved_count": 62,
+    "active_count": 10,
+    "reserved_count": 61,
     "retired_count": 0
   },
   "runs": [
@@ -151,11 +151,16 @@
       "required_corpus_roles": [
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.paired_end.v1",
+        "bijux.reference.artifact.fasta.v1",
+        "bijux.auxiliary.artifact.index.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.align.bundle.v1",
+      "normalized_result_contract": "benchmarks/contracts/schemas/bam-align-result.schema.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-alignment-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },

@@ -445,6 +445,35 @@ fn normalize_duplication(source: &str, input: &Path) -> anyhow::Result<String> {
 }
 
 #[test]
+fn alignment_normalizer_scores_primary_records_against_independent_truth() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bam-align-normalizer")?;
+    let truth = temporary.path().join("alignment-truth.tsv");
+    let sam = temporary.path().join("align.sam");
+    std::fs::write(
+        &truth,
+        b"read_id\tread_end\treference_name\tposition\nread-a\t1\tchr1\t10\nread-a\t2\tchr1\t40\nread-b\t1\tchr1\t70\nread-b\t2\t*\t0\n",
+    )?;
+    std::fs::write(
+        &sam,
+        b"@HD\tVN:1.6\tSO:unsorted\n@SQ\tSN:chr1\tLN:1000\nread-a\t99\tchr1\t10\t60\t20M\t=\t40\t50\tAAAAAAAAAAAAAAAAAAAA\t*\nread-a\t147\tchr1\t40\t60\t20M\t=\t10\t-50\tAAAAAAAAAAAAAAAAAAAA\t*\nread-b\t65\tchr1\t71\t60\t20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAA\t*\nread-b\t133\t*\t0\t0\t*\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAA\t*\n",
+    )?;
+    let script = super::support::repo_root()?.join("benchmarks/execution/bam_align.awk");
+    let output = Command::new("awk")
+        .args(["-v", "mode=summary", "-v"])
+        .arg(format!("truth_path={}", truth.display()))
+        .arg("-f")
+        .arg(script)
+        .arg(sam)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "alignment AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\ntotal_reads\t4\nmapped_reads\t3\nalignment_rate\t0.750000000000\nexpected_mapped_reads\t3\nexact_placement_reads\t2\nplacement_precision\t0.666666666667\nplacement_recall\t0.666666666667\n"
+    );
+    Ok(())
+}
+
+#[test]
 fn genotyping_normalizer_derives_candidate_site_metrics() -> anyhow::Result<()> {
     let temporary = bijux_dna_infra::temp_dir("bam-genotyping-normalizer")?;
     let genotypes = temporary.path().join("genotypes.tsv");

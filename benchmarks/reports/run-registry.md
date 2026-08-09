@@ -4,10 +4,10 @@
 
 Run IDs identify durable stage protocols, not attempts or publications. Existing IDs are immutable; additions allocate monotonically from the declared frontier.
 
-- Registry SHA-256: `21d96d7a34bd00966008201852dd35ca950781d50452651b0fe7ba582788596b`
+- Registry SHA-256: `cb5989eb7672fdeae83c5d918af339a0ec59ac31c50e729a63b44c02e0b2213b`
 - Registered protocols: **71**
-- Active protocols: **9**
-- Reserved protocols: **62**
+- Active protocols: **10**
+- Reserved protocols: **61**
 - Next allocation: **run-2072**
 
 | Run | Stage | Profile | Tools | State | Interface |
@@ -16,7 +16,7 @@ Run IDs identify durable stage protocols, not attempts or publications. Existing
 | `run-2002` | `bam.coverage` | `bam-observational-qc` | `bedtools`, `mosdepth`, `samtools` | `active` | `bijux.benchmark.bam.coverage.bundle.v1` |
 | `run-2003` | `bam.endogenous_content` | `bam-observational-qc` | `samtools` | `active` | `bijux.benchmark.bam.endogenous_content.bundle.v1` |
 | `run-2004` | `bam.mapping_summary` | `bam-observational-qc` | `picard`, `samtools` | `active` | `bijux.benchmark.bam.mapping_summary.bundle.v1` |
-| `run-2005` | `bam.align` | `bam-alignment` | `bowtie2`, `bwa` | `reserved` | - |
+| `run-2005` | `bam.align` | `bam-alignment` | `bowtie2`, `bwa` | `active` | `bijux.benchmark.bam.align.bundle.v1` |
 | `run-2006` | `bam.authenticity` | `bam-ancient-authentication` | `authenticct`, `damageprofiler`, `pmdtools` | `reserved` | - |
 | `run-2007` | `bam.bias_mitigation` | `bam-transformation` | `mapdamage2` | `reserved` | - |
 | `run-2008` | `bam.complexity` | `bam-observational-qc` | `preseq` | `reserved` | - |

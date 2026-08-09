@@ -7,6 +7,7 @@
     },
     "input_contract": {
       "enum": [
+        "bijux.benchmark.bam.align.bundle.v1",
         "bijux.benchmark.bam.coverage.bundle.v1",
         "bijux.benchmark.bam.duplication_metrics.bundle.v1",
         "bijux.benchmark.bam.endogenous_content.bundle.v1",
@@ -21,6 +22,7 @@
     },
     "stage_id": {
       "enum": [
+        "benchmark.bam.align.compare",
         "benchmark.bam.coverage.compare",
         "benchmark.bam.duplication_metrics.compare",
         "benchmark.bam.endogenous_content.consume",

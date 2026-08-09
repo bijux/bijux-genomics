@@ -27,8 +27,8 @@ use bijux_dna_stage_contract::{
     TOOL_BINDING_SCHEMA_V1,
 };
 
-const EXISTING_CAMPAIGN_COUNT: usize = 9;
-const EXISTING_CASE_COUNT: usize = 20;
+const EXISTING_CAMPAIGN_COUNT: usize = 10;
+const EXISTING_CASE_COUNT: usize = 22;
 const COVERAGE_STAGE: &str = "bam.coverage";
 
 struct PlanningFixture {
@@ -131,6 +131,39 @@ fn checked_in_run_2002_plans_all_coverage_tools_through_canonical_bindings() -> 
     assert_eq!(
         matrix.cases.iter().map(|case| case.tool_id.as_str()).collect::<Vec<_>>(),
         ["bedtools", "mosdepth", "samtools"]
+    );
+    assert!(matrix.cases.iter().all(|case| {
+        case.binding.normalized_output_contract_id == case.interface.output_contract
+            && case.binding.resources.threads == case.measurement.allocated_cpus
+    }));
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2005_plans_both_aligners_through_canonical_bindings() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2005");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.align");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2005 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(
+        matrix.cases.iter().map(|case| case.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bowtie2", "bwa"]
     );
     assert!(matrix.cases.iter().all(|case| {
         case.binding.normalized_output_contract_id == case.interface.output_contract

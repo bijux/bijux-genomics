@@ -1,9 +1,10 @@
 use bijux_dna_bench_model::normalized_result::bam::{
-    bam_coverage_metrics_schema, bam_coverage_result_schema,
-    bam_duplication_metrics_measurements_schema, bam_duplication_metrics_result_schema,
-    bam_endogenous_content_metrics_schema, bam_endogenous_content_result_schema,
-    bam_genotyping_metrics_schema, bam_genotyping_result_schema,
-    bam_mapping_summary_metrics_schema, bam_mapping_summary_result_schema,
+    bam_align_metrics_schema, bam_align_result_schema, bam_coverage_metrics_schema,
+    bam_coverage_result_schema, bam_duplication_metrics_measurements_schema,
+    bam_duplication_metrics_result_schema, bam_endogenous_content_metrics_schema,
+    bam_endogenous_content_result_schema, bam_genotyping_metrics_schema,
+    bam_genotyping_result_schema, bam_mapping_summary_metrics_schema,
+    bam_mapping_summary_result_schema, BenchmarkBamAlignMetrics, BenchmarkBamAlignResult,
     BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult, BenchmarkBamDuplicationMetricsResult,
     BenchmarkBamEndogenousContentResult, BenchmarkBamGenotypingResult,
     BenchmarkBamMappingSummaryResult,
@@ -24,6 +25,19 @@ use bijux_dna_bench_model::normalized_result::{
 #[test]
 fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::Result<()> {
     let cases = [
+        serde_json::json!({
+            "schema_version": "bijux.benchmark.bam.align.bundle.v1",
+            "stage_id": "bam.align",
+            "tool_id": "bwa",
+            "sample_id": "ERR2112767",
+            "total_reads": 10,
+            "mapped_reads": 8,
+            "alignment_rate": 0.8,
+            "expected_mapped_reads": 9,
+            "exact_placement_reads": 7,
+            "placement_precision": 0.875,
+            "placement_recall": 0.777_777_777_778,
+        }),
         serde_json::json!({
             "schema_version": "bijux.benchmark.bam.coverage.bundle.v1",
             "stage_id": "bam.coverage",
@@ -75,17 +89,18 @@ fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::R
             "paired_primary_reads": 10,
         }),
     ];
-    serde_json::from_value::<BenchmarkBamCoverageResult>(cases[0].clone())?;
-    serde_json::from_value::<BenchmarkBamDuplicationMetricsResult>(cases[1].clone())?;
-    serde_json::from_value::<BenchmarkBamEndogenousContentResult>(cases[2].clone())?;
-    serde_json::from_value::<BenchmarkBamGenotypingResult>(cases[3].clone())?;
-    serde_json::from_value::<BenchmarkBamMappingSummaryResult>(cases[4].clone())?;
+    serde_json::from_value::<BenchmarkBamAlignResult>(cases[0].clone())?;
+    serde_json::from_value::<BenchmarkBamCoverageResult>(cases[1].clone())?;
+    serde_json::from_value::<BenchmarkBamDuplicationMetricsResult>(cases[2].clone())?;
+    serde_json::from_value::<BenchmarkBamEndogenousContentResult>(cases[3].clone())?;
+    serde_json::from_value::<BenchmarkBamGenotypingResult>(cases[4].clone())?;
+    serde_json::from_value::<BenchmarkBamMappingSummaryResult>(cases[5].clone())?;
 
-    let mut unknown = cases[0].clone();
+    let mut unknown = cases[1].clone();
     unknown["invented"] = serde_json::json!(true);
     assert!(serde_json::from_value::<BenchmarkBamCoverageResult>(unknown).is_err());
 
-    let mut invalid_tool = cases[2].clone();
+    let mut invalid_tool = cases[3].clone();
     invalid_tool["tool_id"] = serde_json::json!("picard");
     assert!(serde_json::from_value::<BenchmarkBamEndogenousContentResult>(invalid_tool).is_err());
     Ok(())
@@ -98,6 +113,8 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
     let schemas = [
+        ("bam-align-result.schema.json", serde_json::to_value(bam_align_result_schema())?),
+        ("bam-align-metrics.schema.json", serde_json::to_value(bam_align_metrics_schema())?),
         ("bam-coverage-result.schema.json", serde_json::to_value(bam_coverage_result_schema())?),
         ("bam-coverage-metrics.schema.json", serde_json::to_value(bam_coverage_metrics_schema())?),
         (
@@ -150,6 +167,24 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
 
 #[test]
 fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
+    let align_metrics = serde_json::json!({
+        "schema_version": "bijux.benchmark.bam.align.metrics.v1",
+        "total_reads": 10,
+        "mapped_reads": 8,
+        "alignment_rate": 0.8,
+        "expected_mapped_reads": 9,
+        "exact_placement_reads": 7,
+        "placement_precision": 0.875,
+        "placement_recall": 0.777_777_777_778,
+        "fastq_input_bytes": 100,
+        "reference_input_bytes": 80,
+        "reference_index_input_bytes": 20,
+        "truth_input_bytes": 10,
+        "input_bytes": 210,
+        "output_bytes": 50
+    });
+    serde_json::from_value::<BenchmarkBamAlignMetrics>(align_metrics)?;
+
     let metrics = serde_json::json!({
         "schema_version": "bijux.benchmark.bam.coverage.metrics.v1",
         "reference_bases": 10,

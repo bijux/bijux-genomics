@@ -200,6 +200,66 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2005"
+slug = "bam-align"
+domain = "bam"
+stage_id = "bam.align"
+evidence_tier = "comparative"
+profile_id = "bam-alignment"
+corpus_ids = ["alignment-truth-panel"]
+scientific_question = "How accurately and efficiently do Bowtie2 and BWA place primary reads from the governed real alignment-truth panel, and do their canonical BAM outputs preserve downstream scientific results?"
+comparison_scope = "at least ten independently characterized real human libraries aligned to one immutable GRCh38 reference and scored against read-placement truth"
+tool_ids = ["bowtie2", "bwa"]
+corpus_catalog_ids = ["alignment-truth-panel"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["fastq_input_bytes", "reference_input_bytes", "reference_index_input_bytes", "truth_input_bytes"]
+result_artifact = "alignment-truth-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 8
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "exact_primary_read_placement_against_independent_truth_with_downstream_substitution"
+interpretation = "Read-level placement precision and recall are scored against an independent truth surface. Scientific admission additionally requires the common validation, mapping-summary, coverage, filtering, variant-recovery, and damage-stratified downstream probes; tool agreement alone is not treated as truth."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+  "throughput_reads_per_second",
+]
+scientific_metrics = [
+  "total_reads",
+  "mapped_reads",
+  "alignment_rate",
+  "expected_mapped_reads",
+  "exact_placement_reads",
+  "placement_precision",
+  "placement_recall",
+]
+comparison_metrics = [
+  {id = "alignment_rate", absolute_tolerance = 0.000001, relative_tolerance = 0.02},
+  {id = "exact_placement_reads", absolute_tolerance = 0.0, relative_tolerance = 0.02},
+  {id = "placement_precision", absolute_tolerance = 0.000001, relative_tolerance = 0.02},
+  {id = "placement_recall", absolute_tolerance = 0.000001, relative_tolerance = 0.02},
+]
+limitations = [
+  "The controlled-access Platinum Genomes material is not yet admitted, so the protocol is defined but scientific readiness remains blocked.",
+  "Exact leftmost-coordinate agreement does not fully characterize multi-mapping equivalence, graph-reference alternatives, structural variants, or alignment scoring calibration.",
+  "Supplementary simulation may exercise controlled edge cases but cannot satisfy the real-data evidence requirement.",
+  "Variant recovery and damage-stratified error are separate downstream admission requirements and are not inferred from mapping rate or cross-tool agreement.",
+]
+
+[[campaigns]]
 run_id = "run-2011"
 slug = "bam-duplication-metrics"
 domain = "bam"

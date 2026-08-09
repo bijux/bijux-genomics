@@ -2,13 +2,13 @@
   "schema_version": "bijux.benchmark.stage_coverage.v1",
   "summary": {
     "retained_stage_count": 71,
-    "defined_stage_count": 9,
+    "defined_stage_count": 10,
     "qualification_stage_count": 6,
-    "comparative_stage_count": 3,
+    "comparative_stage_count": 4,
     "admitted_stage_count": 0,
     "stale_stage_count": 0,
     "failed_stage_count": 0,
-    "missing_stage_count": 62
+    "missing_stage_count": 61
   },
   "stages": [
     {
@@ -17,8 +17,9 @@
         "bowtie2",
         "bwa"
       ],
-      "definition_status": "missing",
-      "execution_status": "not_defined"
+      "campaign_run_id": "run-2005",
+      "definition_status": "comparative",
+      "execution_status": "not_admitted"
     },
     {
       "stage_id": "bam.authenticity",
