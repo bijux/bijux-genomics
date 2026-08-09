@@ -243,6 +243,51 @@ fn derives_single_roster_after_governed_activation_retires_the_build_source() ->
 }
 
 #[test]
+fn derives_activated_roster_from_nested_campaign_evidence() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let source = fs::read_dir(fixture.study.join("containers/apptainer"))?
+        .next()
+        .context("fixture omits the built image")??
+        .path();
+    let active_root = fixture.study.join("containers/current-images");
+    fs::create_dir_all(&active_root)?;
+    fs::hard_link(
+        &source,
+        active_root.join(source.file_name().context("built image has no filename")?),
+    )?;
+    let campaign_evidence = fixture.study.join("containers/evidence/selected-example");
+    fs::create_dir_all(&campaign_evidence)?;
+    let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
+        .find_map(|entry| {
+            entry.ok().and_then(|entry| {
+                entry.file_type().ok().filter(std::fs::FileType::is_file).map(|_| entry.path())
+            })
+        })
+        .context("fixture omits build evidence")?;
+    fs::rename(
+        &evidence_path,
+        campaign_evidence.join(evidence_path.file_name().context("evidence has no filename")?),
+    )?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![ImageInventoryEvidenceRoots {
+            image_root: active_root,
+            build_evidence_root: fixture.study.join("containers/evidence"),
+        }],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert!(tool.candidates[0].path.starts_with("study://containers/current-images/"));
+    assert_eq!(evidence.scan.images.len(), 1);
+    assert_eq!(evidence.scan.build_evidence.len(), 1);
+    Ok(())
+}
+
+#[test]
 fn composite_roster_admits_a_retired_build_source_with_unique_digest() -> Result<()> {
     let fixture = Fixture::current()?;
     let active_root = fixture.study.join("containers/current-images");

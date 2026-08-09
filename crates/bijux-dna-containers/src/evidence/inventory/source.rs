@@ -294,7 +294,7 @@ pub(super) fn load_build_evidence(
     let mut by_digest = BTreeMap::<String, Vec<IndexedBuildEvidence>>::new();
     let mut identities = Vec::new();
     for roots in &request.evidence_roots {
-        for path in regular_files_with_suffix(&roots.build_evidence_root, ".build.json")? {
+        for path in campaign_build_evidence_files(&roots.build_evidence_root)? {
             let bytes = fs::read(&path)
                 .with_context(|| format!("read container build evidence {}", path.display()))?;
             let mut document: BuildEvidenceDocument = serde_json::from_slice(&bytes)
@@ -314,7 +314,14 @@ pub(super) fn load_build_evidence(
                 );
             }
             if let Some(image_path) = identity.image.path.as_deref() {
-                validate_build_image_root(image_path, roots, request).with_context(|| {
+                validate_build_image_root(
+                    image_path,
+                    &identity.image.sha256,
+                    identity.image.size_bytes,
+                    roots,
+                    request,
+                )
+                .with_context(|| {
                     format!("validate build-evidence image authority in {}", path.display())
                 })?;
             }
@@ -356,6 +363,8 @@ pub(super) fn load_build_evidence(
 
 fn validate_build_image_root(
     value: &str,
+    expected_sha256: &str,
+    expected_size_bytes: u64,
     roots: &ImageInventoryEvidenceRoots,
     request: &ImageInventoryDerivationRequest,
 ) -> Result<()> {
@@ -373,6 +382,10 @@ fn validate_build_image_root(
     let image_root = roots.image_root.canonicalize().with_context(|| {
         format!("canonicalize paired image root {}", roots.image_root.display())
     })?;
+    let study_root = request
+        .study_root
+        .canonicalize()
+        .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
     if !path
         .try_exists()
         .with_context(|| format!("inspect build-evidence image authority {}", path.display()))?
@@ -381,10 +394,6 @@ fn validate_build_image_root(
         // while preserving the same immutable image in an active or composite roster. Candidate
         // admission still requires an exact digest, size, filename, tool, version, and recipe
         // match, and composite scans reject repeated image digests across their image roots.
-        let study_root = request
-            .study_root
-            .canonicalize()
-            .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
         let relative = path.strip_prefix(&request.study_root).with_context(|| {
             format!("retired build-evidence image path is outside {}", request.study_root.display())
         })?;
@@ -414,8 +423,31 @@ fn validate_build_image_root(
     let image = path
         .canonicalize()
         .with_context(|| format!("canonicalize build-evidence image {}", path.display()))?;
-    if !image.starts_with(image_root) {
-        bail!("build-evidence image is outside its paired image root");
+    if image.starts_with(&image_root) {
+        return Ok(());
+    }
+    if !image.starts_with(&study_root) {
+        bail!("build-evidence image is outside the governed study root");
+    }
+    let file_name = image.file_name().context("build-evidence image has no filename")?;
+    let paired_image = image_root.join(file_name);
+    let paired_image = paired_image.canonicalize().with_context(|| {
+        format!(
+            "build-evidence image is outside its paired image root and no activated image exists at {}",
+            paired_image.display()
+        )
+    })?;
+    if !paired_image.starts_with(&image_root) || !paired_image.is_file() {
+        bail!("activated build-evidence image is outside its paired image root");
+    }
+    let metadata = fs::metadata(&paired_image)
+        .with_context(|| format!("inspect activated image {}", paired_image.display()))?;
+    if metadata.len() != expected_size_bytes
+        || bijux_dna_infra::hash_file_sha256(&paired_image)
+            .with_context(|| format!("hash activated image {}", paired_image.display()))?
+            != expected_sha256
+    {
+        bail!("activated image does not match build-evidence identity");
     }
     Ok(())
 }
@@ -484,6 +516,23 @@ fn regular_files_with_suffix(root: &Path, suffix: &str) -> Result<Vec<PathBuf>> 
             && entry.file_name().to_string_lossy().ends_with(suffix)
         {
             paths.push(entry.path());
+        }
+    }
+    paths.sort();
+    Ok(paths)
+}
+
+fn campaign_build_evidence_files(root: &Path) -> Result<Vec<PathBuf>> {
+    let mut paths = regular_files_with_suffix(root, ".build.json")?;
+    for entry in fs::read_dir(root)
+        .with_context(|| format!("read build-evidence root {}", root.display()))?
+    {
+        let entry =
+            entry.with_context(|| format!("read build-evidence entry under {}", root.display()))?;
+        if entry.file_type().context("inspect build-evidence entry")?.is_dir()
+            && entry.file_name().to_string_lossy().starts_with("selected-")
+        {
+            paths.extend(regular_files_with_suffix(&entry.path(), ".build.json")?);
         }
     }
     paths.sort();
