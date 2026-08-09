@@ -56,8 +56,10 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bowtie2_align(),
         bwa_align(),
         mosdepth_coverage(),
+        picard_duplication_metrics(),
         picard_mapping_summary(),
         samtools_coverage(),
+        samtools_duplication_metrics(),
         samtools_endogenous_content(),
         samtools_mapping_summary(),
     ] {
@@ -188,6 +190,54 @@ fn picard_mapping_summary() -> ToolBindingV1 {
         "benchmark.bam.mapping_summary.compare",
         resources(1, 16, 8),
         &["pair_and_unpaired_categories_are_aggregated_without_first_or_second_of_pair_rows"],
+    )
+}
+
+fn picard_duplication_metrics() -> ToolBindingV1 {
+    retained_binding(
+        "bam.duplication_metrics",
+        "picard",
+        &["bam_input", "duplicate_detection", "native_duplication_metrics"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("duplication_metrics", TABLE), output("marked_bam", BAM)],
+        &[
+            "${executable}",
+            "MarkDuplicates",
+            "I=${input:bam}",
+            "O=${output:marked_bam}",
+            "M=${output:duplication_metrics}",
+            "REMOVE_DUPLICATES=false",
+            "ASSUME_SORT_ORDER=coordinate",
+            "CREATE_INDEX=true",
+            "VALIDATION_STRINGENCY=SILENT",
+        ],
+        "bijux.benchmark.bam.duplication_metrics.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::duplication_metrics",
+        "benchmark.bam.duplication_metrics.compare",
+        resources(1, 16, 16),
+        &["picard_native_metrics_are_normalized_from_examined_and_duplicate_read_categories"],
+    )
+}
+
+fn samtools_duplication_metrics() -> ToolBindingV1 {
+    retained_binding(
+        "bam.duplication_metrics",
+        "samtools",
+        &["bam_input", "duplicate_detection", "native_markdup_statistics"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("markdup_statistics", TABLE), output("marked_bam", BAM)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' markdup -@ 4 -s '${input:bam}' '${output:marked_bam}' 2> '${output:markdup_statistics}' && '${executable}' index -@ 4 '${output:marked_bam}'",
+        ],
+        "bijux.benchmark.bam.duplication_metrics.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::duplication_metrics",
+        "benchmark.bam.duplication_metrics.compare",
+        resources(4, 16, 16),
+        &["input_bam_must_carry_the_mate_tags_required_by_samtools_markdup"],
     )
 }
 

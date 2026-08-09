@@ -18,13 +18,14 @@ const GENOTYPING_STAGE: &str = "bam.genotyping";
 const COVERAGE_STAGE: &str = "bam.coverage";
 const ENDOGENOUS_CONTENT_STAGE: &str = "bam.endogenous_content";
 const MAPPING_SUMMARY_STAGE: &str = "bam.mapping_summary";
+const DUPLICATION_METRICS_STAGE: &str = "bam.duplication_metrics";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 9);
+    assert_eq!(retained.bindings().len(), 11);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -47,8 +48,34 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 17);
+    assert_eq!(all.bindings().len(), 19);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_duplication_metrics_bindings_close_run_2011_native_reports() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(DUPLICATION_METRICS_STAGE));
+
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["picard", "samtools"]
+    );
+    assert_eq!(bindings[0].resources.threads, 1);
+    assert_eq!(bindings[1].resources.threads, 4);
+    for binding in bindings {
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.bam.duplication_metrics.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_bam::tool_adapters::bam::duplication_metrics"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.bam.duplication_metrics.compare");
+        assert!(binding.outputs.iter().any(|output| output.name == "marked_bam"));
+    }
     Ok(())
 }
 
