@@ -240,12 +240,16 @@ campaign.
 
 [`contracts/qualification-runs.toml`](contracts/qualification-runs.toml) is the
 stable container run protocol registry. Its tool allocation map preserves
-successful checked-in run IDs for retained tools, allocates missing retained
-identities strictly above the historical maximum, and records unsupported
-tools without a runnable current ID. Its semantic run definitions close every
-identity from `run-1000` through `run-1157`, including the image campaign,
-historical protocols, current protocols, allocated next actions, and permanent
-`run-1081`/`run-1085` tombstones. Every definition carries purpose, ownership,
+successful checked-in run IDs, allocates missing runnable identities strictly
+above the historical maximum, and gives licensed external-artifact tools the
+same permanent protocol identity and resource contract as packaged tools.
+External-artifact protocols remain allocated, and execution reports
+`blocked_external` until a checksum-bound binary or SIF admission is available;
+the redistribution disposition never removes them from qualification. Its
+semantic run definitions close every identity from `run-1000` through
+`run-1158`, including the image campaign, historical protocols, current
+protocols, allocated next actions, and permanent `run-1081`/`run-1085`
+tombstones. Every definition carries purpose, ownership,
 operation, tools, contracts, corpus roles, acceptance, supersession, and a
 stable citation record. Catalog stage and input-role drift, cross-tool
 historical ID reuse, duplicate final runs, and non-passing final evidence fail

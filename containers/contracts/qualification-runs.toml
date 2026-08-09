@@ -6,16 +6,16 @@ historical_max_run_number = 1140
 [namespace]
 minimum = 1000
 maximum = 1999
-next_run_number = 1158
+next_run_number = 1159
 allocation_policy = "monotonic_only"
 identity_policy = "existing_ids_immutable_attempts_reuse_run_id"
 
 [summary]
-run_count = 158
+run_count = 159
 campaign_count = 1
 active_count = 68
-allocated_count = 17
-historical_count = 70
+allocated_count = 21
+historical_count = 67
 reserved_count = 2
 
 [[tools]]
@@ -48,8 +48,11 @@ acceptance_adapter = "stage-contract"
 [[tools]]
 tool_id = "angsd"
 support_disposition = "unsupported"
+run_id = "run-1094"
 stage_id = "bam.kinship"
 input_role = "bam"
+resource_profile = "bam-standard"
+acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "atropos"
@@ -324,8 +327,11 @@ acceptance_adapter = "stage-contract"
 [[tools]]
 tool_id = "fastuniq"
 support_disposition = "unsupported"
+run_id = "run-1023"
 stage_id = "fastq.remove_duplicates"
 input_role = "fastq"
+resource_profile = "fastq-standard"
+acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fastx_clipper"
@@ -411,8 +417,11 @@ acceptance_adapter = "stage-contract"
 [[tools]]
 tool_id = "impute5"
 support_disposition = "unsupported"
+run_id = "run-1158"
 stage_id = "vcf.imputation_metrics"
 input_role = "vcf"
+resource_profile = "vcf-standard"
+acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "kaiju"
@@ -525,8 +534,11 @@ acceptance_adapter = "stage-contract"
 [[tools]]
 tool_id = "ngsbriggs"
 support_disposition = "unsupported"
+run_id = "run-1046"
 stage_id = "bam.damage"
 input_role = "bam"
+resource_profile = "bam-standard"
+acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "pear"
@@ -1538,8 +1550,8 @@ contract_ids = [
 ]
 corpus_roles = ["fastq"]
 acceptance_policy = "stage-contract with fastq-standard resource accounting"
-state = "historical"
-state_reason = "Historical run identity retained without promotion to current evidence."
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
 supersedes_run_ids = ["run-1015"]
 
 [runs.citation]
@@ -1547,7 +1559,7 @@ citation_key = "bijux-container-run-1023"
 protocol_version = "1"
 registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1023"
 evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1023"]
-limitations = ["Historical evidence is not a current qualification publication."]
+limitations = ["The protocol has no selected publication until qualification completes."]
 
 [[runs]]
 run_id = "run-1024"
@@ -2165,8 +2177,8 @@ contract_ids = [
 ]
 corpus_roles = ["bam"]
 acceptance_policy = "stage-contract with bam-standard resource accounting"
-state = "historical"
-state_reason = "Historical run identity retained without promotion to current evidence."
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
 supersedes_run_ids = ["run-1043"]
 
 [runs.citation]
@@ -2174,7 +2186,7 @@ citation_key = "bijux-container-run-1046"
 protocol_version = "1"
 registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1046"
 evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1046"]
-limitations = ["Historical evidence is not a current qualification publication."]
+limitations = ["The protocol has no selected publication until qualification completes."]
 
 [[runs]]
 run_id = "run-1047"
@@ -3476,8 +3488,8 @@ contract_ids = [
 ]
 corpus_roles = ["bam"]
 acceptance_policy = "stage-contract with bam-standard resource accounting"
-state = "historical"
-state_reason = "Historical run identity retained without promotion to current evidence."
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
 supersedes_run_ids = []
 
 [runs.citation]
@@ -3485,7 +3497,7 @@ citation_key = "bijux-container-run-1094"
 protocol_version = "1"
 registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1094"
 evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1094"]
-limitations = ["Historical evidence is not a current qualification publication."]
+limitations = ["The protocol has no selected publication until qualification completes."]
 
 [[runs]]
 run_id = "run-1095"
@@ -5195,5 +5207,31 @@ supersedes_run_ids = []
 citation_key = "bijux-container-run-1157"
 protocol_version = "1"
 registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1157"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1158"
+title = "IMPUTE5 container qualification protocol"
+purpose = "Qualify IMPUTE5 1.2.0 for the vcf.imputation_metrics operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.imputation_metrics"
+tool_ids = ["impute5"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.imputation_metrics",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1158"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1158"
 evidence_uris = []
 limitations = ["The protocol has no selected publication until qualification completes."]

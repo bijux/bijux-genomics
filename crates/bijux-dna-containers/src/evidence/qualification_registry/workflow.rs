@@ -24,8 +24,8 @@ const EXPECTED_UNSUPPORTED_TOOLS: usize = 4;
 const QUALIFICATION_RUN_REGISTRY_SCHEMA_V1: &str = "bijux.container.qualification_run_registry.v1";
 const RUN_NAMESPACE_MINIMUM: u64 = 1000;
 const RUN_NAMESPACE_MAXIMUM: u64 = 1999;
-const RUN_NAMESPACE_NEXT: u64 = 1158;
-const RUN_NAMESPACE_SIZE: usize = 158;
+const RUN_NAMESPACE_NEXT: u64 = 1159;
+const RUN_NAMESPACE_SIZE: usize = 159;
 
 #[derive(Debug, Clone)]
 pub struct QualificationRegistryDerivationRequest {
@@ -107,7 +107,7 @@ struct LegacyQualificationRunRegistry {
     tools: Vec<QualificationRunRegistryEntry>,
 }
 
-/// Derive one stable run identity per retained tool without reusing historical IDs.
+/// Derive one stable run identity per runnable tool without reusing historical IDs.
 ///
 /// # Errors
 /// Returns an error when catalog counts, current final runs, historical attempts, or run-ID
@@ -201,8 +201,8 @@ pub fn derive_qualification_run_registry(
         observed_historical_run_count: historical.len(),
         reserved_run_count: tombstones.len(),
         historical_max_run_number,
-        retained_mapping_count: registry.tools.iter().filter(|row| row.run_id.is_some()).count(),
-        unsupported_tool_count: registry.tools.iter().filter(|row| row.run_id.is_none()).count(),
+        retained_mapping_count: disposition_count(&registry, "retained"),
+        unsupported_tool_count: disposition_count(&registry, "unsupported"),
         allocated_mapping_count: derived_rows.allocated_mapping_count,
         historical_identities: historical
             .iter()
@@ -215,6 +215,10 @@ pub fn derive_qualification_run_registry(
         rows: derived_rows.audit_rows,
     };
     Ok(DerivedQualificationRunRegistry { registry, audit })
+}
+
+fn disposition_count(registry: &QualificationRunRegistry, disposition: &str) -> usize {
+    registry.tools.iter().filter(|row| row.support_disposition == disposition).count()
 }
 
 fn derive_registry_rows(
@@ -234,14 +238,27 @@ fn derive_registry_rows(
         .max(highest_reserved)
         .checked_add(1)
         .context("qualification run number overflow")?;
+    let missing_retained = catalog
+        .tools
+        .iter()
+        .filter(|tool| tool.support_disposition == "retained")
+        .filter(|tool| {
+            !current.contains_key(&tool.id) && !reservations.contains_key(tool.id.as_str())
+        })
+        .count();
+    let mut next_external_run_number = next_run_number
+        .checked_add(
+            u64::try_from(missing_retained).context("retained allocation count exceeds u64")?,
+        )
+        .context("qualification external-artifact run number overflow")?;
     let mut derived = DerivedRegistryRows {
         entries: Vec::with_capacity(catalog.tools.len()),
         audit_rows: Vec::with_capacity(catalog.tools.len()),
         allocated_mapping_count: 0,
     };
     for tool in &catalog.tools {
-        let retained = tool.support_disposition == "retained";
-        let (run_id, identity_source, resource_profile, acceptance_adapter) = if retained {
+        let runnable = tool.support_disposition == "retained" || tool.external_artifact_supported;
+        let (run_id, identity_source, resource_profile, acceptance_adapter) = if runnable {
             let (run_id, source) = if let Some(number) = current.get(&tool.id) {
                 let current_run_id = format!("run-{number}");
                 if reservations
@@ -258,9 +275,19 @@ fn derive_registry_rows(
                 derived.allocated_mapping_count += 1;
                 ((*reserved).to_string(), "allocated_after_historical_max")
             } else {
-                let number = next_run_number;
-                next_run_number =
-                    next_run_number.checked_add(1).context("qualification run number overflow")?;
+                let number = if tool.external_artifact_supported {
+                    let number = next_external_run_number;
+                    next_external_run_number = next_external_run_number
+                        .checked_add(1)
+                        .context("qualification external-artifact run number overflow")?;
+                    number
+                } else {
+                    let number = next_run_number;
+                    next_run_number = next_run_number
+                        .checked_add(1)
+                        .context("qualification run number overflow")?;
+                    number
+                };
                 derived.allocated_mapping_count += 1;
                 (format!("run-{number}"), "allocated_after_historical_max")
             };
@@ -270,8 +297,6 @@ fn derive_registry_rows(
                 Some(resource_profile_for(&tool.real_test_input_kind)?.to_string()),
                 Some(acceptance_adapter_for(&tool.real_test_stage).to_string()),
             )
-        } else if tool.support_disposition == "unsupported" {
-            (None, "unsupported", None, None)
         } else {
             bail!("tool {} has unsupported disposition {}", tool.id, tool.support_disposition);
         };
@@ -380,7 +405,8 @@ fn derive_run_definitions(
             .context("tool run chain does not contain run")?;
         let is_current =
             tool.support_disposition == "retained" && current.get(tool_id) == Some(&number);
-        let is_allocated = allocated_runs.contains(&number);
+        let is_allocated = allocated_runs.contains(&number)
+            || (tool.external_artifact_supported && current.get(tool_id) == Some(&number));
         let state = if is_current {
             QualificationRunState::Active
         } else if is_allocated {
@@ -629,11 +655,16 @@ fn validate_qualification_run_reservations(registry: &QualificationRunRegistry) 
                 }
             }
             "unsupported" => {
-                if row.run_id.is_some()
-                    || row.resource_profile.is_some()
-                    || row.acceptance_adapter.is_some()
-                {
-                    bail!("unsupported tool {} has runnable qualification fields", row.tool_id);
+                let fields = [
+                    row.run_id.is_some(),
+                    row.resource_profile.is_some(),
+                    row.acceptance_adapter.is_some(),
+                ];
+                if fields.iter().any(|present| *present) && fields.iter().any(|present| !*present) {
+                    bail!(
+                        "external-artifact tool {} has incomplete qualification fields",
+                        row.tool_id
+                    );
                 }
             }
             other => bail!("unexpected support disposition {other}"),
@@ -694,11 +725,28 @@ pub fn validate_qualification_run_registry(
             }
             "unsupported" => {
                 unsupported += 1;
-                if row.run_id.is_some()
-                    || row.resource_profile.is_some()
-                    || row.acceptance_adapter.is_some()
+                if !tool.external_artifact_supported {
+                    bail!(
+                        "unsupported tool {} lacks governed external-artifact support",
+                        row.tool_id
+                    );
+                }
+                let run_id = row
+                    .run_id
+                    .as_deref()
+                    .context("external-artifact tool has no permanent run ID")?;
+                parse_run_id(run_id)?;
+                if !run_ids.insert(run_id) {
+                    bail!("qualification registry contains duplicate run ID {run_id}");
+                }
+                if row.resource_profile.as_deref() != Some(resource_profile_for(&row.input_role)?)
+                    || row.acceptance_adapter.as_deref()
+                        != Some(acceptance_adapter_for(&row.stage_id))
                 {
-                    bail!("unsupported tool {} has runnable qualification fields", row.tool_id);
+                    bail!(
+                        "qualification registry adapters differ for external-artifact tool {}",
+                        row.tool_id
+                    );
                 }
             }
             other => bail!("unexpected support disposition {other}"),
@@ -766,9 +814,9 @@ fn validate_run_definitions(
     }
     let summary = summarize_run_definitions(&registry.runs);
     if registry.summary != summary
-        || summary.run_count != 158
+        || summary.run_count != RUN_NAMESPACE_SIZE
         || summary.campaign_count != 1
-        || summary.allocated_count != 17
+        || summary.allocated_count != 21
         || summary.reserved_count != 2
     {
         bail!("qualification run registry summary is invalid");

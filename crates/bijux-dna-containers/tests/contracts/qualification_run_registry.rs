@@ -17,12 +17,12 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(first.registry, second.registry);
     assert_eq!(first.audit, second.audit);
     assert_eq!(first.registry.tools.len(), 89);
-    assert_eq!(first.registry.runs.len(), 158);
-    assert_eq!(first.registry.summary.run_count, 158);
+    assert_eq!(first.registry.runs.len(), 159);
+    assert_eq!(first.registry.summary.run_count, 159);
     assert_eq!(first.registry.summary.campaign_count, 1);
     assert_eq!(first.registry.summary.active_count, 68);
-    assert_eq!(first.registry.summary.allocated_count, 17);
-    assert_eq!(first.registry.summary.historical_count, 70);
+    assert_eq!(first.registry.summary.allocated_count, 21);
+    assert_eq!(first.registry.summary.historical_count, 67);
     assert_eq!(first.registry.summary.reserved_count, 2);
     assert_eq!(first.registry.runs[0].run_id, "run-1000");
     assert_eq!(first.registry.runs[0].state, QualificationRunState::Campaign);
@@ -31,11 +31,11 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(first.registry.runs[81].state, QualificationRunState::Reserved);
     assert_eq!(first.registry.runs[85].run_id, "run-1085");
     assert_eq!(first.registry.runs[85].state, QualificationRunState::Reserved);
-    assert_eq!(first.registry.runs[157].run_id, "run-1157");
-    assert_eq!(first.registry.runs[157].citation.citation_key, "bijux-container-run-1157");
+    assert_eq!(first.registry.runs[158].run_id, "run-1158");
+    assert_eq!(first.registry.runs[158].citation.citation_key, "bijux-container-run-1158");
     assert_eq!(first.audit.retained_mapping_count, 85);
     assert_eq!(first.audit.unsupported_tool_count, 4);
-    assert_eq!(first.audit.allocated_mapping_count, 17);
+    assert_eq!(first.audit.allocated_mapping_count, 18);
     assert_eq!(first.audit.historical_identities.len(), 138);
     assert_eq!(first.audit.reserved_run_count, 2);
     assert_eq!(first.audit.reserved_run_ids.len(), 2);
@@ -45,10 +45,23 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(run_id(&first, "adapterremoval"), Some("run-1002"));
     assert_eq!(run_id(&first, "bijux_dna"), Some("run-1141"));
     assert_eq!(run_id(&first, "yleaf"), Some("run-1157"));
-    assert_eq!(run_id(&first, "angsd"), None);
-    assert_eq!(run_id(&first, "fastuniq"), None);
-    assert_eq!(run_id(&first, "impute5"), None);
-    assert_eq!(run_id(&first, "ngsbriggs"), None);
+    assert_eq!(run_id(&first, "angsd"), Some("run-1094"));
+    assert_eq!(run_id(&first, "fastuniq"), Some("run-1023"));
+    assert_eq!(run_id(&first, "impute5"), Some("run-1158"));
+    assert_eq!(run_id(&first, "ngsbriggs"), Some("run-1046"));
+    for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        let external_run_id = run_id(&first, tool_id).context("external run ID")?;
+        let run = first
+            .registry
+            .runs
+            .iter()
+            .find(|candidate| candidate.run_id == external_run_id)
+            .context("external run definition")?;
+        assert_eq!(run.state, QualificationRunState::Allocated);
+        assert!(run.citation.limitations.iter().any(|limitation| {
+            limitation == "The protocol has no selected publication until qualification completes."
+        }));
+    }
 
     let rendered = render_qualification_run_registry(&first.registry)?;
     assert_eq!(rendered, render_qualification_run_registry(&second.registry)?);
@@ -60,7 +73,7 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
 }
 
 #[test]
-fn registry_rejects_duplicate_ids_unsupported_execution_and_catalog_drift() -> Result<()> {
+fn registry_rejects_duplicate_ids_incomplete_external_execution_and_catalog_drift() -> Result<()> {
     let root = repository_root()?;
     let derived = derive_qualification_run_registry(&request(&root))?;
     let catalog = load_container_catalog(&root)?;
@@ -71,10 +84,14 @@ fn registry_rejects_duplicate_ids_unsupported_execution_and_catalog_drift() -> R
         Some(adapterremoval.to_string());
     assert!(validate_qualification_run_registry(&catalog, &duplicate).is_err());
 
-    let mut unsupported = derived.registry.clone();
-    unsupported.tools.iter_mut().find(|row| row.tool_id == "angsd").context("angsd row")?.run_id =
-        Some("run-9999".to_string());
-    assert!(validate_qualification_run_registry(&catalog, &unsupported).is_err());
+    let mut external = derived.registry.clone();
+    external
+        .tools
+        .iter_mut()
+        .find(|row| row.tool_id == "angsd")
+        .context("angsd row")?
+        .resource_profile = None;
+    assert!(validate_qualification_run_registry(&catalog, &external).is_err());
 
     let mut stage_drift = derived.registry;
     stage_drift
