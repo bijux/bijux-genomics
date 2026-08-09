@@ -22,8 +22,9 @@ use bijux_dna_core::{
     ids::{StageId, ToolId},
 };
 use bijux_dna_stage_contract::{
-    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1,
-    ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
+    canonical_tool_bindings, BindingInputV1, BindingOutputV1, BindingParameterV1,
+    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingV1,
+    TOOL_BINDING_SCHEMA_V1,
 };
 
 const EXISTING_CAMPAIGN_COUNT: usize = 9;
@@ -59,6 +60,46 @@ fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()
     assert!(
         serde_json::to_vec(&matrix)? == reordered_bytes,
         "case matrix bytes changed with semantically unordered authority input"
+    );
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2001_plans_through_the_canonical_binding_registry() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2001");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.genotyping");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2001 campaign is absent"))?;
+    let snapshots = campaign
+        .corpus_catalog_ids
+        .iter()
+        .map(|corpus_id| BenchmarkCorpusSnapshotV1 {
+            corpus_id: corpus_id.clone(),
+            snapshot_sha256: "a".repeat(64),
+            sample_ids: vec!["contract-sample".to_string()],
+        })
+        .collect::<Vec<_>>();
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        corpus_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(matrix.cases.len(), 1);
+    assert_eq!(matrix.cases[0].run_id, "run-2001");
+    assert_eq!(matrix.cases[0].tool_id, "bcftools");
+    assert_eq!(
+        matrix.cases[0].binding.normalized_output_contract_id,
+        matrix.cases[0].interface.output_contract
     );
     Ok(())
 }

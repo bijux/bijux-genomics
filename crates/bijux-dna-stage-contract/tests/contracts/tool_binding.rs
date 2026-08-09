@@ -14,13 +14,14 @@ use bijux_dna_stage_contract::{
 const ALIGN_STAGE: &str = "bam.align";
 const ALIGN_BUNDLE: &str = "bijux.benchmark.bam.align.bundle.v1";
 const UNSORTED_SAM: &str = "bijux.sam.artifact.unsorted.v1";
+const GENOTYPING_STAGE: &str = "bam.genotyping";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 2);
+    assert_eq!(retained.bindings().len(), 3);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -43,8 +44,29 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 10);
+    assert_eq!(all.bindings().len(), 11);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_genotyping_binding_closes_run_2001_native_execution() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(GENOTYPING_STAGE), &ToolId::new("bcftools"))
+        .ok_or_else(|| anyhow::anyhow!("canonical BCFtools genotyping binding is missing"))?;
+
+    assert_eq!(binding.resources.threads, 4);
+    assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.bam.genotyping.bundle.v1");
+    assert_eq!(binding.normalizer_id, "bijux_dna_planner_bam::tool_adapters::bam::genotyping");
+    assert_eq!(binding.downstream_probe_id, "benchmark.bam.genotyping.consume");
+    assert_eq!(binding.outputs.len(), 1);
+    assert_eq!(
+        binding.outputs[0].artifact_contract_id,
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+    );
+    assert!(binding.command_template[2].contains("mpileup"));
+    assert!(binding.command_template[2].contains("index -f"));
     Ok(())
 }
 

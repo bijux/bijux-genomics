@@ -50,7 +50,7 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 /// Returns an error if a binding violates the schema or duplicates a stage/tool pair.
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
-    for binding in [bowtie2_align(), bwa_align()] {
+    for binding in [bcftools_genotyping(), bowtie2_align(), bwa_align()] {
         registry.insert(binding)?;
     }
     Ok(registry)
@@ -99,6 +99,10 @@ fn bowtie2_align() -> ToolBindingV1 {
             "-S",
             "${output:raw_sam}",
         ],
+        "bijux.benchmark.bam.align.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::align",
+        "benchmark.bam.align.compare",
+        resources(8, 16, 16),
         &[
             "paired_end_binding",
             "canonical_preset_is_very_sensitive",
@@ -132,7 +136,40 @@ fn bwa_align() -> ToolBindingV1 {
             "${input:reads_r1}",
             "${input:reads_r2}",
         ],
+        "bijux.benchmark.bam.align.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::align",
+        "benchmark.bam.align.compare",
+        resources(8, 16, 16),
         &["paired_end_binding", "canonical_preset_is_bwa_mem_default"],
+    )
+}
+
+fn bcftools_genotyping() -> ToolBindingV1 {
+    retained_binding(
+        "bam.genotyping",
+        "bcftools",
+        &["bam_input", "candidate_site_genotyping", "indexed_vcf_output"],
+        &[
+            input("bam", BAM),
+            input("reference", FASTA),
+            input("candidate_regions", TABLE),
+            input("candidate_alleles", TABLE),
+        ],
+        &[],
+        &[output("called_vcf", VCF)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' mpileup -f '${input:reference}' -R '${input:candidate_regions}' -q 20 -Q 20 -a FORMAT/DP,FORMAT/AD -Ou '${input:bam}' | '${executable}' call --threads 2 -A -i -m -C alleles -T '${input:candidate_alleles}' -Oz -o '${output:called_vcf}' && '${executable}' index -f '${output:called_vcf}'",
+        ],
+        "bijux.benchmark.bam.genotyping.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::genotyping",
+        "benchmark.bam.genotyping.consume",
+        resources(4, 16, 16),
+        &[
+            "candidate_sites_are_independent_evidence_not_sample_genotype_truth",
+            "scientific_thresholds_are_applied_by_the_result_normalizer",
+        ],
     )
 }
 
@@ -145,6 +182,10 @@ fn retained_binding(
     parameters: &[&str],
     outputs: &[BindingOutputV1],
     command_template: &[&str],
+    normalized_output_contract_id: &str,
+    normalizer_id: &str,
+    downstream_probe_id: &str,
+    resources: ToolConstraints,
     limitations: &[&str],
 ) -> ToolBindingV1 {
     ToolBindingV1 {
@@ -162,16 +203,11 @@ fn retained_binding(
             .map(|name| BindingParameterV1 { name: (*name).to_string(), required: true })
             .collect(),
         outputs: outputs.to_vec(),
-        normalized_output_contract_id: format!("bijux.benchmark.{stage_id}.bundle.v1"),
+        normalized_output_contract_id: normalized_output_contract_id.to_string(),
         command_template: command_template.iter().map(ToString::to_string).collect(),
-        resources: ToolConstraints {
-            runtime: "apptainer".to_string(),
-            mem_gb: 16,
-            tmp_gb: 16,
-            threads: 8,
-        },
-        normalizer_id: "bijux_dna_planner_bam::tool_adapters::bam::align".to_string(),
-        downstream_probe_id: "benchmark.bam.align.compare".to_string(),
+        resources,
+        normalizer_id: normalizer_id.to_string(),
+        downstream_probe_id: downstream_probe_id.to_string(),
         limitations: limitations.iter().map(ToString::to_string).collect(),
     }
 }
