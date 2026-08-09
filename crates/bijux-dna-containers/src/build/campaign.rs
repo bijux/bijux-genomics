@@ -305,18 +305,15 @@ pub fn verify_apptainer_image_campaign_receipt(
         &catalog_sha256,
         &catalog.apptainer_architecture,
     )?;
-    let retained = retained_apptainer_tool_ids(repository_root, &catalog.apptainer_architecture)?
-        .into_iter()
-        .collect::<BTreeSet<_>>();
-    if tools.keys().cloned().collect::<BTreeSet<_>>() != retained
-        || tools.len() != validated.retained_count
-        || tools.values().any(|outcome| {
-            outcome.status != ImageCampaignToolStatus::Passed
-                || outcome.publication.is_none()
-                || outcome.error.is_some()
-        })
-    {
-        bail!("image campaign receipt does not close the retained tool roster");
+    let retained_tools =
+        retained_apptainer_tool_ids(repository_root, &catalog.apptainer_architecture)?;
+    let selected_tools = selected_receipt_tools(&retained_tools, tools.keys())?;
+    if tools.values().any(|outcome| {
+        outcome.status != ImageCampaignToolStatus::Passed
+            || outcome.publication.is_none()
+            || outcome.error.is_some()
+    }) {
+        bail!("image campaign receipt does not close the selected tool roster");
     }
     let execution = execution_from_tools(
         source_commit.clone(),
@@ -324,11 +321,6 @@ pub fn verify_apptainer_image_campaign_receipt(
         catalog.apptainer_architecture.clone(),
         tools.clone(),
     );
-    let retained_tools =
-        retained_apptainer_tool_ids(repository_root, &catalog.apptainer_architecture)?;
-    let execution_tools = execution.tools.keys().cloned().collect::<Vec<_>>();
-    let execution_tool_set = execution_tools.iter().cloned().collect::<BTreeSet<_>>();
-    let selected_tools = select_campaign_tools(&retained_tools, Some(&execution_tool_set))?;
     let scope = campaign_scope(&selected_tools, retained_tools.len());
     let canonical_path = campaign_root(
         &study_root.join("containers/evidence/image-campaigns"),
@@ -356,6 +348,18 @@ pub fn verify_apptainer_image_campaign_receipt(
         &Mutex::new(tools),
     )?;
     Ok(execution)
+}
+
+fn selected_receipt_tools<'a>(
+    retained_tools: &[String],
+    execution_tools: impl Iterator<Item = &'a String>,
+) -> Result<Vec<String>> {
+    let execution_tools = execution_tools.cloned().collect::<BTreeSet<_>>();
+    let selected_tools = select_campaign_tools(retained_tools, Some(&execution_tools))?;
+    if selected_tools.len() != execution_tools.len() {
+        bail!("image campaign receipt tool roster is invalid");
+    }
+    Ok(selected_tools)
 }
 
 fn select_campaign_tools(
@@ -730,6 +734,17 @@ mod tests {
         assert!(select_campaign_tools(&retained, Some(&BTreeSet::new())).is_err());
         assert!(select_campaign_tools(&retained, Some(&BTreeSet::from(["unknown".to_string()])),)
             .is_err());
+    }
+
+    #[test]
+    fn selected_receipt_accepts_exact_retained_subsets_only() -> Result<()> {
+        let retained = vec!["alpha".to_string(), "beta".to_string(), "gamma".to_string()];
+        let selected = BTreeSet::from(["alpha".to_string(), "gamma".to_string()]);
+        assert_eq!(selected_receipt_tools(&retained, selected.iter())?, ["alpha", "gamma"]);
+        assert!(selected_receipt_tools(&retained, BTreeSet::<String>::new().iter()).is_err());
+        let unknown = BTreeSet::from(["unknown".to_string()]);
+        assert!(selected_receipt_tools(&retained, unknown.iter()).is_err());
+        Ok(())
     }
 
     #[test]

@@ -36,10 +36,28 @@ pub fn prepare_apptainer_tool_contract(
     if !request.output_root.starts_with(&request.repository_root) {
         bail!("tool-contract output root must be inside the repository");
     }
+    prepare_tool_contract_build(request, true)
+}
+
+pub(crate) fn prepare_apptainer_tool_contract_for_publication(
+    request: &ToolContractBuildRequest,
+) -> Result<PreparedToolContractBuild> {
+    if !request.output_root.is_absolute()
+        || request.output_root.starts_with(&request.repository_root)
+    {
+        bail!("publication tool-contract output root must be absolute and outside the repository");
+    }
+    prepare_tool_contract_build(request, false)
+}
+
+fn prepare_tool_contract_build(
+    request: &ToolContractBuildRequest,
+    repository_relative_output: bool,
+) -> Result<PreparedToolContractBuild> {
     let source =
         load_retained_tool(&request.repository_root, &request.tool_id, &request.architecture)?;
     let contract = derive_contract(request, &source)?;
-    persist_contract_build(request, source, contract)
+    persist_contract_build(request, source, contract, repository_relative_output)
 }
 
 /// Derive the immutable contract identity for one retained Apptainer tool without writing files.
@@ -129,6 +147,7 @@ fn persist_contract_build(
     request: &ToolContractBuildRequest,
     source: CatalogToolSource,
     contract: ContainerToolContract,
+    repository_relative_output: bool,
 ) -> Result<PreparedToolContractBuild> {
     let tool_root = request.output_root.join(&contract.tool_id);
     bijux_dna_infra::ensure_dir(&tool_root)
@@ -136,11 +155,15 @@ fn persist_contract_build(
     let contract_path = tool_root.join("tool-contract.json");
     bijux_dna_infra::atomic_write_json(&contract_path, &contract)
         .with_context(|| format!("write tool contract {}", contract_path.display()))?;
-    let contract_source = contract_path
-        .strip_prefix(&request.repository_root)
-        .context("tool-contract output root must be inside the repository")?
-        .to_string_lossy()
-        .replace('\\', "/");
+    let contract_source = if repository_relative_output {
+        contract_path
+            .strip_prefix(&request.repository_root)
+            .context("tool-contract output root must be inside the repository")?
+            .to_string_lossy()
+            .replace('\\', "/")
+    } else {
+        contract_path.to_string_lossy().replace('\\', "/")
+    };
     let recipe =
         String::from_utf8(source.recipe_bytes).context("Apptainer definition is not UTF-8")?;
     let rendered = render_definition(&recipe, &contract_source, &contract)?;

@@ -10,8 +10,8 @@ use serde_json::Value;
 
 use crate::evidence::tool_contract::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
-    prepare_apptainer_tool_contract, verify_apptainer_tool_contract, PreparedToolContractBuild,
-    ToolContractBuildRequest, ToolImageIdentityEvidence,
+    prepare_apptainer_tool_contract_for_publication, verify_apptainer_tool_contract,
+    PreparedToolContractBuild, ToolContractBuildRequest, ToolImageIdentityEvidence,
 };
 use crate::evidence::{BuildContextIdentity, EvidenceSourceIdentity};
 
@@ -172,13 +172,12 @@ pub fn publish_canonical_apptainer_image(
         request.destination,
         request.campaign_scope.as_deref(),
     )?;
-    let build_input_root =
-        request.repository_root.join("artifacts/containers/tool-contract-build-inputs");
+    let build_input_root = roots.evidence.join("build-inputs");
     let lock_path = roots.evidence.join(".build-locks").join(format!("{}.lock", request.tool_id));
     let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, request.lock_timeout)
         .with_context(|| format!("acquire canonical image lock for {}", request.tool_id))?;
 
-    let prepared = prepare_apptainer_tool_contract(&ToolContractBuildRequest {
+    let prepared = prepare_apptainer_tool_contract_for_publication(&ToolContractBuildRequest {
         repository_root: request.repository_root.clone(),
         tool_id: request.tool_id.clone(),
         repository_commit: repository_commit.clone(),

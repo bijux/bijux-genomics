@@ -33,6 +33,7 @@ pub use model::{
     ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
     TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
 };
+pub(crate) use preparation::prepare_apptainer_tool_contract_for_publication;
 pub use preparation::{derive_apptainer_tool_contract, prepare_apptainer_tool_contract};
 pub use recipe_identity::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
