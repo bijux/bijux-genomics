@@ -22,7 +22,7 @@ const USAGE: &str = concat!(
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n",
-    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-cases --corpus-snapshots <path> --output <path> --repository-root <path> --run-id <run-id>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-cases --data-index <path> --output <path> --repository-root <path> --run-id <run-id> --study-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-cases --matrix <path> --observations <path> --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- aggregate-cases --matrix <path> --observations <path> --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n",

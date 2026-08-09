@@ -15,7 +15,7 @@ pub(super) fn plan_cases(
 ) -> Result<OpsCommandOutcome> {
     require_exact_options(
         options,
-        &["--corpus-snapshots", "--output", "--repository-root", "--run-id"],
+        &["--data-index", "--output", "--repository-root", "--run-id", "--study-root"],
     )?;
     let repository_root = resolve_path(workspace, required(options, "--repository-root")?)
         .canonicalize()
@@ -31,9 +31,16 @@ pub(super) fn plan_cases(
     let run_id = required(options, "--run-id")?;
     select_run_authorities(&mut campaigns, &mut interfaces, run_id)?;
     let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
-    let corpus_snapshots: Vec<bijux_dna_bench::BenchmarkCorpusSnapshotV1> = read_json(
-        &resolve_path(workspace, required(options, "--corpus-snapshots")?),
-        "benchmark corpus snapshots",
+    let corpus_ids = campaigns
+        .campaigns
+        .first()
+        .context("selected generic benchmark campaign is absent")?
+        .corpus_catalog_ids
+        .clone();
+    let corpus_snapshots = bijux_dna_bench::derive_benchmark_corpus_snapshots(
+        &resolve_path(workspace, required(options, "--study-root")?),
+        &resolve_path(workspace, required(options, "--data-index")?),
+        &corpus_ids,
     )?;
     let binding_bytes = serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
     let matrix = bijux_dna_bench::plan_benchmark_case_matrix(
