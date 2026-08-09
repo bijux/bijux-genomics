@@ -29,6 +29,8 @@ mod mod_contracts_protocol_rs;
 mod mod_contracts_publication_rs;
 #[path = "contracts/replay.rs"]
 mod mod_contracts_replay_rs;
+#[path = "contracts/run_index.rs"]
+mod mod_contracts_run_index_rs;
 #[path = "contracts/source_authority.rs"]
 mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]

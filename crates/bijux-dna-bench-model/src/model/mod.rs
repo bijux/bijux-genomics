@@ -20,6 +20,7 @@ pub mod publication;
 pub mod publication_registry;
 pub mod replay;
 pub mod report;
+pub mod run_index;
 pub mod source_authority;
 pub mod stage_result;
 pub mod suite;
@@ -168,6 +169,11 @@ pub use report::{
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
     BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
     BenchmarkStageReportDesign, BenchmarkToolReport,
+};
+#[allow(unused_imports)]
+pub use run_index::{
+    benchmark_run_index_schema, BenchmarkRunIndex, BenchmarkRunIndexEntry,
+    BenchmarkRunIndexFileReference, BenchmarkRunIndexPublication, BenchmarkRunIndexSummary,
 };
 #[allow(unused_imports)]
 pub use source_authority::{
