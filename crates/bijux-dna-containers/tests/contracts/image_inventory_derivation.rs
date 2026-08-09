@@ -212,6 +212,75 @@ fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
 }
 
 #[test]
+fn derives_single_roster_after_governed_activation_retires_the_build_source() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let active_root = fixture.study.join("containers/current-images");
+    fs::create_dir_all(&active_root)?;
+    let source = fs::read_dir(fixture.study.join("containers/apptainer"))?
+        .next()
+        .context("fixture omits the built image")??
+        .path();
+    let active = active_root.join(source.file_name().context("built image has no filename")?);
+    fs::rename(&source, &active)?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![ImageInventoryEvidenceRoots {
+            image_root: active_root,
+            build_evidence_root: fixture.study.join("containers/evidence"),
+        }],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert!(tool.candidates[0].path.starts_with("study://containers/current-images/"));
+    assert_eq!(evidence.scan.images.len(), 1);
+    assert_eq!(evidence.scan.build_evidence.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn composite_roster_rejects_a_retired_build_source() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let active_root = fixture.study.join("containers/current-images");
+    let additional_images = fixture.study.join("containers/staging/additional");
+    let additional_evidence = fixture.study.join("containers/evidence/additional");
+    fs::create_dir_all(&active_root)?;
+    fs::create_dir_all(&additional_images)?;
+    fs::create_dir_all(&additional_evidence)?;
+    let source = fs::read_dir(fixture.study.join("containers/apptainer"))?
+        .next()
+        .context("fixture omits the built image")??
+        .path();
+    let active = active_root.join(source.file_name().context("built image has no filename")?);
+    fs::rename(&source, &active)?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![
+            ImageInventoryEvidenceRoots {
+                image_root: active_root,
+                build_evidence_root: fixture.study.join("containers/evidence"),
+            },
+            ImageInventoryEvidenceRoots {
+                image_root: additional_images,
+                build_evidence_root: additional_evidence,
+            },
+        ],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let error = derive_image_inventory_evidence(&request)
+        .err()
+        .context("composite roster admitted a retired build source")?;
+    assert!(format!("{error:#}")
+        .contains("composite image inventory requires every build-evidence image path to exist"));
+    Ok(())
+}
+
+#[test]
 fn run_reference_closure_is_scoped_to_scanned_images() -> Result<()> {
     let fixture = Fixture::current()?;
     fixture.reference_image_from_run(&"d".repeat(64))?;

@@ -370,12 +370,36 @@ fn validate_build_image_root(
         }
         path
     };
-    let image = path
-        .canonicalize()
-        .with_context(|| format!("canonicalize build-evidence image {}", path.display()))?;
     let image_root = roots.image_root.canonicalize().with_context(|| {
         format!("canonicalize paired image root {}", roots.image_root.display())
     })?;
+    if !path
+        .try_exists()
+        .with_context(|| format!("inspect build-evidence image authority {}", path.display()))?
+    {
+        // Activation and governed storage reconciliation may retire the original campaign link
+        // while preserving the same immutable image under the sole active roster. Candidate
+        // admission still requires an exact digest, size, filename, tool, version, and recipe
+        // match. Composite scans keep path-bound roots to prevent cross-campaign evidence mixing.
+        if request.evidence_roots.len() != 1 {
+            bail!("composite image inventory requires every build-evidence image path to exist");
+        }
+        let parent = path.parent().context("build-evidence image path has no parent")?;
+        let parent = parent.canonicalize().with_context(|| {
+            format!("canonicalize retired build-evidence image parent {}", parent.display())
+        })?;
+        let study_root = request
+            .study_root
+            .canonicalize()
+            .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
+        if !parent.starts_with(&study_root) {
+            bail!("retired build-evidence image path is outside the governed study root");
+        }
+        return Ok(());
+    }
+    let image = path
+        .canonicalize()
+        .with_context(|| format!("canonicalize build-evidence image {}", path.display()))?;
     if !image.starts_with(image_root) {
         bail!("build-evidence image is outside its paired image root");
     }
