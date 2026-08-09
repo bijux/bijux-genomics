@@ -1,10 +1,12 @@
 use std::collections::BTreeSet;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 use anyhow::{bail, ensure, Context, Result};
 use regex::Regex;
 use sha2::{Digest, Sha256};
+use walkdir::WalkDir;
 
 use super::model::{RepositoryFreezeRequest, RepositoryFreezeScope};
 use super::validation::{safe_checkout_path, validate_container_governance_host};
@@ -32,6 +34,8 @@ pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
     let target = freeze_target(request, &checkout_paths);
     if target.symlink_metadata().is_ok() {
         verify_existing_freeze(&target, &request.commit)?;
+        make_snapshot_read_only(&target)?;
+        verify_read_only_snapshot(&target)?;
         return Ok(target);
     }
     if let Some(parent) = target.parent() {
@@ -165,6 +169,15 @@ fn create_snapshot(
             if cleanup { "" } else { "; incomplete snapshot remains" }
         ));
     }
+    if let Err(error) =
+        make_snapshot_read_only(&staging).and_then(|()| verify_read_only_snapshot(&staging))
+    {
+        let cleanup = remove_incomplete_snapshot(&staging);
+        return Err(error).context(format!(
+            "secure frozen repository snapshot{}",
+            if cleanup { "" } else { "; cleanup failed" }
+        ));
+    }
     if let Err(error) = std::fs::rename(&staging, target) {
         let cleanup = remove_incomplete_snapshot(&staging);
         return Err(error).with_context(|| {
@@ -174,6 +187,41 @@ fn create_snapshot(
                 if cleanup { "" } else { "; incomplete snapshot remains" }
             )
         });
+    }
+    Ok(())
+}
+
+fn make_snapshot_read_only(target: &Path) -> Result<()> {
+    for entry in WalkDir::new(target).contents_first(true).follow_links(false) {
+        let entry =
+            entry.with_context(|| format!("walk frozen repository {}", target.display()))?;
+        if entry.file_type().is_symlink() {
+            continue;
+        }
+        let metadata = entry.metadata().with_context(|| {
+            format!("inspect frozen repository path {}", entry.path().display())
+        })?;
+        let mut permissions = metadata.permissions();
+        permissions.set_mode(permissions.mode() & !0o222);
+        std::fs::set_permissions(entry.path(), permissions).with_context(|| {
+            format!("remove write permissions from frozen path {}", entry.path().display())
+        })?;
+    }
+    Ok(())
+}
+
+fn verify_read_only_snapshot(target: &Path) -> Result<()> {
+    for entry in WalkDir::new(target).follow_links(false) {
+        let entry =
+            entry.with_context(|| format!("walk frozen repository {}", target.display()))?;
+        if entry.file_type().is_symlink() {
+            continue;
+        }
+        ensure!(
+            entry.metadata()?.permissions().mode() & 0o222 == 0,
+            "frozen repository path remains writable: {}",
+            entry.path().display()
+        );
     }
     Ok(())
 }
@@ -252,5 +300,20 @@ fn git(repository: &Path, arguments: &[String]) -> Result<Output> {
 }
 
 fn remove_incomplete_snapshot(target: &Path) -> bool {
-    target.symlink_metadata().is_err() || std::fs::remove_dir_all(target).is_ok()
+    if target.symlink_metadata().is_err() {
+        return true;
+    }
+    for entry in WalkDir::new(target).contents_first(true).follow_links(false).into_iter().flatten()
+    {
+        if entry.file_type().is_symlink() {
+            continue;
+        }
+        if let Ok(metadata) = entry.metadata() {
+            let mut permissions = metadata.permissions();
+            let owner_mode = if entry.file_type().is_dir() { 0o700 } else { 0o200 };
+            permissions.set_mode(permissions.mode() | owner_mode);
+            let _ = std::fs::set_permissions(entry.path(), permissions);
+        }
+    }
+    std::fs::remove_dir_all(target).is_ok()
 }
