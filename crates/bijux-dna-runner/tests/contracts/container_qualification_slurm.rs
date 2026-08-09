@@ -15,11 +15,11 @@ use bijux_dna_runner::api::{
     collect_container_qualification_slurm_job, execute_container_qualification,
     load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
     prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
+    rollback_failed_container_qualification_attempt_archive,
     submit_prepared_container_qualification_job, ContainerQualificationExecution,
-    ContainerQualificationFailedAttemptArchive, ContainerQualificationPreparationRequest,
-    ContainerQualificationSchedulerStatus, ContainerQualificationSlurmSpec,
-    ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
-    SlurmClientPaths, SlurmJobState,
+    ContainerQualificationPreparationRequest, ContainerQualificationSchedulerStatus,
+    ContainerQualificationSlurmSpec, ContainerQualificationSubmissionKind,
+    HistoricalContainerQualificationReplayRequest, SlurmClientPaths, SlurmJobState,
 };
 
 use crate::scheduler_executable::write_executable;
@@ -44,6 +44,7 @@ fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result
     assert_eq!(prepared.request.dependencies, vec!["456700"]);
     assert_eq!(spec.repository_path, fixture.frozen_repository);
     assert_eq!(spec.repository_commit, fixture.commit);
+    assert_eq!(spec.result_root, fixture.evidence_root);
     assert!(fixture.evidence_root.join("config-governance.yml").is_file());
     assert!(fixture.evidence_root.join("config-pipeline.yml").is_file());
     assert!(fixture.evidence_root.join("config-credential.yml").is_file());
@@ -247,10 +248,7 @@ fn preparation_keeps_qualification_attempts_immutable_and_addressable() -> Resul
     assert_eq!(first_spec.evidence_root, fixture.evidence_root);
     assert_eq!(second_spec.evidence_root, second_evidence_root);
     assert_eq!(first_spec.result_root, fixture.paths.result_root);
-    assert_eq!(
-        second_spec.result_root,
-        fixture.paths.result_namespace.join("attempts/governed-runner-test/attempt-002")
-    );
+    assert_eq!(second_spec.result_root, second_evidence_root);
     assert_eq!(
         prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?,
         first
@@ -470,6 +468,8 @@ fn historical_replay_archives_source_authority_without_weakening_current_prepara
     assert_eq!(spec.schema_version, "bijux.runner.container_qualification_slurm_spec.v5");
     assert_eq!(spec.campaign_id.as_deref(), Some("governed-runner-replay-test"));
     assert_eq!(spec.attempt_id.as_deref(), Some("attempt-001"));
+    assert_eq!(spec.result_root, replay_evidence_root);
+    assert!(spec.result_root.join("outputs").is_dir());
     assert!(spec
         .historical_replay_source
         .as_ref()
@@ -611,27 +611,32 @@ fn failed_scheduler_attempt_is_archived_without_execution_evidence() -> Result<(
 
     assert!(!spec.evidence_root.exists());
     assert!(!spec.result_root.exists());
-    assert!(archived.path.join("archive.json").is_file());
-    let persisted: ContainerQualificationFailedAttemptArchive =
-        serde_json::from_slice(&fs::read(archived.path.join("archive.json"))?)?;
-    assert_eq!(persisted, archived.archive);
-    assert_eq!(archived.archive.run_id, "run-1200");
-    assert_eq!(archived.archive.tool_id, "bwa");
-    assert_eq!(archived.archive.attempt_id.as_deref(), Some("attempt-001"));
-    assert_eq!(archived.archive.slurm_job_id, "456789");
-    assert!(archived.archive.source_paths.submission.starts_with("study://containers/"));
-    assert!(archived.archive.source_paths.result.starts_with("study://results/"));
-    assert!(archived
-        .archive
-        .files
-        .iter()
-        .any(|file| file.path == "submission/scheduler-evidence.json"));
-    assert!(archived.archive.files.iter().any(|file| file.path == "result/slurm-accounting.json"));
-    for file in &archived.archive.files {
-        let path = archived.path.join(&file.path);
+    assert!(archived.archive_receipt_path.is_file());
+    let persisted: bijux_dna_infra::AttemptArchiveReceiptV1 =
+        serde_json::from_slice(&fs::read(&archived.archive_receipt_path)?)?;
+    assert_eq!(persisted.owner, bijux_dna_infra::AttemptEvidenceOwner::Containers);
+    assert_eq!(persisted.identity.run_directory, "run-1200");
+    assert_eq!(persisted.identity.tool_id, "bwa");
+    assert_eq!(persisted.identity.campaign_id, "governed-runner-test");
+    assert_eq!(persisted.identity.attempt_id, "attempt-001");
+    assert_eq!(persisted.disposition, bijux_dna_infra::AttemptArchiveDisposition::Failed);
+    assert!(persisted.files.iter().any(|file| file.path == "scheduler-evidence.json"));
+    assert!(persisted.files.iter().any(|file| file.path == "slurm-accounting.json"));
+    for file in &persisted.files {
+        let path = archived.archive_dir.join(&file.path);
         assert_eq!(fs::metadata(&path)?.len(), file.size_bytes);
         assert_eq!(bijux_dna_infra::hash_file_sha256(&path)?, file.sha256);
     }
+
+    let restored = rollback_failed_container_qualification_attempt_archive(
+        &fixture.containers_root.join("evidence/attempts"),
+        &spec,
+        "2026-08-07T09:54:00Z",
+        "2026-08-07T09:55:00Z",
+    )?;
+    assert!(restored.source.attempt_dir.is_dir());
+    assert!(restored.rollback_receipt_path.is_file());
+    assert!(spec.result_root.join("slurm-accounting.json").is_file());
     Ok(())
 }
 
@@ -662,7 +667,7 @@ fn failed_attempt_archival_rejects_symlinks_before_moving_roots() -> Result<()> 
     else {
         anyhow::bail!("symlink-contaminated evidence was archived");
     };
-    assert!(error.to_string().contains("symlink"));
+    assert!(format!("{error:#}").contains("symlink"));
     assert!(spec.evidence_root.is_dir());
     assert!(spec.result_root.is_dir());
     Ok(())
@@ -798,7 +803,8 @@ fn fixture_paths(containers: &Path, data: &Path, results: &Path) -> Result<Fixtu
         input,
         upstream_sha256: bijux_dna_infra::hash_file_sha256(&upstream)?,
         upstream,
-        result_root: result_namespace.join("attempts/governed-runner-test/attempt-001"),
+        result_root: containers
+            .join("evidence/attempts/run-1200/bwa/attempts/governed-runner-test/attempt-001"),
         result_namespace,
     })
 }

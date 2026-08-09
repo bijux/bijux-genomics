@@ -48,7 +48,8 @@ contracts, binds their hashes plus the exact executor program and script, and pu
 immutable scheduler specification. `submit_prepared_container_qualification_job` persists intent
 before `sbatch`; observe and collect perform one scheduler query per call; terminal collection
 binds accounting, logs, and successful execution evidence. Cancellation uses the retained exact
-job handle. None of these operations poll or wait.
+job handle. Failed current attempts can be archived and rolled back through the shared owner-scoped
+attempt transaction; historical layouts remain read-only. None of these operations poll or wait.
 
 Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, and `awk`
 only for source validation, byte-identity checks, and acceptance checks. The Slurm host requires

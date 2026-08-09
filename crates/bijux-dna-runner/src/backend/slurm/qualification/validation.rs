@@ -203,10 +203,7 @@ fn qualification_attempt_roots(
                 bijux_dna_infra::attempt_layout_paths(&owner_root, &layout_identity)
                     .context("derive governed qualification attempt layout")?
                     .attempt_dir;
-            (
-                admitted_result_root.join("attempts").join(campaign_id).join(attempt_id),
-                evidence_root,
-            )
+            (evidence_root.clone(), evidence_root)
         }
         (_, Some(attempt_id)) => {
             validate_qualification_attempt_id(attempt_id)?;

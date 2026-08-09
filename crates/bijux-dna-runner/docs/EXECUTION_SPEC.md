@@ -38,8 +38,10 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 - Scheduling cadence belongs to the caller; this crate contains no sleep, wait, or polling loop.
 - New container qualification submissions use scheduler specification v5 and persist evidence under
   `containers/evidence/attempts/<run-id>/<tool-id>/attempts/<campaign-id>/<attempt-id>` using the
-  shared governed attempt-layout manifest. Historical v3 and v4 specifications remain readable at
-  their original paths but are never emitted for new submissions.
+  shared governed attempt-layout manifest. The specification result root is that same attempt root;
+  declared tool outputs occupy its `outputs/` directory. Failed v5 attempts use the infra-owned
+  archive, digest verification, and rollback transaction. Historical v3 and v4 specifications
+  remain readable at their original paths but are never emitted or archived by current operations.
 
 ## Failure Semantics
 | Failure | Detection | Expected remediation |

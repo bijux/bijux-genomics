@@ -8,18 +8,18 @@ mod lifecycle;
 mod preparation;
 mod validation;
 
-pub use archival::archive_failed_container_qualification_attempt;
+pub use archival::{
+    archive_failed_container_qualification_attempt,
+    rollback_failed_container_qualification_attempt_archive,
+};
 pub use contracts::{
-    ArchivedContainerQualificationAttempt, ContainerQualificationAccountingRecord,
-    ContainerQualificationArchiveFile, ContainerQualificationArchiveSources,
-    ContainerQualificationCollection, ContainerQualificationExecution,
-    ContainerQualificationFailedAttemptArchive, ContainerQualificationPreparationRequest,
+    ContainerQualificationAccountingRecord, ContainerQualificationCollection,
+    ContainerQualificationExecution, ContainerQualificationPreparationRequest,
     ContainerQualificationSchedulerEvidence, ContainerQualificationSchedulerStatus,
     ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
     CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_FAILED_ATTEMPT_ARCHIVE_SCHEMA_V1,
     CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
     CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
 };

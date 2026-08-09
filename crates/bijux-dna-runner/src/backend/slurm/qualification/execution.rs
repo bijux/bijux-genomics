@@ -22,7 +22,7 @@ use super::contracts::{
     CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
     CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
 };
-use super::validation::validate_specification;
+use super::validation::{canonical_directory, validate_specification};
 
 const EXECUTION_EVIDENCE_SCHEMA_V1: &str = "bijux.container.evidence.v1";
 const EXECUTION_EVIDENCE_SCHEMA_V2: &str = "bijux.container.evidence.v2";
@@ -41,7 +41,7 @@ struct NativeExecutionOutcome {
     assessment: ContainerQualificationAssessment,
 }
 
-/// Execute one v3 qualification specification with the pinned Rust operator.
+/// Execute one supported qualification specification with the pinned Rust operator.
 ///
 /// # Errors
 /// Returns an error when immutable authority validation, isolated runtime execution, output
@@ -76,17 +76,21 @@ fn prepare_execution_workspace(
     }
     validate_container_governance_host(governance, &hostname)?;
     let scratch = governed_scratch(governance)?;
-    let result_parent =
-        spec.result_root.parent().context("qualification result root has no parent")?;
-    fs::create_dir_all(result_parent).with_context(|| {
-        format!("create qualification result parent {}", result_parent.display())
-    })?;
-    fs::create_dir(&spec.result_root).with_context(|| {
-        format!("refuse to replace qualification result root {}", spec.result_root.display())
-    })?;
+    if spec.schema_version != CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5 {
+        let result_parent =
+            spec.result_root.parent().context("qualification result root has no parent")?;
+        fs::create_dir_all(result_parent).with_context(|| {
+            format!("create qualification result parent {}", result_parent.display())
+        })?;
+        fs::create_dir(&spec.result_root).with_context(|| {
+            format!("refuse to replace qualification result root {}", spec.result_root.display())
+        })?;
+    }
     let result_root =
         spec.result_root.canonicalize().context("canonicalize qualification result root")?;
-    let output_root = if contract.pipeline_schema == CONTAINER_PIPELINE_SCHEMA_V2 {
+    let output_root = if spec.schema_version == CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5 {
+        canonical_directory(&result_root.join("outputs"), "qualification output root")?
+    } else if contract.pipeline_schema == CONTAINER_PIPELINE_SCHEMA_V2 {
         let output = result_root.join("outputs");
         fs::create_dir(&output)?;
         output

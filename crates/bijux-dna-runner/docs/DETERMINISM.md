@@ -10,6 +10,8 @@ Runner determinism is about stable invocation identity, stable records, and repl
   and attempt ID. Scheduler job IDs remain provenance and never select an attempt directory.
 - Current qualification paths are derived through the shared attempt-layout resolver; v3 and v4
   compatibility readers reproduce their historical paths without rewriting evidence.
+- Failed current qualification attempts preserve that identity through the shared complete-file
+  archive receipt; rollback re-verifies the same inventory before restoring the active path.
 
 ## Replay
 Replay does:

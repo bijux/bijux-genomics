@@ -104,6 +104,7 @@ pub fn archive_attempt_layout(
     }
 
     validate_attempt_layout(&paths.source, owner, identity)?;
+    inventory(&paths.source.attempt_dir)?;
     let archive_parent = paths
         .archive_dir
         .parent()

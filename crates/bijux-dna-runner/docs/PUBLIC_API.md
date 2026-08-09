@@ -73,6 +73,8 @@
 - `observe_container_qualification_slurm_job`
 - `collect_container_qualification_slurm_job`
 - `cancel_container_qualification_slurm_job`
+- `archive_failed_container_qualification_attempt`
+- `rollback_failed_container_qualification_attempt_archive`
 - `ContainerQualificationPreparationRequest`
 - `ContainerQualificationSlurmSpec`
 - `ContainerQualificationSlurmResources`

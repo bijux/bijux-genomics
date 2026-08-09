@@ -458,3 +458,35 @@ fn governed_attempt_archive_rejects_digest_drift() -> anyhow::Result<()> {
     .is_err());
     Ok(())
 }
+
+#[cfg(unix)]
+#[test]
+fn governed_attempt_archive_rejects_symlinks_before_moving_source() -> anyhow::Result<()> {
+    use std::os::unix::fs::symlink;
+
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-archive-symlink")?;
+    let owner_root = temporary.path().join("containers");
+    let identity = attempt_identity();
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+    )?;
+    let target = layout.outputs_dir.join("result.json");
+    std::fs::write(&target, b"owned")?;
+    symlink(&target, layout.outputs_dir.join("result-link.json"))?;
+
+    assert!(bijux_dna_infra::archive_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T05:30:00Z",
+    )
+    .is_err_and(|error| {
+        error.kind == bijux_dna_infra::IoErrorKind::Corruption && error.message.contains("symlink")
+    }));
+    assert!(layout.attempt_dir.is_dir());
+    assert!(!bijux_dna_infra::attempt_archive_paths(&owner_root, &identity)?.archive_dir.exists());
+    Ok(())
+}
