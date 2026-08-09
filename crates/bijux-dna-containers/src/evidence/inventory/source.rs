@@ -40,7 +40,7 @@ pub(super) fn validate_evidence_roots(request: &ImageInventoryDerivationRequest)
         .study_root
         .canonicalize()
         .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
-    let mut image_roots = BTreeSet::new();
+    let mut evidence_root_pairs = BTreeSet::new();
     let mut build_evidence_roots = BTreeSet::new();
     for roots in &request.evidence_roots {
         let image_root = roots
@@ -56,8 +56,8 @@ pub(super) fn validate_evidence_roots(request: &ImageInventoryDerivationRequest)
         if image_root == build_evidence_root {
             bail!("image and build-evidence roots must be distinct");
         }
-        if !image_roots.insert(image_root) {
-            bail!("image inventory contains a duplicate image root");
+        if !evidence_root_pairs.insert((image_root, build_evidence_root.clone())) {
+            bail!("image inventory contains a duplicate evidence-root pair");
         }
         if !build_evidence_roots.insert(build_evidence_root) {
             bail!("image inventory contains a duplicate build-evidence root");
@@ -236,7 +236,15 @@ pub(super) fn scan_images(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<Vec<(PathBuf, ImageInventoryScannedImage)>> {
     let mut images = Vec::new();
+    let mut scanned_roots = BTreeSet::new();
     for roots in &request.evidence_roots {
+        let image_root = roots
+            .image_root
+            .canonicalize()
+            .with_context(|| format!("canonicalize image root {}", roots.image_root.display()))?;
+        if !scanned_roots.insert(image_root.clone()) {
+            continue;
+        }
         for path in regular_files_with_suffix(&roots.image_root, ".sif")? {
             let metadata = fs::metadata(&path)
                 .with_context(|| format!("inspect container image {}", path.display()))?;
@@ -268,7 +276,15 @@ pub(super) fn scan_staged_images(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<Vec<ImageInventoryScannedImage>> {
     let mut images = Vec::new();
+    let mut scanned_roots = BTreeSet::new();
     for roots in &request.evidence_roots {
+        let image_root = roots
+            .image_root
+            .canonicalize()
+            .with_context(|| format!("canonicalize image root {}", roots.image_root.display()))?;
+        if !scanned_roots.insert(image_root.clone()) {
+            continue;
+        }
         let root = roots.image_root.join(".building");
         if !root.is_dir() {
             continue;

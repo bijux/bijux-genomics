@@ -184,6 +184,61 @@ fn composes_current_single_tool_campaign_with_prior_campaign_evidence() -> Resul
 }
 
 #[test]
+fn composes_multiple_campaigns_for_one_activated_image_root() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let prior_evidence = fixture.study.join("containers/evidence/prior");
+    fs::create_dir_all(&prior_evidence)?;
+    let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
+        .find_map(|entry| {
+            entry.ok().and_then(|entry| {
+                entry.file_type().ok().filter(std::fs::FileType::is_file).map(|_| entry.path())
+            })
+        })
+        .context("fixture omits prior build evidence")?;
+    fs::rename(
+        &evidence_path,
+        prior_evidence.join(evidence_path.file_name().context("evidence has no filename")?),
+    )?;
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n\n%files\n  containers/tools/example/example /usr/local/bin/example\n\n%post\n  true\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "change example recipe"])?;
+    let current_evidence = fixture.study.join("containers/evidence/current");
+    let current_digest = fixture.add_admitted_image_to(
+        b"current activated campaign image",
+        &fixture.study.join("containers/apptainer"),
+        &current_evidence,
+    )?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![
+            ImageInventoryEvidenceRoots {
+                image_root: fixture.study.join("containers/apptainer"),
+                build_evidence_root: prior_evidence,
+            },
+            ImageInventoryEvidenceRoots {
+                image_root: fixture.study.join("containers/apptainer"),
+                build_evidence_root: current_evidence,
+            },
+        ],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(current_digest.as_str()));
+    assert_eq!(tool.candidates.len(), 2);
+    assert_eq!(evidence.scan.images.len(), 2);
+    assert_eq!(evidence.scan.build_evidence.len(), 2);
+    assert_eq!(evidence.scan.evidence_roots.len(), 2);
+    Ok(())
+}
+
+#[test]
 fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
     let fixture = Fixture::current()?;
     let evidence = derive_image_inventory_evidence(&fixture.request)?;

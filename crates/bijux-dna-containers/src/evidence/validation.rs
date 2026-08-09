@@ -28,7 +28,7 @@ pub fn validate_image_inventory_scan(scan: &ImageInventoryScan) -> Result<()> {
     if scan.schema_version == RAW_INVENTORY_SCHEMA_V2 && scan.evidence_roots.is_empty() {
         bail!("image-inventory scan v2 requires ordered evidence-root identities");
     }
-    let mut image_roots = BTreeSet::new();
+    let mut evidence_root_pairs = BTreeSet::new();
     let mut build_evidence_roots = BTreeSet::new();
     for roots in &scan.evidence_roots {
         validate_portable_path(&roots.image_root, "inventory image root")?;
@@ -36,7 +36,8 @@ pub fn validate_image_inventory_scan(scan: &ImageInventoryScan) -> Result<()> {
         if !roots.image_root.starts_with("study://")
             || !roots.build_evidence_root.starts_with("study://")
             || roots.image_root == roots.build_evidence_root
-            || !image_roots.insert(roots.image_root.as_str())
+            || !evidence_root_pairs
+                .insert((roots.image_root.as_str(), roots.build_evidence_root.as_str()))
             || !build_evidence_roots.insert(roots.build_evidence_root.as_str())
         {
             bail!("image-inventory scan contains invalid or duplicate evidence-root identities");
