@@ -57,6 +57,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bwa_align(),
         mosdepth_coverage(),
         samtools_coverage(),
+        samtools_endogenous_content(),
     ] {
         registry.insert(binding)?;
     }
@@ -129,6 +130,40 @@ fn samtools_coverage() -> ToolBindingV1 {
         "benchmark.bam.coverage.compare",
         resources(1, 8, 8),
         &["zero_depth_positions_are_absent_and_reference_span_is_recovered_from_the_bam_header"],
+    )
+}
+
+fn samtools_endogenous_content() -> ToolBindingV1 {
+    retained_binding(
+        "bam.endogenous_content",
+        "samtools",
+        &[
+            "bam_input",
+            "primary_read_counting",
+            "mapped_primary_read_counting",
+            "mapped_nonduplicate_primary_read_counting",
+        ],
+        &[input("bam", BAM)],
+        &[],
+        &[
+            output("total_primary_reads", TABLE),
+            output("mapped_primary_reads", TABLE),
+            output("mapped_nonduplicate_primary_reads", TABLE),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' view -@ 4 -c -F 0x900 '${input:bam}' > '${output:total_primary_reads}' && '${executable}' view -@ 4 -c -F 0x904 '${input:bam}' > '${output:mapped_primary_reads}' && '${executable}' view -@ 4 -c -F 0xD04 '${input:bam}' > '${output:mapped_nonduplicate_primary_reads}'",
+        ],
+        "bijux.benchmark.bam.endogenous_content.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::endogenous_content",
+        "benchmark.bam.endogenous_content.consume",
+        resources(4, 8, 8),
+        &[
+            "primary_counts_exclude_secondary_and_supplementary_records",
+            "mapped_primary_counts_also_exclude_unmapped_records",
+            "mapped_nonduplicate_primary_counts_also_exclude_unmapped_and_duplicate_records",
+        ],
     )
 }
 

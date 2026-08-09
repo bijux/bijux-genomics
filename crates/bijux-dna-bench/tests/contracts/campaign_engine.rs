@@ -140,6 +140,39 @@ fn checked_in_run_2002_plans_all_coverage_tools_through_canonical_bindings() -> 
 }
 
 #[test]
+fn checked_in_run_2003_plans_endogenous_content_through_canonical_binding() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2003");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.endogenous_content");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2003 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(matrix.cases.len(), 1);
+    assert_eq!(matrix.cases[0].tool_id, "samtools");
+    assert_eq!(matrix.cases[0].binding.resources.threads, 4);
+    assert_eq!(matrix.data_snapshots.len(), 2);
+    assert_eq!(
+        matrix.cases[0].binding.normalized_output_contract_id,
+        matrix.cases[0].interface.output_contract
+    );
+    Ok(())
+}
+
+#[test]
 fn adding_a_tool_and_stage_changes_only_registry_data() -> Result<()> {
     let mut fixture = planning_fixture()?;
     let original_count = plan(&fixture)?.cases.len();

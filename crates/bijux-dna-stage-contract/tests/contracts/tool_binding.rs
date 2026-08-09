@@ -16,13 +16,14 @@ const ALIGN_BUNDLE: &str = "bijux.benchmark.bam.align.bundle.v1";
 const UNSORTED_SAM: &str = "bijux.sam.artifact.unsorted.v1";
 const GENOTYPING_STAGE: &str = "bam.genotyping";
 const COVERAGE_STAGE: &str = "bam.coverage";
+const ENDOGENOUS_CONTENT_STAGE: &str = "bam.endogenous_content";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 6);
+    assert_eq!(retained.bindings().len(), 7);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -45,8 +46,38 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 14);
+    assert_eq!(all.bindings().len(), 15);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_endogenous_content_binding_closes_run_2003_native_counts() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(ENDOGENOUS_CONTENT_STAGE), &ToolId::new("samtools"))
+        .ok_or_else(|| {
+            anyhow::anyhow!("canonical Samtools endogenous-content binding is missing")
+        })?;
+
+    assert_eq!(binding.resources.threads, 4);
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["total_primary_reads", "mapped_primary_reads", "mapped_nonduplicate_primary_reads"]
+    );
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.bam.endogenous_content.bundle.v1"
+    );
+    assert_eq!(
+        binding.normalizer_id,
+        "bijux_dna_planner_bam::tool_adapters::bam::endogenous_content"
+    );
+    assert_eq!(binding.downstream_probe_id, "benchmark.bam.endogenous_content.consume");
+    assert!(binding.command_template[2].contains("-F 0x900"));
+    assert!(binding.command_template[2].contains("-F 0x904"));
+    assert!(binding.command_template[2].contains("-F 0xD04"));
+    assert_eq!(binding.command_template[2].matches(" && ").count(), 2);
     Ok(())
 }
 
