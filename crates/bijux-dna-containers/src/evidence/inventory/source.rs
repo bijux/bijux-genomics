@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
@@ -384,15 +384,32 @@ fn validate_build_image_root(
         if request.evidence_roots.len() != 1 {
             bail!("composite image inventory requires every build-evidence image path to exist");
         }
-        let parent = path.parent().context("build-evidence image path has no parent")?;
-        let parent = parent.canonicalize().with_context(|| {
-            format!("canonicalize retired build-evidence image parent {}", parent.display())
-        })?;
         let study_root = request
             .study_root
             .canonicalize()
             .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
-        if !parent.starts_with(&study_root) {
+        let relative = path.strip_prefix(&request.study_root).with_context(|| {
+            format!("retired build-evidence image path is outside {}", request.study_root.display())
+        })?;
+        if relative.components().any(|component| !matches!(component, Component::Normal(_))) {
+            bail!("retired build-evidence image path is not a normalized STUDY path");
+        }
+        let mut existing_ancestor =
+            path.parent().context("build-evidence image path has no parent")?;
+        while !existing_ancestor.try_exists().with_context(|| {
+            format!("inspect retired build-evidence ancestor {}", existing_ancestor.display())
+        })? {
+            existing_ancestor = existing_ancestor
+                .parent()
+                .context("retired build-evidence image path has no existing ancestor")?;
+        }
+        let existing_ancestor = existing_ancestor.canonicalize().with_context(|| {
+            format!(
+                "canonicalize retired build-evidence image ancestor {}",
+                existing_ancestor.display()
+            )
+        })?;
+        if !existing_ancestor.starts_with(&study_root) {
             bail!("retired build-evidence image path is outside the governed study root");
         }
         return Ok(());

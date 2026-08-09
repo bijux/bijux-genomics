@@ -222,6 +222,7 @@ fn derives_single_roster_after_governed_activation_retires_the_build_source() ->
         .path();
     let active = active_root.join(source.file_name().context("built image has no filename")?);
     fs::rename(&source, &active)?;
+    fs::remove_dir(fixture.study.join("containers/apptainer"))?;
     let request = ImageInventoryDerivationRequest {
         repository_root: fixture.repository.clone(),
         study_root: fixture.study.clone(),
@@ -256,6 +257,7 @@ fn composite_roster_rejects_a_retired_build_source() -> Result<()> {
         .path();
     let active = active_root.join(source.file_name().context("built image has no filename")?);
     fs::rename(&source, &active)?;
+    fs::remove_dir(fixture.study.join("containers/apptainer"))?;
     let request = ImageInventoryDerivationRequest {
         repository_root: fixture.repository.clone(),
         study_root: fixture.study.clone(),
