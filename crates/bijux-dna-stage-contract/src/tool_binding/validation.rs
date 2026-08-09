@@ -3,6 +3,7 @@ use std::collections::BTreeSet;
 use anyhow::{anyhow, bail, Result};
 
 use super::{OutputDiscoveryV1, ToolArtifactSourceV1, ToolBinding, TOOL_BINDING_SCHEMA_V1};
+use crate::canonical_artifact_contract_catalog;
 
 /// Validates that a binding is complete and its template references declared projections.
 ///
@@ -25,15 +26,21 @@ pub fn validate_tool_binding(binding: &impl ToolBinding) -> Result<()> {
         bail!("binding resources require non-zero threads and mem_gb");
     }
 
+    let artifact_catalog = canonical_artifact_contract_catalog();
+    artifact_catalog
+        .validate()
+        .map_err(|error| anyhow!("canonical artifact contract catalog is invalid: {error}"))?;
     let inputs = collect_projection_names(
         binding.inputs().iter().map(|value| (&value.name, &value.artifact_contract_id)),
         "input",
+        &artifact_catalog,
     )?;
     let parameters =
         collect_names(binding.parameters().iter().map(|value| &value.name), "parameter")?;
     let outputs = collect_projection_names(
         binding.outputs().iter().map(|value| (&value.name, &value.artifact_contract_id)),
         "output",
+        &artifact_catalog,
     )?;
     for output in binding.outputs() {
         if let OutputDiscoveryV1::Glob { pattern } = &output.discovery {
@@ -142,11 +149,15 @@ fn placeholders(token: &str) -> Result<Vec<&str>> {
 fn collect_projection_names<'a>(
     values: impl Iterator<Item = (&'a String, &'a String)>,
     kind: &str,
+    artifact_catalog: &crate::ArtifactContractCatalogV1,
 ) -> Result<BTreeSet<&'a str>> {
     let mut names = BTreeSet::new();
     for (name, contract_id) in values {
         require_text(name, &format!("{kind} name"))?;
         require_text(contract_id, &format!("{kind} artifact_contract_id"))?;
+        if artifact_catalog.contract(contract_id).is_none() {
+            bail!("{kind} `{name}` references unknown artifact contract `{contract_id}`");
+        }
         if !names.insert(name.as_str()) {
             bail!("duplicate {kind} projection `{name}`");
         }

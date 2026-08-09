@@ -56,12 +56,12 @@ fn external_artifacts_use_the_same_binding_interface() -> Result<()> {
     external.tool_id = ToolId::new("angsd");
     external.inputs = vec![BindingInputV1 {
         name: "alignment".to_string(),
-        artifact_contract_id: "bijux.artifact.bam.alignment.v1".to_string(),
+        artifact_contract_id: "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
         required: true,
     }];
     external.outputs = vec![BindingOutputV1 {
         name: "damage_report".to_string(),
-        artifact_contract_id: "bijux.artifact.report.ancient_dna_damage.v1".to_string(),
+        artifact_contract_id: "bijux.auxiliary.artifact.table.v1".to_string(),
         discovery: OutputDiscoveryV1::ExactPath,
     }];
     external.command_template = vec![
@@ -114,6 +114,24 @@ fn undeclared_command_projection_fails_conformance() -> Result<()> {
         anyhow::bail!("undeclared projection was accepted");
     };
     assert!(error.to_string().contains("undeclared input `reference`"));
+    Ok(())
+}
+
+#[test]
+fn unknown_artifact_contracts_fail_conformance() -> Result<()> {
+    let mut invalid_input = binding("fastq.trim_reads", catalog_source());
+    invalid_input.inputs[0].artifact_contract_id = "bijux.fastq.artifact.unknown.v1".to_string();
+    let error = validate_tool_binding(&invalid_input)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("unknown input artifact contract was accepted"))?;
+    assert!(error.to_string().contains("unknown artifact contract"));
+
+    let mut invalid_output = binding("fastq.trim_reads", catalog_source());
+    invalid_output.outputs[0].artifact_contract_id = "bijux.fastq.artifact.unknown.v1".to_string();
+    let error = validate_tool_binding(&invalid_output)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("unknown output artifact contract was accepted"))?;
+    assert!(error.to_string().contains("unknown artifact contract"));
     Ok(())
 }
 
@@ -225,13 +243,13 @@ fn binding(stage_id: &str, artifact_source: ToolArtifactSourceV1) -> ToolBinding
         capabilities: vec!["paired_or_single_reads".to_string()],
         inputs: vec![BindingInputV1 {
             name: "reads".to_string(),
-            artifact_contract_id: "bijux.artifact.fastq.reads.v1".to_string(),
+            artifact_contract_id: "bijux.fastq.artifact.reads.v1".to_string(),
             required: true,
         }],
         parameters: vec![BindingParameterV1 { name: "threads".to_string(), required: true }],
         outputs: vec![BindingOutputV1 {
             name: "trimmed".to_string(),
-            artifact_contract_id: "bijux.artifact.fastq.reads.v1".to_string(),
+            artifact_contract_id: "bijux.fastq.artifact.reads.v1".to_string(),
             discovery: OutputDiscoveryV1::ExactPath,
         }],
         command_template: vec![
