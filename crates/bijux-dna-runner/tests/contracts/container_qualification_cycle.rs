@@ -11,6 +11,18 @@ use crate::support::repo_root;
 fn cycle_plan_is_idempotent_and_exposes_every_current_protocol_action() -> Result<()> {
     let repository_root = repo_root()?;
     let empty_submissions = bijux_dna_infra::temp_dir("container-cycle-empty-submissions")?;
+    let legacy = empty_submissions.path().join("run-1002-adapterremoval");
+    std::fs::create_dir_all(&legacy)?;
+    std::fs::write(
+        legacy.join("qualification-spec.json"),
+        br#"{
+  "schema_version": "bijux.runner.container_qualification_slurm_spec.v1",
+  "run_id": "run-1002",
+  "tool_id": "adapterremoval",
+  "executor_script_path": "containers/contracts/container_validation.py"
+}
+"#,
+    )?;
     let request = ContainerQualificationCycleRequest {
         repository_root: repository_root.clone(),
         registry_path: repository_root.join("containers/contracts/qualification-runs.toml"),

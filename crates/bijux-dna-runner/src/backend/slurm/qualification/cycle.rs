@@ -219,7 +219,7 @@ fn derive_cycle(
             continue;
         }
         let key = (run.run_id.clone(), tool_id.clone());
-        let Some((path, spec)) = specifications.get(&key) else {
+        let Some(paths) = specifications.get(&key) else {
             units.push(unit(
                 &run.run_id,
                 tool_id,
@@ -231,7 +231,11 @@ fn derive_cycle(
             ));
             continue;
         };
-        units.push(classify_spec(path, spec, scheduler, &request.observed_at_utc)?);
+        let [path] = paths.as_slice() else {
+            bail!("multiple live qualification specifications exist for {}:{}", key.0, key.1);
+        };
+        let spec = load_container_qualification_slurm_spec(path)?;
+        units.push(classify_spec(path, &spec, scheduler, &request.observed_at_utc)?);
     }
     let active = units.iter().any(|unit| {
         matches!(
@@ -253,9 +257,7 @@ fn derive_cycle(
     })
 }
 
-fn discover_specifications(
-    root: &Path,
-) -> Result<BTreeMap<(String, String), (PathBuf, ContainerQualificationSlurmSpec)>> {
+fn discover_specifications(root: &Path) -> Result<BTreeMap<(String, String), Vec<PathBuf>>> {
     if !root.exists() {
         return Ok(BTreeMap::new());
     }
@@ -266,13 +268,23 @@ fn discover_specifications(
             continue;
         }
         let path = entry.path().to_path_buf();
-        let spec = load_container_qualification_slurm_spec(&path)?;
-        let key = (spec.run_id.clone(), spec.tool_id.clone());
-        if specifications.insert(key.clone(), (path, spec)).is_some() {
-            bail!("multiple live qualification specifications exist for {}:{}", key.0, key.1);
-        }
+        let identity: DiscoveredSpecificationIdentity =
+            serde_json::from_slice(&fs::read(&path).with_context(|| {
+                format!("read qualification specification identity {}", path.display())
+            })?)
+            .with_context(|| {
+                format!("parse qualification specification identity {}", path.display())
+            })?;
+        let key = (identity.run_id, identity.tool_id);
+        specifications.entry(key).or_insert_with(Vec::new).push(path);
     }
     Ok(specifications)
+}
+
+#[derive(Deserialize)]
+struct DiscoveredSpecificationIdentity {
+    run_id: String,
+    tool_id: String,
 }
 
 fn classify_spec(
