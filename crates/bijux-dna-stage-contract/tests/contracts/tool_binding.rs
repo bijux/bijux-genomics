@@ -23,13 +23,14 @@ const INSERT_SIZE_STAGE: &str = "bam.insert_size";
 const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
+const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 15);
+    assert_eq!(retained.bindings().len(), 16);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -52,8 +53,56 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 23);
+    assert_eq!(all.bindings().len(), 24);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_rcorrector_binding_refuses_ambiguous_paired_outputs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(CORRECT_ERRORS_STAGE), &ToolId::new("rcorrector"))
+        .ok_or_else(|| anyhow::anyhow!("canonical Rcorrector binding is missing"))?;
+
+    assert_eq!(binding.resources.threads, 4);
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.fastq.correct_errors.bundle.v1"
+    );
+    assert_eq!(
+        binding.normalizer_id,
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors"
+    );
+    assert_eq!(binding.downstream_probe_id, "bijux.stage_probe.fastq.correct_errors.v1");
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["corrected_reads_r1", "corrected_reads_r2"]
+    );
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "rcorrector".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/sample_R1.fastq.gz".to_owned()),
+                ("reads_r2".to_owned(), "/input/sample_R2.fastq.gz".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::new(),
+            outputs: BTreeMap::from([
+                ("corrected_reads_r1".to_owned(), "/result/corrected_R1.fastq.gz".to_owned()),
+                ("corrected_reads_r2".to_owned(), "/result/corrected_R2.fastq.gz".to_owned()),
+            ]),
+        },
+    )?;
+    assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+    assert!(command[2].contains("'rcorrector' -t 4"));
+    assert!(command[2].contains("-1 '/input/sample_R1.fastq.gz'"));
+    assert!(command[2].contains("-2 '/input/sample_R2.fastq.gz'"));
+    assert!(command[2].contains("-eq 2"));
+    assert!(command[2].contains("'/result/corrected_R1.fastq.gz'"));
+    assert!(command[2].contains("'/result/corrected_R2.fastq.gz'"));
     Ok(())
 }
 

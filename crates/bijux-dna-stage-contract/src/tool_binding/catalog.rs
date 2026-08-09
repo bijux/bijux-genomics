@@ -61,6 +61,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
+        rcorrector_correct_errors(),
         rxy_sex(),
         samtools_coverage(),
         samtools_duplication_metrics(),
@@ -336,6 +337,34 @@ fn rxy_sex() -> ToolBindingV1 {
         &[
             "classification_profile_must_match_the_governed_reference_and_interpretation_scope",
             "input_bam_must_be_indexed_and_expose_declared_x_and_y_contigs",
+        ],
+    )
+}
+
+fn rcorrector_correct_errors() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.correct_errors",
+        "rcorrector",
+        &["paired_end_reads", "kmer_error_correction", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &[],
+        &[
+            output("corrected_reads_r1", FASTQ_PAIRED),
+            output("corrected_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=/tmp/bijux-rcorrector-work; rm -rf \"$work\"; mkdir -p \"$work\"; '${executable}' -t 4 -od \"$work\" -1 '${input:reads_r1}' -2 '${input:reads_r2}'; find \"$work\" -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) | LC_ALL=C sort > \"$work/outputs.list\"; test \"$(wc -l < \"$work/outputs.list\" | tr -d '[:space:]')\" -eq 2; normalize() { src=$1; dest=$2; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$(sed -n '1p' \"$work/outputs.list\")\" '${output:corrected_reads_r1}'; normalize \"$(sed -n '2p' \"$work/outputs.list\")\" '${output:corrected_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.correct_errors.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
+        "bijux.stage_probe.fastq.correct_errors.v1",
+        resources(4, 8, 4),
+        &[
+            "paired_end_binding",
+            "exactly_two_native_corrected_outputs_are_required",
+            "lexical_native_output_order_must_preserve_read_one_before_read_two",
         ],
     )
 }
