@@ -17,6 +17,8 @@ host command orchestration that must not leak into production crates.
   checking both referenced identity and manifest files against their recorded SHA-256 digests.
 - `security_verification`: Cargo binary at `src/bin/security_verification.rs`; collects complete
   raw security evidence for exact catalog-locked Apptainer images without deriving policy passes.
+  The optional `--reuse-publication <publication>` input admits every referenced baseline artifact,
+  reuses records with unchanged image and tool-contract identities, and fully probes changed tools.
 
 ## Host Commands Managed By This Crate
 

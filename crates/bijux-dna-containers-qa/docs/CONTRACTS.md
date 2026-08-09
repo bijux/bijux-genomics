@@ -12,6 +12,9 @@ This crate owns QA evidence contracts, not production execution contracts.
 - Docker image probe outcome: pass/fail summary with explicit failure reasons.
 - Catalog runtime campaign: exact inventory, repository, image, identity, manifest, and probe
   digests are bound into immutable evidence for every retained Apptainer image.
+- Catalog security campaign: exact current identities are fully probed, unchanged baseline records
+  are reused only after complete artifact admission, and result counts distinguish executed from
+  reused tools while still publishing one complete current roster.
 - Qualification plan: exactly version, help, real, and negative probes derived from one admitted
   container pipeline, including declared outputs and acceptance metrics.
 - Qualification assessment: immutable output digests, metric observations, and typed failure

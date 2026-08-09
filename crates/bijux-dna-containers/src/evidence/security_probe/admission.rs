@@ -19,6 +19,13 @@ pub struct SecurityProbeAuthority {
     pub database_completion_sha256: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SecurityProbeBaselineAuthority {
+    pub catalog_sha256: String,
+    pub scanner_completion_sha256: String,
+    pub database_completion_sha256: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct AdmittedSecurityProbePublication {
     pub publication: SecurityProbePublication,
@@ -68,6 +75,36 @@ pub fn admit_security_probe_publication(
     authority: &SecurityProbeAuthority,
 ) -> Result<AdmittedSecurityProbePublication> {
     validate_authority(authority)?;
+    admit_publication(publication_path, study_root, |publication| {
+        validate_publication_identity(publication, authority)
+    })
+}
+
+/// Admit a prior raw security publication for unchanged-image evidence reuse.
+///
+/// Baselines may come from an earlier repository and inventory identity, but must use the exact
+/// current catalog, scanner toolchain, and vulnerability database. Every referenced artifact is
+/// admitted and digest-checked identically to a current publication.
+///
+/// # Errors
+/// Returns an error for stable-authority drift, malformed source identities, unsafe artifact
+/// URIs, missing artifacts, or any publication or artifact digest mismatch.
+pub fn admit_security_probe_baseline(
+    publication_path: &Path,
+    study_root: &Path,
+    authority: &SecurityProbeBaselineAuthority,
+) -> Result<AdmittedSecurityProbePublication> {
+    validate_baseline_authority(authority)?;
+    admit_publication(publication_path, study_root, |publication| {
+        validate_baseline_identity(publication, authority)
+    })
+}
+
+fn admit_publication(
+    publication_path: &Path,
+    study_root: &Path,
+    validate_identity: impl FnOnce(&SecurityProbePublication) -> Result<()>,
+) -> Result<AdmittedSecurityProbePublication> {
     let study_root = study_root
         .canonicalize()
         .with_context(|| format!("canonicalize study root {}", study_root.display()))?;
@@ -83,7 +120,7 @@ pub fn admit_security_probe_publication(
     let publication_bytes = fs::read(&publication_path)?;
     let publication: SecurityProbePublication = serde_json::from_slice(&publication_bytes)
         .context("parse raw security probe publication")?;
-    validate_publication_identity(&publication, authority)?;
+    validate_identity(&publication)?;
 
     let mut artifact_paths = BTreeMap::new();
     let mut reports = BTreeMap::new();
@@ -270,13 +307,22 @@ fn validate_authority(authority: &SecurityProbeAuthority) -> Result<()> {
     Ok(())
 }
 
+fn validate_baseline_authority(authority: &SecurityProbeBaselineAuthority) -> Result<()> {
+    for (label, value) in [
+        ("catalog", authority.catalog_sha256.as_str()),
+        ("scanner completion", authority.scanner_completion_sha256.as_str()),
+        ("database completion", authority.database_completion_sha256.as_str()),
+    ] {
+        validate_sha256(value, label)?;
+    }
+    Ok(())
+}
+
 fn validate_publication_identity(
     publication: &SecurityProbePublication,
     authority: &SecurityProbeAuthority,
 ) -> Result<()> {
-    if publication.schema_version != SECURITY_PROBE_PUBLICATION_SCHEMA_V1 {
-        bail!("unsupported security probe publication schema");
-    }
+    validate_publication_shape(publication)?;
     if publication.repository_commit != authority.repository_commit
         || publication.catalog_sha256 != authority.catalog_sha256
         || publication.inventory_sha256 != authority.inventory_sha256
@@ -284,6 +330,29 @@ fn validate_publication_identity(
         || publication.database_completion_sha256 != authority.database_completion_sha256
     {
         bail!("security probe publication authority differs from the admitted authority");
+    }
+    Ok(())
+}
+
+fn validate_baseline_identity(
+    publication: &SecurityProbePublication,
+    authority: &SecurityProbeBaselineAuthority,
+) -> Result<()> {
+    validate_publication_shape(publication)?;
+    validate_commit(&publication.repository_commit)?;
+    validate_sha256(&publication.inventory_sha256, "inventory")?;
+    if publication.catalog_sha256 != authority.catalog_sha256
+        || publication.scanner_completion_sha256 != authority.scanner_completion_sha256
+        || publication.database_completion_sha256 != authority.database_completion_sha256
+    {
+        bail!("security probe baseline stable authority differs from the admitted authority");
+    }
+    Ok(())
+}
+
+fn validate_publication_shape(publication: &SecurityProbePublication) -> Result<()> {
+    if publication.schema_version != SECURITY_PROBE_PUBLICATION_SCHEMA_V1 {
+        bail!("unsupported security probe publication schema");
     }
     if let Some(digest) = &publication.reused_publication_sha256 {
         validate_sha256(digest, "reused security publication")?;

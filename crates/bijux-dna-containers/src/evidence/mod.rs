@@ -117,10 +117,11 @@ pub use security_database::{
     GRYPE_DATABASE_COMPLETION_SCHEMA_V1, GRYPE_DATABASE_CONTRACT_SCHEMA_V1,
 };
 pub use security_probe::{
-    admit_security_probe_publication, security_probe_publication_schema,
-    write_security_probe_publication_schema, AdmittedSecurityProbePublication,
-    AdmittedSecurityProbeReports, SecurityFilesystemKind, SecurityFilesystemObservation,
-    SecurityProbeArtifact, SecurityProbeAuthority, SecurityProbePublication, SecurityProbeStatus,
+    admit_security_probe_baseline, admit_security_probe_publication,
+    security_probe_publication_schema, write_security_probe_publication_schema,
+    AdmittedSecurityProbePublication, AdmittedSecurityProbeReports, SecurityFilesystemKind,
+    SecurityFilesystemObservation, SecurityProbeArtifact, SecurityProbeAuthority,
+    SecurityProbeBaselineAuthority, SecurityProbePublication, SecurityProbeStatus,
     SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport, ToolSecurityProbe,
     SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };

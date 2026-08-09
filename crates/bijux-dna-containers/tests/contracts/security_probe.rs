@@ -4,8 +4,9 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
-    admit_security_probe_publication, SecurityFilesystemKind, SecurityFilesystemObservation,
-    SecurityProbeArtifact, SecurityProbeAuthority, SecurityProbePublication, SecurityProbeStatus,
+    admit_security_probe_baseline, admit_security_probe_publication, SecurityFilesystemKind,
+    SecurityFilesystemObservation, SecurityProbeArtifact, SecurityProbeAuthority,
+    SecurityProbeBaselineAuthority, SecurityProbePublication, SecurityProbeStatus,
     SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport, ToolSecurityProbe,
     SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
@@ -140,6 +141,34 @@ fn admits_reused_publication_lineage() -> Result<()> {
 
     let admitted = admit_security_probe_publication(&publication_path, study.path(), &authority)?;
     assert_eq!(admitted.publication.reused_publication_sha256, Some("c".repeat(64)));
+    Ok(())
+}
+
+#[test]
+fn admits_baseline_across_repository_and_inventory_revisions() -> Result<()> {
+    let (study, publication_path, authority, _) = fixture()?;
+    let baseline_authority = SecurityProbeBaselineAuthority {
+        catalog_sha256: authority.catalog_sha256,
+        scanner_completion_sha256: authority.scanner_completion_sha256,
+        database_completion_sha256: authority.database_completion_sha256,
+    };
+    let admitted =
+        admit_security_probe_baseline(&publication_path, study.path(), &baseline_authority)?;
+    assert_eq!(admitted.publication.repository_commit, "a".repeat(40));
+    assert_eq!(admitted.publication.inventory_sha256, digest('c'));
+    Ok(())
+}
+
+#[test]
+fn rejects_baseline_scanner_drift() -> Result<()> {
+    let (study, publication_path, authority, _) = fixture()?;
+    let baseline_authority = SecurityProbeBaselineAuthority {
+        catalog_sha256: authority.catalog_sha256,
+        scanner_completion_sha256: digest('f'),
+        database_completion_sha256: authority.database_completion_sha256,
+    };
+    assert!(admit_security_probe_baseline(&publication_path, study.path(), &baseline_authority)
+        .is_err_and(|error| error.to_string().contains("stable authority differs")));
     Ok(())
 }
 

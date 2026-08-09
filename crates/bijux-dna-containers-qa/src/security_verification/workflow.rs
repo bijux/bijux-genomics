@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 use std::ffi::{OsStr, OsString};
 use std::fs;
-use std::io::Write as _;
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -13,15 +12,15 @@ use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 use bijux_dna_containers::api::{
-    admit_security_probe_publication, clean_repository_head_commit, derive_apptainer_tool_contract,
+    admit_security_probe_baseline, clean_repository_head_commit, derive_apptainer_tool_contract,
     load_container_catalog, load_image_inventory_publication,
     resolve_catalog_locked_apptainer_image, resolve_current_apptainer_contract_commit,
     validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
     verify_grype_database, verify_security_scanner_toolchain, AdmittedSecurityProbePublication,
     ContainerToolContract, SecurityFilesystemKind, SecurityFilesystemObservation,
-    SecurityProbeArtifact, SecurityProbeAuthority, SecurityProbePublication, SecurityProbeStatus,
-    SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport, ToolSecurityProbe,
-    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    SecurityProbeArtifact, SecurityProbeBaselineAuthority, SecurityProbePublication,
+    SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport,
+    ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 const NON_ROOT_PROBE_SCRIPT: &str = "uid=$(id -u); printf '%s\\n' \"$uid\"; test \"$uid\" -ne 0";
@@ -47,6 +46,8 @@ pub struct SecurityVerificationResult {
     pub publication: SecurityProbePublication,
     pub collected: usize,
     pub failed: usize,
+    pub executed: usize,
+    pub reused: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -95,17 +96,15 @@ pub fn execute_security_verification(
         &request.scanner_root,
         &request.database_root,
     )?;
-    let authority = SecurityProbeAuthority {
-        repository_commit: commit.clone(),
+    let baseline_authority = SecurityProbeBaselineAuthority {
         catalog_sha256: catalog_sha256.clone(),
-        inventory_sha256: inventory_sha256.clone(),
         scanner_completion_sha256: scanner_completion_sha256.clone(),
         database_completion_sha256: database_completion_sha256.clone(),
     };
     let reused = request
         .reused_publication_path
         .as_ref()
-        .map(|path| admit_security_probe_publication(path, &request.study_root, &authority))
+        .map(|path| admit_security_probe_baseline(path, &request.study_root, &baseline_authority))
         .transpose()?;
     let tasks = catalog
         .tools
@@ -145,9 +144,12 @@ pub fn execute_security_verification(
         bail!("security verification has no retained Apptainer images");
     }
     bijux_dna_infra::ensure_dir(&request.evidence_root)?;
-    let tools = execute_tasks(request, &tasks, reused.as_ref())?;
-    let collected =
-        tools.values().filter(|tool| tool.status == SecurityProbeStatus::Collected).count();
+    let execution = execute_tasks(request, &tasks, reused.as_ref())?;
+    let collected = execution
+        .tools
+        .values()
+        .filter(|tool| tool.status == SecurityProbeStatus::Collected)
+        .count();
     let publication = SecurityProbePublication {
         schema_version: SECURITY_PROBE_PUBLICATION_SCHEMA_V1.to_string(),
         repository_commit: commit,
@@ -156,26 +158,45 @@ pub fn execute_security_verification(
         scanner_completion_sha256,
         database_completion_sha256,
         reused_publication_sha256: reused.map(|publication| publication.publication_sha256),
-        tools,
+        tools: execution.tools,
     };
     ensure_immutable_json(publication_path, &publication)?;
     let failed = tasks.len() - collected;
-    Ok(SecurityVerificationResult { publication, collected, failed })
+    Ok(SecurityVerificationResult {
+        publication,
+        collected,
+        failed,
+        executed: execution.executed,
+        reused: execution.reused,
+    })
+}
+
+struct SecurityTaskResults {
+    tools: BTreeMap<String, ToolSecurityProbe>,
+    executed: usize,
+    reused: usize,
 }
 
 fn execute_tasks(
     request: &SecurityVerificationRequest,
     tasks: &[ToolTask],
     reused: Option<&AdmittedSecurityProbePublication>,
-) -> Result<BTreeMap<String, ToolSecurityProbe>> {
+) -> Result<SecurityTaskResults> {
     let next = AtomicUsize::new(0);
+    let executed = AtomicUsize::new(0);
+    let reused_count = AtomicUsize::new(0);
     let results = Mutex::new(BTreeMap::new());
     std::thread::scope(|scope| -> Result<()> {
         let mut handles = Vec::new();
         for _ in 0..request.worker_count.min(tasks.len()) {
             handles.push(scope.spawn(|| -> Result<()> {
                 while let Some(task) = tasks.get(next.fetch_add(1, Ordering::Relaxed)) {
-                    let result = execute_or_resume_tool(request, task, reused)?;
+                    let (result, was_reused) = execute_or_resume_tool(request, task, reused)?;
+                    if was_reused {
+                        reused_count.fetch_add(1, Ordering::Relaxed);
+                    } else {
+                        executed.fetch_add(1, Ordering::Relaxed);
+                    }
                     results
                         .lock()
                         .map_err(|_| anyhow::anyhow!("security result lock poisoned"))?
@@ -189,174 +210,71 @@ fn execute_tasks(
         }
         Ok(())
     })?;
-    results.into_inner().map_err(|_| anyhow::anyhow!("security result lock poisoned"))
+    Ok(SecurityTaskResults {
+        tools: results
+            .into_inner()
+            .map_err(|_| anyhow::anyhow!("security result lock poisoned"))?,
+        executed: executed.load(Ordering::Relaxed),
+        reused: reused_count.load(Ordering::Relaxed),
+    })
 }
 
 fn execute_or_resume_tool(
     request: &SecurityVerificationRequest,
     task: &ToolTask,
     reused: Option<&AdmittedSecurityProbePublication>,
-) -> Result<ToolSecurityProbe> {
+) -> Result<(ToolSecurityProbe, bool)> {
     let tool_root = request.evidence_root.join("tools").join(&task.tool_id);
     let result_path = tool_root.join("result.json");
     if result_path.is_file() {
         let result: ToolSecurityProbe = serde_json::from_slice(&fs::read(&result_path)?)?;
         validate_resumed_result(request, task, &result)?;
-        return Ok(result);
+        return Ok((result, false));
+    }
+    if let Some(previous) = reusable_baseline_tool(request, task, reused)? {
+        return Ok((previous.clone(), true));
     }
     bijux_dna_infra::ensure_dir(&tool_root)?;
-    let result = match reused {
-        Some(publication) => refresh_tool_structure(request, task, &tool_root, publication),
-        None => collect_tool(request, task, &tool_root),
-    };
+    let result = collect_tool(request, task, &tool_root);
     let result = match result {
         Ok(result) => result,
         Err(error) => failed_result(request, task, &tool_root, &format!("{error:#}"))?,
     };
     bijux_dna_infra::atomic_create_json(&result_path, &result)?;
-    Ok(result)
+    Ok((result, false))
 }
 
-fn refresh_tool_structure(
+fn reusable_baseline_tool<'a>(
     request: &SecurityVerificationRequest,
     task: &ToolTask,
-    root: &Path,
-    reused: &AdmittedSecurityProbePublication,
-) -> Result<ToolSecurityProbe> {
-    let previous = reused
-        .publication
-        .tools
-        .get(&task.tool_id)
-        .with_context(|| format!("reused security publication omits {}", task.tool_id))?;
-    if previous.status != SecurityProbeStatus::Collected {
-        bail!("reused security probe is not collected for {}", task.tool_id);
+    baseline: Option<&'a AdmittedSecurityProbePublication>,
+) -> Result<Option<&'a ToolSecurityProbe>> {
+    let Some(previous) =
+        baseline.and_then(|baseline| baseline.publication.tools.get(&task.tool_id))
+    else {
+        return Ok(None);
+    };
+    if !baseline_identity_matches(task, previous)? {
+        return Ok(None);
     }
     validate_resumed_result(request, task, previous)?;
-    let reports = reused
-        .reports
-        .get(&task.tool_id)
-        .with_context(|| format!("reused security reports omit {}", task.tool_id))?;
-    for (name, digest) in &reports.raw_manifest {
-        if matches!(
-            name.as_str(),
-            "structural.json" | "runtime.json" | "sandbox-build.stdout" | "sandbox-build.stderr"
-        ) {
-            continue;
-        }
-        let source = manifested_artifact(&previous.raw_manifest, name, digest)?;
-        ensure_immutable_bytes(&root.join(name), &reused.read_artifact(&source)?)?;
-    }
-
-    let sandbox = root.join("sandbox");
-    require_success(
-        run_bounded(
-            &request.apptainer_executable,
-            &[
-                OsString::from("build"),
-                OsString::from("--sandbox"),
-                sandbox.clone().into_os_string(),
-                task.image_path.clone().into_os_string(),
-            ],
-            &[],
-            &root.join("sandbox-build.stdout"),
-            &root.join("sandbox-build.stderr"),
-            request.timeout,
-        )?,
-        "Apptainer sandbox extraction",
-    )?;
-    let structural_path = root.join("structural.json");
-    bijux_dna_infra::atomic_create_json(&structural_path, &inspect_structure(&sandbox)?)?;
-    fs::remove_dir_all(&sandbox)
-        .with_context(|| format!("remove security sandbox {}", sandbox.display()))?;
-
-    let mut runtime = reports
-        .runtime
-        .clone()
-        .with_context(|| format!("reused security runtime report omits {}", task.tool_id))?;
-    rebase_runtime_report(request, root, &mut runtime)?;
-    let runtime_path = root.join("runtime.json");
-    bijux_dna_infra::atomic_create_json(&runtime_path, &runtime)?;
-
-    let mut result = previous.clone();
-    result.sbom = rebase_optional_artifact(request, root, previous.sbom.as_ref())?;
-    result.vulnerability_report =
-        rebase_optional_artifact(request, root, previous.vulnerability_report.as_ref())?;
-    result.secret_report =
-        rebase_optional_artifact(request, root, previous.secret_report.as_ref())?;
-    result.signature_stdout =
-        rebase_optional_artifact(request, root, previous.signature_stdout.as_ref())?;
-    result.signature_stderr =
-        rebase_optional_artifact(request, root, previous.signature_stderr.as_ref())?;
-    result.structural_report = Some(artifact(request, &structural_path)?);
-    result.runtime_report = Some(artifact(request, &runtime_path)?);
-    result.raw_manifest = write_raw_manifest(request, root)?;
-    Ok(result)
+    Ok(Some(previous))
 }
 
-fn manifested_artifact(
-    raw_manifest: &SecurityProbeArtifact,
-    name: &str,
-    sha256: &str,
-) -> Result<SecurityProbeArtifact> {
-    let relative = raw_manifest
-        .uri
-        .strip_prefix("study://")
-        .context("reused raw manifest URI is not rooted at study://")?;
-    let parent = Path::new(relative).parent().context("reused raw manifest has no parent")?;
-    Ok(SecurityProbeArtifact {
-        uri: format!("study://{}", parent.join(name).display()),
-        sha256: sha256.to_string(),
-    })
-}
-
-fn ensure_immutable_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
-    if path.exists() {
-        if fs::read(path)? == bytes {
-            return Ok(());
-        }
-        bail!("immutable reused security artifact conflicts at {}", path.display());
-    }
-    let mut file = fs::OpenOptions::new().write(true).create_new(true).open(path)?;
-    file.write_all(bytes)?;
-    file.sync_all()?;
-    Ok(())
-}
-
-fn rebase_optional_artifact(
-    request: &SecurityVerificationRequest,
-    root: &Path,
-    source: Option<&SecurityProbeArtifact>,
-) -> Result<Option<SecurityProbeArtifact>> {
-    source.map(|source| rebase_artifact(request, root, source)).transpose()
-}
-
-fn rebase_artifact(
-    request: &SecurityVerificationRequest,
-    root: &Path,
-    source: &SecurityProbeArtifact,
-) -> Result<SecurityProbeArtifact> {
-    let name = Path::new(&source.uri)
-        .file_name()
-        .context("reused security artifact URI has no file name")?;
-    let rebased = artifact(request, &root.join(name))?;
-    if rebased.sha256 != source.sha256 {
-        bail!("reused security artifact digest differs after rebasing");
-    }
-    Ok(rebased)
-}
-
-fn rebase_runtime_report(
-    request: &SecurityVerificationRequest,
-    root: &Path,
-    report: &mut SecurityRuntimeReport,
-) -> Result<()> {
-    for probe in
-        [&mut report.network_isolated, &mut report.non_root_uid, &mut report.system_read_only]
+fn baseline_identity_matches(task: &ToolTask, previous: &ToolSecurityProbe) -> Result<bool> {
+    if previous.status != SecurityProbeStatus::Collected
+        || previous.tool_id != task.tool_id
+        || previous.version != task.version
+        || previous.image_sha256 != task.image_sha256
+        || previous.build_evidence_id != task.contract.build_evidence_id
     {
-        probe.stdout = rebase_artifact(request, root, &probe.stdout)?;
-        probe.stderr = rebase_artifact(request, root, &probe.stderr)?;
+        return Ok(false);
     }
-    Ok(())
+    let contract_sha256 = bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(&task.contract)?);
+    if previous.tool_contract_sha256 != contract_sha256 {
+        return Ok(false);
+    }
+    Ok(true)
 }
 
 fn collect_tool(
@@ -778,9 +696,10 @@ mod tests {
     use anyhow::Result;
 
     use super::{
-        ensure_immutable_bytes, ensure_immutable_json, inspect_structure, manifested_artifact,
-        run_bounded, validate_request, SecurityFilesystemKind, SecurityProbeArtifact,
-        SecurityVerificationRequest, NON_ROOT_PROBE_SCRIPT,
+        baseline_identity_matches, ensure_immutable_json, inspect_structure, run_bounded,
+        validate_request, ContainerToolContract, SecurityFilesystemKind, SecurityProbeArtifact,
+        SecurityProbeStatus, SecurityVerificationRequest, ToolSecurityProbe, ToolTask,
+        NON_ROOT_PROBE_SCRIPT,
     };
 
     #[test]
@@ -807,24 +726,63 @@ mod tests {
     }
 
     #[test]
-    fn reused_artifacts_preserve_manifest_identity_and_immutable_bytes() -> Result<()> {
-        let root = bijux_dna_testkit::tempdir_for("security-reused-artifact");
-        let path = root.path().join("sbom.json");
-        ensure_immutable_bytes(&path, b"exact-sbom")?;
-        ensure_immutable_bytes(&path, b"exact-sbom")?;
-        assert_eq!(fs::read(&path)?, b"exact-sbom");
-        assert!(ensure_immutable_bytes(&path, b"changed").is_err());
-
-        let artifact = manifested_artifact(
-            &SecurityProbeArtifact {
-                uri: "study://prior/tools/samtools/raw-manifest.json".to_string(),
-                sha256: "a".repeat(64),
+    fn baseline_reuse_requires_exact_image_and_tool_contract_identity() -> Result<()> {
+        let contract = ContainerToolContract {
+            schema_version: "bijux.container.tool_contract.v2".to_string(),
+            tool_id: "samtools".to_string(),
+            version: "1.20".to_string(),
+            support_disposition: "retained".to_string(),
+            catalog_entry_sha256: "1".repeat(64),
+            catalog_sha256: "2".repeat(64),
+            recipe_path: "containers/tools/samtools/samtools".to_string(),
+            recipe_sha256: "3".repeat(64),
+            source_sha256: None,
+            pinned_commit: None,
+            repository_commit: "4".repeat(40),
+            architecture: "linux/amd64".to_string(),
+            build_evidence_id: "5".repeat(64),
+            expected_binary: "samtools".to_string(),
+            version_command: "samtools --version".to_string(),
+            expected_version_regex: "1\\.20".to_string(),
+            interface_sha256: "6".repeat(64),
+        };
+        let task = ToolTask {
+            tool_id: contract.tool_id.clone(),
+            version: contract.version.clone(),
+            image_path: "/images/samtools.sif".into(),
+            image_sha256: "7".repeat(64),
+            contract,
+        };
+        let mut previous = ToolSecurityProbe {
+            tool_id: task.tool_id.clone(),
+            version: task.version.clone(),
+            image_sha256: task.image_sha256.clone(),
+            tool_contract_sha256: bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(
+                &task.contract,
+            )?),
+            build_evidence_id: task.contract.build_evidence_id.clone(),
+            status: SecurityProbeStatus::Collected,
+            sbom: None,
+            vulnerability_report: None,
+            secret_report: None,
+            signature_stdout: None,
+            signature_stderr: None,
+            signature_verified: false,
+            structural_report: None,
+            runtime_report: None,
+            raw_manifest: SecurityProbeArtifact {
+                uri: "study://security/raw-manifest.json".to_string(),
+                sha256: "8".repeat(64),
             },
-            "sbom.json",
-            &"b".repeat(64),
-        )?;
-        assert_eq!(artifact.uri, "study://prior/tools/samtools/sbom.json");
-        assert_eq!(artifact.sha256, "b".repeat(64));
+            error: None,
+        };
+
+        assert!(baseline_identity_matches(&task, &previous)?);
+        previous.image_sha256 = "9".repeat(64);
+        assert!(!baseline_identity_matches(&task, &previous)?);
+        previous.image_sha256 = task.image_sha256.clone();
+        previous.tool_contract_sha256 = "a".repeat(64);
+        assert!(!baseline_identity_matches(&task, &previous)?);
         Ok(())
     }
 

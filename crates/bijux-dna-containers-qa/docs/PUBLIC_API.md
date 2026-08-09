@@ -18,8 +18,9 @@
 - `qualification`: typed pipeline-derived probe plans plus classified output and metric verdicts.
 - `runtime_verification`: bounded changed-image Apptainer probe execution, digest-verified baseline
   reuse, and immutable full-catalog evidence publication.
-- `security_verification`: bounded exact-image security probe execution using container-owned raw
-  evidence publication types; policy and release verdicts remain outside this crate.
+- `security_verification`: bounded changed-image security probe execution and admitted
+  unchanged-image evidence reuse using container-owned raw publication types; policy and release
+  verdicts remain outside this crate.
 
 ## Stability Rules
 

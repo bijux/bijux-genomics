@@ -23,8 +23,8 @@ dataset concerns.
 - `src/image_qa/runtime_verification/`: full-catalog Apptainer evidence publication with bounded
   execution for changed images and digest-verified reuse of unchanged baseline evidence.
 - `src/security_verification/`: exact-image SBOM, vulnerability, secret, signature, structural,
-  and runtime probe collection using container-owned evidence types, without policy or release
-  verdicts.
+  and runtime probe collection for changed images plus digest-verified unchanged-image baseline
+  reuse using container-owned evidence types, without policy or release verdicts.
 - `src/qualification/`: pipeline-derived probe plans, declared-output validation, metric
   evaluation, and classified qualification verdicts consumed by execution backends.
 

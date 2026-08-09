@@ -51,6 +51,9 @@ fn main() -> Result<()> {
             result.failed
         );
     }
-    println!("security probe collection completed: {} collected, 0 failed", result.collected);
+    println!(
+        "security probe collection completed: {} collected, 0 failed, {} executed, {} reused",
+        result.collected, result.executed, result.reused
+    );
     Ok(())
 }

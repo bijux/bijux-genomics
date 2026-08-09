@@ -82,6 +82,9 @@ promoted merely because they remain replayable.
   runtime observations bound to repository, catalog, inventory, scanner, database, image, and tool
   contract identities. Admission rejects authority drift, unsafe governed URIs, incomplete states,
   and every missing or digest-mismatched referenced artifact without deriving a policy verdict.
+  Baseline admission permits prior repository and inventory identities only when catalog, scanner,
+  and database identities remain exact; individual reuse additionally requires exact image, build,
+  and serialized tool-contract identity.
 - `ExternalArtifactAdmission`: immutable no-copy admission for an operator-provided binary or SIF,
   including lawful-access basis, checksum, size, live cataloged version probe, permitted stage IDs,
   and an explicit non-redistribution decision. When access is unavailable, the same contract owns a

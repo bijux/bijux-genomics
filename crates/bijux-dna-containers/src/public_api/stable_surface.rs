@@ -49,7 +49,8 @@ pub use crate::evidence::tool_contract::{
     TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
 };
 pub use crate::evidence::{
-    admit_external_artifact, admit_security_probe_publication, apply_final_run_evidence_plan,
+    admit_external_artifact, admit_security_probe_baseline, admit_security_probe_publication,
+    apply_final_run_evidence_plan,
     apply_image_activation_plan, apply_image_storage_plan, apply_result_layout,
     apply_superseded_result_archive, bind_external_artifact_command,
     container_attempt_layout_schema, create_image_activation_plan, create_image_storage_plan,
@@ -116,8 +117,8 @@ pub use crate::evidence::{
     RunEvidenceLock, RunEvidenceRecord, RunEvidenceSummary, RuntimeEvidenceStatus,
     RuntimeVerificationPublication, ScientificAcceptanceStatus, SecurityFilesystemKind,
     SecurityFilesystemObservation, SecurityProbeArtifact, SecurityProbeAuthority,
-    SecurityProbePublication, SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport,
-    SecurityScannerBinary, SecurityScannerTool,
+    SecurityProbeBaselineAuthority, SecurityProbePublication, SecurityProbeStatus,
+    SecurityRuntimeProbe, SecurityRuntimeReport, SecurityScannerBinary, SecurityScannerTool,
     SecurityScannerToolchainCompletion, SecurityScannerToolchainContract, SecurityStructuralReport,
     SupersededResultArchivePlan, SupersededResultArchivePlanRequest, SupersededResultMove,
     ToolSecurityProbe, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
