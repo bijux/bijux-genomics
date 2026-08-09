@@ -94,6 +94,8 @@ pub struct SecurityProbePublication {
     pub inventory_sha256: String,
     pub scanner_completion_sha256: String,
     pub database_completion_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reused_publication_sha256: Option<String>,
     pub tools: BTreeMap<String, ToolSecurityProbe>,
 }
 

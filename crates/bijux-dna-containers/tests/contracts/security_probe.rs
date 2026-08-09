@@ -109,6 +109,7 @@ fn fixture() -> Result<(tempfile::TempDir, PathBuf, SecurityProbeAuthority, Secu
         inventory_sha256: authority.inventory_sha256.clone(),
         scanner_completion_sha256: authority.scanner_completion_sha256.clone(),
         database_completion_sha256: authority.database_completion_sha256.clone(),
+        reused_publication_sha256: None,
         tools: BTreeMap::from([("samtools".to_string(), tool)]),
     };
     let publication_path = study.path().join("evidence/publication.json");
@@ -126,6 +127,19 @@ fn admits_exact_authority_and_rechecks_artifacts() -> Result<()> {
     assert!(reports.structural.is_some());
     assert_eq!(reports.runtime.as_ref().context("runtime report")?.non_root_uid.exit_code, 0);
     assert_eq!(reports.raw_manifest.len(), 4);
+    Ok(())
+}
+
+#[test]
+fn admits_reused_publication_lineage() -> Result<()> {
+    let (study, publication_path, authority, _) = fixture()?;
+    let mut publication: SecurityProbePublication =
+        serde_json::from_slice(&fs::read(&publication_path)?)?;
+    publication.reused_publication_sha256 = Some("c".repeat(64));
+    fs::write(&publication_path, serde_json::to_vec_pretty(&publication)?)?;
+
+    let admitted = admit_security_probe_publication(&publication_path, study.path(), &authority)?;
+    assert_eq!(admitted.publication.reused_publication_sha256, Some("c".repeat(64)));
     Ok(())
 }
 

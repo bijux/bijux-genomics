@@ -285,6 +285,9 @@ fn validate_publication_identity(
     {
         bail!("security probe publication authority differs from the admitted authority");
     }
+    if let Some(digest) = &publication.reused_publication_sha256 {
+        validate_sha256(digest, "reused security publication")?;
+    }
     if publication.tools.is_empty() {
         bail!("security probe publication contains no tools");
     }

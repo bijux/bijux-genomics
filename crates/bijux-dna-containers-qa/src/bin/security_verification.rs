@@ -17,6 +17,8 @@ struct Args {
     database_root: PathBuf,
     evidence_root: PathBuf,
     publication: PathBuf,
+    #[arg(long)]
+    reuse_publication: Option<PathBuf>,
     #[arg(long, default_value_t = 4)]
     workers: usize,
     #[arg(long, default_value_t = 900)]
@@ -35,6 +37,7 @@ fn main() -> Result<()> {
             scanner_root: args.scanner_root,
             database_contract_path: args.database_contract,
             database_root: args.database_root,
+            reused_publication_path: args.reuse_publication,
             evidence_root: args.evidence_root,
             worker_count: args.workers,
             timeout: Duration::from_secs(args.timeout_seconds),

@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::ffi::{OsStr, OsString};
 use std::fs;
+use std::io::Write as _;
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -12,14 +13,15 @@ use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 use bijux_dna_containers::api::{
-    clean_repository_head_commit, derive_apptainer_tool_contract, load_container_catalog,
-    load_image_inventory_publication, resolve_catalog_locked_apptainer_image,
-    resolve_current_apptainer_contract_commit, validate_container_inventory_catalog,
-    validate_container_recipe_evidence_chain, verify_grype_database,
-    verify_security_scanner_toolchain, ContainerToolContract, SecurityFilesystemKind,
-    SecurityFilesystemObservation, SecurityProbeArtifact, SecurityProbePublication,
-    SecurityProbeStatus, SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport,
-    ToolSecurityProbe, SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+    admit_security_probe_publication, clean_repository_head_commit, derive_apptainer_tool_contract,
+    load_container_catalog, load_image_inventory_publication,
+    resolve_catalog_locked_apptainer_image, resolve_current_apptainer_contract_commit,
+    validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
+    verify_grype_database, verify_security_scanner_toolchain, AdmittedSecurityProbePublication,
+    ContainerToolContract, SecurityFilesystemKind, SecurityFilesystemObservation,
+    SecurityProbeArtifact, SecurityProbeAuthority, SecurityProbePublication, SecurityProbeStatus,
+    SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport, ToolSecurityProbe,
+    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
 };
 
 const NON_ROOT_PROBE_SCRIPT: &str = "uid=$(id -u); printf '%s\\n' \"$uid\"; test \"$uid\" -ne 0";
@@ -34,6 +36,7 @@ pub struct SecurityVerificationRequest {
     pub scanner_root: PathBuf,
     pub database_contract_path: PathBuf,
     pub database_root: PathBuf,
+    pub reused_publication_path: Option<PathBuf>,
     pub evidence_root: PathBuf,
     pub worker_count: usize,
     pub timeout: Duration,
@@ -74,6 +77,11 @@ pub fn execute_security_verification(
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
         &request.repository_root.join("containers/contracts/catalog.toml"),
     )?;
+    let inventory_sha256 = bijux_dna_infra::hash_file_sha256(&request.inventory_path)?;
+    let scanner_completion_sha256 =
+        bijux_dna_infra::hash_file_sha256(&request.scanner_root.join("completion.json"))?;
+    let database_completion_sha256 =
+        bijux_dna_infra::hash_file_sha256(&request.database_root.join("completion.json"))?;
     validate_container_inventory_catalog(&catalog_sha256, &catalog, &inventory)?;
     validate_container_recipe_evidence_chain(
         &request.repository_root,
@@ -87,6 +95,18 @@ pub fn execute_security_verification(
         &request.scanner_root,
         &request.database_root,
     )?;
+    let authority = SecurityProbeAuthority {
+        repository_commit: commit.clone(),
+        catalog_sha256: catalog_sha256.clone(),
+        inventory_sha256: inventory_sha256.clone(),
+        scanner_completion_sha256: scanner_completion_sha256.clone(),
+        database_completion_sha256: database_completion_sha256.clone(),
+    };
+    let reused = request
+        .reused_publication_path
+        .as_ref()
+        .map(|path| admit_security_probe_publication(path, &request.study_root, &authority))
+        .transpose()?;
     let tasks = catalog
         .tools
         .iter()
@@ -125,20 +145,17 @@ pub fn execute_security_verification(
         bail!("security verification has no retained Apptainer images");
     }
     bijux_dna_infra::ensure_dir(&request.evidence_root)?;
-    let tools = execute_tasks(request, &tasks)?;
+    let tools = execute_tasks(request, &tasks, reused.as_ref())?;
     let collected =
         tools.values().filter(|tool| tool.status == SecurityProbeStatus::Collected).count();
     let publication = SecurityProbePublication {
         schema_version: SECURITY_PROBE_PUBLICATION_SCHEMA_V1.to_string(),
         repository_commit: commit,
         catalog_sha256,
-        inventory_sha256: bijux_dna_infra::hash_file_sha256(&request.inventory_path)?,
-        scanner_completion_sha256: bijux_dna_infra::hash_file_sha256(
-            &request.scanner_root.join("completion.json"),
-        )?,
-        database_completion_sha256: bijux_dna_infra::hash_file_sha256(
-            &request.database_root.join("completion.json"),
-        )?,
+        inventory_sha256,
+        scanner_completion_sha256,
+        database_completion_sha256,
+        reused_publication_sha256: reused.map(|publication| publication.publication_sha256),
         tools,
     };
     ensure_immutable_json(publication_path, &publication)?;
@@ -149,6 +166,7 @@ pub fn execute_security_verification(
 fn execute_tasks(
     request: &SecurityVerificationRequest,
     tasks: &[ToolTask],
+    reused: Option<&AdmittedSecurityProbePublication>,
 ) -> Result<BTreeMap<String, ToolSecurityProbe>> {
     let next = AtomicUsize::new(0);
     let results = Mutex::new(BTreeMap::new());
@@ -157,7 +175,7 @@ fn execute_tasks(
         for _ in 0..request.worker_count.min(tasks.len()) {
             handles.push(scope.spawn(|| -> Result<()> {
                 while let Some(task) = tasks.get(next.fetch_add(1, Ordering::Relaxed)) {
-                    let result = execute_or_resume_tool(request, task)?;
+                    let result = execute_or_resume_tool(request, task, reused)?;
                     results
                         .lock()
                         .map_err(|_| anyhow::anyhow!("security result lock poisoned"))?
@@ -177,6 +195,7 @@ fn execute_tasks(
 fn execute_or_resume_tool(
     request: &SecurityVerificationRequest,
     task: &ToolTask,
+    reused: Option<&AdmittedSecurityProbePublication>,
 ) -> Result<ToolSecurityProbe> {
     let tool_root = request.evidence_root.join("tools").join(&task.tool_id);
     let result_path = tool_root.join("result.json");
@@ -186,12 +205,158 @@ fn execute_or_resume_tool(
         return Ok(result);
     }
     bijux_dna_infra::ensure_dir(&tool_root)?;
-    let result = match collect_tool(request, task, &tool_root) {
+    let result = match reused {
+        Some(publication) => refresh_tool_structure(request, task, &tool_root, publication),
+        None => collect_tool(request, task, &tool_root),
+    };
+    let result = match result {
         Ok(result) => result,
         Err(error) => failed_result(request, task, &tool_root, &format!("{error:#}"))?,
     };
     bijux_dna_infra::atomic_create_json(&result_path, &result)?;
     Ok(result)
+}
+
+fn refresh_tool_structure(
+    request: &SecurityVerificationRequest,
+    task: &ToolTask,
+    root: &Path,
+    reused: &AdmittedSecurityProbePublication,
+) -> Result<ToolSecurityProbe> {
+    let previous = reused
+        .publication
+        .tools
+        .get(&task.tool_id)
+        .with_context(|| format!("reused security publication omits {}", task.tool_id))?;
+    if previous.status != SecurityProbeStatus::Collected {
+        bail!("reused security probe is not collected for {}", task.tool_id);
+    }
+    validate_resumed_result(request, task, previous)?;
+    let reports = reused
+        .reports
+        .get(&task.tool_id)
+        .with_context(|| format!("reused security reports omit {}", task.tool_id))?;
+    for (name, digest) in &reports.raw_manifest {
+        if matches!(
+            name.as_str(),
+            "structural.json" | "runtime.json" | "sandbox-build.stdout" | "sandbox-build.stderr"
+        ) {
+            continue;
+        }
+        let source = manifested_artifact(&previous.raw_manifest, name, digest)?;
+        ensure_immutable_bytes(&root.join(name), &reused.read_artifact(&source)?)?;
+    }
+
+    let sandbox = root.join("sandbox");
+    require_success(
+        run_bounded(
+            &request.apptainer_executable,
+            &[
+                OsString::from("build"),
+                OsString::from("--sandbox"),
+                sandbox.clone().into_os_string(),
+                task.image_path.clone().into_os_string(),
+            ],
+            &[],
+            &root.join("sandbox-build.stdout"),
+            &root.join("sandbox-build.stderr"),
+            request.timeout,
+        )?,
+        "Apptainer sandbox extraction",
+    )?;
+    let structural_path = root.join("structural.json");
+    bijux_dna_infra::atomic_create_json(&structural_path, &inspect_structure(&sandbox)?)?;
+    fs::remove_dir_all(&sandbox)
+        .with_context(|| format!("remove security sandbox {}", sandbox.display()))?;
+
+    let mut runtime = reports
+        .runtime
+        .clone()
+        .with_context(|| format!("reused security runtime report omits {}", task.tool_id))?;
+    rebase_runtime_report(request, root, &mut runtime)?;
+    let runtime_path = root.join("runtime.json");
+    bijux_dna_infra::atomic_create_json(&runtime_path, &runtime)?;
+
+    let mut result = previous.clone();
+    result.sbom = rebase_optional_artifact(request, root, previous.sbom.as_ref())?;
+    result.vulnerability_report =
+        rebase_optional_artifact(request, root, previous.vulnerability_report.as_ref())?;
+    result.secret_report =
+        rebase_optional_artifact(request, root, previous.secret_report.as_ref())?;
+    result.signature_stdout =
+        rebase_optional_artifact(request, root, previous.signature_stdout.as_ref())?;
+    result.signature_stderr =
+        rebase_optional_artifact(request, root, previous.signature_stderr.as_ref())?;
+    result.structural_report = Some(artifact(request, &structural_path)?);
+    result.runtime_report = Some(artifact(request, &runtime_path)?);
+    result.raw_manifest = write_raw_manifest(request, root)?;
+    Ok(result)
+}
+
+fn manifested_artifact(
+    raw_manifest: &SecurityProbeArtifact,
+    name: &str,
+    sha256: &str,
+) -> Result<SecurityProbeArtifact> {
+    let relative = raw_manifest
+        .uri
+        .strip_prefix("study://")
+        .context("reused raw manifest URI is not rooted at study://")?;
+    let parent = Path::new(relative).parent().context("reused raw manifest has no parent")?;
+    Ok(SecurityProbeArtifact {
+        uri: format!("study://{}", parent.join(name).display()),
+        sha256: sha256.to_string(),
+    })
+}
+
+fn ensure_immutable_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
+    if path.exists() {
+        if fs::read(path)? == bytes {
+            return Ok(());
+        }
+        bail!("immutable reused security artifact conflicts at {}", path.display());
+    }
+    let mut file = fs::OpenOptions::new().write(true).create_new(true).open(path)?;
+    file.write_all(bytes)?;
+    file.sync_all()?;
+    Ok(())
+}
+
+fn rebase_optional_artifact(
+    request: &SecurityVerificationRequest,
+    root: &Path,
+    source: Option<&SecurityProbeArtifact>,
+) -> Result<Option<SecurityProbeArtifact>> {
+    source.map(|source| rebase_artifact(request, root, source)).transpose()
+}
+
+fn rebase_artifact(
+    request: &SecurityVerificationRequest,
+    root: &Path,
+    source: &SecurityProbeArtifact,
+) -> Result<SecurityProbeArtifact> {
+    let name = Path::new(&source.uri)
+        .file_name()
+        .context("reused security artifact URI has no file name")?;
+    let rebased = artifact(request, &root.join(name))?;
+    if rebased.sha256 != source.sha256 {
+        bail!("reused security artifact digest differs after rebasing");
+    }
+    Ok(rebased)
+}
+
+fn rebase_runtime_report(
+    request: &SecurityVerificationRequest,
+    root: &Path,
+    report: &mut SecurityRuntimeReport,
+) -> Result<()> {
+    for probe in
+        [&mut report.network_isolated, &mut report.non_root_uid, &mut report.system_read_only]
+    {
+        probe.stdout = rebase_artifact(request, root, &probe.stdout)?;
+        probe.stderr = rebase_artifact(request, root, &probe.stderr)?;
+    }
+    Ok(())
 }
 
 fn collect_tool(
@@ -613,8 +778,9 @@ mod tests {
     use anyhow::Result;
 
     use super::{
-        ensure_immutable_json, inspect_structure, run_bounded, validate_request,
-        SecurityFilesystemKind, SecurityVerificationRequest, NON_ROOT_PROBE_SCRIPT,
+        ensure_immutable_bytes, ensure_immutable_json, inspect_structure, manifested_artifact,
+        run_bounded, validate_request, SecurityFilesystemKind, SecurityProbeArtifact,
+        SecurityVerificationRequest, NON_ROOT_PROBE_SCRIPT,
     };
 
     #[test]
@@ -637,6 +803,28 @@ mod tests {
         assert_eq!(exit, 0);
         assert_eq!(fs::read_to_string(stdout)?, "complete-output");
         assert_eq!(fs::read_to_string(stderr)?, "complete-error");
+        Ok(())
+    }
+
+    #[test]
+    fn reused_artifacts_preserve_manifest_identity_and_immutable_bytes() -> Result<()> {
+        let root = bijux_dna_testkit::tempdir_for("security-reused-artifact");
+        let path = root.path().join("sbom.json");
+        ensure_immutable_bytes(&path, b"exact-sbom")?;
+        ensure_immutable_bytes(&path, b"exact-sbom")?;
+        assert_eq!(fs::read(&path)?, b"exact-sbom");
+        assert!(ensure_immutable_bytes(&path, b"changed").is_err());
+
+        let artifact = manifested_artifact(
+            &SecurityProbeArtifact {
+                uri: "study://prior/tools/samtools/raw-manifest.json".to_string(),
+                sha256: "a".repeat(64),
+            },
+            "sbom.json",
+            &"b".repeat(64),
+        )?;
+        assert_eq!(artifact.uri, "study://prior/tools/samtools/sbom.json");
+        assert_eq!(artifact.sha256, "b".repeat(64));
         Ok(())
     }
 
@@ -705,6 +893,7 @@ mod tests {
             scanner_root: study.path().join("scanner"),
             database_contract_path: study.path().join("database.toml"),
             database_root: study.path().join("database"),
+            reused_publication_path: None,
             evidence_root: evidence.clone(),
             worker_count: 1,
             timeout: Duration::from_secs(1),

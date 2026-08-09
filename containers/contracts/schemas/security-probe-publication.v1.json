@@ -155,6 +155,12 @@
     "repository_commit": {
       "type": "string"
     },
+    "reused_publication_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "scanner_completion_sha256": {
       "type": "string"
     },
