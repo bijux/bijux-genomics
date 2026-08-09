@@ -22,13 +22,14 @@ const DUPLICATION_METRICS_STAGE: &str = "bam.duplication_metrics";
 const INSERT_SIZE_STAGE: &str = "bam.insert_size";
 const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
+const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 14);
+    assert_eq!(retained.bindings().len(), 15);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -51,8 +52,68 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 22);
+    assert_eq!(all.bindings().len(), 23);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_umi_tools_binding_preserves_paired_reads_and_native_log() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(EXTRACT_UMIS_STAGE), &ToolId::new("umi_tools"))
+        .ok_or_else(|| anyhow::anyhow!("canonical UMI-tools extraction binding is missing"))?;
+
+    assert_eq!(binding.resources.threads, 2);
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.fastq.extract_umis.bundle.v1"
+    );
+    assert_eq!(
+        binding.normalizer_id,
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::extract_umis"
+    );
+    assert_eq!(binding.downstream_probe_id, "bijux.stage_probe.fastq.extract_umis.v1");
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["umi_reads_r1", "umi_reads_r2", "extraction_log"]
+    );
+
+    assert_eq!(
+        render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: "/images/umi_tools.sif".to_owned(),
+                inputs: BTreeMap::from([
+                    ("reads_r1".to_owned(), "sample_R1.fastq.gz".to_owned()),
+                    ("reads_r2".to_owned(), "sample_R2.fastq.gz".to_owned()),
+                ]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("umi_pattern".to_owned(), "NNNNNNNN".to_owned())]),
+                outputs: BTreeMap::from([
+                    ("umi_reads_r1".to_owned(), "umi_R1.fastq.gz".to_owned()),
+                    ("umi_reads_r2".to_owned(), "umi_R2.fastq.gz".to_owned()),
+                    ("extraction_log".to_owned(), "umi_tools.extract.log".to_owned()),
+                ]),
+            },
+        )?,
+        [
+            "/images/umi_tools.sif",
+            "extract",
+            "--stdin",
+            "sample_R1.fastq.gz",
+            "--stdout",
+            "umi_R1.fastq.gz",
+            "--read2-in",
+            "sample_R2.fastq.gz",
+            "--read2-out",
+            "umi_R2.fastq.gz",
+            "--bc-pattern",
+            "NNNNNNNN",
+            "--log",
+            "umi_tools.extract.log",
+        ]
+    );
     Ok(())
 }
 

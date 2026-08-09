@@ -66,6 +66,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         samtools_duplication_metrics(),
         samtools_endogenous_content(),
         samtools_mapping_summary(),
+        umi_tools_extract_umis(),
     ] {
         registry.insert(binding)?;
     }
@@ -335,6 +336,46 @@ fn rxy_sex() -> ToolBindingV1 {
         &[
             "classification_profile_must_match_the_governed_reference_and_interpretation_scope",
             "input_bam_must_be_indexed_and_expose_declared_x_and_y_contigs",
+        ],
+    )
+}
+
+fn umi_tools_extract_umis() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.extract_umis",
+        "umi_tools",
+        &["paired_end_reads", "umi_extraction", "native_extraction_log"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["umi_pattern"],
+        &[
+            output("umi_reads_r1", FASTQ_PAIRED),
+            output("umi_reads_r2", FASTQ_PAIRED),
+            output("extraction_log", FILE),
+        ],
+        &[
+            "${executable}",
+            "extract",
+            "--stdin",
+            "${input:reads_r1}",
+            "--stdout",
+            "${output:umi_reads_r1}",
+            "--read2-in",
+            "${input:reads_r2}",
+            "--read2-out",
+            "${output:umi_reads_r2}",
+            "--bc-pattern",
+            "${parameter:umi_pattern}",
+            "--log",
+            "${output:extraction_log}",
+        ],
+        "bijux.benchmark.fastq.extract_umis.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::extract_umis",
+        "bijux.stage_probe.fastq.extract_umis.v1",
+        resources(2, 4, 4),
+        &[
+            "paired_end_binding",
+            "binding_extracts_the_umi_from_the_read1_prefix",
+            "umi_pattern_must_match_the_library_preparation",
         ],
     )
 }
