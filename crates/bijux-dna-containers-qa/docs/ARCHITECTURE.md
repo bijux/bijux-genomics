@@ -25,14 +25,16 @@ dataset concerns.
 - `src/security_verification/`: exact-image SBOM, vulnerability, secret, signature, structural,
   and runtime probe collection for changed images plus digest-verified unchanged-image baseline
   reuse using container-owned evidence types, without policy or release verdicts.
-- `src/qualification/`: pipeline-derived probe plans, declared-output validation, metric
-  evaluation, and classified qualification verdicts consumed by execution backends.
+- `src/qualification/`: binding-derived immutable specification compilation, incremental catalog
+  coverage, pipeline-derived probe plans, declared-output validation, metric evaluation, and
+  classified qualification verdicts consumed by execution backends.
 
 ## Data Flow
 
 1. Platform and tool-image catalog facts come from `bijux-dna-containers`.
 2. QA datasets are discovered or hydrated under declared QA inputs.
-3. Qualification pipelines become typed QA probe and acceptance plans before execution.
+3. Catalog, run, image, stage-binding, and governed-input identities compile into immutable
+   qualification pipelines; those pipelines become typed QA probe and acceptance plans.
 4. Docker/Apptainer checks run only through explicit commands owned by execution backends.
 5. Security probes remain raw QA observations for policy-owned admission.
 6. QA evaluates stage probe observations, declared outputs, and metrics into classified verdicts.

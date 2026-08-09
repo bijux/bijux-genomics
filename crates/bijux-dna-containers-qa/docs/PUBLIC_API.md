@@ -15,7 +15,8 @@
 - `image_qa`: image QA runner, artifact paths, record helpers, validation helpers, and support
   functions used by QA workflows.
 - `qa_docker_images`: Docker image catalog probe command implementation.
-- `qualification`: typed pipeline-derived probe plans plus classified output and metric verdicts.
+- `qualification`: generic checksum-bound specification compilation and coverage, typed
+  pipeline-derived probe plans, and classified output and metric verdicts.
 - `runtime_verification`: bounded changed-image Apptainer probe execution, digest-verified baseline
   reuse, and immutable full-catalog evidence publication.
 - `security_verification`: bounded changed-image security probe execution and admitted

@@ -26,6 +26,7 @@ mod metadata;
 mod qualification_cycle;
 mod qualification_registry;
 mod qualification_slurm;
+mod qualification_specification;
 mod registry_catalog;
 mod run_evidence;
 mod runtime;

@@ -362,6 +362,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::QualificationRegistry,
         ),
         native(
+            "qualification-specification",
+            "Compile checksum-bound qualification specifications and report incremental coverage.",
+            NativeContainerCommandKey::QualificationSpecification,
+        ),
+        native(
             "qualification-cycle",
             "Plan and advance non-waiting governed qualification cycles.",
             NativeContainerCommandKey::QualificationCycle,

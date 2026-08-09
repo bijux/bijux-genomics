@@ -80,6 +80,7 @@ pub enum NativeContainerCommandKey {
     ImageStorage,
     PipelineContract,
     QualificationRegistry,
+    QualificationSpecification,
     QualificationCycle,
     QualificationSlurm,
     RepositoryFreeze,

@@ -44,6 +44,11 @@ Fast tests must not run Docker, Apptainer, network pulls, or long-running QA com
 writes under `artifacts/image-qa/<platform>/`; catalog runtime verification writes only to its
 explicit operator-provided study evidence root.
 
+The thin `bijux-dna-dev containers run qualification-specification --` composition surface calls
+the QA-owned pure compiler through the runner facade. Its `compile`, `coverage`,
+`generate-schema`, and `check-schema` operations read declared authorities and write only their
+explicit output paths; they do not execute a tool or contact a scheduler.
+
 ## Process Ownership Files
 
 - `src/bin/build_docker_images.rs`

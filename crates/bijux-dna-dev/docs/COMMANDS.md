@@ -279,6 +279,7 @@ pipeline-contract
 qualification-cycle
 qualification-registry
 qualification-slurm
+qualification-specification
 registry-tools
 release-gate
 repository-freeze

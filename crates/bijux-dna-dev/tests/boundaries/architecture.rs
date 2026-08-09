@@ -133,6 +133,7 @@ fn dev_tree_matches_architecture_contract() {
         "qualification_cycle.rs",
         "qualification_registry.rs",
         "qualification_slurm.rs",
+        "qualification_specification.rs",
         "registry_catalog.rs",
         "run_evidence.rs",
         "site_policy.rs",
