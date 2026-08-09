@@ -262,7 +262,14 @@ fn discover_specifications(root: &Path) -> Result<BTreeMap<(String, String), Vec
         return Ok(BTreeMap::new());
     }
     let mut specifications = BTreeMap::new();
-    for entry in WalkDir::new(root).follow_links(false) {
+    for entry in WalkDir::new(root).follow_links(false).into_iter().filter_entry(|entry| {
+        entry.depth() == 0
+            || !entry.file_type().is_dir()
+            || !matches!(
+                entry.file_name().to_str(),
+                Some(".attempt-archives" | ".attempt-archive-rollbacks")
+            )
+    }) {
         let entry = entry.with_context(|| format!("walk qualification root {}", root.display()))?;
         if !entry.file_type().is_file() || entry.file_name() != "qualification-spec.json" {
             continue;
@@ -442,5 +449,31 @@ fn regular_file_exists(path: &Path) -> Result<bool> {
         Err(error) => {
             Err(error).with_context(|| format!("inspect cycle evidence {}", path.display()))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::discover_specifications;
+
+    #[test]
+    fn specification_discovery_excludes_archived_attempts() -> anyhow::Result<()> {
+        let root = bijux_dna_infra::temp_dir("qualification-cycle-discovery")?;
+        let active = root.path().join("run-1150/attempt-002");
+        let archived = root.path().join(".attempt-archives/run-1150/attempt-001");
+        std::fs::create_dir_all(&active)?;
+        std::fs::create_dir_all(&archived)?;
+        let identity = br#"{"run_id":"run-1150","tool_id":"rcorrector"}"#;
+        std::fs::write(active.join("qualification-spec.json"), identity)?;
+        std::fs::write(archived.join("qualification-spec.json"), identity)?;
+
+        let discovered = discover_specifications(root.path())?;
+
+        assert_eq!(discovered.len(), 1);
+        assert_eq!(
+            discovered.get(&("run-1150".to_string(), "rcorrector".to_string())).map(Vec::len),
+            Some(1)
+        );
+        Ok(())
     }
 }
