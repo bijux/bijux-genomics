@@ -5,11 +5,12 @@ pub use super::apptainer::{
 };
 pub use super::builder::EnvironmentBuilder;
 pub use super::campaign::{
-    execute_apptainer_image_campaign, image_campaign_execution_schema, image_campaign_plan_schema,
+    execute_apptainer_image_campaign, execute_apptainer_image_campaign_attempt,
+    image_campaign_execution_schema, image_campaign_plan_schema,
     verify_apptainer_image_campaign_receipt, write_image_campaign_execution_schema,
-    write_image_campaign_plan_schema, ApptainerImageCampaignRequest, ImageCampaignExecution,
-    ImageCampaignJobCompletion, ImageCampaignPlan, ImageCampaignToolOutcome,
-    ImageCampaignToolStatus, IMAGE_CAMPAIGN_EXECUTION_SCHEMA_V1,
+    write_image_campaign_plan_schema, ApptainerImageCampaignRequest, ImageCampaignAttemptRequest,
+    ImageCampaignExecution, ImageCampaignJobCompletion, ImageCampaignPlan,
+    ImageCampaignToolOutcome, ImageCampaignToolStatus, IMAGE_CAMPAIGN_EXECUTION_SCHEMA_V1,
     IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1, IMAGE_CAMPAIGN_PLAN_SCHEMA_V1,
 };
 pub use super::entrypoints::{default_docker_tools, extract_version_from_dockerfile};

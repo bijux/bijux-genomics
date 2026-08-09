@@ -33,6 +33,9 @@ library can manage when callers invoke the matching API.
   all-passed terminal execution publication. An explicit retained-tool selection executes only
   that dependency closure under deterministic `selected-<tool-set-sha256>` staging and evidence
   roots; the complete retained roster preserves the historical commit-addressed root.
+- `execute_apptainer_image_campaign_attempt()`: binds one campaign execution to an immutable
+  attempt root, Slurm job identity, completion timestamp, execution digest, and atomic terminal
+  receipt without owning scheduler submission or observation.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.

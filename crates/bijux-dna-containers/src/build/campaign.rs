@@ -87,6 +87,15 @@ pub struct ImageCampaignJobCompletion {
     pub campaign_execution_sha256: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImageCampaignAttemptRequest {
+    pub campaign: ApptainerImageCampaignRequest,
+    pub attempt_root: PathBuf,
+    pub attempt_id: String,
+    pub slurm_job_id: String,
+    pub completed_at: String,
+}
+
 #[must_use]
 pub fn image_campaign_plan_schema() -> Value {
     serde_json::to_value(schema_for!(ImageCampaignPlan)).unwrap_or_else(|_| serde_json::json!({}))
@@ -195,6 +204,56 @@ pub fn execute_apptainer_image_campaign(
         execution_from_tools(commit, catalog_sha256, catalog.apptainer_architecture, tools);
     publish_campaign_execution(&evidence_root, &execution)?;
     Ok(execution)
+}
+
+/// Execute one image campaign attempt and atomically publish its scheduler completion receipt.
+///
+/// # Errors
+/// Returns an error when attempt identity is invalid, campaign execution fails, or immutable
+/// attempt publications conflict.
+pub fn execute_apptainer_image_campaign_attempt(
+    request: &ImageCampaignAttemptRequest,
+) -> Result<ImageCampaignJobCompletion> {
+    validate_attempt_identity(request)?;
+    let metadata = fs::symlink_metadata(&request.attempt_root)
+        .context("inspect image campaign attempt root")?;
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        bail!("image campaign attempt root is not a regular directory");
+    }
+    let execution = execute_apptainer_image_campaign(&request.campaign)?;
+    let execution_name = "campaign-execution.json";
+    let execution_path = request.attempt_root.join(execution_name);
+    ensure_immutable_json(&execution_path, &execution)?;
+    let completion = ImageCampaignJobCompletion {
+        schema_version: IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1.to_string(),
+        attempt_id: request.attempt_id.clone(),
+        repository_commit: execution.repository_commit,
+        slurm_job_id: request.slurm_job_id.clone(),
+        completed_at: request.completed_at.clone(),
+        campaign_execution: execution_name.to_string(),
+        campaign_execution_sha256: bijux_dna_infra::hash_file_sha256(&execution_path)?,
+    };
+    ensure_immutable_json(&request.attempt_root.join("completion.json"), &completion)?;
+    Ok(completion)
+}
+
+fn validate_attempt_identity(request: &ImageCampaignAttemptRequest) -> Result<()> {
+    if request.attempt_id.is_empty()
+        || request.attempt_id.contains('/')
+        || request.attempt_id.contains('\\')
+        || request.attempt_id == "."
+        || request.attempt_id == ".."
+    {
+        bail!("image campaign attempt identity is invalid");
+    }
+    if request.slurm_job_id.is_empty()
+        || !request.slurm_job_id.bytes().all(|byte| byte.is_ascii_digit())
+    {
+        bail!("image campaign Slurm job identity is invalid");
+    }
+    DateTime::parse_from_rfc3339(&request.completed_at)
+        .context("image campaign completion timestamp is invalid")?;
+    Ok(())
 }
 
 /// Admit a terminal Slurm campaign receipt and every publication it references.
@@ -683,5 +742,34 @@ mod tests {
             Path::new("/study/campaigns/commit")
         );
         Ok(())
+    }
+
+    #[test]
+    fn campaign_attempt_requires_stable_scheduler_identity() {
+        let campaign = ApptainerImageCampaignRequest {
+            repository_root: PathBuf::from("repository"),
+            study_root: PathBuf::from("study"),
+            apptainer_executable: PathBuf::from("apptainer"),
+            worker_count: 1,
+            selected_tools: None,
+        };
+        let valid = ImageCampaignAttemptRequest {
+            campaign: campaign.clone(),
+            attempt_root: PathBuf::from("attempt"),
+            attempt_id: "attempt-001".to_string(),
+            slurm_job_id: "3473000".to_string(),
+            completed_at: "2026-08-09T07:10:00Z".to_string(),
+        };
+        assert!(validate_attempt_identity(&valid).is_ok());
+
+        let mut invalid = valid.clone();
+        invalid.attempt_id = "../attempt".to_string();
+        assert!(validate_attempt_identity(&invalid).is_err());
+        invalid = valid.clone();
+        invalid.slurm_job_id = "job-3473000".to_string();
+        assert!(validate_attempt_identity(&invalid).is_err());
+        invalid = valid;
+        invalid.completed_at = "not-a-timestamp".to_string();
+        assert!(validate_attempt_identity(&invalid).is_err());
     }
 }
