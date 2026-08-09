@@ -23,6 +23,7 @@ mod image_activation;
 mod image_campaign;
 mod inventory;
 mod metadata;
+mod qualification_cycle;
 mod qualification_registry;
 mod qualification_slurm;
 mod registry_catalog;

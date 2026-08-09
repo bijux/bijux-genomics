@@ -60,6 +60,25 @@ pub(super) fn run_containers(command: ContainersCommand) -> Result<()> {
             }
             Ok(())
         }
+        ContainersSubcommand::Cycle { operation, mut args } => {
+            args.insert(0, operation);
+            with_timing("containers", "cycle", || {
+                let outcome = app.run("qualification-cycle", &args)?;
+                if !outcome.stdout.is_empty() {
+                    write_stdout(&outcome.stdout)?;
+                }
+                if !outcome.stderr.is_empty() {
+                    write_stderr(&outcome.stderr)?;
+                }
+                if !outcome.is_success() {
+                    anyhow::bail!(
+                        "container command `cycle` failed with exit code {}",
+                        outcome.exit_code
+                    );
+                }
+                Ok(())
+            })
+        }
         ContainersSubcommand::Run { id, args } => with_timing("containers", &id, || {
             let outcome = app.run(&id, &args)?;
             if !outcome.stdout.is_empty() {

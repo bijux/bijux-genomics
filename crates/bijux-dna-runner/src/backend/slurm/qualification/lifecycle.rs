@@ -159,6 +159,23 @@ pub fn load_container_qualification_slurm_job_handle(
     load_matching_handle(&scheduler_root.join("job-handle.json"), &prepared.request)
 }
 
+/// Load and validate retained terminal scheduler evidence without mutating result publication.
+///
+/// # Errors
+/// Returns an error when retained terminal evidence or its immutable identity chain conflicts.
+pub fn load_container_qualification_scheduler_evidence(
+    spec: &ContainerQualificationSlurmSpec,
+) -> Result<Option<ContainerQualificationSchedulerEvidence>> {
+    let terminal_path = spec.evidence_root.join("scheduler-evidence.json");
+    if !regular_file_exists(&terminal_path, "qualification terminal evidence")? {
+        return Ok(None);
+    }
+    let handle = load_container_qualification_slurm_job_handle(spec)?;
+    let evidence: ContainerQualificationSchedulerEvidence = read_json(&terminal_path)?;
+    validate_retained_evidence(spec, &handle, &evidence)?;
+    Ok(Some(evidence))
+}
+
 /// Observe one qualification job once without polling or mutating scheduler evidence.
 ///
 /// # Errors

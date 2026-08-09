@@ -362,6 +362,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::QualificationRegistry,
         ),
         native(
+            "qualification-cycle",
+            "Plan and advance non-waiting governed qualification cycles.",
+            NativeContainerCommandKey::QualificationCycle,
+        ),
+        native(
             "qualification-slurm",
             "Prepare, submit, observe, collect, or cancel governed qualification jobs.",
             NativeContainerCommandKey::QualificationSlurm,

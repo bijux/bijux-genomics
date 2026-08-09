@@ -276,6 +276,7 @@ image-smoke-vcf
 image-storage
 lint
 pipeline-contract
+qualification-cycle
 qualification-registry
 qualification-slurm
 registry-tools

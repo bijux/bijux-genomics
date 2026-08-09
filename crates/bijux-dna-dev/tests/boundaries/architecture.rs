@@ -130,6 +130,7 @@ fn dev_tree_matches_architecture_contract() {
         "inventory.rs",
         "metadata.rs",
         "mod.rs",
+        "qualification_cycle.rs",
         "qualification_registry.rs",
         "qualification_slurm.rs",
         "registry_catalog.rs",

@@ -211,6 +211,7 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::QualificationRegistry => {
             qualification_registry::run(workspace, args)
         }
+        NativeContainerCommandKey::QualificationCycle => qualification_cycle::run(workspace, args),
         NativeContainerCommandKey::QualificationSlurm => qualification_slurm::run(workspace, args),
         NativeContainerCommandKey::RepositoryFreeze => {
             site_policy::freeze_repository(workspace, args)
