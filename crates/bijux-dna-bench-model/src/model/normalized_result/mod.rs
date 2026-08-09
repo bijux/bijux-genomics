@@ -41,6 +41,7 @@ fn probe_stage_id(_: &mut SchemaGenerator) -> Schema {
             "benchmark.bam.duplication_metrics.compare",
             "benchmark.bam.endogenous_content.consume",
             "benchmark.bam.genotyping.consume",
+            "benchmark.bam.insert_size.consume",
             "benchmark.bam.mapping_summary.compare"
         ]
     })
@@ -55,6 +56,7 @@ fn probe_input_contract(_: &mut SchemaGenerator) -> Schema {
             bam::BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1,
             bam::BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1,
             bam::BAM_GENOTYPING_RESULT_SCHEMA_V1,
+            bam::BAM_INSERT_SIZE_RESULT_SCHEMA_V1,
             bam::BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1
         ]
     })
@@ -79,6 +81,7 @@ where
             "benchmark.bam.duplication_metrics.compare",
             "benchmark.bam.endogenous_content.consume",
             "benchmark.bam.genotyping.consume",
+            "benchmark.bam.insert_size.consume",
             "benchmark.bam.mapping_summary.compare",
         ],
     )
@@ -96,6 +99,7 @@ where
             bam::BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1,
             bam::BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1,
             bam::BAM_GENOTYPING_RESULT_SCHEMA_V1,
+            bam::BAM_INSERT_SIZE_RESULT_SCHEMA_V1,
             bam::BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1,
         ],
     )

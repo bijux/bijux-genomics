@@ -2,13 +2,13 @@
   "schema_version": "bijux.benchmark.stage_coverage.v1",
   "summary": {
     "retained_stage_count": 71,
-    "defined_stage_count": 10,
+    "defined_stage_count": 11,
     "qualification_stage_count": 6,
-    "comparative_stage_count": 4,
+    "comparative_stage_count": 5,
     "admitted_stage_count": 0,
     "stale_stage_count": 0,
     "failed_stage_count": 0,
-    "missing_stage_count": 61
+    "missing_stage_count": 60
   },
   "stages": [
     {
@@ -139,8 +139,9 @@
       "retained_tools": [
         "picard"
       ],
-      "definition_status": "missing",
-      "execution_status": "not_defined"
+      "campaign_run_id": "run-2015",
+      "definition_status": "comparative",
+      "execution_status": "not_admitted"
     },
     {
       "stage_id": "bam.kinship",

@@ -27,8 +27,8 @@ use bijux_dna_stage_contract::{
     TOOL_BINDING_SCHEMA_V1,
 };
 
-const EXISTING_CAMPAIGN_COUNT: usize = 10;
-const EXISTING_CASE_COUNT: usize = 22;
+const EXISTING_CAMPAIGN_COUNT: usize = 11;
+const EXISTING_CASE_COUNT: usize = 23;
 const COVERAGE_STAGE: &str = "bam.coverage";
 
 struct PlanningFixture {
@@ -267,6 +267,39 @@ fn checked_in_run_2011_plans_duplication_metrics_through_canonical_bindings() ->
     );
     assert_eq!(matrix.cases[0].binding.resources.threads, 1);
     assert_eq!(matrix.cases[1].binding.resources.threads, 4);
+    assert_eq!(matrix.data_snapshots.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2015_plans_insert_size_through_canonical_binding() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2015");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.insert_size");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2015 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(matrix.cases.len(), 1);
+    assert_eq!(matrix.cases[0].tool_id, "picard");
+    assert_eq!(matrix.cases[0].binding.resources.threads, 1);
+    assert_eq!(
+        matrix.cases[0].binding.normalized_output_contract_id,
+        "bijux.benchmark.bam.insert_size.bundle.v1"
+    );
     assert_eq!(matrix.data_snapshots.len(), 1);
     Ok(())
 }

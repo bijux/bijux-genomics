@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "bam_index_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "bam_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "maximum_insert_size": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "mean_insert_size": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "median_absolute_deviation": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "median_insert_size": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "minimum_insert_size": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pair_orientation_fr_fraction": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "read_pairs": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.insert_size.metrics.v1",
+      "type": "string"
+    },
+    "standard_deviation": {
+      "minimum": 0,
+      "type": "number"
+    }
+  },
+  "required": [
+    "schema_version",
+    "median_insert_size",
+    "mean_insert_size",
+    "standard_deviation",
+    "median_absolute_deviation",
+    "minimum_insert_size",
+    "maximum_insert_size",
+    "read_pairs",
+    "pair_orientation_fr_fraction",
+    "bam_input_bytes",
+    "bam_index_input_bytes",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamInsertSizeMetrics",
+  "type": "object"
+}

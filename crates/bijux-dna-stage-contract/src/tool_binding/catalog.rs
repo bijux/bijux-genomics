@@ -8,6 +8,7 @@ use super::{
 };
 
 const BAM: &str = "bijux.bam.artifact.coordinate_sorted_indexed.v1";
+const FILE: &str = "bijux.auxiliary.artifact.file.v1";
 const FASTA: &str = "bijux.reference.artifact.fasta.v1";
 const FASTQ_PAIRED: &str = "bijux.fastq.artifact.paired_end.v1";
 const JSON: &str = "bijux.auxiliary.artifact.json.v1";
@@ -56,6 +57,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bowtie2_align(),
         bwa_align(),
         mosdepth_coverage(),
+        picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
         samtools_coverage(),
@@ -190,6 +192,30 @@ fn picard_mapping_summary() -> ToolBindingV1 {
         "benchmark.bam.mapping_summary.compare",
         resources(1, 16, 8),
         &["pair_and_unpaired_categories_are_aggregated_without_first_or_second_of_pair_rows"],
+    )
+}
+
+fn picard_insert_size() -> ToolBindingV1 {
+    retained_binding(
+        "bam.insert_size",
+        "picard",
+        &["bam_input", "paired_template_distribution", "native_histogram_output"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("insert_size_metrics", TABLE), output("insert_size_histogram", FILE)],
+        &[
+            "${executable}",
+            "CollectInsertSizeMetrics",
+            "I=${input:bam}",
+            "O=${output:insert_size_metrics}",
+            "H=${output:insert_size_histogram}",
+            "M=0.5",
+        ],
+        "bijux.benchmark.bam.insert_size.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::insert_size",
+        "benchmark.bam.insert_size.consume",
+        resources(1, 16, 16),
+        &["paired_end_alignment_metadata_is_required_for_insert_size_inference"],
     )
 }
 

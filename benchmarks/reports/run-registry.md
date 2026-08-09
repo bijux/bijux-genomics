@@ -4,10 +4,10 @@
 
 Run IDs identify durable stage protocols, not attempts or publications. Existing IDs are immutable; additions allocate monotonically from the declared frontier.
 
-- Registry SHA-256: `cb5989eb7672fdeae83c5d918af339a0ec59ac31c50e729a63b44c02e0b2213b`
+- Registry SHA-256: `d1372949a7c79f547ce2a3886b07309c73c2c69cae7d59822818bde9bd29b704`
 - Registered protocols: **71**
-- Active protocols: **10**
-- Reserved protocols: **61**
+- Active protocols: **11**
+- Reserved protocols: **60**
 - Next allocation: **run-2072**
 
 | Run | Stage | Profile | Tools | State | Interface |
@@ -26,7 +26,7 @@ Run IDs identify durable stage protocols, not attempts or publications. Existing
 | `run-2012` | `bam.filter` | `bam-transformation` | `bamtools`, `bedtools`, `samtools` | `reserved` | - |
 | `run-2013` | `bam.gc_bias` | `bam-observational-qc` | `picard` | `reserved` | - |
 | `run-2014` | `bam.haplogroups` | `bam-biological-inference` | `yleaf` | `reserved` | - |
-| `run-2015` | `bam.insert_size` | `bam-observational-qc` | `picard` | `reserved` | - |
+| `run-2015` | `bam.insert_size` | `bam-observational-qc` | `picard` | `active` | `bijux.benchmark.bam.insert_size.bundle.v1` |
 | `run-2016` | `bam.kinship` | `bam-biological-inference` | `king` | `reserved` | - |
 | `run-2017` | `bam.length_filter` | `bam-transformation` | `picard`, `samtools` | `reserved` | - |
 | `run-2018` | `bam.mapq_filter` | `bam-transformation` | `bamtools`, `samtools` | `reserved` | - |

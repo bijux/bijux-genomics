@@ -8,13 +8,13 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **10**
+- Defined campaigns: **11**
 - Qualification-only campaigns: **6**
-- Comparative campaigns: **4**
+- Comparative campaigns: **5**
 - Admitted campaigns: **0**
 - Stale campaigns: **0**
 - Failed campaigns: **0**
-- Missing campaigns: **61**
+- Missing campaigns: **60**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -31,7 +31,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.gc_bias` | `picard` | - | missing | not_defined |
 | `bam.genotyping` | `bcftools` | `run-2001` | qualification | not_admitted |
 | `bam.haplogroups` | `yleaf` | - | missing | not_defined |
-| `bam.insert_size` | `picard` | - | missing | not_defined |
+| `bam.insert_size` | `picard` | `run-2015` | comparative | not_admitted |
 | `bam.kinship` | `king` | - | missing | not_defined |
 | `bam.length_filter` | `picard`, `samtools` | - | missing | not_defined |
 | `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | not_admitted |

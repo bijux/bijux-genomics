@@ -474,6 +474,23 @@ fn alignment_normalizer_scores_primary_records_against_independent_truth() -> an
 }
 
 #[test]
+fn insert_size_normalizer_extracts_picard_fr_distribution() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let fixture = repository_root.join(
+        "benchmarks/tests/fixtures/bench/parsers/bam/bam.insert_size/picard/raw.insert-size.metrics.txt",
+    );
+    let script = repository_root.join("benchmarks/execution/bam_insert_size.awk");
+    let output =
+        Command::new("awk").args(["-v", "mode=summary", "-f"]).arg(script).arg(fixture).output()?;
+    anyhow::ensure!(output.status.success(), "insert-size AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\nmedian_insert_size\t62.000000000000\nmean_insert_size\t64.200000000000\nstandard_deviation\t12.400000000000\nmedian_absolute_deviation\t8.000000000000\nminimum_insert_size\t30\nmaximum_insert_size\t180\nread_pairs\t1000\npair_orientation_fr_fraction\t1.000000000000\n"
+    );
+    Ok(())
+}
+
+#[test]
 fn genotyping_normalizer_derives_candidate_site_metrics() -> anyhow::Result<()> {
     let temporary = bijux_dna_infra::temp_dir("bam-genotyping-normalizer")?;
     let genotypes = temporary.path().join("genotypes.tsv");

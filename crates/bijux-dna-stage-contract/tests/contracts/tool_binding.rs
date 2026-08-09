@@ -19,13 +19,14 @@ const COVERAGE_STAGE: &str = "bam.coverage";
 const ENDOGENOUS_CONTENT_STAGE: &str = "bam.endogenous_content";
 const MAPPING_SUMMARY_STAGE: &str = "bam.mapping_summary";
 const DUPLICATION_METRICS_STAGE: &str = "bam.duplication_metrics";
+const INSERT_SIZE_STAGE: &str = "bam.insert_size";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 11);
+    assert_eq!(retained.bindings().len(), 12);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -48,8 +49,27 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 19);
+    assert_eq!(all.bindings().len(), 20);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_insert_size_binding_closes_run_2015_native_reports() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(INSERT_SIZE_STAGE), &ToolId::new("picard"))
+        .ok_or_else(|| anyhow::anyhow!("canonical Picard insert-size binding is missing"))?;
+
+    assert_eq!(binding.resources.threads, 1);
+    assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.bam.insert_size.bundle.v1");
+    assert_eq!(binding.normalizer_id, "bijux_dna_planner_bam::tool_adapters::bam::insert_size");
+    assert_eq!(binding.downstream_probe_id, "benchmark.bam.insert_size.consume");
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["insert_size_metrics", "insert_size_histogram"]
+    );
+    assert!(binding.command_template.iter().any(|token| token == "CollectInsertSizeMetrics"));
     Ok(())
 }
 

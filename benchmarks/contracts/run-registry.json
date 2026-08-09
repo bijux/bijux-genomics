@@ -10,14 +10,14 @@
   },
   "source_contract_sha256": {
     "benchmarks/contracts/portfolio.toml": "498523a0cfe154dfbda36e194f249043e2cc5f587b22a5dd614abf6fd89c1ba4",
-    "benchmarks/contracts/stage-campaigns.toml": "7d0dc537b5472d8f3f5b02367ab5dc63319c54f7cf3e398eac99208284436b22",
-    "benchmarks/contracts/stage-interfaces.toml": "5695f54b3726e114142220a823a155e3305f3796b8ff1e29229ec43da0f2ee8f",
+    "benchmarks/contracts/stage-campaigns.toml": "6494b51e69ee7b9acce4c1fba0e7f0be6159a089e1c9c983b6ad72712f66ebc4",
+    "benchmarks/contracts/stage-interfaces.toml": "4291214d3290fea46035fe521b97fab5dbf0f6d24303b7a48c57fecb911b645e",
     "containers/contracts/catalog.toml": "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b"
   },
   "summary": {
     "run_count": 71,
-    "active_count": 10,
-    "reserved_count": 61,
+    "active_count": 11,
+    "reserved_count": 60,
     "retired_count": 0
   },
   "runs": [
@@ -418,11 +418,14 @@
       "required_corpus_roles": [
         "bam_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.insert_size.bundle.v1",
+      "normalized_result_contract": "benchmarks/contracts/schemas/bam-insert-size-result.schema.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },

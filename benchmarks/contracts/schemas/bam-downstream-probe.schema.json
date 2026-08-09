@@ -12,6 +12,7 @@
         "bijux.benchmark.bam.duplication_metrics.bundle.v1",
         "bijux.benchmark.bam.endogenous_content.bundle.v1",
         "bijux.benchmark.bam.genotyping.bundle.v1",
+        "bijux.benchmark.bam.insert_size.bundle.v1",
         "bijux.benchmark.bam.mapping_summary.bundle.v1"
       ],
       "type": "string"
@@ -27,6 +28,7 @@
         "benchmark.bam.duplication_metrics.compare",
         "benchmark.bam.endogenous_content.consume",
         "benchmark.bam.genotyping.consume",
+        "benchmark.bam.insert_size.consume",
         "benchmark.bam.mapping_summary.compare"
       ],
       "type": "string"

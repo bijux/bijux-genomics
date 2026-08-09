@@ -29,6 +29,11 @@
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)",
       "overrides": {}
     },
+    "bam.insert_size": {
+      "parameter_schema_version": "bijux.bam.params.insert_size.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::InsertSize)",
+      "overrides": {}
+    },
     "bam.mapping_summary": {
       "parameter_schema_version": "bijux.bam.params.mapping_summary.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)",

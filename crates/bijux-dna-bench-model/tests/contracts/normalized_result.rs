@@ -3,11 +3,12 @@ use bijux_dna_bench_model::normalized_result::bam::{
     bam_coverage_result_schema, bam_duplication_metrics_measurements_schema,
     bam_duplication_metrics_result_schema, bam_endogenous_content_metrics_schema,
     bam_endogenous_content_result_schema, bam_genotyping_metrics_schema,
-    bam_genotyping_result_schema, bam_mapping_summary_metrics_schema,
-    bam_mapping_summary_result_schema, BenchmarkBamAlignMetrics, BenchmarkBamAlignResult,
-    BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult, BenchmarkBamDuplicationMetricsResult,
+    bam_genotyping_result_schema, bam_insert_size_metrics_schema, bam_insert_size_result_schema,
+    bam_mapping_summary_metrics_schema, bam_mapping_summary_result_schema,
+    BenchmarkBamAlignMetrics, BenchmarkBamAlignResult, BenchmarkBamCoverageMetrics,
+    BenchmarkBamCoverageResult, BenchmarkBamDuplicationMetricsResult,
     BenchmarkBamEndogenousContentResult, BenchmarkBamGenotypingResult,
-    BenchmarkBamMappingSummaryResult,
+    BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult, BenchmarkBamMappingSummaryResult,
 };
 use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_detect_adapters_metrics_schema, fastq_detect_adapters_probe_schema,
@@ -88,6 +89,20 @@ fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::R
             "mapped_primary_fraction": 0.8,
             "paired_primary_reads": 10,
         }),
+        serde_json::json!({
+            "schema_version": "bijux.benchmark.bam.insert_size.bundle.v1",
+            "stage_id": "bam.insert_size",
+            "tool_id": "picard",
+            "sample_id": "ERR2112767",
+            "median_insert_size": 62.0,
+            "mean_insert_size": 64.2,
+            "standard_deviation": 12.4,
+            "median_absolute_deviation": 8.0,
+            "minimum_insert_size": 30,
+            "maximum_insert_size": 180,
+            "read_pairs": 1000,
+            "pair_orientation_fr_fraction": 1.0,
+        }),
     ];
     serde_json::from_value::<BenchmarkBamAlignResult>(cases[0].clone())?;
     serde_json::from_value::<BenchmarkBamCoverageResult>(cases[1].clone())?;
@@ -95,6 +110,7 @@ fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::R
     serde_json::from_value::<BenchmarkBamEndogenousContentResult>(cases[3].clone())?;
     serde_json::from_value::<BenchmarkBamGenotypingResult>(cases[4].clone())?;
     serde_json::from_value::<BenchmarkBamMappingSummaryResult>(cases[5].clone())?;
+    serde_json::from_value::<BenchmarkBamInsertSizeResult>(cases[6].clone())?;
 
     let mut unknown = cases[1].clone();
     unknown["invented"] = serde_json::json!(true);
@@ -149,6 +165,14 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
             "bam-mapping-summary-metrics.schema.json",
             serde_json::to_value(bam_mapping_summary_metrics_schema())?,
         ),
+        (
+            "bam-insert-size-result.schema.json",
+            serde_json::to_value(bam_insert_size_result_schema())?,
+        ),
+        (
+            "bam-insert-size-metrics.schema.json",
+            serde_json::to_value(bam_insert_size_metrics_schema())?,
+        ),
         ("bam-downstream-probe.schema.json", serde_json::to_value(bam_downstream_probe_schema())?),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
@@ -201,6 +225,23 @@ fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
     unsupported_metrics["schema_version"] =
         serde_json::json!("bijux.benchmark.bam.coverage.metrics.v2");
     assert!(serde_json::from_value::<BenchmarkBamCoverageMetrics>(unsupported_metrics).is_err());
+
+    let insert_size_metrics = serde_json::json!({
+        "schema_version": "bijux.benchmark.bam.insert_size.metrics.v1",
+        "median_insert_size": 62.0,
+        "mean_insert_size": 64.2,
+        "standard_deviation": 12.4,
+        "median_absolute_deviation": 8.0,
+        "minimum_insert_size": 30,
+        "maximum_insert_size": 180,
+        "read_pairs": 1000,
+        "pair_orientation_fr_fraction": 1.0,
+        "bam_input_bytes": 100,
+        "bam_index_input_bytes": 10,
+        "input_bytes": 110,
+        "output_bytes": 20
+    });
+    serde_json::from_value::<BenchmarkBamInsertSizeMetrics>(insert_size_metrics)?;
 
     let probe = serde_json::json!({
         "schema_version": "bijux.benchmark.downstream_probe.v1",

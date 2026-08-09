@@ -12,7 +12,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
         "the checked-in stage campaign registry must include the audited seed campaign set"
     );
     assert_eq!(interfaces.schema_version, bijux_dna_bench::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1);
-    assert_eq!(interfaces.interfaces.len(), 10);
+    assert_eq!(interfaces.interfaces.len(), 11);
     Ok(())
 }
 
@@ -93,7 +93,7 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
         bijux_dna_bench::derive_stage_coverage(&registry, &catalog, &reports, &current_commit)?;
 
     assert_eq!(coverage.summary.retained_stage_count, 71);
-    assert_eq!(coverage.summary.defined_stage_count, 10);
+    assert_eq!(coverage.summary.defined_stage_count, 11);
     assert_eq!(coverage.summary.failed_stage_count, 0);
     assert!(
         coverage.summary.admitted_stage_count
@@ -209,8 +209,8 @@ fn checked_in_run_registry_closes_the_permanent_namespace() -> Result<()> {
     )?;
 
     assert_eq!(registry.summary.run_count, 71);
-    assert_eq!(registry.summary.active_count, 10);
-    assert_eq!(registry.summary.reserved_count, 61);
+    assert_eq!(registry.summary.active_count, 11);
+    assert_eq!(registry.summary.reserved_count, 60);
     assert_eq!(registry.namespace.next_run_number, 2072);
     assert_eq!(registry.runs.first().map(|row| row.run_id.as_str()), Some("run-2001"));
     assert_eq!(registry.runs.last().map(|row| row.run_id.as_str()), Some("run-2071"));

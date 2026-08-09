@@ -309,6 +309,61 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2015"
+slug = "bam-insert-size"
+domain = "bam"
+stage_id = "bam.insert_size"
+evidence_tier = "comparative"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-dna-bam-diversity"]
+scientific_question = "How do paired-template length distributions vary across the governed ancient-DNA BAM diversity cohort, and what resources does the retained implementation consume?"
+comparison_scope = "Picard FR-oriented insert-size distributions across at least ten governed real ancient human alignments"
+tool_ids = ["picard"]
+corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "insert-size-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 1
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "picard_fr_insert_size_distribution_with_cross_library_stratification_not_fragment_truth"
+interpretation = "This campaign preserves Picard's FR paired-template distribution under one normalized contract and compares distributions across independently governed ancient libraries. The result characterizes observed alignments and library strata; it is not molecule-level fragment-length truth or a cross-tool ranking."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "median_insert_size",
+  "mean_insert_size",
+  "standard_deviation",
+  "median_absolute_deviation",
+  "minimum_insert_size",
+  "maximum_insert_size",
+  "read_pairs",
+  "pair_orientation_fr_fraction",
+]
+comparison_metrics = []
+limitations = [
+  "The ten-library production corpus is source-defined but not admitted, so this protocol remains scientifically blocked and no execution result is claimed.",
+  "Only Picard is retained for this stage, so the campaign compares governed library distributions and resource behavior rather than ranking alternative tools.",
+  "The normalized distribution selects Picard's FR orientation while retaining the FR fraction of all reported read pairs; other orientation-specific distributions are not represented as the primary result.",
+  "Observed template lengths depend on reference choice, alignment parameters, filtering, duplicate policy, and surviving paired records and are not direct molecule-level fragment truth.",
+]
+
+[[campaigns]]
 run_id = "run-2042"
 slug = "fastq-profile-read-lengths"
 domain = "fastq"

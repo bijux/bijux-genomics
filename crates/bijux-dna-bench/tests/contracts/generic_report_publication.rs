@@ -64,7 +64,7 @@ fn every_interface_has_a_unique_data_driven_report_presentation() -> anyhow::Res
     let root = repository_root()?;
     let interfaces =
         load_stage_interface_catalog(&root.join("benchmarks/contracts/stage-interfaces.toml"))?;
-    assert_eq!(interfaces.interfaces.len(), 10);
+    assert_eq!(interfaces.interfaces.len(), 11);
     let stems = interfaces
         .interfaces
         .iter()

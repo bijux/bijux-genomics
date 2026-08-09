@@ -22,6 +22,9 @@ pub const BAM_ENDOGENOUS_CONTENT_STAGE_ID: &str = "bam.endogenous_content";
 pub const BAM_GENOTYPING_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.genotyping.bundle.v1";
 pub const BAM_GENOTYPING_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.genotyping.metrics.v1";
 pub const BAM_GENOTYPING_STAGE_ID: &str = "bam.genotyping";
+pub const BAM_INSERT_SIZE_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.insert_size.bundle.v1";
+pub const BAM_INSERT_SIZE_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.insert_size.metrics.v1";
+pub const BAM_INSERT_SIZE_STAGE_ID: &str = "bam.insert_size";
 pub const BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.bam.mapping_summary.bundle.v1";
 pub const BAM_MAPPING_SUMMARY_METRICS_SCHEMA_V1: &str =
@@ -260,6 +263,60 @@ pub struct BenchmarkBamGenotypingMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkBamInsertSizeValues {
+    #[schemars(schema_with = "positive_number_schema")]
+    pub median_insert_size: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub mean_insert_size: f64,
+    #[schemars(schema_with = "nonnegative_number_schema")]
+    pub standard_deviation: f64,
+    #[schemars(schema_with = "nonnegative_number_schema")]
+    pub median_absolute_deviation: f64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub minimum_insert_size: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub maximum_insert_size: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub read_pairs: u64,
+    #[schemars(schema_with = "fraction_schema")]
+    pub pair_orientation_fr_fraction: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamInsertSizeResult {
+    #[serde(deserialize_with = "deserialize_insert_size_schema_version")]
+    #[schemars(schema_with = "insert_size_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_insert_size_stage_id")]
+    #[schemars(schema_with = "insert_size_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_picard_tool_id")]
+    #[schemars(schema_with = "picard_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[serde(flatten)]
+    pub values: BenchmarkBamInsertSizeValues,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamInsertSizeMetrics {
+    #[serde(deserialize_with = "deserialize_insert_size_metrics_schema_version")]
+    #[schemars(schema_with = "insert_size_metrics_schema_version")]
+    pub schema_version: String,
+    #[serde(flatten)]
+    pub values: BenchmarkBamInsertSizeValues,
+    pub bam_input_bytes: u64,
+    pub bam_index_input_bytes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkBamMappingSummaryResult {
     #[serde(deserialize_with = "deserialize_mapping_schema_version")]
     #[schemars(schema_with = "mapping_schema_version")]
@@ -350,6 +407,16 @@ pub fn bam_genotyping_metrics_schema() -> Schema {
 }
 
 #[must_use]
+pub fn bam_insert_size_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamInsertSizeResult)
+}
+
+#[must_use]
+pub fn bam_insert_size_metrics_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamInsertSizeMetrics)
+}
+
+#[must_use]
 pub fn bam_mapping_summary_result_schema() -> Schema {
     schemars::schema_for!(BenchmarkBamMappingSummaryResult)
 }
@@ -387,6 +454,10 @@ const_string_schema!(genotyping_schema_version, BAM_GENOTYPING_RESULT_SCHEMA_V1)
 const_string_schema!(genotyping_metrics_schema_version, BAM_GENOTYPING_METRICS_SCHEMA_V1);
 const_string_schema!(genotyping_stage_id, BAM_GENOTYPING_STAGE_ID);
 const_string_schema!(bcftools_tool_id, "bcftools");
+const_string_schema!(insert_size_schema_version, BAM_INSERT_SIZE_RESULT_SCHEMA_V1);
+const_string_schema!(insert_size_metrics_schema_version, BAM_INSERT_SIZE_METRICS_SCHEMA_V1);
+const_string_schema!(insert_size_stage_id, BAM_INSERT_SIZE_STAGE_ID);
+const_string_schema!(picard_tool_id, "picard");
 const_string_schema!(mapping_schema_version, BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1);
 const_string_schema!(mapping_metrics_schema_version, BAM_MAPPING_SUMMARY_METRICS_SCHEMA_V1);
 const_string_schema!(mapping_stage_id, BAM_MAPPING_SUMMARY_STAGE_ID);
@@ -425,6 +496,10 @@ fn positive_fraction_schema(_: &mut SchemaGenerator) -> Schema {
 
 fn positive_number_schema(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "number", "exclusiveMinimum": 0})
+}
+
+fn nonnegative_number_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "number", "minimum": 0})
 }
 
 macro_rules! exact_deserializer {
@@ -467,6 +542,13 @@ exact_deserializer!(
 );
 exact_deserializer!(deserialize_genotyping_stage_id, BAM_GENOTYPING_STAGE_ID);
 exact_deserializer!(deserialize_bcftools_tool_id, "bcftools");
+exact_deserializer!(deserialize_insert_size_schema_version, BAM_INSERT_SIZE_RESULT_SCHEMA_V1);
+exact_deserializer!(
+    deserialize_insert_size_metrics_schema_version,
+    BAM_INSERT_SIZE_METRICS_SCHEMA_V1
+);
+exact_deserializer!(deserialize_insert_size_stage_id, BAM_INSERT_SIZE_STAGE_ID);
+exact_deserializer!(deserialize_picard_tool_id, "picard");
 exact_deserializer!(deserialize_mapping_schema_version, BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1);
 exact_deserializer!(
     deserialize_mapping_metrics_schema_version,
