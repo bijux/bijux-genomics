@@ -6,11 +6,13 @@ contracts establish image identity and runtime confinement, while these files
 define which real data, tools, measurements, truth strategies, and downstream
 substitution probes make a stage comparison admissible.
 
-`portfolio.toml` reserves one durable run identity for every retained FASTQ,
+`portfolio.toml` reserves one durable run identity for every runnable FASTQ,
 BAM, and VCF stage and binds each stage to its corpus and scientific profile
-requirements. `stage-campaigns.toml` contains only executable campaigns whose
-complete retained-tool closure, inputs, parameters, resource measurements,
-quality metrics, interpretation, and limitations have been reviewed.
+requirements. Runnable closure includes retained packages and licensed tools
+available through governed external-artifact admission. `stage-campaigns.toml`
+contains only executable campaigns whose complete tool closure, inputs,
+parameters, resource measurements, quality metrics, interpretation, and
+limitations have been reviewed.
 
 `run-registry.json` is the generated permanent namespace authority for
 `run-2001` through `run-2071`. It records lifecycle, retained-tool closure,
@@ -43,7 +45,7 @@ under `STUDY/results/benchmarks/`, and small reviewed reports belong in
 
 `schemas/stage-coverage.schema.json` is generated from the
 `bijux-dna-bench-model` coverage type. The crate-owned coverage workflow derives
-retained-stage tool closure from the environment catalog and preserves
+runnable-stage tool closure from the environment catalog and preserves
 historical report identities as `stale`; only a passing report from the required
 repository commit is counted as admitted.
 `schemas/stage-universe.schema.json` is generated from the typed canonical-stage

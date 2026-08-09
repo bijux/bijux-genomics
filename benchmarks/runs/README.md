@@ -2,7 +2,7 @@
 
 Executable campaign logic is owned by `bijux-dna-bench`, not by scripts in this
 directory. Crate-owned campaign workflows bind stable stage identities to
-complete retained-tool closure, governed data and image evidence, commands,
+complete runnable-tool closure, governed data and image evidence, commands,
 resources, acceptance metrics, and immutable result paths.
 
 A run definition is not scientific evidence. Results become admissible only

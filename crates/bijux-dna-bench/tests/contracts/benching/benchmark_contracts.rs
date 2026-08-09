@@ -68,7 +68,7 @@ fn checked_in_stage_reports_exclude_historical_evidence() -> Result<()> {
     let repository_root = repository_root()?;
     let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root)?;
     assert_eq!(registry.summary.active_stage_report_count, 0);
-    assert_eq!(registry.summary.historical_stage_report_count, 7);
+    assert_eq!(registry.summary.historical_stage_report_count, 10);
     assert!(registry.stage_reports.iter().all(|report| {
         report.disposition == bijux_dna_bench::BenchmarkStagePublicationDisposition::Historical
             && report.json_path.contains("/historical/")
@@ -137,6 +137,23 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
             && row.retained_tools == ["seqfu", "seqkit"]
             && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
     }));
+    for (stage_id, tool_id) in [
+        ("bam.damage", "ngsbriggs"),
+        ("bam.kinship", "angsd"),
+        ("fastq.remove_duplicates", "fastuniq"),
+        ("vcf.imputation_metrics", "impute5"),
+    ] {
+        let stage = coverage
+            .stages
+            .iter()
+            .find(|row| row.stage_id == stage_id)
+            .ok_or_else(|| anyhow::anyhow!("missing external-artifact benchmark stage"))?;
+        assert!(stage.retained_tools.iter().any(|candidate| candidate == tool_id));
+        assert_eq!(
+            stage.execution_status,
+            bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined
+        );
+    }
     Ok(())
 }
 
@@ -220,6 +237,19 @@ fn checked_in_run_registry_closes_the_permanent_namespace() -> Result<()> {
             && !row.required_corpus_roles.is_empty()
             && row.introduced_at_commit.len() == 40
     }));
+    for (run_id, tool_id) in [
+        ("run-2010", "ngsbriggs"),
+        ("run-2016", "angsd"),
+        ("run-2045", "fastuniq"),
+        ("run-2062", "impute5"),
+    ] {
+        let run = registry
+            .runs
+            .iter()
+            .find(|row| row.run_id == run_id)
+            .ok_or_else(|| anyhow::anyhow!("missing external-artifact benchmark run"))?;
+        assert!(run.tool_ids.iter().any(|candidate| candidate == tool_id));
+    }
     assert!(registry
         .runs
         .iter()
@@ -241,7 +271,7 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
     )?;
     assert_eq!(registry.summary.current_product_count, 4);
     assert_eq!(registry.summary.active_stage_report_count, 0);
-    assert_eq!(registry.summary.historical_stage_report_count, 7);
+    assert_eq!(registry.summary.historical_stage_report_count, 10);
     assert_eq!(registry.summary.quarantined_surface_count, 0);
     assert_eq!(registry.summary.quarantined_file_count, 0);
     assert!(registry.quarantined_surfaces.is_empty());

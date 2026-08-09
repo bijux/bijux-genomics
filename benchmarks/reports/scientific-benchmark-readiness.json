@@ -296,6 +296,7 @@
         "addeam",
         "damageprofiler",
         "mapdamage2",
+        "ngsbriggs",
         "pmdtools",
         "pydamage"
       ],
@@ -465,6 +466,7 @@
       "domain": "bam",
       "profile_id": "bam-biological-inference",
       "retained_tools": [
+        "angsd",
         "king"
       ],
       "available_comparative_samples": 0,
@@ -636,6 +638,7 @@
       "domain": "bam",
       "profile_id": "bam-biological-inference",
       "retained_tools": [
+        "angsd",
         "rxy",
         "yleaf"
       ],
@@ -1077,7 +1080,8 @@
       "domain": "fastq",
       "profile_id": "fastq-read-transformation",
       "retained_tools": [
-        "clumpify"
+        "clumpify",
+        "fastuniq"
       ],
       "available_comparative_samples": 20,
       "campaign_run_id": null,
@@ -1295,6 +1299,7 @@
       "domain": "vcf",
       "profile_id": "vcf-calling",
       "retained_tools": [
+        "angsd",
         "bcftools"
       ],
       "available_comparative_samples": 0,
@@ -1316,6 +1321,7 @@
       "domain": "vcf",
       "profile_id": "vcf-calling",
       "retained_tools": [
+        "angsd",
         "bcftools"
       ],
       "available_comparative_samples": 0,
@@ -1446,6 +1452,7 @@
       "retained_tools": [
         "beagle",
         "glimpse",
+        "impute5",
         "minimac4"
       ],
       "available_comparative_samples": 0,
@@ -1469,6 +1476,7 @@
       "retained_tools": [
         "beagle",
         "glimpse",
+        "impute5",
         "minimac4"
       ],
       "available_comparative_samples": 0,

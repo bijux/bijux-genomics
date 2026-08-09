@@ -28,12 +28,12 @@
       "title": "BAM genotyping benchmark protocol",
       "slug": "bam-genotyping",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.genotyping tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
+      "purpose": "Compare the runnable bam.genotyping tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
       "profile_id": "bam-biological-inference",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "variant_truth",
@@ -57,14 +57,14 @@
       "title": "BAM coverage benchmark protocol",
       "slug": "bam-coverage",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.coverage tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.coverage tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "bedtools",
         "mosdepth",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -86,12 +86,12 @@
       "title": "BAM endogenous content benchmark protocol",
       "slug": "bam-endogenous-content",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.endogenous_content tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.endogenous_content tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -113,13 +113,13 @@
       "title": "BAM mapping summary benchmark protocol",
       "slug": "bam-mapping-summary",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.mapping_summary tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.mapping_summary tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "picard",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -141,13 +141,13 @@
       "title": "BAM align benchmark protocol",
       "slug": "bam-align",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.align tools using mapping_correctness_variant_recovery_and_damage_stratified_error; downstream substitution: run validation, mapping summary, coverage, filtering, and variant calling on every aligner output.",
+      "purpose": "Compare the runnable bam.align tools using mapping_correctness_variant_recovery_and_damage_stratified_error; downstream substitution: run validation, mapping summary, coverage, filtering, and variant calling on every aligner output.",
       "profile_id": "bam-alignment",
       "tool_ids": [
         "bowtie2",
         "bwa"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "alignment_truth"
       ],
@@ -171,14 +171,14 @@
       "title": "BAM authenticity benchmark protocol",
       "slug": "bam-authenticity",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.authenticity tools using damage_and_authenticity_recovery_against_orthogonal_assays; downstream substitution: consume every report through the same authentication decision surface.",
+      "purpose": "Compare the runnable bam.authenticity tools using damage_and_authenticity_recovery_against_orthogonal_assays; downstream substitution: consume every report through the same authentication decision surface.",
       "profile_id": "bam-ancient-authentication",
       "tool_ids": [
         "authenticct",
         "damageprofiler",
         "pmdtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "ancient_damage_truth"
@@ -198,12 +198,12 @@
       "title": "BAM bias mitigation benchmark protocol",
       "slug": "bam-bias-mitigation",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.bias_mitigation tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+      "purpose": "Compare the runnable bam.bias_mitigation tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
       "profile_id": "bam-transformation",
       "tool_ids": [
         "mapdamage2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "alignment_truth"
@@ -223,12 +223,12 @@
       "title": "BAM complexity benchmark protocol",
       "slug": "bam-complexity",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.complexity tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.complexity tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "preseq"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -247,14 +247,14 @@
       "title": "BAM contamination benchmark protocol",
       "slug": "bam-contamination",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.contamination tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
+      "purpose": "Compare the runnable bam.contamination tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
       "profile_id": "bam-biological-inference",
       "tool_ids": [
         "contammix",
         "schmutzi",
         "verifybamid2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "variant_truth",
@@ -275,16 +275,17 @@
       "title": "BAM damage benchmark protocol",
       "slug": "bam-damage",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.damage tools using damage_and_authenticity_recovery_against_orthogonal_assays; downstream substitution: consume every report through the same authentication decision surface.",
+      "purpose": "Compare the runnable bam.damage tools using damage_and_authenticity_recovery_against_orthogonal_assays; downstream substitution: consume every report through the same authentication decision surface.",
       "profile_id": "bam-ancient-authentication",
       "tool_ids": [
         "addeam",
         "damageprofiler",
         "mapdamage2",
+        "ngsbriggs",
         "pmdtools",
         "pydamage"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "ancient_damage_truth"
@@ -304,13 +305,13 @@
       "title": "BAM duplication metrics benchmark protocol",
       "slug": "bam-duplication-metrics",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.duplication_metrics tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.duplication_metrics tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "picard",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -332,14 +333,14 @@
       "title": "BAM filter benchmark protocol",
       "slug": "bam-filter",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+      "purpose": "Compare the runnable bam.filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
       "profile_id": "bam-transformation",
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "alignment_truth"
@@ -359,12 +360,12 @@
       "title": "BAM gc bias benchmark protocol",
       "slug": "bam-gc-bias",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.gc_bias tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.gc_bias tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "picard"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -387,12 +388,12 @@
       "title": "BAM haplogroups benchmark protocol",
       "slug": "bam-haplogroups",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.haplogroups tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
+      "purpose": "Compare the runnable bam.haplogroups tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
       "profile_id": "bam-biological-inference",
       "tool_ids": [
         "yleaf"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "variant_truth",
@@ -413,12 +414,12 @@
       "title": "BAM insert size benchmark protocol",
       "slug": "bam-insert-size",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.insert_size tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.insert_size tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "picard"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -440,12 +441,13 @@
       "title": "BAM kinship benchmark protocol",
       "slug": "bam-kinship",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.kinship tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
+      "purpose": "Compare the runnable bam.kinship tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
       "profile_id": "bam-biological-inference",
       "tool_ids": [
+        "angsd",
         "king"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "variant_truth",
@@ -466,13 +468,13 @@
       "title": "BAM length filter benchmark protocol",
       "slug": "bam-length-filter",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.length_filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+      "purpose": "Compare the runnable bam.length_filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
       "profile_id": "bam-transformation",
       "tool_ids": [
         "picard",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "alignment_truth"
@@ -492,13 +494,13 @@
       "title": "BAM mapq filter benchmark protocol",
       "slug": "bam-mapq-filter",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.mapq_filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+      "purpose": "Compare the runnable bam.mapq_filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
       "profile_id": "bam-transformation",
       "tool_ids": [
         "bamtools",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "alignment_truth"
@@ -518,13 +520,13 @@
       "title": "BAM markdup benchmark protocol",
       "slug": "bam-markdup",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.markdup tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+      "purpose": "Compare the runnable bam.markdup tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
       "profile_id": "bam-transformation",
       "tool_ids": [
         "picard",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "alignment_truth"
@@ -544,12 +546,12 @@
       "title": "BAM overlap correction benchmark protocol",
       "slug": "bam-overlap-correction",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.overlap_correction tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+      "purpose": "Compare the runnable bam.overlap_correction tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
       "profile_id": "bam-transformation",
       "tool_ids": [
         "bamutil"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "alignment_truth"
@@ -569,13 +571,13 @@
       "title": "BAM qc pre benchmark protocol",
       "slug": "bam-qc-pre",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.qc_pre tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.qc_pre tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "multiqc",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -594,12 +596,12 @@
       "title": "BAM recalibration benchmark protocol",
       "slug": "bam-recalibration",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.recalibration tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+      "purpose": "Compare the runnable bam.recalibration tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
       "profile_id": "bam-transformation",
       "tool_ids": [
         "gatk"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "alignment_truth"
@@ -619,13 +621,14 @@
       "title": "BAM sex benchmark protocol",
       "slug": "bam-sex",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.sex tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
+      "purpose": "Compare the runnable bam.sex tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.",
       "profile_id": "bam-biological-inference",
       "tool_ids": [
+        "angsd",
         "rxy",
         "yleaf"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity",
         "variant_truth",
@@ -646,14 +649,14 @@
       "title": "BAM validate benchmark protocol",
       "slug": "bam-validate",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained bam.validate tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+      "purpose": "Compare the runnable bam.validate tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
       "profile_id": "bam-observational-qc",
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "bam_diversity"
       ],
@@ -672,12 +675,12 @@
       "title": "FASTQ cluster otus benchmark protocol",
       "slug": "fastq-cluster-otus",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.cluster_otus tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
+      "purpose": "Compare the runnable fastq.cluster_otus tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
       "profile_id": "fastq-amplicon",
       "tool_ids": [
         "vsearch"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "amplicon_truth"
       ],
@@ -696,7 +699,7 @@
       "title": "FASTQ correct errors benchmark protocol",
       "slug": "fastq-correct-errors",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.correct_errors tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.correct_errors tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "bayeshammer",
@@ -704,7 +707,7 @@
         "musket",
         "rcorrector"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -724,12 +727,12 @@
       "title": "FASTQ deplete host benchmark protocol",
       "slug": "fastq-deplete-host",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.deplete_host tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.deplete_host tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.",
       "profile_id": "fastq-depletion",
       "tool_ids": [
         "bowtie2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "environmental_taxonomy_truth"
@@ -749,12 +752,12 @@
       "title": "FASTQ deplete reference contaminants benchmark protocol",
       "slug": "fastq-deplete-reference-contaminants",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.deplete_reference_contaminants tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.deplete_reference_contaminants tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.",
       "profile_id": "fastq-depletion",
       "tool_ids": [
         "bowtie2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "environmental_taxonomy_truth"
@@ -774,12 +777,12 @@
       "title": "FASTQ deplete rrna benchmark protocol",
       "slug": "fastq-deplete-rrna",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.deplete_rrna tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.deplete_rrna tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.",
       "profile_id": "fastq-depletion",
       "tool_ids": [
         "sortmerna"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "environmental_taxonomy_truth"
@@ -799,12 +802,12 @@
       "title": "FASTQ detect adapters benchmark protocol",
       "slug": "fastq-detect-adapters",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.detect_adapters tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.detect_adapters tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "fastqc"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -827,12 +830,12 @@
       "title": "FASTQ detect duplicates premerge benchmark protocol",
       "slug": "fastq-detect-duplicates-premerge",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.detect_duplicates_premerge tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.detect_duplicates_premerge tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "bijux_dna"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -851,12 +854,12 @@
       "title": "FASTQ estimate library complexity prealign benchmark protocol",
       "slug": "fastq-estimate-library-complexity-prealign",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.estimate_library_complexity_prealign tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.estimate_library_complexity_prealign tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "bijux_dna"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -875,12 +878,12 @@
       "title": "FASTQ extract umis benchmark protocol",
       "slug": "fastq-extract-umis",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.extract_umis tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.extract_umis tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "umi_tools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -900,14 +903,14 @@
       "title": "FASTQ filter low complexity benchmark protocol",
       "slug": "fastq-filter-low-complexity",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.filter_low_complexity tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.filter_low_complexity tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "bbduk",
         "fastp",
         "prinseq"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -927,7 +930,7 @@
       "title": "FASTQ filter reads benchmark protocol",
       "slug": "fastq-filter-reads",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.filter_reads tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.filter_reads tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "bbduk",
@@ -935,7 +938,7 @@
         "prinseq",
         "seqkit"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -955,13 +958,13 @@
       "title": "FASTQ index reference benchmark protocol",
       "slug": "fastq-index-reference",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.index_reference tools using index_reproducibility_and_downstream_alignment_equivalence; downstream substitution: align the same real sample panel with every built index and validate canonical BAM outputs.",
+      "purpose": "Compare the runnable fastq.index_reference tools using index_reproducibility_and_downstream_alignment_equivalence; downstream substitution: align the same real sample panel with every built index and validate canonical BAM outputs.",
       "profile_id": "reference-index-build",
       "tool_ids": [
         "bowtie2_build",
         "star"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "alignment_truth"
       ],
@@ -980,12 +983,12 @@
       "title": "FASTQ infer asvs benchmark protocol",
       "slug": "fastq-infer-asvs",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.infer_asvs tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
+      "purpose": "Compare the runnable fastq.infer_asvs tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
       "profile_id": "fastq-amplicon",
       "tool_ids": [
         "dada2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "amplicon_truth"
       ],
@@ -1004,7 +1007,7 @@
       "title": "FASTQ merge pairs benchmark protocol",
       "slug": "fastq-merge-pairs",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.merge_pairs tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.merge_pairs tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "adapterremoval",
@@ -1015,7 +1018,7 @@
         "seqprep",
         "vsearch"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -1035,12 +1038,12 @@
       "title": "FASTQ normalize abundance benchmark protocol",
       "slug": "fastq-normalize-abundance",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.normalize_abundance tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
+      "purpose": "Compare the runnable fastq.normalize_abundance tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
       "profile_id": "fastq-amplicon",
       "tool_ids": [
         "seqkit"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "amplicon_truth"
       ],
@@ -1059,12 +1062,12 @@
       "title": "FASTQ normalize primers benchmark protocol",
       "slug": "fastq-normalize-primers",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.normalize_primers tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.normalize_primers tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "cutadapt"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -1084,14 +1087,14 @@
       "title": "FASTQ profile overrepresented sequences benchmark protocol",
       "slug": "fastq-profile-overrepresented-sequences",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.profile_overrepresented_sequences tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.profile_overrepresented_sequences tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "fastq_scan",
         "fastqc",
         "seqkit"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -1110,13 +1113,13 @@
       "title": "FASTQ profile read lengths benchmark protocol",
       "slug": "fastq-profile-read-lengths",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.profile_read_lengths tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.profile_read_lengths tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "seqfu",
         "seqkit"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -1139,14 +1142,14 @@
       "title": "FASTQ profile reads benchmark protocol",
       "slug": "fastq-profile-reads",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.profile_reads tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.profile_reads tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "seqfu",
         "seqkit",
         "seqkit_stats"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -1170,12 +1173,12 @@
       "title": "FASTQ remove chimeras benchmark protocol",
       "slug": "fastq-remove-chimeras",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.remove_chimeras tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
+      "purpose": "Compare the runnable fastq.remove_chimeras tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
       "profile_id": "fastq-amplicon",
       "tool_ids": [
         "vsearch"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "amplicon_truth"
       ],
@@ -1194,12 +1197,13 @@
       "title": "FASTQ remove duplicates benchmark protocol",
       "slug": "fastq-remove-duplicates",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.remove_duplicates tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.remove_duplicates tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
-        "clumpify"
+        "clumpify",
+        "fastuniq"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -1219,12 +1223,12 @@
       "title": "FASTQ report qc benchmark protocol",
       "slug": "fastq-report-qc",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.report_qc tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.report_qc tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "multiqc"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -1243,7 +1247,7 @@
       "title": "FASTQ screen taxonomy benchmark protocol",
       "slug": "fastq-screen-taxonomy",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.screen_taxonomy tools using taxon_precision_recall_abundance_error_and_negative_control_specificity; downstream substitution: consume every classifier result through the same lineage and reporting stages.",
+      "purpose": "Compare the runnable fastq.screen_taxonomy tools using taxon_precision_recall_abundance_error_and_negative_control_specificity; downstream substitution: consume every classifier result through the same lineage and reporting stages.",
       "profile_id": "fastq-taxonomy",
       "tool_ids": [
         "centrifuge",
@@ -1251,7 +1255,7 @@
         "kraken2",
         "krakenuniq"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "environmental_taxonomy_truth"
       ],
@@ -1270,13 +1274,13 @@
       "title": "FASTQ trim polyg tails benchmark protocol",
       "slug": "fastq-trim-polyg-tails",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.trim_polyg_tails tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.trim_polyg_tails tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "bbduk",
         "fastp"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -1296,7 +1300,7 @@
       "title": "FASTQ trim reads benchmark protocol",
       "slug": "fastq-trim-reads",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.trim_reads tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.trim_reads tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "adapterremoval",
@@ -1314,7 +1318,7 @@
         "trim_galore",
         "trimmomatic"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -1334,14 +1338,14 @@
       "title": "FASTQ trim terminal damage benchmark protocol",
       "slug": "fastq-trim-terminal-damage",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.trim_terminal_damage tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+      "purpose": "Compare the runnable fastq.trim_terminal_damage tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
       "profile_id": "fastq-read-transformation",
       "tool_ids": [
         "adapterremoval",
         "cutadapt",
         "seqkit"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity",
         "read_processing_truth"
@@ -1361,7 +1365,7 @@
       "title": "FASTQ validate reads benchmark protocol",
       "slug": "fastq-validate-reads",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained fastq.validate_reads tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+      "purpose": "Compare the runnable fastq.validate_reads tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
       "profile_id": "fastq-observational-qc",
       "tool_ids": [
         "fastq_scan",
@@ -1370,7 +1374,7 @@
         "fqtools",
         "seqtk"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "short_read_diversity"
       ],
@@ -1393,13 +1397,13 @@
       "title": "VCF admixture benchmark protocol",
       "slug": "vcf-admixture",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.admixture tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
+      "purpose": "Compare the runnable vcf.admixture tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
       "profile_id": "vcf-population-inference",
       "tool_ids": [
         "plink",
         "plink2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "population_inference_truth",
         "ancient_population_diversity"
@@ -1419,12 +1423,12 @@
       "title": "VCF call benchmark protocol",
       "slug": "vcf-call",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.call tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
+      "purpose": "Compare the runnable vcf.call tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
       "profile_id": "vcf-calling",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "ancient_damage_truth"
@@ -1444,12 +1448,12 @@
       "title": "VCF call diploid benchmark protocol",
       "slug": "vcf-call-diploid",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.call_diploid tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
+      "purpose": "Compare the runnable vcf.call_diploid tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
       "profile_id": "vcf-calling",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "ancient_damage_truth"
@@ -1469,12 +1473,13 @@
       "title": "VCF call gl benchmark protocol",
       "slug": "vcf-call-gl",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.call_gl tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
+      "purpose": "Compare the runnable vcf.call_gl tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
       "profile_id": "vcf-calling",
       "tool_ids": [
+        "angsd",
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "ancient_damage_truth"
@@ -1494,12 +1499,13 @@
       "title": "VCF call pseudohaploid benchmark protocol",
       "slug": "vcf-call-pseudohaploid",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.call_pseudohaploid tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
+      "purpose": "Compare the runnable vcf.call_pseudohaploid tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
       "profile_id": "vcf-calling",
       "tool_ids": [
+        "angsd",
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "ancient_damage_truth"
@@ -1519,12 +1525,12 @@
       "title": "VCF damage filter benchmark protocol",
       "slug": "vcf-damage-filter",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.damage_filter tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+      "purpose": "Compare the runnable vcf.damage_filter tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
       "profile_id": "vcf-transformation",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1544,12 +1550,12 @@
       "title": "VCF demography benchmark protocol",
       "slug": "vcf-demography",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.demography tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
+      "purpose": "Compare the runnable vcf.demography tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
       "profile_id": "vcf-population-inference",
       "tool_ids": [
         "ibdne"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "population_inference_truth",
         "ancient_population_diversity"
@@ -1569,12 +1575,12 @@
       "title": "VCF filter benchmark protocol",
       "slug": "vcf-filter",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.filter tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+      "purpose": "Compare the runnable vcf.filter tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
       "profile_id": "vcf-transformation",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1594,12 +1600,12 @@
       "title": "VCF gl propagation benchmark protocol",
       "slug": "vcf-gl-propagation",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.gl_propagation tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+      "purpose": "Compare the runnable vcf.gl_propagation tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
       "profile_id": "vcf-transformation",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1619,14 +1625,14 @@
       "title": "VCF ibd benchmark protocol",
       "slug": "vcf-ibd",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.ibd tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
+      "purpose": "Compare the runnable vcf.ibd tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
       "profile_id": "vcf-population-inference",
       "tool_ids": [
         "germline",
         "ibdhap",
         "ibdseq"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "population_inference_truth",
         "ancient_population_diversity"
@@ -1646,14 +1652,15 @@
       "title": "VCF imputation metrics benchmark protocol",
       "slug": "vcf-imputation-metrics",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.imputation_metrics tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.",
+      "purpose": "Compare the runnable vcf.imputation_metrics tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.",
       "profile_id": "vcf-phasing-imputation",
       "tool_ids": [
         "beagle",
         "glimpse",
+        "impute5",
         "minimac4"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1673,14 +1680,15 @@
       "title": "VCF impute benchmark protocol",
       "slug": "vcf-impute",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.impute tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.",
+      "purpose": "Compare the runnable vcf.impute tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.",
       "profile_id": "vcf-phasing-imputation",
       "tool_ids": [
         "beagle",
         "glimpse",
+        "impute5",
         "minimac4"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1700,13 +1708,13 @@
       "title": "VCF pca benchmark protocol",
       "slug": "vcf-pca",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.pca tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
+      "purpose": "Compare the runnable vcf.pca tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
       "profile_id": "vcf-population-inference",
       "tool_ids": [
         "eigensoft",
         "plink2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "population_inference_truth",
         "ancient_population_diversity"
@@ -1726,7 +1734,7 @@
       "title": "VCF phasing benchmark protocol",
       "slug": "vcf-phasing",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.phasing tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.",
+      "purpose": "Compare the runnable vcf.phasing tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.",
       "profile_id": "vcf-phasing-imputation",
       "tool_ids": [
         "beagle",
@@ -1734,7 +1742,7 @@
         "shapeit",
         "shapeit5"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1754,14 +1762,14 @@
       "title": "VCF population structure benchmark protocol",
       "slug": "vcf-population-structure",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.population_structure tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
+      "purpose": "Compare the runnable vcf.population_structure tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
       "profile_id": "vcf-population-inference",
       "tool_ids": [
         "eigensoft",
         "plink",
         "plink2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "population_inference_truth",
         "ancient_population_diversity"
@@ -1781,12 +1789,12 @@
       "title": "VCF postprocess benchmark protocol",
       "slug": "vcf-postprocess",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.postprocess tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+      "purpose": "Compare the runnable vcf.postprocess tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
       "profile_id": "vcf-transformation",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1806,12 +1814,12 @@
       "title": "VCF prepare reference panel benchmark protocol",
       "slug": "vcf-prepare-reference-panel",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.prepare_reference_panel tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+      "purpose": "Compare the runnable vcf.prepare_reference_panel tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
       "profile_id": "vcf-transformation",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1831,14 +1839,14 @@
       "title": "VCF qc benchmark protocol",
       "slug": "vcf-qc",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.qc tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+      "purpose": "Compare the runnable vcf.qc tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
       "profile_id": "vcf-transformation",
       "tool_ids": [
         "bcftools",
         "plink",
         "plink2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
@@ -1858,12 +1866,12 @@
       "title": "VCF roh benchmark protocol",
       "slug": "vcf-roh",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.roh tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
+      "purpose": "Compare the runnable vcf.roh tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
       "profile_id": "vcf-population-inference",
       "tool_ids": [
         "plink2"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "population_inference_truth",
         "ancient_population_diversity"
@@ -1883,12 +1891,12 @@
       "title": "VCF stats benchmark protocol",
       "slug": "vcf-stats",
       "owner": "bijux-dna-bench",
-      "purpose": "Compare the retained vcf.stats tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+      "purpose": "Compare the runnable vcf.stats tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
       "profile_id": "vcf-transformation",
       "tool_ids": [
         "bcftools"
       ],
-      "tool_exclusion_policy": "Exclude every tool not retained and bound to this stage by the canonical container catalog.",
+      "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
       "required_corpus_roles": [
         "variant_truth",
         "masked_genotype_truth"
