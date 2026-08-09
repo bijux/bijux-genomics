@@ -243,7 +243,7 @@ fn derives_single_roster_after_governed_activation_retires_the_build_source() ->
 }
 
 #[test]
-fn composite_roster_rejects_a_retired_build_source() -> Result<()> {
+fn composite_roster_admits_a_retired_build_source_with_unique_digest() -> Result<()> {
     let fixture = Fixture::current()?;
     let active_root = fixture.study.join("containers/current-images");
     let additional_images = fixture.study.join("containers/staging/additional");
@@ -274,11 +274,38 @@ fn composite_roster_rejects_a_retired_build_source() -> Result<()> {
         run_evidence_root: fixture.repository.join("containers/runs"),
     };
 
-    let error = derive_image_inventory_evidence(&request)
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(evidence.scan.evidence_roots.len(), 2);
+    Ok(())
+}
+
+#[test]
+fn retired_build_source_must_remain_under_the_governed_study_root() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
+        .next()
+        .context("fixture omits build evidence")??
+        .path();
+    let mut evidence: serde_json::Value = serde_json::from_slice(&fs::read(&evidence_path)?)?;
+    evidence["image"]["path"] = json!(fixture
+        .repository
+        .parent()
+        .context("fixture repository has no parent")?
+        .join("retired/image.sif"));
+    fs::write(&evidence_path, serde_json::to_vec_pretty(&evidence)?)?;
+    fs::remove_file(
+        fs::read_dir(fixture.study.join("containers/apptainer"))?
+            .next()
+            .context("fixture omits the built image")??
+            .path(),
+    )?;
+
+    let error = derive_image_inventory_evidence(&fixture.request)
         .err()
-        .context("composite roster admitted a retired build source")?;
-    assert!(format!("{error:#}")
-        .contains("composite image inventory requires every build-evidence image path to exist"));
+        .context("retired external build source was admitted")?;
+    assert!(format!("{error:#}").contains("retired build-evidence image path is outside"));
     Ok(())
 }
 

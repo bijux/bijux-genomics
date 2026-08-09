@@ -378,12 +378,9 @@ fn validate_build_image_root(
         .with_context(|| format!("inspect build-evidence image authority {}", path.display()))?
     {
         // Activation and governed storage reconciliation may retire the original campaign link
-        // while preserving the same immutable image under the sole active roster. Candidate
+        // while preserving the same immutable image in an active or composite roster. Candidate
         // admission still requires an exact digest, size, filename, tool, version, and recipe
-        // match. Composite scans keep path-bound roots to prevent cross-campaign evidence mixing.
-        if request.evidence_roots.len() != 1 {
-            bail!("composite image inventory requires every build-evidence image path to exist");
-        }
+        // match, and composite scans reject repeated image digests across their image roots.
         let study_root = request
             .study_root
             .canonicalize()
