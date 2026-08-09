@@ -11,7 +11,29 @@ pub fn render_tool_command(
     binding: &impl ToolBinding,
     context: &ToolBindingRenderContext,
 ) -> Result<Vec<String>> {
-    binding.command_template().iter().map(|token| render_token(token, context)).collect()
+    let mut command = Vec::new();
+    for token in binding.command_template() {
+        if token.contains("${inputs:") {
+            let name = token
+                .strip_prefix("${inputs:")
+                .and_then(|value| value.strip_suffix('}'))
+                .filter(|value| !value.is_empty() && !value.contains("${") && !value.contains('}'))
+                .ok_or_else(|| {
+                    anyhow!("multi-path input projection must occupy one complete command token")
+                })?;
+            let values = context
+                .input_sets
+                .get(name)
+                .ok_or_else(|| anyhow!("binding render context has no input set `{name}`"))?;
+            if values.is_empty() || values.iter().any(|value| value.trim().is_empty()) {
+                bail!("binding render context input set `{name}` requires non-empty paths");
+            }
+            command.extend(values.iter().cloned());
+        } else {
+            command.push(render_token(token, context)?);
+        }
+    }
+    Ok(command)
 }
 
 fn render_token(token: &str, context: &ToolBindingRenderContext) -> Result<String> {

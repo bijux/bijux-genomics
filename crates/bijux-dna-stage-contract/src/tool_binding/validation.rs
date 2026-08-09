@@ -54,7 +54,13 @@ pub fn validate_tool_binding(binding: &impl ToolBinding) -> Result<()> {
     let references = validate_template(binding.command_template(), &inputs, &parameters, &outputs)?;
     require_reference(&references, "executable")?;
     for input in binding.inputs().iter().filter(|value| value.required) {
-        require_reference(&references, &format!("input:{}", input.name))?;
+        let scalar = format!("input:{}", input.name);
+        let multiple = format!("inputs:{}", input.name);
+        if !references.contains(&scalar) && !references.contains(&multiple) {
+            bail!(
+                "command_template does not reference required `${{{scalar}}}` or `${{{multiple}}}` projection"
+            );
+        }
     }
     for parameter in binding.parameters().iter().filter(|value| value.required) {
         require_reference(&references, &format!("parameter:{}", parameter.name))?;
@@ -128,13 +134,17 @@ fn validate_template(
                 .split_once(':')
                 .ok_or_else(|| anyhow!("invalid binding placeholder `${{{placeholder}}}`"))?;
             let declared = match kind {
-                "input" => inputs.contains(name),
+                "input" | "inputs" => inputs.contains(name),
                 "parameter" => parameters.contains(name),
                 "output" => outputs.contains(name),
                 _ => bail!("unknown binding placeholder kind `{kind}`"),
             };
             if !declared {
                 bail!("command_template references undeclared {kind} `{name}`");
+            }
+            let complete_token = format!("${{{placeholder}}}");
+            if kind == "inputs" && token != &complete_token {
+                bail!("multi-path input projection must occupy one complete command token");
             }
         }
     }

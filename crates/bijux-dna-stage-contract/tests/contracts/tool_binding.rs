@@ -173,6 +173,7 @@ fn canonical_coverage_bindings_close_run_2002_native_outputs() -> Result<()> {
             &ToolBindingRenderContext {
                 executable: format!("/images/{}.sif", binding.tool_id),
                 inputs: BTreeMap::from([("bam".to_string(), "/input/sample.bam".to_string())]),
+                input_sets: BTreeMap::new(),
                 parameters: BTreeMap::new(),
                 outputs,
             },
@@ -224,6 +225,7 @@ fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
                     ("reads_r2".to_owned(), "sample_R2.fastq.gz".to_owned()),
                     ("reference_index".to_owned(), "indexes/grch38".to_owned()),
                 ]),
+                input_sets: BTreeMap::new(),
                 parameters: BTreeMap::from([
                     ("threads".to_owned(), "8".to_owned()),
                     ("read_group_id".to_owned(), "sample-01".to_owned()),
@@ -261,6 +263,7 @@ fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
                     ("reads_r2".to_owned(), "sample_R2.fastq.gz".to_owned()),
                     ("reference".to_owned(), "grch38.fa".to_owned()),
                 ]),
+                input_sets: BTreeMap::new(),
                 parameters: BTreeMap::from([
                     ("threads".to_owned(), "8".to_owned()),
                     ("read_group".to_owned(), "@RG\\tID:sample-01\\tSM:sample-01".to_owned()),
@@ -322,6 +325,7 @@ fn binding_renders_declared_projections_without_tool_specific_code() -> Result<(
     let context = ToolBindingRenderContext {
         executable: "/images/fastp.sif".to_string(),
         inputs: BTreeMap::from([("reads".to_string(), "reads.fastq.gz".to_string())]),
+        input_sets: BTreeMap::new(),
         parameters: BTreeMap::from([("threads".to_string(), "8".to_string())]),
         outputs: BTreeMap::from([("trimmed".to_string(), "trimmed.fastq.gz".to_string())]),
     };
@@ -330,6 +334,85 @@ fn binding_renders_declared_projections_without_tool_specific_code() -> Result<(
         render_tool_command(&binding, &context)?,
         ["/images/fastp.sif", "--in=reads.fastq.gz", "--out", "trimmed.fastq.gz", "--thread", "8",]
     );
+    Ok(())
+}
+
+#[test]
+fn binding_expands_multi_path_inputs_as_distinct_argv_tokens() -> Result<()> {
+    let mut binding = binding("fastq.profile_reads", catalog_source());
+    binding.command_template = vec![
+        "${executable}".to_string(),
+        "stats".to_string(),
+        "${inputs:reads}".to_string(),
+        "--out".to_string(),
+        "${output:trimmed}".to_string(),
+        "--threads".to_string(),
+        "${parameter:threads}".to_string(),
+    ];
+    validate_tool_binding(&binding)?;
+
+    let command = render_tool_command(
+        &binding,
+        &ToolBindingRenderContext {
+            executable: "/images/seqkit.sif".to_string(),
+            inputs: BTreeMap::new(),
+            input_sets: BTreeMap::from([(
+                "reads".to_string(),
+                vec!["sample_R1.fastq.gz".to_string(), "sample_R2.fastq.gz".to_string()],
+            )]),
+            parameters: BTreeMap::from([("threads".to_string(), "8".to_string())]),
+            outputs: BTreeMap::from([("trimmed".to_string(), "summary.tsv".to_string())]),
+        },
+    )?;
+
+    assert_eq!(
+        command,
+        [
+            "/images/seqkit.sif",
+            "stats",
+            "sample_R1.fastq.gz",
+            "sample_R2.fastq.gz",
+            "--out",
+            "summary.tsv",
+            "--threads",
+            "8",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn binding_rejects_empty_multi_path_input_sets() -> Result<()> {
+    let mut binding = binding("fastq.profile_reads", catalog_source());
+    binding.command_template[1] = "${inputs:reads}".to_string();
+    validate_tool_binding(&binding)?;
+
+    let error = render_tool_command(
+        &binding,
+        &ToolBindingRenderContext {
+            executable: "/images/seqkit.sif".to_string(),
+            inputs: BTreeMap::new(),
+            input_sets: BTreeMap::from([("reads".to_string(), Vec::new())]),
+            parameters: BTreeMap::from([("threads".to_string(), "8".to_string())]),
+            outputs: BTreeMap::from([("trimmed".to_string(), "summary.tsv".to_string())]),
+        },
+    )
+    .err()
+    .ok_or_else(|| anyhow::anyhow!("empty multi-path input set was accepted"))?;
+
+    assert!(error.to_string().contains("requires non-empty paths"));
+    Ok(())
+}
+
+#[test]
+fn binding_rejects_embedded_multi_path_input_projections() -> Result<()> {
+    let mut binding = binding("fastq.profile_reads", catalog_source());
+    binding.command_template[1] = "--reads=${inputs:reads}".to_string();
+
+    let error = validate_tool_binding(&binding)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("embedded multi-path input projection was accepted"))?;
+    assert!(error.to_string().contains("must occupy one complete command token"));
     Ok(())
 }
 
@@ -382,6 +465,7 @@ fn external_artifacts_use_the_same_binding_interface() -> Result<()> {
     let context = ToolBindingRenderContext {
         executable: "/operator/artifacts/angsd.sif".to_string(),
         inputs: BTreeMap::from([("alignment".to_string(), "sample.bam".to_string())]),
+        input_sets: BTreeMap::new(),
         parameters: BTreeMap::from([("threads".to_string(), "8".to_string())]),
         outputs: BTreeMap::from([("damage_report".to_string(), "damage.tsv".to_string())]),
     };
@@ -474,6 +558,7 @@ fn parameter_projection_records_provenance_and_cpu_fairness() -> Result<()> {
         &ToolBindingRenderContext {
             executable: "/images/fastp.sif".to_owned(),
             inputs: BTreeMap::from([("reads".to_owned(), "reads.fastq.gz".to_owned())]),
+            input_sets: BTreeMap::new(),
             parameters: effective.render_values(),
             outputs: BTreeMap::from([("trimmed".to_owned(), "trimmed.fastq.gz".to_owned())]),
         },

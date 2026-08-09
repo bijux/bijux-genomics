@@ -54,6 +54,7 @@ pub struct BindingOutputV1 {
 pub struct ToolBindingRenderContext {
     pub executable: String,
     pub inputs: BTreeMap<String, String>,
+    pub input_sets: BTreeMap<String, Vec<String>>,
     pub parameters: BTreeMap<String, String>,
     pub outputs: BTreeMap<String, String>,
 }
