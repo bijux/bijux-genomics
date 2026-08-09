@@ -3,6 +3,7 @@
 
 use std::collections::BTreeMap;
 use std::fs::{self, File};
+use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -333,6 +334,14 @@ fn archive_contract(source: &Path, target: &Path) -> Result<()> {
     if metadata.file_type().is_symlink() || !metadata.is_file() {
         bail!("execution contract is not a regular file: {}", source.display());
     }
+    if let Ok(target_metadata) = fs::symlink_metadata(target) {
+        if target_metadata.file_type().is_symlink() || !target_metadata.is_file() {
+            bail!("archived execution contract is not a regular file: {}", target.display());
+        }
+        if metadata.dev() == target_metadata.dev() && metadata.ino() == target_metadata.ino() {
+            return Ok(());
+        }
+    }
     fs::copy(source, target)
         .with_context(|| format!("archive execution contract {}", source.display()))?;
     Ok(())
@@ -359,4 +368,22 @@ fn apptainer_version() -> String {
 
 fn utc_now() -> String {
     bijux_dna_runtime::run_layout::now_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::archive_contract;
+
+    #[test]
+    fn archive_contract_preserves_an_already_archived_file() -> anyhow::Result<()> {
+        let root = bijux_dna_infra::temp_dir("qualification-contract-self-archive")?;
+        let contract = root.path().join("config-pipeline.yml");
+        let expected = b"schema_version: bijux.container.pipeline.v2\n";
+        std::fs::write(&contract, expected)?;
+
+        archive_contract(&contract, &contract)?;
+
+        assert_eq!(std::fs::read(contract)?, expected);
+        Ok(())
+    }
 }
