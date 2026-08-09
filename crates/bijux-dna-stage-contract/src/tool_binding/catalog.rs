@@ -61,6 +61,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
+        rxy_sex(),
         samtools_coverage(),
         samtools_duplication_metrics(),
         samtools_endogenous_content(),
@@ -311,6 +312,30 @@ fn samtools_mapping_summary() -> ToolBindingV1 {
         "benchmark.bam.mapping_summary.compare",
         resources(1, 8, 8),
         &["primary_counts_are_read_from_the_native_flagstat_categories"],
+    )
+}
+
+fn rxy_sex() -> ToolBindingV1 {
+    retained_binding(
+        "bam.sex",
+        "rxy",
+        &["bam_input", "xy_chromosome_sex_inference", "native_json_report"],
+        &[input("bam", BAM)],
+        &["classification_profile", "minimum_sex_reads"],
+        &[output("sex_report", JSON), output("sex_summary", JSON)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' --input '${input:bam}' --classification-profile '${parameter:classification_profile}' --minimum-sex-reads '${parameter:minimum_sex_reads}' > '${output:sex_report}' && cp '${output:sex_report}' '${output:sex_summary}'",
+        ],
+        "bijux.benchmark.bam.sex.bundle.v1",
+        "parse_sex_json",
+        "bijux.stage_probe.bam.sex.v1",
+        resources(1, 8, 8),
+        &[
+            "classification_profile_must_match_the_governed_reference_and_interpretation_scope",
+            "input_bam_must_be_indexed_and_expose_declared_x_and_y_contigs",
+        ],
     )
 }
 

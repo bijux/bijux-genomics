@@ -21,13 +21,14 @@ const MAPPING_SUMMARY_STAGE: &str = "bam.mapping_summary";
 const DUPLICATION_METRICS_STAGE: &str = "bam.duplication_metrics";
 const INSERT_SIZE_STAGE: &str = "bam.insert_size";
 const GC_BIAS_STAGE: &str = "bam.gc_bias";
+const SEX_STAGE: &str = "bam.sex";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 13);
+    assert_eq!(retained.bindings().len(), 14);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -50,8 +51,52 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 21);
+    assert_eq!(all.bindings().len(), 22);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_rxy_binding_requires_explicit_interpretation_context() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(SEX_STAGE), &ToolId::new("rxy"))
+        .ok_or_else(|| anyhow::anyhow!("canonical Rxy sex-inference binding is missing"))?;
+
+    assert_eq!(binding.resources.threads, 1);
+    assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.bam.sex.bundle.v1");
+    assert_eq!(binding.normalizer_id, "parse_sex_json");
+    assert_eq!(binding.downstream_probe_id, "bijux.stage_probe.bam.sex.v1");
+    assert_eq!(
+        binding.parameters.iter().map(|parameter| parameter.name.as_str()).collect::<Vec<_>>(),
+        ["classification_profile", "minimum_sex_reads"]
+    );
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["sex_report", "sex_summary"]
+    );
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "/images/rxy.sif".to_owned(),
+            inputs: BTreeMap::from([("bam".to_owned(), "/input/sample.bam".to_owned())]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("classification_profile".to_owned(), "human-skoglund-2013".to_owned()),
+                ("minimum_sex_reads".to_owned(), "100".to_owned()),
+            ]),
+            outputs: BTreeMap::from([
+                ("sex_report".to_owned(), "/result/sex.json".to_owned()),
+                ("sex_summary".to_owned(), "/result/sex.summary.json".to_owned()),
+            ]),
+        },
+    )?;
+    assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+    assert!(command[2].contains("'/images/rxy.sif' --input '/input/sample.bam'"));
+    assert!(command[2].contains("--classification-profile 'human-skoglund-2013'"));
+    assert!(command[2].contains("--minimum-sex-reads '100'"));
+    assert!(command[2].contains("> '/result/sex.json' && cp '/result/sex.json'"));
     Ok(())
 }
 
