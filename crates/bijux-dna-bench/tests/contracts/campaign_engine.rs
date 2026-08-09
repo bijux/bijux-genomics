@@ -2,8 +2,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    aggregate_benchmark_case_observations, build_benchmark_stage_report_from_case_aggregations,
+    aggregate_benchmark_admitted_case_observation_set, aggregate_benchmark_case_observations,
+    build_benchmark_admitted_case_observation_set,
+    build_benchmark_stage_report_from_case_aggregations,
+    ensure_benchmark_admitted_case_observation_set, ensure_benchmark_case_aggregation_set,
+    ensure_benchmark_case_matrix, load_benchmark_admitted_case_observation_set,
+    load_benchmark_case_aggregation_set, load_benchmark_case_matrix,
     load_checked_in_benchmark_planning_contracts, plan_benchmark_case_matrix,
+    validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
     validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
     BenchmarkAdmittedCaseObservationV2, BenchmarkCaseExecutionEvidenceV1,
     BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1,
@@ -213,6 +219,69 @@ fn admitted_observations_aggregate_all_cases_without_dispatch() -> Result<()> {
         serde_json::to_vec(&aggregations)?,
         serde_json::to_vec(&aggregate_benchmark_case_observations(&matrix, &observations)?)?
     );
+    Ok(())
+}
+
+#[test]
+fn persisted_case_evidence_sets_are_canonical_source_bound_and_no_clobber() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    let observations = admitted_observations(&matrix);
+    let expected = build_benchmark_admitted_case_observation_set(&matrix, observations.clone())?;
+    let mut reversed = observations;
+    reversed.reverse();
+    let observation_set = build_benchmark_admitted_case_observation_set(&matrix, reversed)?;
+    assert_eq!(observation_set, expected);
+    validate_benchmark_admitted_case_observation_set(&matrix, &observation_set)?;
+
+    let aggregation_set =
+        aggregate_benchmark_admitted_case_observation_set(&matrix, &observation_set)?;
+    validate_benchmark_case_aggregation_set(&matrix, &observation_set, &aggregation_set)?;
+
+    let root = tempfile::tempdir()?;
+    let matrix_path = root.path().join("case-matrix.json");
+    let observations_path = root.path().join("admitted-observations.json");
+    let aggregations_path = root.path().join("aggregations.json");
+    ensure_benchmark_case_matrix(&matrix_path, &matrix)?;
+    ensure_benchmark_admitted_case_observation_set(&observations_path, &matrix, &observation_set)?;
+    ensure_benchmark_case_aggregation_set(
+        &aggregations_path,
+        &matrix,
+        &observation_set,
+        &aggregation_set,
+    )?;
+    assert_eq!(load_benchmark_case_matrix(&matrix_path)?, matrix);
+    assert_eq!(
+        load_benchmark_admitted_case_observation_set(&observations_path, &matrix)?,
+        observation_set
+    );
+    assert_eq!(
+        load_benchmark_case_aggregation_set(&aggregations_path, &matrix, &observation_set)?,
+        aggregation_set
+    );
+
+    ensure_benchmark_case_matrix(&matrix_path, &matrix)?;
+    std::fs::write(&matrix_path, b"{}")?;
+    assert!(ensure_benchmark_case_matrix(&matrix_path, &matrix).is_err());
+    assert_eq!(std::fs::read(&matrix_path)?, b"{}");
+    Ok(())
+}
+
+#[test]
+fn persisted_case_evidence_sets_reject_upstream_digest_drift() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    let mut observations =
+        build_benchmark_admitted_case_observation_set(&matrix, admitted_observations(&matrix))?;
+    observations.case_matrix_sha256 = "f".repeat(64);
+    assert!(validate_benchmark_admitted_case_observation_set(&matrix, &observations).is_err());
+
+    let observations =
+        build_benchmark_admitted_case_observation_set(&matrix, admitted_observations(&matrix))?;
+    let mut aggregations =
+        aggregate_benchmark_admitted_case_observation_set(&matrix, &observations)?;
+    aggregations.observation_set_sha256 = "e".repeat(64);
+    assert!(validate_benchmark_case_aggregation_set(&matrix, &observations, &aggregations).is_err());
     Ok(())
 }
 

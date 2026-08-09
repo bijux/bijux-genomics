@@ -168,8 +168,14 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/campaign_engine")),
-        entries(["aggregation.rs", "mod.rs", "planning.rs", "reporting.rs"]),
-        "campaign engine must keep persisted models in bench-model and separate planning, aggregation, and reporting"
+        entries([
+            "aggregation.rs",
+            "mod.rs",
+            "persistence.rs",
+            "planning.rs",
+            "reporting.rs",
+        ]),
+        "campaign engine must keep persisted models in bench-model and separate planning, persistence, aggregation, and reporting"
     );
 
     assert_eq!(
