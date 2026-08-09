@@ -24,6 +24,26 @@ fn shell_literal(path: &Path) -> String {
 }
 
 #[test]
+fn bbmap_recipes_remove_group_and_other_write_bits() -> anyhow::Result<()> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for path in [
+        "containers/apptainer/bbduk.def",
+        "containers/apptainer/bbmerge.def",
+        "containers/apptainer/clumpify.def",
+        "containers/docker/Dockerfile.arm64.bbduk",
+        "containers/docker/Dockerfile.arm64.bbmerge",
+        "containers/docker/Dockerfile.arm64.clumpify",
+    ] {
+        let recipe = std::fs::read_to_string(workspace.join(path))?;
+        assert!(
+            recipe.contains("chmod -R go-w /opt/bbmap"),
+            "BBMap recipe does not normalize archive permissions: {path}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn seqpurge_recipe_runs_help_probe_from_private_writable_directory() -> anyhow::Result<()> {
     let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let recipe = std::fs::read_to_string(workspace.join("containers/apptainer/seqpurge.def"))?;
