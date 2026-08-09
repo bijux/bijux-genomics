@@ -7,6 +7,8 @@ mod mod_contracts_benchmark_slurm_rs;
 mod mod_contracts_container_qualification_slurm_rs;
 #[path = "contracts/corpus_materialization_slurm.rs"]
 mod mod_contracts_corpus_materialization_slurm_rs;
+#[path = "contracts/image_campaign_slurm.rs"]
+mod mod_contracts_image_campaign_slurm_rs;
 #[path = "contracts/slurm.rs"]
 mod mod_contracts_slurm_rs;
 #[cfg(unix)]

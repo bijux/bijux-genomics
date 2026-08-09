@@ -24,6 +24,15 @@ pub use super::corpus_materialization::{
     CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1, CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
     CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
 };
+pub use super::image_campaign::{
+    collect_image_campaign_slurm_job, load_image_campaign_slurm_job_handle,
+    load_image_campaign_slurm_spec, load_prepared_image_campaign_slurm_job,
+    observe_image_campaign_slurm_job, prepare_image_campaign_slurm_job,
+    submit_prepared_image_campaign_job, ImageCampaignCollection, ImageCampaignEvidence,
+    ImageCampaignEvidenceStatus, ImageCampaignSlurmResources, ImageCampaignSlurmSpec,
+    PreparedImageCampaignSlurmJob, IMAGE_CAMPAIGN_EVIDENCE_SCHEMA_V1,
+    IMAGE_CAMPAIGN_PREPARED_JOB_SCHEMA_V1, IMAGE_CAMPAIGN_SLURM_SPEC_SCHEMA_V1,
+};
 pub use super::qualification::{
     archive_failed_container_qualification_attempt, cancel_container_qualification_slurm_job,
     collect_container_qualification_slurm_job, execute_container_qualification,
