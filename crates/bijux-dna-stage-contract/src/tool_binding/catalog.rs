@@ -355,7 +355,7 @@ fn rcorrector_correct_errors() -> ToolBindingV1 {
         &[
             "/bin/sh",
             "-c",
-            "work=\"$TMPDIR/bijux-rcorrector-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; '${executable}' -t 4 -od \"$work\" -1 '${input:reads_r1}' -2 '${input:reads_r2}'; find \"$work\" -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) | LC_ALL=C sort > \"$work/outputs.list\"; test \"$(wc -l < \"$work/outputs.list\" | tr -d '[:space:]')\" -eq 2; normalize() { src=$1; dest=$2; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$(sed -n '1p' \"$work/outputs.list\")\" '${output:corrected_reads_r1}'; normalize \"$(sed -n '2p' \"$work/outputs.list\")\" '${output:corrected_reads_r2}'",
+            "work=\"$TMPDIR/bijux-rcorrector-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; '${executable}' -t 4 -tmpd \"$work\" -od \"$work\" -1 '${input:reads_r1}' -2 '${input:reads_r2}'; find \"$work\" -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) | LC_ALL=C sort > \"$work/outputs.list\"; test \"$(wc -l < \"$work/outputs.list\" | tr -d '[:space:]')\" -eq 2; normalize() { src=$1; dest=$2; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$(sed -n '1p' \"$work/outputs.list\")\" '${output:corrected_reads_r1}'; normalize \"$(sed -n '2p' \"$work/outputs.list\")\" '${output:corrected_reads_r2}'",
         ],
         "bijux.benchmark.fastq.correct_errors.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
