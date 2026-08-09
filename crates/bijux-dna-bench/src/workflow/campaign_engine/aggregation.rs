@@ -38,7 +38,7 @@ pub fn aggregate_benchmark_case_observations(
     if indexed.keys().copied().collect::<BTreeSet<_>>() != declared {
         bail!("admitted observations do not close the benchmark case matrix");
     }
-    matrix
+    let aggregations = matrix
         .cases
         .iter()
         .map(|case| {
@@ -51,7 +51,40 @@ pub fn aggregate_benchmark_case_observations(
                 &matrix.repository_commit,
             )
         })
-        .collect()
+        .collect::<Result<Vec<_>>>()?;
+    validate_benchmark_case_aggregations(matrix, &aggregations)?;
+    Ok(aggregations)
+}
+
+/// Validate persisted aggregations against their complete canonical case matrix.
+///
+/// # Errors
+/// Returns an error when case closure, source identity, execution provenance, metric closure, or
+/// normalized-result determinism differs from the matrix authority.
+pub fn validate_benchmark_case_aggregations(
+    matrix: &BenchmarkCaseMatrixV1,
+    aggregations: &[BenchmarkCaseAggregationV2],
+) -> Result<()> {
+    validate_benchmark_case_matrix(matrix).context("validate benchmark case matrix")?;
+    let cases =
+        matrix.cases.iter().map(|case| (case.case_id.as_str(), case)).collect::<BTreeMap<_, _>>();
+    let mut observed = BTreeSet::new();
+    for aggregation in aggregations {
+        if aggregation.schema_version != BENCHMARK_CASE_AGGREGATION_SCHEMA_V2
+            || !observed.insert(aggregation.case_id.as_str())
+        {
+            bail!("benchmark case aggregation identity is unsupported or duplicated");
+        }
+        let case = cases
+            .get(aggregation.case_id.as_str())
+            .copied()
+            .context("benchmark case aggregation is not declared by the matrix")?;
+        validate_aggregation(case, aggregation, &matrix.repository_commit)?;
+    }
+    if observed != cases.keys().copied().collect::<BTreeSet<_>>() {
+        bail!("benchmark case aggregations do not close the benchmark case matrix");
+    }
+    Ok(())
 }
 
 fn aggregate_case(
@@ -62,7 +95,7 @@ fn aggregate_case(
     if observation.case_id != case.case_id || observation.repository_commit != repository_commit {
         bail!("admitted case identity differs from the case matrix");
     }
-    validate_execution_evidence(case, observation)?;
+    validate_execution_evidence(case, &observation.execution)?;
     let expected_repetitions = case.measurement.measured_repetitions;
     if observation.repetitions.len() != expected_repetitions as usize {
         bail!("admitted case repetition closure is incomplete");
@@ -133,11 +166,68 @@ fn aggregate_case(
     })
 }
 
+fn validate_aggregation(
+    case: &BenchmarkCaseDefinitionV1,
+    aggregation: &BenchmarkCaseAggregationV2,
+    repository_commit: &str,
+) -> Result<()> {
+    if aggregation.case_id != case.case_id
+        || aggregation.run_id != case.run_id
+        || aggregation.domain != case.domain
+        || aggregation.stage_id != case.stage_id
+        || aggregation.tool_id != case.tool_id
+        || aggregation.corpus != case.corpus
+        || aggregation.repository_commit != repository_commit
+        || aggregation.repetition_count != case.measurement.measured_repetitions
+    {
+        bail!("benchmark case aggregation differs from its matrix case authority");
+    }
+    for (value, label) in [
+        (&aggregation.admission_sha256, "admission digest"),
+        (&aggregation.input_lock_sha256, "input lock digest"),
+        (&aggregation.parameter_lock_sha256, "parameter lock digest"),
+        (&aggregation.normalized_result_sha256, "normalized result digest"),
+    ] {
+        require_digest(value, label)?;
+    }
+    validate_execution_evidence(case, &aggregation.execution)?;
+    let expected_performance =
+        case.measurement.performance_metrics.iter().map(String::as_str).collect::<BTreeSet<_>>();
+    let expected_science =
+        case.science.scientific_metrics.iter().map(String::as_str).collect::<BTreeSet<_>>();
+    if aggregation.performance.keys().map(String::as_str).collect::<BTreeSet<_>>()
+        != expected_performance
+        || aggregation.scientific.keys().map(String::as_str).collect::<BTreeSet<_>>()
+            != expected_science
+    {
+        bail!("benchmark case aggregation metric closure differs from its matrix case");
+    }
+    for distribution in aggregation.performance.values() {
+        if !distribution.minimum.is_finite()
+            || !distribution.maximum.is_finite()
+            || !distribution.mean.is_finite()
+            || !distribution.sample_standard_deviation.is_finite()
+            || distribution.minimum < 0.0
+            || distribution.minimum > distribution.mean
+            || distribution.mean > distribution.maximum
+            || distribution.sample_standard_deviation < 0.0
+        {
+            bail!("benchmark case aggregation performance distribution is invalid");
+        }
+    }
+    for value in aggregation.scientific.values().flatten() {
+        validate_scientific_value(value)?;
+    }
+    if aggregation.scientific.values().any(Vec::is_empty) {
+        bail!("benchmark case aggregation scientific observation is empty");
+    }
+    Ok(())
+}
+
 fn validate_execution_evidence(
     case: &BenchmarkCaseDefinitionV1,
-    observation: &BenchmarkAdmittedCaseObservationV2,
+    execution: &super::BenchmarkCaseExecutionEvidenceV1,
 ) -> Result<()> {
-    let execution = &observation.execution;
     if execution.image.name.trim().is_empty() || execution.image.size_bytes == 0 {
         bail!("admitted case image evidence is invalid");
     }

@@ -2,12 +2,13 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    aggregate_benchmark_case_observations, load_checked_in_benchmark_planning_contracts,
-    plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV2,
-    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest,
-    BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1, BenchmarkReportImage,
-    BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkScientificValue,
-    BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
+    aggregate_benchmark_case_observations, build_benchmark_stage_report_from_case_aggregations,
+    load_checked_in_benchmark_planning_contracts, plan_benchmark_case_matrix,
+    validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseExecutionEvidenceV1,
+    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1,
+    BenchmarkReportImage, BenchmarkReportInputLock, BenchmarkReportSlurmJob,
+    BenchmarkScientificValue, BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
 };
 use bijux_dna_core::{
@@ -261,6 +262,57 @@ fn aggregation_refuses_incomplete_or_nondeterministic_evidence() -> Result<()> {
         .expect_err("scheduler CPU drift must fail")
         .to_string()
         .contains("CPU evidence"));
+    Ok(())
+}
+
+#[test]
+fn generic_aggregations_build_a_citable_stage_report_without_dispatch() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let mut matrix = plan(&fixture)?;
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .expect("benchmark crate is inside the repository");
+    matrix.repository_commit = bijux_dna_containers::api::repository_head_commit(repository_root)?;
+    let observations = admitted_observations(&matrix);
+    let aggregations = aggregate_benchmark_case_observations(&matrix, &observations)?;
+    validate_benchmark_case_aggregations(&matrix, &aggregations)?;
+    let run_aggregations = aggregations
+        .iter()
+        .filter(|aggregation| aggregation.run_id == "run-2002")
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let report = build_benchmark_stage_report_from_case_aggregations(
+        repository_root,
+        &matrix,
+        &run_aggregations,
+        "run-2002",
+    )?;
+    assert_eq!(report.run_id, "run-2002");
+    assert_eq!(report.stage_id, "bam.coverage");
+    assert_eq!(report.tools.len(), 3);
+    assert!(report.tools.iter().all(|tool| {
+        tool.image.size_bytes == 1024
+            && tool.slurm.job_id == "123456"
+            && tool.source_evidence_sha256 == "e".repeat(64)
+            && tool.input_locks.len() == 1
+            && tool.determinism.identical_across_repetitions
+    }));
+    Ok(())
+}
+
+#[test]
+fn generic_report_refuses_persisted_aggregation_drift() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    let observations = admitted_observations(&matrix);
+    let mut aggregations = aggregate_benchmark_case_observations(&matrix, &observations)?;
+    aggregations[0].execution.image.sha256 = "f".repeat(64);
+    aggregations[0].execution.input_bytes.clear();
+    let error = validate_benchmark_case_aggregations(&matrix, &aggregations)
+        .expect_err("persisted execution drift must fail validation");
+    assert!(error.to_string().contains("input-byte closure"));
     Ok(())
 }
 

@@ -3,8 +3,11 @@
 
 mod aggregation;
 mod planning;
+mod reporting;
 
-pub use aggregation::aggregate_benchmark_case_observations;
+pub use aggregation::{
+    aggregate_benchmark_case_observations, validate_benchmark_case_aggregations,
+};
 pub use bijux_dna_bench_model::{
     BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1,
     BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
@@ -15,3 +18,4 @@ pub use bijux_dna_bench_model::{
 pub use planning::{
     plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkCaseMatrixRequest,
 };
+pub use reporting::build_benchmark_stage_report_from_case_aggregations;

@@ -88,6 +88,22 @@ pub(super) fn build_stage_report(
     plan: &BenchmarkCampaignPlan,
     campaign: &BenchmarkStageCampaignSpec,
     interface: &BenchmarkStageInterfaceSpec,
+    evidence_by_tool: BTreeMap<String, ComparableAttemptEvidence>,
+) -> Result<BenchmarkStageReport> {
+    build_stage_report_for_commit(
+        repository_root,
+        &plan.repository_commit,
+        campaign,
+        interface,
+        evidence_by_tool,
+    )
+}
+
+pub(super) fn build_stage_report_for_commit(
+    repository_root: &Path,
+    repository_commit: &str,
+    campaign: &BenchmarkStageCampaignSpec,
+    interface: &BenchmarkStageInterfaceSpec,
     mut evidence_by_tool: BTreeMap<String, ComparableAttemptEvidence>,
 ) -> Result<BenchmarkStageReport> {
     let comparable = validate_comparable_attempts(campaign, &evidence_by_tool)?;
@@ -107,10 +123,8 @@ pub(super) fn build_stage_report(
     } else {
         BenchmarkReportVerdict::Passed
     };
-    let catalog_sha256 = bijux_dna_containers::api::catalog_identity_at_commit(
-        repository_root,
-        &plan.repository_commit,
-    )?;
+    let catalog_sha256 =
+        bijux_dna_containers::api::catalog_identity_at_commit(repository_root, repository_commit)?;
     let report = BenchmarkStageReport {
         schema_version: BENCHMARK_STAGE_REPORT_SCHEMA_V1.to_string(),
         verdict,
