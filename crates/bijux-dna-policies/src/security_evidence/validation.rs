@@ -284,12 +284,17 @@ fn validate_findings(evidence: &ToolSecurityEvidence, evaluation_date: NaiveDate
         validate_nonempty(&finding.id, "vulnerability id")?;
         validate_nonempty(&finding.package, "vulnerability package")?;
         validate_nonempty(&finding.installed_version, "installed package version")?;
-        if !finding_ids.insert((finding.id.as_str(), finding.package.as_str())) {
+        if !finding_ids.insert((
+            finding.id.as_str(),
+            finding.package.as_str(),
+            finding.installed_version.as_str(),
+        )) {
             bail!(
-                "tool {} has duplicate vulnerability {} for {}",
+                "tool {} has duplicate vulnerability {} for {} version {}",
                 evidence.tool_id,
                 finding.id,
-                finding.package
+                finding.package,
+                finding.installed_version
             );
         }
         observed[severity_index(finding.severity)] += 1;
