@@ -195,6 +195,8 @@ fn derive_cycle(
         &request.registry_path,
     )?;
     let catalog = bijux_dna_containers::api::load_container_catalog(&request.repository_root)?;
+    let repository_commit =
+        bijux_dna_containers::api::repository_head_commit(&request.repository_root)?;
     let specifications = discover_specifications(&request.submission_root)?;
     let mut units = Vec::new();
     for run in registry.runs.iter().filter(|run| {
@@ -255,7 +257,13 @@ fn derive_cycle(
             bail!("multiple live qualification specifications exist for {}:{}", key.0, key.1);
         };
         let spec = load_container_qualification_slurm_spec(path)?;
-        units.push(classify_spec(path, &spec, scheduler, &request.observed_at_utc)?);
+        units.push(classify_spec(
+            path,
+            &spec,
+            &repository_commit,
+            scheduler,
+            &request.observed_at_utc,
+        )?);
     }
     let active = units.iter().any(|unit| {
         matches!(
@@ -378,9 +386,21 @@ struct DiscoveredSpecificationIdentity {
 fn classify_spec(
     path: &Path,
     spec: &ContainerQualificationSlurmSpec,
+    repository_commit: &str,
     scheduler: Option<&SlurmClientPaths>,
     observed_at_utc: &str,
 ) -> Result<ContainerQualificationCycleUnit> {
+    if spec.repository_commit != repository_commit {
+        return Ok(unit(
+            &spec.run_id,
+            &spec.tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::Prepare,
+            Some(path),
+            None,
+            Some("qualification specification is stale for the current repository commit"),
+        ));
+    }
     if let Some(evidence) = load_container_qualification_scheduler_evidence(spec)? {
         let (state, action) = match evidence.status {
             ContainerQualificationSchedulerStatus::Passed => {
@@ -535,7 +555,13 @@ fn regular_file_exists(path: &Path) -> Result<bool> {
 
 #[cfg(test)]
 mod tests {
-    use super::discover_specifications;
+    use std::path::{Path, PathBuf};
+
+    use super::super::ContainerQualificationSlurmResources;
+    use super::{
+        classify_spec, discover_specifications, ContainerQualificationCycleAction,
+        ContainerQualificationCycleState, ContainerQualificationSlurmSpec,
+    };
 
     #[test]
     fn specification_discovery_excludes_archived_attempts() -> anyhow::Result<()> {
@@ -555,6 +581,55 @@ mod tests {
             discovered.get(&("run-1150".to_string(), "rcorrector".to_string())).map(Vec::len),
             Some(1)
         );
+        Ok(())
+    }
+
+    #[test]
+    fn stale_specification_cannot_advance_or_book() -> anyhow::Result<()> {
+        let spec = ContainerQualificationSlurmSpec {
+            schema_version: super::super::CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5.to_string(),
+            submission_kind: Default::default(),
+            historical_replay_source: None,
+            run_id: "run-1150".to_string(),
+            tool_id: "rcorrector".to_string(),
+            campaign_id: Some("retained-container-qualification".to_string()),
+            attempt_id: Some("attempt-003".to_string()),
+            job_name: "qualification-run-1150".to_string(),
+            hostname: "lunarc".to_string(),
+            repository_path: PathBuf::from("/repository"),
+            repository_commit: "1".repeat(40),
+            governance_path: PathBuf::from("/governance.json"),
+            governance_sha256: "2".repeat(64),
+            pipeline_path: PathBuf::from("/pipeline.json"),
+            pipeline_sha256: "3".repeat(64),
+            credential_reference_path: PathBuf::from("/credential.json"),
+            credential_reference_sha256: "4".repeat(64),
+            executor_program_path: PathBuf::from("/executor"),
+            executor_program_sha256: "5".repeat(64),
+            result_root: PathBuf::from("/result"),
+            evidence_root: PathBuf::from("/evidence"),
+            resources: ContainerQualificationSlurmResources {
+                account: "account".to_string(),
+                partition: "partition".to_string(),
+                cpus: 1,
+                memory_mb: 1024,
+                walltime: "00:10:00".to_string(),
+                scratch_mb: 1024,
+            },
+            dependencies: Vec::new(),
+        };
+
+        let unit = classify_spec(
+            Path::new("/evidence/qualification-spec.json"),
+            &spec,
+            &"6".repeat(40),
+            None,
+            "2026-08-09T23:14:00Z",
+        )?;
+
+        assert_eq!(unit.state, ContainerQualificationCycleState::Blocked);
+        assert_eq!(unit.next_action, ContainerQualificationCycleAction::Prepare);
+        assert!(unit.detail.is_some_and(|detail| detail.contains("stale")));
         Ok(())
     }
 }
