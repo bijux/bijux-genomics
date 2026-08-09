@@ -30,7 +30,9 @@ library can manage when callers invoke the matching API.
   `hostname` and `apptainer --version` to bind the builder environment to the evidence.
 - `execute_apptainer_image_campaign()`: owns catalog-wide bounded workers, immutable planning,
   atomic per-tool progress, fresh resumed-image inspection, append-only invocation records, and
-  all-passed terminal execution publication.
+  all-passed terminal execution publication. An explicit retained-tool selection executes only
+  that dependency closure under deterministic `selected-<tool-set-sha256>` staging and evidence
+  roots; the complete retained roster preserves the historical commit-addressed root.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.

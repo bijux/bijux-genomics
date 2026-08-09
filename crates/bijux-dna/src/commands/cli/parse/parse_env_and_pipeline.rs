@@ -46,21 +46,21 @@ pub enum EnvCommand {
 pub struct EnsureImagesArgs {
     #[arg(long)]
     pub hpc_root: Option<PathBuf>,
-    #[arg(long, conflicts_with_all = ["all_retained", "tool"])]
+    #[arg(long, conflicts_with_all = ["all_retained", "tool", "tools"])]
     pub domain: Option<String>,
     #[arg(
         long,
         help = "Single stage id like fastq.trim_reads",
-        conflicts_with_all = ["stages", "all_retained", "tool"]
+        conflicts_with_all = ["stages", "all_retained", "tool", "tools"]
     )]
     pub stage: Option<String>,
     #[arg(
         long,
         help = "Comma-separated stage ids or short stage names",
-        conflicts_with_all = ["all_retained", "tool"]
+        conflicts_with_all = ["all_retained", "tool", "tools"]
     )]
     pub stages: Option<String>,
-    #[arg(long, default_value_t = false, conflicts_with = "tool")]
+    #[arg(long, default_value_t = false, conflicts_with_all = ["tool", "tools"])]
     pub all_retained: bool,
     #[arg(long, conflicts_with_all = ["domain", "stage", "stages", "tool"])]
     pub jobs: Option<usize>,
@@ -70,6 +70,13 @@ pub struct EnsureImagesArgs {
         conflicts_with_all = ["domain", "stage", "stages", "all_retained", "jobs", "force_smoke", "repair_mismatch"]
     )]
     pub tool: Option<String>,
+    #[arg(
+        long,
+        help = "Comma-separated retained tools for a targeted campaign",
+        requires = "campaign",
+        conflicts_with_all = ["domain", "stage", "stages", "all_retained", "tool", "force_smoke", "repair_mismatch"]
+    )]
+    pub tools: Option<String>,
     #[arg(long, default_value_t = false, conflicts_with_all = ["domain", "stage", "stages"])]
     pub campaign: bool,
     #[arg(long, default_value_t = false, conflicts_with = "tool")]
@@ -175,6 +182,39 @@ mod ensure_images_parse_tests {
         assert!(args.all_retained);
         assert!(args.campaign);
         assert_eq!(args.jobs, Some(4));
+    }
+
+    #[test]
+    fn targeted_campaign_requires_campaign_mode() {
+        assert!(Cli::try_parse_from([
+            "bijux-dna",
+            "env",
+            "ensure-images",
+            "--tools",
+            "bijux_dna,picard",
+        ])
+        .is_err());
+
+        let cli = Cli::try_parse_from([
+            "bijux-dna",
+            "env",
+            "ensure-images",
+            "--campaign",
+            "--tools",
+            "bijux_dna,picard",
+            "--jobs",
+            "2",
+        ])
+        .unwrap_or_else(|error| panic!("parse targeted image campaign: {error}"));
+        let DnaCommand::Environment(root) = cli.command else {
+            panic!("expected environment command");
+        };
+        let EnvCommand::EnsureImages(args) = root.command else {
+            panic!("expected ensure-images command");
+        };
+        assert_eq!(args.tools.as_deref(), Some("bijux_dna,picard"));
+        assert!(args.campaign);
+        assert_eq!(args.jobs, Some(2));
     }
 }
 

@@ -223,19 +223,36 @@ pub(crate) fn handle_environment_root(
                 .clone()
                 .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
             if let Some(tool_id) = args.tool.as_deref() {
-                let request = if args.campaign {
-                    bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained_campaign(
-                        cwd.to_path_buf(),
-                        hpc_root.clone(),
-                        tool_id.to_string(),
-                    )
-                } else {
+                if args.campaign {
+                    let execution = bijux_dna_api::v1::api::env::execute_apptainer_image_campaign(
+                        &bijux_dna_api::v1::api::env::ApptainerImageCampaignRequest {
+                            repository_root: cwd.to_path_buf(),
+                            study_root: hpc_root.clone(),
+                            apptainer_executable: std::path::PathBuf::from("apptainer"),
+                            worker_count: 1,
+                            selected_tools: Some(std::collections::BTreeSet::from([
+                                tool_id.to_string()
+                            ])),
+                        },
+                    )?;
+                    if let Some(output) = &args.output {
+                        bijux_dna_infra::atomic_write_json(output, &execution)?;
+                    }
+                    cli::render::json::print_pretty(&execution)?;
+                    if execution.failed != 0 {
+                        return Err(anyhow::anyhow!(
+                            "image campaign has {} failed tools",
+                            execution.failed
+                        ));
+                    }
+                    return Ok(());
+                }
+                let request =
                     bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained(
                         cwd.to_path_buf(),
                         hpc_root.clone(),
                         tool_id.to_string(),
-                    )
-                };
+                    );
                 let publication =
                     bijux_dna_api::v1::api::env::publish_canonical_apptainer_image(&request)?;
                 if let Some(output) = &args.output {
@@ -252,14 +269,23 @@ pub(crate) fn handle_environment_root(
                 }
                 return Ok(());
             }
-            if args.all_retained {
+            if args.all_retained || args.tools.is_some() {
                 if args.campaign {
+                    let selected_tools = args.tools.as_deref().map(|tools| {
+                        tools
+                            .split(',')
+                            .map(str::trim)
+                            .filter(|tool| !tool.is_empty())
+                            .map(str::to_string)
+                            .collect::<std::collections::BTreeSet<_>>()
+                    });
                     let execution = bijux_dna_api::v1::api::env::execute_apptainer_image_campaign(
                         &bijux_dna_api::v1::api::env::ApptainerImageCampaignRequest {
                             repository_root: cwd.to_path_buf(),
                             study_root: hpc_root.clone(),
                             apptainer_executable: std::path::PathBuf::from("apptainer"),
                             worker_count: args.jobs.unwrap_or(4),
+                            selected_tools,
                         },
                     )?;
                     if let Some(output) = &args.output {
@@ -274,6 +300,7 @@ pub(crate) fn handle_environment_root(
                     }
                     return Ok(());
                 }
+                debug_assert!(args.all_retained);
                 let report = ensure_retained_apptainer_roster_at_root(
                     &hpc_root,
                     args.jobs.unwrap_or(2),
@@ -303,7 +330,7 @@ pub(crate) fn handle_environment_root(
             }
             if args.campaign {
                 return Err(anyhow::anyhow!(
-                    "environment ensure-images --campaign requires --tool or --all-retained"
+                    "environment ensure-images --campaign requires --tool, --tools, or --all-retained"
                 ));
             }
             let domain = args.domain.as_deref().ok_or_else(|| {

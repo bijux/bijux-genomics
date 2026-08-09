@@ -62,6 +62,7 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
             retry_delay: Duration::ZERO,
             lock_timeout: Duration::from_secs(1),
             destination: CanonicalApptainerImageDestination::CommitCampaign,
+            campaign_scope: None,
         })?;
 
     assert_eq!(publication.status, "passed");
