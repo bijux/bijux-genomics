@@ -40,8 +40,6 @@ fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result
     assert!(script.contains("#SBATCH --cpus-per-task=2"));
     assert!(script.contains("'containers' 'run' 'qualification-slurm' '--' 'execute'"));
     assert!(!script.contains("container_validation.py"));
-    assert!(spec.executor_script_path.is_none());
-    assert!(spec.executor_script_sha256.is_none());
     assert_eq!(prepared.request.dependencies, vec!["456700"]);
     assert_eq!(spec.repository_path, fixture.frozen_repository);
     assert_eq!(spec.repository_commit, fixture.commit);
@@ -282,6 +280,33 @@ fn historical_v3_specification_remains_loadable_at_its_flat_roots() -> Result<()
     fs::write(&legacy_spec_path, serde_json::to_vec_pretty(&spec)?)?;
 
     assert_eq!(load_container_qualification_slurm_spec(&legacy_spec_path)?, spec);
+    Ok(())
+}
+
+#[test]
+fn legacy_python_scheduler_specifications_are_rejected() -> Result<()> {
+    let fixture = fixture()?;
+    prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let current = fixture.evidence_root.join("qualification-spec.json");
+    let mut value: serde_json::Value = serde_json::from_slice(&fs::read(&current)?)?;
+
+    value["schema_version"] =
+        serde_json::Value::String("bijux.runner.container_qualification_slurm_spec.v2".to_string());
+    value["attempt_id"] = serde_json::Value::Null;
+    let legacy_schema = fixture.root.path().join("legacy-schema.json");
+    fs::write(&legacy_schema, serde_json::to_vec_pretty(&value)?)?;
+    assert!(load_container_qualification_slurm_spec(&legacy_schema).is_err());
+
+    value["schema_version"] =
+        serde_json::Value::String("bijux.runner.container_qualification_slurm_spec.v4".to_string());
+    value["attempt_id"] = serde_json::Value::String("attempt-001".to_string());
+    value["executor_script_path"] = serde_json::Value::String(
+        fixture.frozen_repository.join("legacy-worker.py").display().to_string(),
+    );
+    value["executor_script_sha256"] = serde_json::Value::String("a".repeat(64));
+    let legacy_worker = fixture.root.path().join("legacy-worker.json");
+    fs::write(&legacy_worker, serde_json::to_vec_pretty(&value)?)?;
+    assert!(load_container_qualification_slurm_spec(&legacy_worker).is_err());
     Ok(())
 }
 

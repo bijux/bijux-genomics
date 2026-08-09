@@ -246,7 +246,7 @@ pub fn collect_container_qualification_slurm_job(
         pipeline_sha256: spec.pipeline_sha256.clone(),
         credential_reference_sha256: spec.credential_reference_sha256.clone(),
         executor_program_sha256: spec.executor_program_sha256.clone(),
-        executor_script_sha256: spec.executor_script_sha256.clone(),
+        executor_script_sha256: None,
         accounting: accounting.clone(),
         stdout_sha256,
         stderr_sha256,
@@ -341,7 +341,7 @@ pub(super) fn validate_retained_evidence(
         || evidence.pipeline_sha256 != spec.pipeline_sha256
         || evidence.credential_reference_sha256 != spec.credential_reference_sha256
         || evidence.executor_program_sha256 != spec.executor_program_sha256
-        || evidence.executor_script_sha256 != spec.executor_script_sha256
+        || evidence.executor_script_sha256.is_some()
         || evidence.accounting.job_id != handle.job_id
         || !evidence.accounting.state.is_terminal()
     {

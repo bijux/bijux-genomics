@@ -17,8 +17,7 @@ use serde::de::DeserializeOwned;
 
 use super::contracts::{
     ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
-    ContainerQualificationSubmissionKind, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
+    ContainerQualificationSubmissionKind, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
     CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
 };
 
@@ -203,17 +202,8 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
         "executor program",
     )?;
     require_executable(&spec.executor_program_path, "executor program")?;
-    if matches!(
-        spec.schema_version.as_str(),
-        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
-    ) && spec.executor_program_path.file_name() != Some(OsStr::new("bijux-dna-dev"))
-    {
+    if spec.executor_program_path.file_name() != Some(OsStr::new("bijux-dna-dev")) {
         bail!("native qualification executor must be the pinned bijux-dna-dev program");
-    }
-    if let (Some(path), Some(sha256)) =
-        (spec.executor_script_path.as_ref(), spec.executor_script_sha256.as_deref())
-    {
-        require_exact_file(path, sha256, "executor script")?;
     }
     load_container_credential_reference(&spec.credential_reference_path)?;
     let identity = match &spec.historical_replay_source {
@@ -243,16 +233,6 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
     {
         bail!("container qualification specification conflicts with admitted contracts");
     }
-    if !matches!(
-        spec.schema_version.as_str(),
-        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
-    ) {
-        let expected_executor =
-            spec.repository_path.join("containers/contracts/container_validation.py");
-        if spec.executor_script_path.as_deref() != Some(expected_executor.as_path()) {
-            bail!("container qualification executor is outside its frozen repository authority");
-        }
-    }
     canonical_directory(&spec.evidence_root, "qualification evidence root")?;
     Ok(())
 }
@@ -260,10 +240,7 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
 fn validate_schema_authority(spec: &ContainerQualificationSlurmSpec) -> Result<()> {
     if !matches!(
         spec.schema_version.as_str(),
-        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1
-            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2
-            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
-            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
+        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
     ) {
         bail!("container qualification Slurm specification schema is unsupported");
     }
@@ -271,38 +248,8 @@ fn validate_schema_authority(spec: &ContainerQualificationSlurmSpec) -> Result<(
         (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4, Some(attempt_id)) => {
             validate_qualification_attempt_id(attempt_id)?;
         }
-        (
-            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1
-            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2
-            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
-            None,
-        ) => {}
+        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3, None) => {}
         _ => bail!("qualification attempt identity conflicts with specification schema"),
-    }
-    if spec.schema_version == CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1
-        && (spec.submission_kind != ContainerQualificationSubmissionKind::Current
-            || spec.historical_replay_source.is_some())
-    {
-        bail!("v1 qualification specification cannot declare historical replay authority");
-    }
-    match (
-        spec.schema_version.as_str(),
-        spec.executor_script_path.as_ref(),
-        spec.executor_script_sha256.as_deref(),
-    ) {
-        (
-            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
-            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
-            None,
-            None,
-        ) => {}
-        (
-            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1
-            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2,
-            Some(_),
-            Some(sha256),
-        ) => require_sha256(sha256, "executor script SHA-256")?,
-        _ => bail!("qualification executor authority conflicts with specification schema"),
     }
     Ok(())
 }

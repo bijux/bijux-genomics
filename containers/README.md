@@ -386,22 +386,11 @@ submission and result paths without deleting the failed attempt or allowing it
 into the final run index. A passed result and a benchmark attempt cannot be
 archived by this qualification command.
 
-If a passed attempt later proves scientifically or structurally invalid,
-preserve it with an explicit disposition rather than deleting or relabelling
-it:
-
-```console
-python3 -B containers/contracts/container_validation.py archive-superseded \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml \
-  --reason "resource measurements did not satisfy the declared TSV evidence format"
-```
-
-This command requires passed terminal evidence, matching accounting, and a
-substantive reason. It applies the same atomic, same-filesystem preservation
-rules under `containers/evidence/superseded/` for qualification attempts and
-`results/benchmark-attempts/superseded/` for benchmark attempts, then frees only
-the canonical paths for a corrected submission.
+If a passed attempt later proves scientifically or structurally invalid, keep
+its submission and result trees immutable. Do not relabel it as failed or
+reuse its attempt identity. Record supersession through the run lifecycle and
+prepare the next `attempt-NNN`; historical import and replay retain the prior
+attempt as evidence rather than executing a legacy worker.
 
 Import one completed run by bounding the identifier. For a full replay, use an
 empty artifact directory so existing tracked evidence is never overwritten:

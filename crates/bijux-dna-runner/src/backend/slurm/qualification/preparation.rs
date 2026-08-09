@@ -13,8 +13,7 @@ use super::contracts::{
     ContainerQualificationPreparationRequest, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
-    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
+    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
 };
 use super::validation::{
     canonical_directory, derive_historical_replay_identity, derive_identity, ensure_json_identity,
@@ -118,8 +117,6 @@ fn prepare(
         credential_reference_sha256,
         executor_program_path,
         executor_program_sha256,
-        executor_script_path: None,
-        executor_script_sha256: None,
         result_root: identity.result_root,
         evidence_root,
         resources: identity.resources,
@@ -216,17 +213,7 @@ fn render_script(
         .scratch_mb
         .checked_mul(1024)
         .context("qualification scratch requirement overflow")?;
-    let command = qualification_command(spec)?;
-    let executor_script_declaration = spec
-        .executor_script_path
-        .as_ref()
-        .map_or_else(String::new, |path| format!("readonly EXECUTOR_SCRIPT={}", shell_quote(path)));
-    let executor_script_hash_check =
-        match (spec.executor_script_path.as_ref(), spec.executor_script_sha256.as_deref()) {
-            (Some(_), Some(sha256)) => hash_check("${EXECUTOR_SCRIPT}", sha256),
-            (None, None) => String::new(),
-            _ => bail!("qualification executor script identity is incomplete"),
-        };
+    let command = qualification_command(spec);
     Ok([
         "#!/usr/bin/env bash".to_string(),
         format!("#SBATCH --job-name={}", spec.job_name),
@@ -246,7 +233,6 @@ fn render_script(
         format!("readonly REPOSITORY_ROOT={}", shell_quote(&spec.repository_path)),
         format!("readonly SPECIFICATION={}", shell_quote(spec.evidence_root.join("qualification-spec.json"))),
         format!("readonly EXECUTOR_PROGRAM={}", shell_quote(&spec.executor_program_path)),
-        executor_script_declaration,
         scratch_setup,
         "test -d \"${GOVERNED_SCRATCH_ROOT}\" && test ! -L \"${GOVERNED_SCRATCH_ROOT}\"".to_string(),
         "readonly JOB_SCRATCH=$(mktemp -d \"${GOVERNED_SCRATCH_ROOT%/}/bijux-genomics-${SLURM_JOB_ID}-XXXXXX\")".to_string(),
@@ -261,7 +247,6 @@ fn render_script(
         "test -z \"$(git -C \"${REPOSITORY_ROOT}\" status --porcelain --untracked-files=all)\"".to_string(),
         hash_check("${SPECIFICATION}", specification_sha256),
         hash_check("${EXECUTOR_PROGRAM}", &spec.executor_program_sha256),
-        executor_script_hash_check,
         hash_check_path(&spec.governance_path, &spec.governance_sha256),
         hash_check_path(&spec.pipeline_path, &spec.pipeline_sha256),
         hash_check_path(
@@ -274,42 +259,17 @@ fn render_script(
     .join("\n"))
 }
 
-fn qualification_command(spec: &ContainerQualificationSlurmSpec) -> Result<String> {
-    Ok(
-        if matches!(
-            spec.schema_version.as_str(),
-            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
-                | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
-        ) {
-            [
-                shell_quote(&spec.executor_program_path),
-                "'containers'".to_string(),
-                "'run'".to_string(),
-                "'qualification-slurm'".to_string(),
-                "'--'".to_string(),
-                "'execute'".to_string(),
-                shell_quote(spec.evidence_root.join("qualification-spec.json")),
-            ]
-            .join(" ")
-        } else {
-            let executor_script = spec
-                .executor_script_path
-                .as_ref()
-                .context("legacy qualification specification lacks executor script")?;
-            [
-                shell_quote(&spec.executor_program_path),
-                shell_quote(executor_script),
-                "'execute'".to_string(),
-                "'--governance'".to_string(),
-                shell_quote(&spec.governance_path),
-                "'--pipeline'".to_string(),
-                shell_quote(&spec.pipeline_path),
-                "'--credentials'".to_string(),
-                shell_quote(&spec.credential_reference_path),
-            ]
-            .join(" ")
-        },
-    )
+fn qualification_command(spec: &ContainerQualificationSlurmSpec) -> String {
+    [
+        shell_quote(&spec.executor_program_path),
+        "'containers'".to_string(),
+        "'run'".to_string(),
+        "'qualification-slurm'".to_string(),
+        "'--'".to_string(),
+        "'execute'".to_string(),
+        shell_quote(spec.evidence_root.join("qualification-spec.json")),
+    ]
+    .join(" ")
 }
 
 fn hash_check(shell_path: &str, sha256: &str) -> String {

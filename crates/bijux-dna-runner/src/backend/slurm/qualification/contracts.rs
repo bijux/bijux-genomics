@@ -7,10 +7,6 @@ use serde::{Deserialize, Serialize};
 
 use super::super::{SlurmAccounting, SlurmJobObservation, SlurmSubmitRequest};
 
-pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1: &str =
-    "bijux.runner.container_qualification_slurm_spec.v1";
-pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V2: &str =
-    "bijux.runner.container_qualification_slurm_spec.v2";
 pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3: &str =
     "bijux.runner.container_qualification_slurm_spec.v3";
 pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4: &str =
@@ -95,10 +91,6 @@ pub struct ContainerQualificationSlurmSpec {
     pub credential_reference_sha256: String,
     pub executor_program_path: PathBuf,
     pub executor_program_sha256: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub executor_script_path: Option<PathBuf>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub executor_script_sha256: Option<String>,
     pub result_root: PathBuf,
     pub evidence_root: PathBuf,
     pub resources: ContainerQualificationSlurmResources,
