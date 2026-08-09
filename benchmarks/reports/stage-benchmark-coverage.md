@@ -11,7 +11,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 - Defined campaigns: **12**
 - Qualification-only campaigns: **6**
 - Comparative campaigns: **6**
-- Admitted campaigns: **0**
+- Admitted campaigns: **3**
 - Stale campaigns: **0**
 - Failed campaigns: **0**
 - Missing campaigns: **59**
@@ -25,8 +25,8 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | - | missing | not_defined |
 | `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | not_admitted |
 | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `pmdtools`, `pydamage` | - | missing | not_defined |
-| `bam.duplication_metrics` | `picard`, `samtools` | `run-2011` | qualification | not_admitted |
-| `bam.endogenous_content` | `samtools` | `run-2003` | qualification | not_admitted |
+| `bam.duplication_metrics` | `picard`, `samtools` | `run-2011` | qualification | admitted |
+| `bam.endogenous_content` | `samtools` | `run-2003` | qualification | admitted |
 | `bam.filter` | `bamtools`, `bedtools`, `samtools` | - | missing | not_defined |
 | `bam.gc_bias` | `picard` | `run-2013` | comparative | not_admitted |
 | `bam.genotyping` | `bcftools` | `run-2001` | qualification | not_admitted |
@@ -34,7 +34,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.insert_size` | `picard` | `run-2015` | comparative | not_admitted |
 | `bam.kinship` | `king` | - | missing | not_defined |
 | `bam.length_filter` | `picard`, `samtools` | - | missing | not_defined |
-| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | not_admitted |
+| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | admitted |
 | `bam.mapq_filter` | `bamtools`, `samtools` | - | missing | not_defined |
 | `bam.markdup` | `picard`, `samtools` | - | missing | not_defined |
 | `bam.overlap_correction` | `bamutil` | - | missing | not_defined |

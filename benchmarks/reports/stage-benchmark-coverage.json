@@ -5,7 +5,7 @@
     "defined_stage_count": 12,
     "qualification_stage_count": 6,
     "comparative_stage_count": 6,
-    "admitted_stage_count": 0,
+    "admitted_stage_count": 3,
     "stale_stage_count": 0,
     "failed_stage_count": 0,
     "missing_stage_count": 59
@@ -87,8 +87,10 @@
         "samtools"
       ],
       "campaign_run_id": "run-2011",
+      "report_repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "report_sha256": "d1333b896730aa13f217f878c3399c3254467f28c0603efbecda595aff75d981",
       "definition_status": "qualification",
-      "execution_status": "not_admitted"
+      "execution_status": "admitted"
     },
     {
       "stage_id": "bam.endogenous_content",
@@ -96,8 +98,10 @@
         "samtools"
       ],
       "campaign_run_id": "run-2003",
+      "report_repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "report_sha256": "833d0f5ea46f979111cc97e2310c2b4d2b4c132e86fd5e8d2a04ecd62c962741",
       "definition_status": "qualification",
-      "execution_status": "not_admitted"
+      "execution_status": "admitted"
     },
     {
       "stage_id": "bam.filter",
@@ -168,8 +172,10 @@
         "samtools"
       ],
       "campaign_run_id": "run-2004",
+      "report_repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "report_sha256": "e7ab1c0ee84d987854674bce2d1a0f2733ac695ce4af74c2bac2cd1285086dab",
       "definition_status": "qualification",
-      "execution_status": "not_admitted"
+      "execution_status": "admitted"
     },
     {
       "stage_id": "bam.mapq_filter",
