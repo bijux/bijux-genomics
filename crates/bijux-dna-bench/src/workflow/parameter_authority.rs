@@ -97,7 +97,7 @@ mod tests {
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
   "profile": "test-profile",
   "stages": {
-    "fastq.test_stage": {
+    "fastq.profile_reads": {
       "parameter_schema_version": "test.parameter.schema.v1",
       "defaults_provider": "test::defaults",
       "overrides": {}
@@ -113,8 +113,8 @@ mod tests {
 source = "test domain contract"
 
 [[entries]]
-stage_id = "fastq.test_stage"
-param_type_id = "fastq.test_stage"
+stage_id = "fastq.profile_reads"
+param_type_id = "fastq.profile_reads"
 schema_version = "{registry_schema}"
 "#
             ),
@@ -127,7 +127,7 @@ schema_version = "{registry_schema}"
         let temporary = bijux_dna_infra::temp_dir("benchmark-parameter-authority")?;
         write_authorities(temporary.path(), "test.different.schema.v1")?;
 
-        let error = load_stage_parameter_authority(temporary.path(), "fastq.test_stage")
+        let error = load_stage_parameter_authority(temporary.path(), "fastq.profile_reads")
             .err()
             .ok_or_else(|| anyhow::anyhow!("schema drift must be rejected"))?;
         assert!(error.to_string().contains("differs from the domain registry"));
