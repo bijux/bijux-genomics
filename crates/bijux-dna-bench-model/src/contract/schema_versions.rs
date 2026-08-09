@@ -41,8 +41,12 @@ pub const BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1: &str =
     "bijux.benchmark.admitted_case_observation.v1";
 pub const BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2: &str =
     "bijux.benchmark.admitted_case_observation.v2";
+pub const BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1: &str =
+    "bijux.benchmark.admitted_case_observation_set.v1";
 pub const BENCHMARK_CASE_AGGREGATION_SCHEMA_V1: &str = "bijux.benchmark.case_aggregation.v1";
 pub const BENCHMARK_CASE_AGGREGATION_SCHEMA_V2: &str = "bijux.benchmark.case_aggregation.v2";
+pub const BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1: &str =
+    "bijux.benchmark.case_aggregation_set.v1";
 pub const BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.publication_receipt.v1";
 pub const BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1: &str = "bijux.benchmark.evidence_book.v1";
 pub const BENCHMARK_CITATION_RECORD_SCHEMA_V1: &str = "bijux.benchmark.citation_record.v1";
