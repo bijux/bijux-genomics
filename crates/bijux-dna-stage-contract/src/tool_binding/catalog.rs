@@ -3,14 +3,15 @@ use bijux_dna_core::contract::ToolConstraints;
 use bijux_dna_core::ids::{StageId, ToolId};
 
 use super::{
-    BindingInputV1, BindingOutputV1, OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry,
-    ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
+    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1,
+    ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };
 
 const BAM: &str = "bijux.bam.artifact.coordinate_sorted_indexed.v1";
 const FASTA: &str = "bijux.reference.artifact.fasta.v1";
 const FASTQ_PAIRED: &str = "bijux.fastq.artifact.paired_end.v1";
 const JSON: &str = "bijux.auxiliary.artifact.json.v1";
+const SAM: &str = "bijux.sam.artifact.unsorted.v1";
 const TABLE: &str = "bijux.auxiliary.artifact.table.v1";
 const VCF: &str = "bijux.vcf.artifact.coordinate_sorted_indexed.v1";
 const VCF_PANEL: &str = "bijux.vcf.artifact.reference_panel_indexed.v1";
@@ -40,6 +41,139 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+/// Returns the canonical retained distributable bindings currently closed by this crate.
+///
+/// # Errors
+///
+/// Returns an error if a binding violates the schema or duplicates a stage/tool pair.
+pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
+    let mut registry = ToolBindingRegistry::default();
+    for binding in [bowtie2_align(), bwa_align()] {
+        registry.insert(binding)?;
+    }
+    Ok(registry)
+}
+
+/// Returns every canonical tool binding regardless of artifact distribution policy.
+///
+/// # Errors
+///
+/// Returns an error if any canonical binding violates conformance or duplicates ownership.
+pub fn canonical_tool_bindings() -> Result<ToolBindingRegistry> {
+    let mut registry = canonical_external_artifact_tool_bindings()?;
+    for binding in canonical_retained_tool_bindings()?.bindings() {
+        registry.insert(binding.clone())?;
+    }
+    Ok(registry)
+}
+
+fn bowtie2_align() -> ToolBindingV1 {
+    retained_binding(
+        "bam.align",
+        "bowtie2",
+        &["paired_end_reads", "fm_index_alignment", "native_sam_output"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("reads_r2", FASTQ_PAIRED),
+            input("reference_index", "bijux.auxiliary.artifact.index.v1"),
+        ],
+        &["threads", "read_group_id", "read_group_sample"],
+        &[output("raw_sam", SAM)],
+        &[
+            "${executable}",
+            "-x",
+            "${input:reference_index}",
+            "-1",
+            "${input:reads_r1}",
+            "-2",
+            "${input:reads_r2}",
+            "--very-sensitive",
+            "--rg-id",
+            "${parameter:read_group_id}",
+            "--rg",
+            "SM:${parameter:read_group_sample}",
+            "-p",
+            "${parameter:threads}",
+            "-S",
+            "${output:raw_sam}",
+        ],
+        &[
+            "paired_end_binding",
+            "canonical_preset_is_very_sensitive",
+            "reference_index_must_match_the_admitted_reference_fasta",
+        ],
+    )
+}
+
+fn bwa_align() -> ToolBindingV1 {
+    retained_binding(
+        "bam.align",
+        "bwa",
+        &["paired_end_reads", "bwa_mem_alignment", "native_sam_output"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("reads_r2", FASTQ_PAIRED),
+            input("reference", FASTA),
+        ],
+        &["threads", "read_group"],
+        &[output("raw_sam", SAM)],
+        &[
+            "${executable}",
+            "mem",
+            "-t",
+            "${parameter:threads}",
+            "-R",
+            "${parameter:read_group}",
+            "-o",
+            "${output:raw_sam}",
+            "${input:reference}",
+            "${input:reads_r1}",
+            "${input:reads_r2}",
+        ],
+        &["paired_end_binding", "canonical_preset_is_bwa_mem_default"],
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn retained_binding(
+    stage_id: &str,
+    tool_id: &str,
+    capabilities: &[&str],
+    inputs: &[BindingInputV1],
+    parameters: &[&str],
+    outputs: &[BindingOutputV1],
+    command_template: &[&str],
+    limitations: &[&str],
+) -> ToolBindingV1 {
+    ToolBindingV1 {
+        schema_version: TOOL_BINDING_SCHEMA_V1.to_string(),
+        binding_id: format!("{stage_id}__{tool_id}"),
+        stage_id: StageId::new(stage_id),
+        tool_id: ToolId::new(tool_id),
+        artifact_source: ToolArtifactSourceV1::CatalogImage {
+            catalog_tool_id: ToolId::new(tool_id),
+        },
+        capabilities: capabilities.iter().map(ToString::to_string).collect(),
+        inputs: inputs.to_vec(),
+        parameters: parameters
+            .iter()
+            .map(|name| BindingParameterV1 { name: (*name).to_string(), required: true })
+            .collect(),
+        outputs: outputs.to_vec(),
+        normalized_output_contract_id: format!("bijux.benchmark.{stage_id}.bundle.v1"),
+        command_template: command_template.iter().map(ToString::to_string).collect(),
+        resources: ToolConstraints {
+            runtime: "apptainer".to_string(),
+            mem_gb: 16,
+            tmp_gb: 16,
+            threads: 8,
+        },
+        normalizer_id: "bijux_dna_planner_bam::tool_adapters::bam::align".to_string(),
+        downstream_probe_id: "benchmark.bam.align.compare".to_string(),
+        limitations: limitations.iter().map(ToString::to_string).collect(),
+    }
 }
 
 fn angsd_kinship() -> ToolBindingV1 {

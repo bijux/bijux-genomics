@@ -4,11 +4,157 @@ use anyhow::Result;
 use bijux_dna_core::contract::ToolConstraints;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    project_tool_parameters, render_tool_command, validate_tool_binding, BindingInputV1,
-    BindingOutputV1, BindingParameterV1, EffectiveToolParameterSourceV1, OutputDiscoveryV1,
-    ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1,
-    ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
+    canonical_retained_tool_bindings, canonical_tool_bindings, project_tool_parameters,
+    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
+    BindingParameterV1, EffectiveToolParameterSourceV1, OutputDiscoveryV1, ToolArtifactSourceV1,
+    ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1, ToolParameterProjectionRequest,
+    EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
 };
+
+const ALIGN_STAGE: &str = "bam.align";
+const ALIGN_BUNDLE: &str = "bijux.benchmark.bam.align.bundle.v1";
+const UNSORTED_SAM: &str = "bijux.sam.artifact.unsorted.v1";
+
+#[test]
+fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
+    let retained = canonical_retained_tool_bindings()?;
+    let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
+
+    assert_eq!(retained.bindings().len(), 2);
+    assert_eq!(
+        align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
+        ["bowtie2", "bwa"]
+    );
+    for binding in align {
+        assert_eq!(binding.outputs.len(), 1);
+        assert_eq!(binding.outputs[0].artifact_contract_id, UNSORTED_SAM);
+        assert_eq!(binding.normalized_output_contract_id, ALIGN_BUNDLE);
+        assert_eq!(binding.normalizer_id, "bijux_dna_planner_bam::tool_adapters::bam::align");
+        assert_eq!(binding.downstream_probe_id, "benchmark.bam.align.compare");
+        assert_eq!(
+            binding.artifact_source,
+            ToolArtifactSourceV1::CatalogImage { catalog_tool_id: binding.tool_id.clone() }
+        );
+        assert!(!binding.command_template.iter().any(|token| [
+            "bash", "sh", "python", "samtools", "gatk"
+        ]
+        .iter()
+        .any(|name| token.contains(name))));
+    }
+
+    let all = canonical_tool_bindings()?;
+    assert_eq!(all.bindings().len(), 10);
+    assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bowtie2 = registry
+        .binding(&StageId::new(ALIGN_STAGE), &ToolId::new("bowtie2"))
+        .ok_or_else(|| anyhow::anyhow!("canonical bowtie2 binding is missing"))?;
+    let bwa = registry
+        .binding(&StageId::new(ALIGN_STAGE), &ToolId::new("bwa"))
+        .ok_or_else(|| anyhow::anyhow!("canonical bwa binding is missing"))?;
+
+    assert_eq!(
+        render_tool_command(
+            bowtie2,
+            &ToolBindingRenderContext {
+                executable: "/images/bowtie2.sif".to_owned(),
+                inputs: BTreeMap::from([
+                    ("reads_r1".to_owned(), "sample_R1.fastq.gz".to_owned()),
+                    ("reads_r2".to_owned(), "sample_R2.fastq.gz".to_owned()),
+                    ("reference_index".to_owned(), "indexes/grch38".to_owned()),
+                ]),
+                parameters: BTreeMap::from([
+                    ("threads".to_owned(), "8".to_owned()),
+                    ("read_group_id".to_owned(), "sample-01".to_owned()),
+                    ("read_group_sample".to_owned(), "sample-01".to_owned()),
+                ]),
+                outputs: BTreeMap::from([("raw_sam".to_owned(), "bowtie2.sam".to_owned())]),
+            },
+        )?,
+        [
+            "/images/bowtie2.sif",
+            "-x",
+            "indexes/grch38",
+            "-1",
+            "sample_R1.fastq.gz",
+            "-2",
+            "sample_R2.fastq.gz",
+            "--very-sensitive",
+            "--rg-id",
+            "sample-01",
+            "--rg",
+            "SM:sample-01",
+            "-p",
+            "8",
+            "-S",
+            "bowtie2.sam",
+        ]
+    );
+    assert_eq!(
+        render_tool_command(
+            bwa,
+            &ToolBindingRenderContext {
+                executable: "/images/bwa.sif".to_owned(),
+                inputs: BTreeMap::from([
+                    ("reads_r1".to_owned(), "sample_R1.fastq.gz".to_owned()),
+                    ("reads_r2".to_owned(), "sample_R2.fastq.gz".to_owned()),
+                    ("reference".to_owned(), "grch38.fa".to_owned()),
+                ]),
+                parameters: BTreeMap::from([
+                    ("threads".to_owned(), "8".to_owned()),
+                    ("read_group".to_owned(), "@RG\\tID:sample-01\\tSM:sample-01".to_owned()),
+                ]),
+                outputs: BTreeMap::from([("raw_sam".to_owned(), "bwa.sam".to_owned())]),
+            },
+        )?,
+        [
+            "/images/bwa.sif",
+            "mem",
+            "-t",
+            "8",
+            "-R",
+            "@RG\\tID:sample-01\\tSM:sample-01",
+            "-o",
+            "bwa.sam",
+            "grch38.fa",
+            "sample_R1.fastq.gz",
+            "sample_R2.fastq.gz",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_bam_align_bindings_project_equal_scheduler_threads() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    for binding in registry.bindings_for_stage(&StageId::new(ALIGN_STAGE)) {
+        let mut defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+        for parameter in &binding.parameters {
+            defaults.entry(parameter.name.clone()).or_insert_with(|| "admitted-value".to_owned());
+        }
+        let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+            binding,
+            scientific_defaults: &defaults,
+            input_derived: &BTreeMap::new(),
+            operator_overrides: &BTreeMap::new(),
+            immutable_parameters: &BTreeSet::new(),
+            allocated_cpus: 8,
+        })?;
+
+        assert_eq!(effective.resources.threads, 8);
+        assert_eq!(effective.parameters["threads"].value, "8");
+        assert_eq!(
+            effective.parameters["threads"].source,
+            EffectiveToolParameterSourceV1::ScientificDefault
+        );
+    }
+    Ok(())
+}
 
 #[test]
 fn binding_renders_declared_projections_without_tool_specific_code() -> Result<()> {
