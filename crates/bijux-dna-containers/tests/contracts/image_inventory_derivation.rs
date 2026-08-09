@@ -499,6 +499,26 @@ fn selects_unique_unreferenced_rebuild_beside_current_run_dependency() -> Result
 }
 
 #[test]
+fn selects_unique_descendant_build_beside_unreferenced_current_image() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let prior_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fs::write(fixture.repository.join("README.md"), "new source authority\n")?;
+    git(&fixture.repository, &["add", "README.md"])?;
+    git(&fixture.repository, &["commit", "-qm", "advance source authority"])?;
+    let descendant_digest = fixture.add_admitted_image(b"descendant current rebuild")?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(descendant_digest.as_str()));
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == prior_digest
+            && candidate.disposition == ImageCandidateDisposition::UnreferencedObsolete
+    }));
+    Ok(())
+}
+
+#[test]
 fn publishes_ambiguous_current_images_without_selecting_either() -> Result<()> {
     let fixture = Fixture::current()?;
     fixture.add_admitted_image(b"another image from the same recipe")?;

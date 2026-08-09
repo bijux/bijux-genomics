@@ -5,8 +5,9 @@ use anyhow::{bail, Context, Result};
 
 use crate::evidence::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
-    load_container_catalog, repository_head_commit, BuildEvidenceStatus, ContainerDetachedImage,
-    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    load_container_catalog, repository_commit_is_ancestor, repository_head_commit,
+    BuildEvidenceStatus, ContainerDetachedImage, ContainerImageCandidate,
+    ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
     ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
     ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
@@ -154,7 +155,8 @@ fn derive_tool(
     )?;
     let candidates =
         derive_candidates(request, tool, &recipe, images, evidence_by_digest, run_references)?;
-    let (state, selected, retained) = select_candidates(candidates);
+    let (state, selected, retained) =
+        select_candidates(&request.repository_root, &recipe, candidates)?;
     verify_historical_references(&retained)?;
     Ok(ContainerImageInventoryTool {
         tool: tool.id.clone(),
@@ -224,8 +226,10 @@ fn derive_candidates(
 }
 
 fn select_candidates(
+    repository_root: &std::path::Path,
+    recipe: &crate::evidence::ApptainerRecipeIdentity,
     mut candidates: Vec<CandidateWithReference>,
-) -> (ContainerImageState, Option<String>, Vec<ContainerImageCandidate>) {
+) -> Result<(ContainerImageState, Option<String>, Vec<ContainerImageCandidate>)> {
     let current =
         candidates.iter().filter(|(candidate, _)| candidate.current_recipe).collect::<Vec<_>>();
     let admitted =
@@ -233,8 +237,11 @@ fn select_candidates(
     let selection_pool = if current.is_empty() { &admitted } else { &current };
     let unreferenced =
         selection_pool.iter().copied().filter(|(_, referenced)| !referenced).collect::<Vec<_>>();
+    let descendant = unique_descendant_candidate(repository_root, recipe, selection_pool)?;
     let selected_candidate = if selection_pool.len() == 1 {
         selection_pool.first().copied()
+    } else if descendant.is_some() {
+        descendant
     } else if unreferenced.len() == 1 {
         unreferenced.first().copied()
     } else {
@@ -262,7 +269,56 @@ fn select_candidates(
         None if selection_pool_is_empty => ContainerImageState::Missing,
         None => ContainerImageState::Ambiguous,
     };
-    (state, selected, retained)
+    Ok((state, selected, retained))
+}
+
+fn unique_descendant_candidate<'a>(
+    repository_root: &std::path::Path,
+    recipe: &crate::evidence::ApptainerRecipeIdentity,
+    candidates: &[&'a CandidateWithReference],
+) -> Result<Option<&'a CandidateWithReference>> {
+    if candidates.len() < 2 {
+        return Ok(None);
+    }
+    let commits = candidates
+        .iter()
+        .map(|(candidate, _)| {
+            candidate
+                .build_evidence
+                .iter()
+                .filter(|evidence| evidence_matches_recipe_content(evidence, recipe))
+                .map(|evidence| evidence.repository_commit.as_str())
+                .collect::<BTreeSet<_>>()
+        })
+        .collect::<Vec<_>>();
+    let mut descendants = Vec::new();
+    for (candidate_index, candidate_commits) in commits.iter().enumerate() {
+        let mut candidate_is_descendant = false;
+        for candidate_commit in candidate_commits {
+            let mut descends_from_all = true;
+            for competing_commit in commits.iter().flatten() {
+                if !repository_commit_is_ancestor(
+                    repository_root,
+                    competing_commit,
+                    candidate_commit,
+                )? {
+                    descends_from_all = false;
+                    break;
+                }
+            }
+            if descends_from_all {
+                candidate_is_descendant = true;
+                break;
+            }
+        }
+        if candidate_is_descendant {
+            descendants.push(candidates[candidate_index]);
+        }
+    }
+    Ok(match descendants.as_slice() {
+        [candidate] => Some(*candidate),
+        _ => None,
+    })
 }
 
 fn verify_historical_references(candidates: &[ContainerImageCandidate]) -> Result<()> {
