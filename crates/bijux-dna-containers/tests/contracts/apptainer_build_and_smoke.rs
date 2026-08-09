@@ -44,6 +44,15 @@ fn bbmap_recipes_remove_group_and_other_write_bits() -> anyhow::Result<()> {
 }
 
 #[test]
+fn bijux_dna_apptainer_recipe_removes_build_toolchains() -> anyhow::Result<()> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let recipe = std::fs::read_to_string(workspace.join("containers/apptainer/bijux_dna.def"))?;
+
+    assert!(recipe.contains("rm -rf /opt/bijux-src /opt/rust /root/.cargo"));
+    Ok(())
+}
+
+#[test]
 fn seqpurge_recipe_runs_help_probe_from_private_writable_directory() -> anyhow::Result<()> {
     let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let recipe = std::fs::read_to_string(workspace.join("containers/apptainer/seqpurge.def"))?;
