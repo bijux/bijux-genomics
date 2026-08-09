@@ -32,6 +32,8 @@ pub const RUN_LAYOUT_CONTRACT: RunLayoutContract = RunLayoutContract {
 pub const PIPELINE_RUN_DIR_TEMPLATE: &str = "{pipeline_id}/{sample_id}/{run_id}";
 
 pub const ATTEMPT_LAYOUT_SCHEMA_V1: &str = "bijux.attempt_layout.v1";
+pub const ATTEMPT_ARCHIVE_SCHEMA_V1: &str = "bijux.attempt_archive.v1";
+pub const ATTEMPT_ARCHIVE_ROLLBACK_SCHEMA_V1: &str = "bijux.attempt_archive_rollback.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -40,12 +42,63 @@ pub enum AttemptEvidenceOwner {
     Containers,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AttemptLayoutIdentity {
     pub run_directory: String,
     pub tool_id: String,
     pub campaign_id: String,
     pub attempt_id: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AttemptArchiveDisposition {
+    Failed,
+    Superseded,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AttemptArchiveFileV1 {
+    pub path: String,
+    pub size_bytes: u64,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AttemptArchiveReceiptV1 {
+    pub schema_version: String,
+    pub owner: AttemptEvidenceOwner,
+    pub identity: AttemptLayoutIdentity,
+    pub disposition: AttemptArchiveDisposition,
+    pub archived_at_utc: String,
+    pub source_relative_path: String,
+    pub archive_relative_path: String,
+    pub files: Vec<AttemptArchiveFileV1>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AttemptArchiveRollbackReceiptV1 {
+    pub schema_version: String,
+    pub owner: AttemptEvidenceOwner,
+    pub identity: AttemptLayoutIdentity,
+    pub disposition: AttemptArchiveDisposition,
+    pub archived_at_utc: String,
+    pub rolled_back_at_utc: String,
+    pub archive_receipt_sha256: String,
+    pub files: Vec<AttemptArchiveFileV1>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AttemptArchivePaths {
+    pub owner_root: PathBuf,
+    pub source: AttemptLayoutPaths,
+    pub archive_dir: PathBuf,
+    pub archive_receipt_path: PathBuf,
+    pub rollback_receipt_path: PathBuf,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

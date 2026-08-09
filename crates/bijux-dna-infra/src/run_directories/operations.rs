@@ -120,12 +120,7 @@ pub fn ensure_attempt_layout(
         .parent()
         .ok_or_else(|| corruption("attempt layout has no parent directory"))?;
     ensure_dir(parent)?;
-    let lock_path = owner_root
-        .join(".attempt-layout-locks")
-        .join(&identity.run_directory)
-        .join(&identity.tool_id)
-        .join(&identity.campaign_id)
-        .join(format!("{}.lock", identity.attempt_id));
+    let lock_path = attempt_lock_path(owner_root, identity);
     let _lock = FileLock::acquire(&lock_path, ATTEMPT_LAYOUT_LOCK_TIMEOUT)?;
     if layout.attempt_dir.exists() {
         validate_attempt_layout(&layout, owner, identity)?;
@@ -195,7 +190,7 @@ pub fn attempt_layout_schema() -> serde_json::Value {
     })
 }
 
-fn validate_attempt_layout(
+pub(super) fn validate_attempt_layout(
     layout: &AttemptLayoutPaths,
     owner: AttemptEvidenceOwner,
     identity: &AttemptLayoutIdentity,
@@ -243,7 +238,7 @@ fn layout_manifest(
     }
 }
 
-fn layout_from_attempt_dir(attempt_dir: &Path) -> AttemptLayoutPaths {
+pub(super) fn layout_from_attempt_dir(attempt_dir: &Path) -> AttemptLayoutPaths {
     let manifests_dir = attempt_dir.join(ATTEMPT_LAYOUT_CONTRACT.manifests_dir);
     AttemptLayoutPaths {
         logs_dir: attempt_dir.join(ATTEMPT_LAYOUT_CONTRACT.logs_dir),
@@ -256,6 +251,15 @@ fn layout_from_attempt_dir(attempt_dir: &Path) -> AttemptLayoutPaths {
         manifests_dir,
         attempt_dir: attempt_dir.to_path_buf(),
     }
+}
+
+pub(super) fn attempt_lock_path(owner_root: &Path, identity: &AttemptLayoutIdentity) -> PathBuf {
+    owner_root
+        .join(".attempt-layout-locks")
+        .join(&identity.run_directory)
+        .join(&identity.tool_id)
+        .join(&identity.campaign_id)
+        .join(format!("{}.lock", identity.attempt_id))
 }
 
 fn required_directories(layout: &AttemptLayoutPaths) -> [&Path; 7] {
