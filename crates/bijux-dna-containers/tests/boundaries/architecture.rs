@@ -166,7 +166,14 @@ fn execution_policy_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/site_policy")),
-        btree_set(&["mod.rs", "model.rs", "repository_freeze.rs", "schema.rs", "validation.rs"]),
+        btree_set(&[
+            "mod.rs",
+            "model.rs",
+            "repository_freeze.rs",
+            "repository_tracking.rs",
+            "schema.rs",
+            "validation.rs",
+        ]),
         "site policy must separate declarations, schemas, validation, and repository effects"
     );
 }

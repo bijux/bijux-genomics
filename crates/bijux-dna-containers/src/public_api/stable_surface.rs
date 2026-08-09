@@ -155,6 +155,7 @@ pub use crate::execution_contract::{
 pub use crate::resolve::*;
 pub use crate::site_policy::{
     container_governance_schema, freeze_repository, load_container_governance,
+    tracked_repository_files_under,
     validate_container_governance, validate_container_governance_host,
     write_container_governance_schema, ContainerGovernance, ContainerPathPolicy,
     ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,

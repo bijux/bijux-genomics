@@ -4,7 +4,6 @@
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
@@ -336,31 +335,17 @@ fn stage_publication(
 fn quarantined_readiness_surface(
     repository_root: &Path,
 ) -> Result<Option<BenchmarkQuarantinedPublicationSurface>> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repository_root)
-        .args(["ls-files", "-z", "--", "benchmarks/readiness"])
-        .output()
-        .context("list tracked benchmark readiness files")?;
-    if !output.status.success() {
-        bail!("git ls-files failed: {}", String::from_utf8_lossy(&output.stderr).trim());
-    }
-    let mut paths = output
-        .stdout
-        .split(|byte| *byte == 0)
-        .filter(|value| !value.is_empty())
-        .map(|value| {
-            String::from_utf8(value.to_vec()).context("tracked readiness path is not UTF-8")
-        })
-        .collect::<Result<Vec<_>>>()?;
-    paths.sort();
+    let paths = bijux_dna_containers::api::tracked_repository_files_under(
+        repository_root,
+        Path::new("benchmarks/readiness"),
+    )?;
     if paths.is_empty() {
         return Ok(None);
     }
     let mut tree_basis = Vec::new();
     for path in &paths {
         let digest = file_sha256(&repository_root.join(path))?;
-        tree_basis.extend_from_slice(format!("{digest}  {path}\n").as_bytes());
+        tree_basis.extend_from_slice(format!("{digest}  {}\n", path.display()).as_bytes());
     }
     Ok(Some(BenchmarkQuarantinedPublicationSurface {
         path_prefix: "benchmarks/readiness/".to_string(),
