@@ -30,6 +30,7 @@ pub struct ContainerQualificationCycleRequest {
     pub registry_path: PathBuf,
     pub publication_root: PathBuf,
     pub submission_root: PathBuf,
+    pub external_artifact_admission_root: Option<PathBuf>,
     pub observed_at_utc: String,
 }
 
@@ -193,6 +194,7 @@ fn derive_cycle(
         &request.repository_root,
         &request.registry_path,
     )?;
+    let catalog = bijux_dna_containers::api::load_container_catalog(&request.repository_root)?;
     let specifications = discover_specifications(&request.submission_root)?;
     let mut units = Vec::new();
     for run in registry.runs.iter().filter(|run| {
@@ -205,8 +207,21 @@ fn derive_cycle(
         let [tool_id] = run.tool_ids.as_slice() else {
             bail!("current qualification run {} does not select exactly one tool", run.run_id);
         };
+        let tool = catalog
+            .tools
+            .iter()
+            .find(|tool| tool.id == *tool_id)
+            .with_context(|| format!("qualification tool {tool_id} is absent from catalog"))?;
+        if tool.external_artifact_supported {
+            if let Some(blocker) = external_artifact_blocker(request, &run.run_id, tool_id)? {
+                units.push(blocker);
+                continue;
+            }
+        }
         let publication = request.publication_root.join(format!("{}-{tool_id}", run.run_id));
-        if regular_file_exists(&publication.join("evidence.lock.json"))? {
+        if run.state == bijux_dna_containers::api::QualificationRunState::Active
+            && regular_file_exists(&publication.join("evidence.lock.json"))?
+        {
             units.push(unit(
                 &run.run_id,
                 tool_id,
@@ -220,6 +235,11 @@ fn derive_cycle(
         }
         let key = (run.run_id.clone(), tool_id.clone());
         let Some(paths) = specifications.get(&key) else {
+            let detail = if tool.external_artifact_supported {
+                "prepare an immutable qualification attempt bound to the admitted external artifact"
+            } else {
+                "prepare an immutable qualification attempt from the governed protocol"
+            };
             units.push(unit(
                 &run.run_id,
                 tool_id,
@@ -227,7 +247,7 @@ fn derive_cycle(
                 ContainerQualificationCycleAction::Prepare,
                 None,
                 None,
-                Some("prepare an immutable qualification attempt from the governed protocol"),
+                Some(detail),
             ));
             continue;
         };
@@ -255,6 +275,67 @@ fn derive_cycle(
         summary: summarize(&units),
         units,
     })
+}
+
+fn external_artifact_blocker(
+    request: &ContainerQualificationCycleRequest,
+    run_id: &str,
+    tool_id: &str,
+) -> Result<Option<ContainerQualificationCycleUnit>> {
+    let Some(root) = &request.external_artifact_admission_root else {
+        return Ok(Some(unit(
+            run_id,
+            tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::None,
+            None,
+            None,
+            Some("external artifact admission root is not configured"),
+        )));
+    };
+    let path = root.join(format!("{tool_id}.json"));
+    if !regular_file_exists(&path)? {
+        return Ok(Some(unit(
+            run_id,
+            tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::None,
+            None,
+            None,
+            Some("publish a governed external artifact admission or access-blocker record"),
+        )));
+    }
+    let loaded = bijux_dna_containers::api::load_external_artifact_admission(&path)?;
+    if loaded.tool_id != tool_id {
+        bail!(
+            "external artifact record {} selects {} instead of {tool_id}",
+            path.display(),
+            loaded.tool_id
+        );
+    }
+    let admission = bijux_dna_containers::api::verify_external_artifact_admission(
+        &request.repository_root,
+        Path::new(&loaded.distributable_image_root),
+        &path,
+    )?;
+    if admission.status
+        == bijux_dna_containers::api::ExternalArtifactAdmissionStatus::BlockedExternalAccess
+    {
+        let detail = format!(
+            "external artifact access is blocked: {}",
+            admission.blocker_reason.as_deref().unwrap_or("unspecified governed blocker")
+        );
+        return Ok(Some(unit(
+            run_id,
+            tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::None,
+            None,
+            None,
+            Some(&detail),
+        )));
+    }
+    Ok(None)
 }
 
 fn discover_specifications(root: &Path) -> Result<BTreeMap<(String, String), Vec<PathBuf>>> {
