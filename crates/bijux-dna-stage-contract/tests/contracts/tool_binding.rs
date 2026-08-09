@@ -132,6 +132,16 @@ fn unknown_artifact_contracts_fail_conformance() -> Result<()> {
         .err()
         .ok_or_else(|| anyhow::anyhow!("unknown output artifact contract was accepted"))?;
     assert!(error.to_string().contains("unknown artifact contract"));
+
+    let mut invalid_normalized = binding("fastq.trim_reads", catalog_source());
+    invalid_normalized.normalized_output_contract_id =
+        "bijux.benchmark.fastq.other_stage.bundle.v1".to_string();
+    let error = validate_tool_binding(&invalid_normalized)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("unowned normalized output contract was accepted"))?;
+    assert!(error
+        .to_string()
+        .contains("neither a canonical artifact nor the stage benchmark bundle"));
     Ok(())
 }
 
@@ -252,6 +262,7 @@ fn binding(stage_id: &str, artifact_source: ToolArtifactSourceV1) -> ToolBinding
             artifact_contract_id: "bijux.fastq.artifact.reads.v1".to_string(),
             discovery: OutputDiscoveryV1::ExactPath,
         }],
+        normalized_output_contract_id: "bijux.fastq.artifact.reads.v1".to_string(),
         command_template: vec![
             "${executable}".to_string(),
             "--in=${input:reads}".to_string(),

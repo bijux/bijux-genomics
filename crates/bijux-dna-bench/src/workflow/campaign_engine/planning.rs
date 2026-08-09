@@ -241,11 +241,7 @@ fn validate_binding_interface_join(
     {
         bail!("binding {} accepts no declared stage input", binding.binding_id());
     }
-    if !binding
-        .outputs()
-        .iter()
-        .any(|output| output.artifact_contract_id == interface.output_contract)
-    {
+    if binding.normalized_output_contract_id() != interface.output_contract {
         bail!("binding {} emits no declared stage output", binding.binding_id());
     }
     Ok(())

@@ -793,6 +793,10 @@
           },
           "type": "array"
         },
+        "normalized_output_contract_id": {
+          "description": "Canonical stage result emitted by `normalizer_id` after raw output preservation.",
+          "type": "string"
+        },
         "normalizer_id": {
           "type": "string"
         },
@@ -831,6 +835,7 @@
         "inputs",
         "parameters",
         "outputs",
+        "normalized_output_contract_id",
         "command_template",
         "resources",
         "normalizer_id",

@@ -267,6 +267,9 @@ fn external_binding(
         inputs: inputs.to_vec(),
         parameters: vec![],
         outputs: outputs.to_vec(),
+        normalized_output_contract_id: outputs
+            .first()
+            .map_or_else(String::new, |output| output.artifact_contract_id.clone()),
         command_template: command_template.iter().map(ToString::to_string).collect(),
         resources,
         normalizer_id: normalizer_id.to_string(),

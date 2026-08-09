@@ -22,6 +22,10 @@ pub fn validate_tool_binding(binding: &impl ToolBinding) -> Result<()> {
     validate_unique_text(binding.limitations(), "limitation", false)?;
     require_text(binding.normalizer_id(), "normalizer_id")?;
     require_text(binding.downstream_probe_id(), "downstream_probe_id")?;
+    validate_normalized_output_contract(
+        binding.normalized_output_contract_id(),
+        binding.stage_id().as_str(),
+    )?;
     if binding.resources().threads == 0 || binding.resources().mem_gb == 0 {
         bail!("binding resources require non-zero threads and mem_gb");
     }
@@ -59,6 +63,18 @@ pub fn validate_tool_binding(binding: &impl ToolBinding) -> Result<()> {
         binding.outputs().iter().filter(|value| value.discovery == OutputDiscoveryV1::ExactPath)
     {
         require_reference(&references, &format!("output:{}", output.name))?;
+    }
+    Ok(())
+}
+
+fn validate_normalized_output_contract(contract_id: &str, stage_id: &str) -> Result<()> {
+    require_text(contract_id, "normalized_output_contract_id")?;
+    let artifact_catalog = canonical_artifact_contract_catalog();
+    let benchmark_contract = format!("bijux.benchmark.{stage_id}.bundle.v1");
+    if artifact_catalog.contract(contract_id).is_none() && contract_id != benchmark_contract {
+        bail!(
+            "normalized_output_contract_id is neither a canonical artifact nor the stage benchmark bundle: {contract_id}"
+        );
     }
     Ok(())
 }

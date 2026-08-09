@@ -149,6 +149,42 @@ fn campaign_binding_cpu_drift_is_refused() -> Result<()> {
 }
 
 #[test]
+fn campaign_binding_normalized_output_drift_is_refused() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    let first = fixture.bindings.bindings().next().expect("checked-in binding").clone();
+    let mut replacement = ToolBindingRegistry::default();
+    for registered in fixture.bindings.bindings() {
+        if registered.binding_id == first.binding_id {
+            let mut drifted = registered.clone();
+            drifted.normalized_output_contract_id =
+                format!("bijux.benchmark.{}.bundle.v1", registered.stage_id);
+            drifted.normalized_output_contract_id.push_str(".drift");
+            replacement.insert(drifted).expect_err("invalid normalized contract must fail");
+        } else {
+            replacement.insert(registered.clone())?;
+        }
+    }
+
+    let interface = fixture
+        .interfaces
+        .interfaces
+        .iter()
+        .find(|interface| interface.stage_id == first.stage_id.as_str())
+        .expect("checked-in interface");
+    let mut drifted = first;
+    drifted.normalized_output_contract_id = "bijux.fastq.artifact.reads.v1".to_string();
+    if interface.output_contract == drifted.normalized_output_contract_id {
+        drifted.normalized_output_contract_id = "bijux.auxiliary.artifact.json.v1".to_string();
+    }
+    replacement.insert(drifted)?;
+    fixture.bindings = replacement;
+
+    let error = plan(&fixture).expect_err("normalized stage output drift must fail planning");
+    assert!(error.to_string().contains("emits no declared stage output"));
+    Ok(())
+}
+
+#[test]
 fn admitted_observations_aggregate_all_cases_without_dispatch() -> Result<()> {
     let fixture = planning_fixture()?;
     let matrix = plan(&fixture)?;
@@ -263,9 +299,10 @@ fn binding(
         parameters: vec![BindingParameterV1 { name: "threads".to_string(), required: true }],
         outputs: vec![BindingOutputV1 {
             name: "result".to_string(),
-            artifact_contract_id: interface.output_contract.clone(),
+            artifact_contract_id: interface.accepted_input_contracts[0].clone(),
             discovery: OutputDiscoveryV1::ExactPath,
         }],
+        normalized_output_contract_id: interface.output_contract.clone(),
         command_template: vec![
             "${executable}".to_string(),
             "${input:source}".to_string(),
