@@ -97,6 +97,8 @@ fn canonical_rcorrector_binding_refuses_ambiguous_paired_outputs() -> Result<()>
         },
     )?;
     assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+    assert!(command[2].contains("work=\"$TMPDIR/bijux-rcorrector-work\""));
+    assert!(!command[2].contains("work=/tmp/"));
     assert!(command[2].contains("'rcorrector' -t 4"));
     assert!(command[2].contains("-1 '/input/sample_R1.fastq.gz'"));
     assert!(command[2].contains("-2 '/input/sample_R2.fastq.gz'"));
