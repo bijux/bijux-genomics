@@ -476,6 +476,39 @@
     },
     {
       "cardinality": "one",
+      "class": "alignment",
+      "compressions": [
+        "none"
+      ],
+      "contract_id": "bijux.sam.artifact.unsorted.v1",
+      "formats": [
+        "sam"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "single_end",
+        "paired_end"
+      ],
+      "reference_identity": "required",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "unsorted"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "sample_identity_present",
+        "reference_identity_present",
+        "header_reference_consistent",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
       "class": "variant",
       "compressions": [
         "bgzf"
