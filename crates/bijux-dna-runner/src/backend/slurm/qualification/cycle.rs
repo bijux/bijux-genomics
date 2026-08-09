@@ -390,16 +390,8 @@ fn classify_spec(
     scheduler: Option<&SlurmClientPaths>,
     observed_at_utc: &str,
 ) -> Result<ContainerQualificationCycleUnit> {
-    if spec.repository_commit != repository_commit {
-        return Ok(unit(
-            &spec.run_id,
-            &spec.tool_id,
-            ContainerQualificationCycleState::Blocked,
-            ContainerQualificationCycleAction::Prepare,
-            Some(path),
-            None,
-            Some("qualification specification is stale for the current repository commit"),
-        ));
+    if let Some(stale) = stale_specification_unit(path, spec, repository_commit) {
+        return Ok(stale);
     }
     if let Some(evidence) = load_container_qualification_scheduler_evidence(spec)? {
         let (state, action) = match evidence.status {
@@ -455,6 +447,28 @@ fn classify_spec(
         None,
         None,
     ))
+}
+
+fn stale_specification_unit(
+    path: &Path,
+    spec: &ContainerQualificationSlurmSpec,
+    repository_commit: &str,
+) -> Option<ContainerQualificationCycleUnit> {
+    (spec.repository_commit != repository_commit).then(|| {
+        let detail = format!(
+            "qualification specification source {} does not match current repository commit {}",
+            spec.repository_commit, repository_commit
+        );
+        unit(
+            &spec.run_id,
+            &spec.tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::Prepare,
+            Some(path),
+            None,
+            Some(&detail),
+        )
+    })
 }
 
 fn scheduler_state(
@@ -557,10 +571,13 @@ fn regular_file_exists(path: &Path) -> Result<bool> {
 mod tests {
     use std::path::{Path, PathBuf};
 
-    use super::super::ContainerQualificationSlurmResources;
+    use super::super::{
+        ContainerQualificationSlurmResources, ContainerQualificationSubmissionKind,
+    };
     use super::{
-        classify_spec, discover_specifications, ContainerQualificationCycleAction,
-        ContainerQualificationCycleState, ContainerQualificationSlurmSpec,
+        classify_spec, discover_specifications, stale_specification_unit,
+        ContainerQualificationCycleAction, ContainerQualificationCycleState,
+        ContainerQualificationSlurmSpec,
     };
 
     #[test]
@@ -588,7 +605,7 @@ mod tests {
     fn stale_specification_cannot_advance_or_book() -> anyhow::Result<()> {
         let spec = ContainerQualificationSlurmSpec {
             schema_version: super::super::CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5.to_string(),
-            submission_kind: Default::default(),
+            submission_kind: ContainerQualificationSubmissionKind::default(),
             historical_replay_source: None,
             run_id: "run-1150".to_string(),
             tool_id: "rcorrector".to_string(),
@@ -629,7 +646,15 @@ mod tests {
 
         assert_eq!(unit.state, ContainerQualificationCycleState::Blocked);
         assert_eq!(unit.next_action, ContainerQualificationCycleAction::Prepare);
-        assert!(unit.detail.is_some_and(|detail| detail.contains("stale")));
+        assert!(unit.detail.is_some_and(|detail| {
+            detail.contains(&"1".repeat(40)) && detail.contains(&"6".repeat(40))
+        }));
+        assert!(stale_specification_unit(
+            Path::new("/evidence/qualification-spec.json"),
+            &spec,
+            &spec.repository_commit,
+        )
+        .is_none());
         Ok(())
     }
 }
