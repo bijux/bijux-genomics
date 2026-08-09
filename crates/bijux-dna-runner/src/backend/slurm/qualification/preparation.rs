@@ -13,11 +13,12 @@ use super::contracts::{
     ContainerQualificationPreparationRequest, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
-    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
+    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
 };
 use super::validation::{
-    canonical_directory, derive_historical_replay_identity, derive_identity, ensure_json_identity,
-    require_exact_file, require_utc_timestamp, validate_specification, QualificationIdentity,
+    canonical_directory, canonical_governed_directory, derive_historical_replay_identity,
+    derive_identity, ensure_json_identity, require_exact_file, require_utc_timestamp,
+    validate_specification, QualificationIdentity,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -76,7 +77,8 @@ fn prepare(
     }
     let executor_program_sha256 = bijux_dna_infra::hash_file_sha256(&executor_program_path)?;
     require_exact_file(&executor_program_path, &executor_program_sha256, "executor program")?;
-    let evidence_root = ensure_evidence_root(&identity.evidence_root)?;
+    let governance = load_container_governance(&request.governance_path)?;
+    let evidence_root = ensure_current_attempt_layout(&governance, &identity, &request.attempt_id)?;
     let governance_path = archive_contract(
         &request.governance_path,
         &evidence_root.join("config-governance.yml"),
@@ -99,11 +101,12 @@ fn prepare(
     let credential_reference_sha256 =
         bijux_dna_infra::hash_file_sha256(&credential_reference_path)?;
     let spec = ContainerQualificationSlurmSpec {
-        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4.to_string(),
+        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5.to_string(),
         submission_kind,
         historical_replay_source,
         run_id: identity.run_id,
         tool_id: identity.tool_id,
+        campaign_id: Some(identity.campaign_id),
         attempt_id: Some(request.attempt_id.clone()),
         job_name: identity.job_name,
         hostname: request.hostname.clone(),
@@ -164,12 +167,14 @@ fn derive_preparation_identity(
             source,
             &request.pipeline_path,
             Some(&request.attempt_id),
+            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
         ),
         None => derive_identity(
             &request.hostname,
             &request.governance_path,
             &request.pipeline_path,
             Some(&request.attempt_id),
+            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
         ),
     }
 }
@@ -284,10 +289,36 @@ fn hash_check_path(path: &Path, sha256: &str) -> String {
     )
 }
 
-fn ensure_evidence_root(path: &Path) -> Result<PathBuf> {
-    let parent = path.parent().context("qualification evidence root has no parent")?;
-    fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    ensure_directory(path)
+fn ensure_current_attempt_layout(
+    governance: &bijux_dna_containers::api::ContainerGovernance,
+    identity: &QualificationIdentity,
+    attempt_id: &str,
+) -> Result<PathBuf> {
+    let container_root = canonical_governed_directory(
+        &governance.paths.containers_root,
+        "governed containers root",
+    )?
+    .join("evidence/attempts");
+    let benchmark_root =
+        canonical_governed_directory(&governance.paths.results_root, "governed results root")?
+            .join("benchmarks");
+    bijux_dna_infra::validate_attempt_owner_roots(&container_root, &benchmark_root)
+        .context("validate qualification attempt owner roots")?;
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &container_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &bijux_dna_infra::AttemptLayoutIdentity {
+            run_directory: identity.run_id.clone(),
+            tool_id: identity.tool_id.clone(),
+            campaign_id: identity.campaign_id.clone(),
+            attempt_id: attempt_id.to_string(),
+        },
+    )
+    .context("ensure governed qualification attempt layout")?;
+    if layout.attempt_dir != identity.evidence_root {
+        bail!("governed qualification attempt layout conflicts with admitted identity");
+    }
+    Ok(layout.attempt_dir)
 }
 
 fn ensure_directory(path: &Path) -> Result<PathBuf> {

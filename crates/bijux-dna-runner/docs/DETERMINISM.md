@@ -6,6 +6,10 @@ Runner determinism is about stable invocation identity, stable records, and repl
 - Invocation hashes include command, args, environment, working directory, mounts, and image digest.
 - Hash inputs must be canonical and order-stable.
 - Directory input hashing walks paths deterministically.
+- Container qualification attempt identity includes the permanent run ID, tool ID, campaign ID,
+  and attempt ID. Scheduler job IDs remain provenance and never select an attempt directory.
+- Current qualification paths are derived through the shared attempt-layout resolver; v3 and v4
+  compatibility readers reproduce their historical paths without rewriting evidence.
 
 ## Replay
 Replay does:

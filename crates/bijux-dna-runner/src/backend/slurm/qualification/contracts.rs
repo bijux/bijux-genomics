@@ -11,6 +11,8 @@ pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3: &str =
     "bijux.runner.container_qualification_slurm_spec.v3";
 pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4: &str =
     "bijux.runner.container_qualification_slurm_spec.v4";
+pub const CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5: &str =
+    "bijux.runner.container_qualification_slurm_spec.v5";
 pub const CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_prepared_job.v1";
 pub const CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1: &str =
@@ -77,6 +79,8 @@ pub struct ContainerQualificationSlurmSpec {
     pub historical_replay_source: Option<HistoricalContainerQualificationReplaySource>,
     pub run_id: String,
     pub tool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub campaign_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub attempt_id: Option<String>,
     pub job_name: String,

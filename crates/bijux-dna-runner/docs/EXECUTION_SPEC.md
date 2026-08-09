@@ -36,6 +36,10 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 - Missing accounting is represented as `accounting_pending`, not guessed as success or failure.
 - Collection is a read-only one-shot observation, and cancellation invokes `scancel` once for the exact job identity.
 - Scheduling cadence belongs to the caller; this crate contains no sleep, wait, or polling loop.
+- New container qualification submissions use scheduler specification v5 and persist evidence under
+  `containers/evidence/attempts/<run-id>/<tool-id>/attempts/<campaign-id>/<attempt-id>` using the
+  shared governed attempt-layout manifest. Historical v3 and v4 specifications remain readable at
+  their original paths but are never emitted for new submissions.
 
 ## Failure Semantics
 | Failure | Detection | Expected remediation |

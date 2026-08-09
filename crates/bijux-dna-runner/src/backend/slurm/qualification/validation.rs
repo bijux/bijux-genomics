@@ -18,7 +18,7 @@ use serde::de::DeserializeOwned;
 use super::contracts::{
     ContainerQualificationSlurmResources, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
 };
 
 pub(super) const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
@@ -26,6 +26,7 @@ pub(super) const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
 pub(super) struct QualificationIdentity {
     pub run_id: String,
     pub tool_id: String,
+    pub campaign_id: String,
     pub job_name: String,
     pub repository_path: PathBuf,
     pub repository_commit: String,
@@ -53,6 +54,7 @@ pub(super) fn derive_identity(
     governance_path: &Path,
     pipeline_path: &Path,
     attempt_id: Option<&str>,
+    schema_version: &str,
 ) -> Result<QualificationIdentity> {
     let governance = load_container_governance(governance_path)?;
     let contract = load_container_pipeline(pipeline_path)?;
@@ -61,7 +63,7 @@ pub(super) fn derive_identity(
         hostname: hostname.to_string(),
         pipeline_path: pipeline_path.to_path_buf(),
     })?;
-    derive_admitted_identity(&governance, contract, admission, false, attempt_id)
+    derive_admitted_identity(&governance, contract, admission, false, attempt_id, schema_version)
 }
 
 pub(super) fn derive_historical_replay_identity(
@@ -70,6 +72,7 @@ pub(super) fn derive_historical_replay_identity(
     source_pipeline_path: &Path,
     replay_pipeline_path: &Path,
     attempt_id: Option<&str>,
+    schema_version: &str,
 ) -> Result<QualificationIdentity> {
     let governance = load_container_governance(governance_path)?;
     let replay =
@@ -80,7 +83,7 @@ pub(super) fn derive_historical_replay_identity(
             replay_pipeline_path: replay_pipeline_path.to_path_buf(),
         })?;
     let contract = load_container_pipeline(replay_pipeline_path)?;
-    derive_admitted_identity(&governance, contract, replay.site, true, attempt_id)
+    derive_admitted_identity(&governance, contract, replay.site, true, attempt_id, schema_version)
 }
 
 fn derive_admitted_identity(
@@ -89,6 +92,7 @@ fn derive_admitted_identity(
     admission: ContainerPipelineSiteAdmission,
     historical_replay: bool,
     attempt_id: Option<&str>,
+    schema_version: &str,
 ) -> Result<QualificationIdentity> {
     if admission.evidence_kind != PipelineEvidenceKind::Qualification {
         bail!("container qualification scheduler requires qualification evidence kind");
@@ -105,69 +109,120 @@ fn derive_admitted_identity(
         bail!("container qualification repository is not frozen by commit identity");
     }
 
-    let (run_id, tool_id, domain, stage, sample, resources, dependencies) = match contract {
-        ContainerPipelineContract::Legacy(pipeline) if historical_replay => (
-            pipeline.run.id,
-            pipeline.run.tool,
-            pipeline.run.domain,
-            pipeline.run.stage,
-            pipeline.run.sample,
-            ContainerQualificationSlurmResources {
-                account: pipeline.resources.account,
-                partition: pipeline.resources.partition,
-                cpus: pipeline.resources.cpus,
-                memory_mb: pipeline.resources.memory_mb,
-                walltime: pipeline.resources.walltime,
-                scratch_mb: pipeline.resources.scratch_mb,
-            },
-            Vec::new(),
-        ),
-        ContainerPipelineContract::Legacy(_) => {
-            bail!("new container qualification submission requires the current pipeline schema")
-        }
-        ContainerPipelineContract::Current(pipeline) => (
-            pipeline.run.id,
-            pipeline.run.tool,
-            pipeline.run.domain,
-            pipeline.run.stage,
-            pipeline.run.sample,
-            ContainerQualificationSlurmResources {
-                account: pipeline.resources.account,
-                partition: pipeline.resources.partition,
-                cpus: pipeline.resources.cpus,
-                memory_mb: pipeline.resources.memory_mb,
-                walltime: pipeline.resources.walltime,
-                scratch_mb: pipeline.resources.scratch_mb,
-            },
-            pipeline.dependencies.into_iter().map(|dependency| dependency.slurm_job_id).collect(),
-        ),
-    };
-    let evidence_namespace = canonical_governed_directory(
-        &governance.paths.containers_root,
-        "governed containers root",
-    )?
-    .join("evidence/submissions")
-    .join(format!("{run_id}-{tool_id}"));
-    let (result_root, evidence_root) = match attempt_id {
-        Some(attempt_id) => {
-            validate_qualification_attempt_id(attempt_id)?;
-            (
-                admission.result_root.join("attempts").join(attempt_id),
-                evidence_namespace.join("attempts").join(attempt_id),
-            )
-        }
-        None => (admission.result_root, evidence_namespace),
-    };
+    let (run_id, tool_id, campaign_id, domain, stage, sample, resources, dependencies) =
+        match contract {
+            ContainerPipelineContract::Legacy(pipeline) if historical_replay => (
+                pipeline.run.id,
+                pipeline.run.tool,
+                pipeline.run.campaign,
+                pipeline.run.domain,
+                pipeline.run.stage,
+                pipeline.run.sample,
+                ContainerQualificationSlurmResources {
+                    account: pipeline.resources.account,
+                    partition: pipeline.resources.partition,
+                    cpus: pipeline.resources.cpus,
+                    memory_mb: pipeline.resources.memory_mb,
+                    walltime: pipeline.resources.walltime,
+                    scratch_mb: pipeline.resources.scratch_mb,
+                },
+                Vec::new(),
+            ),
+            ContainerPipelineContract::Legacy(_) => {
+                bail!("new container qualification submission requires the current pipeline schema")
+            }
+            ContainerPipelineContract::Current(pipeline) => (
+                pipeline.run.id,
+                pipeline.run.tool,
+                pipeline.run.campaign,
+                pipeline.run.domain,
+                pipeline.run.stage,
+                pipeline.run.sample,
+                ContainerQualificationSlurmResources {
+                    account: pipeline.resources.account,
+                    partition: pipeline.resources.partition,
+                    cpus: pipeline.resources.cpus,
+                    memory_mb: pipeline.resources.memory_mb,
+                    walltime: pipeline.resources.walltime,
+                    scratch_mb: pipeline.resources.scratch_mb,
+                },
+                pipeline
+                    .dependencies
+                    .into_iter()
+                    .map(|dependency| dependency.slurm_job_id)
+                    .collect(),
+            ),
+        };
+    let (result_root, evidence_root) = qualification_attempt_roots(
+        governance,
+        &admission.result_root,
+        schema_version,
+        attempt_id,
+        &run_id,
+        &tool_id,
+        &campaign_id,
+    )?;
     Ok(QualificationIdentity {
         job_name: scheduler_name(&domain, &stage, &tool_id, &sample)?,
         run_id,
         tool_id,
+        campaign_id,
         repository_path: admission.repository_path,
         repository_commit: admission.repository_commit,
         result_root,
         evidence_root,
         resources,
         dependencies,
+    })
+}
+
+fn qualification_attempt_roots(
+    governance: &bijux_dna_containers::api::ContainerGovernance,
+    admitted_result_root: &Path,
+    schema_version: &str,
+    attempt_id: Option<&str>,
+    run_id: &str,
+    tool_id: &str,
+    campaign_id: &str,
+) -> Result<(PathBuf, PathBuf)> {
+    let containers_root = canonical_governed_directory(
+        &governance.paths.containers_root,
+        "governed containers root",
+    )?;
+    Ok(match (schema_version, attempt_id) {
+        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5, Some(attempt_id)) => {
+            validate_qualification_attempt_id(attempt_id)?;
+            let owner_root = containers_root.join("evidence/attempts");
+            let layout_identity = bijux_dna_infra::AttemptLayoutIdentity {
+                run_directory: run_id.to_string(),
+                tool_id: tool_id.to_string(),
+                campaign_id: campaign_id.to_string(),
+                attempt_id: attempt_id.to_string(),
+            };
+            let evidence_root =
+                bijux_dna_infra::attempt_layout_paths(&owner_root, &layout_identity)
+                    .context("derive governed qualification attempt layout")?
+                    .attempt_dir;
+            (
+                admitted_result_root.join("attempts").join(campaign_id).join(attempt_id),
+                evidence_root,
+            )
+        }
+        (_, Some(attempt_id)) => {
+            validate_qualification_attempt_id(attempt_id)?;
+            (
+                admitted_result_root.join("attempts").join(attempt_id),
+                containers_root
+                    .join("evidence/submissions")
+                    .join(format!("{run_id}-{tool_id}"))
+                    .join("attempts")
+                    .join(attempt_id),
+            )
+        }
+        (_, None) => (
+            admitted_result_root.to_path_buf(),
+            containers_root.join("evidence/submissions").join(format!("{run_id}-{tool_id}")),
+        ),
     })
 }
 
@@ -213,16 +268,21 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
             &source.pipeline_path,
             &spec.pipeline_path,
             spec.attempt_id.as_deref(),
+            &spec.schema_version,
         )?,
         None => derive_identity(
             &spec.hostname,
             &spec.governance_path,
             &spec.pipeline_path,
             spec.attempt_id.as_deref(),
+            &spec.schema_version,
         )?,
     };
     if spec.run_id != identity.run_id
         || spec.tool_id != identity.tool_id
+        || spec.campaign_id.as_deref()
+            != (spec.schema_version == CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5)
+                .then_some(identity.campaign_id.as_str())
         || spec.job_name != identity.job_name
         || spec.repository_path != identity.repository_path
         || spec.repository_commit != identity.repository_commit
@@ -240,15 +300,23 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
 fn validate_schema_authority(spec: &ContainerQualificationSlurmSpec) -> Result<()> {
     if !matches!(
         spec.schema_version.as_str(),
-        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
+        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
+            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
+            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5
     ) {
         bail!("container qualification Slurm specification schema is unsupported");
     }
-    match (spec.schema_version.as_str(), spec.attempt_id.as_deref()) {
-        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4, Some(attempt_id)) => {
+    match (spec.schema_version.as_str(), spec.campaign_id.as_deref(), spec.attempt_id.as_deref()) {
+        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5, Some(campaign_id), Some(attempt_id)) => {
+            validate_qualification_attempt_id(attempt_id)?;
+            if campaign_id.is_empty() {
+                bail!("qualification campaign identity must not be empty");
+            }
+        }
+        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4, None, Some(attempt_id)) => {
             validate_qualification_attempt_id(attempt_id)?;
         }
-        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3, None) => {}
+        (CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3, None, None) => {}
         _ => bail!("qualification attempt identity conflicts with specification schema"),
     }
     Ok(())
@@ -314,7 +382,7 @@ pub(super) fn canonical_directory(path: &Path, label: &str) -> Result<PathBuf> {
     Ok(canonical)
 }
 
-fn canonical_governed_directory(path: &Path, label: &str) -> Result<PathBuf> {
+pub(super) fn canonical_governed_directory(path: &Path, label: &str) -> Result<PathBuf> {
     if !path.is_absolute()
         || path
             .components()
