@@ -13,6 +13,7 @@ use self::lifecycle::{
 use self::scheduler::{benchmark_accounting, benchmark_observation, lifecycle_status, slurm_state};
 use super::{OpsCommandOutcome, Result, Workspace};
 
+mod generic_cases;
 mod lifecycle;
 mod scheduler;
 
@@ -21,6 +22,9 @@ const USAGE: &str = concat!(
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-cases --corpus-snapshots <path> --output <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit-cases --matrix <path> --observations <path> --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- aggregate-cases --matrix <path> --observations <path> --output <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry-from-tip --attempt-id <attempt-id> --benchmark-root <path> --campaign-id <campaign-id> --observed-at-utc <timestamp> --output <path> --repository-root <path> --run-id <run-id> --tip-attempt-id <attempt-id>\n",
@@ -173,6 +177,9 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         "schema" => schema(workspace, &options),
         "execution-schema" => execution_schema(workspace, &options),
         "scheduler-observation-schema" => scheduler_observation_schema(workspace, &options),
+        "plan-cases" => generic_cases::plan_cases(workspace, &options),
+        "admit-cases" => generic_cases::admit_cases(workspace, &options),
+        "aggregate-cases" => generic_cases::aggregate_cases(workspace, &options),
         "plan" => plan(workspace, &options),
         "plan-retry" => plan_retry(workspace, &options),
         "plan-retry-from-tip" => plan_retry_from_tip(workspace, &options),

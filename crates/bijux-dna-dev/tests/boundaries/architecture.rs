@@ -96,11 +96,13 @@ fn dev_tree_matches_architecture_contract() {
 
     let campaign_cycle_entries =
         dir_entries(&root.join("src/commands/ops/tooling/benchmark_campaign_cycle"));
-    let expected_campaign_cycle: BTreeSet<_> =
-        ["lifecycle.rs", "scheduler.rs"].into_iter().map(str::to_string).collect();
+    let expected_campaign_cycle: BTreeSet<_> = ["generic_cases.rs", "lifecycle.rs", "scheduler.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     assert_eq!(
         campaign_cycle_entries, expected_campaign_cycle,
-        "benchmark campaign operation must isolate lifecycle and scheduler responsibilities"
+        "benchmark campaign operation must isolate generic case, lifecycle, and scheduler composition"
     );
 
     let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
