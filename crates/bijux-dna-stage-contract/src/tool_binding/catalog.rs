@@ -57,6 +57,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bowtie2_align(),
         bwa_align(),
         mosdepth_coverage(),
+        picard_gc_bias(),
         picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
@@ -216,6 +217,35 @@ fn picard_insert_size() -> ToolBindingV1 {
         "benchmark.bam.insert_size.consume",
         resources(1, 16, 16),
         &["paired_end_alignment_metadata_is_required_for_insert_size_inference"],
+    )
+}
+
+fn picard_gc_bias() -> ToolBindingV1 {
+    retained_binding(
+        "bam.gc_bias",
+        "picard",
+        &["bam_input", "reference_indexing", "native_gc_bias_outputs"],
+        &[input("bam", BAM), input("reference", FASTA)],
+        &[],
+        &[
+            output("gc_bias_metrics", TABLE),
+            output("gc_bias_summary", JSON),
+            output("gc_bias_chart", FILE),
+        ],
+        &[
+            "${executable}",
+            "CollectGcBiasMetrics",
+            "I=${input:bam}",
+            "R=${input:reference}",
+            "O=${output:gc_bias_metrics}",
+            "S=${output:gc_bias_summary}",
+            "CHART=${output:gc_bias_chart}",
+        ],
+        "bijux.benchmark.bam.gc_bias.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::gc_bias",
+        "benchmark.bam.gc_bias.consume",
+        resources(1, 16, 16),
+        &["reference_bytes_and_gc_context_are_immutable_campaign_inputs"],
     )
 }
 

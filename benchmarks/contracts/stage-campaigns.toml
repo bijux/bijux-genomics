@@ -309,6 +309,60 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2013"
+slug = "bam-gc-bias"
+domain = "bam"
+stage_id = "bam.gc_bias"
+evidence_tier = "comparative"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-dna-bam-diversity"]
+scientific_question = "How do reference-context AT and GC dropout profiles vary across the governed ancient-DNA BAM diversity cohort, and what resources does the retained implementation consume?"
+comparison_scope = "Picard GC-bias summaries across at least ten governed real ancient human alignments against one immutable GRCh38 reference policy"
+tool_ids = ["picard"]
+corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes", "reference_input_bytes"]
+result_artifact = "gc-bias-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 1
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "picard_reference_context_dropout_with_cross_library_stratification_not_sequence_bias_truth"
+interpretation = "This campaign preserves Picard's all-reads AT and GC dropout summary under one normalized contract and compares the observations across independently governed ancient libraries. The result characterizes reference-context coverage behavior; it is not an independent truth estimate of library or sequencing bias and does not rank tools."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "gc_bias_score",
+  "at_dropout",
+  "gc_dropout",
+  "total_clusters",
+  "aligned_reads",
+  "windows",
+  "read_starts",
+]
+comparison_metrics = []
+limitations = [
+  "The ten-library production corpus is source-defined but not admitted, so this protocol remains scientifically blocked and no execution result is claimed.",
+  "Only Picard is retained for this stage, so the campaign compares governed library distributions and resource behavior rather than ranking alternative tools.",
+  "AT and GC dropout depend on the exact reference assembly, windowing, alignment, filtering, and library preparation policies and cannot be interpreted independently of those locks.",
+  "The normalized GC-bias score is GC dropout divided by one hundred for a bounded machine-comparable value; the native percentage is preserved separately.",
+]
+
+[[campaigns]]
 run_id = "run-2015"
 slug = "bam-insert-size"
 domain = "bam"

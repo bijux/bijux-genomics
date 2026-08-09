@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "aligned_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "at_dropout": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "gc_bias_score": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "gc_dropout": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "read_starts": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.gc_bias.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.gc_bias",
+      "type": "string"
+    },
+    "tool_id": {
+      "const": "picard",
+      "type": "string"
+    },
+    "total_clusters": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "windows": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "gc_bias_score",
+    "at_dropout",
+    "gc_dropout",
+    "total_clusters",
+    "aligned_reads",
+    "windows",
+    "read_starts"
+  ],
+  "title": "BenchmarkBamGcBiasResult",
+  "type": "object"
+}

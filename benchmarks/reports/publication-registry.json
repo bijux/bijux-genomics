@@ -11,9 +11,9 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "d1372949a7c79f547ce2a3886b07309c73c2c69cae7d59822818bde9bd29b704",
+      "json_sha256": "5f1caa2ad5e03132be3bec526829f4690e72d9fa0a83b0c819bee4193c05d7f0",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "325a4122cc7baa50bc69ebea04c24115f58a12435c847cf5fa3a78044bda8181"
+      "markdown_sha256": "330af8b5109cf672ad813a7008a2b4b121bb6fa4f2d8b0af89bae98baead5091"
     },
     {
       "product_id": "stage-universe",
@@ -25,16 +25,16 @@
     {
       "product_id": "stage-benchmark-coverage",
       "json_path": "benchmarks/reports/stage-benchmark-coverage.json",
-      "json_sha256": "9c79786307f7fb540d6784275c664bd28a8bad667dfb716cdf84de30dd5df9b4",
+      "json_sha256": "9048cd286432abc1ba4d183c78b19c599695be7eaa3840ef6ddf016687175bbb",
       "markdown_path": "benchmarks/reports/stage-benchmark-coverage.md",
-      "markdown_sha256": "2979d72025a0525d17dedca6efc98e7aa4ac99ab4753564b978fecf2a886e19f"
+      "markdown_sha256": "b0f7586eac95d0644ef350a81736700b1c8544d9821ce74839ba7743dab72fd2"
     },
     {
       "product_id": "scientific-benchmark-readiness",
       "json_path": "benchmarks/reports/scientific-benchmark-readiness.json",
-      "json_sha256": "cd6faa8769a1c711f0a5e056de331801e06415e7106257649acb29121cd43306",
+      "json_sha256": "45841ca7db81e7aa5401b29526b5b18ca63e5066375b665b0b3b1df7127c93a6",
       "markdown_path": "benchmarks/reports/scientific-benchmark-readiness.md",
-      "markdown_sha256": "08a9c6a25cd4310c27bf30d2f268b0b4c9489cdeb6c776795b1d593125961803"
+      "markdown_sha256": "68fbf1cef6f0d6c04e0c40be059859170e095e5496ef3a43b8baa62c52c0b008"
     }
   ],
   "stage_reports": [

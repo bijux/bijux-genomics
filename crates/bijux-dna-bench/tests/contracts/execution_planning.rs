@@ -491,6 +491,23 @@ fn insert_size_normalizer_extracts_picard_fr_distribution() -> anyhow::Result<()
 }
 
 #[test]
+fn gc_bias_normalizer_extracts_picard_all_reads_summary() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let fixture = repository_root.join(
+        "benchmarks/tests/fixtures/bench/parsers/bam/bam.gc_bias/picard/raw.gc-bias.metrics.txt",
+    );
+    let script = repository_root.join("benchmarks/execution/bam_gc_bias.awk");
+    let output =
+        Command::new("awk").args(["-v", "mode=summary", "-f"]).arg(script).arg(fixture).output()?;
+    anyhow::ensure!(output.status.success(), "GC-bias AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\ngc_bias_score\t0.054000000000\nat_dropout\t3.200000000000\ngc_dropout\t5.400000000000\ntotal_clusters\t200000\naligned_reads\t180000\nwindows\t1200\nread_starts\t180000\n"
+    );
+    Ok(())
+}
+
+#[test]
 fn genotyping_normalizer_derives_candidate_site_metrics() -> anyhow::Result<()> {
     let temporary = bijux_dna_infra::temp_dir("bam-genotyping-normalizer")?;
     let genotypes = temporary.path().join("genotypes.tsv");

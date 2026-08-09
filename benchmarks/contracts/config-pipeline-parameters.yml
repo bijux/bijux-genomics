@@ -29,6 +29,11 @@
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)",
       "overrides": {}
     },
+    "bam.gc_bias": {
+      "parameter_schema_version": "bijux.bam.params.gc_bias.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::GcBias)",
+      "overrides": {}
+    },
     "bam.insert_size": {
       "parameter_schema_version": "bijux.bam.params.insert_size.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::InsertSize)",

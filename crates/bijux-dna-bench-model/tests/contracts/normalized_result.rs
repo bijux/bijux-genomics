@@ -2,13 +2,14 @@ use bijux_dna_bench_model::normalized_result::bam::{
     bam_align_metrics_schema, bam_align_result_schema, bam_coverage_metrics_schema,
     bam_coverage_result_schema, bam_duplication_metrics_measurements_schema,
     bam_duplication_metrics_result_schema, bam_endogenous_content_metrics_schema,
-    bam_endogenous_content_result_schema, bam_genotyping_metrics_schema,
-    bam_genotyping_result_schema, bam_insert_size_metrics_schema, bam_insert_size_result_schema,
-    bam_mapping_summary_metrics_schema, bam_mapping_summary_result_schema,
-    BenchmarkBamAlignMetrics, BenchmarkBamAlignResult, BenchmarkBamCoverageMetrics,
-    BenchmarkBamCoverageResult, BenchmarkBamDuplicationMetricsResult,
-    BenchmarkBamEndogenousContentResult, BenchmarkBamGenotypingResult,
-    BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult, BenchmarkBamMappingSummaryResult,
+    bam_endogenous_content_result_schema, bam_gc_bias_metrics_schema, bam_gc_bias_result_schema,
+    bam_genotyping_metrics_schema, bam_genotyping_result_schema, bam_insert_size_metrics_schema,
+    bam_insert_size_result_schema, bam_mapping_summary_metrics_schema,
+    bam_mapping_summary_result_schema, BenchmarkBamAlignMetrics, BenchmarkBamAlignResult,
+    BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult, BenchmarkBamDuplicationMetricsResult,
+    BenchmarkBamEndogenousContentResult, BenchmarkBamGcBiasMetrics, BenchmarkBamGcBiasResult,
+    BenchmarkBamGenotypingResult, BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult,
+    BenchmarkBamMappingSummaryResult,
 };
 use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_detect_adapters_metrics_schema, fastq_detect_adapters_probe_schema,
@@ -123,6 +124,28 @@ fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::R
 }
 
 #[test]
+fn normalized_bam_gc_bias_result_rejects_invalid_tool() -> anyhow::Result<()> {
+    let value = serde_json::json!({
+        "schema_version": "bijux.benchmark.bam.gc_bias.bundle.v1",
+        "stage_id": "bam.gc_bias",
+        "tool_id": "picard",
+        "sample_id": "ERR2112767",
+        "gc_bias_score": 0.054,
+        "at_dropout": 3.2,
+        "gc_dropout": 5.4,
+        "total_clusters": 200_000,
+        "aligned_reads": 180_000,
+        "windows": 1200,
+        "read_starts": 180_000,
+    });
+    serde_json::from_value::<BenchmarkBamGcBiasResult>(value.clone())?;
+    let mut invalid_tool = value;
+    invalid_tool["tool_id"] = serde_json::json!("samtools");
+    assert!(serde_json::from_value::<BenchmarkBamGcBiasResult>(invalid_tool).is_err());
+    Ok(())
+}
+
+#[test]
 fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -173,6 +196,8 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
             "bam-insert-size-metrics.schema.json",
             serde_json::to_value(bam_insert_size_metrics_schema())?,
         ),
+        ("bam-gc-bias-result.schema.json", serde_json::to_value(bam_gc_bias_result_schema())?),
+        ("bam-gc-bias-metrics.schema.json", serde_json::to_value(bam_gc_bias_metrics_schema())?),
         ("bam-downstream-probe.schema.json", serde_json::to_value(bam_downstream_probe_schema())?),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
@@ -242,6 +267,23 @@ fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
         "output_bytes": 20
     });
     serde_json::from_value::<BenchmarkBamInsertSizeMetrics>(insert_size_metrics)?;
+
+    let gc_bias_metrics = serde_json::json!({
+        "schema_version": "bijux.benchmark.bam.gc_bias.metrics.v1",
+        "gc_bias_score": 0.054,
+        "at_dropout": 3.2,
+        "gc_dropout": 5.4,
+        "total_clusters": 200_000,
+        "aligned_reads": 180_000,
+        "windows": 1200,
+        "read_starts": 180_000,
+        "bam_input_bytes": 100,
+        "bam_index_input_bytes": 10,
+        "reference_input_bytes": 80,
+        "input_bytes": 190,
+        "output_bytes": 20
+    });
+    serde_json::from_value::<BenchmarkBamGcBiasMetrics>(gc_bias_metrics)?;
 
     let probe = serde_json::json!({
         "schema_version": "bijux.benchmark.downstream_probe.v1",

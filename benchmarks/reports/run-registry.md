@@ -4,10 +4,10 @@
 
 Run IDs identify durable stage protocols, not attempts or publications. Existing IDs are immutable; additions allocate monotonically from the declared frontier.
 
-- Registry SHA-256: `d1372949a7c79f547ce2a3886b07309c73c2c69cae7d59822818bde9bd29b704`
+- Registry SHA-256: `5f1caa2ad5e03132be3bec526829f4690e72d9fa0a83b0c819bee4193c05d7f0`
 - Registered protocols: **71**
-- Active protocols: **11**
-- Reserved protocols: **60**
+- Active protocols: **12**
+- Reserved protocols: **59**
 - Next allocation: **run-2072**
 
 | Run | Stage | Profile | Tools | State | Interface |
@@ -24,7 +24,7 @@ Run IDs identify durable stage protocols, not attempts or publications. Existing
 | `run-2010` | `bam.damage` | `bam-ancient-authentication` | `addeam`, `damageprofiler`, `mapdamage2`, `pmdtools`, `pydamage` | `reserved` | - |
 | `run-2011` | `bam.duplication_metrics` | `bam-observational-qc` | `picard`, `samtools` | `active` | `bijux.benchmark.bam.duplication_metrics.bundle.v1` |
 | `run-2012` | `bam.filter` | `bam-transformation` | `bamtools`, `bedtools`, `samtools` | `reserved` | - |
-| `run-2013` | `bam.gc_bias` | `bam-observational-qc` | `picard` | `reserved` | - |
+| `run-2013` | `bam.gc_bias` | `bam-observational-qc` | `picard` | `active` | `bijux.benchmark.bam.gc_bias.bundle.v1` |
 | `run-2014` | `bam.haplogroups` | `bam-biological-inference` | `yleaf` | `reserved` | - |
 | `run-2015` | `bam.insert_size` | `bam-observational-qc` | `picard` | `active` | `bijux.benchmark.bam.insert_size.bundle.v1` |
 | `run-2016` | `bam.kinship` | `bam-biological-inference` | `king` | `reserved` | - |

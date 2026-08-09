@@ -20,13 +20,14 @@ const ENDOGENOUS_CONTENT_STAGE: &str = "bam.endogenous_content";
 const MAPPING_SUMMARY_STAGE: &str = "bam.mapping_summary";
 const DUPLICATION_METRICS_STAGE: &str = "bam.duplication_metrics";
 const INSERT_SIZE_STAGE: &str = "bam.insert_size";
+const GC_BIAS_STAGE: &str = "bam.gc_bias";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 12);
+    assert_eq!(retained.bindings().len(), 13);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -49,8 +50,27 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 20);
+    assert_eq!(all.bindings().len(), 21);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_gc_bias_binding_closes_run_2013_native_reports() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(GC_BIAS_STAGE), &ToolId::new("picard"))
+        .ok_or_else(|| anyhow::anyhow!("canonical Picard GC-bias binding is missing"))?;
+
+    assert_eq!(binding.resources.threads, 1);
+    assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.bam.gc_bias.bundle.v1");
+    assert_eq!(binding.normalizer_id, "bijux_dna_planner_bam::tool_adapters::bam::gc_bias");
+    assert_eq!(binding.downstream_probe_id, "benchmark.bam.gc_bias.consume");
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["gc_bias_metrics", "gc_bias_summary", "gc_bias_chart"]
+    );
+    assert!(binding.command_template.iter().any(|token| token == "CollectGcBiasMetrics"));
     Ok(())
 }
 

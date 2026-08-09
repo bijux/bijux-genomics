@@ -22,6 +22,9 @@ pub const BAM_ENDOGENOUS_CONTENT_STAGE_ID: &str = "bam.endogenous_content";
 pub const BAM_GENOTYPING_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.genotyping.bundle.v1";
 pub const BAM_GENOTYPING_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.genotyping.metrics.v1";
 pub const BAM_GENOTYPING_STAGE_ID: &str = "bam.genotyping";
+pub const BAM_GC_BIAS_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.gc_bias.bundle.v1";
+pub const BAM_GC_BIAS_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.gc_bias.metrics.v1";
+pub const BAM_GC_BIAS_STAGE_ID: &str = "bam.gc_bias";
 pub const BAM_INSERT_SIZE_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.insert_size.bundle.v1";
 pub const BAM_INSERT_SIZE_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.insert_size.metrics.v1";
 pub const BAM_INSERT_SIZE_STAGE_ID: &str = "bam.insert_size";
@@ -263,6 +266,59 @@ pub struct BenchmarkBamGenotypingMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkBamGcBiasValues {
+    #[schemars(schema_with = "fraction_schema")]
+    pub gc_bias_score: f64,
+    #[schemars(schema_with = "percentage_schema")]
+    pub at_dropout: f64,
+    #[schemars(schema_with = "percentage_schema")]
+    pub gc_dropout: f64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub total_clusters: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub aligned_reads: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub windows: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub read_starts: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamGcBiasResult {
+    #[serde(deserialize_with = "deserialize_gc_bias_schema_version")]
+    #[schemars(schema_with = "gc_bias_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_gc_bias_stage_id")]
+    #[schemars(schema_with = "gc_bias_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_picard_tool_id")]
+    #[schemars(schema_with = "picard_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[serde(flatten)]
+    pub values: BenchmarkBamGcBiasValues,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamGcBiasMetrics {
+    #[serde(deserialize_with = "deserialize_gc_bias_metrics_schema_version")]
+    #[schemars(schema_with = "gc_bias_metrics_schema_version")]
+    pub schema_version: String,
+    #[serde(flatten)]
+    pub values: BenchmarkBamGcBiasValues,
+    pub bam_input_bytes: u64,
+    pub bam_index_input_bytes: u64,
+    pub reference_input_bytes: u64,
+    pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkBamInsertSizeValues {
     #[schemars(schema_with = "positive_number_schema")]
     pub median_insert_size: f64,
@@ -407,6 +463,16 @@ pub fn bam_genotyping_metrics_schema() -> Schema {
 }
 
 #[must_use]
+pub fn bam_gc_bias_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamGcBiasResult)
+}
+
+#[must_use]
+pub fn bam_gc_bias_metrics_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamGcBiasMetrics)
+}
+
+#[must_use]
 pub fn bam_insert_size_result_schema() -> Schema {
     schemars::schema_for!(BenchmarkBamInsertSizeResult)
 }
@@ -454,6 +520,9 @@ const_string_schema!(genotyping_schema_version, BAM_GENOTYPING_RESULT_SCHEMA_V1)
 const_string_schema!(genotyping_metrics_schema_version, BAM_GENOTYPING_METRICS_SCHEMA_V1);
 const_string_schema!(genotyping_stage_id, BAM_GENOTYPING_STAGE_ID);
 const_string_schema!(bcftools_tool_id, "bcftools");
+const_string_schema!(gc_bias_schema_version, BAM_GC_BIAS_RESULT_SCHEMA_V1);
+const_string_schema!(gc_bias_metrics_schema_version, BAM_GC_BIAS_METRICS_SCHEMA_V1);
+const_string_schema!(gc_bias_stage_id, BAM_GC_BIAS_STAGE_ID);
 const_string_schema!(insert_size_schema_version, BAM_INSERT_SIZE_RESULT_SCHEMA_V1);
 const_string_schema!(insert_size_metrics_schema_version, BAM_INSERT_SIZE_METRICS_SCHEMA_V1);
 const_string_schema!(insert_size_stage_id, BAM_INSERT_SIZE_STAGE_ID);
@@ -488,6 +557,10 @@ fn positive_integer_schema(_: &mut SchemaGenerator) -> Schema {
 
 fn fraction_schema(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "number", "minimum": 0, "maximum": 1})
+}
+
+fn percentage_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "number", "minimum": 0, "maximum": 100})
 }
 
 fn positive_fraction_schema(_: &mut SchemaGenerator) -> Schema {
@@ -542,6 +615,9 @@ exact_deserializer!(
 );
 exact_deserializer!(deserialize_genotyping_stage_id, BAM_GENOTYPING_STAGE_ID);
 exact_deserializer!(deserialize_bcftools_tool_id, "bcftools");
+exact_deserializer!(deserialize_gc_bias_schema_version, BAM_GC_BIAS_RESULT_SCHEMA_V1);
+exact_deserializer!(deserialize_gc_bias_metrics_schema_version, BAM_GC_BIAS_METRICS_SCHEMA_V1);
+exact_deserializer!(deserialize_gc_bias_stage_id, BAM_GC_BIAS_STAGE_ID);
 exact_deserializer!(deserialize_insert_size_schema_version, BAM_INSERT_SIZE_RESULT_SCHEMA_V1);
 exact_deserializer!(
     deserialize_insert_size_metrics_schema_version,
