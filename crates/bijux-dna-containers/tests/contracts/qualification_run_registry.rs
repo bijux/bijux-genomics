@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     derive_qualification_run_registry, load_container_catalog, load_qualification_run_registry,
     render_qualification_run_registry, validate_qualification_run_registry,
-    QualificationRegistryDerivationRequest,
+    QualificationRegistryDerivationRequest, QualificationRunState,
 };
 
 #[test]
@@ -17,6 +17,22 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(first.registry, second.registry);
     assert_eq!(first.audit, second.audit);
     assert_eq!(first.registry.tools.len(), 89);
+    assert_eq!(first.registry.runs.len(), 158);
+    assert_eq!(first.registry.summary.run_count, 158);
+    assert_eq!(first.registry.summary.campaign_count, 1);
+    assert_eq!(first.registry.summary.active_count, 68);
+    assert_eq!(first.registry.summary.allocated_count, 17);
+    assert_eq!(first.registry.summary.historical_count, 70);
+    assert_eq!(first.registry.summary.reserved_count, 2);
+    assert_eq!(first.registry.runs[0].run_id, "run-1000");
+    assert_eq!(first.registry.runs[0].state, QualificationRunState::Campaign);
+    assert_eq!(first.registry.runs[0].tool_ids.len(), 85);
+    assert_eq!(first.registry.runs[81].run_id, "run-1081");
+    assert_eq!(first.registry.runs[81].state, QualificationRunState::Reserved);
+    assert_eq!(first.registry.runs[85].run_id, "run-1085");
+    assert_eq!(first.registry.runs[85].state, QualificationRunState::Reserved);
+    assert_eq!(first.registry.runs[157].run_id, "run-1157");
+    assert_eq!(first.registry.runs[157].citation.citation_key, "bijux-container-run-1157");
     assert_eq!(first.audit.retained_mapping_count, 85);
     assert_eq!(first.audit.unsupported_tool_count, 4);
     assert_eq!(first.audit.allocated_mapping_count, 17);
@@ -68,6 +84,15 @@ fn registry_rejects_duplicate_ids_unsupported_execution_and_catalog_drift() -> R
         .context("adapterremoval row")?
         .stage_id = "fastq.trim_reads".to_string();
     assert!(validate_qualification_run_registry(&catalog, &stage_drift).is_err());
+
+    let mut missing_campaign = derive_qualification_run_registry(&request(&root))?.registry;
+    missing_campaign.runs.remove(0);
+    assert!(validate_qualification_run_registry(&catalog, &missing_campaign).is_err());
+
+    let mut reused_tombstone = derive_qualification_run_registry(&request(&root))?.registry;
+    reused_tombstone.runs[81].state = QualificationRunState::Active;
+    reused_tombstone.runs[81].tool_ids = vec!["adapterremoval".to_string()];
+    assert!(validate_qualification_run_registry(&catalog, &reused_tombstone).is_err());
     Ok(())
 }
 

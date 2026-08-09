@@ -18,7 +18,8 @@
   security-probe publications with generated schemas and exact authority/artifact admission;
   owner-separated immutable attempt layouts with shared manifests and required evidence directories;
   strict embedded tool contracts; the complete canonical `ContainerCatalog` and
-  `ContainerCatalogTool` model;
+  `ContainerCatalogTool` model; permanent qualification run definitions and namespace,
+  lifecycle, supersession, acceptance, and citation records;
   `validate_container_catalog` roster and recipe closure; model-owned `ContainerCatalogLock`
   derivation and admission; catalog-derived Apptainer build
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke

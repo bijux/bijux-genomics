@@ -3,7 +3,7 @@ use super::{
 };
 
 const REGISTRY_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/qualification-run-registry.v1.json";
+    "containers/contracts/schemas/qualification-run-registry.v2.json";
 const AUDIT_SCHEMA_PATH: &str = "containers/contracts/schemas/qualification-run-id-audit.v2.json";
 const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-registry -- generate <current-runs-root> <attempt-ledger> <supplemental-history> <registry-output> <audit-output>\n  bijux-dna-dev containers run qualification-registry -- check <current-runs-root> <attempt-ledger> <supplemental-history> <registry-output> <audit-output>\n  bijux-dna-dev containers run qualification-registry -- generate-schemas [<registry-schema> <audit-schema>]\n  bijux-dna-dev containers run qualification-registry -- check-schemas";
 

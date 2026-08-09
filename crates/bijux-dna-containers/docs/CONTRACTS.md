@@ -2,6 +2,15 @@
 
 This crate owns the environment contracts consumed by API, runner, and environment QA layers.
 
+## Container Run Protocols
+
+`QualificationRunRegistry` owns the permanent container namespace independently of attempts and
+Slurm jobs. The generated v2 registry closes `run-1000..run-1157`, retains historical and current
+tool ownership, reserves 1081 and 1085 permanently, and gives every identity a purpose, operation,
+contract/corpus requirements, acceptance rule, supersession links, and citation anchor. Allocated
+protocols remain non-publishable until a terminal attempt is admitted; historical records are never
+promoted merely because they remain replayable.
+
 ## Owned Contracts
 
 - `PlatformSpec`: selected runtime, architecture, image prefix, and container directory.

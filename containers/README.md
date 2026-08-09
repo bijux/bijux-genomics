@@ -237,11 +237,17 @@ campaign.
 ## Govern qualification run identities
 
 [`contracts/qualification-runs.toml`](contracts/qualification-runs.toml) is the
-stable 89-tool qualification identity registry. It preserves successful
-checked-in run IDs for retained tools, allocates missing retained identities
-strictly above the historical maximum, and records unsupported tools without a
-runnable ID. Catalog stage and input-role drift, cross-tool historical ID
-reuse, duplicate final runs, and non-passing final evidence fail closed.
+stable container run protocol registry. Its tool allocation map preserves
+successful checked-in run IDs for retained tools, allocates missing retained
+identities strictly above the historical maximum, and records unsupported
+tools without a runnable current ID. Its semantic run definitions close every
+identity from `run-1000` through `run-1157`, including the image campaign,
+historical protocols, current protocols, allocated next actions, and permanent
+`run-1081`/`run-1085` tombstones. Every definition carries purpose, ownership,
+operation, tools, contracts, corpus roles, acceptance, supersession, and a
+stable citation record. Catalog stage and input-role drift, cross-tool
+historical ID reuse, duplicate final runs, and non-passing final evidence fail
+closed.
 [`contracts/qualification-run-history.toml`](contracts/qualification-run-history.toml)
 preserves checksummed LUNARC identities that failed before an execution attempt
 could receive a Slurm job ID.
@@ -263,9 +269,10 @@ cargo run -p bijux-dna-dev -- containers run qualification-registry -- \
   containers/reports/qualification-run-id-audit.json
 ```
 
-This registry owns run identity only. It does not make historical evidence
-current, generate execution specifications, submit Slurm jobs, or qualify a
-tool; those actions require the separate specification and lifecycle gates.
+This registry owns protocol identity and citation metadata only. It does not
+make historical evidence current, generate execution specifications, submit
+Slurm jobs, or qualify a tool; those actions require the separate attempt,
+specification, publication, and lifecycle gates.
 
 ## Prepare governed input data
 

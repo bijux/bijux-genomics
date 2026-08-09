@@ -1,7 +1,22 @@
 # GENERATED FILE - DO NOT EDIT
-schema_version = "bijux.container.qualification_run_registry.v1"
+schema_version = "bijux.container.qualification_run_registry.v2"
 catalog_sha256 = "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b"
 historical_max_run_number = 1140
+
+[namespace]
+minimum = 1000
+maximum = 1999
+next_run_number = 1158
+allocation_policy = "monotonic_only"
+identity_policy = "existing_ids_immutable_attempts_reuse_run_id"
+
+[summary]
+run_count = 158
+campaign_count = 1
+active_count = 68
+allocated_count = 17
+historical_count = 70
+reserved_count = 2
 
 [[tools]]
 tool_id = "adapterremoval"
@@ -791,3 +806,4394 @@ stage_id = "bam.haplogroups"
 input_role = "bam"
 resource_profile = "bam-standard"
 acceptance_adapter = "stage-contract"
+
+[[runs]]
+run_id = "run-1000"
+title = "Retained container image campaign"
+purpose = "Build and admit the exact retained container image roster from the governed catalog and recipes."
+owner = "bijux-dna-containers"
+operation = "image_build_campaign"
+stage_id = "container.image_campaign"
+tool_ids = [
+    "adapterremoval",
+    "addeam",
+    "alientrimmer",
+    "atropos",
+    "authenticct",
+    "bamtools",
+    "bamutil",
+    "bayeshammer",
+    "bbduk",
+    "bbmerge",
+    "bcftools",
+    "beagle",
+    "bedtools",
+    "bijux_dna",
+    "bowtie2",
+    "bowtie2_build",
+    "bracken",
+    "bwa",
+    "centrifuge",
+    "clumpify",
+    "contammix",
+    "cutadapt",
+    "dada2",
+    "damageprofiler",
+    "diamond",
+    "dustmasker",
+    "eagle",
+    "eigensoft",
+    "fastp",
+    "fastq_scan",
+    "fastq_screen",
+    "fastqc",
+    "fastqvalidator",
+    "fastx_clipper",
+    "flash2",
+    "fqtools",
+    "gatk",
+    "germline",
+    "glimpse",
+    "ibdhap",
+    "ibdne",
+    "ibdseq",
+    "kaiju",
+    "king",
+    "kraken2",
+    "krakenuniq",
+    "leehom",
+    "lighter",
+    "mapdamage2",
+    "metaphlan",
+    "minimac4",
+    "mosdepth",
+    "multiqc",
+    "musket",
+    "pear",
+    "picard",
+    "plink",
+    "plink2",
+    "pmdtools",
+    "preseq",
+    "prinseq",
+    "pydamage",
+    "qualimap",
+    "rcorrector",
+    "rxy",
+    "samtools",
+    "schmutzi",
+    "seqfu",
+    "seqkit",
+    "seqkit_stats",
+    "seqprep",
+    "seqpurge",
+    "seqtk",
+    "shapeit",
+    "shapeit5",
+    "skewer",
+    "sortmerna",
+    "spades",
+    "star",
+    "trim_galore",
+    "trimmomatic",
+    "umi_tools",
+    "verifybamid2",
+    "vsearch",
+    "yleaf",
+]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "container-image-identity",
+]
+corpus_roles = [
+    "recipe_source",
+    "tool_source",
+]
+acceptance_policy = "all retained tools publish digest-bound build and image identity evidence"
+state = "campaign"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1000"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1000"
+evidence_uris = ["repo://containers/runs/run-1000-images/config-campaign.json"]
+limitations = []
+
+[[runs]]
+run_id = "run-1001"
+title = "AdapterRemoval container qualification protocol"
+purpose = "Qualify AdapterRemoval 2.3.4 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["adapterremoval"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1002"
+
+[runs.citation]
+citation_key = "bijux-container-run-1001"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1001"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1001"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1002"
+title = "AdapterRemoval container qualification protocol"
+purpose = "Qualify AdapterRemoval 2.3.4 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["adapterremoval"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1001"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1002"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1002"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1002",
+    "repo://containers/runs/run-1002-adapterremoval/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1003"
+title = "BWA container qualification protocol"
+purpose = "Qualify BWA 0.7.17 for the bam.align operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.align"
+tool_ids = ["bwa"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.align",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1004"
+
+[runs.citation]
+citation_key = "bijux-container-run-1003"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1003"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1003"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1004"
+title = "BWA container qualification protocol"
+purpose = "Qualify BWA 0.7.17 for the bam.align operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.align"
+tool_ids = ["bwa"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.align",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1003"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1004"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1004"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1004",
+    "repo://containers/runs/run-1004-bwa/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1005"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1011"
+
+[runs.citation]
+citation_key = "bijux-container-run-1005"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1005"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1005"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1006"
+title = "BBDuk container qualification protocol"
+purpose = "Qualify BBDuk 39.06 for the fastq.filter_low_complexity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.filter_low_complexity"
+tool_ids = ["bbduk"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.filter_low_complexity",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1006"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1006"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1006",
+    "repo://containers/runs/run-1006-bbduk/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1007"
+title = "BBMerge container qualification protocol"
+purpose = "Qualify BBMerge 39.06 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["bbmerge"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1007"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1007"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1007",
+    "repo://containers/runs/run-1007-bbmerge/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1008"
+title = "Clumpify container qualification protocol"
+purpose = "Qualify Clumpify 39.06 for the fastq.remove_duplicates operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.remove_duplicates"
+tool_ids = ["clumpify"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.remove_duplicates",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1008"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1008"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1008",
+    "repo://containers/runs/run-1008-clumpify/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1009"
+title = "fqtools container qualification protocol"
+purpose = "Qualify fqtools 2.3 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["fqtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1019"
+
+[runs.citation]
+citation_key = "bijux-container-run-1009"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1009"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1009"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1010"
+title = "FASTQ Scan container qualification protocol"
+purpose = "Qualify FASTQ Scan 1.0.1 for the fastq.profile_overrepresented_sequences operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_ids = ["fastq_scan"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.profile_overrepresented_sequences",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1118"
+
+[runs.citation]
+citation_key = "bijux-container-run-1010"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1010"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1010"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1011"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1005"]
+superseded_by_run_id = "run-1013"
+
+[runs.citation]
+citation_key = "bijux-container-run-1011"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1011"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1011"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1012"
+title = "SeqPurge container qualification protocol"
+purpose = "Qualify SeqPurge 2026_06 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["seqpurge"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1012"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1012"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1012",
+    "repo://containers/runs/run-1012-seqpurge/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1013"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1011"]
+superseded_by_run_id = "run-1014"
+
+[runs.citation]
+citation_key = "bijux-container-run-1013"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1013"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1013"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1014"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1013"]
+superseded_by_run_id = "run-1026"
+
+[runs.citation]
+citation_key = "bijux-container-run-1014"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1014"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1014"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1015"
+title = "FastUniq container qualification protocol"
+purpose = "Qualify FastUniq 1.1 for the fastq.remove_duplicates operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.remove_duplicates"
+tool_ids = ["fastuniq"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.remove_duplicates",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1023"
+
+[runs.citation]
+citation_key = "bijux-container-run-1015"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1015"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1015"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1016"
+title = "leeHom container qualification protocol"
+purpose = "Qualify leeHom 1.2.18 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["leehom"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1016"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1016"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1016",
+    "repo://containers/runs/run-1016-leehom/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1017"
+title = "PEAR container qualification protocol"
+purpose = "Qualify PEAR 0.9.6 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["pear"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1024"
+
+[runs.citation]
+citation_key = "bijux-container-run-1017"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1017"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1017"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1018"
+title = "PRINSEQ container qualification protocol"
+purpose = "Qualify PRINSEQ 1.2.4 for the fastq.filter_low_complexity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.filter_low_complexity"
+tool_ids = ["prinseq"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.filter_low_complexity",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1018"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1018"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1018",
+    "repo://containers/runs/run-1018-prinseq/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1019"
+title = "fqtools container qualification protocol"
+purpose = "Qualify fqtools 2.3 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["fqtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1009"]
+superseded_by_run_id = "run-1020"
+
+[runs.citation]
+citation_key = "bijux-container-run-1019"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1019"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1019"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1020"
+title = "fqtools container qualification protocol"
+purpose = "Qualify fqtools 2.3 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["fqtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1019"]
+superseded_by_run_id = "run-1021"
+
+[runs.citation]
+citation_key = "bijux-container-run-1020"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1020"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1020"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1021"
+title = "fqtools container qualification protocol"
+purpose = "Qualify fqtools 2.3 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["fqtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1020"]
+superseded_by_run_id = "run-1022"
+
+[runs.citation]
+citation_key = "bijux-container-run-1021"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1021"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1021"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1022"
+title = "fqtools container qualification protocol"
+purpose = "Qualify fqtools 2.3 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["fqtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1021"]
+superseded_by_run_id = "run-1121"
+
+[runs.citation]
+citation_key = "bijux-container-run-1022"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1022"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1022"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1023"
+title = "FastUniq container qualification protocol"
+purpose = "Qualify FastUniq 1.1 for the fastq.remove_duplicates operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.remove_duplicates"
+tool_ids = ["fastuniq"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.remove_duplicates",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1015"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1023"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1023"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1023"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1024"
+title = "PEAR container qualification protocol"
+purpose = "Qualify PEAR 0.9.6 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["pear"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1017"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1024"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1024"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1024",
+    "repo://containers/runs/run-1024-pear/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1025"
+title = "Musket container qualification protocol"
+purpose = "Qualify Musket 1.1 for the fastq.correct_errors operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.correct_errors"
+tool_ids = ["musket"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.correct_errors",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1025"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1025"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1025",
+    "repo://containers/runs/run-1025-musket/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1026"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1014"]
+superseded_by_run_id = "run-1027"
+
+[runs.citation]
+citation_key = "bijux-container-run-1026"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1026"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1026"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1027"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1026"]
+superseded_by_run_id = "run-1044"
+
+[runs.citation]
+citation_key = "bijux-container-run-1027"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1027"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1027"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1028"
+title = "Qualimap container qualification protocol"
+purpose = "Qualify Qualimap 2.3 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["qualimap"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "runtime-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1029"
+
+[runs.citation]
+citation_key = "bijux-container-run-1028"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1028"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1028"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1029"
+title = "Qualimap container qualification protocol"
+purpose = "Qualify Qualimap 2.3 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["qualimap"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "runtime-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1028"]
+superseded_by_run_id = "run-1030"
+
+[runs.citation]
+citation_key = "bijux-container-run-1029"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1029"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1029"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1030"
+title = "Qualimap container qualification protocol"
+purpose = "Qualify Qualimap 2.3 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["qualimap"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "runtime-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1029"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1030"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1030"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1030",
+    "repo://containers/runs/run-1030-qualimap/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1031"
+title = "SeqFu container qualification protocol"
+purpose = "Qualify SeqFu 1.26.0 for the fastq.profile_read_lengths operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.profile_read_lengths"
+tool_ids = ["seqfu"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.profile_read_lengths",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1031"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1031"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1031",
+    "repo://containers/runs/run-1031-seqfu/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1032"
+title = "Eagle container qualification protocol"
+purpose = "Qualify Eagle 2.4.1 for the vcf.phasing operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.phasing"
+tool_ids = ["eagle"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.phasing",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1034"
+
+[runs.citation]
+citation_key = "bijux-container-run-1032"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1032"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1032"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1033"
+title = "SHAPEIT5 container qualification protocol"
+purpose = "Qualify SHAPEIT5 5.1.1 for the vcf.phasing operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.phasing"
+tool_ids = ["shapeit5"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.phasing",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1033"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1033"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1033",
+    "repo://containers/runs/run-1033-shapeit5/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1034"
+title = "Eagle container qualification protocol"
+purpose = "Qualify Eagle 2.4.1 for the vcf.phasing operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.phasing"
+tool_ids = ["eagle"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.phasing",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1032"]
+superseded_by_run_id = "run-1036"
+
+[runs.citation]
+citation_key = "bijux-container-run-1034"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1034"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1034"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1035"
+title = "BCFtools container qualification protocol"
+purpose = "Qualify BCFtools 1.20 for the vcf.call operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.call"
+tool_ids = ["bcftools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.call",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1038"
+
+[runs.citation]
+citation_key = "bijux-container-run-1035"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1035"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1035"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1036"
+title = "Eagle container qualification protocol"
+purpose = "Qualify Eagle 2.4.1 for the vcf.phasing operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.phasing"
+tool_ids = ["eagle"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.phasing",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1034"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1036"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1036"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1036",
+    "repo://containers/runs/run-1036-eagle/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1037"
+title = "SHAPEIT4 container qualification protocol"
+purpose = "Qualify SHAPEIT4 4.2.2 for the vcf.phasing operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.phasing"
+tool_ids = ["shapeit"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.phasing",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1037"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1037"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1037",
+    "repo://containers/runs/run-1037-shapeit/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1038"
+title = "BCFtools container qualification protocol"
+purpose = "Qualify BCFtools 1.20 for the vcf.call operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.call"
+tool_ids = ["bcftools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.call",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1035"]
+superseded_by_run_id = "run-1051"
+
+[runs.citation]
+citation_key = "bijux-container-run-1038"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1038"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1038"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1039"
+title = "IBDseq container qualification protocol"
+purpose = "Qualify IBDseq r1206 for the vcf.ibd operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.ibd"
+tool_ids = ["ibdseq"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.ibd",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1052"
+
+[runs.citation]
+citation_key = "bijux-container-run-1039"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1039"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1039"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1040"
+title = "IBDNe container qualification protocol"
+purpose = "Qualify IBDNe 23Apr20.ae9 for the vcf.demography operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.demography"
+tool_ids = ["ibdne"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.demography",
+]
+corpus_roles = ["hap_ibd_segments"]
+acceptance_policy = "stage-contract with ibd-segments resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1041"
+
+[runs.citation]
+citation_key = "bijux-container-run-1040"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1040"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1040"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1041"
+title = "IBDNe container qualification protocol"
+purpose = "Qualify IBDNe 23Apr20.ae9 for the vcf.demography operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.demography"
+tool_ids = ["ibdne"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.demography",
+]
+corpus_roles = ["hap_ibd_segments"]
+acceptance_policy = "stage-contract with ibd-segments resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1040"]
+superseded_by_run_id = "run-1042"
+
+[runs.citation]
+citation_key = "bijux-container-run-1041"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1041"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1041"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1042"
+title = "IBDNe container qualification protocol"
+purpose = "Qualify IBDNe 23Apr20.ae9 for the vcf.demography operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.demography"
+tool_ids = ["ibdne"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.demography",
+]
+corpus_roles = ["hap_ibd_segments"]
+acceptance_policy = "stage-contract with ibd-segments resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1041"]
+superseded_by_run_id = "run-1053"
+
+[runs.citation]
+citation_key = "bijux-container-run-1042"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1042"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1042"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1043"
+title = "ngsBriggs container qualification protocol"
+purpose = "Qualify ngsBriggs 0.01 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["ngsbriggs"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1046"
+
+[runs.citation]
+citation_key = "bijux-container-run-1043"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1043"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1043"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1044"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1027"]
+superseded_by_run_id = "run-1045"
+
+[runs.citation]
+citation_key = "bijux-container-run-1044"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1044"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1044"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1045"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1044"]
+superseded_by_run_id = "run-1054"
+
+[runs.citation]
+citation_key = "bijux-container-run-1045"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1045"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1045"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1046"
+title = "ngsBriggs container qualification protocol"
+purpose = "Qualify ngsBriggs 0.01 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["ngsbriggs"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1043"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1046"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1046"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1046"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1047"
+title = "mapDamage 2 container qualification protocol"
+purpose = "Qualify mapDamage 2 2.2.2 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["mapdamage2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam_with_reference"]
+acceptance_policy = "stage-contract with bam-reference resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1048"
+
+[runs.citation]
+citation_key = "bijux-container-run-1047"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1047"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1047"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1048"
+title = "mapDamage 2 container qualification protocol"
+purpose = "Qualify mapDamage 2 2.2.2 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["mapdamage2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam_with_reference"]
+acceptance_policy = "stage-contract with bam-reference resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1047"]
+superseded_by_run_id = "run-1049"
+
+[runs.citation]
+citation_key = "bijux-container-run-1048"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1048"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1048"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1049"
+title = "mapDamage 2 container qualification protocol"
+purpose = "Qualify mapDamage 2 2.2.2 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["mapdamage2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam_with_reference"]
+acceptance_policy = "stage-contract with bam-reference resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1048"]
+superseded_by_run_id = "run-1050"
+
+[runs.citation]
+citation_key = "bijux-container-run-1049"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1049"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1049"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1050"
+title = "mapDamage 2 container qualification protocol"
+purpose = "Qualify mapDamage 2 2.2.2 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["mapdamage2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam_with_reference"]
+acceptance_policy = "stage-contract with bam-reference resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1049"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1050"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1050"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1050",
+    "repo://containers/runs/run-1050-mapdamage2/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1051"
+title = "BCFtools container qualification protocol"
+purpose = "Qualify BCFtools 1.20 for the vcf.call operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.call"
+tool_ids = ["bcftools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.call",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1038"]
+superseded_by_run_id = "run-1140"
+
+[runs.citation]
+citation_key = "bijux-container-run-1051"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1051"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1051"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1052"
+title = "IBDseq container qualification protocol"
+purpose = "Qualify IBDseq r1206 for the vcf.ibd operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.ibd"
+tool_ids = ["ibdseq"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.ibd",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1039"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1052"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1052"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1052",
+    "repo://containers/runs/run-1052-ibdseq/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1053"
+title = "IBDNe container qualification protocol"
+purpose = "Qualify IBDNe 23Apr20.ae9 for the vcf.demography operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.demography"
+tool_ids = ["ibdne"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.demography",
+]
+corpus_roles = ["hap_ibd_segments"]
+acceptance_policy = "stage-contract with ibd-segments resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1042"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1053"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1053"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1053",
+    "repo://containers/runs/run-1053-ibdne/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1054"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1045"]
+superseded_by_run_id = "run-1090"
+
+[runs.citation]
+citation_key = "bijux-container-run-1054"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1054"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1054"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1055"
+title = "DustMasker container qualification protocol"
+purpose = "Qualify DustMasker 2.15.0 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["dustmasker"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1055"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1055"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1055",
+    "repo://containers/runs/run-1055-dustmasker/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1056"
+title = "DADA2 container qualification protocol"
+purpose = "Qualify DADA2 1.30.0 for the fastq.infer_asvs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.infer_asvs"
+tool_ids = ["dada2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.infer_asvs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1057"
+
+[runs.citation]
+citation_key = "bijux-container-run-1056"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1056"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1056"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1057"
+title = "DADA2 container qualification protocol"
+purpose = "Qualify DADA2 1.30.0 for the fastq.infer_asvs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.infer_asvs"
+tool_ids = ["dada2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.infer_asvs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1056"]
+superseded_by_run_id = "run-1058"
+
+[runs.citation]
+citation_key = "bijux-container-run-1057"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1057"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1057"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1058"
+title = "DADA2 container qualification protocol"
+purpose = "Qualify DADA2 1.30.0 for the fastq.infer_asvs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.infer_asvs"
+tool_ids = ["dada2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.infer_asvs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1057"]
+superseded_by_run_id = "run-1059"
+
+[runs.citation]
+citation_key = "bijux-container-run-1058"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1058"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1058"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1059"
+title = "DADA2 container qualification protocol"
+purpose = "Qualify DADA2 1.30.0 for the fastq.infer_asvs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.infer_asvs"
+tool_ids = ["dada2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.infer_asvs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1058"]
+superseded_by_run_id = "run-1060"
+
+[runs.citation]
+citation_key = "bijux-container-run-1059"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1059"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1059"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1060"
+title = "DADA2 container qualification protocol"
+purpose = "Qualify DADA2 1.30.0 for the fastq.infer_asvs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.infer_asvs"
+tool_ids = ["dada2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.infer_asvs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1059"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1060"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1060"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1060",
+    "repo://containers/runs/run-1060-dada2/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1061"
+title = "IBDHap container qualification protocol"
+purpose = "Qualify IBDHap 3.4 for the vcf.ibd operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.ibd"
+tool_ids = ["ibdhap"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.ibd",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1067"
+
+[runs.citation]
+citation_key = "bijux-container-run-1061"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1061"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1061"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1062"
+title = "Beagle container qualification protocol"
+purpose = "Qualify Beagle 5.4 for the vcf.imputation_metrics operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.imputation_metrics"
+tool_ids = ["beagle"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.imputation_metrics",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1062"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1062"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1062",
+    "repo://containers/runs/run-1062-beagle/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1063"
+title = "PLINK 2 container qualification protocol"
+purpose = "Qualify PLINK 2 2.00a6 for the vcf.admixture operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.admixture"
+tool_ids = ["plink2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.admixture",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1064"
+
+[runs.citation]
+citation_key = "bijux-container-run-1063"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1063"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1063"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1064"
+title = "PLINK 2 container qualification protocol"
+purpose = "Qualify PLINK 2 2.00a6 for the vcf.admixture operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.admixture"
+tool_ids = ["plink2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.admixture",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1063"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1064"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1064"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1064",
+    "repo://containers/runs/run-1064-plink2/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1065"
+title = "GERMLINE container qualification protocol"
+purpose = "Qualify GERMLINE 1.5.3 for the vcf.ibd operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.ibd"
+tool_ids = ["germline"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.ibd",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1068"
+
+[runs.citation]
+citation_key = "bijux-container-run-1065"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1065"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1065"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1066"
+title = "PLINK container qualification protocol"
+purpose = "Qualify PLINK 1.90b7.2 for the vcf.admixture operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.admixture"
+tool_ids = ["plink"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.admixture",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1066"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1066"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1066",
+    "repo://containers/runs/run-1066-plink/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1067"
+title = "IBDHap container qualification protocol"
+purpose = "Qualify IBDHap 3.4 for the vcf.ibd operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.ibd"
+tool_ids = ["ibdhap"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.ibd",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1061"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1067"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1067"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1067",
+    "repo://containers/runs/run-1067-ibdhap/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1068"
+title = "GERMLINE container qualification protocol"
+purpose = "Qualify GERMLINE 1.5.3 for the vcf.ibd operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.ibd"
+tool_ids = ["germline"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.ibd",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1065"]
+superseded_by_run_id = "run-1069"
+
+[runs.citation]
+citation_key = "bijux-container-run-1068"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1068"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1068"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1069"
+title = "GERMLINE container qualification protocol"
+purpose = "Qualify GERMLINE 1.5.3 for the vcf.ibd operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.ibd"
+tool_ids = ["germline"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.ibd",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1068"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1069"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1069"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1069",
+    "repo://containers/runs/run-1069-germline/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1070"
+title = "EIGENSOFT container qualification protocol"
+purpose = "Qualify EIGENSOFT 8.0.0 for the vcf.pca operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.pca"
+tool_ids = ["eigensoft"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.pca",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1070"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1070"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1070",
+    "repo://containers/runs/run-1070-eigensoft/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1071"
+title = "SeqKit container qualification protocol"
+purpose = "Qualify SeqKit 2.8.2 for the fastq.filter_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.filter_reads"
+tool_ids = ["seqkit"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.filter_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1071"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1071"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1071",
+    "repo://containers/runs/run-1071-seqkit/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1072"
+title = "SeqKit Stats container qualification protocol"
+purpose = "Qualify SeqKit Stats 2.8.2 for the fastq.profile_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.profile_reads"
+tool_ids = ["seqkit_stats"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.profile_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1072"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1072"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1072",
+    "repo://containers/runs/run-1072-seqkit_stats/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1073"
+title = "Seqtk container qualification protocol"
+purpose = "Qualify Seqtk 1.4 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["seqtk"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1073"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1073"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1073",
+    "repo://containers/runs/run-1073-seqtk/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1074"
+title = "BEDTools container qualification protocol"
+purpose = "Qualify BEDTools 2.31.1 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["bedtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1074"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1074"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1074",
+    "repo://containers/runs/run-1074-bedtools/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1075"
+title = "fastp container qualification protocol"
+purpose = "Qualify fastp 0.23.4 for the fastq.filter_low_complexity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.filter_low_complexity"
+tool_ids = ["fastp"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.filter_low_complexity",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1075"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1075"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1075",
+    "repo://containers/runs/run-1075-fastp/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1076"
+title = "FastQC container qualification protocol"
+purpose = "Qualify FastQC 0.12.1 for the fastq.detect_adapters operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.detect_adapters"
+tool_ids = ["fastqc"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.detect_adapters",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1076"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1076"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1076",
+    "repo://containers/runs/run-1076-fastqc/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1077"
+title = "FASTQ Validator container qualification protocol"
+purpose = "Qualify FASTQ Validator 0.1.1 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["fastqvalidator"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1077"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1077"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1077",
+    "repo://containers/runs/run-1077-fastqvalidator/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1078"
+title = "FLASH2 container qualification protocol"
+purpose = "Qualify FLASH2 2.2.00 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["flash2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1120"
+
+[runs.citation]
+citation_key = "bijux-container-run-1078"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1078"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1078"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1079"
+title = "Skewer container qualification protocol"
+purpose = "Qualify Skewer 0.2.2 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["skewer"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1079"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1079"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1079",
+    "repo://containers/runs/run-1079-skewer/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1080"
+title = "FASTX Clipper container qualification protocol"
+purpose = "Qualify FASTX Clipper 0.0.14 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["fastx_clipper"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1083"
+
+[runs.citation]
+citation_key = "bijux-container-run-1080"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1080"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1080"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1081"
+title = "Reserved container run 1081"
+purpose = "Preserve an unallocated historical namespace position so it can never be reused."
+owner = "bijux-dna-containers"
+operation = "run_id_reservation"
+stage_id = "container.run_reservation"
+tool_ids = []
+contract_ids = ["container-run-identity-policy"]
+corpus_roles = []
+acceptance_policy = "the run ID remains permanently unavailable for allocation"
+state = "reserved"
+state_reason = "unallocated gap in the historical qualification-run sequence"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1081"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1081"
+evidence_uris = ["repo://containers/contracts/qualification-run-history.toml"]
+limitations = ["This identity is a tombstone and has no executable publication."]
+
+[[runs]]
+run_id = "run-1082"
+title = "SeqPrep container qualification protocol"
+purpose = "Qualify SeqPrep 1.3.2 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["seqprep"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1082"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1082"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1082",
+    "repo://containers/runs/run-1082-seqprep/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1083"
+title = "FASTX Clipper container qualification protocol"
+purpose = "Qualify FASTX Clipper 0.0.14 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["fastx_clipper"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1080"]
+superseded_by_run_id = "run-1119"
+
+[runs.citation]
+citation_key = "bijux-container-run-1083"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1083"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1083"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1084"
+title = "VSEARCH container qualification protocol"
+purpose = "Qualify VSEARCH 2.29.3 for the fastq.cluster_otus operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.cluster_otus"
+tool_ids = ["vsearch"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.cluster_otus",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1084"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1084"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1084",
+    "repo://containers/runs/run-1084-vsearch/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1085"
+title = "Reserved container run 1085"
+purpose = "Preserve an unallocated historical namespace position so it can never be reused."
+owner = "bijux-dna-containers"
+operation = "run_id_reservation"
+stage_id = "container.run_reservation"
+tool_ids = []
+contract_ids = ["container-run-identity-policy"]
+corpus_roles = []
+acceptance_policy = "the run ID remains permanently unavailable for allocation"
+state = "reserved"
+state_reason = "unallocated gap in the historical qualification-run sequence"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1085"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1085"
+evidence_uris = ["repo://containers/contracts/qualification-run-history.toml"]
+limitations = ["This identity is a tombstone and has no executable publication."]
+
+[[runs]]
+run_id = "run-1086"
+title = "BamTools container qualification protocol"
+purpose = "Qualify BamTools 2.5.2 for the bam.filter operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.filter"
+tool_ids = ["bamtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.filter",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1086"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1086"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1086",
+    "repo://containers/runs/run-1086-bamtools/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1087"
+title = "bamUtil container qualification protocol"
+purpose = "Qualify bamUtil 1.0.15 for the bam.overlap_correction operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.overlap_correction"
+tool_ids = ["bamutil"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.overlap_correction",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1087"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1087"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1087",
+    "repo://containers/runs/run-1087-bamutil/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1088"
+title = "Mosdepth container qualification protocol"
+purpose = "Qualify Mosdepth 0.3.11 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["mosdepth"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1088"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1088"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1088",
+    "repo://containers/runs/run-1088-mosdepth/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1089"
+title = "AlienTrimmer container qualification protocol"
+purpose = "Qualify AlienTrimmer 3.2 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["alientrimmer"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1091"
+
+[runs.citation]
+citation_key = "bijux-container-run-1089"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1089"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1089"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1090"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1054"]
+superseded_by_run_id = "run-1092"
+
+[runs.citation]
+citation_key = "bijux-container-run-1090"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1090"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1090"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1091"
+title = "AlienTrimmer container qualification protocol"
+purpose = "Qualify AlienTrimmer 3.2 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["alientrimmer"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1089"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1091"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1091"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1091",
+    "repo://containers/runs/run-1091-alientrimmer/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1092"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1090"]
+superseded_by_run_id = "run-1107"
+
+[runs.citation]
+citation_key = "bijux-container-run-1092"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1092"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1092"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1093"
+title = "AuthentiCT container qualification protocol"
+purpose = "Qualify AuthentiCT 1.0.0 for the bam.authenticity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.authenticity"
+tool_ids = ["authenticct"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.authenticity",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1093"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1093"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1093",
+    "repo://containers/runs/run-1093-authenticct/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1094"
+title = "ANGSD container qualification protocol"
+purpose = "Qualify ANGSD 0.941 for the bam.kinship operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.kinship"
+tool_ids = ["angsd"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.kinship",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1094"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1094"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1094"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1095"
+title = "AdDeam container qualification protocol"
+purpose = "Qualify AdDeam 1.0.0 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["addeam"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1096"
+
+[runs.citation]
+citation_key = "bijux-container-run-1095"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1095"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1095"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1096"
+title = "AdDeam container qualification protocol"
+purpose = "Qualify AdDeam 1.0.0 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["addeam"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1095"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1096"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1096"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1096",
+    "repo://containers/runs/run-1096-addeam/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1097"
+title = "Atropos container qualification protocol"
+purpose = "Qualify Atropos 1.1.31 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["atropos"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1098"
+
+[runs.citation]
+citation_key = "bijux-container-run-1097"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1097"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1097"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1098"
+title = "Atropos container qualification protocol"
+purpose = "Qualify Atropos 1.1.31 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["atropos"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1097"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1098"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1098"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1098",
+    "repo://containers/runs/run-1098-atropos/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1099"
+title = "BayesHammer container qualification protocol"
+purpose = "Qualify BayesHammer 4.2.0 for the fastq.correct_errors operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.correct_errors"
+tool_ids = ["bayeshammer"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.correct_errors",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1099"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1099"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1099",
+    "repo://containers/runs/run-1099-bayeshammer/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1100"
+title = "Bowtie 2 Build container qualification protocol"
+purpose = "Qualify Bowtie 2 Build 2.5.4 for the fastq.index_reference operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.index_reference"
+tool_ids = ["bowtie2_build"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.index_reference",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1100"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1100"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1100",
+    "repo://containers/runs/run-1100-bowtie2_build/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1101"
+title = "Bowtie 2 container qualification protocol"
+purpose = "Qualify Bowtie 2 2.5.4 for the bam.align operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.align"
+tool_ids = ["bowtie2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.align",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1101"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1101"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1101",
+    "repo://containers/runs/run-1101-bowtie2/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1102"
+title = "Kraken 2 container qualification protocol"
+purpose = "Qualify Kraken 2 2.1.3 for the fastq.screen_taxonomy operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.screen_taxonomy"
+tool_ids = ["kraken2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.screen_taxonomy",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1102"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1102"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1102",
+    "repo://containers/runs/run-1102-kraken2/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1103"
+title = "Bracken container qualification protocol"
+purpose = "Qualify Bracken 2.9 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["bracken"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1104"
+
+[runs.citation]
+citation_key = "bijux-container-run-1103"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1103"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1103"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1104"
+title = "Bracken container qualification protocol"
+purpose = "Qualify Bracken 2.9 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["bracken"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1103"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1104"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1104"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1104",
+    "repo://containers/runs/run-1104-bracken/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1105"
+title = "Centrifuge container qualification protocol"
+purpose = "Qualify Centrifuge 1.0.4 for the fastq.screen_taxonomy operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.screen_taxonomy"
+tool_ids = ["centrifuge"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.screen_taxonomy",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1106"
+
+[runs.citation]
+citation_key = "bijux-container-run-1105"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1105"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1105"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1106"
+title = "Centrifuge container qualification protocol"
+purpose = "Qualify Centrifuge 1.0.4 for the fastq.screen_taxonomy operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.screen_taxonomy"
+tool_ids = ["centrifuge"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.screen_taxonomy",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1105"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1106"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1106"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1106",
+    "repo://containers/runs/run-1106-centrifuge/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1107"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1092"]
+superseded_by_run_id = "run-1111"
+
+[runs.citation]
+citation_key = "bijux-container-run-1107"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1107"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1107"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1108"
+title = "contamMix container qualification protocol"
+purpose = "Qualify contamMix 1.0.11 for the bam.contamination operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.contamination"
+tool_ids = ["contammix"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.contamination",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1108"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1108"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1108",
+    "repo://containers/runs/run-1108-contammix/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1109"
+title = "Cutadapt container qualification protocol"
+purpose = "Qualify Cutadapt 4.9 for the fastq.normalize_primers operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.normalize_primers"
+tool_ids = ["cutadapt"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.normalize_primers",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1109"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1109"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1109",
+    "repo://containers/runs/run-1109-cutadapt/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1110"
+title = "DamageProfiler container qualification protocol"
+purpose = "Qualify DamageProfiler 1.1 for the bam.authenticity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.authenticity"
+tool_ids = ["damageprofiler"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.authenticity",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1113"
+
+[runs.citation]
+citation_key = "bijux-container-run-1110"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1110"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1110"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1111"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1107"]
+superseded_by_run_id = "run-1112"
+
+[runs.citation]
+citation_key = "bijux-container-run-1111"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1111"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1111"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1112"
+title = "Samtools container qualification protocol"
+purpose = "Qualify Samtools 1.20 for the bam.coverage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.coverage"
+tool_ids = ["samtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.coverage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1111"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1112"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1112"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1112",
+    "repo://containers/runs/run-1112-samtools/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1113"
+title = "DamageProfiler container qualification protocol"
+purpose = "Qualify DamageProfiler 1.1 for the bam.authenticity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.authenticity"
+tool_ids = ["damageprofiler"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.authenticity",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1110"]
+superseded_by_run_id = "run-1114"
+
+[runs.citation]
+citation_key = "bijux-container-run-1113"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1113"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1113"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1114"
+title = "DamageProfiler container qualification protocol"
+purpose = "Qualify DamageProfiler 1.1 for the bam.authenticity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.authenticity"
+tool_ids = ["damageprofiler"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.authenticity",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1113"]
+superseded_by_run_id = "run-1115"
+
+[runs.citation]
+citation_key = "bijux-container-run-1114"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1114"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1114"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1115"
+title = "DamageProfiler container qualification protocol"
+purpose = "Qualify DamageProfiler 1.1 for the bam.authenticity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.authenticity"
+tool_ids = ["damageprofiler"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.authenticity",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1114"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1115"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1115"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1115",
+    "repo://containers/runs/run-1115-damageprofiler/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1116"
+title = "DIAMOND container qualification protocol"
+purpose = "Qualify DIAMOND 2.1.10 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["diamond"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1117"
+
+[runs.citation]
+citation_key = "bijux-container-run-1116"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1116"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1116"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1117"
+title = "DIAMOND container qualification protocol"
+purpose = "Qualify DIAMOND 2.1.10 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["diamond"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1116"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1117"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1117"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1117",
+    "repo://containers/runs/run-1117-diamond/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1118"
+title = "FASTQ Scan container qualification protocol"
+purpose = "Qualify FASTQ Scan 1.0.1 for the fastq.profile_overrepresented_sequences operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_ids = ["fastq_scan"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.profile_overrepresented_sequences",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1010"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1118"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1118"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1118",
+    "repo://containers/runs/run-1118-fastq_scan/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1119"
+title = "FASTX Clipper container qualification protocol"
+purpose = "Qualify FASTX Clipper 0.0.14 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["fastx_clipper"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1083"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1119"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1119"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1119",
+    "repo://containers/runs/run-1119-fastx_clipper/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1120"
+title = "FLASH2 container qualification protocol"
+purpose = "Qualify FLASH2 2.2.00 for the fastq.merge_pairs operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.merge_pairs"
+tool_ids = ["flash2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.merge_pairs",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1078"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1120"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1120"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1120",
+    "repo://containers/runs/run-1120-flash2/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1121"
+title = "fqtools container qualification protocol"
+purpose = "Qualify fqtools 2.3 for the fastq.validate_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.validate_reads"
+tool_ids = ["fqtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.validate_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1022"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1121"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1121"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1121",
+    "repo://containers/runs/run-1121-fqtools/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1122"
+title = "Trim Galore container qualification protocol"
+purpose = "Qualify Trim Galore 0.6.10 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["trim_galore"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1124"
+
+[runs.citation]
+citation_key = "bijux-container-run-1122"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1122"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1122"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1123"
+title = "Trimmomatic container qualification protocol"
+purpose = "Qualify Trimmomatic 0.39 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["trimmomatic"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1125"
+
+[runs.citation]
+citation_key = "bijux-container-run-1123"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1123"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1123"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1124"
+title = "Trim Galore container qualification protocol"
+purpose = "Qualify Trim Galore 0.6.10 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["trim_galore"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1122"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1124"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1124"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1124",
+    "repo://containers/runs/run-1124-trim_galore/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1125"
+title = "Trimmomatic container qualification protocol"
+purpose = "Qualify Trimmomatic 0.39 for the fastq.trim_reads operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.trim_reads"
+tool_ids = ["trimmomatic"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.trim_reads",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1123"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1125"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1125"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1125",
+    "repo://containers/runs/run-1125-trimmomatic/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1126"
+title = "MultiQC container qualification protocol"
+purpose = "Qualify MultiQC 1.24 for the bam.qc_pre operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.qc_pre"
+tool_ids = ["multiqc"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.qc_pre",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1128"
+
+[runs.citation]
+citation_key = "bijux-container-run-1126"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1126"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1126"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1127"
+title = "SPAdes container qualification protocol"
+purpose = "Qualify SPAdes 4.2.0 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["spades"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1135"
+
+[runs.citation]
+citation_key = "bijux-container-run-1127"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1127"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1127"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1128"
+title = "MultiQC container qualification protocol"
+purpose = "Qualify MultiQC 1.24 for the bam.qc_pre operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.qc_pre"
+tool_ids = ["multiqc"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.qc_pre",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1126"]
+superseded_by_run_id = "run-1129"
+
+[runs.citation]
+citation_key = "bijux-container-run-1128"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1128"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1128"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1129"
+title = "MultiQC container qualification protocol"
+purpose = "Qualify MultiQC 1.24 for the bam.qc_pre operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.qc_pre"
+tool_ids = ["multiqc"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.qc_pre",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1128"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1129"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1129"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1129",
+    "repo://containers/runs/run-1129-multiqc/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1130"
+title = "PyDamage container qualification protocol"
+purpose = "Qualify PyDamage 1.0 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["pydamage"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = []
+superseded_by_run_id = "run-1131"
+
+[runs.citation]
+citation_key = "bijux-container-run-1130"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1130"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1130"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1131"
+title = "PyDamage container qualification protocol"
+purpose = "Qualify PyDamage 1.0 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["pydamage"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1130"]
+superseded_by_run_id = "run-1132"
+
+[runs.citation]
+citation_key = "bijux-container-run-1131"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1131"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1131"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1132"
+title = "PyDamage container qualification protocol"
+purpose = "Qualify PyDamage 1.0 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["pydamage"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1131"]
+superseded_by_run_id = "run-1133"
+
+[runs.citation]
+citation_key = "bijux-container-run-1132"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1132"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1132"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1133"
+title = "PyDamage container qualification protocol"
+purpose = "Qualify PyDamage 1.0 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["pydamage"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "historical"
+state_reason = "Historical run identity retained without promotion to current evidence."
+supersedes_run_ids = ["run-1132"]
+superseded_by_run_id = "run-1134"
+
+[runs.citation]
+citation_key = "bijux-container-run-1133"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1133"
+evidence_uris = ["repo://containers/runs/attempt-ledger.json#run-1133"]
+limitations = ["Historical evidence is not a current qualification publication."]
+
+[[runs]]
+run_id = "run-1134"
+title = "PyDamage container qualification protocol"
+purpose = "Qualify PyDamage 1.0 for the bam.damage operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.damage"
+tool_ids = ["pydamage"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.damage",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1133"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1134"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1134"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1134",
+    "repo://containers/runs/run-1134-pydamage/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1135"
+title = "SPAdes container qualification protocol"
+purpose = "Qualify SPAdes 4.2.0 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["spades"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1127"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1135"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1135"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1135",
+    "repo://containers/runs/run-1135-spades/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1136"
+title = "Preseq container qualification protocol"
+purpose = "Qualify Preseq 3.2.0 for the bam.complexity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.complexity"
+tool_ids = ["preseq"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.complexity",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1136"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1136"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1136",
+    "repo://containers/runs/run-1136-preseq/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1137"
+title = "PMDtools container qualification protocol"
+purpose = "Qualify PMDtools 0.60 for the bam.authenticity operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.authenticity"
+tool_ids = ["pmdtools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.authenticity",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1137"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1137"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1137",
+    "repo://containers/runs/run-1137-pmdtools/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1138"
+title = "Picard container qualification protocol"
+purpose = "Qualify Picard 3.3.0 for the bam.duplication_metrics operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.duplication_metrics"
+tool_ids = ["picard"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.duplication_metrics",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1138"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1138"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1138",
+    "repo://containers/runs/run-1138-picard/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1139"
+title = "Lighter container qualification protocol"
+purpose = "Qualify Lighter 1.1.3 for the fastq.correct_errors operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.correct_errors"
+tool_ids = ["lighter"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.correct_errors",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "active"
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1139"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1139"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1139",
+    "repo://containers/runs/run-1139-lighter/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1140"
+title = "BCFtools container qualification protocol"
+purpose = "Qualify BCFtools 1.20 for the vcf.call operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.call"
+tool_ids = ["bcftools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.call",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "active"
+supersedes_run_ids = ["run-1051"]
+
+[runs.citation]
+citation_key = "bijux-container-run-1140"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1140"
+evidence_uris = [
+    "repo://containers/runs/attempt-ledger.json#run-1140",
+    "repo://containers/runs/run-1140-bcftools/evidence.lock.json",
+]
+limitations = []
+
+[[runs]]
+run_id = "run-1141"
+title = "Bijux Genomics container qualification protocol"
+purpose = "Qualify Bijux Genomics 0.1.0 for the fastq.detect_duplicates_premerge operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.detect_duplicates_premerge"
+tool_ids = ["bijux_dna"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.detect_duplicates_premerge",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1141"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1141"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1142"
+title = "FastQ Screen container qualification protocol"
+purpose = "Qualify FastQ Screen 0.15.3 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["fastq_screen"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1142"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1142"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1143"
+title = "GATK container qualification protocol"
+purpose = "Qualify GATK 4.6.2.0 for the bam.recalibration operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.recalibration"
+tool_ids = ["gatk"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.recalibration",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1143"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1143"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1144"
+title = "GLIMPSE container qualification protocol"
+purpose = "Qualify GLIMPSE 1.1.1 for the vcf.imputation_metrics operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.imputation_metrics"
+tool_ids = ["glimpse"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.imputation_metrics",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1144"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1144"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1145"
+title = "Kaiju container qualification protocol"
+purpose = "Qualify Kaiju 1.10.0 for the fastq.screen_taxonomy operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.screen_taxonomy"
+tool_ids = ["kaiju"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.screen_taxonomy",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1145"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1145"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1146"
+title = "KING container qualification protocol"
+purpose = "Qualify KING 2.3.0 for the bam.kinship operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.kinship"
+tool_ids = ["king"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.kinship",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1146"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1146"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1147"
+title = "KrakenUniq container qualification protocol"
+purpose = "Qualify KrakenUniq 1.0.4 for the fastq.screen_taxonomy operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.screen_taxonomy"
+tool_ids = ["krakenuniq"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.screen_taxonomy",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1147"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1147"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1148"
+title = "MetaPhlAn container qualification protocol"
+purpose = "Qualify MetaPhlAn 4.1.1 for the container.runtime operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "container.runtime"
+tool_ids = ["metaphlan"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:container.runtime",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "runtime-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1148"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1148"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1149"
+title = "Minimac4 container qualification protocol"
+purpose = "Qualify Minimac4 4.1.6 for the vcf.imputation_metrics operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "vcf.imputation_metrics"
+tool_ids = ["minimac4"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:vcf.imputation_metrics",
+]
+corpus_roles = ["vcf"]
+acceptance_policy = "stage-contract with vcf-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1149"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1149"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1150"
+title = "Rcorrector container qualification protocol"
+purpose = "Qualify Rcorrector 1.0.7 for the fastq.correct_errors operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.correct_errors"
+tool_ids = ["rcorrector"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.correct_errors",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1150"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1150"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1151"
+title = "Rxy container qualification protocol"
+purpose = "Qualify Rxy 2.0.0 for the bam.sex operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.sex"
+tool_ids = ["rxy"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.sex",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1151"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1151"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1152"
+title = "Schmutzi container qualification protocol"
+purpose = "Qualify Schmutzi 1.5.4 for the bam.contamination operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.contamination"
+tool_ids = ["schmutzi"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.contamination",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1152"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1152"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1153"
+title = "SortMeRNA container qualification protocol"
+purpose = "Qualify SortMeRNA 4.3.7 for the fastq.deplete_rrna operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.deplete_rrna"
+tool_ids = ["sortmerna"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.deplete_rrna",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1153"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1153"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1154"
+title = "STAR container qualification protocol"
+purpose = "Qualify STAR 2.7.11b for the fastq.index_reference operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.index_reference"
+tool_ids = ["star"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.index_reference",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1154"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1154"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1155"
+title = "UMI-tools container qualification protocol"
+purpose = "Qualify UMI-tools 1.1.6 for the fastq.extract_umis operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "fastq.extract_umis"
+tool_ids = ["umi_tools"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:fastq.extract_umis",
+]
+corpus_roles = ["fastq"]
+acceptance_policy = "stage-contract with fastq-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1155"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1155"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1156"
+title = "VerifyBamID2 container qualification protocol"
+purpose = "Qualify VerifyBamID2 2.0.1 for the bam.contamination operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.contamination"
+tool_ids = ["verifybamid2"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.contamination",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1156"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1156"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]
+
+[[runs]]
+run_id = "run-1157"
+title = "Yleaf container qualification protocol"
+purpose = "Qualify Yleaf 4.1.4 for the bam.haplogroups operation using declared real-data outputs."
+owner = "bijux-dna-containers-qa"
+operation = "container_qualification"
+stage_id = "bam.haplogroups"
+tool_ids = ["yleaf"]
+contract_ids = [
+    "container-catalog",
+    "container-tool-contract",
+    "stage-binding:bam.haplogroups",
+]
+corpus_roles = ["bam"]
+acceptance_policy = "stage-contract with bam-standard resource accounting"
+state = "allocated"
+state_reason = "Permanent run identity allocated; no admitted terminal attempt is selected."
+supersedes_run_ids = []
+
+[runs.citation]
+citation_key = "bijux-container-run-1157"
+protocol_version = "1"
+registry_anchor = "repo://containers/contracts/qualification-runs.toml#run-1157"
+evidence_uris = []
+limitations = ["The protocol has no selected publication until qualification completes."]

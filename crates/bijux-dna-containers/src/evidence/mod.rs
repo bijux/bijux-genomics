@@ -77,9 +77,11 @@ pub use qualification_registry::{
     render_qualification_run_registry, validate_qualification_run_registry,
     write_qualification_run_id_audit_schema, write_qualification_run_registry_schema,
     DerivedQualificationRunRegistry, QualificationHistoricalRunIdentity,
-    QualificationRegistryDerivationRequest, QualificationRunIdAudit, QualificationRunIdAuditRow,
-    QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
-    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+    QualificationRegistryDerivationRequest, QualificationRunCitationRecord,
+    QualificationRunDefinition, QualificationRunIdAudit, QualificationRunIdAuditRow,
+    QualificationRunIdTombstone, QualificationRunNamespacePolicy, QualificationRunRegistry,
+    QualificationRunRegistryEntry, QualificationRunRegistrySummary, QualificationRunState,
+    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
 };
 pub use run_evidence::{
     apply_final_run_evidence_plan, apply_result_layout, apply_superseded_result_archive,

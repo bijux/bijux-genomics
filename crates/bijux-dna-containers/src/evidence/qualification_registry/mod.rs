@@ -6,9 +6,11 @@ mod schema;
 mod workflow;
 
 pub use model::{
-    QualificationHistoricalRunIdentity, QualificationRunIdAudit, QualificationRunIdAuditRow,
-    QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
-    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+    QualificationHistoricalRunIdentity, QualificationRunCitationRecord, QualificationRunDefinition,
+    QualificationRunIdAudit, QualificationRunIdAuditRow, QualificationRunIdTombstone,
+    QualificationRunNamespacePolicy, QualificationRunRegistry, QualificationRunRegistryEntry,
+    QualificationRunRegistrySummary, QualificationRunState, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
+    QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
 };
 pub use schema::{
     qualification_run_id_audit_schema, qualification_run_registry_schema,
