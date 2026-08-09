@@ -50,10 +50,86 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 /// Returns an error if a binding violates the schema or duplicates a stage/tool pair.
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
-    for binding in [bcftools_genotyping(), bowtie2_align(), bwa_align()] {
+    for binding in [
+        bcftools_genotyping(),
+        bedtools_coverage(),
+        bowtie2_align(),
+        bwa_align(),
+        mosdepth_coverage(),
+        samtools_coverage(),
+    ] {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn bedtools_coverage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.coverage",
+        "bedtools",
+        &["bam_input", "genome_coverage", "native_bedgraph_output"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("coverage_bedgraph", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' genomecov -ibam '${input:bam}' -bga > '${output:coverage_bedgraph}'",
+        ],
+        "bijux.benchmark.bam.coverage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::coverage",
+        "benchmark.bam.coverage.compare",
+        resources(1, 8, 8),
+        &["bedgraph_is_preserved_before_tool_independent_coverage_normalization"],
+    )
+}
+
+fn mosdepth_coverage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.coverage",
+        "mosdepth",
+        &["bam_input", "parallel_coverage", "native_summary_and_distribution_outputs"],
+        &[input("bam", BAM)],
+        &[],
+        &[
+            output("coverage_summary", TABLE),
+            output("coverage_distribution", TABLE),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "prefix='${output:coverage_summary}.native'; '${executable}' --threads 4 --no-per-base \"$prefix\" '${input:bam}'; mv \"$prefix.mosdepth.summary.txt\" '${output:coverage_summary}'; mv \"$prefix.mosdepth.global.dist.txt\" '${output:coverage_distribution}'",
+        ],
+        "bijux.benchmark.bam.coverage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::coverage",
+        "benchmark.bam.coverage.compare",
+        resources(4, 8, 8),
+        &["native_summary_and_global_distribution_are_both_required_for_normalization"],
+    )
+}
+
+fn samtools_coverage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.coverage",
+        "samtools",
+        &["bam_input", "per_position_depth", "header_reference_span"],
+        &[input("bam", BAM)],
+        &[],
+        &[
+            output("depth_table", TABLE),
+            output("reference_span", TABLE),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' depth '${input:bam}' > '${output:depth_table}'; '${executable}' view -H '${input:bam}' | awk -F '\\t' 'BEGIN {OFS=\"\\t\"} $1 == \"@SQ\" {for (i=2; i<=NF; i++) if ($i ~ /^LN:/) total += substr($i, 4)} END {if (total <= 0) exit 2; print \"reference_bases\", total}' > '${output:reference_span}'",
+        ],
+        "bijux.benchmark.bam.coverage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::bam::coverage",
+        "benchmark.bam.coverage.compare",
+        resources(1, 8, 8),
+        &["zero_depth_positions_are_absent_and_reference_span_is_recovered_from_the_bam_header"],
+    )
 }
 
 /// Returns every canonical tool binding regardless of artifact distribution policy.

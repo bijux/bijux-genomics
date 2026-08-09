@@ -15,13 +15,14 @@ const ALIGN_STAGE: &str = "bam.align";
 const ALIGN_BUNDLE: &str = "bijux.benchmark.bam.align.bundle.v1";
 const UNSORTED_SAM: &str = "bijux.sam.artifact.unsorted.v1";
 const GENOTYPING_STAGE: &str = "bam.genotyping";
+const COVERAGE_STAGE: &str = "bam.coverage";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 3);
+    assert_eq!(retained.bindings().len(), 6);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -44,8 +45,49 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 11);
+    assert_eq!(all.bindings().len(), 14);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_coverage_bindings_close_run_2002_native_outputs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(COVERAGE_STAGE));
+
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bedtools", "mosdepth", "samtools"]
+    );
+    for binding in bindings {
+        let expected_threads = if binding.tool_id.as_str() == "mosdepth" { 4 } else { 1 };
+        assert_eq!(binding.resources.threads, expected_threads);
+        assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.bam.coverage.bundle.v1");
+        assert_eq!(binding.normalizer_id, "bijux_dna_planner_bam::tool_adapters::bam::coverage");
+        assert_eq!(binding.downstream_probe_id, "benchmark.bam.coverage.compare");
+        assert!(binding.outputs.iter().all(|output| {
+            output.artifact_contract_id == "bijux.auxiliary.artifact.table.v1"
+                && output.discovery == OutputDiscoveryV1::ExactPath
+        }));
+        let outputs = binding
+            .outputs
+            .iter()
+            .map(|output| {
+                (output.name.clone(), format!("/result/{}.tsv", output.name.replace('_', "-")))
+            })
+            .collect();
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: format!("/images/{}.sif", binding.tool_id),
+                inputs: BTreeMap::from([("bam".to_string(), "/input/sample.bam".to_string())]),
+                parameters: BTreeMap::new(),
+                outputs,
+            },
+        )?;
+        assert!(command.iter().all(|token| !token.contains("${")));
+        assert!(command.iter().any(|token| token.contains("/input/sample.bam")));
+    }
     Ok(())
 }
 
