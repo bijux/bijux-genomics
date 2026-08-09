@@ -1,0 +1,118 @@
+{
+  "$defs": {
+    "ImageInventoryEvidenceRootIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "build_evidence_root": {
+          "type": "string"
+        },
+        "image_root": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "image_root",
+        "build_evidence_root"
+      ],
+      "type": "object"
+    },
+    "ImageInventoryScannedImage": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "ImageInventorySourceFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "build_evidence": {
+      "items": {
+        "$ref": "#/$defs/ImageInventorySourceFile"
+      },
+      "type": "array"
+    },
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "evidence_roots": {
+      "items": {
+        "$ref": "#/$defs/ImageInventoryEvidenceRootIdentity"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "images": {
+      "items": {
+        "$ref": "#/$defs/ImageInventoryScannedImage"
+      },
+      "type": "array"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "run_references": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "bijux.container.image_inventory_scan.v2",
+      "type": "string"
+    },
+    "staged_images": {
+      "items": {
+        "$ref": "#/$defs/ImageInventoryScannedImage"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_commit",
+    "catalog_sha256",
+    "images",
+    "staged_images",
+    "build_evidence",
+    "run_references",
+    "evidence_roots"
+  ],
+  "title": "ImageInventoryScan",
+  "type": "object"
+}

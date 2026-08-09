@@ -13,9 +13,9 @@ use crate::evidence::{
 };
 
 use super::source::{
-    load_build_evidence, load_run_references, portable_evidence_path, scan_images,
-    scan_staged_images, validate_evidence_roots, ImageInventoryDerivationRequest,
-    ImageInventoryScan, ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V1,
+    evidence_root_identities, load_build_evidence, load_run_references, portable_evidence_path,
+    scan_images, scan_staged_images, validate_evidence_roots, ImageInventoryDerivationRequest,
+    ImageInventoryScan, ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V2,
 };
 
 type CandidateWithReference = (ContainerImageCandidate, bool);
@@ -96,9 +96,10 @@ pub fn derive_image_inventory_evidence(
         inventory_summary(&tools, &historical_images, &unknown_images, &staged_publication);
 
     let scan = ImageInventoryScan {
-        schema_version: RAW_INVENTORY_SCHEMA_V1.to_string(),
+        schema_version: RAW_INVENTORY_SCHEMA_V2.to_string(),
         repository_commit: repository_commit.clone(),
         catalog_sha256: catalog_sha256.clone(),
+        evidence_roots: evidence_root_identities(request)?,
         images: images.iter().map(|(_, identity)| identity.clone()).collect(),
         staged_images,
         build_evidence: build_evidence.identities,
@@ -112,7 +113,7 @@ pub fn derive_image_inventory_evidence(
         catalog_sha256,
         repository_commit,
         publication: ImageInventoryPublicationIdentity {
-            raw_schema_version: RAW_INVENTORY_SCHEMA_V1.to_string(),
+            raw_schema_version: RAW_INVENTORY_SCHEMA_V2.to_string(),
             raw_sha256: bijux_dna_infra::hash_bytes_sha256(&raw_bytes),
         },
         summary,

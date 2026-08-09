@@ -3,7 +3,7 @@ use std::path::{Component, Path};
 
 use anyhow::{bail, Result};
 
-use super::inventory::{ImageInventoryScan, RAW_INVENTORY_SCHEMA_V1};
+use super::inventory::{ImageInventoryScan, RAW_INVENTORY_SCHEMA_V1, RAW_INVENTORY_SCHEMA_V2};
 use super::model::{
     ContainerDetachedImage, ContainerImageCandidate, ContainerImageInventoryPublication,
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
@@ -19,8 +19,28 @@ use super::model::{
 /// # Errors
 /// Returns an error when schema, source, image, path, or run-reference identity is malformed.
 pub fn validate_image_inventory_scan(scan: &ImageInventoryScan) -> Result<()> {
-    if scan.schema_version != RAW_INVENTORY_SCHEMA_V1 {
+    if !matches!(scan.schema_version.as_str(), RAW_INVENTORY_SCHEMA_V1 | RAW_INVENTORY_SCHEMA_V2) {
         bail!("unsupported image-inventory scan schema: {}", scan.schema_version);
+    }
+    if scan.schema_version == RAW_INVENTORY_SCHEMA_V1 && !scan.evidence_roots.is_empty() {
+        bail!("image-inventory scan v1 cannot contain v2 evidence-root identities");
+    }
+    if scan.schema_version == RAW_INVENTORY_SCHEMA_V2 && scan.evidence_roots.is_empty() {
+        bail!("image-inventory scan v2 requires ordered evidence-root identities");
+    }
+    let mut image_roots = BTreeSet::new();
+    let mut build_evidence_roots = BTreeSet::new();
+    for roots in &scan.evidence_roots {
+        validate_portable_path(&roots.image_root, "inventory image root")?;
+        validate_portable_path(&roots.build_evidence_root, "inventory build-evidence root")?;
+        if !roots.image_root.starts_with("study://")
+            || !roots.build_evidence_root.starts_with("study://")
+            || roots.image_root == roots.build_evidence_root
+            || !image_roots.insert(roots.image_root.as_str())
+            || !build_evidence_roots.insert(roots.build_evidence_root.as_str())
+        {
+            bail!("image-inventory scan contains invalid or duplicate evidence-root identities");
+        }
     }
     validate_git_commit(&scan.repository_commit, "inventory scan repository")?;
     validate_sha256(&scan.catalog_sha256, "inventory scan catalog")?;
@@ -160,12 +180,14 @@ pub fn validate_image_inventory_publication(
         validate_staged_image(image)?;
     }
     let summary = &publication.summary;
-    let expected_historical_dependencies =
-        if publication.publication.raw_schema_version == RAW_INVENTORY_SCHEMA_V1 {
-            state.historical_dependency_count
-        } else {
-            publication.historical_images.len() as u64
-        };
+    let expected_historical_dependencies = if matches!(
+        publication.publication.raw_schema_version.as_str(),
+        RAW_INVENTORY_SCHEMA_V1 | RAW_INVENTORY_SCHEMA_V2
+    ) {
+        state.historical_dependency_count
+    } else {
+        publication.historical_images.len() as u64
+    };
     if summary.tool_count != publication.tools.len() as u64
         || summary.states != state.states
         || summary.historical_dependency_count != expected_historical_dependencies

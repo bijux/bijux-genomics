@@ -13,8 +13,8 @@ This crate owns developer automation contracts, not production pipeline contract
 - Command ids must be deterministic, unique within their command group, and stable unless a migration is documented.
 - `containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output> [<additional-image-root> <additional-build-evidence-root>]...`
   delegates all image admission and selection to `bijux-dna-containers`, preserves every source
-  root explicitly, composes immutable campaign roots without copying their evidence, and atomically
-  refuses to replace either evidence document.
+  root explicitly in the ordered raw scan, composes immutable campaign roots without copying their
+  evidence, and atomically refuses to replace either evidence document.
 - Image-inventory scan and publication schemas are generated and checked through native container
   commands backed by the persisted Rust environment types.
 - `containers run generate-image-inventory-report -- [<publication> <output>]` loads a validated

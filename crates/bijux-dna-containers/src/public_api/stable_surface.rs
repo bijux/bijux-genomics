@@ -100,6 +100,7 @@ pub use crate::evidence::{
     FinalRunEvidencePlan, GrypeDatabaseCompletion, GrypeDatabaseContract, GrypeDatabaseStatus,
     ImageActivationPlan, ImageActivationPlanRequest, ImageActivationPlanState,
     ImageActivationPublication, ImageCandidateDisposition, ImageInventoryDerivationRequest,
+    ImageInventoryEvidenceRootIdentity,
     ImageInventoryEvidenceRoots, ImageInventoryPublicationIdentity, ImageInventoryScan,
     ImageInventoryScannedImage, ImageInventorySourceFile, ImageStorageMove,
     ImageStorageMoveCategory, ImageStoragePlan, ImageStoragePlanRequest, ImageStoragePlanState,

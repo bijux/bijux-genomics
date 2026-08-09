@@ -174,6 +174,12 @@ fn composes_current_single_tool_campaign_with_prior_campaign_evidence() -> Resul
     assert_eq!(evidence.publication.summary.unreferenced_obsolete_count, 1);
     assert_eq!(evidence.scan.images.len(), 2);
     assert_eq!(evidence.scan.build_evidence.len(), 2);
+    assert_eq!(evidence.scan.evidence_roots.len(), 2);
+    assert_eq!(evidence.scan.evidence_roots[1].image_root, "study://containers/staging/current");
+    assert_eq!(
+        evidence.scan.evidence_roots[1].build_evidence_root,
+        "study://containers/evidence/image-campaigns/current"
+    );
     Ok(())
 }
 
@@ -190,8 +196,10 @@ fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
     assert!(tool.candidates[0].path.starts_with("study://containers/apptainer/"));
     assert_eq!(
         publication.publication.raw_schema_version,
-        "bijux.container.image_inventory_scan.v1"
+        "bijux.container.image_inventory_scan.v2"
     );
+    assert_eq!(evidence.scan.evidence_roots.len(), 1);
+    assert_eq!(evidence.scan.evidence_roots[0].image_root, "study://containers/apptainer");
     assert_eq!(
         publication.publication.raw_sha256,
         bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec_pretty(&evidence.scan)?)
@@ -216,6 +224,33 @@ fn run_reference_closure_is_scoped_to_scanned_images() -> Result<()> {
         &evidence.scan,
         &evidence.publication,
     )?;
+    Ok(())
+}
+
+#[test]
+fn historical_v1_scan_without_root_identities_remains_valid() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let mut scan = derive_image_inventory_evidence(&fixture.request)?.scan;
+    scan.schema_version = "bijux.container.image_inventory_scan.v1".to_string();
+    scan.evidence_roots.clear();
+
+    bijux_dna_containers::evidence::validate_image_inventory_scan(&scan)?;
+    Ok(())
+}
+
+#[test]
+fn current_scan_requires_replayable_root_identities() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let mut scan = derive_image_inventory_evidence(&fixture.request)?.scan;
+    scan.evidence_roots.clear();
+
+    let error = bijux_dna_containers::evidence::validate_image_inventory_scan(&scan)
+        .err()
+        .map(|error| error.to_string());
+
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("requires ordered evidence-root identities")));
     Ok(())
 }
 

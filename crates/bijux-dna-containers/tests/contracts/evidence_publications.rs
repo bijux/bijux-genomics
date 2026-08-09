@@ -349,7 +349,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let root = repository_root()?;
     let inventory_path =
         root.join("containers/contracts/schemas/image-inventory-publication.v2.json");
-    let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v1.json");
+    let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v2.json");
     let runtime_path =
         root.join("containers/contracts/schemas/runtime-verification-publication.v2.json");
     let security_probe_path =
@@ -360,7 +360,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
     let qualification_registry_path =
-        root.join("containers/contracts/schemas/qualification-run-registry.v1.json");
+        root.join("containers/contracts/schemas/qualification-run-registry.v2.json");
     let qualification_audit_path =
         root.join("containers/contracts/schemas/qualification-run-id-audit.v2.json");
     let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v2.json");

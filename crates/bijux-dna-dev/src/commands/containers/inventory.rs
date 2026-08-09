@@ -5,7 +5,7 @@ use super::{
     Workspace,
 };
 
-const SCAN_SCHEMA_PATH: &str = "containers/contracts/schemas/image-inventory-scan.v1.json";
+const SCAN_SCHEMA_PATH: &str = "containers/contracts/schemas/image-inventory-scan.v2.json";
 const PUBLICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/image-inventory-publication.v2.json";
 const PUBLICATION_PATH: &str = "containers/reports/image-inventory.json";
@@ -226,12 +226,14 @@ mod tests {
             "/evidence/publication.json",
             "/study/containers/staging/current",
             "/study/containers/evidence/image-campaigns/current",
+            "/study/containers/staging/correction",
+            "/study/containers/evidence/image-campaigns/correction",
         ]
         .map(str::to_string);
 
         let (request, _, _) = parse_generate_args(&workspace, &args)?;
 
-        assert_eq!(request.evidence_roots.len(), 2);
+        assert_eq!(request.evidence_roots.len(), 3);
         assert_eq!(
             request.evidence_roots[1].image_root,
             std::path::Path::new("/study/containers/staging/current")
@@ -239,6 +241,14 @@ mod tests {
         assert_eq!(
             request.evidence_roots[1].build_evidence_root,
             std::path::Path::new("/study/containers/evidence/image-campaigns/current")
+        );
+        assert_eq!(
+            request.evidence_roots[2].image_root,
+            std::path::Path::new("/study/containers/staging/correction")
+        );
+        assert_eq!(
+            request.evidence_roots[2].build_evidence_root,
+            std::path::Path::new("/study/containers/evidence/image-campaigns/correction")
         );
         Ok(())
     }

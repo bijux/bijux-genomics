@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::evidence::{BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence};
 
 pub const RAW_INVENTORY_SCHEMA_V1: &str = "bijux.container.image_inventory_scan.v1";
+pub const RAW_INVENTORY_SCHEMA_V2: &str = "bijux.container.image_inventory_scan.v2";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ImageInventoryDerivationRequest {
@@ -22,6 +23,13 @@ pub struct ImageInventoryDerivationRequest {
 pub struct ImageInventoryEvidenceRoots {
     pub image_root: PathBuf,
     pub build_evidence_root: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ImageInventoryEvidenceRootIdentity {
+    pub image_root: String,
+    pub build_evidence_root: String,
 }
 
 pub(super) fn validate_evidence_roots(request: &ImageInventoryDerivationRequest) -> Result<()> {
@@ -65,6 +73,9 @@ pub struct ImageInventoryScan {
     pub schema_version: String,
     pub repository_commit: String,
     pub catalog_sha256: String,
+    #[serde(default)]
+    #[schemars(required)]
+    pub evidence_roots: Vec<ImageInventoryEvidenceRootIdentity>,
     pub images: Vec<ImageInventoryScannedImage>,
     pub staged_images: Vec<ImageInventoryScannedImage>,
     pub build_evidence: Vec<ImageInventorySourceFile>,
@@ -74,8 +85,37 @@ pub struct ImageInventoryScan {
 fn image_inventory_scan_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": RAW_INVENTORY_SCHEMA_V1,
+        "const": RAW_INVENTORY_SCHEMA_V2,
     })
+}
+
+pub(super) fn evidence_root_identities(
+    request: &ImageInventoryDerivationRequest,
+) -> Result<Vec<ImageInventoryEvidenceRootIdentity>> {
+    let study_root = request
+        .study_root
+        .canonicalize()
+        .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
+    request
+        .evidence_roots
+        .iter()
+        .map(|roots| {
+            Ok(ImageInventoryEvidenceRootIdentity {
+                image_root: portable_study_root(&roots.image_root, &study_root)?,
+                build_evidence_root: portable_study_root(&roots.build_evidence_root, &study_root)?,
+            })
+        })
+        .collect()
+}
+
+fn portable_study_root(path: &Path, study_root: &Path) -> Result<String> {
+    let canonical = path
+        .canonicalize()
+        .with_context(|| format!("canonicalize evidence root {}", path.display()))?;
+    let relative = canonical.strip_prefix(study_root).with_context(|| {
+        format!("evidence root {} is outside governed study root", canonical.display())
+    })?;
+    Ok(format!("study://{}", relative.to_string_lossy()))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

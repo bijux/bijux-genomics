@@ -98,7 +98,9 @@ canonical_inventory="${inventory_root}/image-inventory.json"
 The source checkout and all evidence roots are mandatory. This allows a newer
 automation binary to inventory an older exact-commit image campaign without
 misstating the campaign's repository identity or scanning an unrelated active
-image tree.
+image tree. The raw scan persists the ordered portable image/build-evidence
+root pairs, so every composite derivation can be reproduced without recovering
+its command line from scheduler logs.
 
 When a current single-tool campaign supersedes one image from an otherwise
 compatible prior campaign, append its image root and matching build-evidence
