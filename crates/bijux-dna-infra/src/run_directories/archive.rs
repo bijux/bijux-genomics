@@ -560,3 +560,34 @@ fn file_inventory_schema() -> serde_json::Value {
 fn corruption(message: impl Into<String>) -> IoError {
     IoError::new(IoErrorKind::Corruption, message)
 }
+
+#[cfg(test)]
+mod serialization_tests {
+    use std::path::Path;
+
+    use super::*;
+
+    #[test]
+    fn archive_paths_are_operator_serializable() -> anyhow::Result<()> {
+        let paths = attempt_archive_paths(
+            Path::new("/study/containers"),
+            &AttemptLayoutIdentity {
+                run_directory: "run-1001-tool".to_string(),
+                tool_id: "tool".to_string(),
+                campaign_id: "qualification".to_string(),
+                attempt_id: "attempt-001".to_string(),
+            },
+        )?;
+        let encoded = serde_json::to_value(paths)?;
+
+        assert_eq!(
+            encoded["source"]["attempt_dir"],
+            "/study/containers/run-1001-tool/tool/attempts/qualification/attempt-001"
+        );
+        assert_eq!(
+            encoded["archive_dir"],
+            "/study/containers/.attempt-archives/run-1001-tool/tool/qualification/attempt-001"
+        );
+        Ok(())
+    }
+}

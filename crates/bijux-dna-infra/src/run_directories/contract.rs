@@ -92,7 +92,7 @@ pub struct AttemptArchiveRollbackReceiptV1 {
     pub files: Vec<AttemptArchiveFileV1>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct AttemptArchivePaths {
     pub owner_root: PathBuf,
     pub source: AttemptLayoutPaths,
@@ -101,7 +101,7 @@ pub struct AttemptArchivePaths {
     pub rollback_receipt_path: PathBuf,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct AttemptLayoutPaths {
     pub attempt_dir: PathBuf,
     pub manifests_dir: PathBuf,
