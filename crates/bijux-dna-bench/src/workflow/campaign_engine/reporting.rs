@@ -11,7 +11,7 @@ use bijux_dna_bench_model::{
 };
 
 use super::{
-    validate_benchmark_case_aggregations, BenchmarkCaseAggregationV2, BenchmarkCaseMatrixV1,
+    validate_benchmark_case_aggregations, BenchmarkCaseAggregationV2, BenchmarkCaseMatrixV2,
 };
 use crate::workflow::stage_report::{build_stage_report_for_commit, ComparableAttemptEvidence};
 
@@ -25,7 +25,7 @@ use crate::workflow::stage_report::{build_stage_report_for_commit, ComparableAtt
 /// tool has more than one corpus case, or report comparability and scientific tolerances fail.
 pub fn build_benchmark_stage_report_from_case_aggregations(
     repository_root: &Path,
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     aggregations: &[BenchmarkCaseAggregationV2],
     run_id: &str,
 ) -> Result<BenchmarkStageReport> {
@@ -46,12 +46,26 @@ pub fn build_benchmark_stage_report_from_case_aggregations(
     if selected.len() != cases.len() {
         bail!("benchmark run aggregation closure is incomplete");
     }
-    let run_matrix = BenchmarkCaseMatrixV1 {
+    let run_data_ids = first
+        .campaign
+        .corpus_catalog_ids
+        .iter()
+        .chain(&first.campaign.reference_catalog_ids)
+        .chain(&first.campaign.database_catalog_ids)
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    let run_matrix = BenchmarkCaseMatrixV2 {
         schema_version: matrix.schema_version.clone(),
         repository_commit: matrix.repository_commit.clone(),
         campaign_registry_sha256: matrix.campaign_registry_sha256.clone(),
         interface_catalog_sha256: matrix.interface_catalog_sha256.clone(),
         tool_binding_registry_sha256: matrix.tool_binding_registry_sha256.clone(),
+        data_snapshots: matrix
+            .data_snapshots
+            .iter()
+            .filter(|snapshot| run_data_ids.contains(snapshot.catalog_id.as_str()))
+            .cloned()
+            .collect(),
         cases: cases.iter().map(|case| (*case).clone()).collect(),
     };
     let selected = selected.into_iter().cloned().collect::<Vec<_>>();

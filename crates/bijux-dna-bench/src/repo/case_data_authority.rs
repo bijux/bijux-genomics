@@ -1,5 +1,5 @@
 //! Owner: bijux-dna-bench
-//! Generic corpus-snapshot admission for registry-driven benchmark cases.
+//! Governed data-snapshot admission for registry-driven benchmark cases.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
@@ -7,23 +7,25 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_benchmark_data_index, validate_governed_data_catalog_document,
-    validate_governed_data_catalog_registry, BenchmarkCorpusSnapshotV1, BenchmarkDataIndex,
-    BenchmarkDataIndexRecord, BenchmarkEligibility, DataIntegrityStatus,
-    GovernedDataCatalogDocument, GovernedDataCatalogRegistry,
+    validate_governed_data_catalog_registry, BenchmarkDataIndex, BenchmarkDataIndexRecord,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkEligibility,
+    DataIntegrityStatus, GovernedDataCatalogDocument, GovernedDataCatalogRegistry,
 };
 
 const MAX_AUTHORITY_BYTES: usize = 64 * 1024 * 1024;
 
-/// Derive exact case-planner corpus snapshots from a governed v2 data index.
+/// Derive the complete case-planner data closure from a governed v2 data index.
 ///
 /// # Errors
 /// Returns an error when source authorities, selected records, catalogs, files, or sample
 /// identities are missing, ambiguous, unsafe, or differ from their admitted digests.
-pub fn derive_benchmark_corpus_snapshots(
+pub fn derive_benchmark_data_snapshots(
     study_root: &Path,
     data_index_path: &Path,
     corpus_ids: &[String],
-) -> Result<Vec<BenchmarkCorpusSnapshotV1>> {
+    reference_ids: &[String],
+    database_ids: &[String],
+) -> Result<Vec<BenchmarkDataSnapshotV1>> {
     let study_root = std::fs::canonicalize(study_root)
         .with_context(|| format!("resolve STUDY root {}", study_root.display()))?;
     let index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
@@ -51,9 +53,20 @@ pub fn derive_benchmark_corpus_snapshots(
     validate_governed_data_catalog_registry(&registry)
         .context("validate governed data catalog registry")?;
 
-    let requested = corpus_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
-    if requested.is_empty() || requested.len() != corpus_ids.len() {
-        bail!("benchmark case corpus identities are empty or duplicated");
+    let mut requested = BTreeMap::new();
+    for (ids, role) in [
+        (corpus_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+        (reference_ids, BenchmarkDataSnapshotRoleV1::Reference),
+        (database_ids, BenchmarkDataSnapshotRoleV1::Database),
+    ] {
+        for id in ids {
+            if requested.insert(id.as_str(), role).is_some() {
+                bail!("benchmark case data identity is empty, duplicated, or role-ambiguous: {id}");
+            }
+        }
+    }
+    if corpus_ids.is_empty() || requested.keys().any(|id| id.is_empty()) {
+        bail!("benchmark case corpus identities are empty");
     }
     let records =
         index.records.iter().map(|record| (record.id.as_str(), record)).collect::<BTreeMap<_, _>>();
@@ -64,17 +77,17 @@ pub fn derive_benchmark_corpus_snapshots(
         .collect::<BTreeMap<_, _>>();
     requested
         .into_iter()
-        .map(|corpus_id| {
+        .map(|(catalog_id, role)| {
             let record = records
-                .get(corpus_id)
-                .with_context(|| format!("data index lacks benchmark corpus {corpus_id}"))?;
-            let registry_record = registry_records
-                .get(corpus_id)
-                .with_context(|| format!("catalog registry lacks benchmark corpus {corpus_id}"))?;
+                .get(catalog_id)
+                .with_context(|| format!("data index lacks benchmark data asset {catalog_id}"))?;
+            let registry_record = registry_records.get(catalog_id).with_context(|| {
+                format!("catalog registry lacks benchmark data asset {catalog_id}")
+            })?;
             if registry_record.current_catalog_sha256 != record.catalog_sha256 {
-                bail!("data index and catalog registry disagree for {corpus_id}");
+                bail!("data index and catalog registry disagree for {catalog_id}");
             }
-            admit_snapshot(&study_root, record, registry_record)
+            admit_snapshot(&study_root, record, registry_record, role)
         })
         .collect()
 }
@@ -83,7 +96,8 @@ fn admit_snapshot(
     study_root: &Path,
     record: &BenchmarkDataIndexRecord,
     registry_record: &bijux_dna_bench_model::GovernedDataCatalogRegistryRecord,
-) -> Result<BenchmarkCorpusSnapshotV1> {
+    role: BenchmarkDataSnapshotRoleV1,
+) -> Result<BenchmarkDataSnapshotV1> {
     if record.benchmark_eligibility != BenchmarkEligibility::Eligible
         || record.integrity_status != DataIntegrityStatus::Verified
     {
@@ -125,9 +139,13 @@ fn admit_snapshot(
         }
     }
     let sample_ids = catalog_sample_ids(&catalog)?;
-    Ok(BenchmarkCorpusSnapshotV1 {
-        corpus_id: record.id.clone(),
-        snapshot_sha256: record.catalog_sha256.clone(),
+    if role == BenchmarkDataSnapshotRoleV1::Corpus && sample_ids.is_empty() {
+        bail!("governed benchmark corpus has no sample identities: {}", record.id);
+    }
+    Ok(BenchmarkDataSnapshotV1 {
+        catalog_id: record.id.clone(),
+        role,
+        catalog_sha256: record.catalog_sha256.clone(),
         sample_ids,
     })
 }
@@ -167,9 +185,6 @@ fn catalog_sample_ids(catalog: &GovernedDataCatalogDocument) -> Result<Vec<Strin
                 }
             }
         }
-    }
-    if samples.is_empty() {
-        bail!("governed benchmark corpus has no sample identities");
     }
     Ok(samples.into_iter().collect())
 }
@@ -219,7 +234,7 @@ mod tests {
     use serde_json::json;
     use tempfile::TempDir;
 
-    use super::derive_benchmark_corpus_snapshots;
+    use super::derive_benchmark_data_snapshots;
 
     struct Fixture {
         _temp: TempDir,
@@ -231,20 +246,24 @@ mod tests {
     #[test]
     fn derives_source_bound_snapshot_and_rejects_file_drift() -> Result<()> {
         let fixture = fixture()?;
-        let snapshots = derive_benchmark_corpus_snapshots(
+        let snapshots = derive_benchmark_data_snapshots(
             &fixture.study_root,
             &fixture.data_index,
             &["horse-bam".to_string()],
+            &[],
+            &[],
         )?;
         assert_eq!(snapshots.len(), 1);
-        assert_eq!(snapshots[0].corpus_id, "horse-bam");
+        assert_eq!(snapshots[0].catalog_id, "horse-bam");
         assert_eq!(snapshots[0].sample_ids, ["ERR1"]);
 
         fs::write(&fixture.corpus_file, b"drifted")?;
-        assert!(derive_benchmark_corpus_snapshots(
+        assert!(derive_benchmark_data_snapshots(
             &fixture.study_root,
             &fixture.data_index,
             &["horse-bam".to_string()],
+            &[],
+            &[],
         )
         .is_err_and(|error| format!("{error:#}").contains("file identity drifted")));
         Ok(())

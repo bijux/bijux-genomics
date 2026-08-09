@@ -12,10 +12,10 @@ use bijux_dna_bench::{
     validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
     validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
     BenchmarkAdmittedCaseObservationV2, BenchmarkCaseExecutionEvidenceV1,
-    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1,
-    BenchmarkReportImage, BenchmarkReportInputLock, BenchmarkReportSlurmJob,
-    BenchmarkScientificValue, BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkDataSnapshotRoleV1,
+    BenchmarkDataSnapshotV1, BenchmarkReportImage, BenchmarkReportInputLock,
+    BenchmarkReportSlurmJob, BenchmarkScientificValue, BenchmarkStageCampaignRegistry,
+    BenchmarkStageInterfaceCatalog, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
 };
 use bijux_dna_core::{
     contract::ToolConstraints,
@@ -34,7 +34,7 @@ struct PlanningFixture {
     campaigns: BenchmarkStageCampaignRegistry,
     interfaces: BenchmarkStageInterfaceCatalog,
     bindings: ToolBindingRegistry,
-    snapshots: Vec<BenchmarkCorpusSnapshotV1>,
+    snapshots: Vec<BenchmarkDataSnapshotV1>,
 }
 
 #[test]
@@ -73,15 +73,7 @@ fn checked_in_run_2001_plans_through_the_canonical_binding_registry() -> Result<
         .campaigns
         .first()
         .ok_or_else(|| anyhow::anyhow!("checked-in run-2001 campaign is absent"))?;
-    let snapshots = campaign
-        .corpus_catalog_ids
-        .iter()
-        .map(|corpus_id| BenchmarkCorpusSnapshotV1 {
-            corpus_id: corpus_id.clone(),
-            snapshot_sha256: "a".repeat(64),
-            sample_ids: vec!["contract-sample".to_string()],
-        })
-        .collect::<Vec<_>>();
+    let snapshots = campaign_snapshots(campaign);
     let bindings = canonical_tool_bindings()?;
     let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
         repository_commit: &"1".repeat(40),
@@ -91,12 +83,21 @@ fn checked_in_run_2001_plans_through_the_canonical_binding_registry() -> Result<
         campaigns: &campaigns,
         interfaces: &interfaces,
         bindings: &bindings,
-        corpus_snapshots: &snapshots,
+        data_snapshots: &snapshots,
     })?;
 
     assert_eq!(matrix.cases.len(), 1);
     assert_eq!(matrix.cases[0].run_id, "run-2001");
     assert_eq!(matrix.cases[0].tool_id, "bcftools");
+    assert_eq!(matrix.data_snapshots.len(), 4);
+    assert_eq!(
+        matrix.data_snapshots.iter().map(|snapshot| snapshot.role).collect::<BTreeSet<_>>(),
+        BTreeSet::from([
+            BenchmarkDataSnapshotRoleV1::Corpus,
+            BenchmarkDataSnapshotRoleV1::Reference,
+            BenchmarkDataSnapshotRoleV1::Database,
+        ])
+    );
     assert_eq!(
         matrix.cases[0].binding.normalized_output_contract_id,
         matrix.cases[0].interface.output_contract
@@ -195,6 +196,37 @@ fn campaign_binding_cpu_drift_is_refused() -> Result<()> {
 
     let error = plan(&fixture).expect_err("resource drift must fail planning");
     assert!(error.to_string().contains("CPU allocation differs"));
+    Ok(())
+}
+
+#[test]
+fn campaign_data_authority_must_be_exact_and_role_correct() -> Result<()> {
+    let mut missing = planning_fixture()?;
+    missing.snapshots.pop();
+    assert!(plan(&missing).is_err_and(|error| {
+        error.to_string().contains("do not exactly close campaign data authorities")
+    }));
+
+    let mut wrong_role = planning_fixture()?;
+    let snapshot = wrong_role.snapshots.first_mut().expect("data snapshot");
+    snapshot.role = match snapshot.role {
+        BenchmarkDataSnapshotRoleV1::Corpus => BenchmarkDataSnapshotRoleV1::Reference,
+        _ => BenchmarkDataSnapshotRoleV1::Corpus,
+    };
+    assert!(plan(&wrong_role).is_err_and(|error| {
+        error.to_string().contains("do not exactly close campaign data authorities")
+    }));
+
+    let mut extra = planning_fixture()?;
+    extra.snapshots.push(BenchmarkDataSnapshotV1 {
+        catalog_id: "unreferenced-production-data".to_string(),
+        role: BenchmarkDataSnapshotRoleV1::Database,
+        catalog_sha256: "f".repeat(64),
+        sample_ids: Vec::new(),
+    });
+    assert!(plan(&extra).is_err_and(|error| {
+        error.to_string().contains("do not exactly close campaign data authorities")
+    }));
     Ok(())
 }
 
@@ -445,18 +477,31 @@ fn planning_fixture() -> Result<PlanningFixture> {
             bindings.insert(binding(interface, tool, threads))?;
         }
     }
-    let corpus_ids = campaigns
+    let data_ids = campaigns
         .campaigns
         .iter()
-        .flat_map(|campaign| campaign.corpus_catalog_ids.iter().cloned())
+        .flat_map(|campaign| {
+            [
+                (&campaign.corpus_catalog_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+                (&campaign.reference_catalog_ids, BenchmarkDataSnapshotRoleV1::Reference),
+                (&campaign.database_catalog_ids, BenchmarkDataSnapshotRoleV1::Database),
+            ]
+            .into_iter()
+            .flat_map(|(ids, role)| ids.iter().cloned().map(move |id| (id, role)))
+        })
         .collect::<BTreeSet<_>>();
-    let snapshots = corpus_ids
+    let snapshots = data_ids
         .into_iter()
         .enumerate()
-        .map(|(index, corpus_id)| BenchmarkCorpusSnapshotV1 {
-            corpus_id,
-            snapshot_sha256: format!("{index:064x}"),
-            sample_ids: vec![format!("sample-{index}")],
+        .map(|(index, (catalog_id, role))| BenchmarkDataSnapshotV1 {
+            catalog_id,
+            role,
+            catalog_sha256: format!("{index:064x}"),
+            sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
+                vec![format!("sample-{index}")]
+            } else {
+                Vec::new()
+            },
         })
         .collect();
     Ok(PlanningFixture { campaigns, interfaces, bindings, snapshots })
@@ -507,7 +552,7 @@ fn binding(
 }
 
 fn admitted_observations(
-    matrix: &bijux_dna_bench::BenchmarkCaseMatrixV1,
+    matrix: &bijux_dna_bench::BenchmarkCaseMatrixV2,
 ) -> Vec<BenchmarkAdmittedCaseObservationV2> {
     matrix
         .cases
@@ -573,7 +618,7 @@ fn admitted_observations(
         .collect()
 }
 
-fn plan(fixture: &PlanningFixture) -> Result<bijux_dna_bench::BenchmarkCaseMatrixV1> {
+fn plan(fixture: &PlanningFixture) -> Result<bijux_dna_bench::BenchmarkCaseMatrixV2> {
     let repository_commit = "1".repeat(40);
     let campaign_digest = "2".repeat(64);
     let interface_digest = "3".repeat(64);
@@ -586,6 +631,30 @@ fn plan(fixture: &PlanningFixture) -> Result<bijux_dna_bench::BenchmarkCaseMatri
         campaigns: &fixture.campaigns,
         interfaces: &fixture.interfaces,
         bindings: &fixture.bindings,
-        corpus_snapshots: &fixture.snapshots,
+        data_snapshots: &fixture.snapshots,
     })
+}
+
+fn campaign_snapshots(
+    campaign: &bijux_dna_bench::BenchmarkStageCampaignSpec,
+) -> Vec<BenchmarkDataSnapshotV1> {
+    [
+        (&campaign.corpus_catalog_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+        (&campaign.reference_catalog_ids, BenchmarkDataSnapshotRoleV1::Reference),
+        (&campaign.database_catalog_ids, BenchmarkDataSnapshotRoleV1::Database),
+    ]
+    .into_iter()
+    .flat_map(|(ids, role)| {
+        ids.iter().map(move |id| BenchmarkDataSnapshotV1 {
+            catalog_id: id.clone(),
+            role,
+            catalog_sha256: "a".repeat(64),
+            sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
+                vec!["contract-sample".to_string()]
+            } else {
+                Vec::new()
+            },
+        })
+    })
+    .collect()
 }

@@ -12,11 +12,12 @@ pub use aggregation::{
 pub use bijux_dna_bench_model::{
     BenchmarkAdmittedCaseObservationSetV1, BenchmarkAdmittedCaseObservationV2,
     BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1,
-    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
+    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
-    BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };
 pub use persistence::{
     aggregate_benchmark_admitted_case_observation_set, benchmark_case_matrix_sha256,

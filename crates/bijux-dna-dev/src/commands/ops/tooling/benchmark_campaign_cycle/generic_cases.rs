@@ -31,16 +31,14 @@ pub(super) fn plan_cases(
     let run_id = required(options, "--run-id")?;
     select_run_authorities(&mut campaigns, &mut interfaces, run_id)?;
     let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
-    let corpus_ids = campaigns
-        .campaigns
-        .first()
-        .context("selected generic benchmark campaign is absent")?
-        .corpus_catalog_ids
-        .clone();
-    let corpus_snapshots = bijux_dna_bench::derive_benchmark_corpus_snapshots(
+    let campaign =
+        campaigns.campaigns.first().context("selected generic benchmark campaign is absent")?;
+    let data_snapshots = bijux_dna_bench::derive_benchmark_data_snapshots(
         &resolve_path(workspace, required(options, "--study-root")?),
         &resolve_path(workspace, required(options, "--data-index")?),
-        &corpus_ids,
+        &campaign.corpus_catalog_ids,
+        &campaign.reference_catalog_ids,
+        &campaign.database_catalog_ids,
     )?;
     let binding_bytes = serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
     let matrix = bijux_dna_bench::plan_benchmark_case_matrix(
@@ -52,7 +50,7 @@ pub(super) fn plan_cases(
             campaigns: &campaigns,
             interfaces: &interfaces,
             bindings: &bindings,
-            corpus_snapshots: &corpus_snapshots,
+            data_snapshots: &data_snapshots,
         },
     )?;
     let output = resolve_path(workspace, required(options, "--output")?);

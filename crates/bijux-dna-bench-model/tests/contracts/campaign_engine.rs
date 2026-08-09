@@ -6,6 +6,10 @@ fn campaign_engine_schemas_match_model_authority() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
     let schemas = [
         (
+            "case-matrix-v1.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_case_matrix_v1_schema())?,
+        ),
+        (
             "case-matrix.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_case_matrix_schema())?,
         ),
@@ -59,7 +63,7 @@ fn campaign_engine_schema_versions_are_exact() -> anyhow::Result<()> {
     for (schema, expected) in [
         (
             bijux_dna_bench_model::benchmark_case_matrix_schema(),
-            bijux_dna_bench_model::BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+            bijux_dna_bench_model::BENCHMARK_CASE_MATRIX_SCHEMA_V2,
         ),
         (
             bijux_dna_bench_model::benchmark_admitted_case_observation_schema(),

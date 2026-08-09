@@ -83,12 +83,12 @@ pub use campaign_engine::{
     validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
     BenchmarkAdmittedCaseObservationSetV1, BenchmarkAdmittedCaseObservationV2,
     BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1,
-    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV1,
+    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
     BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
-    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataSnapshotRoleV1,
+    BenchmarkDataSnapshotV1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
-    BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,

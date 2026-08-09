@@ -22,6 +22,25 @@ pub struct BenchmarkCorpusSnapshotV1 {
     pub sample_ids: Vec<String>,
 }
 
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkDataSnapshotRoleV1 {
+    Corpus,
+    Reference,
+    Database,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataSnapshotV1 {
+    pub catalog_id: String,
+    pub role: BenchmarkDataSnapshotRoleV1,
+    pub catalog_sha256: String,
+    pub sample_ids: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkCaseMeasurementPlanV1 {
@@ -71,6 +90,19 @@ pub struct BenchmarkCaseMatrixV1 {
     pub campaign_registry_sha256: String,
     pub interface_catalog_sha256: String,
     pub tool_binding_registry_sha256: String,
+    pub cases: Vec<BenchmarkCaseDefinitionV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCaseMatrixV2 {
+    #[schemars(schema_with = "case_matrix_v2_schema_version")]
+    pub schema_version: String,
+    pub repository_commit: String,
+    pub campaign_registry_sha256: String,
+    pub interface_catalog_sha256: String,
+    pub tool_binding_registry_sha256: String,
+    pub data_snapshots: Vec<BenchmarkDataSnapshotV1>,
     pub cases: Vec<BenchmarkCaseDefinitionV1>,
 }
 
@@ -187,6 +219,11 @@ pub struct BenchmarkCaseAggregationSetV1 {
 
 #[must_use]
 pub fn benchmark_case_matrix_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCaseMatrixV2)
+}
+
+#[must_use]
+pub fn benchmark_case_matrix_v1_schema() -> Schema {
     schemars::schema_for!(BenchmarkCaseMatrixV1)
 }
 
@@ -224,6 +261,13 @@ fn case_matrix_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": crate::contract::BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    })
+}
+
+fn case_matrix_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_CASE_MATRIX_SCHEMA_V2,
     })
 }
 

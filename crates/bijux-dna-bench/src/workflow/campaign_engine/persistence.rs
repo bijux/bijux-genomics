@@ -11,7 +11,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use super::{
     aggregate_benchmark_case_observations, validate_benchmark_case_aggregations,
     validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationSetV1,
-    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationSetV1, BenchmarkCaseMatrixV1,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationSetV1, BenchmarkCaseMatrixV2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1,
 };
 
@@ -21,7 +21,7 @@ const MAX_CAMPAIGN_EVIDENCE_BYTES: usize = 64 * 1024 * 1024;
 ///
 /// # Errors
 /// Returns an error when the matrix is invalid or cannot be serialized.
-pub fn benchmark_case_matrix_sha256(matrix: &BenchmarkCaseMatrixV1) -> Result<String> {
+pub fn benchmark_case_matrix_sha256(matrix: &BenchmarkCaseMatrixV2) -> Result<String> {
     validate_benchmark_case_matrix(matrix)?;
     hash_json(matrix)
 }
@@ -31,7 +31,7 @@ pub fn benchmark_case_matrix_sha256(matrix: &BenchmarkCaseMatrixV1) -> Result<St
 /// # Errors
 /// Returns an error when observations are duplicated, incomplete, invalid, or source-drifted.
 pub fn build_benchmark_admitted_case_observation_set(
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     observations: Vec<BenchmarkAdmittedCaseObservationV2>,
 ) -> Result<BenchmarkAdmittedCaseObservationSetV1> {
     let matrix_sha256 = benchmark_case_matrix_sha256(matrix)?;
@@ -64,7 +64,7 @@ pub fn build_benchmark_admitted_case_observation_set(
 /// # Errors
 /// Returns an error when schema, source identity, matrix identity, case order, or evidence differs.
 pub fn validate_benchmark_admitted_case_observation_set(
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     set: &BenchmarkAdmittedCaseObservationSetV1,
 ) -> Result<()> {
     if set.schema_version != BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1
@@ -85,7 +85,7 @@ pub fn validate_benchmark_admitted_case_observation_set(
 /// # Errors
 /// Returns an error when observation closure or aggregation derivation is invalid.
 pub fn aggregate_benchmark_admitted_case_observation_set(
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     observations: &BenchmarkAdmittedCaseObservationSetV1,
 ) -> Result<BenchmarkCaseAggregationSetV1> {
     validate_benchmark_admitted_case_observation_set(matrix, observations)?;
@@ -104,7 +104,7 @@ pub fn aggregate_benchmark_admitted_case_observation_set(
 /// # Errors
 /// Returns an error when schema, source, digest, aggregation, or replay closure differs.
 pub fn validate_benchmark_case_aggregation_set(
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     observations: &BenchmarkAdmittedCaseObservationSetV1,
     aggregations: &BenchmarkCaseAggregationSetV1,
 ) -> Result<()> {
@@ -127,7 +127,7 @@ pub fn validate_benchmark_case_aggregation_set(
 ///
 /// # Errors
 /// Returns an error when validation, existing-content comparison, or atomic creation fails.
-pub fn ensure_benchmark_case_matrix(path: &Path, matrix: &BenchmarkCaseMatrixV1) -> Result<()> {
+pub fn ensure_benchmark_case_matrix(path: &Path, matrix: &BenchmarkCaseMatrixV2) -> Result<()> {
     validate_benchmark_case_matrix(matrix)?;
     ensure_json_identity(path, matrix, "benchmark case matrix")
 }
@@ -136,7 +136,7 @@ pub fn ensure_benchmark_case_matrix(path: &Path, matrix: &BenchmarkCaseMatrixV1)
 ///
 /// # Errors
 /// Returns an error when the file is unsafe, oversized, malformed, or invalid.
-pub fn load_benchmark_case_matrix(path: &Path) -> Result<BenchmarkCaseMatrixV1> {
+pub fn load_benchmark_case_matrix(path: &Path) -> Result<BenchmarkCaseMatrixV2> {
     let matrix = read_json(path, "benchmark case matrix")?;
     validate_benchmark_case_matrix(&matrix)?;
     Ok(matrix)
@@ -148,7 +148,7 @@ pub fn load_benchmark_case_matrix(path: &Path) -> Result<BenchmarkCaseMatrixV1> 
 /// Returns an error when validation, existing-content comparison, or atomic creation fails.
 pub fn ensure_benchmark_admitted_case_observation_set(
     path: &Path,
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     set: &BenchmarkAdmittedCaseObservationSetV1,
 ) -> Result<()> {
     validate_benchmark_admitted_case_observation_set(matrix, set)?;
@@ -161,7 +161,7 @@ pub fn ensure_benchmark_admitted_case_observation_set(
 /// Returns an error when the file is unsafe, oversized, malformed, or source-drifted.
 pub fn load_benchmark_admitted_case_observation_set(
     path: &Path,
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
 ) -> Result<BenchmarkAdmittedCaseObservationSetV1> {
     let set = read_json(path, "admitted benchmark observation set")?;
     validate_benchmark_admitted_case_observation_set(matrix, &set)?;
@@ -174,7 +174,7 @@ pub fn load_benchmark_admitted_case_observation_set(
 /// Returns an error when validation, existing-content comparison, or atomic creation fails.
 pub fn ensure_benchmark_case_aggregation_set(
     path: &Path,
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     observations: &BenchmarkAdmittedCaseObservationSetV1,
     aggregations: &BenchmarkCaseAggregationSetV1,
 ) -> Result<()> {
@@ -188,7 +188,7 @@ pub fn ensure_benchmark_case_aggregation_set(
 /// Returns an error when the file is unsafe, oversized, malformed, or source-drifted.
 pub fn load_benchmark_case_aggregation_set(
     path: &Path,
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     observations: &BenchmarkAdmittedCaseObservationSetV1,
 ) -> Result<BenchmarkCaseAggregationSetV1> {
     let set = read_json(path, "benchmark aggregation set")?;

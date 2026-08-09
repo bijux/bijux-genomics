@@ -8,7 +8,7 @@ use bijux_dna_bench_model::BenchmarkScientificValue;
 
 use super::{
     validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationV2,
-    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV1,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
 };
 
@@ -18,7 +18,7 @@ use super::{
 /// Returns an error when observations do not close the case matrix exactly, source identities
 /// drift, repetitions or metrics are incomplete, values are invalid, or normalized outputs differ.
 pub fn aggregate_benchmark_case_observations(
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     observations: &[BenchmarkAdmittedCaseObservationV2],
 ) -> Result<Vec<BenchmarkCaseAggregationV2>> {
     validate_benchmark_case_matrix(matrix).context("validate benchmark case matrix")?;
@@ -62,7 +62,7 @@ pub fn aggregate_benchmark_case_observations(
 /// Returns an error when case closure, source identity, execution provenance, metric closure, or
 /// normalized-result determinism differs from the matrix authority.
 pub fn validate_benchmark_case_aggregations(
-    matrix: &BenchmarkCaseMatrixV1,
+    matrix: &BenchmarkCaseMatrixV2,
     aggregations: &[BenchmarkCaseAggregationV2],
 ) -> Result<()> {
     validate_benchmark_case_matrix(matrix).context("validate benchmark case matrix")?;
