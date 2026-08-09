@@ -9,6 +9,7 @@ mod bam_endogenous_content;
 mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
+mod campaign_cases;
 mod campaign_engine;
 mod campaign_lifecycle;
 mod campaign_material;
@@ -72,6 +73,10 @@ pub use bam_mapping_summary::{
 pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
     load_attempt_lifecycle,
+};
+pub use campaign_cases::{
+    admit_benchmark_cases, aggregate_benchmark_cases, plan_benchmark_cases,
+    BenchmarkCaseAdmissionRequest, BenchmarkCaseAggregationRequest, BenchmarkCasePlanningRequest,
 };
 pub use campaign_engine::{
     aggregate_benchmark_admitted_case_observation_set, aggregate_benchmark_case_observations,

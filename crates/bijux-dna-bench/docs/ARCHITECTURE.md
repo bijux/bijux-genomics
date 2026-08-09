@@ -28,6 +28,8 @@ belong under `docs/`.
 - `src/workflow/campaign_engine/` separates registry-driven case planning,
   immutable evidence persistence, aggregation, and stage-report projection without
   stage or tool dispatch.
+- `src/workflow/campaign_cases.rs` owns the source-locked case planning, admitted
+  observation, and aggregation workflows composed by operator commands.
 - `src/workflow/run_suite/` separates suite orchestration from artifact
   persistence.
 - `src/workflow/fastq_expectations/` separates scientific expectation rendering

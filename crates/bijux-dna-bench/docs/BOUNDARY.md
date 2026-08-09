@@ -2,7 +2,8 @@
 
 Owner: `bijux-dna-bench`
 
-This crate owns benchmark suite loading, summarization, comparison, gate
+This crate owns benchmark suite loading, generic campaign and case planning,
+case-evidence admission and aggregation, summarization, comparison, gate
 evaluation, deterministic benchmark artifact writing, and read-only loading of
 finished runtime/analyze artifacts. It composes runtime-owned append-only attempt
 persistence without defining a parallel state machine.
@@ -31,7 +32,7 @@ persistence without defining a parallel state machine.
 
 ## Forbidden Effects
 
-- Planning workflows.
+- Scheduler submission, status, collection, or cancellation.
 - Executing tools, runners, containers, or product pipelines.
 - Opening network connections.
 - Writing outside declared benchmark output roots.
