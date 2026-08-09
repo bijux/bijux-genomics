@@ -5,7 +5,7 @@
     "reserved_run_count": 71,
     "ready_count": 0,
     "blocked_count": 71,
-    "corpus_count": 9,
+    "corpus_count": 13,
     "admitted_comparative_corpus_count": 1,
     "qualification_campaign_count": 6,
     "comparative_campaign_count": 6
@@ -71,6 +71,50 @@
       "truth_strategy": "observational_only",
       "roles": [
         "ancient_bam_qualification"
+      ]
+    },
+    {
+      "id": "human-population-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "sample_count": 100,
+      "truth_strategy": "observational_only",
+      "roles": [
+        "human_population_stage_qualification"
+      ]
+    },
+    {
+      "id": "amplicon-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "sample_count": 1,
+      "truth_strategy": "observational_only",
+      "roles": [
+        "amplicon_stage_qualification"
+      ]
+    },
+    {
+      "id": "equine-read-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "sample_count": 1,
+      "truth_strategy": "observational_only",
+      "roles": [
+        "equine_read_stage_qualification"
+      ]
+    },
+    {
+      "id": "viral-taxonomy-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "sample_count": 1,
+      "truth_strategy": "observational_only",
+      "roles": [
+        "viral_taxonomy_stage_qualification"
       ]
     },
     {

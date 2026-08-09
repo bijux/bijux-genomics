@@ -27,6 +27,10 @@ the current repository identity all close over packaged and governed external-ar
 |---|---|---|---|---:|---|
 | `human-short-read-diversity` | production_real | admitted | comparative | 20 | `observational_only` |
 | `ancient-horse-alignment-qualification` | qualification_real | admitted | qualification | 1 | `observational_only` |
+| `human-population-stage-qualification` | qualification_real | admitted | qualification | 100 | `observational_only` |
+| `amplicon-stage-qualification` | qualification_real | admitted | qualification | 1 | `observational_only` |
+| `equine-read-stage-qualification` | qualification_real | admitted | qualification | 1 | `observational_only` |
+| `viral-taxonomy-stage-qualification` | qualification_real | admitted | qualification | 1 | `observational_only` |
 | `read-processing-challenge` | production_real | source_defined | comparative | 0 | `real_reads_with_calibrated_spike_ins` |
 | `environmental-taxonomy-challenge` | production_real | source_defined | comparative | 0 | `real_edna_with_mock_community_and_orthogonal_assays` |
 | `amplicon-community-challenge` | production_real | source_defined | comparative | 0 | `real_mock_communities_with_known_composition` |
