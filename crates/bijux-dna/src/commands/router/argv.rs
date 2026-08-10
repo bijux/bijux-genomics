@@ -140,16 +140,16 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_product_namespace_retains_the_short_alias() {
+    fn benchmark_product_namespace_retains_the_short_alias() -> anyhow::Result<()> {
         for namespace in ["benchmark", "bench"] {
-            let parsed = parse_cli_from_argv(&argv(&["bijux-dna", namespace, "status"]))
-                .expect("parse benchmark namespace");
+            let parsed = parse_cli_from_argv(&argv(&["bijux-dna", namespace, "status"]))?;
             assert!(matches!(parsed.command, DnaCommand::Bench(_)));
         }
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_plan_uses_the_public_product_namespace() {
+    fn benchmark_cycle_plan_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -165,8 +165,7 @@ mod tests {
             "2026-08-10T00:00:00Z",
             "--output",
             "artifacts/benchmark-cycle/run-2002.json",
-        ]))
-        .expect("parse benchmark cycle plan");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -174,10 +173,11 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Plan(_)));
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_status_uses_the_public_product_namespace() {
+    fn benchmark_cycle_status_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -189,8 +189,7 @@ mod tests {
             "artifacts/benchmark-cycle/run-2002.json",
             "--observed-at-utc",
             "2026-08-10T00:00:00Z",
-        ]))
-        .expect("parse benchmark cycle status");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -198,10 +197,11 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Status(_)));
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_advance_uses_the_public_product_namespace() {
+    fn benchmark_cycle_advance_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -227,8 +227,7 @@ mod tests {
             "compute",
             "--maximum-submissions",
             "8",
-        ]))
-        .expect("parse benchmark cycle advance");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -236,10 +235,11 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Advance(_)));
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_collect_uses_the_public_product_namespace() {
+    fn benchmark_cycle_collect_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -251,8 +251,7 @@ mod tests {
             "artifacts/benchmark-cycle/run-2002.json",
             "--observed-at-utc",
             "2026-08-10T00:00:00Z",
-        ]))
-        .expect("parse benchmark cycle collect");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -260,10 +259,11 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Collect(_)));
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_admit_uses_the_public_product_namespace() {
+    fn benchmark_cycle_admit_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -277,8 +277,7 @@ mod tests {
             "artifacts/benchmark-cycle/run-2002.json",
             "--admitted-at-utc",
             "2026-08-10T00:00:00Z",
-        ]))
-        .expect("parse benchmark cycle admit");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -286,10 +285,11 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Admit(_)));
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_book_uses_the_public_product_namespace() {
+    fn benchmark_cycle_book_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -305,8 +305,7 @@ mod tests {
             "Only independently admitted current publications are included.",
             "--output",
             "/study/benchmarks/evidence-books/book.json",
-        ]))
-        .expect("parse benchmark cycle book");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -314,10 +313,11 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Book(_)));
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_replay_uses_the_public_product_namespace() {
+    fn benchmark_cycle_replay_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -343,8 +343,7 @@ mod tests {
             "Replay compares semantic products rather than scheduler identities.",
             "--output",
             "/study/benchmarks/replays/run-2002.json",
-        ]))
-        .expect("parse benchmark cycle replay");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -352,10 +351,11 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Replay(_)));
+        Ok(())
     }
 
     #[test]
-    fn benchmark_cycle_publish_uses_the_public_product_namespace() {
+    fn benchmark_cycle_publish_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
@@ -373,8 +373,7 @@ mod tests {
             "/study/benchmarks/plan.json",
             "--output-root",
             "/study/benchmarks/reports",
-        ]))
-        .expect("parse benchmark cycle publish");
+        ]))?;
         let DnaCommand::Bench(root) = parsed.command else {
             panic!("expected benchmark command");
         };
@@ -382,5 +381,6 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Publish(_)));
+        Ok(())
     }
 }
