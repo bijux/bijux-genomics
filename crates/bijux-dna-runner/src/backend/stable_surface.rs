@@ -5,7 +5,7 @@ pub use super::kinds::BackendKind;
 pub use super::slurm::{
     admit_container_qualification_collection, admit_container_qualification_cycle,
     advance_container_qualification_cycle, archive_failed_container_qualification_attempt,
-    cancel_container_qualification_slurm_job, cancel_slurm_job,
+    cancel_container_qualification_slurm_job, cancel_slurm_job, collect_benchmark_campaign_cycle,
     collect_container_qualification_cycle, collect_container_qualification_slurm_job,
     collect_corpus_materialization_slurm_job, collect_image_campaign_slurm_job, collect_slurm_job,
     execute_container_qualification, load_benchmark_slurm_job_handle,
@@ -23,7 +23,8 @@ pub use super::slurm::{
     rollback_failed_container_qualification_attempt_archive, status_container_qualification_cycle,
     submit_prepared_benchmark_job, submit_prepared_container_qualification_job,
     submit_prepared_corpus_materialization_job, submit_prepared_image_campaign_job,
-    submit_slurm_batch, submit_slurm_job, ContainerQualificationAccountingRecord,
+    submit_slurm_batch, submit_slurm_job, BenchmarkCampaignCollection,
+    BenchmarkCampaignCollectionUnit, ContainerQualificationAccountingRecord,
     ContainerQualificationAdmission, ContainerQualificationCollection,
     ContainerQualificationCycleAction, ContainerQualificationCycleRequest,
     ContainerQualificationCycleState, ContainerQualificationCycleStatus,

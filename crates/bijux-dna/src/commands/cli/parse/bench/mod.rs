@@ -25,7 +25,9 @@ pub use self::config::{
     BenchWriteScreenTaxonomyDatabaseLineageArgs,
 };
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
-pub use self::cycle::{BenchCycleCommand, BenchCyclePlanArgs, BenchCycleStatusArgs};
+pub use self::cycle::{
+    BenchCycleCollectArgs, BenchCycleCommand, BenchCyclePlanArgs, BenchCycleStatusArgs,
+};
 pub use self::data_index::{
     BenchCatalogRegistryCommand, BenchCatalogRegistryPublishArgs, BenchDataIndexArgs,
 };

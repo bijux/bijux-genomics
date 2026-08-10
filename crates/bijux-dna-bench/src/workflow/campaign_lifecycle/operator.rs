@@ -88,13 +88,7 @@ pub fn status_checked_in_benchmark_campaign(
         .benchmark_root
         .canonicalize()
         .context("canonicalize benchmark cycle evidence root")?;
-    let plan = load_plan(&request.plan)?;
-    let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)
-        .context("resolve benchmark cycle source commit")?;
-    let campaign_registry_sha256 =
-        bijux_dna_infra::hash_file_sha256(&repository_root.join(CAMPAIGN_REGISTRY_PATH))
-            .context("hash benchmark campaign registry")?;
-    verify_campaign_plan_source(&plan, &repository_commit, &campaign_registry_sha256)?;
+    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
 
     let attempts = plan
         .cycle
@@ -119,6 +113,26 @@ pub fn status_checked_in_benchmark_campaign(
     );
     validate_cycle_status_v2(&status).context("validate persisted benchmark cycle status")?;
     Ok(status)
+}
+
+/// Load a campaign plan only when it matches the exact checked-out source and registry bytes.
+///
+/// # Errors
+/// Returns an error when the plan is unsafe, malformed, invalid, or stale for the repository.
+pub fn load_checked_in_benchmark_campaign_plan(
+    repository_root: &Path,
+    plan_path: &Path,
+) -> Result<BenchmarkCampaignPlan> {
+    let repository_root =
+        repository_root.canonicalize().context("canonicalize benchmark cycle repository")?;
+    let plan = load_plan(plan_path)?;
+    let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)
+        .context("resolve benchmark cycle source commit")?;
+    let campaign_registry_sha256 =
+        bijux_dna_infra::hash_file_sha256(&repository_root.join(CAMPAIGN_REGISTRY_PATH))
+            .context("hash benchmark campaign registry")?;
+    verify_campaign_plan_source(&plan, &repository_commit, &campaign_registry_sha256)?;
+    Ok(plan)
 }
 
 fn load_plan(path: &Path) -> Result<BenchmarkCampaignPlan> {

@@ -98,11 +98,11 @@ pub use campaign_engine::{
 };
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
-    load_execution_authorities, load_execution_spec, plan_checked_in_benchmark_campaign,
-    plan_stage_campaign_attempts, plan_stage_campaign_retry_attempts,
-    recover_stage_campaign_retry_lineage, status_checked_in_benchmark_campaign,
-    verify_campaign_plan_source, BenchmarkCyclePlanRequest, BenchmarkCycleStatusRequest,
-    BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
+    load_checked_in_benchmark_campaign_plan, load_execution_authorities, load_execution_spec,
+    plan_checked_in_benchmark_campaign, plan_stage_campaign_attempts,
+    plan_stage_campaign_retry_attempts, recover_stage_campaign_retry_lineage,
+    status_checked_in_benchmark_campaign, verify_campaign_plan_source, BenchmarkCyclePlanRequest,
+    BenchmarkCycleStatusRequest, BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
 };
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,

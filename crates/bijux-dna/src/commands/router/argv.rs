@@ -199,4 +199,28 @@ mod tests {
         };
         assert!(matches!(command, BenchCycleCommand::Status(_)));
     }
+
+    #[test]
+    fn benchmark_cycle_collect_uses_the_public_product_namespace() {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "collect",
+            "--benchmark-root",
+            "artifacts/benchmark-cycle/evidence",
+            "--plan",
+            "artifacts/benchmark-cycle/run-2002.json",
+            "--observed-at-utc",
+            "2026-08-10T00:00:00Z",
+        ]))
+        .expect("parse benchmark cycle collect");
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Collect(_)));
+    }
 }
