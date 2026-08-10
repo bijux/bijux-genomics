@@ -10,6 +10,7 @@ fn policy__contracts__architecture_invariants_suite__core_boundary_artifacts_exi
     let root = repo_root();
     let required = [
         "docs/10-architecture/ARCHITECTURE.md",
+        "TARGET_ARCHITECTURE.md",
         "docs/10-architecture/CRATE_AUTHORITY_MAP.md",
         "docs/10-architecture/BOUNDARY_MAP.md",
         "crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs",
