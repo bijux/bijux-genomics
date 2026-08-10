@@ -280,7 +280,7 @@ def inject_policy_gate(
                 "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
             },
             {
-                "name": "Wait for policy and standards prerequisites",
+                "name": "Observe policy and standards prerequisites once",
                 "shell": "bash",
                 "env": {
                     "GITHUB_TOKEN": "${{ github.token }}",

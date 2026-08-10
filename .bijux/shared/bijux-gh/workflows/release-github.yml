@@ -380,7 +380,7 @@ jobs:
         if: ${{ needs.resolve.outputs.setup_rust == 'true' }}
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Wait for CI gate
+      - name: Observe CI gate once
         if: ${{ github.event_name == 'push' && needs.resolve.outputs.wait_for_ci_command != '' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -390,8 +390,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CI_WAIT_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          export CI_WAIT_STARTED_AT
           eval "${WAIT_FOR_CI_COMMAND}"
 
       - name: Decide whether to publish a GitHub Release
