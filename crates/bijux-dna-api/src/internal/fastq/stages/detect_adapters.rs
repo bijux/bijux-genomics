@@ -21,6 +21,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkRecord, FastqDetectAdaptersMetrics, MetricSet,
 };
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -35,7 +36,6 @@ use bijux_dna_domain_fastq::{
     },
     DetectAdaptersReportV1,
 };
-use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_detect_adapters_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::detect_adapters::plan;
@@ -608,6 +608,7 @@ fn build_detect_report(
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{build_detect_adapters_metric_set, build_detect_report, TrimBenchInputs};
+    use bijux_dna_containers::api::RuntimeKind;
     use bijux_dna_core::prelude::measure::SeqkitMetrics;
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
@@ -615,7 +616,6 @@ mod tests {
     use bijux_dna_domain_fastq::{
         DetectAdaptersReportV1, PairedMode, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
     };
-    use bijux_dna_containers::api::RuntimeKind;
     use bijux_dna_runner::step_runner::StageResultV1;
 
     fn dummy_tool(tool_id: &'static str, threads: u32) -> ToolExecutionSpecV1 {

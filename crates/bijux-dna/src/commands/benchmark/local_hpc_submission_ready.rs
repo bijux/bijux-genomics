@@ -516,23 +516,21 @@ fn evaluate_benchmark_harness_goals(
         }
     }
 
-    let rendered_stage_commands = match render_local_stage_commands(
-        repo_root,
-        PathBuf::from(DEFAULT_STAGE_COMMANDS_PATH),
-    ) {
-        Ok(manifest) => {
-            evaluate_stage_command_render_goals(repo_root, checks, &manifest);
-            Some(manifest)
-        }
-        Err(err) => {
-            checks.push(fail_check(
-                54,
-                "benchmark_harness",
-                "local stage commands render into one governed shell script",
-                Some(DEFAULT_STAGE_COMMANDS_PATH.to_string()),
-                format!("{err:#}"),
-            ));
-            checks.push(fail_check(
+    let rendered_stage_commands =
+        match render_local_stage_commands(repo_root, PathBuf::from(DEFAULT_STAGE_COMMANDS_PATH)) {
+            Ok(manifest) => {
+                evaluate_stage_command_render_goals(repo_root, checks, &manifest);
+                Some(manifest)
+            }
+            Err(err) => {
+                checks.push(fail_check(
+                    54,
+                    "benchmark_harness",
+                    "local stage commands render into one governed shell script",
+                    Some(DEFAULT_STAGE_COMMANDS_PATH.to_string()),
+                    format!("{err:#}"),
+                ));
+                checks.push(fail_check(
                 55,
                 "benchmark_harness",
                 "rendered stage command manifest carries declared fields for every stage",
@@ -542,9 +540,9 @@ fn evaluate_benchmark_harness_goals(
                 ),
                 "stage command rendering failed earlier".to_string(),
             ));
-            None
-        }
-    };
+                None
+            }
+        };
 
     let fake_run_manifest = match fake_run_local_stage_commands(
         repo_root,

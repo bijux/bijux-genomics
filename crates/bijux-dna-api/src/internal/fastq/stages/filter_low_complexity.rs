@@ -12,6 +12,7 @@ use bijux_dna_analyze::load::sqlite::quality::{
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkRecord, FastqLowComplexityMetrics, MetricSet,
 };
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -22,7 +23,6 @@ use bijux_dna_domain_fastq::params::quality::filter_low_complexity::{
 use bijux_dna_domain_fastq::{
     FilterLowComplexityReportV1, PairedMode, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_filter_low_complexity_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::filter_low_complexity::{
     plan_low_complexity, LowComplexityPlanOptions,

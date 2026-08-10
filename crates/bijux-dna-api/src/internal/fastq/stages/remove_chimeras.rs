@@ -11,6 +11,7 @@ use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_chimeras_v1, insert_fastq_chimeras_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqChimeraMetrics};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -20,7 +21,6 @@ use bijux_dna_domain_fastq::{
     metrics::ratio_u64, params::edna::ChimeraDetectionEffectiveParams, PairedMode,
     RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::{
     bench_dir_name, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,

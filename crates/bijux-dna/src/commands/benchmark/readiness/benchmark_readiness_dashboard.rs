@@ -837,7 +837,9 @@ mod tests {
             .contains("| Matrix | complete | all governed fastq and bam stage-tool pairs |"));
         assert!(markdown
             .contains("| Corpora | complete | all governed fastq and bam stage-tool pairs |"));
-        assert!(markdown.contains("| pair_readiness | artifacts/benchmark-smoke/readiness/pair-readiness.tsv |"));
+        assert!(markdown.contains(
+            "| pair_readiness | artifacts/benchmark-smoke/readiness/pair-readiness.tsv |"
+        ));
         assert!(markdown.contains("| corpus_centric_report | artifacts/benchmark-smoke/readiness/corpus-centric-report.md | 8 corpus_sections |"));
         assert!(markdown.contains("## Exact Blockers"));
     }

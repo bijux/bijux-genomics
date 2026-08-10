@@ -13,10 +13,10 @@ use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqStatsMetrics,
     LengthHistogramBin, MetricSet,
 };
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::metrics::MetricContextV1;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
-use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_runtime::{RunProvenanceV1, StageObservabilityContextV1};

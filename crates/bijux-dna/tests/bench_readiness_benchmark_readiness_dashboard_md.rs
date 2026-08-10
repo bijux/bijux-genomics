@@ -38,12 +38,16 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md"
+    );
 
     let repo_root = sandbox.path();
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read dashboard markdown");
-    let json_path = repo_root.join("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json");
+    let json_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json");
     let json_payload = std::fs::read_to_string(&json_path).expect("read dashboard json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse dashboard json");

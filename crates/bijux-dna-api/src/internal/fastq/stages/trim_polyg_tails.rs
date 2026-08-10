@@ -11,13 +11,13 @@ use bijux_dna_analyze::load::sqlite::query_shared::{
     fetch_fastq_trim_polyg_v1, insert_fastq_trim_polyg_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimPolygMetrics};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_domain_fastq::observer::{parse_bbduk_reads_removed, parse_fastp_metrics};
 use bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams;
 use bijux_dna_domain_fastq::TrimPolygReportV1;
-use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, polyx_bank_context, preflight_stage, FastqArtifactKind,

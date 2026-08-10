@@ -13,6 +13,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkRecord, FastqReadLengthMetrics, MetricSet, StageMetricSchema,
 };
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
@@ -21,7 +22,6 @@ use bijux_dna_domain_fastq::{
     PairedMode, ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
     PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::{
     bench_dir_name, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,

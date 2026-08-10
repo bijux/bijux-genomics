@@ -571,10 +571,7 @@ mod tests {
 
         assert_eq!(spec.tool_id.as_str(), "bcftools");
         assert_eq!(spec.command.template, vec!["bcftools".to_string()]);
-        assert_eq!(
-            spec.image.image,
-            "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
-        );
+        assert_eq!(spec.image.image, "quay.io/biocontainers/bcftools:1.20--h8b25389_0");
         assert_eq!(
             spec.image.digest.as_deref(),
             Some("sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")

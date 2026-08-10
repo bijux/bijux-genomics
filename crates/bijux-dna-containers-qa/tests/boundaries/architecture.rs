@@ -47,13 +47,7 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/qualification")),
-        btree_set(&[
-            "compilation.rs",
-            "evaluation.rs",
-            "mod.rs",
-            "model.rs",
-            "planning.rs",
-        ]),
+        btree_set(&["compilation.rs", "evaluation.rs", "mod.rs", "model.rs", "planning.rs",]),
         "qualification must separate compilation, models, planning, and verdict evaluation"
     );
 
