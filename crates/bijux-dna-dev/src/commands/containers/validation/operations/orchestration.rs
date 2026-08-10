@@ -366,8 +366,26 @@ pub(in super::super::super) fn run_release_gate(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    ensure_no_args("release-gate", args)?;
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run release-gate -- <qualification-report> <release-publication>";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let [qualification_path, publication_path] = args else {
+        return Ok(ContainerCommandOutcome {
+            exit_code: 2,
+            stdout: String::new(),
+            stderr: format!("{usage}\n"),
+        });
+    };
     let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(
+        &mut aggregate,
+        "admit-release-evidence",
+        super::super::super::release_evidence::run(
+            workspace,
+            &["admit".to_string(), qualification_path.clone(), publication_path.clone()],
+        )?,
+    );
     append_named_outcome(&mut aggregate, "lint", run_container_lint(workspace, &[])?);
     append_named_outcome(
         &mut aggregate,
@@ -476,4 +494,23 @@ pub(in super::super::super) fn run_docker_build_all(
         check_lock_matches_built_output(workspace)?,
     );
     Ok(aggregate)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::run_release_gate;
+    use crate::runtime::workspace::Workspace;
+
+    #[test]
+    fn release_gate_cannot_pass_without_an_explicit_policy_publication() -> anyhow::Result<()> {
+        let workspace = Workspace { root: PathBuf::new() };
+        let outcome = run_release_gate(&workspace, &[])?;
+
+        assert_eq!(outcome.exit_code, 2);
+        assert!(outcome.stdout.is_empty());
+        assert!(outcome.stderr.contains("<release-publication>"));
+        Ok(())
+    }
 }

@@ -110,13 +110,17 @@ release dimension is excluded from its own digest, preventing self-referential i
 and immediately re-admit a publication with:
 
 ```console
-cargo run -q -p bijux-dna-dev -- containers run release-evidence -- compose containers/reports/qualification.json "$RELEASED_AT_UTC" artifacts/containers/release-evidence.json
-cargo run -q -p bijux-dna-dev -- containers run release-evidence -- admit containers/reports/qualification.json artifacts/containers/release-evidence.json
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- compose containers/reports/qualification.json "$RELEASED_AT_UTC" "$RELEASE_PUBLICATION"
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- admit containers/reports/qualification.json "$RELEASE_PUBLICATION"
+cargo run -q -p bijux-dna-dev -- containers run release-gate -- containers/reports/qualification.json "$RELEASE_PUBLICATION"
 cargo run -q -p bijux-dna-dev -- containers run release-evidence -- check-schema
 ```
 
 Composition fails in a dirty checkout. Admission rejects source, tool coverage, support-dimension,
 evidence-set, or policy-verdict drift; a repository checklist cannot substitute for this decision.
+`RELEASE_PUBLICATION` must name the immutable governed output under `STUDY/containers/release/`.
+The release gate requires that explicit publication path and cannot pass from checklist aggregation
+alone.
 
 The fast drift gate recomputes the same report without writing:
 
