@@ -353,4 +353,34 @@ mod tests {
         };
         assert!(matches!(command, BenchCycleCommand::Replay(_)));
     }
+
+    #[test]
+    fn benchmark_cycle_publish_uses_the_public_product_namespace() {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "publish",
+            "--repository-root",
+            "/source",
+            "--presentation-repository-root",
+            "/presentation",
+            "--study-root",
+            "/study",
+            "--benchmark-root",
+            "/study/benchmarks/campaign",
+            "--plan",
+            "/study/benchmarks/plan.json",
+            "--output-root",
+            "/study/benchmarks/reports",
+        ]))
+        .expect("parse benchmark cycle publish");
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Publish(_)));
+    }
 }

@@ -14,6 +14,8 @@ pub enum BenchCycleCommand {
     Collect(BenchCycleCollectArgs),
     /// Plan every declared tool attempt for one permanent benchmark run.
     Plan(BenchCyclePlanArgs),
+    /// Publish one source-locked campaign report from admitted attempt evidence.
+    Publish(BenchCyclePublishArgs),
     /// Compare regenerated semantic artifacts with a selected publication.
     Replay(BenchCycleReplayArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
@@ -146,4 +148,20 @@ pub struct BenchCyclePlanArgs {
     pub observed_at_utc: String,
     #[arg(long)]
     pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCyclePublishArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long, default_value = ".")]
+    pub presentation_repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub plan: PathBuf,
+    #[arg(long)]
+    pub output_root: PathBuf,
 }

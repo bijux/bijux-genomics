@@ -71,7 +71,7 @@ const REPORT_ADAPTERS: &[BenchmarkCampaignReportAdapter] = &[
 ];
 
 /// Immutable publication identity shared by every governed campaign report.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct BenchmarkCampaignReportPublication {
     pub run_id: String,
     pub stage_id: String,

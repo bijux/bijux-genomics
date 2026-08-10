@@ -13,9 +13,9 @@ pub use bijux_dna_bench::{
     acquire_fastq_corpus, admit_checked_in_benchmark_campaign, ensure_stage_campaign_attempts,
     load_checked_in_benchmark_campaign_plan, materialize_fastq_corpus,
     plan_checked_in_benchmark_campaign, prepare_checked_in_benchmark_campaign,
-    publish_benchmark_data_index, publish_checked_in_benchmark_evidence_book,
-    publish_governed_data_catalog_registry, replay_checked_in_benchmark_publication,
-    status_checked_in_benchmark_campaign,
+    publish_benchmark_campaign_report_with_presentation_authority, publish_benchmark_data_index,
+    publish_checked_in_benchmark_evidence_book, publish_governed_data_catalog_registry,
+    replay_checked_in_benchmark_publication, status_checked_in_benchmark_campaign,
 };
 use bijux_dna_bench::{
     admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
