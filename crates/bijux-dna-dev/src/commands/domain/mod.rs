@@ -462,15 +462,7 @@ fn check_domain_layout(workspace: &Workspace) -> Result<DomainCommandOutcome> {
         });
     }
 
-    let allowed = [
-        regex(
-            r"^domain/[^/]+/(index\.yaml|artifacts\.yaml|metrics\.yaml|execution_support\.yaml|route_policies\.toml)$",
-        )?,
-        regex(r"^domain/[^/]+/(stages|tools)/[^/]+\.yaml$")?,
-        regex(r"^domain/[^/]+/(metrics|artifacts)/_schema\.yaml$")?,
-        regex(r"^domain/[^/]+/fixtures/[^/]+(?:/[^/]+){0,2}$")?,
-        regex(r"^domain/[^/]+/docs/[^/]+(?:/[^/]+)?$")?,
-    ];
+    let allowed = domain_layout_patterns()?;
 
     let mut errors = Vec::new();
     for entry in WalkDir::new(&domain_dir)
@@ -492,4 +484,41 @@ fn check_domain_layout(workspace: &Workspace) -> Result<DomainCommandOutcome> {
         return success_line("domain layout: OK");
     }
     Ok(DomainCommandOutcome::failure(format!("{}\n", errors.join("\n"))))
+}
+
+fn domain_layout_patterns() -> Result<Vec<regex::Regex>> {
+    Ok(vec![
+        regex(
+            r"^domain/[^/]+/(index\.yaml|artifacts\.yaml|metrics\.yaml|execution_support\.yaml|route_policies\.toml)$",
+        )?,
+        regex(r"^domain/[^/]+/(stages|tools)/[^/]+\.yaml$")?,
+        regex(r"^domain/[^/]+/(metrics|artifacts)/_schema\.yaml$")?,
+        regex(r"^domain/[^/]+/fixtures/[^/]+(?:/[^/]+){0,2}$")?,
+        regex(r"^domain/[^/]+/docs/[^/]+(?:/[^/]+)?$")?,
+        regex(r"^domain/contracts/(README\.md|artifact-contracts\.json)$")?,
+        regex(r"^domain/contracts/schemas/[a-z0-9-]+\.schema\.json$")?,
+    ])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn domain_layout_patterns_admit_contract_publications_without_opening_the_root() -> Result<()> {
+        let patterns = domain_layout_patterns()?;
+        for path in [
+            "domain/contracts/README.md",
+            "domain/contracts/artifact-contracts.json",
+            "domain/contracts/schemas/artifact-contract.schema.json",
+            "domain/contracts/schemas/artifact-contract-catalog.schema.json",
+        ] {
+            assert!(patterns.iter().any(|pattern| pattern.is_match(path)), "rejected {path}");
+        }
+        assert!(
+            patterns.iter().all(|pattern| !pattern.is_match("domain/contracts/secrets.txt")),
+            "contract-root allowlist must remain closed"
+        );
+        Ok(())
+    }
 }

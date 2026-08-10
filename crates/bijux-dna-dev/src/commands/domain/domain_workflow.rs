@@ -161,7 +161,15 @@ pub(super) fn domain_directories(workspace: &Workspace) -> Result<Vec<PathBuf>> 
         .with_context(|| format!("read {}", workspace.path("domain").display()))?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| match entry.file_type() {
-            Ok(file_type) if file_type.is_dir() => Some(entry.path()),
+            Ok(file_type)
+                if file_type.is_dir()
+                    && entry
+                        .file_name()
+                        .to_str()
+                        .is_some_and(|name| ids::DomainKind::try_from(name).is_ok()) =>
+            {
+                Some(entry.path())
+            }
             _ => None,
         })
         .collect::<Vec<_>>();
@@ -203,4 +211,26 @@ pub(super) fn markdown_files(dir: &Path) -> Result<Vec<PathBuf>> {
         .collect::<Vec<_>>();
     files.sort();
     Ok(files)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn domain_directories_exclude_non_domain_contract_roots() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        for directory in ["domain/fastq", "domain/bam", "domain/contracts"] {
+            fs::create_dir_all(root.path().join(directory))?;
+        }
+        let workspace = Workspace { root: root.path().to_path_buf() };
+
+        let directories = domain_directories(&workspace)?
+            .into_iter()
+            .map(|path| workspace.rel(&path).to_string_lossy().to_string())
+            .collect::<Vec<_>>();
+
+        assert_eq!(directories, ["domain/bam", "domain/fastq"]);
+        Ok(())
+    }
 }
