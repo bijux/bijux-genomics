@@ -131,6 +131,31 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
 }
 
 #[test]
+fn policy__contracts__command_spawn_policy__bijux_dna_tests_use_prebuilt_cli() {
+    let tests_root = workspace_root().join("crates/bijux-dna/tests");
+    let mut offenders = Vec::new();
+
+    for entry in WalkDir::new(tests_root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|ext| ext.to_str()) != Some("rs")
+        {
+            continue;
+        }
+        let path = entry.path();
+        let content = std::fs::read_to_string(path).expect("read integration test");
+        if content.contains("Command::new(\"cargo\")") {
+            offenders.push(path.display().to_string());
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "bijux-dna integration tests must invoke env!(\"CARGO_BIN_EXE_bijux-dna\") instead of spawning nested Cargo builds:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn policy__contracts__command_spawn_policy__run_controls_never_poll_for_progress() {
     let root = workspace_root();
     let operations = std::fs::read_to_string(

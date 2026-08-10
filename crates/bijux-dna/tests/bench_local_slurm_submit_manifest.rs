@@ -5,31 +5,27 @@ use std::process::Command;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cargo_cli(args: &[&str], features: Option<&str>) -> std::process::Output {
+fn run_cli(args: &[&str]) -> std::process::Output {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let mut command = Command::new("cargo");
-    command
+    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna"]);
-    if let Some(features) = features {
-        command.args(["--features", features]);
-    }
-    command.args(["--"]).args(args);
-    command.output().expect("run cargo cli")
+        .args(args)
+        .output()
+        .expect("run cli")
 }
 
 #[cfg(feature = "bam_downstream")]
-fn run_cargo_cli_json(args: &[&str], features: &str) -> serde_json::Value {
-    let output = run_cargo_cli(args, Some(features));
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let output = run_cli(args);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -43,7 +39,7 @@ fn run_cargo_cli_json(args: &[&str], features: &str) -> serde_json::Value {
 #[cfg(not(feature = "bam_downstream"))]
 #[test]
 fn bench_local_render_slurm_submit_manifest_requires_bam_downstream_feature() {
-    let output = run_cargo_cli(&["bench", "local", "render-slurm-submit-manifest", "--json"], None);
+    let output = run_cli(&["bench", "local", "render-slurm-submit-manifest", "--json"]);
     assert!(
         !output.status.success(),
         "command should fail without bam_downstream\nstdout:\n{}\nstderr:\n{}",
@@ -60,10 +56,7 @@ fn bench_local_render_slurm_submit_manifest_requires_bam_downstream_feature() {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_slurm_submit_manifest_reports_governed_51_job_slice() {
-    let payload = run_cargo_cli_json(
-        &["bench", "local", "render-slurm-submit-manifest", "--json"],
-        "bam_downstream",
-    );
+    let payload = run_cli_json(&["bench", "local", "render-slurm-submit-manifest", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -107,10 +100,7 @@ fn bench_local_render_slurm_submit_manifest_reports_governed_51_job_slice() {
 #[cfg(feature = "bam_downstream")]
 #[test]
 fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() {
-    let payload = run_cargo_cli_json(
-        &["bench", "local", "render-slurm-submit-manifest", "--json"],
-        "bam_downstream",
-    );
+    let payload = run_cli_json(&["bench", "local", "render-slurm-submit-manifest", "--json"]);
     let jobs = payload.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
 
     let screen_taxonomy = jobs
