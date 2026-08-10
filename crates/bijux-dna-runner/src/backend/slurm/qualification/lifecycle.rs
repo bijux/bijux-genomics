@@ -9,10 +9,11 @@ use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use super::contracts::{
-    ContainerQualificationAccountingRecord, ContainerQualificationCollection,
-    ContainerQualificationSchedulerEvidence, ContainerQualificationSchedulerStatus,
-    ContainerQualificationSlurmSpec, PreparedContainerQualificationSlurmJob,
-    CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
+    ContainerQualificationAccountingRecord, ContainerQualificationAdmission,
+    ContainerQualificationCollection, ContainerQualificationSchedulerEvidence,
+    ContainerQualificationSchedulerStatus, ContainerQualificationSlurmSpec,
+    PreparedContainerQualificationSlurmJob, CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_ADMISSION_SCHEMA_V1, CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1,
     CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
@@ -174,6 +175,71 @@ pub fn load_container_qualification_scheduler_evidence(
     let evidence: ContainerQualificationSchedulerEvidence = read_json(&terminal_path)?;
     validate_retained_evidence(spec, &handle, &evidence)?;
     Ok(Some(evidence))
+}
+
+/// Load and verify an immutable admission of terminal passing qualification evidence.
+///
+/// # Errors
+/// Returns an error when the receipt, scheduler evidence, or execution evidence has drifted.
+pub fn load_container_qualification_admission(
+    spec: &ContainerQualificationSlurmSpec,
+) -> Result<Option<ContainerQualificationAdmission>> {
+    let path = spec.evidence_root.join("admission.json");
+    if !regular_file_exists(&path, "qualification admission")? {
+        return Ok(None);
+    }
+    let admission: ContainerQualificationAdmission = read_json(&path)?;
+    validate_qualification_admission(spec, &admission)?;
+    Ok(Some(admission))
+}
+
+/// Admit one terminal passing qualification evidence chain and return immediately.
+///
+/// A retained receipt is revalidated and returned unchanged, making repeated explicit cycle
+/// invocations idempotent even when their observation timestamps differ.
+///
+/// # Errors
+/// Returns an error when the attempt is not terminal and passing, identity has drifted, or the
+/// immutable receipt conflicts with retained evidence.
+pub fn admit_container_qualification_collection(
+    spec: &ContainerQualificationSlurmSpec,
+    admitted_at_utc: &str,
+) -> Result<ContainerQualificationAdmission> {
+    require_utc_timestamp(admitted_at_utc, "qualification admission timestamp")?;
+    validate_specification(spec)?;
+    if let Some(admission) = load_container_qualification_admission(spec)? {
+        return Ok(admission);
+    }
+    let campaign_id =
+        spec.campaign_id.clone().context("qualification admission requires a campaign identity")?;
+    let attempt_id =
+        spec.attempt_id.clone().context("qualification admission requires an attempt identity")?;
+    let evidence = load_container_qualification_scheduler_evidence(spec)?
+        .context("qualification admission requires collected terminal evidence")?;
+    if evidence.status != ContainerQualificationSchedulerStatus::Passed {
+        bail!("only terminal passing qualification evidence can be admitted");
+    }
+    let execution_evidence_sha256 = evidence
+        .execution_evidence_sha256
+        .clone()
+        .context("passing qualification evidence omits execution identity")?;
+    let admission = ContainerQualificationAdmission {
+        schema_version: CONTAINER_QUALIFICATION_ADMISSION_SCHEMA_V1.to_string(),
+        run_id: spec.run_id.clone(),
+        tool_id: spec.tool_id.clone(),
+        campaign_id,
+        attempt_id,
+        repository_commit: spec.repository_commit.clone(),
+        job_id: evidence.job_id,
+        scheduler_evidence_sha256: bijux_dna_infra::hash_file_sha256(
+            &spec.evidence_root.join("scheduler-evidence.json"),
+        )?,
+        execution_evidence_sha256,
+        admitted_at_utc: admitted_at_utc.to_string(),
+    };
+    validate_qualification_admission(spec, &admission)?;
+    ensure_json_identity(&spec.evidence_root.join("admission.json"), &admission)?;
+    Ok(admission)
 }
 
 /// Observe one qualification job once without polling or mutating scheduler evidence.
@@ -405,6 +471,32 @@ pub(super) fn validate_retained_evidence(
                 bail!("retained failed qualification evidence now has passing execution evidence");
             }
         }
+    }
+    Ok(())
+}
+
+fn validate_qualification_admission(
+    spec: &ContainerQualificationSlurmSpec,
+    admission: &ContainerQualificationAdmission,
+) -> Result<()> {
+    require_utc_timestamp(&admission.admitted_at_utc, "retained admission timestamp")?;
+    let evidence = load_container_qualification_scheduler_evidence(spec)?
+        .context("qualification admission lost terminal scheduler evidence")?;
+    let scheduler_evidence_sha256 =
+        bijux_dna_infra::hash_file_sha256(&spec.evidence_root.join("scheduler-evidence.json"))?;
+    if evidence.status != ContainerQualificationSchedulerStatus::Passed
+        || admission.schema_version != CONTAINER_QUALIFICATION_ADMISSION_SCHEMA_V1
+        || admission.run_id != spec.run_id
+        || admission.tool_id != spec.tool_id
+        || admission.campaign_id.as_str() != spec.campaign_id.as_deref().unwrap_or_default()
+        || admission.attempt_id.as_str() != spec.attempt_id.as_deref().unwrap_or_default()
+        || admission.repository_commit != spec.repository_commit
+        || admission.job_id != evidence.job_id
+        || admission.scheduler_evidence_sha256 != scheduler_evidence_sha256
+        || Some(admission.execution_evidence_sha256.as_str())
+            != evidence.execution_evidence_sha256.as_deref()
+    {
+        bail!("qualification admission conflicts with terminal evidence identity");
     }
     Ok(())
 }

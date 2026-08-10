@@ -46,6 +46,7 @@ pub enum ContainerQualificationCycleState {
     AccountingPending,
     Collectable,
     Passed,
+    Admitted,
     Failed,
 }
 
@@ -57,6 +58,7 @@ pub enum ContainerQualificationCycleAction {
     Submit,
     Poll,
     Collect,
+    Admit,
     ArchiveFailure,
     Book,
 }
@@ -85,6 +87,7 @@ pub struct ContainerQualificationCycleSummary {
     pub ready_count: usize,
     pub active_count: usize,
     pub passed_count: usize,
+    pub admitted_count: usize,
     pub failed_count: usize,
 }
 
@@ -179,6 +182,32 @@ pub fn collect_container_qualification_cycle(
     }
     if !failures.is_empty() {
         bail!("one or more qualification collections failed: {}", failures.join("; "));
+    }
+    plan_container_qualification_cycle(request)
+}
+
+/// Admit every independently collected passing qualification once and return immediately.
+///
+/// # Errors
+/// Returns an error when planning fails or a terminal evidence chain cannot be admitted.
+pub fn admit_container_qualification_cycle(
+    request: &ContainerQualificationCycleRequest,
+) -> Result<ContainerQualificationCycleStatus> {
+    let planned = plan_container_qualification_cycle(request)?;
+    let mut failures = Vec::new();
+    for unit in
+        planned.units.iter().filter(|unit| unit.state == ContainerQualificationCycleState::Passed)
+    {
+        let path = unit.specification_path.as_ref().context("passed cycle unit lacks a spec")?;
+        let spec = load_container_qualification_slurm_spec(path)?;
+        if let Err(error) =
+            super::admit_container_qualification_collection(&spec, &request.observed_at_utc)
+        {
+            failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
+        }
+    }
+    if !failures.is_empty() {
+        bail!("one or more qualification admissions failed: {}", failures.join("; "));
     }
     plan_container_qualification_cycle(request)
 }
@@ -396,7 +425,17 @@ fn classify_spec(
     if let Some(evidence) = load_container_qualification_scheduler_evidence(spec)? {
         let (state, action) = match evidence.status {
             ContainerQualificationSchedulerStatus::Passed => {
-                (ContainerQualificationCycleState::Passed, ContainerQualificationCycleAction::Book)
+                if super::load_container_qualification_admission(spec)?.is_some() {
+                    (
+                        ContainerQualificationCycleState::Admitted,
+                        ContainerQualificationCycleAction::Book,
+                    )
+                } else {
+                    (
+                        ContainerQualificationCycleState::Passed,
+                        ContainerQualificationCycleAction::Admit,
+                    )
+                }
             }
             ContainerQualificationSchedulerStatus::Failed => (
                 ContainerQualificationCycleState::Failed,
@@ -545,6 +584,7 @@ fn summarize(units: &[ContainerQualificationCycleUnit]) -> ContainerQualificatio
             ],
         ),
         passed_count: count(units, &[ContainerQualificationCycleState::Passed]),
+        admitted_count: count(units, &[ContainerQualificationCycleState::Admitted]),
         failed_count: count(units, &[ContainerQualificationCycleState::Failed]),
     }
 }
