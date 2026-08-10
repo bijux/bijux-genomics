@@ -8,7 +8,7 @@ use super::catalog::{load_retained_tool, CatalogToolSource};
 use super::labels::tool_contract_labels;
 use super::model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
-    CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
+    CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V3,
 };
 use super::validation::validate_tool_contract;
 
@@ -121,10 +121,12 @@ fn derive_contract(
         bail!("retained tool {} has no valid source identity", request.tool_id);
     };
     let contract = ContainerToolContract {
-        schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V2.to_string(),
+        schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V3.to_string(),
         tool_id: source.tool.id.clone(),
         version: source.tool.version.clone(),
-        support_disposition: source.tool.legacy_support_disposition().to_string(),
+        product_support: source.tool.product_support,
+        artifact_delivery: source.tool.artifact_delivery,
+        redistribution_permitted: source.tool.redistribution_permitted,
         catalog_entry_sha256,
         catalog_sha256,
         recipe_path,

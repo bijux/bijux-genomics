@@ -355,7 +355,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let security_probe_path =
         root.join("containers/contracts/schemas/security-probe-publication.v1.json");
     let tool_identity_path =
-        root.join("containers/contracts/schemas/tool-image-identity-evidence.v2.json");
+        root.join("containers/contracts/schemas/tool-image-identity-evidence.v3.json");
     let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
@@ -363,7 +363,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         root.join("containers/contracts/schemas/qualification-run-registry.v3.json");
     let qualification_audit_path =
         root.join("containers/contracts/schemas/qualification-run-id-audit.v3.json");
-    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v2.json");
+    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v3.json");
     let build_evidence_path = root.join("containers/contracts/schemas/build-evidence.v1.json");
     let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");
     let campaign_execution_path =
@@ -441,6 +441,29 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(campaign_execution, bijux_dna_containers::api::image_campaign_execution_schema());
     assert_eq!(catalog, bijux_dna_containers::api::container_catalog_schema());
     assert_eq!(catalog_lock, bijux_dna_containers::api::container_catalog_lock_schema());
+    Ok(())
+}
+
+#[test]
+fn historical_tool_identity_schemas_remain_immutable() -> Result<()> {
+    let root = repository_root()?;
+    let contract = read_json(root.join("containers/contracts/schemas/tool-contract.v2.json"))?;
+    assert_eq!(
+        contract["properties"]["schema_version"]["const"],
+        "bijux.container.tool_contract.v2"
+    );
+    assert!(contract["properties"].get("support_disposition").is_some());
+    assert!(contract["properties"].get("product_support").is_none());
+
+    let identity =
+        read_json(root.join("containers/contracts/schemas/tool-image-identity-evidence.v2.json"))?;
+    assert_eq!(
+        identity["properties"]["schema_version"]["const"],
+        "bijux.container.tool_image_identity_evidence.v2"
+    );
+    let properties = &identity["$defs"]["ContainerToolContract"]["properties"];
+    assert!(properties.get("support_disposition").is_some());
+    assert!(properties.get("product_support").is_none());
     Ok(())
 }
 

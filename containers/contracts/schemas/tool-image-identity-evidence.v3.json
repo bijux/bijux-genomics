@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "ContainerArtifactDelivery": {
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ],
+      "type": "string"
+    },
+    "ContainerProductSupport": {
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
+    },
+    "ContainerToolContract": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "not": {
+            "required": [
+              "pinned_commit"
+            ]
+          },
+          "required": [
+            "source_sha256"
+          ]
+        },
+        {
+          "not": {
+            "required": [
+              "source_sha256"
+            ]
+          },
+          "required": [
+            "pinned_commit"
+          ]
+        }
+      ],
+      "properties": {
+        "architecture": {
+          "type": "string"
+        },
+        "artifact_delivery": {
+          "$ref": "#/$defs/ContainerArtifactDelivery"
+        },
+        "build_evidence_id": {
+          "type": "string"
+        },
+        "catalog_entry_sha256": {
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "type": "string"
+        },
+        "expected_binary": {
+          "type": "string"
+        },
+        "expected_version_regex": {
+          "type": "string"
+        },
+        "interface_sha256": {
+          "type": "string"
+        },
+        "pinned_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "product_support": {
+          "$ref": "#/$defs/ContainerProductSupport"
+        },
+        "recipe_path": {
+          "type": "string"
+        },
+        "recipe_sha256": {
+          "type": "string"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
+        },
+        "repository_commit": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.container.tool_contract.v3",
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "version_command": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "tool_id",
+        "version",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
+        "catalog_entry_sha256",
+        "catalog_sha256",
+        "recipe_path",
+        "recipe_sha256",
+        "repository_commit",
+        "architecture",
+        "build_evidence_id",
+        "expected_binary",
+        "version_command",
+        "expected_version_regex",
+        "interface_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "contract": {
+      "$ref": "#/$defs/ContainerToolContract"
+    },
+    "image_sha256": {
+      "type": "string"
+    },
+    "labels": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "bijux.container.tool_image_identity_evidence.v3",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "image_sha256",
+    "contract",
+    "labels"
+  ],
+  "title": "ToolImageIdentityEvidence",
+  "type": "object"
+}

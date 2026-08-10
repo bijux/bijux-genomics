@@ -3,16 +3,17 @@ use regex::Regex;
 
 use super::labels::validate_tool_contract_labels;
 use super::model::{
-    ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
+    ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_SCHEMA_V3,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V3,
 };
+use super::{ContainerArtifactDelivery, ContainerProductSupport};
 
 /// Validate every immutable field in an embedded tool contract.
 ///
 /// # Errors
 /// Returns an error for malformed, incomplete, unsupported, or ambiguous identities.
 pub fn validate_tool_contract(contract: &ContainerToolContract) -> Result<()> {
-    if contract.schema_version != CONTAINER_TOOL_CONTRACT_SCHEMA_V2 {
+    if contract.schema_version != CONTAINER_TOOL_CONTRACT_SCHEMA_V3 {
         bail!("unsupported tool-contract schema: {}", contract.schema_version);
     }
     for (label, value) in [
@@ -31,8 +32,14 @@ pub fn validate_tool_contract(contract: &ContainerToolContract) -> Result<()> {
             bail!("tool contract {label} is not safe for an Apptainer label");
         }
     }
-    if contract.support_disposition != "retained" {
-        bail!("tool contract support disposition must be retained");
+    if contract.product_support != ContainerProductSupport::Supported {
+        bail!("tool contract product support must be supported");
+    }
+    if contract.artifact_delivery != ContainerArtifactDelivery::RedistributableImage {
+        bail!("tool contract artifact delivery must be redistributable_image");
+    }
+    if !contract.redistribution_permitted {
+        bail!("tool contract redistribution must be permitted");
     }
     for (label, value) in [
         ("catalog entry", contract.catalog_entry_sha256.as_str()),
@@ -65,7 +72,7 @@ pub fn validate_tool_image_identity_evidence(
     expected_contract: &ContainerToolContract,
 ) -> Result<()> {
     validate_tool_contract(expected_contract)?;
-    if evidence.schema_version != TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2 {
+    if evidence.schema_version != TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V3 {
         bail!("unsupported tool-image identity evidence schema");
     }
     validate_sha256(&evidence.image_sha256, "image")?;
@@ -92,7 +99,9 @@ pub fn tool_contract_is_compatible(
     observed.schema_version == expected.schema_version
         && observed.tool_id == expected.tool_id
         && observed.version == expected.version
-        && observed.support_disposition == expected.support_disposition
+        && observed.product_support == expected.product_support
+        && observed.artifact_delivery == expected.artifact_delivery
+        && observed.redistribution_permitted == expected.redistribution_permitted
         && observed.catalog_entry_sha256 == expected.catalog_entry_sha256
         && observed.recipe_path == expected.recipe_path
         && observed.recipe_sha256 == expected.recipe_sha256

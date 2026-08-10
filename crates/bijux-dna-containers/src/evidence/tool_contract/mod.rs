@@ -31,7 +31,8 @@ pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContra
 pub use model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
     ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
+    CONTAINER_TOOL_CONTRACT_SCHEMA_V3, TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V3,
 };
 pub(crate) use preparation::prepare_apptainer_tool_contract_for_publication;
 pub use preparation::{derive_apptainer_tool_contract, prepare_apptainer_tool_contract};

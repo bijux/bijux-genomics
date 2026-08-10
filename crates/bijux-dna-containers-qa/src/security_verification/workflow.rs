@@ -692,6 +692,7 @@ mod tests {
     use std::time::Duration;
 
     use anyhow::Result;
+    use bijux_dna_containers::api::{ContainerArtifactDelivery, ContainerProductSupport};
 
     use super::{
         baseline_identity_matches, ensure_immutable_json, inspect_structure, run_bounded,
@@ -726,10 +727,12 @@ mod tests {
     #[test]
     fn baseline_reuse_requires_exact_image_and_tool_contract_identity() -> Result<()> {
         let contract = ContainerToolContract {
-            schema_version: "bijux.container.tool_contract.v2".to_string(),
+            schema_version: "bijux.container.tool_contract.v3".to_string(),
             tool_id: "samtools".to_string(),
             version: "1.20".to_string(),
-            support_disposition: "retained".to_string(),
+            product_support: ContainerProductSupport::Supported,
+            artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+            redistribution_permitted: true,
             catalog_entry_sha256: "1".repeat(64),
             catalog_sha256: "2".repeat(64),
             recipe_path: "containers/tools/samtools/samtools".to_string(),

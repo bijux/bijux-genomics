@@ -62,7 +62,12 @@ fn retained_contract_is_catalog_derived_and_installed_once() -> Result<()> {
     validate_tool_contract(&prepared.contract)?;
     assert_eq!(prepared.contract.tool_id, "samtools");
     assert_eq!(prepared.contract.version, "1.20");
-    assert_eq!(prepared.contract.support_disposition, "retained");
+    assert_eq!(prepared.contract.product_support, ContainerProductSupport::Supported);
+    assert_eq!(
+        prepared.contract.artifact_delivery,
+        ContainerArtifactDelivery::RedistributableImage
+    );
+    assert!(prepared.contract.redistribution_permitted);
     assert_eq!(prepared.contract.recipe_path, "containers/apptainer/samtools.def");
     assert_eq!(prepared.contract.build_evidence_id.len(), 64);
     assert!(prepared.contract.source_sha256.is_some());
