@@ -34,6 +34,8 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
                 .with_context(|| format!("generated tool {id} is absent from the catalog"))?;
             for (generated, canonical) in [
                 ("version", "version"),
+                ("product_support", "product_support"),
+                ("artifact_delivery", "artifact_delivery"),
                 ("upstream", "upstream"),
                 ("license", "license"),
                 ("version_cmd", "version_command"),
@@ -47,6 +49,14 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
                     text(row, generated)?,
                     text(contract, canonical)?,
                     "{id}: generated {generated} diverges from catalog {canonical}"
+                );
+            }
+            for field in ["redistribution_permitted", "external_artifact_supported"] {
+                let expected = contract.get(field).and_then(toml::Value::as_bool).unwrap_or(false);
+                assert_eq!(
+                    row.get(field).and_then(toml::Value::as_bool),
+                    Some(expected),
+                    "{id}: generated {field} diverges from catalog authority"
                 );
             }
             let expected_runtimes =
@@ -68,7 +78,7 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
                 .map(|value| value.as_str().context("runtime is not text"))
                 .collect::<Result<Vec<_>>>()?;
             assert_eq!(actual_runtimes, expected_runtimes, "{id}: runtime authority drift");
-            let disposition = text(contract, "support_disposition")?;
+            let product_support = text(contract, "product_support")?;
             let expected_container_ref = if expected_runtimes.is_empty() {
                 "external@licensed-installation".to_string()
             } else {
@@ -79,10 +89,10 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
                 expected_container_ref,
                 "{id}: container reference does not identify the catalog version"
             );
-            if disposition != "retained" {
+            if product_support != "supported" {
                 assert_eq!(
                     text(row, "status")?,
-                    disposition,
+                    product_support,
                     "{id}: unsupported disposition was promoted by domain metadata"
                 );
             }

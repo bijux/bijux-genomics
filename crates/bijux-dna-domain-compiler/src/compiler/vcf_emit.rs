@@ -146,10 +146,23 @@ pub(super) fn write_vcf_generated_views(
         let _ = writeln!(tools_vcf_toml, "domain = \"vcf\"");
         let vcf_status = match contract.product_support.as_str() {
             "retired" | "excluded" => contract.product_support.as_str(),
+            _ if !contract.is_redistributable_image() => "supported",
             _ if tool.status == "supported" => "production",
             _ => "planned",
         };
         let _ = writeln!(tools_vcf_toml, "status = \"{vcf_status}\"");
+        let _ = writeln!(tools_vcf_toml, "product_support = \"{}\"", contract.product_support);
+        let _ = writeln!(tools_vcf_toml, "artifact_delivery = \"{}\"", contract.artifact_delivery);
+        let _ = writeln!(
+            tools_vcf_toml,
+            "redistribution_permitted = {}",
+            contract.redistribution_permitted
+        );
+        let _ = writeln!(
+            tools_vcf_toml,
+            "external_artifact_supported = {}",
+            contract.external_artifact_supported
+        );
         let _ = writeln!(tools_vcf_toml, "stage_ids = {}", toml_array(&stage_ids));
         let _ = writeln!(tools_vcf_toml, "version = \"{}\"", contract.version);
         let _ = writeln!(tools_vcf_toml, "default_version = \"{}\"", contract.version);
