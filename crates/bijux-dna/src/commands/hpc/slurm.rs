@@ -622,17 +622,10 @@ fn build_slurm_script(
     };
     let array_line =
         job.planned.array_task.map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
-    let retry_codes = report
-        .resolved_slurm
-        .retry_on_exit_codes
-        .iter()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(",");
     let prepared_root_block = prepared_root_shell_block(report);
 
     format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n{}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\nretry_attempts={}\nretry_backoff_seconds={}\nretry_codes=\",{},\"\nattempt=1\nwhile true; do\n  # Placeholder command until full stage runner integration is finalized.\n  echo \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR attempt=$attempt\\\"\n  rc=0\n  if [ \"$rc\" -eq 0 ]; then\n    break\n  fi\n  if [ \"$attempt\" -ge \"$retry_attempts\" ]; then\n    exit \"$rc\"\n  fi\n  if [[ \"$retry_codes\" == *\",$rc,\"* ]]; then\n    sleep \"$retry_backoff_seconds\"\n    attempt=$((attempt + 1))\n    continue\n  fi\n  exit \"$rc\"\ndone\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n{}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Each scheduler job executes exactly one attempt. Retry and supersession are\n# separate lifecycle transitions, never a blocking loop inside this script.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR\\\"\n",
         shell_quote(&job.name),
         job.planned.resources.cpus,
         job.planned.resources.mem_gb,
@@ -652,9 +645,6 @@ fn build_slurm_script(
         shell_quote(&job.planned.outputs.scratch_dir),
         shell_quote(&report.env_file_path),
         shell_quote(&report.env_file_path),
-        report.resolved_slurm.retry_attempts,
-        report.resolved_slurm.retry_backoff_seconds,
-        retry_codes,
         job.planned.stage,
         job.planned.tool,
         job.planned.sample
@@ -2312,7 +2302,7 @@ array_task = 7
     }
 
     #[test]
-    fn submit_campaign_scripts_include_retry_policy_when_configured() {
+    fn submit_campaign_scripts_execute_one_attempt_when_retry_is_configured() {
         let root = tempfile::tempdir().expect("tempdir");
         for name in [
             "corpora",
@@ -2394,10 +2384,10 @@ sample = "sample-retry"
         })
         .expect("submit campaign");
         let script = std::fs::read_to_string(&report.jobs[0].script_path).expect("read script");
-        assert!(script.contains("retry_attempts=3"));
-        assert!(script.contains("retry_backoff_seconds=15"));
-        assert!(script.contains("retry_codes=\",1,2,137,\""));
-        assert!(script.contains("while true; do"));
+        assert_eq!(script.matches("execute stage").count(), 1);
+        for forbidden in ["retry_attempts=", "retry_backoff_seconds=", "while true; do", "sleep "] {
+            assert!(!script.contains(forbidden), "generated script contains {forbidden:?}");
+        }
     }
 
     #[test]
