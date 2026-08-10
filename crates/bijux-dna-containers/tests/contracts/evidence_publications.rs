@@ -446,13 +446,25 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
 
 #[test]
 fn checked_in_external_artifact_schema_matches_rust_type() -> Result<()> {
-    let path =
-        repository_root()?.join("containers/contracts/schemas/external-artifact-admission.v1.json");
+    let root = repository_root()?;
+    let path = root.join("containers/contracts/schemas/external-artifact-admission.v2.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_containers::evidence::write_external_artifact_admission_schema(&path)?;
     }
     let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
     assert_eq!(checked_in, bijux_dna_containers::evidence::external_artifact_admission_schema());
+
+    let historical: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+        root.join("containers/contracts/schemas/external-artifact-admission.v1.json"),
+    )?)?;
+    assert_eq!(
+        historical["properties"]["schema_version"]["const"],
+        "bijux.container.external_artifact_admission.v1"
+    );
+    assert!(historical["properties"].get("status").is_some());
+    assert!(historical["properties"].get("support_disposition").is_some());
+    assert!(historical["properties"].get("availability").is_none());
+    assert!(historical["properties"].get("product_support").is_none());
     Ok(())
 }
 

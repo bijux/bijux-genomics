@@ -32,7 +32,7 @@ pub use external_artifact::{
     ExternalArtifactAdmission, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
     ExternalArtifactCommandBinding, ExternalArtifactIdentity, ExternalArtifactInput,
     ExternalArtifactKind, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
-    EXTERNAL_ARTIFACT_IMAGE_SCHEME,
+    EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2, EXTERNAL_ARTIFACT_IMAGE_SCHEME,
 };
 pub use image_activation::{
     apply_image_activation_plan, create_image_activation_plan, image_activation_plan_schema,

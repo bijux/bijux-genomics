@@ -1,22 +1,5 @@
 {
   "$defs": {
-    "ContainerArtifactDelivery": {
-      "enum": [
-        "redistributable_image",
-        "external_artifact",
-        "private_site_build",
-        "site_module"
-      ],
-      "type": "string"
-    },
-    "ContainerProductSupport": {
-      "enum": [
-        "supported",
-        "retired",
-        "excluded"
-      ],
-      "type": "string"
-    },
     "EvidenceSourceIdentity": {
       "properties": {
         "path": {
@@ -35,8 +18,7 @@
     "ExternalArtifactAdmissionStatus": {
       "enum": [
         "admitted",
-        "blocked_external_access",
-        "unavailable"
+        "blocked_external_access"
       ],
       "type": "string"
     },
@@ -110,12 +92,6 @@
         }
       ]
     },
-    "artifact_delivery": {
-      "$ref": "#/$defs/ContainerArtifactDelivery"
-    },
-    "availability": {
-      "$ref": "#/$defs/ExternalArtifactAdmissionStatus"
-    },
     "blocker_reason": {
       "type": [
         "string",
@@ -124,9 +100,6 @@
     },
     "catalog": {
       "$ref": "#/$defs/EvidenceSourceIdentity"
-    },
-    "delivery_reason": {
-      "type": "string"
     },
     "distributable_image_root": {
       "type": "string"
@@ -142,9 +115,6 @@
         "string",
         "null"
       ]
-    },
-    "product_support": {
-      "$ref": "#/$defs/ContainerProductSupport"
     },
     "recorded_at_utc": {
       "type": "string"
@@ -165,6 +135,15 @@
         "type": "string"
       },
       "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ExternalArtifactAdmissionStatus"
+    },
+    "support_disposition": {
+      "type": "string"
+    },
+    "support_reason": {
+      "type": "string"
     },
     "tool_id": {
       "type": "string"
@@ -188,16 +167,15 @@
   },
   "required": [
     "schema_version",
-    "availability",
+    "status",
     "recorded_at_utc",
     "repository_commit",
     "catalog",
     "distributable_image_root",
     "tool_id",
     "version",
-    "product_support",
-    "artifact_delivery",
-    "delivery_reason",
+    "support_disposition",
+    "support_reason",
     "stage_ids",
     "expected_binary",
     "version_command",

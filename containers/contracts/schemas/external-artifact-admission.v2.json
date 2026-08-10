@@ -1,0 +1,209 @@
+{
+  "$defs": {
+    "ContainerArtifactDelivery": {
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ],
+      "type": "string"
+    },
+    "ContainerProductSupport": {
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
+    },
+    "EvidenceSourceIdentity": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "ExternalArtifactAdmissionStatus": {
+      "enum": [
+        "admitted",
+        "blocked_external_access",
+        "unavailable"
+      ],
+      "type": "string"
+    },
+    "ExternalArtifactIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ExternalArtifactKind"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "ExternalArtifactKind": {
+      "enum": [
+        "binary",
+        "apptainer_sif"
+      ],
+      "type": "string"
+    },
+    "ExternalArtifactVersionProbe": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "output": {
+          "type": "string"
+        },
+        "output_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "command",
+        "output",
+        "output_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifact": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExternalArtifactIdentity"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "artifact_delivery": {
+      "$ref": "#/$defs/ContainerArtifactDelivery"
+    },
+    "availability": {
+      "$ref": "#/$defs/ExternalArtifactAdmissionStatus"
+    },
+    "blocker_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "catalog": {
+      "$ref": "#/$defs/EvidenceSourceIdentity"
+    },
+    "delivery_reason": {
+      "type": "string"
+    },
+    "distributable_image_root": {
+      "type": "string"
+    },
+    "expected_binary": {
+      "type": "string"
+    },
+    "expected_version_regex": {
+      "type": "string"
+    },
+    "lawful_access_basis": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "product_support": {
+      "$ref": "#/$defs/ContainerProductSupport"
+    },
+    "recorded_at_utc": {
+      "type": "string"
+    },
+    "redistribution_permitted": {
+      "const": false,
+      "type": "boolean"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.container.external_artifact_admission.v2",
+      "type": "string"
+    },
+    "stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "version_command": {
+      "type": "string"
+    },
+    "version_probe": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExternalArtifactVersionProbe"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "availability",
+    "recorded_at_utc",
+    "repository_commit",
+    "catalog",
+    "distributable_image_root",
+    "tool_id",
+    "version",
+    "product_support",
+    "artifact_delivery",
+    "delivery_reason",
+    "stage_ids",
+    "expected_binary",
+    "version_command",
+    "expected_version_regex",
+    "redistribution_permitted"
+  ],
+  "title": "ExternalArtifactAdmission",
+  "type": "object"
+}
