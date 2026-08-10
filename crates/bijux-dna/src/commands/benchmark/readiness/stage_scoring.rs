@@ -885,14 +885,33 @@ mod tests {
             .expect("render stage scoring");
 
         assert_eq!(report.config_path, relative_output_path.to_string_lossy());
-        assert_eq!(report.row_count, 69);
-        assert_eq!(report.multi_tool_stage_count, 31);
-        assert_eq!(report.single_tool_stage_count, 38);
-        assert_eq!(report.scientific_stage_count, 29);
+        assert_eq!(report.row_count, 71);
+        assert_eq!(
+            report.multi_tool_stage_count,
+            report
+                .rows
+                .iter()
+                .filter(|row| row.decision_mode == StageScoringDecisionMode::MultiToolRanking)
+                .count()
+        );
+        assert_eq!(
+            report.single_tool_stage_count,
+            report.row_count - report.multi_tool_stage_count
+        );
+        assert_eq!(
+            report.scientific_stage_count,
+            report
+                .rows
+                .iter()
+                .filter(|row| {
+                    row.scientific_threshold.applicability == StageScoringApplicability::Required
+                })
+                .count()
+        );
         assert_eq!(report.failure_class_count, 7);
         assert_eq!(report.domain_counts.get("fastq"), Some(&27));
         assert_eq!(report.domain_counts.get("bam"), Some(&24));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&18));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&20));
         assert!(report.rows.iter().all(|row| !row.report_section_ids.is_empty()));
     }
 

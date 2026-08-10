@@ -7,6 +7,7 @@ use bijux_dna_domain_vcf::contracts::stage_metrics_contract;
 use bijux_dna_domain_vcf::VcfDomainStage;
 use serde::Serialize;
 
+use super::vcf_angsd_adapter::collect_vcf_angsd_adapter_rows;
 use super::vcf_bcftools_adapter::collect_vcf_bcftools_adapter_rows;
 use super::vcf_descent_family_adapter::collect_vcf_descent_family_adapter_rows;
 use super::vcf_eigensoft_adapter::collect_vcf_eigensoft_adapter_rows_for_tool;
@@ -123,6 +124,11 @@ pub(crate) fn collect_vcf_expected_benchmark_result_rows(
     let adapter_rows = collect_vcf_bcftools_adapter_rows(repo_root)?
         .into_iter()
         .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into()))
+        .chain(
+            collect_vcf_angsd_adapter_rows(repo_root)?
+                .into_iter()
+                .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
+        )
         .chain(
             collect_vcf_plink_family_adapter_rows_for_tool(repo_root, "plink")?
                 .into_iter()
@@ -253,6 +259,12 @@ impl From<super::vcf_bcftools_adapter::VcfBcftoolsAdapterRow> for VcfExpectedOut
     }
 }
 
+impl From<super::vcf_angsd_adapter::VcfAngsdAdapterRow> for VcfExpectedOutputsAdapterRow {
+    fn from(value: super::vcf_angsd_adapter::VcfAngsdAdapterRow) -> Self {
+        Self { stage_output_ids: value.stage_output_ids }
+    }
+}
+
 impl From<super::vcf_plink_family_adapter::VcfPlinkFamilyAdapterRow>
     for VcfExpectedOutputsAdapterRow
 {
@@ -335,10 +347,14 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 24 {
+    let expected_row_count = collect_vcf_tool_serving_map_rows()?
+        .into_iter()
+        .filter(|row| row.benchmark_status == "benchmark_ready")
+        .count();
+    if rows.len() != expected_row_count {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 24 benchmark-ready rows, found {}",
-            rows.len()
+            "VCF expected-result table must retain every benchmark-ready row, expected {expected_row_count}, found {}",
+            rows.len(),
         ));
     }
     if rows.iter().any(|row| row.domain != "vcf") {
@@ -355,6 +371,24 @@ fn ensure_vcf_expected_benchmark_result_contract(
         expected_metrics,
         report_section,
     ) in [
+        (
+            "vcf.call_gl",
+            "angsd",
+            "vcf_production_regression",
+            "bam_bundle",
+            "gl_sites_vcf",
+            "likelihood_field",
+            "variant_calling",
+        ),
+        (
+            "vcf.call_pseudohaploid",
+            "angsd",
+            "vcf_production_regression",
+            "bam_bundle",
+            "pseudohaploid_vcf",
+            "random_seed",
+            "variant_calling",
+        ),
         (
             "vcf.qc",
             "bcftools",
@@ -455,8 +489,26 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "imputation",
         ),
         (
+            "vcf.imputation_metrics",
+            "impute5",
+            "vcf_production_regression",
+            "vcf_cohort_with_panel",
+            "imputation_metrics_json",
+            "mean_info_score",
+            "imputation",
+        ),
+        (
             "vcf.impute",
             "beagle",
+            "vcf_production_regression",
+            "vcf_cohort_with_panel",
+            "imputed_vcf",
+            "masked_truth_match_count",
+            "imputation",
+        ),
+        (
+            "vcf.impute",
+            "impute5",
             "vcf_production_regression",
             "vcf_cohort_with_panel",
             "imputed_vcf",
@@ -521,8 +573,8 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_vcf_expected_benchmark_results, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH,
-        VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION,
+        collect_vcf_tool_serving_map_rows, render_vcf_expected_benchmark_results,
+        DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION,
     };
 
     fn repo_root() -> PathBuf {
@@ -543,20 +595,33 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 24);
+        let expected_row_count = collect_vcf_tool_serving_map_rows()
+            .expect("collect VCF tool-serving rows")
+            .into_iter()
+            .filter(|row| row.benchmark_status == "benchmark_ready")
+            .count();
+        assert_eq!(report.row_count, expected_row_count);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 9);
+        assert_eq!(
+            report.tool_count,
+            report
+                .rows
+                .iter()
+                .map(|row| row.tool_id.as_str())
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+        );
         assert_eq!(report.corpus_count, 1);
         assert_eq!(report.asset_profile_count, 6);
         assert_eq!(report.report_section_counts.get("damage_aware_filtering"), Some(&1));
-        assert_eq!(report.report_section_counts.get("imputation"), Some(&2));
+        assert_eq!(report.report_section_counts.get("imputation"), Some(&4));
         assert_eq!(report.report_section_counts.get("likelihood_postprocess"), Some(&1));
         assert_eq!(report.report_section_counts.get("population_structure"), Some(&4));
         assert_eq!(report.report_section_counts.get("runs_of_homozygosity"), Some(&1));
         assert_eq!(report.report_section_counts.get("identity_by_descent"), Some(&2));
         assert_eq!(report.report_section_counts.get("demography"), Some(&1));
         assert_eq!(report.report_section_counts.get("phasing"), Some(&1));
-        assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
+        assert_eq!(report.report_section_counts.get("variant_calling"), Some(&6));
         assert_eq!(report.report_section_counts.get("quality_control"), Some(&5));
         assert_eq!(report.report_section_counts.get("normalization"), Some(&1));
         assert_eq!(report.report_section_counts.get("reference_panel_preparation"), Some(&1));

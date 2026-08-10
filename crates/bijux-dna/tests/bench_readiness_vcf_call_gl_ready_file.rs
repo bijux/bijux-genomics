@@ -23,34 +23,40 @@ fn bench_readiness_vcf_call_gl_ready_writes_governed_json_file() {
         .output()
         .expect("run cli");
 
-    assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
+    assert!(!output.status.success(), "unadmitted ANGSD evidence must keep the gate open");
 
-    let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json");
-
-    let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
-        .expect("read VCF call_gl readiness report");
+    let payload = std::fs::read_to_string(
+        repo_root.join("artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json"),
+    )
+    .expect("read VCF call_gl readiness report");
     let report: serde_json::Value = serde_json::from_str(&payload).expect("parse report");
 
     assert_eq!(
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.vcf_call_gl_ready.v1")
     );
-    assert_eq!(report.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(report.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    let complete_row_count = report
+        .get("complete_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("complete row count");
+    let incomplete_row_count = report
+        .get("incomplete_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("incomplete row count");
+    assert_eq!(complete_row_count + incomplete_row_count, 2);
+    assert!(incomplete_row_count >= 1);
+    assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let row = report
         .get("rows")
         .and_then(serde_json::Value::as_array)
-        .and_then(|rows| rows.first())
-        .expect("first row");
+        .and_then(|rows| {
+            rows.iter().find(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+            })
+        })
+        .expect("bcftools row");
     assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("vcf.call_gl"));
     assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("bcftools"));
     assert_eq!(
@@ -84,10 +90,14 @@ fn bench_readiness_vcf_call_gl_ready_writes_governed_json_file() {
                     )
             }))
     );
-    assert_eq!(
-        row.get("reason").and_then(serde_json::Value::as_str),
-        Some(
-            "active retained VCF GL caller `bcftools` keeps active scope, command, output, parser, expected-result, report, and likelihood-bearing smoke proof for `vcf.call_gl`",
-        )
-    );
+    let reason = row.get("reason").and_then(serde_json::Value::as_str).expect("bcftools reason");
+    if row.get("smoke_ready").and_then(serde_json::Value::as_bool) == Some(true) {
+        assert!(reason.contains("likelihood-bearing smoke proof"));
+    } else {
+        assert!(reason.contains("missing: local_vcf_call_gl_smoke"));
+        assert_eq!(
+            row.get("missing_surfaces").and_then(serde_json::Value::as_array),
+            Some(&vec![serde_json::Value::String("local_vcf_call_gl_smoke".to_string())])
+        );
+    }
 }

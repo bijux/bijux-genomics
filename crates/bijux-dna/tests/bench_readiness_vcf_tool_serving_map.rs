@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -46,20 +47,25 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/vcf-tool-serving-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(
-        payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(24)
-    );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 24);
+    let row_count = rows.len() as u64;
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
+    let tool_count = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>()
+        .len() as u64;
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
 
     let has_row = |tool_id: &str,
                    stage_id: &str,
@@ -99,6 +105,23 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
         ),
         "VCF tool-serving map must retain the governed plink2 admixture row"
     );
+    for (tool_id, stage_id) in [
+        ("angsd", "vcf.call_gl"),
+        ("angsd", "vcf.call_pseudohaploid"),
+        ("impute5", "vcf.imputation_metrics"),
+        ("impute5", "vcf.impute"),
+    ] {
+        assert!(has_row(
+            tool_id,
+            stage_id,
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ));
+    }
     assert!(
         has_row(
             "plink2",

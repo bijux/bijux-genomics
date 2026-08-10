@@ -10,7 +10,7 @@ use serde::Serialize;
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -168,7 +168,7 @@ pub(crate) fn collect_vcf_angsd_adapter_rows(repo_root: &Path) -> Result<Vec<Vcf
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let benchmark_ready_stage_ids = build_vcf_stage_matrix_rows()?
+    let benchmark_ready_stage_ids = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .filter(|row| row.tool_id == GOVERNED_ANGSD_TOOL_ID)
         .map(|row| row.stage_id)
@@ -350,70 +350,102 @@ fn build_stage_adapter_contract(
 
     let contract = match stage {
         VcfDomainStage::CallGl => {
-            let prefix = format!("{output_root}/gl_sites");
+            let prefix = format!("{output_root}/gl_sites.native");
+            let native_vcf = format!("{prefix}.vcf.gz");
+            let output = vcf_output_path("gl_sites");
             (
                 "domain/vcf/fixtures/vcf.call_gl/angsd.txt".to_string(),
                 Some(input_by_id(inputs, "reference_fasta")?.to_string()),
                 Some(input_by_id(inputs, "sites_vcf")?.to_string()),
                 Some("GL2_doGlf2_doMajorMinor1_doMaf1".to_string()),
                 prefix.clone(),
-                vec!["gl_sites_vcf".to_string(), "gl_provenance".to_string()],
-                vec!["gl_sites_vcf".to_string(), "angsd_arg".to_string()],
+                vec!["gl_sites_vcf".to_string()],
+                vec![
+                    "angsd_native_vcf".to_string(),
+                    "gl_sites_vcf".to_string(),
+                    "gl_sites_vcf_tbi".to_string(),
+                    "angsd_arg".to_string(),
+                ],
                 vec!["gl_provenance".to_string()],
                 vec![
-                    artifact("gl_sites_vcf", "variant", &vcf_output_path("gl_sites")),
+                    artifact("angsd_native_vcf", "raw_variant", &native_vcf),
+                    artifact("gl_sites_vcf", "variant", &output),
+                    artifact("gl_sites_vcf_tbi", "index", &format!("{output}.tbi")),
                     artifact("angsd_arg", "report", &arg_output_path(&prefix)),
                     artifact("gl_provenance", "report_json", &json_output_path("gl_provenance")),
                 ],
-                vec![step(
-                    "call_gl",
-                    "call",
-                    vec![
-                        "angsd",
-                        "-b",
-                        input_by_id(inputs, "bam_list")?,
-                        "-ref",
-                        input_by_id(inputs, "reference_fasta")?,
-                        "-sites",
-                        input_by_id(inputs, "sites_vcf")?,
-                        "-GL",
-                        "2",
-                        "-doGlf",
-                        "2",
-                        "-doMajorMinor",
-                        "1",
-                        "-doMaf",
-                        "1",
-                        "-minMapQ",
-                        "30",
-                        "-minQ",
-                        "20",
-                        "-setMinDepth",
-                        "3",
-                        "-setMaxDepth",
-                        "100",
-                        "-doVcf",
-                        "1",
-                        "-out",
-                        &prefix,
-                    ],
-                    &["gl_sites_vcf", "angsd_arg"],
-                )],
+                vec![
+                    step(
+                        "call_gl",
+                        "call",
+                        vec![
+                            "angsd",
+                            "-b",
+                            input_by_id(inputs, "bam_list")?,
+                            "-ref",
+                            input_by_id(inputs, "reference_fasta")?,
+                            "-sites",
+                            input_by_id(inputs, "sites_vcf")?,
+                            "-GL",
+                            "2",
+                            "-doGlf",
+                            "2",
+                            "-doMajorMinor",
+                            "1",
+                            "-doMaf",
+                            "1",
+                            "-minMapQ",
+                            "30",
+                            "-minQ",
+                            "20",
+                            "-setMinDepth",
+                            "3",
+                            "-setMaxDepth",
+                            "100",
+                            "-doVcf",
+                            "1",
+                            "-out",
+                            &prefix,
+                        ],
+                        &["angsd_native_vcf", "angsd_arg"],
+                    ),
+                    step(
+                        "normalize_gl_sites_vcf",
+                        "result_normalizer",
+                        vec!["bcftools", "view", "-Oz", "-o", &output, &native_vcf],
+                        &["gl_sites_vcf"],
+                    ),
+                    step(
+                        "index_gl_sites_vcf",
+                        "index",
+                        vec!["bcftools", "index", "-t", &output],
+                        &["gl_sites_vcf_tbi"],
+                    ),
+                ],
             )
         }
         VcfDomainStage::CallPseudohaploid => {
-            let prefix = format!("{output_root}/pseudo");
+            let prefix = format!("{output_root}/pseudo.native");
+            let native_vcf = format!("{prefix}.vcf.gz");
+            let output = vcf_output_path("pseudo");
             (
                 "domain/vcf/fixtures/vcf.call_pseudohaploid/angsd.txt".to_string(),
                 Some(input_by_id(inputs, "reference_fasta")?.to_string()),
                 Some(input_by_id(inputs, "sites_vcf")?.to_string()),
                 Some("doHaploCall1_seed42".to_string()),
                 prefix.clone(),
-                vec!["pseudohaploid_vcf".to_string(), "pseudohaploid_sampling_log".to_string()],
-                vec!["pseudohaploid_vcf".to_string(), "angsd_arg".to_string()],
+                vec!["pseudohaploid_vcf".to_string()],
+                vec![
+                    "angsd_native_vcf".to_string(),
+                    "pseudohaploid_vcf".to_string(),
+                    "pseudohaploid_vcf_tbi".to_string(),
+                    "angsd_arg".to_string(),
+                ],
                 vec!["pseudohaploid_sampling_log".to_string()],
                 vec![
-                    artifact("pseudohaploid_vcf", "variant", &vcf_output_path("pseudo")),
+                    artifact("angsd_native_vcf", "raw_variant", &native_vcf),
+                    artifact("pseudohaploid_vcf", "variant", &output),
+                    artifact("pseudohaploid_vcf_tbi", "index", &format!("{output}.tbi")),
                     artifact("angsd_arg", "report", &arg_output_path(&prefix)),
                     artifact(
                         "pseudohaploid_sampling_log",
@@ -421,30 +453,44 @@ fn build_stage_adapter_contract(
                         &json_output_path("pseudohaploid_sampling_log"),
                     ),
                 ],
-                vec![step(
-                    "call_pseudohaploid",
-                    "call",
-                    vec![
-                        "angsd",
-                        "-b",
-                        input_by_id(inputs, "bam_list")?,
-                        "-ref",
-                        input_by_id(inputs, "reference_fasta")?,
-                        "-sites",
-                        input_by_id(inputs, "sites_vcf")?,
-                        "-doHaploCall",
-                        "1",
-                        "-doCounts",
-                        "1",
-                        "-seed",
-                        "42",
-                        "-doVcf",
-                        "1",
-                        "-out",
-                        &prefix,
-                    ],
-                    &["pseudohaploid_vcf", "angsd_arg"],
-                )],
+                vec![
+                    step(
+                        "call_pseudohaploid",
+                        "call",
+                        vec![
+                            "angsd",
+                            "-b",
+                            input_by_id(inputs, "bam_list")?,
+                            "-ref",
+                            input_by_id(inputs, "reference_fasta")?,
+                            "-sites",
+                            input_by_id(inputs, "sites_vcf")?,
+                            "-doHaploCall",
+                            "1",
+                            "-doCounts",
+                            "1",
+                            "-seed",
+                            "42",
+                            "-doVcf",
+                            "1",
+                            "-out",
+                            &prefix,
+                        ],
+                        &["angsd_native_vcf", "angsd_arg"],
+                    ),
+                    step(
+                        "normalize_pseudohaploid_vcf",
+                        "result_normalizer",
+                        vec!["bcftools", "view", "-Oz", "-o", &output, &native_vcf],
+                        &["pseudohaploid_vcf"],
+                    ),
+                    step(
+                        "index_pseudohaploid_vcf",
+                        "index",
+                        vec!["bcftools", "index", "-t", &output],
+                        &["pseudohaploid_vcf_tbi"],
+                    ),
+                ],
             )
         }
         other => {
@@ -509,14 +555,6 @@ fn validate_command_steps(stage_id: &str, steps: &[VcfAngsdAdapterCommandStep]) 
                 step.step_id
             ));
         }
-        if step.argv[0] != GOVERNED_ANGSD_TOOL_ID {
-            return Err(anyhow!(
-                "VCF angsd adapter step `{}` for `{stage_id}` must execute `{}` first, found `{}`",
-                step.step_id,
-                GOVERNED_ANGSD_TOOL_ID,
-                step.argv[0]
-            ));
-        }
         if step.argv.iter().any(|part| {
             let lowered = part.to_ascii_lowercase();
             lowered.contains("placeholder") || lowered == "--help" || lowered.contains("todo")
@@ -527,15 +565,43 @@ fn validate_command_steps(stage_id: &str, steps: &[VcfAngsdAdapterCommandStep]) 
                 step.argv
             ));
         }
-        if !step.argv.iter().any(|part| part == "-out") {
-            return Err(anyhow!(
-                "VCF angsd adapter step `{}` for `{stage_id}` is missing `-out`",
-                step.step_id
-            ));
-        }
     }
 
-    let argv = &steps[0].argv;
+    let call_step = steps
+        .first()
+        .ok_or_else(|| anyhow!("VCF angsd adapter row `{stage_id}` has no call step"))?;
+    if call_step.argv.first().map(String::as_str) != Some(GOVERNED_ANGSD_TOOL_ID) {
+        return Err(anyhow!(
+            "VCF angsd adapter call step for `{stage_id}` must execute `{GOVERNED_ANGSD_TOOL_ID}`"
+        ));
+    }
+    ensure_arg_present(stage_id, &call_step.argv, "-out")?;
+    let normalizer_step = steps.get(1).ok_or_else(|| {
+        anyhow!("VCF angsd adapter row `{stage_id}` is missing its result normalizer step")
+    })?;
+    if normalizer_step.step_kind != "result_normalizer"
+        || normalizer_step.argv.first().map(String::as_str) != Some("bcftools")
+        || normalizer_step.argv.get(1).map(String::as_str) != Some("view")
+        || !normalizer_step.argv.iter().any(|part| part == "-Oz")
+    {
+        return Err(anyhow!(
+            "VCF angsd adapter row `{stage_id}` must normalize the native VCF with `bcftools view -Oz`"
+        ));
+    }
+    let index_step = steps
+        .get(2)
+        .ok_or_else(|| anyhow!("VCF angsd adapter row `{stage_id}` is missing its index step"))?;
+    if index_step.step_kind != "index"
+        || index_step.argv.first().map(String::as_str) != Some("bcftools")
+        || index_step.argv.get(1).map(String::as_str) != Some("index")
+        || !index_step.argv.iter().any(|part| part == "-t")
+    {
+        return Err(anyhow!(
+            "VCF angsd adapter row `{stage_id}` must index the normalized VCF with `bcftools index -t`"
+        ));
+    }
+
+    let argv = &call_step.argv;
     match stage_id {
         "vcf.call_gl" => {
             ensure_arg_present(stage_id, argv, "-b")?;
@@ -706,7 +772,7 @@ mod tests {
         assert_eq!(report.tool_status, "external_artifact");
         assert_eq!(report.row_count, 2);
         assert_eq!(report.supported_stage_row_count, 2);
-        assert_eq!(report.benchmark_ready_row_count, 0);
+        assert_eq!(report.benchmark_ready_row_count, 2);
         assert_eq!(report.argv_valid_row_count, 2);
         assert_eq!(report.missing_input_test_passed_row_count, 2);
         assert_eq!(report.bam_list_row_count, 2);
@@ -714,12 +780,19 @@ mod tests {
 
         let call_gl =
             report.rows.iter().find(|row| row.stage_id == "vcf.call_gl").expect("call_gl row");
-        assert_eq!(call_gl.command_steps.len(), 1);
+        assert_eq!(call_gl.command_steps.len(), 3);
         assert_eq!(call_gl.command_steps[0].argv[0], "angsd");
         assert!(
             call_gl.command_steps[0].argv.iter().any(|part| part == "-GL"),
             "call_gl row must keep ANGSD genotype-likelihood flags"
         );
+        assert_eq!(call_gl.command_steps[1].step_kind, "result_normalizer");
+        assert_eq!(call_gl.command_steps[1].argv[0], "bcftools");
+        assert_eq!(call_gl.command_steps[2].step_kind, "index");
+        assert!(call_gl
+            .declared_outputs
+            .iter()
+            .any(|output| output.artifact_id == "gl_sites_vcf_tbi"));
 
         assert!(report.rows.iter().all(|row| {
             matches!(row.stage_id.as_str(), "vcf.call_gl" | "vcf.call_pseudohaploid")

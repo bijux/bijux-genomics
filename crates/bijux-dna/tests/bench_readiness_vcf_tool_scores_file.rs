@@ -2,6 +2,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
@@ -24,13 +25,24 @@ fn run_cli(sandbox: &support::RepoSandbox, home: &Path, args: &[&str]) -> std::p
         .expect("run cli")
 }
 
+fn shared_evidence_sandbox() -> &'static support::RepoSandbox {
+    static SANDBOX: OnceLock<support::RepoSandbox> = OnceLock::new();
+    SANDBOX.get_or_init(|| {
+        let sandbox = support::RepoSandbox::new("vcf-tool-score-evidence-").expect("repo sandbox");
+        let home = tempfile::tempdir().expect("tempdir");
+        sandbox
+            .materialize_vcf_score_evidence(home.path())
+            .expect("materialize VCF score evidence");
+        sandbox
+    })
+}
+
 #[test]
 fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
-    let sandbox = support::RepoSandbox::new("vcf-tool-score-columns-").expect("repo sandbox");
+    let sandbox = shared_evidence_sandbox();
     let home = tempfile::tempdir().expect("tempdir");
-    sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
 
-    let output = run_cli(&sandbox, home.path(), &["bench", "readiness", "render-vcf-tool-scores"]);
+    let output = run_cli(sandbox, home.path(), &["bench", "readiness", "render-vcf-tool-scores"]);
 
     assert!(
         output.status.success(),
@@ -53,11 +65,39 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
+    let serving_output = run_cli(
+        sandbox,
+        home.path(),
+        &["bench", "readiness", "render-vcf-tool-serving-map", "--json"],
+    );
+    assert!(serving_output.status.success(), "tool-serving map command failed");
+    let serving_payload: serde_json::Value =
+        serde_json::from_slice(&serving_output.stdout).expect("parse tool-serving map JSON");
     assert_eq!(
         rows.len(),
-        24,
-        "TSV must retain one VCF score row per governed benchmark-ready binding"
+        usize::try_from(
+            serving_payload
+                .get("row_count")
+                .and_then(serde_json::Value::as_u64)
+                .expect("tool-serving row count"),
+        )
+        .expect("tool-serving row count fits usize"),
+        "TSV must retain one VCF score row per active tool-serving binding"
     );
+    for (binding, score_status, failure_class) in [
+        ("vcf.call_gl\tangsd\t", "blocked", "tool_not_found"),
+        ("vcf.call_pseudohaploid\tangsd\t", "insufficient_evidence", "insufficient_data"),
+        ("vcf.imputation_metrics\timpute5\t", "insufficient_evidence", "insufficient_data"),
+        ("vcf.impute\timpute5\t", "insufficient_evidence", "insufficient_data"),
+    ] {
+        let row = rows
+            .iter()
+            .find(|row| row.starts_with(binding))
+            .unwrap_or_else(|| panic!("TSV must retain licensed binding {binding}"));
+        let columns = row.split('\t').collect::<Vec<_>>();
+        assert_eq!(columns.get(9), Some(&score_status));
+        assert_eq!(columns.get(29), Some(&failure_class));
+    }
     assert!(
         rows.iter().any(|row| {
             row.contains("vcf.qc\tplink2\tmulti_tool_ranking\tscientific_comparable_metrics")
@@ -68,15 +108,17 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
         }),
         "TSV must retain the governed scored qc row with missingness and imputation quality"
     );
-    assert!(
-        rows.iter().any(|row| {
-            row.contains("vcf.imputation_metrics\tbeagle\tsingle_tool_acceptance\tscientific_comparable_metrics")
-                && row.contains("\tconcordance\t")
-                && row.contains("\tdosage_r2\t")
-                && row.contains("\tnone\t")
-        }),
-        "TSV must retain the governed imputation metrics quality row"
-    );
+    let imputation_metrics = rows
+        .iter()
+        .find(|row| row.starts_with("vcf.imputation_metrics\tbeagle\t"))
+        .expect("TSV must retain the governed imputation metrics quality row");
+    let imputation_columns = imputation_metrics.split('\t').collect::<Vec<_>>();
+    assert_eq!(imputation_columns.get(2), Some(&"multi_tool_ranking"));
+    assert_eq!(imputation_columns.get(3), Some(&"scientific_comparable_metrics"));
+    assert_eq!(imputation_columns.get(9), Some(&"scored"));
+    assert_eq!(imputation_columns.get(11), Some(&"concordance"));
+    assert_eq!(imputation_columns.get(19), Some(&"dosage_r2"));
+    assert_eq!(imputation_columns.get(29), Some(&"none"));
     assert!(
         rows.iter().any(|row| {
             row.contains("vcf.population_structure\tplink2\tsingle_tool_acceptance\tscientific_comparable_metrics")
@@ -89,15 +131,14 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
 
 #[test]
 fn bench_readiness_vcf_tool_scores_render_and_validate_custom_file() {
-    let sandbox = support::RepoSandbox::new("vcf-tool-score-validation-").expect("repo sandbox");
+    let sandbox = shared_evidence_sandbox();
     let home = tempfile::tempdir().expect("tempdir");
-    sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
-    let output_path = render_path(&sandbox, "render-validation");
+    let output_path = render_path(sandbox, "render-validation");
     let output_arg = output_path.to_string_lossy().into_owned();
     let reported_path = support::path_relative_to_repo(sandbox.path(), &output_path);
 
     let render_output = run_cli(
-        &sandbox,
+        sandbox,
         home.path(),
         &["bench", "readiness", "render-vcf-tool-scores", "--output", &output_arg],
     );
@@ -111,7 +152,7 @@ fn bench_readiness_vcf_tool_scores_render_and_validate_custom_file() {
     assert_eq!(String::from_utf8(render_output.stdout).expect("stdout utf8").trim(), reported_path);
 
     let validate_output = run_cli(
-        &sandbox,
+        sandbox,
         home.path(),
         &["bench", "readiness", "validate-vcf-tool-scores", "--input", &output_arg],
     );
@@ -130,15 +171,13 @@ fn bench_readiness_vcf_tool_scores_render_and_validate_custom_file() {
 
 #[test]
 fn bench_readiness_vcf_tool_scores_validation_rejects_stale_file() {
-    let sandbox =
-        support::RepoSandbox::new("vcf-tool-score-stale-validation-").expect("repo sandbox");
+    let sandbox = shared_evidence_sandbox();
     let home = tempfile::tempdir().expect("tempdir");
-    sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
-    let output_path = render_path(&sandbox, "stale-validation");
+    let output_path = render_path(sandbox, "stale-validation");
     let output_arg = output_path.to_string_lossy().into_owned();
 
     let render_output = run_cli(
-        &sandbox,
+        sandbox,
         home.path(),
         &["bench", "readiness", "render-vcf-tool-scores", "--output", &output_arg],
     );
@@ -155,7 +194,7 @@ fn bench_readiness_vcf_tool_scores_validation_rejects_stale_file() {
     fs::write(&output_path, stale).expect("write stale TSV");
 
     let validate_output = run_cli(
-        &sandbox,
+        sandbox,
         home.path(),
         &["bench", "readiness", "validate-vcf-tool-scores", "--input", &output_arg],
     );

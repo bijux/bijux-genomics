@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -46,14 +47,21 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/vcf-expected-benchmark-results.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(6));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 24);
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    let tool_count = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>()
+        .len() as u64;
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
     assert!(rows.iter().all(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
             && row.get("corpus_id").and_then(serde_json::Value::as_str)
@@ -71,6 +79,17 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|value| !value.is_empty())
     }));
+    for (stage_id, tool_id) in [
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.impute", "impute5"),
+    ] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+        }));
+    }
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.admixture")

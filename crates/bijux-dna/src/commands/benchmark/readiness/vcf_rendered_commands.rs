@@ -188,6 +188,8 @@ fn repo_root_relative_to_output(repo_root: &Path, output_path: &Path) -> String 
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::readiness::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
+
     use super::{render_vcf_commands, DEFAULT_VCF_RENDERED_COMMANDS_PATH};
 
     fn repo_root() -> PathBuf {
@@ -212,7 +214,12 @@ mod tests {
             report.argv_output_path,
             "artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 24);
+        let benchmark_ready_row_count = collect_vcf_tool_serving_map_rows()
+            .expect("collect VCF tool-serving rows")
+            .into_iter()
+            .filter(|row| row.benchmark_status == "benchmark_ready")
+            .count();
+        assert_eq!(report.row_count, benchmark_ready_row_count);
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.prepare_reference_panel" && row.tool_id == "bcftools"
         }));

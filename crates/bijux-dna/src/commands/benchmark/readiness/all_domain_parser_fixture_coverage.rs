@@ -570,6 +570,7 @@ fn sanitize_tsv(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
     use std::path::PathBuf;
 
     use super::{
@@ -596,18 +597,32 @@ mod tests {
 
         assert_eq!(report.schema_version, ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 69);
-        assert_eq!(report.tool_count, 71);
+        assert_eq!(
+            report.stage_count,
+            report
+                .rows
+                .iter()
+                .map(|row| (row.domain.as_str(), row.stage_id.as_str()))
+                .collect::<BTreeSet<_>>()
+                .len()
+        );
+        assert_eq!(
+            report.tool_count,
+            report.rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len()
+        );
         assert_eq!(report.parser_proof_binding_count, report.row_count);
         assert_eq!(report.covered_row_count, report.row_count);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.coverage_percent, 100.0);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
-        assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&21));
-        assert_eq!(report.proof_source_counts.get("fastq_parser_fixture_coverage"), Some(&71));
-        assert_eq!(report.proof_source_counts.get("bam_parser_fixture_coverage"), Some(&49));
-        assert_eq!(report.proof_source_counts.get("vcf_parser_fixture_coverage"), Some(&21));
+        for (domain, proof_source) in [
+            ("fastq", "fastq_parser_fixture_coverage"),
+            ("bam", "bam_parser_fixture_coverage"),
+            ("vcf", "vcf_parser_fixture_coverage"),
+        ] {
+            let observed = report.rows.iter().filter(|row| row.domain == domain).count();
+            assert_eq!(report.domain_counts.get(domain), Some(&observed));
+            assert_eq!(report.proof_source_counts.get(proof_source), Some(&observed));
+        }
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&report.row_count));
         assert_eq!(report.violation_count, 0);

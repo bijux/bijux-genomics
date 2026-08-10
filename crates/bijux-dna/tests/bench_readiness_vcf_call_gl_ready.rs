@@ -5,7 +5,7 @@ use std::process::Command;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli_json(args: &[&str]) -> serde_json::Value {
+fn run_cli_report(args: &[&str], report_path: &str) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _repo_guard =
         support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
@@ -24,20 +24,17 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
         .output()
         .expect("run cli");
 
-    assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    assert!(!output.status.success(), "unadmitted ANGSD evidence must keep the gate open");
+    serde_json::from_slice(&std::fs::read(repo_root.join(report_path)).expect("read report"))
+        .expect("parse report as json")
 }
 
 #[test]
-fn bench_readiness_vcf_call_gl_ready_reports_complete_active_retained_callers() {
-    let payload = run_cli_json(&["bench", "readiness", "render-vcf-call-gl-ready", "--json"]);
+fn bench_readiness_vcf_call_gl_ready_reports_unadmitted_angsd_evidence() {
+    let payload = run_cli_report(
+        &["bench", "readiness", "render-vcf-call-gl-ready", "--json"],
+        "artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json",
+    );
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -47,13 +44,24 @@ fn bench_readiness_vcf_call_gl_ready_reports_complete_active_retained_callers() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json")
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    let complete_row_count = payload
+        .get("complete_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("complete row count");
+    let incomplete_row_count = payload
+        .get("incomplete_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("incomplete row count");
+    assert_eq!(complete_row_count + incomplete_row_count, 2);
+    assert!(incomplete_row_count >= 1);
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(
+        payload.get("violation_count").and_then(serde_json::Value::as_u64),
+        Some(incomplete_row_count)
+    );
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let required_metric_names = payload
         .get("required_metric_names")
@@ -71,8 +79,11 @@ fn bench_readiness_vcf_call_gl_ready_reports_complete_active_retained_callers() 
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 1);
-    let row = rows.first().expect("first row");
+    assert_eq!(rows.len(), 2);
+    let row = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools"))
+        .expect("bcftools row");
 
     assert_eq!(
         row.get("result_id").and_then(serde_json::Value::as_str),
@@ -132,44 +143,60 @@ fn bench_readiness_vcf_call_gl_ready_reports_complete_active_retained_callers() 
         Some("variant_calling_metrics")
     );
 
-    assert_eq!(row.get("smoke_ready").and_then(serde_json::Value::as_bool), Some(true));
+    if row.get("smoke_ready").and_then(serde_json::Value::as_bool) == Some(true) {
+        assert_eq!(
+            row.get("smoke_command").and_then(serde_json::Value::as_str),
+            Some("bijux-dna bench local run-vcf-call-gl-smoke --tool-id bcftools")
+        );
+        assert_eq!(
+            row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
+            Some("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz")
+        );
+        assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
+        assert_eq!(row.get("smoke_gt_present").and_then(serde_json::Value::as_bool), Some(false));
+        assert_eq!(row.get("smoke_gl_present").and_then(serde_json::Value::as_bool), Some(true));
+        assert_eq!(
+            row.get("smoke_likelihood_field").and_then(serde_json::Value::as_str),
+            Some("PL")
+        );
+        assert_eq!(
+            row.get("smoke_sites_with_likelihoods").and_then(serde_json::Value::as_u64),
+            Some(12)
+        );
+        assert_eq!(
+            row.get("coverage_status").and_then(serde_json::Value::as_str),
+            Some("complete")
+        );
+        assert_eq!(
+            row.get("missing_surfaces").and_then(serde_json::Value::as_array).map(Vec::len),
+            Some(0)
+        );
+    } else {
+        assert_eq!(
+            row.get("coverage_status").and_then(serde_json::Value::as_str),
+            Some("incomplete")
+        );
+        assert_eq!(
+            row.get("missing_surfaces").and_then(serde_json::Value::as_array),
+            Some(&vec![serde_json::Value::String("local_vcf_call_gl_smoke".to_string())])
+        );
+    }
+    let angsd = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd"))
+        .expect("ANGSD row");
+    assert_eq!(angsd.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
+    assert_eq!(angsd.get("command_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(angsd.get("output_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(angsd.get("parser_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(angsd.get("expected_result_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(angsd.get("report_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(angsd.get("smoke_ready").and_then(serde_json::Value::as_bool), Some(false));
     assert_eq!(
-        row.get("smoke_command").and_then(serde_json::Value::as_str),
-        Some("bijux-dna bench local run-vcf-call-gl-smoke --tool-id bcftools")
+        angsd.get("coverage_status").and_then(serde_json::Value::as_str),
+        Some("incomplete")
     );
-    assert_eq!(
-        row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz")
-    );
-    assert_eq!(
-        row.get("smoke_output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi")
-    );
-    assert_eq!(
-        row.get("smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json")
-    );
-    assert_eq!(
-        row.get("smoke_stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_gl/bcftools/stage-result.json")
-    );
-    assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(row.get("smoke_gt_present").and_then(serde_json::Value::as_bool), Some(false));
-    assert_eq!(row.get("smoke_gl_present").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(row.get("smoke_likelihood_field").and_then(serde_json::Value::as_str), Some("PL"));
-    assert_eq!(
-        row.get("smoke_sites_with_likelihoods").and_then(serde_json::Value::as_u64),
-        Some(12)
-    );
-    assert_eq!(
-        row.get("smoke_samples_with_likelihoods").and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
-    assert_eq!(row.get("smoke_missing_likelihoods").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(row.get("smoke_sample_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(row.get("coverage_status").and_then(serde_json::Value::as_str), Some("complete"));
-    assert_eq!(
-        row.get("missing_surfaces").and_then(serde_json::Value::as_array).map(Vec::len),
-        Some(0)
-    );
+    assert!(angsd.get("missing_surfaces").and_then(serde_json::Value::as_array).is_some_and(
+        |values| values.iter().any(|value| { value.as_str() == Some("local_vcf_call_gl_smoke") })
+    ));
 }

@@ -58,7 +58,7 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
+        Some(2)
     );
     assert_eq!(payload.get("argv_valid_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
@@ -85,11 +85,11 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
     };
 
     assert!(
-        has_stage("vcf.call_gl", "supported", "not_benchmark_ready"),
+        has_stage("vcf.call_gl", "supported", "benchmark_ready"),
         "report must retain the governed angsd GL calling row"
     );
     assert!(
-        has_stage("vcf.call_pseudohaploid", "supported", "not_benchmark_ready"),
+        has_stage("vcf.call_pseudohaploid", "supported", "benchmark_ready"),
         "report must retain the governed angsd pseudohaploid row"
     );
     let call_gl = rows
@@ -116,6 +116,30 @@ fn bench_readiness_vcf_angsd_adapter_reports_governed_rows() {
     assert!(
         call_gl_argv.iter().filter_map(serde_json::Value::as_str).any(|part| part == "-GL"),
         "call_gl row must keep ANGSD genotype-likelihood flags"
+    );
+    let steps = call_gl
+        .get("command_steps")
+        .and_then(serde_json::Value::as_array)
+        .expect("call_gl command steps");
+    assert_eq!(steps.len(), 3);
+    assert_eq!(
+        steps[1].get("argv").and_then(serde_json::Value::as_array).and_then(|argv| argv.first()),
+        Some(&serde_json::Value::String("bcftools".to_string()))
+    );
+    assert!(
+        call_gl
+            .get("declared_outputs")
+            .and_then(serde_json::Value::as_array)
+            .expect("call_gl declared outputs")
+            .iter()
+            .any(|artifact| artifact.get("path").and_then(serde_json::Value::as_str).is_some_and(
+                |path| {
+                    std::path::Path::new(path)
+                        .extension()
+                        .is_some_and(|extension| extension.eq_ignore_ascii_case("tbi"))
+                }
+            )),
+        "call_gl must declare the normalized VCF tabix index"
     );
 
     assert!(rows.iter().all(|row| {

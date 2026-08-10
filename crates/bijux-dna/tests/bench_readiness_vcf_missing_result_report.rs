@@ -52,10 +52,13 @@ fn bench_readiness_vcf_missing_result_report_tracks_one_removed_row() {
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/missing-result/vcf/results")
     );
-    assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(24));
+    let expected_row_count = payload
+        .get("expected_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("expected row count");
     assert_eq!(
         payload.get("present_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(23)
+        Some(expected_row_count - 1)
     );
     assert_eq!(
         payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
@@ -67,7 +70,7 @@ fn bench_readiness_vcf_missing_result_report_tracks_one_removed_row() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 24);
+    assert_eq!(rows.len() as u64, expected_row_count);
     let missing_rows = rows
         .iter()
         .filter(|row| {

@@ -80,8 +80,29 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
     );
     assert_eq!(
         payload.get("container_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(row_count - host_row_count)
+        Some(
+            rows.iter()
+                .filter(|row| {
+                    matches!(
+                        row.get("smoke_path_kind").and_then(serde_json::Value::as_str),
+                        Some("docker_container_smoke" | "apptainer_container_smoke")
+                    )
+                })
+                .count() as u64
+        )
     );
+    let external_rows = rows
+        .iter()
+        .filter(|row| {
+            row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact_admission")
+        })
+        .count() as u64;
+    assert_eq!(
+        payload.get("external_artifact_row_count").and_then(serde_json::Value::as_u64),
+        Some(external_rows)
+    );
+    assert_eq!(external_rows, 4);
 
     let runtime_counts = payload
         .get("runtime_counts")
@@ -99,6 +120,20 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
             && row.get("smoke_command").and_then(serde_json::Value::as_str)
                 == Some("bijux-dna bench local run-vcf-roh-smoke --tool-id plink2")
     }));
+    for (stage_id, tool_id) in [
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.impute", "impute5"),
+    ] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                    == Some("external_artifact_admission")
+                && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("external")
+        }));
+    }
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")

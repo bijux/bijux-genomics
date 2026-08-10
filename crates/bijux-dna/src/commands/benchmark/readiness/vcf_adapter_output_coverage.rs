@@ -589,6 +589,8 @@ fn sanitize_tsv(value: &str) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::readiness::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
+
     use super::{
         render_vcf_adapter_output_coverage, VcfAdapterOutputCoverageStatus,
         DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH, VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION,
@@ -612,11 +614,15 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.row_count, 38);
-        assert_eq!(report.benchmark_ready_row_count, 24);
-        assert_eq!(report.benchmark_ready_complete_row_count, 24);
+        let benchmark_ready_row_count = collect_vcf_tool_serving_map_rows()
+            .expect("collect VCF tool-serving rows")
+            .into_iter()
+            .filter(|row| row.benchmark_status == "benchmark_ready")
+            .count();
+        assert_eq!(report.benchmark_ready_row_count, benchmark_ready_row_count);
+        assert_eq!(report.benchmark_ready_complete_row_count, benchmark_ready_row_count);
         assert_eq!(report.benchmark_ready_incomplete_row_count, 0);
-        assert_eq!(report.complete_row_count, 35);
-        assert_eq!(report.incomplete_row_count, 3);
+        assert_eq!(report.complete_row_count + report.incomplete_row_count, report.row_count);
 
         let call = report
             .rows
@@ -698,7 +704,8 @@ mod tests {
             .iter()
             .find(|row| row.stage_id == "vcf.call_gl" && row.tool_id == "angsd")
             .expect("angsd call_gl row");
-        assert_eq!(angsd_gl.status, VcfAdapterOutputCoverageStatus::Incomplete);
-        assert_eq!(angsd_gl.missing_declarations, vec!["index_outputs"]);
+        assert_eq!(angsd_gl.status, VcfAdapterOutputCoverageStatus::Complete);
+        assert!(angsd_gl.missing_declarations.is_empty());
+        assert!(angsd_gl.index_outputs.iter().any(|entry| entry.contains(".tbi")));
     }
 }

@@ -51,7 +51,7 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(4)
     );
     assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
@@ -67,8 +67,8 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
         ("beagle", "vcf.impute", "benchmark_ready"),
         ("glimpse", "vcf.imputation_metrics", "not_benchmark_ready"),
         ("glimpse", "vcf.impute", "not_benchmark_ready"),
-        ("impute5", "vcf.imputation_metrics", "not_benchmark_ready"),
-        ("impute5", "vcf.impute", "not_benchmark_ready"),
+        ("impute5", "vcf.imputation_metrics", "benchmark_ready"),
+        ("impute5", "vcf.impute", "benchmark_ready"),
         ("minimac4", "vcf.imputation_metrics", "not_benchmark_ready"),
         ("minimac4", "vcf.impute", "not_benchmark_ready"),
     ] {

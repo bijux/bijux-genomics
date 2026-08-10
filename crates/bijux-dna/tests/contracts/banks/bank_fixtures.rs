@@ -114,7 +114,7 @@ impl RepoSandbox {
     }
 
     pub fn materialize_vcf_score_evidence(&self, home: &Path) -> Result<()> {
-        const SMOKE_COMMANDS: &[&[&str]] = &[
+        const EVIDENCE_COMMANDS: &[&[&str]] = &[
             &["bench", "local", "run-vcf-admixture-smoke"],
             &["bench", "local", "run-vcf-call-smoke"],
             &["bench", "local", "run-vcf-call-diploid-smoke"],
@@ -139,9 +139,11 @@ impl RepoSandbox {
             &["bench", "local", "run-vcf-qc-smoke"],
             &["bench", "local", "run-vcf-roh-smoke"],
             &["bench", "local", "run-vcf-stats-smoke"],
+            &["bench", "readiness", "render-full-benchmark-report"],
+            &["bench", "run-micro"],
         ];
 
-        for args in SMOKE_COMMANDS {
+        for args in EVIDENCE_COMMANDS {
             let output = self
                 .bijux_dna_command()
                 .env("HOME", home)

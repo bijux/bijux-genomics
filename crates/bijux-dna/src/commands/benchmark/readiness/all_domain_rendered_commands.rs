@@ -622,7 +622,8 @@ mod tests {
         assert_eq!(report.result_id_count, report.row_count);
         assert!(report.domain_counts.contains_key("fastq"));
         assert!(report.domain_counts.contains_key("bam"));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&24));
+        let vcf_row_count = report.rows.iter().filter(|row| row.domain == "vcf").count();
+        assert_eq!(report.domain_counts.get("vcf"), Some(&vcf_row_count));
         assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&report.row_count));
         let fastq_bam_count = report.domain_counts["fastq"] + report.domain_counts["bam"];
         assert_eq!(
@@ -631,7 +632,8 @@ mod tests {
         );
         assert_eq!(report.command_source_counts.get("vcf_bcftools_adapter"), Some(&11));
         assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&1));
-        assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&2));
+        assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&4));
+        assert_eq!(report.command_source_counts.get("vcf_angsd_adapter"), Some(&2));
         assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&5));
         assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&4));
