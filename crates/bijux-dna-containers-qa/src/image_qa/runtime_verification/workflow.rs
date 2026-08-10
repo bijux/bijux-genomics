@@ -7,16 +7,16 @@ use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 
+use super::apptainer_smoke::{run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeRequest};
 use bijux_dna_containers::api::{
     clean_repository_head_commit, derive_apptainer_tool_contract, load_container_catalog,
     load_image_inventory_publication, load_runtime_verification_publication,
     render_runtime_verification_markdown, resolve_catalog_locked_apptainer_image,
-    resolve_current_apptainer_contract_commit, run_apptainer_smoke,
-    validate_container_evidence_chain, validate_container_inventory_catalog,
-    validate_container_recipe_evidence_chain, validate_runtime_verification_publication,
-    validate_tool_image_identity_evidence, verify_apptainer_tool_contract, ApptainerSmokeManifest,
-    ApptainerSmokeRequest, ContainerRuntimeEvidence, ContainerToolContract, EvidenceSourceIdentity,
-    RuntimeEvidenceStatus, RuntimeVerificationPublication,
+    resolve_current_apptainer_contract_commit, validate_container_evidence_chain,
+    validate_container_inventory_catalog, validate_container_recipe_evidence_chain,
+    validate_runtime_verification_publication, validate_tool_image_identity_evidence,
+    verify_apptainer_tool_contract, ContainerRuntimeEvidence, ContainerToolContract,
+    EvidenceSourceIdentity, RuntimeEvidenceStatus, RuntimeVerificationPublication,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 

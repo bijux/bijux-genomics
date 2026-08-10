@@ -76,8 +76,6 @@ promoted merely because they remain replayable.
 - `ImageStoragePlan` and `ImageStorageReport`: a resumable, reversible migration of historical,
   unreferenced obsolete, and interrupted images out of the active top level while preserving
   exact file identity and historical run-reference authority through the source inventory.
-- `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
-  `ContainerToolContract.expected_version_regex` contract.
 - `SecurityProbePublication`: exact raw SBOM, vulnerability, secret, signature, structural, and
   runtime observations bound to repository, catalog, inventory, scanner, database, image, and tool
   contract identities. Admission rejects authority drift, unsafe governed URIs, incomplete states,

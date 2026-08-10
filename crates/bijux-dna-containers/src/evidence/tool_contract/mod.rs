@@ -10,7 +10,6 @@ mod preparation;
 mod recipe_identity;
 mod registry_projection;
 mod schema;
-mod smoke;
 mod validation;
 mod version_catalog;
 mod version_lock;
@@ -52,10 +51,6 @@ pub use schema::{
     write_container_catalog_lock_schema, write_container_catalog_schema,
     write_container_version_lock_schema, write_container_version_map_schema,
     write_tool_contract_schema, write_tool_image_identity_evidence_schema,
-};
-pub use smoke::{
-    run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
-    APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
 };
 pub use validation::{
     tool_contract_is_compatible, validate_tool_contract, validate_tool_image_identity_evidence,

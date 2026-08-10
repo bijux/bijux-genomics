@@ -61,7 +61,6 @@ fn source_tree_matches_architecture_contract() {
             "recipe_identity.rs",
             "registry_projection.rs",
             "schema.rs",
-            "smoke.rs",
             "validation.rs",
             "version_catalog.rs",
             "version_lock.rs",

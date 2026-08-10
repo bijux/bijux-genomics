@@ -30,8 +30,12 @@ host command orchestration that must not leak into production crates.
 - `gzip -t`: verifies gzip integrity for FASTQ outputs.
 - `git rev-parse HEAD`: captures OCI revision metadata for image builds.
 - `date -u +%Y-%m-%dT%H:%M:%SZ`: captures OCI creation metadata for image builds.
-- Apptainer catalog QA composes `bijux-dna-containers::api::verify_apptainer_tool_contract` and
-  `run_apptainer_smoke`; this crate owns catalog iteration, concurrency, and publication.
+- `run_apptainer_smoke`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
+  bijux-runtime --net --network none` probes, persists immutable streams, and admits version output
+  against the exact `ContainerToolContract.expected_version_regex` contract.
+- Apptainer catalog QA composes the QA-owned smoke probe with
+  `bijux-dna-containers::api::verify_apptainer_tool_contract`; this crate owns catalog iteration,
+  concurrency, and publication.
 - `syft scan`: emits a complete CycloneDX JSON SBOM from the exact SIF.
 - `grype sbom`: scans that SBOM against the admitted immutable Grype database.
 - `gitleaks detect`: scans a bounded sandbox extraction with redaction and full JSON output.
@@ -59,6 +63,7 @@ explicit output paths; they do not execute a tool or contact a scheduler.
 - `src/image_qa/support/docker_exec/transform.rs`
 - `src/image_qa/support/docker_runtime.rs`
 - `src/image_qa/support/seqkit.rs`
+- `src/image_qa/runtime_verification/apptainer_smoke.rs`
 - `src/security_verification/workflow.rs`
 
 ## Verification
