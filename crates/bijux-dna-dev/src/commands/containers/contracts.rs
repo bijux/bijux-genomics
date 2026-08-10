@@ -1,6 +1,6 @@
 use super::{
-    failure_lines, out_path_arg, read_utf8, success_line, write_utf8, ContainerCommandOutcome,
-    Result, Workspace,
+    failure_lines, out_path_arg, path_from_arg, read_utf8, success_line, write_utf8,
+    ContainerCommandOutcome, Result, Workspace,
 };
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -56,7 +56,7 @@ pub(super) fn check_contract_lock(workspace: &Workspace) -> Result<ContainerComm
 pub(super) fn check_evidence_qualification(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
-    let report = qualification_report(workspace)?;
+    let report = qualification_report(workspace, None)?;
     let expected_json =
         bijux_dna_api::v1::api::qualification::render_qualification_report_json(&report)?;
     let expected_markdown =
@@ -79,10 +79,48 @@ pub(super) fn check_evidence_qualification(
 
 pub(super) fn generate_evidence_qualification(
     workspace: &Workspace,
+    args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    let report = qualification_report(workspace)?;
-    let json_path = workspace.path("containers/reports/qualification.json");
-    let markdown_path = workspace.path("containers/reports/qualification.md");
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-evidence-qualification -- [<release-publication> <output-json> <output-markdown>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let (release_path, json_path, markdown_path) = match args {
+        [] => (
+            None,
+            workspace.path("containers/reports/qualification.json"),
+            workspace.path("containers/reports/qualification.md"),
+        ),
+        [release, json, markdown] => {
+            let release_path = path_from_arg(workspace, release);
+            let json_path = path_from_arg(workspace, json);
+            let markdown_path = path_from_arg(workspace, markdown);
+            if json_path == workspace.path("containers/reports/qualification.json")
+                || markdown_path == workspace.path("containers/reports/qualification.md")
+            {
+                return Ok(ContainerCommandOutcome::failure(
+                    "release-qualified output is immutable evidence and cannot overwrite the historical repository report\n",
+                ));
+            }
+            if json_path == markdown_path
+                || json_path == release_path
+                || markdown_path == release_path
+            {
+                return Ok(ContainerCommandOutcome::failure(
+                    "release publication, qualification JSON, and qualification Markdown paths must be distinct\n",
+                ));
+            }
+            (Some(release_path), json_path, markdown_path)
+        }
+        _ => {
+            return Ok(ContainerCommandOutcome {
+                exit_code: 2,
+                stdout: String::new(),
+                stderr: format!("{usage}\n"),
+            })
+        }
+    };
+    let report = qualification_report(workspace, release_path.as_deref())?;
     let json = bijux_dna_api::v1::api::qualification::render_qualification_report_json(&report)?;
     let markdown =
         bijux_dna_api::v1::api::qualification::render_qualification_report_markdown(&report)?;
@@ -96,6 +134,7 @@ pub(super) fn generate_evidence_qualification(
 
 fn qualification_report(
     workspace: &Workspace,
+    release_publication_path: Option<&std::path::Path>,
 ) -> Result<bijux_dna_api::v1::api::qualification::QualificationReport> {
     let environment_evidence =
         bijux_dna_containers::evidence::load_container_evidence_chain(&workspace.root)?;
@@ -116,11 +155,19 @@ fn qualification_report(
             "container qualification requires at least one Rust-admitted benchmark report"
         );
     }
-    bijux_dna_api::v1::api::qualification::derive_container_qualification_report(
-        &workspace.root,
-        &environment_evidence,
-        &admitted_reports,
-    )
+    match release_publication_path {
+        Some(path) => bijux_dna_api::v1::api::qualification::derive_container_qualification_report_with_release(
+            &workspace.root,
+            &environment_evidence,
+            &admitted_reports,
+            path,
+        ),
+        None => bijux_dna_api::v1::api::qualification::derive_container_qualification_report(
+            &workspace.root,
+            &environment_evidence,
+            &admitted_reports,
+        ),
+    }
 }
 
 pub(super) fn generate_qualification_schema(
@@ -183,4 +230,45 @@ pub(super) fn check_qualification_report_schema(
         )));
     }
     success_line("qualification report schema: OK")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::generate_evidence_qualification;
+    use crate::runtime::workspace::Workspace;
+
+    #[test]
+    fn final_qualification_refuses_historical_report_overwrite() -> anyhow::Result<()> {
+        let workspace = Workspace { root: std::path::PathBuf::from("/governed/repository") };
+        let outcome = generate_evidence_qualification(
+            &workspace,
+            &[
+                "/governed/STUDY/containers/release/publication.json".to_string(),
+                "containers/reports/qualification.json".to_string(),
+                "/governed/STUDY/containers/release/qualification.md".to_string(),
+            ],
+        )?;
+
+        assert!(!outcome.is_success());
+        assert!(outcome.stderr.contains("cannot overwrite the historical repository report"));
+        Ok(())
+    }
+
+    #[test]
+    fn final_qualification_never_overwrites_its_release_publication() -> anyhow::Result<()> {
+        let workspace = Workspace { root: std::path::PathBuf::from("/governed/repository") };
+        let publication = "/governed/STUDY/containers/release/publication.json";
+        let outcome = generate_evidence_qualification(
+            &workspace,
+            &[
+                publication.to_string(),
+                publication.to_string(),
+                "/governed/STUDY/containers/release/qualification.md".to_string(),
+            ],
+        )?;
+
+        assert!(!outcome.is_success());
+        assert!(outcome.stderr.contains("paths must be distinct"));
+        Ok(())
+    }
 }

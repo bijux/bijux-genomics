@@ -113,6 +113,7 @@ and immediately re-admit a publication with:
 cargo run -q -p bijux-dna-dev -- containers run release-evidence -- compose containers/reports/qualification.json "$RELEASED_AT_UTC" "$RELEASE_PUBLICATION"
 cargo run -q -p bijux-dna-dev -- containers run release-evidence -- admit containers/reports/qualification.json "$RELEASE_PUBLICATION"
 cargo run -q -p bijux-dna-dev -- containers run release-gate -- containers/reports/qualification.json "$RELEASE_PUBLICATION"
+cargo run -q -p bijux-dna-dev -- containers run generate-evidence-qualification -- "$RELEASE_PUBLICATION" "$FINAL_QUALIFICATION_JSON" "$FINAL_QUALIFICATION_MD"
 cargo run -q -p bijux-dna-dev -- containers run release-evidence -- check-schema
 ```
 
@@ -120,7 +121,9 @@ Composition fails in a dirty checkout. Admission rejects source, tool coverage, 
 evidence-set, or policy-verdict drift; a repository checklist cannot substitute for this decision.
 `RELEASE_PUBLICATION` must name the immutable governed output under `STUDY/containers/release/`.
 The release gate requires that explicit publication path and cannot pass from checklist aggregation
-alone.
+alone. Final qualification reads that explicit publication, identifies it by content rather than
+its site path, and writes to operator-selected immutable outputs such as
+`STUDY/containers/release/`; it refuses to overwrite the historical repository report.
 
 The fast drift gate recomputes the same report without writing:
 

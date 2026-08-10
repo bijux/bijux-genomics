@@ -17,7 +17,9 @@ pub use bijux_dna_policies::{
     QUALIFICATION_REPORT_SCHEMA_V4, REQUIRED_EVIDENCE_DIMENSIONS,
 };
 
-pub use derivation::derive_container_qualification_report;
+pub use derivation::{
+    derive_container_qualification_report, derive_container_qualification_report_with_release,
+};
 
 /// Render the governed qualification-assessment schema.
 ///

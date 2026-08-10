@@ -182,8 +182,7 @@ pub(super) fn run_native_container_command(
             versioning::check_version_deprecations(workspace)
         }
         NativeContainerCommandKey::GenerateEvidenceQualification => {
-            ensure_no_args("generate-evidence-qualification", args)?;
-            contracts::generate_evidence_qualification(workspace)
+            contracts::generate_evidence_qualification(workspace, args)
         }
         NativeContainerCommandKey::GenerateImageInventory => inventory::generate(workspace, args),
         NativeContainerCommandKey::GenerateImageInventoryReport => {

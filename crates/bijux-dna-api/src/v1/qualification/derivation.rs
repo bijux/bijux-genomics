@@ -32,7 +32,6 @@ const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const INVENTORY_PATH: &str = "containers/reports/image-inventory.json";
 const RUNTIME_PATH: &str = "containers/reports/runtime-verification.json";
 const RUNS_PATH: &str = "containers/reports/run-evidence.json";
-const RELEASE_PATH: &str = "containers/reports/release-evidence.json";
 const SECURITY_PATH: &str = "containers/reports/security-evidence.json";
 
 struct QualificationContext<'a> {
@@ -52,6 +51,34 @@ pub fn derive_container_qualification_report(
     repository_root: &Path,
     chain: &ContainerEvidenceChain,
     benchmark_reports: &[AdmittedBenchmarkStageReport],
+) -> Result<QualificationReport> {
+    derive_container_qualification_report_inner(repository_root, chain, benchmark_reports, None)
+}
+
+/// Compose a current qualification report and admit one explicit immutable release publication.
+///
+/// # Errors
+/// Returns an error when the release publication or any other evidence source is missing, stale,
+/// malformed, or internally inconsistent.
+pub fn derive_container_qualification_report_with_release(
+    repository_root: &Path,
+    chain: &ContainerEvidenceChain,
+    benchmark_reports: &[AdmittedBenchmarkStageReport],
+    release_publication_path: &Path,
+) -> Result<QualificationReport> {
+    derive_container_qualification_report_inner(
+        repository_root,
+        chain,
+        benchmark_reports,
+        Some(release_publication_path),
+    )
+}
+
+fn derive_container_qualification_report_inner(
+    repository_root: &Path,
+    chain: &ContainerEvidenceChain,
+    benchmark_reports: &[AdmittedBenchmarkStageReport],
+    release_publication_path: Option<&Path>,
 ) -> Result<QualificationReport> {
     let inventory_source = repository_source(repository_root, INVENTORY_PATH)?;
     let runtime_source = repository_source(repository_root, RUNTIME_PATH)?;
@@ -135,9 +162,8 @@ pub fn derive_container_qualification_report(
         })
         .collect::<Result<Vec<_>>>()?;
 
-    let release_publication = load_release_publication(repository_root)?;
-    let assessments = if let Some(publication) = release_publication.as_ref() {
-        let source = repository_source(repository_root, RELEASE_PATH)?;
+    let release_publication = release_publication_path.map(load_release_publication).transpose()?;
+    let assessments = if let Some((publication, source)) = release_publication.as_ref() {
         let sources_sha256 = qualification_sources_sha256(&sources)?;
         let admitted = admit_release_evidence(
             publication,
@@ -148,7 +174,7 @@ pub fn derive_container_qualification_report(
             &provisional_assessments,
         )?;
         let assessments = apply_release_evidence(provisional_assessments, &admitted)?;
-        sources.insert("release".to_string(), source);
+        sources.insert("release".to_string(), source.clone());
         assessments
     } else {
         provisional_assessments
@@ -158,15 +184,16 @@ pub fn derive_container_qualification_report(
 }
 
 fn load_release_publication(
-    repository_root: &Path,
-) -> Result<Option<ContainerReleaseEvidencePublication>> {
-    let path = repository_root.join(RELEASE_PATH);
-    if !path.is_file() {
-        return Ok(None);
-    }
-    serde_json::from_slice(&std::fs::read(&path)?)
-        .with_context(|| format!("parse release evidence {}", path.display()))
-        .map(Some)
+    path: &Path,
+) -> Result<(ContainerReleaseEvidencePublication, QualificationEvidenceSource)> {
+    let bytes =
+        std::fs::read(path).with_context(|| format!("read release evidence {}", path.display()))?;
+    let sha256 = bijux_dna_infra::hash_bytes_sha256(&bytes);
+    let publication = serde_json::from_slice(&bytes)
+        .with_context(|| format!("parse release evidence {}", path.display()))?;
+    let source =
+        QualificationEvidenceSource { uri: format!("evidence://release/{sha256}"), sha256 };
+    Ok((publication, source))
 }
 
 fn apply_release_evidence(
@@ -669,7 +696,7 @@ fn missing_publication(
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::{apply_release_evidence, freshness_identity};
+    use super::{apply_release_evidence, freshness_identity, load_release_publication};
     use bijux_dna_policies::{
         admit_release_evidence, derive_release_evidence, qualification_sources_sha256,
         ArtifactAvailability, ArtifactDelivery, EvidenceDecision, EvidenceDimension,
@@ -766,6 +793,66 @@ mod tests {
             EvidenceVerdict::Passed
         );
         assert!(closed[0].claims.contains(&QualificationClaim::Qualified));
+        Ok(())
+    }
+
+    #[test]
+    fn release_publication_source_is_content_addressed_not_path_addressed() -> anyhow::Result<()> {
+        let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
+            .into_iter()
+            .map(|dimension| {
+                let decision = if dimension == EvidenceDimension::Release {
+                    EvidenceDecision::missing(
+                        "qualification.release.fixture.v1",
+                        BTreeMap::from([("state".to_string(), "missing".to_string())]),
+                        BTreeMap::from([("state".to_string(), "present".to_string())]),
+                        "release publication is absent",
+                    )
+                } else {
+                    EvidenceDecision::passed(
+                        "qualification.release.fixture.v1",
+                        BTreeMap::from([("state".to_string(), "present".to_string())]),
+                        BTreeMap::from([("state".to_string(), "present".to_string())]),
+                        "a".repeat(64),
+                        "fixture evidence passes",
+                    )
+                };
+                (dimension, decision)
+            })
+            .collect();
+        let assessments = vec![QualificationAssessment::v3(
+            "samtools".to_string(),
+            ProductSupport::Supported,
+            ArtifactDelivery::RedistributableImage,
+            true,
+            ArtifactAvailability::Admitted,
+            PublicationDisposition::Current,
+            dimensions,
+        )?];
+        let publication = derive_release_evidence(&ReleaseEvidenceDerivationRequest {
+            released_at_utc: "2026-08-10T12:00:00Z",
+            repository_commit: REPOSITORY_COMMIT,
+            catalog_sha256: CATALOG_SHA256,
+            qualification_sources_sha256: &qualification_sources_sha256(&BTreeMap::from([(
+                "catalog".to_string(),
+                QualificationEvidenceSource {
+                    uri: "repository://containers/contracts/catalog.toml".to_string(),
+                    sha256: CATALOG_SHA256.to_string(),
+                },
+            )]))?,
+            assessments: &assessments,
+        })?;
+        let bytes = serde_json::to_vec(&publication)?;
+        let directory = tempfile::tempdir()?;
+        let path = directory.path().join("governed-release.json");
+        std::fs::write(&path, &bytes)?;
+
+        let (loaded, source) = load_release_publication(&path)?;
+        let expected_sha256 = bijux_dna_infra::hash_bytes_sha256(&bytes);
+        assert_eq!(loaded, publication);
+        assert_eq!(source.sha256, expected_sha256);
+        assert_eq!(source.uri, format!("evidence://release/{expected_sha256}"));
+        assert!(!source.uri.contains(&path.to_string_lossy().to_string()));
         Ok(())
     }
 }

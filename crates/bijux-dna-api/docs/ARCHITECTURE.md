@@ -21,7 +21,9 @@ runtime wiring, support helpers, and domain-specific adapters private.
 - `src/v1/report/` owns report request contracts, analysis exports, and HTML
   bundle rendering.
 - `src/v1/qualification/` composes admitted container, runtime, benchmark, and policy evidence
-  behind the stable qualification contract.
+  behind the stable qualification contract. Release-qualified composition accepts an explicit
+  immutable publication and records a content-addressed source identity instead of depending on a
+  repository-relative or site-specific path.
 - `src/v1/bam/stage_planning/` isolates BAM stage argument planning from the
   public BAM namespace.
 - `src/v1/bench/`, `src/v1/env/`, `src/v1/fastq/`, and `src/v1/pipelines/`
