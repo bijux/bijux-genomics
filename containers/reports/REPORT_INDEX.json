@@ -1,0 +1,287 @@
+{
+  "schema_version": "bijux.container.report_portfolio_index.v1",
+  "summary": {
+    "report_count": 19,
+    "current_count": 1,
+    "historical_unvalidated_count": 18
+  },
+  "reports": [
+    {
+      "report_id": "permanent-run-index",
+      "freshness": "current",
+      "json": {
+        "path": "containers/runs/RUN_INDEX.json",
+        "sha256": "8f48bcefc3edd982ca9189821e9720e056309b1630f9912f1c9dd950461e8ce8"
+      },
+      "markdown": {
+        "path": "containers/runs/RUN_INDEX.md",
+        "sha256": "160a3036b334baed53e5ac06d5a727687d5f6598690f8e74ebbca8e00f801118"
+      },
+      "limitations": [
+        "Current protocol identity does not imply current execution, science, security, or release evidence."
+      ]
+    },
+    {
+      "report_id": "image-inventory",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/image-inventory.json",
+        "sha256": "baf8a2ea8c6bbf4e25d47002fa832bb648a04f15382a1948ccba87a5ea08e5e1"
+      },
+      "markdown": {
+        "path": "containers/reports/image-inventory.md",
+        "sha256": "ef42d1b72d5e1e913ab137b48b8a050898880784fd40401642738dba75fd9e93"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "image-storage",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/image-storage.json",
+        "sha256": "7ac7350ed8008d68de326681d7557c3a540b0e11b10bccf531f096f5182ded58"
+      },
+      "markdown": {
+        "path": "containers/reports/image-storage.md",
+        "sha256": "22c4a93ab4fb8a381b34e6efe83c42b0c7ffb3635714c375306e9e8d14ed0227"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-amplicon-asv",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-amplicon-asv.json",
+        "sha256": "263b119f75697528ab6021abb6276797bff27de7d4d5aabaeae16c71c92cdb81"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-amplicon-asv.md",
+        "sha256": "4d92f1da40ccc188e3fa044d584e4d9aafec11cfccddcdf833eb8b515d004fc1"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-ancient-damage",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-ancient-damage.json",
+        "sha256": "35a5ab09513632a92f76e64b1fceb79f99c7de36fefbbf01ba411b35d0713f5e"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-ancient-damage.md",
+        "sha256": "493709bd3c08685c9d0bd76f2a469827d05c4599eecbb276ceab17b1ac7eb36c"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-ancient-genotype-likelihoods",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-ancient-genotype-likelihoods.json",
+        "sha256": "94128abf0aedc97193f8b88b57e642784673d17adf50b0eebbefc65a5762edd0"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-ancient-genotype-likelihoods.md",
+        "sha256": "64d5470ecd9204c508b4dbf4d26d86790f7df626f503491d2eca3a7e63679497"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-bam-coverage",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-bam-coverage.json",
+        "sha256": "200725626cc2813ce67401c93942779568aa21d4085a664e1c1690618860a551"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-bam-coverage.md",
+        "sha256": "2ea04efa919daea5e9eb91167e3261174dd809694a573cd9763934d5f46dda00"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-fastq-bam",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-fastq-bam.json",
+        "sha256": "0c03d523bda89e435bc9e55523e5453d68caafbf167215e35a458af49a8e75d9"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-fastq-bam.md",
+        "sha256": "fc2bd30ddd9a064f46ecdce77a22b39e2b6603f7a41d0b87131b80dbb5417d76"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-image-rebuild",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-image-rebuild.json",
+        "sha256": "b4d8de8a1b13edb2dcf2cd46d472600af746c3f95ade051fae38b2f6e849a990"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-image-rebuild.md",
+        "sha256": "0f22d8441d89137045f1ca227b4f0c1b53d24115076062ea28c7558b708803fc"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-image-refresh",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-image-refresh.json",
+        "sha256": "b095952e69f0faae10e627e19ae6ed4460684f9ac1b2d112a536427013607acb"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-image-refresh.md",
+        "sha256": "b21c1609a2b8a0c1ca68a978214c2c911faca7158d9ed571d6064c2a0624f804"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-paired-read-trimming",
+      "freshness": "historical_unvalidated",
+      "markdown": {
+        "path": "containers/reports/lunarc-paired-read-trimming.md",
+        "sha256": "0b95a1767e975a4b7b944da0bedacf3b7d0d3fd7db3d103c1a71b519891051b9"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-reference-complexity",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-reference-complexity.json",
+        "sha256": "45ff9df3b5716ad5eae6af359bee8bce410b5b7f6c477cee47d676492ee45199"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-reference-complexity.md",
+        "sha256": "2404aac0ee63ec04a4a3f63db83a91e1d74061715670fd38aea650029d759ce8"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-vcf-phasing",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-vcf-phasing.json",
+        "sha256": "76769040689990d7f6022e48967d5fca50873527d447eb885d1e1f1c75d6e709"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-vcf-phasing.md",
+        "sha256": "b4d538a56d254c9ff9dc772b13fc8fdddfda8742aea7c7f761e987767b3e6ff3"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-vcf-qc",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-vcf-qc.json",
+        "sha256": "fd24eb2a714d14f88cee63f4cb43440d750dc00f8b1d64f893dee570dc56831e"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-vcf-qc.md",
+        "sha256": "1aab6147530098bb78b4b4452b71aa76b74bf9ff8e13e0ecd59a867845bb2817"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "lunarc-vcf-relatedness",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/lunarc-vcf-relatedness.json",
+        "sha256": "3ac56767f9446510058a81481f46ee2da9b487931fceb5d8f7ce29ac6d03fe1e"
+      },
+      "markdown": {
+        "path": "containers/reports/lunarc-vcf-relatedness.md",
+        "sha256": "2699fabc6449617adbf91b07a92885c1725bea047a111ab951bd01cddd0d1361"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "qualification",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/qualification.json",
+        "sha256": "e2c31dedcafbd75173ebb0d1409d14cc642601854c4d1e828c817f57177c135c"
+      },
+      "markdown": {
+        "path": "containers/reports/qualification.md",
+        "sha256": "d0b28e00f6a2a7f6bade2a762653578a413d92ccf9f58c9989cf53529493b05e"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "qualification-run-id-audit",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/qualification-run-id-audit.json",
+        "sha256": "fb0e772cf40d59e7dd657d3af627c5f98f3182453eec1d94a52b9933338816ac"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "run-evidence",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/run-evidence.json",
+        "sha256": "2d787cfc61d4f25f228689047592e1934db3e169d535b31d707e8fd526d1050a"
+      },
+      "markdown": {
+        "path": "containers/reports/run-evidence.md",
+        "sha256": "05bef4482c2c5f8c9a423ea0fe488e41780baca40cf916ee6b9fdc2421616d3a"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    },
+    {
+      "report_id": "runtime-verification",
+      "freshness": "historical_unvalidated",
+      "json": {
+        "path": "containers/reports/runtime-verification.json",
+        "sha256": "a9598fcdf3f01e73c45724d132adae9cf63e5d8a1564e6c3a72c9404465f295c"
+      },
+      "markdown": {
+        "path": "containers/reports/runtime-verification.md",
+        "sha256": "d79fc52c064d2642862db6fd39cacc177249bdbab02e052fc5c005079470dfc4"
+      },
+      "limitations": [
+        "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
+      ]
+    }
+  ]
+}
