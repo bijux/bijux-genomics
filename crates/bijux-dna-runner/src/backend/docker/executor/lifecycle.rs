@@ -22,28 +22,33 @@ pub fn docker_wait(container_id: &str) -> Result<i32> {
 /// Wait for completion up to a timeout and return the container exit code.
 ///
 /// # Errors
-/// Returns an error if timeout is reached or docker inspection/wait fails.
+/// Returns an error if the timeout is reached or `docker wait` fails.
 pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> Result<i32> {
-    let start = std::time::Instant::now();
-    loop {
-        let output = Command::new("docker")
-            .arg("inspect")
-            .arg(container_id)
-            .arg("--format")
-            .arg("{{.State.Status}}")
-            .output()
-            .context("docker inspect")?;
-        if output.status.success() {
-            let status = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if status == "exited" {
-                return docker_wait(container_id);
-            }
-        }
-        if start.elapsed() >= timeout {
-            return Err(anyhow!("timeout"));
-        }
-        std::thread::sleep(std::time::Duration::from_secs(1));
+    let mut child = Command::new("docker")
+        .arg("wait")
+        .arg(container_id)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .context("docker wait")?;
+    let output = crate::process_supervision::wait_for_output(
+        &mut child,
+        timeout,
+        &format!("docker wait for {container_id}"),
+    )?;
+    if output.timed_out {
+        return Err(anyhow!("docker wait timed out after {}s", timeout.as_secs()));
     }
+    if !output.status.success() {
+        return Err(anyhow!(
+            "docker wait failed for {container_id}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    String::from_utf8_lossy(&output.stdout)
+        .trim()
+        .parse::<i32>()
+        .context("parse docker wait output")
 }
 
 /// Fetch container logs from Docker.

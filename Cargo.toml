@@ -63,6 +63,7 @@ schemars = { version = "1.2", features = ["derive"] }
 toml = "1.1"
 cargo_metadata = "0.18"
 assert_cmd = "2"
+wait-timeout = "0.2.1"
 predicates = "3"
 nix = { version = "0.31", features = ["signal", "process"] }
 filetime = "0.2"

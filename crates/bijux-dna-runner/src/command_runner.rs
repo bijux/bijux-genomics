@@ -59,81 +59,33 @@ pub fn run_command_with_context_and_timeout(
     child.stderr(std::process::Stdio::piped());
 
     let mut process = child.spawn().with_context(|| format!("run command {command}"))?;
-    let deadline = Instant::now() + timeout;
-
-    loop {
-        if let Some(status) =
-            process.try_wait().with_context(|| format!("poll command {command}"))?
-        {
-            let mut stdout = Vec::new();
-            let mut stderr = Vec::new();
-            if let Some(mut handle) = process.stdout.take() {
-                use std::io::Read;
-                handle
-                    .read_to_end(&mut stdout)
-                    .with_context(|| format!("read stdout for command {command}"))?;
-            }
-            if let Some(mut handle) = process.stderr.take() {
-                use std::io::Read;
-                handle
-                    .read_to_end(&mut stderr)
-                    .with_context(|| format!("read stderr for command {command}"))?;
-            }
-
-            return Ok(TimedCommandOutputV1 {
-                output: command_output_from_parts(
-                    command,
-                    args,
-                    start,
-                    status.code().unwrap_or(-1),
-                    &stdout,
-                    &stderr,
-                ),
-                timed_out: false,
-            });
+    let supervised = crate::process_supervision::wait_for_output(
+        &mut process,
+        timeout,
+        &format!("command {command}"),
+    )?;
+    let mut stderr = supervised.stderr;
+    if supervised.timed_out {
+        if !stderr.is_empty() {
+            stderr.push(b'\n');
         }
-
-        if Instant::now() >= deadline {
-            process.kill().with_context(|| format!("kill timed out command {command}"))?;
-            let status =
-                process.wait().with_context(|| format!("wait for timed out command {command}"))?;
-            let mut stdout = Vec::new();
-            let mut stderr = Vec::new();
-            if let Some(mut handle) = process.stdout.take() {
-                use std::io::Read;
-                handle
-                    .read_to_end(&mut stdout)
-                    .with_context(|| format!("read timed out stdout for command {command}"))?;
-            }
-            if let Some(mut handle) = process.stderr.take() {
-                use std::io::Read;
-                handle
-                    .read_to_end(&mut stderr)
-                    .with_context(|| format!("read timed out stderr for command {command}"))?;
-            }
-            let timeout_note =
-                format!("local command exceeded timeout of {}s", timeout.as_secs()).into_bytes();
-            let mut timed_out_stderr = stderr;
-            if !timed_out_stderr.is_empty() {
-                timed_out_stderr.push(b'\n');
-            }
-            timed_out_stderr.extend(timeout_note);
-
-            return Ok(TimedCommandOutputV1 {
-                output: command_output_from_parts(
-                    command,
-                    args,
-                    start,
-                    status.code().unwrap_or(-1),
-                    &stdout,
-                    &timed_out_stderr,
-                ),
-                timed_out: true,
-            });
-        }
-
-        std::thread::sleep(Duration::from_millis(25));
+        std::io::Write::write_fmt(
+            &mut stderr,
+            format_args!("local command exceeded timeout of {}s", timeout.as_secs()),
+        )
+        .context("append local command timeout")?;
     }
+    Ok(TimedCommandOutputV1 {
+        output: command_output_from_parts(
+            command,
+            args,
+            start,
+            supervised.status.code().unwrap_or(-1),
+            &supervised.stdout,
+            &stderr,
+        ),
+        timed_out: supervised.timed_out,
+    })
 }
 
 /// # Errors
@@ -221,7 +173,12 @@ fn command_output_from_parts(
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::{run_command_with_context, run_command_with_context_and_stdin};
+    use std::time::Duration;
+
+    use super::{
+        run_command_with_context, run_command_with_context_and_stdin,
+        run_command_with_context_and_timeout,
+    };
 
     #[test]
     fn run_command_rejects_empty_executable() {
@@ -240,5 +197,39 @@ mod tests {
             .expect("run cat");
         assert_eq!(output.exit_code, 0);
         assert_eq!(output.stdout, "bijux");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn timed_command_drains_output_larger_than_a_pipe() -> anyhow::Result<()> {
+        let args = vec![
+            "-c".to_string(),
+            "i=0; while [ \"$i\" -lt 20000 ]; do printf 1234567890; i=$((i+1)); done".to_string(),
+        ];
+        let output =
+            run_command_with_context_and_timeout("sh", &args, None, None, Duration::from_secs(5))?;
+
+        assert!(!output.timed_out);
+        assert_eq!(output.output.exit_code, 0);
+        assert_eq!(output.output.stdout.len(), 200_000);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn timed_command_kills_and_reaps_at_deadline() -> anyhow::Result<()> {
+        let args = vec!["-c".to_string(), "printf ready; exec tail -f /dev/null".to_string()];
+        let output = run_command_with_context_and_timeout(
+            "sh",
+            &args,
+            None,
+            None,
+            Duration::from_millis(250),
+        )?;
+
+        assert!(output.timed_out);
+        assert_eq!(output.output.stdout, "ready");
+        assert!(output.output.stderr.contains("local command exceeded timeout"));
+        Ok(())
     }
 }

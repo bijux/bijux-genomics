@@ -6,10 +6,11 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 use serde::Serialize;
+use wait_timeout::ChildExt as _;
 
 use bijux_dna_containers::api::{
     admit_security_probe_baseline, clean_repository_head_commit, derive_apptainer_tool_contract,
@@ -559,18 +560,12 @@ fn run_bounded(
     let mut child = command
         .spawn()
         .with_context(|| format!("execute security probe {}", executable.display()))?;
-    let started = Instant::now();
-    loop {
-        if let Some(status) = child.try_wait()? {
-            return Ok(status.code().unwrap_or(128));
-        }
-        if started.elapsed() >= timeout {
-            child.kill()?;
-            let _status = child.wait()?;
-            bail!("security probe timed out after {} seconds", timeout.as_secs());
-        }
-        std::thread::sleep(Duration::from_millis(100));
+    if let Some(status) = child.wait_timeout(timeout)? {
+        return Ok(status.code().unwrap_or(128));
     }
+    child.kill()?;
+    let _status = child.wait()?;
+    bail!("security probe timed out after {} seconds", timeout.as_secs());
 }
 
 fn require_success(exit_code: i32, label: &str) -> Result<()> {

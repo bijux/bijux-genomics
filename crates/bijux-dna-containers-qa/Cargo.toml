@@ -17,6 +17,7 @@ uuid.workspace = true
 clap.workspace = true
 rusqlite = "0.40.1"
 regex.workspace = true
+wait-timeout.workspace = true
 bijux-dna-containers = { path = "../bijux-dna-containers" }
 bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"] }
 bijux-dna-core = { path = "../bijux-dna-core" }

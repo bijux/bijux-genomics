@@ -1,4 +1,4 @@
-use std::io::Read as _;
+use std::fmt::Write as _;
 use std::process::{Command, Stdio};
 use std::time::Duration;
 
@@ -116,7 +116,20 @@ pub(crate) fn run_local_command(
         .stderr(Stdio::piped());
     let mut child = child.spawn().with_context(|| format!("run local command {command}"))?;
     let (status, stdout, stderr) = if let Some(timeout) = timeout {
-        wait_with_timeout(&mut child, timeout)?
+        let output = crate::process_supervision::wait_for_output(
+            &mut child,
+            timeout,
+            &format!("local command {command}"),
+        )?;
+        let mut stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        if output.timed_out {
+            if !stderr.is_empty() {
+                stderr.push('\n');
+            }
+            write!(stderr, "local command exceeded timeout of {}s", timeout.as_secs())
+                .context("append local command timeout")?;
+        }
+        (output.status, String::from_utf8_lossy(&output.stdout).to_string(), stderr)
     } else {
         let output = child
             .wait_with_output()
@@ -141,50 +154,6 @@ pub(crate) fn run_local_command(
             format!("{command} {}", args.join(" "))
         },
     })
-}
-
-fn wait_with_timeout(
-    child: &mut std::process::Child,
-    timeout: Duration,
-) -> anyhow::Result<(std::process::ExitStatus, String, String)> {
-    let deadline = std::time::Instant::now() + timeout;
-    loop {
-        if let Some(status) = child.try_wait().context("poll local command")? {
-            let mut stdout = Vec::new();
-            let mut stderr = Vec::new();
-            if let Some(mut handle) = child.stdout.take() {
-                handle.read_to_end(&mut stdout).context("read local stdout")?;
-            }
-            if let Some(mut handle) = child.stderr.take() {
-                handle.read_to_end(&mut stderr).context("read local stderr")?;
-            }
-            return Ok((
-                status,
-                String::from_utf8_lossy(&stdout).to_string(),
-                String::from_utf8_lossy(&stderr).to_string(),
-            ));
-        }
-        if std::time::Instant::now() >= deadline {
-            child.kill().context("kill timed out local command")?;
-            let status = child.wait().context("wait for killed local command")?;
-            let mut stderr = Vec::new();
-            if let Some(mut handle) = child.stderr.take() {
-                handle.read_to_end(&mut stderr).context("read local stderr after timeout")?;
-            }
-            return Ok((
-                status,
-                String::new(),
-                format!(
-                    "{}\nlocal command exceeded timeout of {}s",
-                    String::from_utf8_lossy(&stderr),
-                    timeout.as_secs()
-                )
-                .trim()
-                .to_string(),
-            ));
-        }
-        std::thread::sleep(Duration::from_millis(25));
-    }
 }
 
 #[cfg(test)]
