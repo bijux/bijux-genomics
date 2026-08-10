@@ -4,6 +4,7 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod benchmark_matrix;
 mod compatibility;
 mod container_report_portfolio;
 mod corpus_expectations;
@@ -28,6 +29,7 @@ mod schema_versions;
 mod source_authority;
 mod stage_result;
 mod suite;
+pub use benchmark_matrix::validate_benchmark_matrix_report;
 pub use compatibility::{
     migrate_benchmark_attempt_v1, parse_benchmark_attempt_document, parse_benchmark_cycle_document,
     validate_attempt_record_v1, validate_cycle_status_v1,

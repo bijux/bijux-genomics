@@ -5,6 +5,8 @@ mod mod_contracts_benchmark_execution_rs;
 mod mod_contracts_benchmark_interfaces_rs;
 #[path = "contracts/benchmark_lifecycle.rs"]
 mod mod_contracts_benchmark_lifecycle_rs;
+#[path = "contracts/benchmark_matrix.rs"]
+mod mod_contracts_benchmark_matrix_rs;
 #[path = "contracts/benchmark_planning.rs"]
 mod mod_contracts_benchmark_planning_rs;
 #[path = "contracts/campaign_engine.rs"]

@@ -28,6 +28,8 @@ not own CLI commands or process execution.
 | `validate-report-admission` | `contract::validate_report_admission` | Validate exact source bytes, canonical parsed-report identity, and the nested stage-report contract. |
 | `validate-container-report-portfolio-index` | `contract::validate_container_report_portfolio_index` | Validate report identity, checksummed file closure, summary counts, and conservative freshness promotion. |
 | `container-report-portfolio-index-schema` | `container_report_portfolio_index_schema` | Generate the persisted container report-portfolio JSON Schema from its Rust model. |
+| `validate-benchmark-matrix-report` | `contract::validate_benchmark_matrix_report` | Validate persisted matrix identity, unique rows, readiness semantics, surface matches, and exact summary closure. |
+| `benchmark-matrix-report-schema` | `benchmark_matrix_report_schema` | Generate the persisted benchmark-matrix JSON Schema from its Rust model. |
 | `validate-governed-data-catalog-snapshot-publication` | `contract::validate_governed_data_catalog_snapshot_publication` | Validate the versioned candidate-registry path, exact preserved/retained count closure, and embedded governed catalog registry. |
 | `validate-governed-data-catalog-registry-publication` | `contract::validate_governed_data_catalog_registry_publication` | Validate the versioned immutable registry path, digest, and embedded governed catalog registry. |
 | `validate-benchmark-campaign-report-publication` | `contract::validate_benchmark_campaign_report_publication` | Validate the versioned report paths, digests, campaign identity, presentation source, and overlay set. |

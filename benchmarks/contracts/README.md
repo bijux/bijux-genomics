@@ -91,6 +91,11 @@ crate and pass its generated-schema drift tests.
 non-barrier lifecycle pass. They preserve every independent attempt outcome
 without making an aggregate campaign result a scheduling barrier.
 
+`schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
+matrix consumed by campaign planning and appraisal. The model crate owns its
+version, row and summary invariants; command surfaces only adapt inputs and
+render the validated record.
+
 `schemas/governed-data-catalog-snapshot-publication.schema.json`,
 `schemas/governed-data-catalog-registry-publication.schema.json`, and
 `schemas/campaign-report-publication.schema.json` define the versioned outcomes

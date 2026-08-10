@@ -11,15 +11,16 @@ pub use crate::contract::{
     validate_benchmark_campaign_report_publication, validate_benchmark_case_definition,
     validate_benchmark_citation_record, validate_benchmark_data_index,
     validate_benchmark_data_portfolio_audit, validate_benchmark_data_source_spec,
-    validate_benchmark_evidence_book, validate_benchmark_protocol_citation,
-    validate_benchmark_publication_receipt, validate_benchmark_publication_registry,
-    validate_benchmark_replay_receipt, validate_benchmark_run_case_index,
-    validate_benchmark_run_definition, validate_benchmark_run_definition_revision,
-    validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
-    validate_benchmark_run_registry, validate_benchmark_stage_result_manifest,
-    validate_campaign_plan, validate_container_report_portfolio_index,
-    validate_corpus_acquisition_plan, validate_cycle_admission, validate_cycle_preparation,
-    validate_cycle_status_v1, validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
+    validate_benchmark_evidence_book, validate_benchmark_matrix_report,
+    validate_benchmark_protocol_citation, validate_benchmark_publication_receipt,
+    validate_benchmark_publication_registry, validate_benchmark_replay_receipt,
+    validate_benchmark_run_case_index, validate_benchmark_run_definition,
+    validate_benchmark_run_definition_revision, validate_benchmark_run_index,
+    validate_benchmark_run_publication_pointer, validate_benchmark_run_registry,
+    validate_benchmark_stage_result_manifest, validate_campaign_plan,
+    validate_container_report_portfolio_index, validate_corpus_acquisition_plan,
+    validate_cycle_admission, validate_cycle_preparation, validate_cycle_status_v1,
+    validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
     validate_data_fitness_rubric, validate_execution_spec, validate_fastq_corpus_source_spec,
     validate_fastq_read_length_expectations, validate_governed_data_catalog,
     validate_governed_data_catalog_document, validate_governed_data_catalog_registry,
@@ -67,6 +68,11 @@ pub use crate::diagnostics::BenchError;
 pub use crate::model::admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+pub use crate::model::benchmark_matrix::{
+    benchmark_matrix_report_schema, BenchmarkMatrixReport, BenchmarkMatrixRow,
+    BenchmarkMatrixSummary, BenchmarkReadiness, BenchmarkSurfaceMatch,
+    BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
 };
 pub use crate::model::campaign_engine::{
     benchmark_admitted_case_observation_schema, benchmark_admitted_case_observation_set_schema,

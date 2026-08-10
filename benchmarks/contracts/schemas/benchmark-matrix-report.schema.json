@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "BenchmarkMatrixRow": {
+      "properties": {
+        "corpus_match": {
+          "$ref": "#/$defs/BenchmarkSurfaceMatch"
+        },
+        "database_match": {
+          "$ref": "#/$defs/BenchmarkSurfaceMatch"
+        },
+        "image_match": {
+          "$ref": "#/$defs/BenchmarkSurfaceMatch"
+        },
+        "matrix_domain": {
+          "type": "string"
+        },
+        "readiness": {
+          "$ref": "#/$defs/BenchmarkReadiness"
+        },
+        "repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "row_id",
+        "matrix_domain",
+        "stage_id",
+        "tool_id",
+        "corpus_match",
+        "database_match",
+        "image_match",
+        "readiness",
+        "repetitions"
+      ],
+      "type": "object"
+    },
+    "BenchmarkMatrixSummary": {
+      "properties": {
+        "domain_counts": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "readiness_counts": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "total_rows": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_rows",
+        "readiness_counts",
+        "domain_counts"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReadiness": {
+      "properties": {
+        "class": {
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "class",
+        "reasons"
+      ],
+      "type": "object"
+    },
+    "BenchmarkSurfaceMatch": {
+      "properties": {
+        "matched_profile": {
+          "type": "string"
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "required_profile": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "required_profile",
+        "matched_profile",
+        "ready"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "domains": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkMatrixRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.hpc.benchmark_matrix.v1",
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkMatrixSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "domain",
+    "domains",
+    "generated_at",
+    "summary",
+    "rows"
+  ],
+  "title": "BenchmarkMatrixReport",
+  "type": "object"
+}

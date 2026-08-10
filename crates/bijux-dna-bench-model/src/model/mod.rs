@@ -3,6 +3,7 @@
 //! Must not perform IO or depend on repo/policy/compare logic.
 
 pub mod admission;
+pub mod benchmark_matrix;
 pub mod campaign_engine;
 pub mod container_report_portfolio;
 pub mod corpus;
@@ -33,6 +34,12 @@ pub mod summary;
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+#[allow(unused_imports)]
+pub use benchmark_matrix::{
+    benchmark_matrix_report_schema, BenchmarkMatrixReport, BenchmarkMatrixRow,
+    BenchmarkMatrixSummary, BenchmarkReadiness, BenchmarkSurfaceMatch,
+    BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use campaign_engine::{
