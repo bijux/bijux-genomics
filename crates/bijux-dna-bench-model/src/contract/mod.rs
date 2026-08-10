@@ -5,6 +5,7 @@
 #![allow(dead_code)]
 
 mod compatibility;
+mod container_report_portfolio;
 mod corpus_expectations;
 mod data_catalog_registry;
 mod data_index;
@@ -29,6 +30,7 @@ pub use compatibility::{
     migrate_benchmark_attempt_v1, parse_benchmark_attempt_document, parse_benchmark_cycle_document,
     validate_attempt_record_v1, validate_cycle_status_v1,
 };
+pub use container_report_portfolio::validate_container_report_portfolio_index;
 pub use corpus_expectations::validate_fastq_read_length_expectations;
 pub use data_catalog_registry::validate_governed_data_catalog_registry;
 pub use data_index::validate_benchmark_data_index;

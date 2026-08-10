@@ -44,6 +44,8 @@
 
 Catalog-wide runtime and security probe orchestration is intentionally owned by
 `bijux-dna-containers-qa` and is not exported by this production crate.
+Container report-portfolio models, validation, aggregation, and paper-facing rendering are owned
+by `bijux-dna-bench-model` and `bijux-dna-bench`, not this environment-evidence crate.
 
 ## Stability Rules
 

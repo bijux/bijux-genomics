@@ -2,13 +2,12 @@ use std::fs;
 
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
-    derive_container_report_portfolio_index, derive_qualification_run_registry,
-    load_container_catalog, load_qualification_run_registry, render_container_run_index_json,
-    render_container_run_index_markdown, render_qualification_run_registry,
-    validate_container_report_portfolio_index, validate_container_run_index,
+    derive_qualification_run_registry, load_container_catalog, load_qualification_run_registry,
+    render_container_run_index_json, render_container_run_index_markdown,
+    render_qualification_run_registry, validate_container_run_index,
     validate_qualification_run_registry, ContainerArtifactDelivery, ContainerProductSupport,
-    ContainerReportFreshness, ContainerRunIndex, ContainerRunIndexSource,
-    QualificationRegistryDerivationRequest, QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1,
+    ContainerRunIndex, ContainerRunIndexSource, QualificationRegistryDerivationRequest,
+    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1,
 };
 
 #[test]
@@ -189,26 +188,6 @@ fn paper_facing_index_preserves_complete_namespace_and_missing_evidence() -> Res
         .context("run without selected evidence")?;
     reserved.citation.limitations.clear();
     assert!(validate_container_run_index(&hidden_missing_evidence).is_err());
-    Ok(())
-}
-
-#[test]
-fn report_portfolio_promotes_only_the_current_permanent_run_index() -> Result<()> {
-    let index = derive_container_report_portfolio_index(&repository_root()?)?;
-    assert_eq!(index.summary.current_count, 1);
-    assert!(index.summary.historical_unvalidated_count > 0);
-    assert_eq!(index.reports[0].report_id, "permanent-run-index");
-    assert_eq!(index.reports[0].freshness, ContainerReportFreshness::Current);
-    assert!(index.reports.iter().skip(1).all(|report| {
-        report.freshness == ContainerReportFreshness::HistoricalUnvalidated
-            && !report.limitations.is_empty()
-    }));
-
-    let mut promoted = index;
-    promoted.reports[1].freshness = ContainerReportFreshness::Current;
-    promoted.summary.current_count += 1;
-    promoted.summary.historical_unvalidated_count -= 1;
-    assert!(validate_container_report_portfolio_index(&promoted).is_err());
     Ok(())
 }
 

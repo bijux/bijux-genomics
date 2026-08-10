@@ -26,6 +26,8 @@ not own CLI commands or process execution.
 | `validate-stage-report` | `contract::validate_stage_report` | Validate benchmark stage-report identity, execution design, tool evidence, comparability, metrics, and verdict. |
 | `validate-stage-report-alignment` | `contract::validate_stage_report_alignment` | Validate a stage report against its campaign and optional stage-interface authority. |
 | `validate-report-admission` | `contract::validate_report_admission` | Validate exact source bytes, canonical parsed-report identity, and the nested stage-report contract. |
+| `validate-container-report-portfolio-index` | `contract::validate_container_report_portfolio_index` | Validate report identity, checksummed file closure, summary counts, and conservative freshness promotion. |
+| `container-report-portfolio-index-schema` | `container_report_portfolio_index_schema` | Generate the persisted container report-portfolio JSON Schema from its Rust model. |
 | `validate-benchmark-run-definition` | `contract::validate_benchmark_run_definition` | Validate one versioned permanent run protocol and its explicit supersession lineage. |
 | `validate-benchmark-run-definition-revision` | `contract::validate_benchmark_run_definition_revision` | Require a same-run protocol version increase or a replacement run that explicitly supersedes the prior semantic stage protocol. |
 | `benchmark-run-definition-sha256` | `contract::benchmark_run_definition_sha256` | Derive the deterministic canonical SHA-256 identity of a valid run protocol. |

@@ -42,11 +42,9 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
 }
 
 fn report_index(workspace: &Workspace, check: bool) -> Result<ContainerCommandOutcome> {
-    let index =
-        bijux_dna_containers::api::derive_container_report_portfolio_index(&workspace.root)?;
-    let json = bijux_dna_containers::api::render_container_report_portfolio_index_json(&index)?;
-    let markdown =
-        bijux_dna_containers::api::render_container_report_portfolio_index_markdown(&index);
+    let index = bijux_dna_bench::derive_container_report_portfolio_index(&workspace.root)?;
+    let json = bijux_dna_bench::render_container_report_portfolio_index_json(&index)?;
+    let markdown = bijux_dna_bench::render_container_report_portfolio_index_markdown(&index);
     let json_path = workspace.path(REPORT_INDEX_JSON_PATH);
     let markdown_path = workspace.path(REPORT_INDEX_MARKDOWN_PATH);
     if check {
@@ -67,9 +65,9 @@ fn report_index(workspace: &Workspace, check: bool) -> Result<ContainerCommandOu
 
 fn report_index_schema(workspace: &Workspace, check: bool) -> Result<ContainerCommandOutcome> {
     let path = workspace.path(REPORT_INDEX_SCHEMA_PATH);
-    let expected = serde_json::to_string_pretty(
-        &bijux_dna_containers::api::container_report_portfolio_index_schema(),
-    )? + "\n";
+    let expected =
+        serde_json::to_string_pretty(&bijux_dna_bench::container_report_portfolio_index_schema())?
+            + "\n";
     if check {
         if read_utf8(&path)? != expected {
             return Ok(ContainerCommandOutcome::failure(

@@ -9,7 +9,6 @@ mod inventory;
 mod load;
 mod model;
 mod qualification_registry;
-mod report_registry;
 mod run_evidence;
 mod runtime_verification;
 mod schema;
@@ -87,13 +86,6 @@ pub use qualification_registry::{
     QualificationRunRegistryEntry, QualificationRunRegistrySummary, QualificationRunState,
     CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V3,
     QUALIFICATION_RUN_REGISTRY_SCHEMA_V3,
-};
-pub use report_registry::{
-    container_report_portfolio_index_schema, derive_container_report_portfolio_index,
-    render_container_report_portfolio_index_json, render_container_report_portfolio_index_markdown,
-    validate_container_report_portfolio_index, ContainerIndexedReport, ContainerIndexedReportFile,
-    ContainerReportFreshness, ContainerReportPortfolioIndex, ContainerReportPortfolioSummary,
-    CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1,
 };
 pub use run_evidence::{
     apply_final_run_evidence_plan, apply_result_layout, apply_superseded_result_archive,

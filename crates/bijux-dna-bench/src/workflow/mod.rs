@@ -13,6 +13,7 @@ mod campaign_cases;
 mod campaign_engine;
 mod campaign_lifecycle;
 mod campaign_material;
+mod container_report_portfolio;
 mod corpus_acquisition;
 mod corpus_materialization;
 mod data_portfolio_audit;
@@ -115,6 +116,10 @@ pub use campaign_material::{
     publish_benchmark_campaign_report,
     publish_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
     BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
+};
+pub use container_report_portfolio::{
+    derive_container_report_portfolio_index, render_container_report_portfolio_index_json,
+    render_container_report_portfolio_index_markdown,
 };
 pub use corpus_acquisition::{
     acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, load_fastq_corpus_source_spec,

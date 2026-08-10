@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: bijux-dna-containers::evidence::report_registry -->
+<!-- source: bijux-dna-bench::workflow::container_report_portfolio -->
 # Container report index
 
 A file is current only after its complete dependency hash closure is re-admitted. Historical presence and successful jobs are not promoted by this index.

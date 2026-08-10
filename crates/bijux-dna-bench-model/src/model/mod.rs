@@ -4,6 +4,7 @@
 
 pub mod admission;
 pub mod campaign_engine;
+pub mod container_report_portfolio;
 pub mod corpus;
 pub mod data_catalog_registry;
 pub mod data_portfolio_audit;
@@ -43,6 +44,12 @@ pub use campaign_engine::{
     BenchmarkCaseMatrixV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
     BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+};
+#[allow(unused_imports)]
+pub use container_report_portfolio::{
+    container_report_portfolio_index_schema, ContainerIndexedReport, ContainerIndexedReportFile,
+    ContainerReportFreshness, ContainerReportPortfolioIndex, ContainerReportPortfolioSummary,
+    CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use corpus::{

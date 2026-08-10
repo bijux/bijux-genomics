@@ -17,13 +17,14 @@ pub use crate::contract::{
     validate_benchmark_run_definition_revision, validate_benchmark_run_index,
     validate_benchmark_run_publication_pointer, validate_benchmark_run_registry,
     validate_benchmark_stage_result_manifest, validate_campaign_plan,
-    validate_corpus_acquisition_plan, validate_cycle_status_v1, validate_cycle_status_v2,
-    validate_execution_spec, validate_fastq_corpus_source_spec,
-    validate_fastq_read_length_expectations, validate_governed_data_catalog,
-    validate_governed_data_catalog_document, validate_governed_data_catalog_registry,
-    validate_governed_preserved_data_catalog, validate_scheduler_observation,
-    validate_scientific_readiness, validate_stage_universe, validate_utc_timestamp,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    validate_container_report_portfolio_index, validate_corpus_acquisition_plan,
+    validate_cycle_status_v1, validate_cycle_status_v2, validate_execution_spec,
+    validate_fastq_corpus_source_spec, validate_fastq_read_length_expectations,
+    validate_governed_data_catalog, validate_governed_data_catalog_document,
+    validate_governed_data_catalog_registry, validate_governed_preserved_data_catalog,
+    validate_scheduler_observation, validate_scientific_readiness, validate_stage_universe,
+    validate_utc_timestamp, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
@@ -71,6 +72,11 @@ pub use crate::model::campaign_engine::{
     BenchmarkCaseMatrixV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
     BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+};
+pub use crate::model::container_report_portfolio::{
+    container_report_portfolio_index_schema, ContainerIndexedReport, ContainerIndexedReportFile,
+    ContainerReportFreshness, ContainerReportPortfolioIndex, ContainerReportPortfolioSummary,
+    CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1,
 };
 pub use crate::model::data_catalog_registry::{
     governed_data_catalog_registry_schema, GovernedDataCatalogRegistry,

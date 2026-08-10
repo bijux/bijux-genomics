@@ -1,62 +1,20 @@
-//! Deterministic paper-facing index over container report publications.
+//! Owner: bijux-dna-bench
+//! Deterministic derivation and rendering of paper-facing container report publications.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use schemars::{JsonSchema, Schema};
-use serde::{Deserialize, Serialize};
-
-pub const CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1: &str =
-    "bijux.container.report_portfolio_index.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ContainerReportFreshness {
-    Current,
-    HistoricalUnvalidated,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct ContainerIndexedReportFile {
-    pub path: String,
-    pub sha256: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct ContainerIndexedReport {
-    pub report_id: String,
-    pub freshness: ContainerReportFreshness,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub json: Option<ContainerIndexedReportFile>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub markdown: Option<ContainerIndexedReportFile>,
-    pub limitations: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct ContainerReportPortfolioSummary {
-    pub report_count: usize,
-    pub current_count: usize,
-    pub historical_unvalidated_count: usize,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct ContainerReportPortfolioIndex {
-    pub schema_version: String,
-    pub summary: ContainerReportPortfolioSummary,
-    pub reports: Vec<ContainerIndexedReport>,
-}
-
-#[must_use]
-pub fn container_report_portfolio_index_schema() -> Schema {
-    schemars::schema_for!(ContainerReportPortfolioIndex)
-}
+use bijux_dna_bench_model::{
+    validate_container_report_portfolio_index, ContainerIndexedReport, ContainerIndexedReportFile,
+    ContainerReportFreshness, ContainerReportPortfolioIndex, ContainerReportPortfolioSummary,
+    CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1,
+};
+use bijux_dna_containers::api::{
+    derive_container_run_index, render_container_run_index_json,
+    render_container_run_index_markdown,
+};
 
 /// Derive the current and historical report portfolio from repository-owned files.
 ///
@@ -66,12 +24,12 @@ pub fn container_report_portfolio_index_schema() -> Schema {
 pub fn derive_container_report_portfolio_index(
     repository_root: &Path,
 ) -> Result<ContainerReportPortfolioIndex> {
-    let current_run_index = super::derive_container_run_index(
+    let current_run_index = derive_container_run_index(
         repository_root,
         &repository_root.join("containers/contracts/qualification-runs.toml"),
     )?;
-    let expected_json = super::render_container_run_index_json(&current_run_index)?;
-    let expected_markdown = super::render_container_run_index_markdown(&current_run_index);
+    let expected_json = render_container_run_index_json(&current_run_index)?;
+    let expected_markdown = render_container_run_index_markdown(&current_run_index);
     let run_json_path = repository_root.join("containers/runs/RUN_INDEX.json");
     let run_markdown_path = repository_root.join("containers/runs/RUN_INDEX.md");
     if fs::read(&run_json_path).context("read container RUN_INDEX.json")?
@@ -85,8 +43,14 @@ pub fn derive_container_report_portfolio_index(
     let mut reports = vec![ContainerIndexedReport {
         report_id: "permanent-run-index".to_string(),
         freshness: ContainerReportFreshness::Current,
-        json: Some(indexed_file(repository_root, "containers/runs/RUN_INDEX.json")?),
-        markdown: Some(indexed_file(repository_root, "containers/runs/RUN_INDEX.md")?),
+        json: Some(indexed_file(
+            repository_root,
+            "containers/runs/RUN_INDEX.json",
+        )?),
+        markdown: Some(indexed_file(
+            repository_root,
+            "containers/runs/RUN_INDEX.md",
+        )?),
         limitations: vec![
             "Current protocol identity does not imply current execution, science, security, or release evidence."
                 .to_string(),
@@ -154,55 +118,6 @@ pub fn derive_container_report_portfolio_index(
     Ok(index)
 }
 
-/// Validate report identity, file pairs, digests, counts, and conservative freshness policy.
-///
-/// # Errors
-/// Returns an error when a report is duplicated, incomplete, or promoted without current proof.
-pub fn validate_container_report_portfolio_index(
-    index: &ContainerReportPortfolioIndex,
-) -> Result<()> {
-    if index.schema_version != CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1
-        || index.summary.report_count != index.reports.len()
-    {
-        bail!("container report portfolio index summary is invalid");
-    }
-    let current = index
-        .reports
-        .iter()
-        .filter(|report| report.freshness == ContainerReportFreshness::Current)
-        .count();
-    if index.summary.current_count != current
-        || index.summary.historical_unvalidated_count != index.reports.len() - current
-    {
-        bail!("container report portfolio freshness counts drifted");
-    }
-    let mut report_ids = BTreeSet::new();
-    let mut paths = BTreeSet::new();
-    for report in &index.reports {
-        if report.report_id.trim().is_empty()
-            || !report_ids.insert(report.report_id.as_str())
-            || (report.json.is_none() && report.markdown.is_none())
-            || report.limitations.is_empty()
-        {
-            bail!("container report portfolio entry is incomplete");
-        }
-        if report.freshness == ContainerReportFreshness::Current
-            && report.report_id != "permanent-run-index"
-        {
-            bail!("container report was promoted without complete current hash closure");
-        }
-        for file in [report.json.as_ref(), report.markdown.as_ref()].into_iter().flatten() {
-            if file.sha256.len() != 64
-                || !file.sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
-                || !paths.insert(file.path.as_str())
-            {
-                bail!("container report file identity is invalid");
-            }
-        }
-    }
-    Ok(())
-}
-
 /// Render deterministic report portfolio JSON.
 ///
 /// # Errors
@@ -220,7 +135,7 @@ pub fn render_container_report_portfolio_index_markdown(
 ) -> String {
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- source: bijux-dna-containers::evidence::report_registry -->".to_string(),
+        "<!-- source: bijux-dna-bench::workflow::container_report_portfolio -->".to_string(),
         "# Container report index".to_string(),
         String::new(),
         "A file is current only after its complete dependency hash closure is re-admitted. Historical presence and successful jobs are not promoted by this index.".to_string(),

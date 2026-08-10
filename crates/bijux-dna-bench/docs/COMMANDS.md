@@ -24,6 +24,8 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
+| `derive-container-report-portfolio-index` | `derive_container_report_portfolio_index(repository_root)` | Require the permanent run index to match its source authority, then derive checksummed current and historical container report entries. |
+| `render-container-report-portfolio-index` | `render_container_report_portfolio_index_json(index)`, `render_container_report_portfolio_index_markdown(index)` | Render the admitted container report portfolio deterministically for machine and paper-facing consumers. |
 | `acquire-fastq-corpus` | `acquire_fastq_corpus(request)` | Resolve a reviewed corpus specification against exact ENA run metadata and atomically publish a checksum-pinned acquisition plan. |
 | `derive-fastq-corpus-acquisition-plan` | `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` | Deterministically replay acquisition-plan derivation from typed offline ENA records. |
 | `materialize-fastq-corpus` | `materialize_fastq_corpus(request)` | Re-verify or transfer checksum-pinned ENA files, validate every gzip FASTQ record, make admitted bytes read-only, and atomically publish a source-addressed governed catalog snapshot. |

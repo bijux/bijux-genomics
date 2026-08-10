@@ -24,6 +24,8 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.
 - `load_stage_reports_from_dir(path, registry, interfaces)` admits checksummed reports against supplied authorities; raw report values are never returned to aggregation callers.
 - `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
+- `derive_container_report_portfolio_index(repository_root)` derives the current and historical container report portfolio while requiring the permanent run index to match its source authority.
+- `render_container_report_portfolio_index_json(index)` and `render_container_report_portfolio_index_markdown(index)` render the admitted portfolio deterministically.
 - `publish_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, output_root)` publishes a source-locked historical campaign and returns the exact presentation commit, catalog digest, and overlaid stage IDs in its receipt.
 - `acquire_fastq_corpus(request)` resolves a reviewed corpus specification against exact ENA run metadata and atomically publishes a no-clobber acquisition plan.
 - `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` deterministically derives the same validated plan from typed offline ENA records.
@@ -100,6 +102,8 @@ including:
 - `GovernedDataCatalog`
 - `AdmittedBamCorpus`
 - `BamMappingSummaryMaterial`
+- `ContainerReportPortfolioIndex`
+- `ContainerReportFreshness`
 - `FastqReadLengthExpectations`
 - `FastqReadLengthExpectationPublication`
 - `FastqProfileReadLengthsMaterial`

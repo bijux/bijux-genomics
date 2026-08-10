@@ -74,6 +74,9 @@ Model contracts:
 - `BenchmarkExecutionResources`
 - `BenchmarkExecutionRuntimePolicy`
 - `BenchmarkExecutionAcceptance`
+- `ContainerReportPortfolioIndex`
+- `ContainerReportFreshness`
+- `ContainerIndexedReport`
 - `CorpusAcquisitionPlan`
 - `CorpusAcquisitionSample`
 - `CorpusAcquisitionFile`
