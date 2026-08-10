@@ -5,7 +5,6 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
 use std::process::Command;
-use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
@@ -55,8 +54,6 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
             tool_id: "contract_tool".to_string(),
             architecture: "linux/amd64".to_string(),
             apptainer_executable: executable,
-            maximum_build_invocations: 1,
-            retry_delay: Duration::ZERO,
             destination: CanonicalApptainerImageDestination::CommitCampaign,
             campaign_scope: None,
         });

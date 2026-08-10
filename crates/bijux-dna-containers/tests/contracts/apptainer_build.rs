@@ -3,7 +3,6 @@
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Duration;
 
 use bijux_dna_containers::api::{
     apptainer_build_log_path, build_apptainer_image, classify_apptainer_build_failure,
@@ -102,13 +101,23 @@ fn build_request(
         evidence_root: temp.path().join("evidence"),
         tool_id: "samtools".to_string(),
         build_evidence_id: "a".repeat(64),
-        maximum_invocations: 3,
-        retry_delay: Duration::ZERO,
     })
 }
 
 #[test]
-fn transient_build_failure_retries_with_immutable_attempt_logs() -> anyhow::Result<()> {
+fn apptainer_build_lifecycle_is_one_shot() -> anyhow::Result<()> {
+    let source = std::fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("src/build/apptainer.rs"),
+    )?;
+
+    assert!(!source.contains("thread::sleep"));
+    assert!(!source.contains("maximum_invocations"));
+    assert!(!source.contains("retry_delay"));
+    Ok(())
+}
+
+#[test]
+fn transient_build_failure_requires_a_new_one_shot_invocation() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
     let executable = temp.path().join("apptainer");
     let counter = temp.path().join("counter");
@@ -121,14 +130,19 @@ fn transient_build_failure_retries_with_immutable_attempt_logs() -> anyhow::Resu
     )?;
     let request = build_request(&temp, executable)?;
 
+    let Err(first_error) = build_apptainer_image(&request) else {
+        panic!("transient failure must return after one attempt");
+    };
+    assert!(first_error.to_string().contains("TransientTransport"));
+    let first_log =
+        apptainer_build_log_path(&request.evidence_root, "samtools", &"a".repeat(64), 1);
+    assert!(std::fs::read_to_string(first_log)?.contains("failure_class=transient_transport"));
+
     let report = build_apptainer_image(&request)?;
 
-    assert_eq!(report.attempts.len(), 2);
-    assert_eq!(
-        report.attempts[0].failure_class,
-        Some(ApptainerBuildFailureClass::TransientTransport)
-    );
-    assert_eq!(report.attempts[1].failure_class, None);
+    assert_eq!(report.attempts.len(), 1);
+    assert_eq!(report.attempts[0].attempt, 2);
+    assert_eq!(report.attempts[0].failure_class, None);
     assert!(request.image_path.is_file());
     assert_eq!(
         latest_apptainer_build_attempt(&request.evidence_root, "samtools", &"a".repeat(64))

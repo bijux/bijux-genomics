@@ -2,15 +2,13 @@ use std::fs::OpenOptions;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::thread;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 use anyhow::{anyhow, Context, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 const MAX_RETAINED_ATTEMPT_NUMBER: u32 = 999;
-const MAX_BUILD_INVOCATIONS: u32 = 3;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -43,8 +41,6 @@ pub struct ApptainerBuildRequest {
     pub evidence_root: PathBuf,
     pub tool_id: String,
     pub build_evidence_id: String,
-    pub maximum_invocations: u32,
-    pub retry_delay: Duration,
 }
 
 impl ApptainerBuildRequest {
@@ -63,13 +59,11 @@ impl ApptainerBuildRequest {
             evidence_root: containers_root.join("evidence/build-logs"),
             tool_id,
             build_evidence_id,
-            maximum_invocations: 3,
-            retry_delay: Duration::from_secs(2),
         }
     }
 }
 
-/// Build an Apptainer image with append-only attempt logs and bounded transport retries.
+/// Execute one Apptainer image build attempt and retain its append-only evidence log.
 ///
 /// # Errors
 /// Returns an error when the request is invalid, an attempt log cannot be created, Apptainer
@@ -84,61 +78,38 @@ pub fn build_apptainer_image(request: &ApptainerBuildRequest) -> Result<Apptaine
             .with_context(|| format!("create Apptainer image root {}", parent.display()))?;
     }
 
-    let first_attempt = next_apptainer_build_attempt(
+    let attempt = next_apptainer_build_attempt(
         &request.evidence_root,
         &request.tool_id,
         &request.build_evidence_id,
     )?;
-    let mut attempts = Vec::new();
-    for invocation in 0..request.maximum_invocations {
-        let attempt = first_attempt
-            .checked_add(invocation)
-            .ok_or_else(|| anyhow!("Apptainer build attempt number overflow"))?;
-        if attempt > MAX_RETAINED_ATTEMPT_NUMBER {
-            return Err(anyhow!(
-                "Apptainer build exceeds {MAX_RETAINED_ATTEMPT_NUMBER} attempts for {}",
-                request.tool_id
-            ));
-        }
-        let log_path = apptainer_build_log_path(
-            &request.evidence_root,
-            &request.tool_id,
-            &request.build_evidence_id,
-            attempt,
-        );
-        let output = run_build_attempt(request, attempt, &log_path)?;
-        if output.success {
-            attempts.push(ApptainerBuildAttempt {
+    let log_path = apptainer_build_log_path(
+        &request.evidence_root,
+        &request.tool_id,
+        &request.build_evidence_id,
+        attempt,
+    );
+    let output = run_build_attempt(request, attempt, &log_path)?;
+    if output.success {
+        return Ok(ApptainerBuildReport {
+            attempts: vec![ApptainerBuildAttempt {
                 attempt,
                 log_path,
                 started_at_unix_ms: output.started_at_unix_ms,
                 finished_at_unix_ms: output.finished_at_unix_ms,
                 failure_class: None,
-            });
-            return Ok(ApptainerBuildReport { attempts });
-        }
-
-        let failure_class = classify_apptainer_build_failure(&output.diagnostics);
-        attempts.push(ApptainerBuildAttempt {
-            attempt,
-            log_path: log_path.clone(),
-            started_at_unix_ms: output.started_at_unix_ms,
-            finished_at_unix_ms: output.finished_at_unix_ms,
-            failure_class: Some(failure_class),
+            }],
         });
-        let may_retry = failure_class == ApptainerBuildFailureClass::TransientTransport
-            && invocation + 1 < request.maximum_invocations;
-        remove_partial_image(&request.image_path)?;
-        if !may_retry {
-            return Err(anyhow!(
-                "Apptainer build failed for {} on attempt {attempt}; inspect {}",
-                request.definition_path.display(),
-                log_path.display()
-            ));
-        }
-        thread::sleep(request.retry_delay);
     }
-    Err(anyhow!("Apptainer build exhausted without a terminal result"))
+
+    let failure_class = classify_apptainer_build_failure(&output.diagnostics);
+    append_failure_class(&log_path, failure_class)?;
+    remove_partial_image(&request.image_path)?;
+    Err(anyhow!(
+        "Apptainer build failed for {} on attempt {attempt} ({failure_class:?}); inspect {}",
+        request.definition_path.display(),
+        log_path.display()
+    ))
 }
 
 #[must_use]
@@ -285,11 +256,6 @@ fn unix_time_millis() -> Result<u64> {
 }
 
 fn validate_request(request: &ApptainerBuildRequest) -> Result<()> {
-    if !(1..=MAX_BUILD_INVOCATIONS).contains(&request.maximum_invocations) {
-        return Err(anyhow!(
-            "Apptainer build invocations must be between 1 and {MAX_BUILD_INVOCATIONS}"
-        ));
-    }
     if !is_safe_component(&request.tool_id) {
         return Err(anyhow!("Apptainer build tool ID is not a safe path component"));
     }
@@ -309,6 +275,24 @@ fn validate_request(request: &ApptainerBuildRequest) -> Result<()> {
         ));
     }
     Ok(())
+}
+
+fn append_failure_class(path: &Path, failure_class: ApptainerBuildFailureClass) -> Result<()> {
+    let mut log = OpenOptions::new()
+        .append(true)
+        .open(path)
+        .with_context(|| format!("append build failure class to {}", path.display()))?;
+    writeln!(log, "failure_class={}", failure_class.as_str())?;
+    Ok(())
+}
+
+impl ApptainerBuildFailureClass {
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::TransientTransport => "transient_transport",
+            Self::Permanent => "permanent",
+        }
+    }
 }
 
 fn is_safe_component(value: &str) -> bool {
