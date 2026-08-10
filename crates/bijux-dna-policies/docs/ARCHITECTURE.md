@@ -39,7 +39,10 @@ audit orchestration.
 1. Qualification callers provide admitted observations; policy rules record versioned measured
    values, thresholds, outcomes, reasons, and evidence identities before models derive claims and
    report summaries.
-2. Security callers provide typed scanner publications; policy validation derives admissibility.
+2. Security callers provide catalog-complete typed observations. Policy validation keeps product
+   support, artifact delivery, redistribution permission, and artifact availability independent;
+   a supported external tool remains in the publication when access is blocked, while an admitted
+   external artifact can carry the same artifact-bound controls as a redistributable image.
 3. Repository-audit callers use `check` and `GuardrailConfig`; guardrails collect Rust sources and
    evaluate deterministic source and layout rules.
 4. Assertion macros and `policy_diagnostics` render failures with consistent repair guidance.

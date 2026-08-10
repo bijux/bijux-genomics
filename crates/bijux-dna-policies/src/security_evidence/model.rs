@@ -3,9 +3,12 @@ use std::collections::BTreeMap;
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::qualification::{EvidenceVerdict, SupportDisposition};
+use crate::qualification::{
+    ArtifactAvailability, ArtifactDelivery, EvidenceVerdict, ProductSupport,
+};
 
 pub const CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1: &str = "bijux.container.security_evidence.v1";
+pub const CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2: &str = "bijux.container.security_evidence.v2";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -59,10 +62,13 @@ pub enum VulnerabilityDatabaseStatus {
 pub struct ToolSecurityEvidence {
     pub tool_id: String,
     pub version: String,
-    pub support_disposition: SupportDisposition,
-    pub image_sha256: Option<String>,
+    pub product_support: ProductSupport,
+    pub artifact_delivery: ArtifactDelivery,
+    pub redistribution_permitted: bool,
+    pub availability: ArtifactAvailability,
+    pub artifact_sha256: Option<String>,
     pub tool_contract_sha256: Option<String>,
-    pub build_evidence_id: Option<String>,
+    pub admission_evidence_sha256: Option<String>,
     pub source_identity: Option<SecuritySourceIdentity>,
     pub structural: Option<StructuralSecurityEvidence>,
     pub sbom: Option<SbomEvidence>,
@@ -111,7 +117,7 @@ pub struct SbomEvidence {
     pub sha256: String,
     pub generator: String,
     pub generator_version: String,
-    pub source_image_sha256: String,
+    pub source_artifact_sha256: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -205,6 +211,6 @@ pub enum RuntimeAccessPolicy {
 fn security_evidence_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
+        "const": CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2,
     })
 }

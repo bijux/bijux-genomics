@@ -38,23 +38,23 @@ pub fn admit_security_evidence<'a>(
 }
 
 impl AdmittedSecurityEvidence<'_> {
-    /// Derive one qualification decision from validated, image-bound tool evidence.
+    /// Derive one qualification decision from evidence bound to an admitted artifact.
     #[must_use]
-    pub fn tool_decision(&self, tool_id: &str, image_sha256: &str) -> EvidenceDecision {
+    pub fn tool_decision(&self, tool_id: &str, artifact_sha256: &str) -> EvidenceDecision {
         let evidence = self.publication.tools.get(tool_id);
-        let observed_image =
-            evidence.and_then(|item| item.image_sha256.as_deref()).unwrap_or("missing");
+        let observed_artifact =
+            evidence.and_then(|item| item.artifact_sha256.as_deref()).unwrap_or("missing");
         let observed_verdict = evidence.map_or_else(
             || "missing".to_string(),
             |item| format!("{:?}", item.verdict).to_ascii_lowercase(),
         );
         let measured_values = BTreeMap::from([
-            ("required_image_sha256".to_string(), image_sha256.to_string()),
-            ("observed_image_sha256".to_string(), observed_image.to_string()),
+            ("required_artifact_sha256".to_string(), artifact_sha256.to_string()),
+            ("observed_artifact_sha256".to_string(), observed_artifact.to_string()),
             ("security_verdict".to_string(), observed_verdict),
         ]);
         let thresholds = BTreeMap::from([
-            ("image_identity".to_string(), "exact SHA-256 match".to_string()),
+            ("artifact_identity".to_string(), "exact SHA-256 match".to_string()),
             ("security_verdict".to_string(), "passed".to_string()),
         ]);
         let Some(evidence) = evidence else {
@@ -62,15 +62,15 @@ impl AdmittedSecurityEvidence<'_> {
                 SECURITY_EVIDENCE_RULE_V1,
                 measured_values,
                 thresholds,
-                "admitted security publication omits the retained tool",
+                "admitted security publication omits the supported tool",
             );
         };
-        if evidence.image_sha256.as_deref() != Some(image_sha256) {
+        if evidence.artifact_sha256.as_deref() != Some(artifact_sha256) {
             return EvidenceDecision::failed(
                 SECURITY_EVIDENCE_RULE_V1,
                 measured_values,
                 thresholds,
-                "security evidence is bound to a different image",
+                "security evidence is bound to a different artifact",
             );
         }
         match evidence.verdict {
@@ -79,7 +79,7 @@ impl AdmittedSecurityEvidence<'_> {
                 measured_values,
                 thresholds,
                 self.publication_sha256.clone(),
-                "validated security controls pass for the exact image",
+                "validated security controls pass for the exact artifact",
             ),
             EvidenceVerdict::Failed => EvidenceDecision::failed(
                 SECURITY_EVIDENCE_RULE_V1,
@@ -103,7 +103,7 @@ impl AdmittedSecurityEvidence<'_> {
                 SECURITY_EVIDENCE_RULE_V1,
                 measured_values,
                 thresholds,
-                "retained tool security evidence cannot be not applicable",
+                "supported tool security evidence cannot be not applicable",
             ),
         }
     }
