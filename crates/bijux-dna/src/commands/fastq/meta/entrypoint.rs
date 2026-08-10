@@ -72,6 +72,21 @@ pub(crate) fn handle_meta_commands(
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             match &args.command {
+                BenchCommand::Cycle { command } => match command {
+                    cli::BenchCycleCommand::Plan(args) => {
+                        let plan = bijux_dna_api::v1::api::bench::plan_checked_in_benchmark_campaign(
+                            &bijux_dna_api::v1::api::bench::BenchmarkCyclePlanRequest {
+                                repository_root: args.repository_root.clone(),
+                                run_id: args.run_id.clone(),
+                                campaign_id: args.campaign_id.clone(),
+                                attempt_id: args.attempt_id.clone(),
+                                observed_at_utc: args.observed_at_utc.clone(),
+                                output: args.output.clone(),
+                            },
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&plan)?;
+                    }
+                },
                 BenchCommand::Config { command } => match command {
                     BenchConfigCommand::Validate(args) => {
                         crate::commands::benchmark_config::validate_benchmark_config(

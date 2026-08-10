@@ -90,7 +90,7 @@ pub fn parse_process_cli(argv: &[String]) -> cli::Cli {
 #[cfg(test)]
 mod tests {
     use super::{normalize_cli_argv, parse_cli_from_argv};
-    use crate::commands::cli::DnaCommand;
+    use crate::commands::cli::{BenchCommand, BenchCycleCommand, DnaCommand};
 
     fn argv(values: &[&str]) -> Vec<String> {
         values.iter().map(|value| (*value).to_string()).collect()
@@ -146,5 +146,33 @@ mod tests {
                 .expect("parse benchmark namespace");
             assert!(matches!(parsed.command, DnaCommand::Bench(_)));
         }
+    }
+
+    #[test]
+    fn benchmark_cycle_plan_uses_the_public_product_namespace() {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "plan",
+            "--run-id",
+            "run-2002",
+            "--campaign-id",
+            "campaign-run-2002",
+            "--attempt-id",
+            "attempt-0001",
+            "--observed-at-utc",
+            "2026-08-10T00:00:00Z",
+            "--output",
+            "artifacts/benchmark-cycle/run-2002.json",
+        ]))
+        .expect("parse benchmark cycle plan");
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Plan(_)));
     }
 }

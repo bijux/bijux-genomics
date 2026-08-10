@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
-    acquire_fastq_corpus, materialize_fastq_corpus, publish_benchmark_data_index,
-    publish_governed_data_catalog_registry,
+    acquire_fastq_corpus, materialize_fastq_corpus, plan_checked_in_benchmark_campaign,
+    publish_benchmark_data_index, publish_governed_data_catalog_registry,
 };
 use bijux_dna_bench::{
     admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
@@ -21,10 +21,10 @@ use bijux_dna_bench::{
 };
 pub use bijux_dna_bench::{
     AdmittedBenchmarkStageReport, BenchmarkAttemptArchive, BenchmarkAttemptRecord,
-    BenchmarkCycleStatus, BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
-    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkPipelineParameterConfig,
-    BenchmarkStageInterfaceCatalog, BenchmarkStageReport, CorpusAcquisitionRequest,
-    CorpusMaterializationPublication, CorpusMaterializationRequest,
+    BenchmarkCyclePlanRequest, BenchmarkCycleStatus, BenchmarkDataIndexPublicationRequest,
+    BenchmarkDataIndexRequest, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkPipelineParameterConfig, BenchmarkStageInterfaceCatalog, BenchmarkStageReport,
+    CorpusAcquisitionRequest, CorpusMaterializationPublication, CorpusMaterializationRequest,
     GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
