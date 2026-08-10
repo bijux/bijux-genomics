@@ -11,7 +11,7 @@ use bijux_dna_containers::api::{
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    canonical_retained_tool_bindings, render_tool_command, ToolBinding, ToolBindingRenderContext,
+    canonical_tool_bindings, render_tool_command, ToolBinding, ToolBindingRenderContext,
 };
 use schemars::{schema_for, JsonSchema, Schema};
 use serde::{Deserialize, Serialize};
@@ -222,7 +222,7 @@ pub fn compile_container_qualification_specification(
         bail!("qualification source conflicts with its tool registry row");
     }
 
-    let bindings = canonical_retained_tool_bindings()?;
+    let bindings = canonical_tool_bindings()?;
     let binding = bindings
         .binding(&StageId::new(&run.stage_id), &ToolId::new(&source.tool_id))
         .context("qualification stage/tool binding is not implemented")?;
@@ -361,7 +361,7 @@ pub fn derive_qualification_specification_coverage(
     let catalog_sha256 = hash(&request.repository_root.join("containers/contracts/catalog.toml"))?;
     let registry_sha256 = hash(&request.registry_path)?;
     let inventory_sha256 = hash(&request.inventory_path)?;
-    let bindings = canonical_retained_tool_bindings()?;
+    let bindings = canonical_tool_bindings()?;
     let inventory_current = inventory.catalog_sha256 == catalog_sha256;
     let mut units = Vec::new();
     for row in registry.tools.iter().filter(|row| {
@@ -844,7 +844,12 @@ mod tests {
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
         for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
-            assert!(coverage.units.iter().any(|unit| unit.tool_id == tool_id));
+            let unit = coverage
+                .units
+                .iter()
+                .find(|unit| unit.tool_id == tool_id)
+                .context("licensed external tool is missing from coverage")?;
+            assert!(unit.binding_ready);
         }
         Ok(())
     }
