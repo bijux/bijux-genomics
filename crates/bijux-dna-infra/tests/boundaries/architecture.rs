@@ -82,8 +82,8 @@ fn infra_tree_matches_architecture_contract() {
     );
     assert_dir_entries(
         &root.join("src/retry"),
-        ["backoff.rs", "clock.rs", "mod.rs", "policy.rs", "runtime.rs", "stable_surface.rs"],
-        "retry support must keep policy, timing, and runtime concerns separate",
+        ["backoff.rs", "mod.rs", "policy.rs", "stable_surface.rs"],
+        "retry support must remain effect-free attempt-planning policy",
     );
     assert_dir_entries(
         &root.join("src/run_directories"),

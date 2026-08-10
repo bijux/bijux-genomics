@@ -12,15 +12,15 @@
 - Hashing: `hash_file_sha256`.
 - Filesystem IO: `ensure_dir`, `create_file`, `atomic_create_bytes`, `atomic_create_json`,
   `atomic_create_with`, `atomic_write_bytes`, `atomic_write_json`, `atomic_write_with`,
-  `atomic_write_bytes_with_retry`, `write_bytes`, `write_string`,
-  `append_line`, `copy_file`, `rename`, `read_to_end_bounded`, `remove_file`,
-  `remove_file_if_exists`, `remove_dir_all`, `remove_path_if_exists`, `IoError`, `IoErrorKind`,
-  and `classify_io_error`.
+  `write_bytes`, `write_string`, `append_line`, `copy_file`, `rename`, `read_to_end_bounded`,
+  `remove_file`, `remove_file_if_exists`, `remove_dir_all`, `remove_path_if_exists`, `IoError`,
+  `IoErrorKind`, and `classify_io_error`.
 - Locking and logging: one-shot `FileLock::try_acquire` and `init_logging`.
 - Paths: `bench_base_dir`, `bench_data_dir`, `bench_suites_dir`, `bench_tools_dir`,
   `configs_dir`, `configs_file`, `normalize_run_base_dir`, `pipeline_run_dir`,
   `run_layout_paths`, and `run_stage_dir`.
-- Retry: `RetryPolicy`, `Clock`, `SystemClock`, `backoff_delay`, and `retry_with`.
+- Retry planning: effect-free `RetryPolicy` and `backoff_delay`. A retry is a new immutable attempt
+  allocated by the owning runtime on a later lifecycle invocation; infra does not sleep or execute it.
 - Run layout: `RunLayoutContract`, `RunLayoutPaths`, `RUN_LAYOUT_CONTRACT`,
   `PIPELINE_RUN_DIR_TEMPLATE`, `try_lock_run`, and `publish_run`.
 - Attempt layout: `AttemptLayoutIdentity`, `AttemptLayoutPaths`, `AttemptLayoutManifestV1`,
