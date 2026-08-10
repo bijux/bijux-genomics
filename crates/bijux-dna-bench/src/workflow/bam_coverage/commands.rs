@@ -38,8 +38,7 @@ pub(super) fn measured_command(
             format!(
                 "mosdepth --threads 4 --no-per-base --quantize 0:1: \"${{prefix}}\" {BAM}\ngzip -dc \"${{prefix}}.quantized.bed.gz\" > \"${{prefix}}.quantized.bed\""
             ),
-            "\"${prefix}.mosdepth.summary.txt\" \"${prefix}.quantized.bed\" /input/reference-span.tsv"
-                .to_string(),
+            "\"${prefix}.mosdepth.summary.txt\" \"${prefix}.quantized.bed\"".to_string(),
             vec![
                 "mosdepth.summary.txt",
                 "mosdepth.global.dist.txt",
@@ -50,7 +49,7 @@ pub(super) fn measured_command(
         ),
         "samtools" => (
             format!("samtools depth {BAM} > \"${{prefix}}.depth.tsv\""),
-            "\"${prefix}.depth.tsv\" /input/reference-span.tsv".to_string(),
+            "\"${prefix}.depth.tsv\"".to_string(),
             vec!["depth.tsv"],
         ),
         _ => ("false".to_string(), String::new(), Vec::new()),
@@ -66,7 +65,7 @@ mkdir -p /result/repetitions
 prefix=\"/result/repetitions/repetition-{{repetition}}\"
 summary=\"${{prefix}}.coverage-summary.tsv\"
 {tool_command}
-awk -v mode=summary -v source={} -f /repository/benchmarks/execution/bam_coverage.awk {raw_inputs} > \"$summary\"
+awk -v mode=summary -v source={} -f /repository/benchmarks/execution/bam_coverage.awk {raw_inputs} /input/reference-span.tsv > \"$summary\"
 awk -v mode=bundle -v tool={} -v sample_id={} -f /repository/benchmarks/execution/bam_coverage.awk \"$summary\" > \"${{prefix}}.coverage-summary.json\"
 awk -v mode=probe -f /repository/benchmarks/execution/bam_coverage.awk \"$summary\" > \"${{prefix}}.report-qc.json\"
 output_bytes=$(wc -c {raw_wc} \"$summary\" \"${{prefix}}.coverage-summary.json\" \"${{prefix}}.report-qc.json\" | awk 'END {{print $1}}')
@@ -160,7 +159,7 @@ mod tests {
         for tool in ["bedtools", "mosdepth", "samtools"] {
             let command = measured_command(tool, "ERR2112767", 23, 3, 26);
             assert!(command[2].contains("bam_coverage.awk"));
-            assert!(command[2].contains("/input/reference-span.tsv"));
+            assert_eq!(command[2].matches("/input/reference-span.tsv").count(), 1);
             if tool == "samtools" {
                 assert!(!command[2].contains("samtools view -H"));
                 assert!(!command[2].contains("depth -aa"));
