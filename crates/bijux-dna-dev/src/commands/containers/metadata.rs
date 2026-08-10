@@ -1229,14 +1229,16 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         "Execution evidence and image integrity are independent from catalog metadata:".to_string(),
         "[real LUNARC runs](../../reports/run-evidence.md) and [immutable image inventory](../../reports/image-inventory.md).".to_string(),
         String::new(),
-        "| Tool | Purpose | Version | Distribution | Domains and stages | Execution | License | Limitation |".to_string(),
-        "|---|---|---|---|---|---|---|---|".to_string(),
+        "| Tool | Purpose | Version | Product support | Artifact delivery | Domains and stages | Execution | License | Limitation |".to_string(),
+        "|---|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for (tool, version_row) in &versions {
         let license_row = licenses.get(tool).cloned().unwrap_or_default();
         let network_row = network.get(tool).cloned().unwrap_or_default();
         let catalog_row = catalog_rows.get(tool).cloned().unwrap_or_default();
-        let support_disposition =
+        let product_support =
+            catalog_row.get("product_support").and_then(toml::Value::as_str).unwrap_or("unknown");
+        let artifact_delivery =
             catalog_row.get("artifact_delivery").and_then(toml::Value::as_str).unwrap_or("unknown");
         let support_reason =
             catalog_row.get("delivery_reason").and_then(toml::Value::as_str).unwrap_or_default();
@@ -1314,7 +1316,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             format!("{}<br>{}", domains.join(", "), stages.join("<br>"))
         };
         index_lines.push(format!(
-            "| {tool_label} | {purpose} | `{}` | {support_disposition} | {} | {} | `{license}` | {} |",
+            "| {tool_label} | {purpose} | `{}` | `{product_support}` | `{artifact_delivery}` | {} | {} | `{license}` | {} |",
             table_string(version_row, "version"),
             if domain_stage.is_empty() { "not applicable" } else { &domain_stage },
             if external_artifact_supported {
@@ -1633,6 +1635,32 @@ pub(super) fn check_qa_matrix_generated(workspace: &Workspace) -> Result<Contain
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tool_docs_keep_product_support_independent_from_artifact_delivery() {
+        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .to_path_buf();
+        let workspace = Workspace { root: repository_root };
+        let outputs = tool_docs_content(&workspace)
+            .unwrap_or_else(|err| panic!("generate tool docs content: {err}"));
+        let index = outputs.get("index.md").unwrap_or_else(|| panic!("tool index output"));
+
+        assert!(index.contains("| Product support | Artifact delivery |"));
+        for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+            let row = index
+                .lines()
+                .find(|line| line.contains(&format!("[`{tool_id}`]")))
+                .unwrap_or_else(|| panic!("{tool_id} tool documentation row"));
+            assert!(
+                row.contains(" | `supported` | `external_artifact` | "),
+                "{tool_id} must remain product-supported while using external artifact delivery"
+            );
+            assert!(!row.contains(" | `unsupported` |"));
+        }
+    }
 
     #[test]
     fn parse_ghcr_publish_matrix_args_keeps_default_output_and_prefix() {
