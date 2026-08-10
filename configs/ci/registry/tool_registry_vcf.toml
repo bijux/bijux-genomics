@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: 8ac9ff518ae6c91938467194190d5b8856bf949c
+# source_commit: 3bb6ed2ae837ed3231791a242e71e350978ff3c3
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -13,7 +13,7 @@
 id = "angsd"
 tool_id = "angsd"
 domain = "vcf"
-status = "unsupported"
+status = "production"
 stage_ids = ["vcf.call_gl", "vcf.call_pseudohaploid"]
 version = "0.941"
 default_version = "0.941"
@@ -323,7 +323,7 @@ require_labels = true
 id = "impute5"
 tool_id = "impute5"
 domain = "vcf"
-status = "unsupported"
+status = "production"
 stage_ids = ["vcf.imputation_metrics", "vcf.impute"]
 version = "1.2.0"
 default_version = "1.2.0"

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "8ac9ff518ae6c91938467194190d5b8856bf949c",
-  "bundle_checksum_sha256": "e4703559009c7e800cc563a752fde7dfb88f388e15c345fe482dc6f8699dc421",
+  "source_commit": "3bb6ed2ae837ed3231791a242e71e350978ff3c3",
+  "bundle_checksum_sha256": "2f0e7876103cffd33f16d750ec891d0bd9616162732e7256d1042279f6aca2e0",
   "domains": [
     {
       "domain_id": "bam",
@@ -4444,7 +4444,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "e7568f1493d94b00675683e5662c3e3fab0d2fc84c3bd422eb3965d9744123cc"
+      "checksum_sha256": "5e5180ffe547d588cac0f472cd520700caa66e6758f0fbac46d9cfac170b83b0"
     },
     {
       "domain_id": "fastq",
@@ -13569,7 +13569,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "4546e557104dbbeb0f57049c31ce69b28a95661fa3bbae09a275b1f591179e3a"
+      "checksum_sha256": "cd4f11ef5937afcdab7ab8d31527cf28b02e88885ef44cad7056bf6f16d09685"
     },
     {
       "domain_id": "vcf",
@@ -16803,7 +16803,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "1794cd711ce4089284b80f5fb265b3dc3e25da5710195d411b498ccad1dbad97"
+      "checksum_sha256": "3750a953976c37a005c0204a86887cf12bddca661ef727a126783886c781ea34"
     }
   ]
 }
