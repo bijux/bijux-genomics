@@ -10,10 +10,16 @@ type SummaryDigests = (BTreeMap<String, String>, BTreeMap<String, String>);
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
     let support = container_support_summary(workspace)?;
     let mut out = String::from(
-        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><support_disposition>\n",
+        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><product_support><TAB><artifact_delivery><TAB><redistribution_permitted>\n",
     );
-    for (tool_id, (disposition, _)) in support {
-        let _ = writeln!(out, "{tool_id}\t{disposition}");
+    for (tool_id, summary) in support {
+        let _ = writeln!(
+            out,
+            "{tool_id}\t{}\t{}\t{}",
+            summary.product_support.as_str(),
+            summary.artifact_delivery.as_str(),
+            summary.redistribution_permitted
+        );
     }
     Ok(out)
 }
@@ -82,16 +88,20 @@ fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         "- Tool docs index: [containers/docs/tools/index.md](tools/index.md)".to_string(),
         String::new(),
-        "| Tool ID | Expected Binary | Support disposition | Qualification |".to_string(),
-        "|---|---|---|---|".to_string(),
+        "| Tool ID | Expected Binary | Product support | Artifact delivery | Redistribution permitted | Qualification |".to_string(),
+        "|---|---|---|---|---|---|".to_string(),
     ];
-    for (tool_id, (disposition, qualification)) in support {
+    for (tool_id, summary) in support {
         let row = rows.get(&tool_id).cloned().unwrap_or_default();
         let expected_bin =
             row.get("expected_bin").and_then(toml::Value::as_str).unwrap_or(&tool_id);
         lines.push(format!(
-            "| `{tool_id}` | `{}` | `{disposition}` | `{qualification}` |",
-            expected_bin.trim()
+            "| `{tool_id}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
+            expected_bin.trim(),
+            summary.product_support.as_str(),
+            summary.artifact_delivery.as_str(),
+            summary.redistribution_permitted,
+            summary.qualification
         ));
     }
     Ok(format!("{}\n", lines.join("\n")))
@@ -134,9 +144,14 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        let Some((tool_id, status)) = line.split_once('\t') else {
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() != 4 {
             return Err(anyhow!("invalid TOOL_IDS row: {line}"));
-        };
+        }
+        let tool_id = fields[0];
+        let product_support = fields[1];
+        let artifact_delivery = fields[2];
+        let redistribution_permitted = fields[3];
         let apptainer = workspace.path(&format!("containers/apptainer/{tool_id}.def"));
         let docker_arm64 = workspace.path(&format!("containers/docker/Dockerfile.arm64.{tool_id}"));
         let docker_amd64 = workspace.path(&format!("containers/docker/amd64/Dockerfile.{tool_id}"));
@@ -149,7 +164,9 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         };
         rows.push((
             tool_id.to_string(),
-            status.to_string(),
+            product_support.to_string(),
+            artifact_delivery.to_string(),
+            redistribution_permitted.to_string(),
             apptainer_recipe_owner.to_string(),
             docker_source.to_string(),
         ));
@@ -278,11 +295,11 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         String::new(),
         "## Authority".to_string(),
-        "- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
+        "- Canonical container identity, product support, artifact delivery, redistribution permission, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
         "- Immutable admitted images: [image inventory](../reports/image-inventory.md).".to_string(),
         "- Canonical image-root reconciliation: [reversible storage evidence](../reports/image-storage.md).".to_string(),
         "- Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).".to_string(),
-        "- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.".to_string(),
+        "- Product support and artifact-delivery manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification and external-artifact availability are derived separately from immutable evidence.".to_string(),
         "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
@@ -290,17 +307,19 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         String::new(),
         "## Container implementation surface".to_string(),
         String::new(),
-        "This table identifies retained and unsupported container implementations.".to_string(),
-        "Disposition is not production qualification; use the evidence reports above".to_string(),
+        "This table identifies product support independently from artifact delivery and redistribution permission.".to_string(),
+        "These catalog dimensions are not production qualification; use the evidence reports above".to_string(),
         "for scientific or release decisions.".to_string(),
         "`apptainer_recipe_owner` describes recipe maintenance, not upstream tool".to_string(),
         "authorship. Upstream source and license remain catalog-owned facts.".to_string(),
         String::new(),
-        "| tool_id | disposition | apptainer_recipe_owner | docker_source |".to_string(),
-        "|---|---|---|---|".to_string(),
+        "| tool_id | product_support | artifact_delivery | redistribution_permitted | apptainer_recipe_owner | docker_source |".to_string(),
+        "|---|---|---|---|---|---|".to_string(),
     ];
-    for (tool_id, status, ap_src, docker_src) in rows {
-        lines.push(format!("| `{tool_id}` | `{status}` | `{ap_src}` | `{docker_src}` |"));
+    for (tool_id, product_support, artifact_delivery, redistribution, ap_src, docker_src) in rows {
+        lines.push(format!(
+            "| `{tool_id}` | `{product_support}` | `{artifact_delivery}` | `{redistribution}` | `{ap_src}` | `{docker_src}` |"
+        ));
     }
     Ok(format!("{}\n", lines.join("\n")))
 }
@@ -459,10 +478,13 @@ fn ghcr_publish_matrix_value(
         if !tools_filter.is_empty() && !tools_filter.contains(&tool_id) {
             continue;
         }
-        let Some((support_disposition, qualification)) = support.get(&tool_id).cloned() else {
+        let Some(summary) = support.get(&tool_id).cloned() else {
             return Err(anyhow!("container catalog missing runtime tool: {tool_id}"));
         };
-        if support_disposition != "retained" || qualification != "qualified" {
+        if !summary.is_product_supported()
+            || !summary.is_redistributable_image()
+            || summary.qualification != "qualified"
+        {
             continue;
         }
 
@@ -495,8 +517,10 @@ fn ghcr_publish_matrix_value(
             "tool_id": tool_id.clone(),
             "catalog_sha256": catalog_sha256.clone(),
             "runtime": runtime.id(),
-            "support_disposition": support_disposition,
-            "qualification": qualification,
+            "product_support": summary.product_support.as_str(),
+            "artifact_delivery": summary.artifact_delivery.as_str(),
+            "redistribution_permitted": summary.redistribution_permitted,
+            "qualification": summary.qualification,
             "tool_version": resolved_version,
             "package_slug": package_slug,
             "package_ref": package_ref,
@@ -581,7 +605,7 @@ fn ghcr_publish_matrix_value(
         let missing = tools_filter.difference(&resolved_tools).cloned().collect::<Vec<_>>();
         if !missing.is_empty() {
             return Err(anyhow!(
-                "unknown, unsupported, or unqualified tool ids in GHCR publish matrix request: {}",
+                "unknown, non-redistributable, or unqualified tool ids in GHCR publish matrix request: {}",
                 missing.join(", ")
             ));
         }
@@ -658,7 +682,9 @@ pub(super) fn check_ghcr_publish_matrix(
 struct LicenseMetadataEntry {
     tool: String,
     kind: String,
-    support_disposition: String,
+    product_support: String,
+    artifact_delivery: String,
+    redistribution_permitted: bool,
     spdx: String,
     upstream_url: String,
     upstream_version: String,
@@ -686,7 +712,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
     let catalog = catalog_tool_rows(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut entries = Vec::new();
-    for (tool, (support_disposition, _)) in container_support_summary(workspace)? {
+    for (tool, summary) in container_support_summary(workspace)? {
         let row = catalog.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
         let kind = "bijux".to_string();
@@ -712,7 +738,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             .unwrap_or_else(|| table_string(&row, "source_sha256"));
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
-        } else if support_disposition == "unsupported" {
+        } else if !summary.redistribution_permitted {
             "not-distributed".to_string()
         } else {
             format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
@@ -727,10 +753,10 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
                 .filter(|value| !value.is_empty())
         })
         .unwrap_or_else(|| "NOASSERTION".to_string());
-        let redistribution_note = if support_disposition == "unsupported" {
-            "Bijux Genomics does not redistribute this unsupported tool; consult the canonical container catalog for the support rationale."
-        } else {
+        let redistribution_note = if summary.redistribution_permitted {
             "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+        } else {
+            "Bijux Genomics supports this tool as an external artifact but does not redistribute it; consult the canonical container catalog for its delivery contract."
         };
         let file_content = [
             "# schema_version = 1".to_string(),
@@ -751,7 +777,9 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
         entries.push(LicenseMetadataEntry {
             tool,
             kind,
-            support_disposition,
+            product_support: summary.product_support.as_str().to_string(),
+            artifact_delivery: summary.artifact_delivery.as_str().to_string(),
+            redistribution_permitted: summary.redistribution_permitted,
             spdx,
             upstream_url: source,
             upstream_version: version,
@@ -783,14 +811,16 @@ fn generate_license_index_content(entries: &[LicenseMetadataEntry]) -> String {
         "- Every containerized tool in registry scope must have a corresponding license metadata row.".to_string(),
         "- Regenerated output is the sole authority for this index document.".to_string(),
         String::new(),
-        "| Tool | Support | Kind | SPDX | Upstream | Version | Checksum |".to_string(),
-        "|---|---|---|---|---|---|---|".to_string(),
+        "| Tool | Product support | Artifact delivery | Redistribution permitted | Kind | SPDX | Upstream | Version | Checksum |".to_string(),
+        "|---|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for entry in entries {
         lines.push(format!(
-            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
+            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
             entry.tool,
-            entry.support_disposition,
+            entry.product_support,
+            entry.artifact_delivery,
+            entry.redistribution_permitted,
             entry.kind,
             entry.spdx,
             entry.upstream_url,
@@ -927,9 +957,7 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
         }
         let checksum = table_string(data, "upstream_checksum");
         let checksum_ok = checksum == "not-distributed"
-            && catalog_support
-                .get(tool)
-                .is_some_and(|(disposition, _)| disposition == "unsupported")
+            && catalog_support.get(tool).is_some_and(|summary| !summary.redistribution_permitted)
             || checksum.starts_with("sha256:")
                 && checksum.len() == "sha256:".len() + 64
                 && checksum["sha256:".len()..]
@@ -937,7 +965,7 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
                     .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_uppercase());
         if !checksum_ok {
             errors.push(format!(
-                "{} upstream_checksum must be exact sha256:<64hex> or not-distributed for an unsupported tool",
+                "{} upstream_checksum must be exact sha256:<64hex> or not-distributed when redistribution is prohibited",
                 workspace.rel(&meta).display()
             ));
         }
@@ -1500,7 +1528,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         {
             continue;
         }
-        let (support_disposition, qualification) = support
+        let summary = support
             .get(&tool)
             .cloned()
             .ok_or_else(|| anyhow!("container catalog missing registry tool: {tool}"))?;
@@ -1526,8 +1554,10 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
                     rationale
                 }
             },
-            support_disposition,
-            qualification,
+            summary.product_support.as_str().to_string(),
+            summary.artifact_delivery.as_str().to_string(),
+            summary.redistribution_permitted,
+            summary.qualification,
             docker_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
             apptainer_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
         ));
@@ -1543,7 +1573,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         "Generated matrix for Apptainer-enabled tools, runtime checks, and evidence qualification.".to_string(),
         String::new(),
         "## Scope".to_string(),
-        "The canonical catalog selects retained Apptainer distributions, runtime commands come from the tool registries, and qualification comes from the generated evidence report.".to_string(),
+        "The canonical catalog selects redistributable Apptainer images, runtime commands come from the tool registries, and qualification comes from the generated evidence report.".to_string(),
         String::new(),
         "## Non-goals".to_string(),
         "- Replacing full per-tool smoke manifests.".to_string(),
@@ -1561,12 +1591,12 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         String::new(),
         "## Contracts".to_string(),
-        "- Tool row exists iff the canonical catalog retains and enables its Apptainer distribution.".to_string(),
+        "- Tool row exists iff the canonical catalog supports a redistributable image and enables its Apptainer distribution.".to_string(),
         "- `apptainer_def` and smoke command fields are surfaced for QA checks.".to_string(),
-        "- Support disposition describes whether Bijux retains the tool; qualification is derived independently from immutable evidence.".to_string(),
+        "- Product support, artifact delivery, and redistribution permission are independent catalog dimensions; qualification is derived independently from immutable evidence.".to_string(),
         String::new(),
-        "| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Support | Qualification |".to_string(),
-        "|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
+        "| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Product support | Artifact delivery | Redistribution permitted | Qualification |".to_string(),
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for (
         tool,
@@ -1576,14 +1606,16 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         smoke_minimal_cmd,
         smoke_minimal_exit_code,
         smoke_minimal_rationale,
-        support_disposition,
+        product_support,
+        artifact_delivery,
+        redistribution_permitted,
         qualification,
         docker_digest,
         apptainer_digest,
     ) in rows
     {
         lines.push(format!(
-            "| `{tool}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `build+smoke required` | `{support_disposition}` | `{qualification}` |",
+            "| `{tool}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `build+smoke required` | `{product_support}` | `{artifact_delivery}` | `{redistribution_permitted}` | `{qualification}` |",
             if apptainer_def.is_empty() { "-" } else { &apptainer_def },
             if smoke_version_cmd.is_empty() { "-".to_string() } else { markdown_code_value(&smoke_version_cmd) }.as_str(),
             if smoke_help_cmd.is_empty() { "-".to_string() } else { markdown_code_value(&smoke_help_cmd) }.as_str(),
@@ -1635,6 +1667,28 @@ pub(super) fn check_qa_matrix_generated(workspace: &Workspace) -> Result<Contain
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tool_id_manifest_keeps_external_tools_supported() {
+        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .to_path_buf();
+        let workspace = Workspace { root: repository_root };
+        let manifest = generate_tool_ids_content(&workspace)
+            .unwrap_or_else(|err| panic!("generate tool id manifest: {err}"));
+
+        assert!(manifest.contains(
+            "# format: <tool_id><TAB><product_support><TAB><artifact_delivery><TAB><redistribution_permitted>"
+        ));
+        for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+            assert!(manifest
+                .lines()
+                .any(|line| { line == format!("{tool_id}\tsupported\texternal_artifact\tfalse") }));
+        }
+        assert!(!manifest.lines().any(|line| line.contains("\tunsupported")));
+    }
 
     #[test]
     fn tool_docs_keep_product_support_independent_from_artifact_delivery() {

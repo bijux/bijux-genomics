@@ -152,8 +152,8 @@ pub(in super::super::super) fn check_lock_matches_built_output(
     let versions = load_toml(&workspace.path("containers/versions/versions.toml"))?;
     let retained = container_support_summary(workspace)?
         .into_iter()
-        .filter_map(|(tool, (disposition, _))| {
-            (disposition == "retained").then(|| {
+        .filter_map(|(tool, summary)| {
+            summary.is_redistributable_image().then(|| {
                 let version = versions
                     .get(&tool)
                     .and_then(toml::Value::as_table)
@@ -381,13 +381,14 @@ pub(in super::super::super) fn check_toolkit_bundle_buildable(
         }
         let mut any_buildable = false;
         for tool in tools {
-            let Some((disposition, _)) = support.get(&tool) else {
+            let Some(summary) = support.get(&tool) else {
                 errors.push(format!("{bundle_id}: tool '{tool}' is absent from the catalog"));
                 continue;
             };
-            if disposition != "retained" {
+            if !summary.is_redistributable_image() {
                 errors.push(format!(
-                    "{bundle_id}: tool '{tool}' has unsupported catalog disposition '{disposition}'"
+                    "{bundle_id}: tool '{tool}' uses artifact delivery '{}' and is not image-buildable",
+                    summary.artifact_delivery.as_str()
                 ));
                 continue;
             }

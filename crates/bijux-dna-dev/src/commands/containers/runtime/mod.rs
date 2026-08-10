@@ -602,7 +602,7 @@ pub(super) fn check_upstream_provenance(workspace: &Workspace) -> Result<Contain
         }
         if disposition != "redistributable_image" && support_reason.is_empty() {
             errors.push(format!(
-                "{tool_id}: non-retained provenance requires an explicit support reason"
+                "{tool_id}: external or site delivery requires an explicit delivery reason"
             ));
         }
         if table_bool(row, "apptainer_supported") {
@@ -648,9 +648,10 @@ pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerC
             continue;
         }
         registry_ids.insert(tool_id.clone());
-        if table_bool(&row, "container")
-            && support.get(&tool_id).is_some_and(|(disposition, _)| disposition == "retained")
-        {
+        if table_bool(&row, "container") && support.get(&tool_id).is_some_and(|summary| {
+            summary.artifact_delivery
+                == bijux_dna_containers::evidence::ContainerArtifactDelivery::RedistributableImage
+        }) {
             registry_container_ids.insert(tool_id);
         }
     }
@@ -1176,8 +1177,8 @@ pub(super) fn write_vuln_hook_report(
     };
     let mut allowed_tools = BTreeSet::new();
     if retained_only {
-        for (tool, (disposition, _)) in container_support_summary(workspace)? {
-            if disposition == "retained" {
+        for (tool, summary) in container_support_summary(workspace)? {
+            if summary.is_redistributable_image() {
                 allowed_tools.insert(tool);
             }
         }

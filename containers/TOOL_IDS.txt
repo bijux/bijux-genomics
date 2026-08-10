@@ -1,92 +1,92 @@
 # GENERATED FILE - DO NOT EDIT
 # Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids
-# format: <tool_id><TAB><support_disposition>
-adapterremoval	retained
-addeam	retained
-alientrimmer	retained
-angsd	unsupported
-atropos	retained
-authenticct	retained
-bamtools	retained
-bamutil	retained
-bayeshammer	retained
-bbduk	retained
-bbmerge	retained
-bcftools	retained
-beagle	retained
-bedtools	retained
-bijux_dna	retained
-bowtie2	retained
-bowtie2_build	retained
-bracken	retained
-bwa	retained
-centrifuge	retained
-clumpify	retained
-contammix	retained
-cutadapt	retained
-dada2	retained
-damageprofiler	retained
-diamond	retained
-dustmasker	retained
-eagle	retained
-eigensoft	retained
-fastp	retained
-fastq_scan	retained
-fastq_screen	retained
-fastqc	retained
-fastqvalidator	retained
-fastuniq	unsupported
-fastx_clipper	retained
-flash2	retained
-fqtools	retained
-gatk	retained
-germline	retained
-glimpse	retained
-ibdhap	retained
-ibdne	retained
-ibdseq	retained
-impute5	unsupported
-kaiju	retained
-king	retained
-kraken2	retained
-krakenuniq	retained
-leehom	retained
-lighter	retained
-mapdamage2	retained
-metaphlan	retained
-minimac4	retained
-mosdepth	retained
-multiqc	retained
-musket	retained
-ngsbriggs	unsupported
-pear	retained
-picard	retained
-plink	retained
-plink2	retained
-pmdtools	retained
-preseq	retained
-prinseq	retained
-pydamage	retained
-qualimap	retained
-rcorrector	retained
-rxy	retained
-samtools	retained
-schmutzi	retained
-seqfu	retained
-seqkit	retained
-seqkit_stats	retained
-seqprep	retained
-seqpurge	retained
-seqtk	retained
-shapeit	retained
-shapeit5	retained
-skewer	retained
-sortmerna	retained
-spades	retained
-star	retained
-trim_galore	retained
-trimmomatic	retained
-umi_tools	retained
-verifybamid2	retained
-vsearch	retained
-yleaf	retained
+# format: <tool_id><TAB><product_support><TAB><artifact_delivery><TAB><redistribution_permitted>
+adapterremoval	supported	redistributable_image	true
+addeam	supported	redistributable_image	true
+alientrimmer	supported	redistributable_image	true
+angsd	supported	external_artifact	false
+atropos	supported	redistributable_image	true
+authenticct	supported	redistributable_image	true
+bamtools	supported	redistributable_image	true
+bamutil	supported	redistributable_image	true
+bayeshammer	supported	redistributable_image	true
+bbduk	supported	redistributable_image	true
+bbmerge	supported	redistributable_image	true
+bcftools	supported	redistributable_image	true
+beagle	supported	redistributable_image	true
+bedtools	supported	redistributable_image	true
+bijux_dna	supported	redistributable_image	true
+bowtie2	supported	redistributable_image	true
+bowtie2_build	supported	redistributable_image	true
+bracken	supported	redistributable_image	true
+bwa	supported	redistributable_image	true
+centrifuge	supported	redistributable_image	true
+clumpify	supported	redistributable_image	true
+contammix	supported	redistributable_image	true
+cutadapt	supported	redistributable_image	true
+dada2	supported	redistributable_image	true
+damageprofiler	supported	redistributable_image	true
+diamond	supported	redistributable_image	true
+dustmasker	supported	redistributable_image	true
+eagle	supported	redistributable_image	true
+eigensoft	supported	redistributable_image	true
+fastp	supported	redistributable_image	true
+fastq_scan	supported	redistributable_image	true
+fastq_screen	supported	redistributable_image	true
+fastqc	supported	redistributable_image	true
+fastqvalidator	supported	redistributable_image	true
+fastuniq	supported	external_artifact	false
+fastx_clipper	supported	redistributable_image	true
+flash2	supported	redistributable_image	true
+fqtools	supported	redistributable_image	true
+gatk	supported	redistributable_image	true
+germline	supported	redistributable_image	true
+glimpse	supported	redistributable_image	true
+ibdhap	supported	redistributable_image	true
+ibdne	supported	redistributable_image	true
+ibdseq	supported	redistributable_image	true
+impute5	supported	external_artifact	false
+kaiju	supported	redistributable_image	true
+king	supported	redistributable_image	true
+kraken2	supported	redistributable_image	true
+krakenuniq	supported	redistributable_image	true
+leehom	supported	redistributable_image	true
+lighter	supported	redistributable_image	true
+mapdamage2	supported	redistributable_image	true
+metaphlan	supported	redistributable_image	true
+minimac4	supported	redistributable_image	true
+mosdepth	supported	redistributable_image	true
+multiqc	supported	redistributable_image	true
+musket	supported	redistributable_image	true
+ngsbriggs	supported	external_artifact	false
+pear	supported	redistributable_image	true
+picard	supported	redistributable_image	true
+plink	supported	redistributable_image	true
+plink2	supported	redistributable_image	true
+pmdtools	supported	redistributable_image	true
+preseq	supported	redistributable_image	true
+prinseq	supported	redistributable_image	true
+pydamage	supported	redistributable_image	true
+qualimap	supported	redistributable_image	true
+rcorrector	supported	redistributable_image	true
+rxy	supported	redistributable_image	true
+samtools	supported	redistributable_image	true
+schmutzi	supported	redistributable_image	true
+seqfu	supported	redistributable_image	true
+seqkit	supported	redistributable_image	true
+seqkit_stats	supported	redistributable_image	true
+seqprep	supported	redistributable_image	true
+seqpurge	supported	redistributable_image	true
+seqtk	supported	redistributable_image	true
+shapeit	supported	redistributable_image	true
+shapeit5	supported	redistributable_image	true
+skewer	supported	redistributable_image	true
+sortmerna	supported	redistributable_image	true
+spades	supported	redistributable_image	true
+star	supported	redistributable_image	true
+trim_galore	supported	redistributable_image	true
+trimmomatic	supported	redistributable_image	true
+umi_tools	supported	redistributable_image	true
+verifybamid2	supported	redistributable_image	true
+vsearch	supported	redistributable_image	true
+yleaf	supported	redistributable_image	true

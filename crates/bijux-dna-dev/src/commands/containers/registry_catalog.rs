@@ -1,7 +1,6 @@
 use super::{
-    anyhow, fs, load_toml, out_path_arg, read_json, read_utf8, run_program_with_env, table_string,
-    write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Result, WalkDir,
-    Workspace,
+    anyhow, fs, load_toml, out_path_arg, read_json, read_utf8, run_program_with_env, write_utf8,
+    BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Result, WalkDir, Workspace,
 };
 
 pub(super) fn check_registry_drift(
@@ -151,25 +150,19 @@ pub(super) fn governed_container_file_ids(workspace: &Workspace) -> Result<BTree
 
 pub(crate) fn container_support_summary(
     workspace: &Workspace,
-) -> Result<BTreeMap<String, (String, String)>> {
-    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+) -> Result<BTreeMap<String, ContainerSupportSummary>> {
+    let catalog = bijux_dna_containers::evidence::load_container_catalog(&workspace.root)?;
     let mut support = BTreeMap::new();
-    for row in catalog
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(toml::Value::as_table)
-    {
-        let tool_id = table_string(row, "id");
-        let disposition = match table_string(row, "artifact_delivery").as_str() {
-            "redistributable_image" => "retained".to_string(),
-            "external_artifact" | "private_site_build" | "site_module" => "unsupported".to_string(),
-            _ => String::new(),
-        };
-        if !tool_id.is_empty() {
-            support.insert(tool_id, (disposition, String::new()));
-        }
+    for row in catalog.tools {
+        support.insert(
+            row.id,
+            ContainerSupportSummary {
+                product_support: row.product_support,
+                artifact_delivery: row.artifact_delivery,
+                redistribution_permitted: row.redistribution_permitted,
+                qualification: String::new(),
+            },
+        );
     }
 
     let report = read_json(&workspace.path("containers/reports/qualification.json"))?;
@@ -177,24 +170,43 @@ pub(crate) fn container_support_summary(
         let tool_id = row.get("id").and_then(serde_json::Value::as_str).unwrap_or_default();
         let qualification =
             row.get("qualification").and_then(serde_json::Value::as_str).unwrap_or_default();
-        let Some((_, recorded_qualification)) = support.get_mut(tool_id) else {
+        let Some(summary) = support.get_mut(tool_id) else {
             return Err(anyhow!("qualification report contains unknown tool: {tool_id}"));
         };
         if qualification.is_empty() {
             return Err(anyhow!("qualification report omits qualification for: {tool_id}"));
         }
-        *recorded_qualification = qualification.to_string();
+        summary.qualification = qualification.to_string();
     }
     let missing = support
         .iter()
-        .filter_map(|(tool_id, (_, qualification))| {
-            qualification.is_empty().then_some(tool_id.as_str())
+        .filter_map(|(tool_id, summary)| {
+            summary.qualification.is_empty().then_some(tool_id.as_str())
         })
         .collect::<Vec<_>>();
     if !missing.is_empty() {
         return Err(anyhow!("qualification report omits catalog tools: {}", missing.join(", ")));
     }
     Ok(support)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ContainerSupportSummary {
+    pub(crate) product_support: bijux_dna_containers::evidence::ContainerProductSupport,
+    pub(crate) artifact_delivery: bijux_dna_containers::evidence::ContainerArtifactDelivery,
+    pub(crate) redistribution_permitted: bool,
+    pub(crate) qualification: String,
+}
+
+impl ContainerSupportSummary {
+    pub(crate) fn is_product_supported(&self) -> bool {
+        self.product_support == bijux_dna_containers::evidence::ContainerProductSupport::Supported
+    }
+
+    pub(crate) fn is_redistributable_image(&self) -> bool {
+        self.artifact_delivery
+            == bijux_dna_containers::evidence::ContainerArtifactDelivery::RedistributableImage
+    }
 }
 
 pub(super) fn apptainer_def_paths(workspace: &Workspace) -> Vec<PathBuf> {
@@ -216,8 +228,9 @@ pub(super) fn tool_status_manifest(workspace: &Workspace) -> Result<BTreeMap<Str
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        if let Some((tool_id, status)) = line.split_once('\t') {
-            statuses.insert(tool_id.to_string(), status.to_string());
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() == 4 {
+            statuses.insert(fields[0].to_string(), fields[1].to_string());
         }
     }
     Ok(statuses)

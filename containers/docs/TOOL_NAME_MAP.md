@@ -9,94 +9,94 @@
 - Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
 - Tool docs index: [containers/docs/tools/index.md](tools/index.md)
 
-| Tool ID | Expected Binary | Support disposition | Qualification |
-|---|---|---|---|
-| `adapterremoval` | `adapterremoval` | `retained` | `unverified` |
-| `addeam` | `addeam` | `retained` | `unverified` |
-| `alientrimmer` | `alientrimmer` | `retained` | `unverified` |
-| `angsd` | `angsd` | `unsupported` | `unsupported` |
-| `atropos` | `atropos` | `retained` | `unverified` |
-| `authenticct` | `authenticct` | `retained` | `unverified` |
-| `bamtools` | `bamtools` | `retained` | `unverified` |
-| `bamutil` | `bamutil` | `retained` | `unverified` |
-| `bayeshammer` | `bayeshammer` | `retained` | `unverified` |
-| `bbduk` | `bbduk` | `retained` | `unverified` |
-| `bbmerge` | `bbmerge` | `retained` | `unverified` |
-| `bcftools` | `bcftools` | `retained` | `unverified` |
-| `beagle` | `beagle` | `retained` | `unverified` |
-| `bedtools` | `bedtools` | `retained` | `unverified` |
-| `bijux_dna` | `bijux-dna` | `retained` | `unverified` |
-| `bowtie2` | `bowtie2` | `retained` | `unverified` |
-| `bowtie2_build` | `bowtie2-build` | `retained` | `unverified` |
-| `bracken` | `bracken` | `retained` | `unverified` |
-| `bwa` | `bwa` | `retained` | `unverified` |
-| `centrifuge` | `centrifuge` | `retained` | `unverified` |
-| `clumpify` | `clumpify` | `retained` | `unverified` |
-| `contammix` | `contammix` | `retained` | `unverified` |
-| `cutadapt` | `cutadapt` | `retained` | `unverified` |
-| `dada2` | `dada2` | `retained` | `unverified` |
-| `damageprofiler` | `damageprofiler` | `retained` | `unverified` |
-| `diamond` | `diamond` | `retained` | `unverified` |
-| `dustmasker` | `dustmasker` | `retained` | `unverified` |
-| `eagle` | `eagle` | `retained` | `unverified` |
-| `eigensoft` | `smartpca` | `retained` | `unverified` |
-| `fastp` | `fastp` | `retained` | `unverified` |
-| `fastq_scan` | `fastq_scan` | `retained` | `unverified` |
-| `fastq_screen` | `fastq_screen` | `retained` | `unverified` |
-| `fastqc` | `fastqc` | `retained` | `unverified` |
-| `fastqvalidator` | `fastqvalidator` | `retained` | `unverified` |
-| `fastuniq` | `fastuniq` | `unsupported` | `unsupported` |
-| `fastx_clipper` | `fastx_clipper` | `retained` | `unverified` |
-| `flash2` | `flash2` | `retained` | `unverified` |
-| `fqtools` | `fqtools` | `retained` | `unverified` |
-| `gatk` | `gatk` | `retained` | `unverified` |
-| `germline` | `germline` | `retained` | `unverified` |
-| `glimpse` | `glimpse` | `retained` | `unverified` |
-| `ibdhap` | `ibdhap` | `retained` | `unverified` |
-| `ibdne` | `ibdne` | `retained` | `unverified` |
-| `ibdseq` | `ibdseq` | `retained` | `unverified` |
-| `impute5` | `impute5` | `unsupported` | `unsupported` |
-| `kaiju` | `kaiju` | `retained` | `unverified` |
-| `king` | `king` | `retained` | `unverified` |
-| `kraken2` | `kraken2` | `retained` | `unverified` |
-| `krakenuniq` | `krakenuniq` | `retained` | `unverified` |
-| `leehom` | `leehom` | `retained` | `unverified` |
-| `lighter` | `lighter` | `retained` | `unverified` |
-| `mapdamage2` | `mapdamage2` | `retained` | `unverified` |
-| `metaphlan` | `metaphlan` | `retained` | `unverified` |
-| `minimac4` | `minimac4` | `retained` | `unverified` |
-| `mosdepth` | `mosdepth` | `retained` | `unverified` |
-| `multiqc` | `multiqc` | `retained` | `unverified` |
-| `musket` | `musket` | `retained` | `unverified` |
-| `ngsbriggs` | `ngsbriggs` | `unsupported` | `unsupported` |
-| `pear` | `pear` | `retained` | `unverified` |
-| `picard` | `picard` | `retained` | `unverified` |
-| `plink` | `plink` | `retained` | `unverified` |
-| `plink2` | `plink2` | `retained` | `unverified` |
-| `pmdtools` | `pmdtools` | `retained` | `unverified` |
-| `preseq` | `preseq` | `retained` | `unverified` |
-| `prinseq` | `prinseq++` | `retained` | `unverified` |
-| `pydamage` | `pydamage` | `retained` | `unverified` |
-| `qualimap` | `qualimap` | `retained` | `unverified` |
-| `rcorrector` | `rcorrector` | `retained` | `unverified` |
-| `rxy` | `rxy` | `retained` | `unverified` |
-| `samtools` | `samtools` | `retained` | `unverified` |
-| `schmutzi` | `schmutzi` | `retained` | `unverified` |
-| `seqfu` | `seqfu` | `retained` | `unverified` |
-| `seqkit` | `seqkit` | `retained` | `unverified` |
-| `seqkit_stats` | `seqkit_stats` | `retained` | `unverified` |
-| `seqprep` | `seqprep` | `retained` | `unverified` |
-| `seqpurge` | `seqpurge` | `retained` | `unverified` |
-| `seqtk` | `seqtk` | `retained` | `unverified` |
-| `shapeit` | `shapeit` | `retained` | `unverified` |
-| `shapeit5` | `shapeit5` | `retained` | `unverified` |
-| `skewer` | `skewer` | `retained` | `unverified` |
-| `sortmerna` | `sortmerna` | `retained` | `unverified` |
-| `spades` | `spades.py` | `retained` | `unverified` |
-| `star` | `star` | `retained` | `unverified` |
-| `trim_galore` | `trim_galore` | `retained` | `unverified` |
-| `trimmomatic` | `trimmomatic` | `retained` | `unverified` |
-| `umi_tools` | `umi_tools` | `retained` | `unverified` |
-| `verifybamid2` | `verifybamid2` | `retained` | `unverified` |
-| `vsearch` | `vsearch` | `retained` | `unverified` |
-| `yleaf` | `yleaf` | `retained` | `unverified` |
+| Tool ID | Expected Binary | Product support | Artifact delivery | Redistribution permitted | Qualification |
+|---|---|---|---|---|---|
+| `adapterremoval` | `adapterremoval` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `addeam` | `addeam` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `alientrimmer` | `alientrimmer` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `angsd` | `angsd` | `supported` | `external_artifact` | `false` | `unsupported` |
+| `atropos` | `atropos` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `authenticct` | `authenticct` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bamtools` | `bamtools` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bamutil` | `bamutil` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bayeshammer` | `bayeshammer` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bbduk` | `bbduk` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bbmerge` | `bbmerge` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bcftools` | `bcftools` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `beagle` | `beagle` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bedtools` | `bedtools` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bijux_dna` | `bijux-dna` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bowtie2` | `bowtie2` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bowtie2_build` | `bowtie2-build` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bracken` | `bracken` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `bwa` | `bwa` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `centrifuge` | `centrifuge` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `clumpify` | `clumpify` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `contammix` | `contammix` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `cutadapt` | `cutadapt` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `dada2` | `dada2` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `damageprofiler` | `damageprofiler` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `diamond` | `diamond` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `dustmasker` | `dustmasker` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `eagle` | `eagle` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `eigensoft` | `smartpca` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `fastp` | `fastp` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `fastq_scan` | `fastq_scan` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `fastq_screen` | `fastq_screen` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `fastqc` | `fastqc` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `fastqvalidator` | `fastqvalidator` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `fastuniq` | `fastuniq` | `supported` | `external_artifact` | `false` | `unsupported` |
+| `fastx_clipper` | `fastx_clipper` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `flash2` | `flash2` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `fqtools` | `fqtools` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `gatk` | `gatk` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `germline` | `germline` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `glimpse` | `glimpse` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `ibdhap` | `ibdhap` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `ibdne` | `ibdne` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `ibdseq` | `ibdseq` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `impute5` | `impute5` | `supported` | `external_artifact` | `false` | `unsupported` |
+| `kaiju` | `kaiju` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `king` | `king` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `kraken2` | `kraken2` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `krakenuniq` | `krakenuniq` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `leehom` | `leehom` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `lighter` | `lighter` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `mapdamage2` | `mapdamage2` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `metaphlan` | `metaphlan` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `minimac4` | `minimac4` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `mosdepth` | `mosdepth` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `multiqc` | `multiqc` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `musket` | `musket` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `ngsbriggs` | `ngsbriggs` | `supported` | `external_artifact` | `false` | `unsupported` |
+| `pear` | `pear` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `picard` | `picard` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `plink` | `plink` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `plink2` | `plink2` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `pmdtools` | `pmdtools` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `preseq` | `preseq` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `prinseq` | `prinseq++` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `pydamage` | `pydamage` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `qualimap` | `qualimap` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `rcorrector` | `rcorrector` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `rxy` | `rxy` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `samtools` | `samtools` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `schmutzi` | `schmutzi` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `seqfu` | `seqfu` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `seqkit` | `seqkit` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `seqkit_stats` | `seqkit_stats` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `seqprep` | `seqprep` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `seqpurge` | `seqpurge` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `seqtk` | `seqtk` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `shapeit` | `shapeit` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `shapeit5` | `shapeit5` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `skewer` | `skewer` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `sortmerna` | `sortmerna` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `spades` | `spades.py` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `star` | `star` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `trim_galore` | `trim_galore` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `trimmomatic` | `trimmomatic` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `umi_tools` | `umi_tools` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `verifybamid2` | `verifybamid2` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `vsearch` | `vsearch` | `supported` | `redistributable_image` | `true` | `unverified` |
+| `yleaf` | `yleaf` | `supported` | `redistributable_image` | `true` | `unverified` |
