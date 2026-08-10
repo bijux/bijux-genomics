@@ -62,6 +62,12 @@ Model contracts:
 - `BenchmarkAttemptRecordV2`
 - `BenchmarkCycleStatusV2`
 - `BenchmarkCampaignPlan`
+- `BenchmarkCyclePreparationState`
+- `BenchmarkCyclePreparationUnit`
+- `BenchmarkCyclePreparation`
+- `BenchmarkCycleAdmissionState`
+- `BenchmarkCycleAdmissionUnit`
+- `BenchmarkCycleAdmission`
 - `BenchmarkExecutionSpec`
 - `BenchmarkExecutionSourceLock`
 - `BenchmarkExecutionImage`

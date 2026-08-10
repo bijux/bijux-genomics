@@ -4,10 +4,10 @@ use std::path::PathBuf;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_utc_timestamp, BenchmarkAttemptIdentity, BenchmarkExecutionSpec,
+    validate_cycle_preparation, validate_utc_timestamp, BenchmarkCyclePreparation,
+    BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit, BenchmarkExecutionSpec,
     BenchmarkLifecycleStatus,
 };
-use serde::{Deserialize, Serialize};
 
 use super::{
     ensure_execution_spec, ensure_stage_campaign_attempts, load_checked_in_benchmark_campaign_plan,
@@ -30,38 +30,6 @@ pub struct BenchmarkCyclePreparationRequest {
     pub prepared_at_utc: String,
     pub account: String,
     pub partition: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum BenchmarkCyclePreparationState {
-    Prepared,
-    AlreadyPrepared,
-    NotReady,
-    Failed,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkCyclePreparationUnit {
-    pub identity: BenchmarkAttemptIdentity,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub prior_status: Option<BenchmarkLifecycleStatus>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub current_status: Option<BenchmarkLifecycleStatus>,
-    pub state: BenchmarkCyclePreparationState,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub execution_spec: Option<BenchmarkExecutionSpec>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkCyclePreparation {
-    pub campaign_id: String,
-    pub prepared_at_utc: String,
-    pub units: Vec<BenchmarkCyclePreparationUnit>,
 }
 
 /// Materialize every independently ready attempt without submitting or waiting.
@@ -184,11 +152,13 @@ pub fn prepare_checked_in_benchmark_campaign(
             }),
         }
     }
-    Ok(BenchmarkCyclePreparation {
-        campaign_id: plan.cycle.campaign_id,
-        prepared_at_utc: request.prepared_at_utc.clone(),
+    let preparation = BenchmarkCyclePreparation::new(
+        plan.cycle.campaign_id,
+        request.prepared_at_utc.clone(),
         units,
-    })
+    );
+    validate_cycle_preparation(&preparation)?;
+    Ok(preparation)
 }
 
 fn campaign_run_id(plan: &bijux_dna_bench_model::BenchmarkCampaignPlan) -> Result<&str> {

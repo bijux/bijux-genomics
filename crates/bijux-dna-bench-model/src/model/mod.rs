@@ -107,7 +107,8 @@ pub use interfaces::{
 #[allow(unused_imports)]
 pub use lifecycle::{
     benchmark_attempt_identity_schema, benchmark_attempt_migration_verification_schema,
-    benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
+    benchmark_campaign_plan_schema, benchmark_cycle_admission_schema,
+    benchmark_cycle_preparation_schema, benchmark_scheduler_observation_schema,
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
     BenchmarkAttemptDisposition, BenchmarkAttemptDocument, BenchmarkAttemptIdentity,
     BenchmarkAttemptMigrationEntry, BenchmarkAttemptMigrationExclusion,
@@ -115,7 +116,9 @@ pub use lifecycle::{
     BenchmarkAttemptMigrationPlan, BenchmarkAttemptMigrationState,
     BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
     BenchmarkAttemptRecord, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
-    BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan, BenchmarkCycleDocument,
+    BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan, BenchmarkCycleAdmission,
+    BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit, BenchmarkCycleDocument,
+    BenchmarkCyclePreparation, BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit,
     BenchmarkCycleStatus, BenchmarkCycleStatusV2, BenchmarkEvidenceReference,
     BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
     BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,

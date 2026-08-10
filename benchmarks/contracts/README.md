@@ -86,6 +86,11 @@ schemas are also generated from `bijux-dna-bench-model`. `GateDecision` is the
 only persisted decision record; schema changes must originate in the model
 crate and pass its generated-schema drift tests.
 
+`schemas/cycle-preparation.schema.json` and
+`schemas/cycle-admission.schema.json` define the persisted results of one
+non-barrier lifecycle pass. They preserve every independent attempt outcome
+without making an aggregate campaign result a scheduling barrier.
+
 All benchmark model schemas are generated into `schemas/`. The separate
 `benchmarks/schemas/` tree owns only domain-normalized metric contracts and must
 not contain snapshots of model-owned records.

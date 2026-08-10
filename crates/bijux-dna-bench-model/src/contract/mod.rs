@@ -45,8 +45,8 @@ pub use interfaces::{
 pub use lifecycle::{
     append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_directory_name,
     validate_attempt_archive, validate_attempt_identity, validate_attempt_record_v2,
-    validate_attempt_transition, validate_campaign_plan, validate_cycle_status_v2,
-    validate_scheduler_observation,
+    validate_attempt_transition, validate_campaign_plan, validate_cycle_admission,
+    validate_cycle_preparation, validate_cycle_status_v2, validate_scheduler_observation,
 };
 pub use materialization::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
@@ -90,6 +90,7 @@ pub use schema_versions::{
     BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_DEFINITION_SCHEMA_V1,
     BENCHMARK_CASE_MATRIX_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
     BENCHMARK_CITATION_RECORD_SCHEMA_V1, BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1,
+    BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1, BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
     BENCHMARK_DATA_FITNESS_SCHEMA_V1, BENCHMARK_DATA_INDEX_SCHEMA_V1,
     BENCHMARK_DATA_INDEX_SCHEMA_V2, BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1,

@@ -38,6 +38,8 @@ not own CLI commands or process execution.
 | `validate-attempt-record-v2` | `contract::validate_attempt_record_v2` | Validate permanent attempt identity, append-only transition order, Slurm jobs, terminal accounting, checksummed evidence, and terminal admission. |
 | `append-attempt-transition` | `contract::append_attempt_transition` | Append a legal transition without mutating the record when validation fails. |
 | `validate-cycle-status-v2` | `contract::validate_cycle_status_v2` | Validate cycle identity, retry lineage, and single-active-attempt ownership per run and tool. |
+| `validate-cycle-preparation` | `contract::validate_cycle_preparation` | Validate one versioned non-barrier preparation pass, including exact attempt, execution-spec, status, and outcome consistency. |
+| `validate-cycle-admission` | `contract::validate_cycle_admission` | Validate one versioned non-barrier evidence-admission pass, including exact attempt, evidence, status, and outcome consistency. |
 | `validate-attempt-archive` | `contract::validate_attempt_archive` | Validate identity-complete retained evidence for a failed or superseded historical attempt. |
 | `validate-observation` | `contract::validate_observation` | Validate one `BenchmarkObservation` before summarization. |
 | `validate-summary` | `contract::validate_summary` | Validate a `BenchmarkSummary` before persistence or comparison. |

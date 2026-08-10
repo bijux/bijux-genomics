@@ -6,11 +6,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_campaign_plan, validate_cycle_status_v2, validate_utc_timestamp,
-    BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
-    BenchmarkEvidenceReference, BenchmarkLifecycleStatus,
+    validate_campaign_plan, validate_cycle_admission, validate_cycle_status_v2,
+    validate_utc_timestamp, BenchmarkAttemptIdentity, BenchmarkCampaignPlan,
+    BenchmarkCycleAdmission, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
+    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkLifecycleStatus,
 };
-use serde::{Deserialize, Serialize};
 
 use super::{plan_stage_campaign_attempts, verify_campaign_plan_source};
 use crate::workflow::load_stage_campaign_registry;
@@ -46,41 +46,6 @@ pub struct BenchmarkCycleAdmissionRequest {
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
     pub admitted_at_utc: String,
-}
-
-/// Outcome category for one attempt considered by an admission pass.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum BenchmarkCycleAdmissionState {
-    Admitted,
-    AlreadyAdmitted,
-    NotReady,
-    Failed,
-}
-
-/// Admission outcome for one independent campaign attempt.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkCycleAdmissionUnit {
-    pub identity: BenchmarkAttemptIdentity,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub prior_status: Option<BenchmarkLifecycleStatus>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub current_status: Option<BenchmarkLifecycleStatus>,
-    pub state: BenchmarkCycleAdmissionState,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub evidence: Option<BenchmarkEvidenceReference>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
-
-/// Complete result of one non-barrier campaign admission pass.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkCycleAdmission {
-    pub campaign_id: String,
-    pub admitted_at_utc: String,
-    pub units: Vec<BenchmarkCycleAdmissionUnit>,
 }
 
 /// Plan every declared tool attempt for one permanent run and publish the immutable plan.
@@ -205,11 +170,13 @@ pub fn admit_checked_in_benchmark_campaign(
             admit_attempt(&study_root, &benchmark_root, &attempt.identity, &request.admitted_at_utc)
         })
         .collect();
-    Ok(BenchmarkCycleAdmission {
-        campaign_id: plan.cycle.campaign_id,
-        admitted_at_utc: request.admitted_at_utc.clone(),
+    let admission = BenchmarkCycleAdmission::new(
+        plan.cycle.campaign_id,
+        request.admitted_at_utc.clone(),
         units,
-    })
+    );
+    validate_cycle_admission(&admission)?;
+    Ok(admission)
 }
 
 fn admit_attempt(
