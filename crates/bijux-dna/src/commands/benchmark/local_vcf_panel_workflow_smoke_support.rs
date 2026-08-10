@@ -144,6 +144,11 @@ pub(crate) fn materialize_local_vcf_panel_fixture(
             materialized_files.push(target.display().to_string());
         }
     }
+    if !contract.panel_files.iter().any(|path| path.ends_with("panel.m3vcf.gz")) {
+        let target = panel_root.join("panel.m3vcf.gz");
+        write_local_smoke_derived_marker(&target, "panel.vcf.gz", "minimac4_process_reference")?;
+        materialized_files.push(target.display().to_string());
+    }
 
     Ok(LocalVcfPanelFixtureReport {
         schema_version: "bijux.local_vcf_panel_fixture.v1",
@@ -162,6 +167,24 @@ fn write_local_smoke_marker(target: &Path, asset_kind: &str, relative: &str) -> 
     fs::write(
         target,
         format!("fixture_class=local_smoke\nasset_kind={asset_kind}\nrelative_path={relative}\n"),
+    )?;
+    Ok(())
+}
+
+fn write_local_smoke_derived_marker(
+    target: &Path,
+    derived_from: &str,
+    derivation: &str,
+) -> Result<()> {
+    let parent = target.parent().ok_or_else(|| {
+        anyhow!("local VCF derived fixture path has no parent: {}", target.display())
+    })?;
+    fs::create_dir_all(parent)?;
+    fs::write(
+        target,
+        format!(
+            "fixture_class=local_smoke\nasset_kind=derived_panel\nderived_from={derived_from}\nderivation={derivation}\n"
+        ),
     )?;
     Ok(())
 }
@@ -273,6 +296,15 @@ mod tests {
         let report = materialize_local_vcf_panel_fixture(dir.path()).expect("materialize fixture");
         assert_eq!(report.fixture_class, "local_smoke");
         assert!(report.materialized_files.iter().all(|path| std::path::Path::new(path).is_file()));
+        let derived_m3vcf = report
+            .materialized_files
+            .iter()
+            .find(|path| path.ends_with("/panel.m3vcf.gz"))
+            .expect("derived M3VCF fixture");
+        let marker = std::fs::read_to_string(derived_m3vcf).expect("read derived M3VCF marker");
+        assert!(marker.contains("fixture_class=local_smoke"));
+        assert!(marker.contains("derived_from=panel.vcf.gz"));
+        assert!(marker.contains("derivation=minimac4_process_reference"));
     }
 
     #[test]
