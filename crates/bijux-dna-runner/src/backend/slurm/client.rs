@@ -4,8 +4,6 @@
 use std::io;
 use std::path::Path;
 use std::process::{Command, Output};
-use std::thread;
-use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 
@@ -15,9 +13,6 @@ use super::{
     SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
     SLURM_JOB_HANDLE_SCHEMA_V1,
 };
-
-const EXECUTABLE_BUSY_ATTEMPTS: usize = 10;
-const EXECUTABLE_BUSY_DELAY: Duration = Duration::from_millis(10);
 
 /// Submit one batch script and return immediately after `sbatch` returns its job identity.
 ///
@@ -211,18 +206,7 @@ fn execute(executable: &Path, arguments: &[String]) -> Result<String> {
 }
 
 fn command_output(executable: &Path, arguments: &[String]) -> io::Result<Output> {
-    for attempt in 1..=EXECUTABLE_BUSY_ATTEMPTS {
-        match Command::new(executable).args(arguments).output() {
-            Err(error)
-                if error.kind() == io::ErrorKind::ExecutableFileBusy
-                    && attempt < EXECUTABLE_BUSY_ATTEMPTS =>
-            {
-                thread::sleep(EXECUTABLE_BUSY_DELAY);
-            }
-            result => return result,
-        }
-    }
-    unreachable!("the bounded command execution loop always returns on its final attempt")
+    Command::new(executable).args(arguments).output()
 }
 
 fn validate_submit_request(request: &SlurmSubmitRequest) -> Result<()> {
