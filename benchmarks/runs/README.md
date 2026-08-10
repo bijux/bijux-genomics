@@ -22,9 +22,10 @@ registry frontier and must not infer identity from directory order.
 its stable citation key while distinguishing registered protocols from runs
 with a selected, replay-verified publication. A citation key alone is not an
 execution claim: unpublished rows carry an explicit limitation and no selected
-attempt. When a publication is admitted, its small manifest, lock, report,
-citation, and replay receipt belong in a semantic
-`run-<id>-<domain>-<stage>/` directory; large attempts remain under `STUDY`.
+attempt. Every permanent protocol has a generated `run-<id>-<stage>/`
+directory with its definition, stable citation, immutable case index, and
+current-publication pointer. An unpublished pointer is an explicit non-evidence
+record. Large attempts and raw logs remain under `STUDY`.
 
 `bijux_dna_bench::workflow::bam_mapping_summary` owns the Picard and Samtools
 qualification campaign for `bam.mapping_summary`. It re-hashes one governed

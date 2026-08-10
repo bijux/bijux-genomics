@@ -33,6 +33,9 @@ pub fn validate_benchmark_run_definition(
         (&definition.title, "title"),
         (&definition.purpose, "purpose"),
         (&definition.owner, "owner"),
+        (&definition.profile_id, "profile_id"),
+        (&definition.tool_exclusion_policy, "tool_exclusion_policy"),
+        (&definition.measurement_policy_id, "measurement_policy_id"),
         (&definition.acceptance_policy_id, "acceptance_policy_id"),
         (&definition.citation_key, "citation_key"),
     ] {
@@ -42,6 +45,8 @@ pub fn validate_benchmark_run_definition(
         return Err(invalid("benchmark run definition has a noncanonical owner"));
     }
     validate_component(&definition.acceptance_policy_id, "acceptance_policy_id")?;
+    validate_component(&definition.profile_id, "profile_id")?;
+    validate_component(&definition.measurement_policy_id, "measurement_policy_id")?;
     validate_component(&definition.citation_key, "citation_key")?;
     match (definition.state, definition.state_reason.as_deref()) {
         (BenchmarkRunState::Active, None) => {}
@@ -57,22 +62,33 @@ pub fn validate_benchmark_run_definition(
         }
     }
     validate_sorted_components(&definition.tool_ids, "tool_ids", true)?;
+    validate_sorted_contract_ids(&definition.accepted_input_contracts)?;
+    if let Some(output_contract) = &definition.output_contract {
+        validate_contract_id(output_contract, "output_contract")?;
+    }
+    if let Some(normalized_result_contract) = &definition.normalized_result_contract {
+        validate_repository_path(normalized_result_contract)?;
+    }
     validate_contract_locks(&definition.contracts)?;
-    validate_corpus_roles(&definition.corpus_roles)?;
+    validate_corpus_roles(&definition.corpus_roles, definition.state == BenchmarkRunState::Active)?;
     validate_run_ids(&definition.supersedes_run_ids, &definition.identity.run_id)?;
     if definition.state == BenchmarkRunState::Active
         && (definition.tool_ids.is_empty()
             || definition.contracts.is_empty()
-            || definition.corpus_roles.is_empty())
+            || definition.corpus_roles.is_empty()
+            || definition.accepted_input_contracts.is_empty()
+            || definition.output_contract.is_none()
+            || definition.normalized_result_contract.is_none())
     {
         return Err(invalid(
             "active benchmark run definition requires tools, contracts, and corpus roles",
         ));
     }
     if definition.state == BenchmarkRunState::Reserved
-        && (!definition.tool_ids.is_empty()
-            || !definition.contracts.is_empty()
-            || !definition.corpus_roles.is_empty())
+        && (!definition.contracts.is_empty()
+            || !definition.accepted_input_contracts.is_empty()
+            || definition.output_contract.is_some()
+            || definition.normalized_result_contract.is_some())
     {
         return Err(invalid("reserved benchmark run definition cannot claim executable closure"));
     }
@@ -195,7 +211,10 @@ fn validate_contract_locks(contracts: &[BenchmarkContractLock]) -> Result<(), Be
     Ok(())
 }
 
-fn validate_corpus_roles(roles: &[BenchmarkCorpusRole]) -> Result<(), BenchError> {
+fn validate_corpus_roles(
+    roles: &[BenchmarkCorpusRole],
+    require_distinct_assets: bool,
+) -> Result<(), BenchError> {
     let mut names = BTreeSet::new();
     let mut corpus_ids = BTreeSet::new();
     let mut previous_role = None;
@@ -209,7 +228,7 @@ fn validate_corpus_roles(roles: &[BenchmarkCorpusRole]) -> Result<(), BenchError
         previous_role = Some(role.role.as_str());
         validate_sorted_components(&role.corpus_ids, "corpus_ids", false)?;
         for corpus_id in &role.corpus_ids {
-            if !corpus_ids.insert(corpus_id.as_str()) {
+            if !corpus_ids.insert(corpus_id.as_str()) && require_distinct_assets {
                 return Err(invalid("benchmark run definition reuses a corpus across roles"));
             }
         }
@@ -230,6 +249,29 @@ fn validate_sorted_components(
     }
     if values.windows(2).any(|pair| pair[0] >= pair[1]) {
         return Err(invalid(format!("benchmark {field} must be sorted and unique")));
+    }
+    Ok(())
+}
+
+fn validate_sorted_contract_ids(values: &[String]) -> Result<(), BenchError> {
+    for value in values {
+        validate_contract_id(value, "accepted_input_contracts")?;
+    }
+    if values.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(invalid("benchmark accepted_input_contracts must be sorted and unique"));
+    }
+    Ok(())
+}
+
+fn validate_contract_id(value: &str, field: &str) -> Result<(), BenchError> {
+    if value.is_empty()
+        || !value.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'-' | b'_' | b'.')
+        })
+        || value.starts_with(['-', '_', '.'])
+        || value.ends_with(['-', '_', '.'])
+    {
+        return Err(invalid(format!("benchmark {field} is not a normalized contract id")));
     }
     Ok(())
 }

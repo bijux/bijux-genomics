@@ -3,9 +3,12 @@
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::BENCHMARK_RUN_INDEX_SCHEMA_V1;
+use crate::contract::{
+    BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1, BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1,
+    BENCHMARK_RUN_INDEX_SCHEMA_V1, BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1,
+};
 
-use super::{BenchmarkAttemptIdentity, BenchmarkRunRegistryState};
+use super::{BenchmarkAttemptIdentity, BenchmarkRunIdentity, BenchmarkRunRegistryState};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -75,6 +78,63 @@ pub struct BenchmarkRunIndex {
     pub runs: Vec<BenchmarkRunIndexEntry>,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkProtocolCitationStatus {
+    ProtocolOnly,
+    Published,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkProtocolCitation {
+    #[schemars(schema_with = "protocol_citation_schema_version")]
+    pub schema_version: String,
+    pub citation_key: String,
+    pub run: BenchmarkRunIdentity,
+    pub protocol_title: String,
+    pub protocol_version: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub protocol_sha256: String,
+    pub status: BenchmarkProtocolCitationStatus,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selected_publication: Option<BenchmarkRunIndexPublication>,
+    pub limitations: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkRunCaseIndexEntry {
+    pub case_id: String,
+    pub tool_id: String,
+    pub definition: BenchmarkRunIndexFileReference,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkRunCaseIndex {
+    #[schemars(schema_with = "run_case_index_schema_version")]
+    pub schema_version: String,
+    pub run: BenchmarkRunIdentity,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub protocol_sha256: String,
+    pub cases: Vec<BenchmarkRunCaseIndexEntry>,
+    pub limitations: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkRunPublicationPointer {
+    #[schemars(schema_with = "run_publication_pointer_schema_version")]
+    pub schema_version: String,
+    pub run: BenchmarkRunIdentity,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub protocol_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selected_publication: Option<BenchmarkRunIndexPublication>,
+    pub limitations: Vec<String>,
+}
+
 impl BenchmarkRunIndex {
     #[must_use]
     pub fn v1(
@@ -96,10 +156,46 @@ pub fn benchmark_run_index_schema() -> Schema {
     schemars::schema_for!(BenchmarkRunIndex)
 }
 
+#[must_use]
+pub fn benchmark_protocol_citation_schema() -> Schema {
+    schemars::schema_for!(BenchmarkProtocolCitation)
+}
+
+#[must_use]
+pub fn benchmark_run_case_index_schema() -> Schema {
+    schemars::schema_for!(BenchmarkRunCaseIndex)
+}
+
+#[must_use]
+pub fn benchmark_run_publication_pointer_schema() -> Schema {
+    schemars::schema_for!(BenchmarkRunPublicationPointer)
+}
+
 fn run_index_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_RUN_INDEX_SCHEMA_V1,
+    })
+}
+
+fn protocol_citation_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1,
+    })
+}
+
+fn run_case_index_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1,
+    })
+}
+
+fn run_publication_pointer_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1,
     })
 }
 

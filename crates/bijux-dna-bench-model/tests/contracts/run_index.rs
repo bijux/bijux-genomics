@@ -1,7 +1,13 @@
 use bijux_dna_bench_model::{
-    benchmark_run_index_schema, validate_benchmark_run_index, BenchmarkRunIndex,
-    BenchmarkRunIndexEntry, BenchmarkRunIndexFileReference, BenchmarkRunIndexSummary,
-    BenchmarkRunRegistryState,
+    benchmark_protocol_citation_schema, benchmark_run_case_index_schema,
+    benchmark_run_index_schema, benchmark_run_publication_pointer_schema,
+    validate_benchmark_protocol_citation, validate_benchmark_run_case_index,
+    validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
+    BenchmarkProtocolCitation, BenchmarkProtocolCitationStatus, BenchmarkRunCaseIndex,
+    BenchmarkRunIdentity, BenchmarkRunIndex, BenchmarkRunIndexEntry,
+    BenchmarkRunIndexFileReference, BenchmarkRunIndexSummary, BenchmarkRunPublicationPointer,
+    BenchmarkRunRegistryState, BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1,
+    BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1, BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1,
 };
 
 fn run_index() -> BenchmarkRunIndex {
@@ -81,5 +87,59 @@ fn checked_run_index_schema_matches_model_authority() -> anyhow::Result<()> {
         repository_root.join("benchmarks/contracts/schemas/run-index.schema.json"),
     )?)?;
     assert_eq!(checked, serde_json::to_value(benchmark_run_index_schema())?);
+    for (path, schema) in [
+        ("protocol-citation.schema.json", benchmark_protocol_citation_schema()),
+        ("run-case-index.schema.json", benchmark_run_case_index_schema()),
+        ("run-publication-pointer.schema.json", benchmark_run_publication_pointer_schema()),
+    ] {
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
+            repository_root.join("benchmarks/contracts/schemas").join(path),
+        )?)?;
+        assert_eq!(checked, serde_json::to_value(schema)?);
+    }
+    Ok(())
+}
+
+#[test]
+fn unpublished_protocol_surfaces_are_explicit_and_consistent() -> anyhow::Result<()> {
+    let run = BenchmarkRunIdentity {
+        run_id: "run-2001".to_string(),
+        domain: "bam".to_string(),
+        stage_id: "bam.genotyping".to_string(),
+    };
+    let limitation = vec!["No admitted publication is selected.".to_string()];
+    let citation = BenchmarkProtocolCitation {
+        schema_version: BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1.to_string(),
+        citation_key: "bijux-benchmark-run-2001".to_string(),
+        run: run.clone(),
+        protocol_title: "BAM genotyping benchmark protocol".to_string(),
+        protocol_version: "1.0.0".to_string(),
+        protocol_sha256: "a".repeat(64),
+        status: BenchmarkProtocolCitationStatus::ProtocolOnly,
+        selected_publication: None,
+        limitations: limitation.clone(),
+    };
+    let cases = BenchmarkRunCaseIndex {
+        schema_version: BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1.to_string(),
+        run: run.clone(),
+        protocol_sha256: "a".repeat(64),
+        cases: Vec::new(),
+        limitations: limitation.clone(),
+    };
+    let publication = BenchmarkRunPublicationPointer {
+        schema_version: BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1.to_string(),
+        run,
+        protocol_sha256: "a".repeat(64),
+        selected_publication: None,
+        limitations: limitation,
+    };
+
+    validate_benchmark_protocol_citation(&citation)?;
+    validate_benchmark_run_case_index(&cases)?;
+    validate_benchmark_run_publication_pointer(&publication)?;
+
+    let mut contradictory = citation;
+    contradictory.status = BenchmarkProtocolCitationStatus::Published;
+    assert!(validate_benchmark_protocol_citation(&contradictory).is_err());
     Ok(())
 }

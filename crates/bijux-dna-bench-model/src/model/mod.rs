@@ -172,8 +172,12 @@ pub use report::{
 };
 #[allow(unused_imports)]
 pub use run_index::{
-    benchmark_run_index_schema, BenchmarkRunIndex, BenchmarkRunIndexEntry,
+    benchmark_protocol_citation_schema, benchmark_run_case_index_schema,
+    benchmark_run_index_schema, benchmark_run_publication_pointer_schema,
+    BenchmarkProtocolCitation, BenchmarkProtocolCitationStatus, BenchmarkRunCaseIndex,
+    BenchmarkRunCaseIndexEntry, BenchmarkRunIndex, BenchmarkRunIndexEntry,
     BenchmarkRunIndexFileReference, BenchmarkRunIndexPublication, BenchmarkRunIndexSummary,
+    BenchmarkRunPublicationPointer,
 };
 #[allow(unused_imports)]
 pub use source_authority::{

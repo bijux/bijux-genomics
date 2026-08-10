@@ -69,6 +69,10 @@ pub const BENCHMARK_PORTFOLIO_SCHEMA_V1: &str = "bijux.benchmark.portfolio.v1";
 pub const BENCHMARK_PORTFOLIO_SCHEMA_V2: &str = "bijux.benchmark.portfolio.v2";
 pub const BENCHMARK_RUN_REGISTRY_SCHEMA_V1: &str = "bijux.benchmark.run_registry.v1";
 pub const BENCHMARK_RUN_INDEX_SCHEMA_V1: &str = "bijux.benchmark.run_index.v1";
+pub const BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1: &str = "bijux.benchmark.protocol_citation.v1";
+pub const BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1: &str = "bijux.benchmark.run_case_index.v1";
+pub const BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1: &str =
+    "bijux.benchmark.run_publication_pointer.v1";
 pub const BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1: &str =
     "bijux.benchmark.publication_registry.v1";
 pub const BENCHMARK_STAGE_INTERFACES_SCHEMA_V1: &str = "bijux.benchmark.stage_interfaces.v1";
