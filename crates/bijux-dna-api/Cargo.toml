@@ -51,7 +51,6 @@ default = []
 insta = { workspace = true, features = ["json"] }
 tempfile = { workspace = true }
 bijux-dna-testkit.workspace = true
-nix.workspace = true
 
 [lints]
 workspace = true
