@@ -200,6 +200,7 @@ pub(super) fn run_native_container_command(
         }
         NativeContainerCommandKey::ExternalArtifact => external_artifact::run(workspace, args),
         NativeContainerCommandKey::GrypeDatabase => grype_database::run(workspace, args),
+        NativeContainerCommandKey::ReleaseEvidence => release_evidence::run(workspace, args),
         NativeContainerCommandKey::SecurityEvidence => security_evidence::run(workspace, args),
         NativeContainerCommandKey::SecurityToolchain => security_toolchain::run(workspace, args),
         NativeContainerCommandKey::ImageActivation => image_activation::run(workspace, args),

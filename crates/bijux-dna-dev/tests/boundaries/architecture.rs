@@ -134,6 +134,7 @@ fn dev_tree_matches_architecture_contract() {
         "qualification_registry.rs",
         "qualification_slurm.rs",
         "qualification_specification.rs",
+        "release_evidence.rs",
         "registry_catalog.rs",
         "run_evidence.rs",
         "site_policy.rs",

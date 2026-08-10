@@ -73,6 +73,7 @@ pub enum NativeContainerCommandKey {
     CredentialReference,
     ExternalArtifact,
     GrypeDatabase,
+    ReleaseEvidence,
     SecurityEvidence,
     SecurityToolchain,
     ImageActivation,

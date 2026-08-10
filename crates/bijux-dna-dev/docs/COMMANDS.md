@@ -281,6 +281,7 @@ qualification-registry
 qualification-slurm
 qualification-specification
 registry-tools
+release-evidence
 release-gate
 repository-freeze
 run-apptainer-frontend-reproducibility

@@ -104,13 +104,28 @@ cargo run -q -p bijux-dna-dev -- containers run generate-qualification-report-sc
 cargo run -q -p bijux-dna-dev -- containers run check-qualification-report-schema
 ```
 
+A release decision is a separate immutable policy publication bound to the clean repository commit,
+catalog digest, complete qualification-source map, and every tool's non-release evidence set. The
+release dimension is excluded from its own digest, preventing self-referential identity. Compose
+and immediately re-admit a publication with:
+
+```console
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- compose containers/reports/qualification.json "$RELEASED_AT_UTC" artifacts/containers/release-evidence.json
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- admit containers/reports/qualification.json artifacts/containers/release-evidence.json
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- check-schema
+```
+
+Composition fails in a dirty checkout. Admission rejects source, tool coverage, support-dimension,
+evidence-set, or policy-verdict drift; a repository checklist cannot substitute for this decision.
+
 The fast drift gate recomputes the same report without writing:
 
 ```console
 cargo run -q -p bijux-dna-dev -- containers run check-evidence-qualification
 ```
 
-The machine-readable [qualification report](../reports/qualification.json) is
-the release selector. The [release checklist](RELEASE_CHECKLIST.md) must not
-publish a supported-but-unverified tool or infer qualification from legacy
-support-disposition or registry maturity fields.
+The machine-readable [qualification report](../reports/qualification.json) is a release-policy
+input. Only an admitted release-evidence publication can select exact evidence for release. The
+[release checklist](RELEASE_CHECKLIST.md) remains an operator aid: it must not publish a
+supported-but-unverified tool or infer qualification from legacy support-disposition or registry
+maturity fields.

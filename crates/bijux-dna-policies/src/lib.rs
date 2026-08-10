@@ -6,6 +6,7 @@ mod guardrails;
 pub mod policy_diagnostics;
 pub mod public_api;
 pub mod qualification;
+pub mod release_evidence;
 pub mod security_evidence;
 mod source_scan;
 
@@ -26,6 +27,13 @@ pub use qualification::{
     RELEASE_EVIDENCE_RULE_V1, REQUIRED_EVIDENCE_DIMENSIONS, RUNTIME_EVIDENCE_RULE_V1,
     SECURITY_EVIDENCE_RULE_V1, SOURCE_IDENTITY_RULE_V1, SUPPORT_DIMENSIONS_RULE_V2,
     SUPPORT_DISPOSITION_RULE_V1,
+};
+pub use release_evidence::{
+    admit_release_evidence, derive_release_evidence, qualification_evidence_set_sha256,
+    qualification_sources_sha256, release_evidence_policy_sha256, release_evidence_schema,
+    validate_release_evidence_publication, AdmittedReleaseEvidence,
+    ContainerReleaseEvidencePublication, ReleaseEvidenceDerivationRequest, ToolReleaseEvidence,
+    CONTAINER_RELEASE_EVIDENCE_SCHEMA_V1,
 };
 pub use security_evidence::{
     admit_security_evidence, classify_vulnerability_database, derive_security_evidence,

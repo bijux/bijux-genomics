@@ -28,6 +28,7 @@ fn assert_root_and_source_layout(root: &Path) {
             "policy_diagnostics/",
             "public_api/",
             "qualification/",
+            "release_evidence/",
             "security_evidence/",
             "source_scan/",
         ]),
@@ -105,6 +106,20 @@ fn assert_evidence_and_test_trees(root: &Path) {
             "report.rs"
         ]),
         "qualification must separate evidence decisions, publication freshness, and reports"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/release_evidence")),
+        entries([
+            "OWNER.toml",
+            "admission.rs",
+            "derivation.rs",
+            "mod.rs",
+            "model.rs",
+            "schema.rs",
+            "validation.rs"
+        ]),
+        "release evidence must separate derivation, admission, models, schemas, and validation"
     );
 
     assert_eq!(

@@ -17,6 +17,13 @@ pub use crate::qualification::{
     SECURITY_EVIDENCE_RULE_V1, SOURCE_IDENTITY_RULE_V1, SUPPORT_DIMENSIONS_RULE_V2,
     SUPPORT_DISPOSITION_RULE_V1,
 };
+pub use crate::release_evidence::{
+    admit_release_evidence, derive_release_evidence, qualification_evidence_set_sha256,
+    qualification_sources_sha256, release_evidence_policy_sha256, release_evidence_schema,
+    validate_release_evidence_publication, AdmittedReleaseEvidence,
+    ContainerReleaseEvidencePublication, ReleaseEvidenceDerivationRequest, ToolReleaseEvidence,
+    CONTAINER_RELEASE_EVIDENCE_SCHEMA_V1,
+};
 pub use crate::security_evidence::{
     admit_security_evidence, classify_vulnerability_database, derive_security_evidence,
     parse_gitleaks_report, parse_grype_vulnerability_report, security_evidence_policy_sha256,
