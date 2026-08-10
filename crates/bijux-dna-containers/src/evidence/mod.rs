@@ -72,16 +72,20 @@ pub use model::{
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 pub use qualification_registry::{
-    derive_qualification_run_registry, load_qualification_run_registry,
-    qualification_run_id_audit_schema, qualification_run_registry_schema,
-    render_qualification_run_registry, validate_qualification_run_registry,
-    write_qualification_run_id_audit_schema, write_qualification_run_registry_schema,
+    container_run_index_schema, derive_container_run_index, derive_qualification_run_registry,
+    load_qualification_run_registry, qualification_run_id_audit_schema,
+    qualification_run_registry_schema, render_container_run_index_json,
+    render_container_run_index_markdown, render_qualification_run_registry,
+    validate_container_run_index, validate_qualification_run_registry,
+    write_container_run_index_schema, write_qualification_run_id_audit_schema,
+    write_qualification_run_registry_schema, ContainerRunIndex, ContainerRunIndexSource,
     DerivedQualificationRunRegistry, QualificationHistoricalRunIdentity,
     QualificationRegistryDerivationRequest, QualificationRunCitationRecord,
     QualificationRunDefinition, QualificationRunIdAudit, QualificationRunIdAuditRow,
     QualificationRunIdTombstone, QualificationRunNamespacePolicy, QualificationRunRegistry,
     QualificationRunRegistryEntry, QualificationRunRegistrySummary, QualificationRunState,
-    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
+    CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
+    QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
 };
 pub use run_evidence::{
     apply_final_run_evidence_plan, apply_result_layout, apply_superseded_result_archive,

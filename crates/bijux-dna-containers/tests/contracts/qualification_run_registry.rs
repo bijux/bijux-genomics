@@ -3,8 +3,10 @@ use std::fs;
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     derive_qualification_run_registry, load_container_catalog, load_qualification_run_registry,
-    render_qualification_run_registry, validate_qualification_run_registry,
-    QualificationRegistryDerivationRequest, QualificationRunState,
+    render_container_run_index_json, render_container_run_index_markdown,
+    render_qualification_run_registry, validate_container_run_index,
+    validate_qualification_run_registry, ContainerRunIndex, ContainerRunIndexSource,
+    QualificationRegistryDerivationRequest, QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1,
 };
 
 #[test]
@@ -110,6 +112,44 @@ fn registry_rejects_duplicate_ids_incomplete_external_execution_and_catalog_drif
     reused_tombstone.runs[81].state = QualificationRunState::Active;
     reused_tombstone.runs[81].tool_ids = vec!["adapterremoval".to_string()];
     assert!(validate_qualification_run_registry(&catalog, &reused_tombstone).is_err());
+    Ok(())
+}
+
+#[test]
+fn paper_facing_index_preserves_complete_namespace_and_missing_evidence() -> Result<()> {
+    let root = repository_root()?;
+    let derived = derive_qualification_run_registry(&request(&root))?;
+    let registry_bytes = render_qualification_run_registry(&derived.registry)?.into_bytes();
+    let index = ContainerRunIndex {
+        schema_version: CONTAINER_RUN_INDEX_SCHEMA_V1.to_string(),
+        source_registry: ContainerRunIndexSource {
+            uri: "repo://containers/contracts/qualification-runs.toml".to_string(),
+            sha256: bijux_dna_infra::hash_bytes_sha256(&registry_bytes),
+            size_bytes: u64::try_from(registry_bytes.len())?,
+        },
+        catalog_sha256: derived.registry.catalog_sha256.clone(),
+        historical_max_run_number: derived.registry.historical_max_run_number,
+        namespace: derived.registry.namespace.clone(),
+        summary: derived.registry.summary.clone(),
+        runs: derived.registry.runs.clone(),
+    };
+
+    validate_container_run_index(&index)?;
+    assert!(render_container_run_index_json(&index)?.contains("\"run_id\": \"run-1158\""));
+    assert!(render_container_run_index_markdown(&index).contains("| `run-1158` |"));
+
+    let mut incomplete = index.clone();
+    incomplete.runs.pop();
+    assert!(validate_container_run_index(&incomplete).is_err());
+
+    let mut hidden_missing_evidence = index;
+    let reserved = hidden_missing_evidence
+        .runs
+        .iter_mut()
+        .find(|run| run.citation.evidence_uris.is_empty())
+        .context("run without selected evidence")?;
+    reserved.citation.limitations.clear();
+    assert!(validate_container_run_index(&hidden_missing_evidence).is_err());
     Ok(())
 }
 

@@ -9,10 +9,11 @@ use anyhow::{bail, Context, Result};
 use serde::Deserialize;
 
 use super::{
-    QualificationHistoricalRunIdentity, QualificationRunCitationRecord, QualificationRunDefinition,
-    QualificationRunIdAudit, QualificationRunIdAuditRow, QualificationRunIdTombstone,
-    QualificationRunNamespacePolicy, QualificationRunRegistry, QualificationRunRegistryEntry,
-    QualificationRunRegistrySummary, QualificationRunState, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
+    ContainerRunIndex, ContainerRunIndexSource, QualificationHistoricalRunIdentity,
+    QualificationRunCitationRecord, QualificationRunDefinition, QualificationRunIdAudit,
+    QualificationRunIdAuditRow, QualificationRunIdTombstone, QualificationRunNamespacePolicy,
+    QualificationRunRegistry, QualificationRunRegistryEntry, QualificationRunRegistrySummary,
+    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
     QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
 };
 use crate::evidence::tool_contract::{
@@ -898,6 +899,133 @@ pub fn render_qualification_run_registry(registry: &QualificationRunRegistry) ->
         "# GENERATED FILE - DO NOT EDIT\n{}",
         toml::to_string_pretty(registry).context("serialize qualification-run registry")?
     ))
+}
+
+/// Derive the complete paper-facing index from the canonical checked-in registry.
+///
+/// # Errors
+/// Returns an error when the source registry, catalog closure, path, or index identity is invalid.
+pub fn derive_container_run_index(
+    repository_root: &Path,
+    registry_path: &Path,
+) -> Result<ContainerRunIndex> {
+    let expected = repository_root.join("containers/contracts/qualification-runs.toml");
+    if registry_path != expected {
+        bail!("container run index requires the canonical qualification registry");
+    }
+    let registry = load_qualification_run_registry(repository_root, registry_path)?;
+    let bytes = fs::read(registry_path)
+        .with_context(|| format!("read qualification registry {}", registry_path.display()))?;
+    let index = ContainerRunIndex {
+        schema_version: CONTAINER_RUN_INDEX_SCHEMA_V1.to_string(),
+        source_registry: ContainerRunIndexSource {
+            uri: "repo://containers/contracts/qualification-runs.toml".to_string(),
+            sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
+            size_bytes: u64::try_from(bytes.len()).context("qualification registry exceeds u64")?,
+        },
+        catalog_sha256: registry.catalog_sha256,
+        historical_max_run_number: registry.historical_max_run_number,
+        namespace: registry.namespace,
+        summary: registry.summary,
+        runs: registry.runs,
+    };
+    validate_container_run_index(&index)?;
+    Ok(index)
+}
+
+/// Validate namespace, summary, run ordering, and citation closure for a container run index.
+///
+/// # Errors
+/// Returns an error when the index is incomplete or contradicts permanent run identity.
+pub fn validate_container_run_index(index: &ContainerRunIndex) -> Result<()> {
+    if index.schema_version != CONTAINER_RUN_INDEX_SCHEMA_V1
+        || index.source_registry.uri != "repo://containers/contracts/qualification-runs.toml"
+        || index.source_registry.size_bytes == 0
+    {
+        bail!("container run index source identity is invalid");
+    }
+    validate_sha256(&index.source_registry.sha256, "container run index source")?;
+    validate_sha256(&index.catalog_sha256, "container run index catalog")?;
+    if index.namespace.minimum != RUN_NAMESPACE_MINIMUM
+        || index.namespace.maximum != RUN_NAMESPACE_MAXIMUM
+        || index.namespace.next_run_number != RUN_NAMESPACE_NEXT
+        || index.runs.len() != RUN_NAMESPACE_SIZE
+        || index.summary != summarize_run_definitions(&index.runs)
+    {
+        bail!("container run index namespace or summary is invalid");
+    }
+    let mut citations = BTreeSet::new();
+    for (offset, run) in index.runs.iter().enumerate() {
+        let number = RUN_NAMESPACE_MINIMUM
+            + u64::try_from(offset).context("container run index offset exceeds u64")?;
+        if run.run_id != format!("run-{number}")
+            || run.citation.citation_key != format!("bijux-container-run-{number}")
+            || run.citation.registry_anchor
+                != format!("repo://containers/contracts/qualification-runs.toml#run-{number}")
+            || !citations.insert(run.citation.citation_key.as_str())
+            || run.title.trim().is_empty()
+            || run.owner.trim().is_empty()
+            || run.operation.trim().is_empty()
+            || run.stage_id.trim().is_empty()
+            || run.acceptance_policy.trim().is_empty()
+        {
+            bail!("container run index entry is invalid: {}", run.run_id);
+        }
+        if run.citation.evidence_uris.is_empty() && run.citation.limitations.is_empty() {
+            bail!("container run index entry hides absent evidence: {}", run.run_id);
+        }
+    }
+    Ok(())
+}
+
+/// Render deterministic container run-index JSON.
+///
+/// # Errors
+/// Returns an error when serialization fails.
+pub fn render_container_run_index_json(index: &ContainerRunIndex) -> Result<String> {
+    validate_container_run_index(index)?;
+    Ok(serde_json::to_string_pretty(index)? + "\n")
+}
+
+#[must_use]
+pub fn render_container_run_index_markdown(index: &ContainerRunIndex) -> String {
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- source: bijux-dna-containers::evidence::qualification_registry -->".to_string(),
+        "# Container run index".to_string(),
+        String::new(),
+        "Run IDs are permanent protocols; scheduler jobs and retries are attempts under those IDs."
+            .to_string(),
+        String::new(),
+        format!("- Registered protocols: **{}**", index.summary.run_count),
+        format!("- Active protocols: **{}**", index.summary.active_count),
+        format!("- Allocated protocols: **{}**", index.summary.allocated_count),
+        format!("- Historical protocols: **{}**", index.summary.historical_count),
+        format!("- Reserved IDs: **{}**", index.summary.reserved_count),
+        String::new(),
+        "| Run | State | Stage | Tools | Citation | Evidence |".to_string(),
+        "|---|---|---|---|---|---|".to_string(),
+    ];
+    for run in &index.runs {
+        let state = match run.state {
+            QualificationRunState::Campaign => "campaign",
+            QualificationRunState::Active => "active",
+            QualificationRunState::Allocated => "allocated",
+            QualificationRunState::Historical => "historical",
+            QualificationRunState::Reserved => "reserved",
+        };
+        let evidence =
+            if run.citation.evidence_uris.is_empty() { "not selected" } else { "indexed" };
+        lines.push(format!(
+            "| `{}` | `{state}` | `{}` | {} | `{}` | {evidence} |",
+            run.run_id,
+            run.stage_id,
+            run.tool_ids.iter().map(|tool| format!("`{tool}`")).collect::<Vec<_>>().join(", "),
+            run.citation.citation_key,
+        ));
+    }
+    lines.push(String::new());
+    lines.join("\n")
 }
 
 fn scan_current_runs(

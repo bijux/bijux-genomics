@@ -8,6 +8,27 @@ pub const QUALIFICATION_RUN_REGISTRY_SCHEMA_V2: &str =
     "bijux.container.qualification_run_registry.v2";
 pub const QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2: &str =
     "bijux.container.qualification_run_id_audit.v2";
+pub const CONTAINER_RUN_INDEX_SCHEMA_V1: &str = "bijux.container.run_index.v1";
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ContainerRunIndexSource {
+    pub uri: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ContainerRunIndex {
+    pub schema_version: String,
+    pub source_registry: ContainerRunIndexSource,
+    pub catalog_sha256: String,
+    pub historical_max_run_number: u64,
+    pub namespace: QualificationRunNamespacePolicy,
+    pub summary: QualificationRunRegistrySummary,
+    pub runs: Vec<QualificationRunDefinition>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
