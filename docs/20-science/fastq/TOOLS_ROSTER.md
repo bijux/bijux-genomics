@@ -22,7 +22,7 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, alientrimmer, fastx_clipper, leehom, trimmomatic, trim_galore, prinseq, seqkit, skewer | Adapter and quality trimming backends with governed runtime coverage and normalized stage outputs |
 | fastq.filter_reads | fastp, seqkit, prinseq, bbduk | Quality/length/content filtering without stage overloading |
 | fastq.filter_low_complexity | fastp, prinseq, bbduk | Dedicated low-complexity-capable backends admitted in the current runtime set |
-| fastq.profile_read_lengths | fastp, prinseq, seqfu, seqkit_stats | Read-length summaries stay explicit across governed baseline and comparative profiling backends. |
+| fastq.profile_read_lengths | seqfu, seqkit | Exact per-record read lengths are normalized through the governed histogram contract for both admitted backends. |
 | fastq.profile_reads | seqfu, seqkit, seqkit_stats | Read-statistics profiling stays explicit across governed neutral and comparative summary backends. |
 | fastq.profile_overrepresented_sequences | fastqc, fastq_scan, seqkit | Overrepresented-sequence reporting |
 | fastq.merge_pairs | pear, vsearch, bbmerge, flash2, leehom | Overlap-aware paired-end merging backends still supported by the runtime contract |
