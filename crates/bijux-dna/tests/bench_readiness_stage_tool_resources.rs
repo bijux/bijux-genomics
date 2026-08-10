@@ -36,7 +36,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() {
+fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() -> anyhow::Result<()>
+{
     let payload = run_cli_json(&["bench", "readiness", "render-stage-tool-resources", "--json"]);
 
     assert_eq!(
@@ -60,9 +61,9 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
     );
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     assert_eq!(rows.len() as u64, row_count);
     assert!(rows.iter().all(|row| {
         !matches!(
@@ -621,4 +622,5 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
             Some(4)
         );
     }
+    Ok(())
 }

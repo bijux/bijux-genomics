@@ -35,7 +35,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() {
+fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() -> anyhow::Result<()> {
     let payload = run_cli_json(&["bench", "local", "fake-run-all-domains", "--json"]);
 
     assert_eq!(
@@ -52,12 +52,12 @@ fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() {
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count >= 120));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
     assert_eq!(support::object_u64_sum(domain_counts), result_count);
 
-    let results = support::json_array(&payload, "results");
+    let results = support::json_array(&payload, "results")?;
     assert_eq!(results.len() as u64, result_count);
     let result_ids = results
         .iter()
@@ -111,4 +111,5 @@ fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() {
         .is_some_and(|path| path.ends_with(
             "/all-domains/vcf/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json"
         )));
+    Ok(())
 }

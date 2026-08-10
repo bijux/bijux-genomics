@@ -35,7 +35,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
+fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() -> anyhow::Result<()> {
     let payload = run_cli_json(&["bench", "readiness", "render-all-domain-commands", "--json"]);
 
     assert_eq!(
@@ -55,14 +55,14 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     let fastq_bam_count =
         domain_counts.get("fastq").and_then(serde_json::Value::as_u64).expect("fastq count")
             + domain_counts.get("bam").and_then(serde_json::Value::as_u64).expect("bam count");
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let command_source_counts = support::json_object(&payload, "command_source_counts");
+    let command_source_counts = support::json_object(&payload, "command_source_counts")?;
     assert_eq!(
         command_source_counts.get("fastq_bam_command_adapter").and_then(serde_json::Value::as_u64),
         Some(fastq_bam_count)
@@ -94,7 +94,7 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
         Some(4)
     );
 
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     assert_eq!(rows.len() as u64, row_count);
     let result_ids = rows
         .iter()
@@ -231,4 +231,5 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
                 && steps[1].get("step_id").and_then(serde_json::Value::as_str)
                     == Some("population_pca")
         }));
+    Ok(())
 }

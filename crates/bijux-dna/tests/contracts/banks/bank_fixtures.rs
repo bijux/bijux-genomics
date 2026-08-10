@@ -249,13 +249,19 @@ pub fn json_bool(value: &Value, key: &str) -> Option<bool> {
 }
 
 #[allow(dead_code)]
-pub fn json_object<'a>(value: &'a Value, key: &str) -> &'a Map<String, Value> {
-    value.get(key).and_then(Value::as_object).expect(key)
+pub fn json_object<'a>(value: &'a Value, key: &str) -> Result<&'a Map<String, Value>> {
+    value
+        .get(key)
+        .and_then(Value::as_object)
+        .ok_or_else(|| anyhow!("JSON field `{key}` must be an object"))
 }
 
 #[allow(dead_code)]
-pub fn json_array<'a>(value: &'a Value, key: &str) -> &'a Vec<Value> {
-    value.get(key).and_then(Value::as_array).expect(key)
+pub fn json_array<'a>(value: &'a Value, key: &str) -> Result<&'a Vec<Value>> {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .ok_or_else(|| anyhow!("JSON field `{key}` must be an array"))
 }
 
 #[allow(dead_code)]

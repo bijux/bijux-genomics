@@ -36,7 +36,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
+fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() -> anyhow::Result<()> {
     let payload = run_cli_json(&[
         "bench",
         "readiness",
@@ -77,12 +77,12 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
     );
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert!(support::object_u64(domain_counts, "fastq").is_some());
     assert!(support::object_u64(domain_counts, "bam").is_some());
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let execution_mode_counts = support::json_object(&payload, "execution_mode_counts");
+    let execution_mode_counts = support::json_object(&payload, "execution_mode_counts")?;
     assert_eq!(support::object_u64_sum(execution_mode_counts), row_count);
     assert_eq!(
         payload
@@ -892,4 +892,5 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .is_some_and(|value| value.starts_with("bijuxdna/clumpify@sha256:")),
         "remove-duplicates clumpify row must preserve the governed container declaration"
     );
+    Ok(())
 }

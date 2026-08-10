@@ -34,7 +34,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
+fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() -> anyhow::Result<()> {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-no-planned-rows", "--json"]);
 
@@ -54,13 +54,13 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let removed_status_counts = support::json_object(&payload, "removed_status_counts");
+    let removed_status_counts = support::json_object(&payload, "removed_status_counts")?;
     assert_eq!(
         removed_status_counts.get("planned").and_then(serde_json::Value::as_u64).unwrap_or(0),
         removed_row_count
     );
 
-    let removed_rows = support::json_array(&payload, "removed_rows");
+    let removed_rows = support::json_array(&payload, "removed_rows")?;
     assert_eq!(
         u64::try_from(removed_rows.len()).expect("removed row count fits u64"),
         removed_row_count
@@ -95,4 +95,5 @@ fn bench_readiness_all_domain_no_planned_rows_reports_clean_active_scope() {
         }),
         "active imputation metrics rows must not be reported as planned removals"
     );
+    Ok(())
 }

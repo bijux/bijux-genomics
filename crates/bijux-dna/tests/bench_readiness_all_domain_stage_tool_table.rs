@@ -34,7 +34,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
+fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() -> anyhow::Result<()> {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-stage-tool-table", "--json"]);
 
@@ -56,10 +56,10 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
         Some(benchmark_ready_row_count)
     );
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let ready_domain_counts = support::json_object(&payload, "benchmark_ready_domain_counts");
+    let ready_domain_counts = support::json_object(&payload, "benchmark_ready_domain_counts")?;
     assert!(["fastq", "bam", "vcf"].iter().all(|domain| {
         support::object_u64(ready_domain_counts, domain).is_some_and(|count| count > 0)
     }));
@@ -145,4 +145,5 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
             && row.get("benchmark_status").and_then(serde_json::Value::as_str)
                 == Some("benchmark_ready")
     }));
+    Ok(())
 }

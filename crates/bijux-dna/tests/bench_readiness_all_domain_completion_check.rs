@@ -34,7 +34,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules() {
+fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules(
+) -> anyhow::Result<()> {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-completion-check", "--json"]);
 
@@ -59,9 +60,9 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     assert_eq!(incomplete_row_count, 5);
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), row_count);
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     for domain in ["fastq", "bam", "vcf"] {
         let expected_count = u64::try_from(
             rows.iter()
@@ -216,4 +217,5 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
         execution_failed.get("runtime_status").and_then(serde_json::Value::as_str),
         Some("failed")
     );
+    Ok(())
 }

@@ -28,6 +28,20 @@ fn repo_process_lock_releases_on_drop() -> anyhow::Result<()> {
 }
 
 #[test]
+fn json_accessors_reject_missing_and_mistyped_fields() {
+    let payload = serde_json::json!({
+        "array": [],
+        "object": {},
+        "wrong_type": 1,
+    });
+
+    assert!(support::json_array(&payload, "array").is_ok());
+    assert!(support::json_object(&payload, "object").is_ok());
+    assert!(support::json_array(&payload, "missing").is_err());
+    assert!(support::json_object(&payload, "wrong_type").is_err());
+}
+
+#[test]
 fn repository_lock_implementations_have_no_polling() -> anyhow::Result<()> {
     let repo_root = support::repo_root()?;
     for relative in [
