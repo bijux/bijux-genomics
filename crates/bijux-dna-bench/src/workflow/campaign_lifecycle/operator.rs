@@ -6,8 +6,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_campaign_plan, validate_cycle_status_v2, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
+    validate_campaign_plan, validate_cycle_status_v2, validate_utc_timestamp,
+    BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
+    BenchmarkEvidenceReference, BenchmarkLifecycleStatus,
 };
+use serde::{Deserialize, Serialize};
 
 use super::{plan_stage_campaign_attempts, verify_campaign_plan_source};
 use crate::workflow::load_stage_campaign_registry;
@@ -33,6 +36,51 @@ pub struct BenchmarkCycleStatusRequest {
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
     pub observed_at_utc: String,
+}
+
+/// Inputs for one independent-unit benchmark output admission pass.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkCycleAdmissionRequest {
+    pub repository_root: PathBuf,
+    pub study_root: PathBuf,
+    pub benchmark_root: PathBuf,
+    pub plan: PathBuf,
+    pub admitted_at_utc: String,
+}
+
+/// Outcome category for one attempt considered by an admission pass.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkCycleAdmissionState {
+    Admitted,
+    AlreadyAdmitted,
+    NotReady,
+    Failed,
+}
+
+/// Admission outcome for one independent campaign attempt.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCycleAdmissionUnit {
+    pub identity: BenchmarkAttemptIdentity,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prior_status: Option<BenchmarkLifecycleStatus>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current_status: Option<BenchmarkLifecycleStatus>,
+    pub state: BenchmarkCycleAdmissionState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<BenchmarkEvidenceReference>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Complete result of one non-barrier campaign admission pass.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCycleAdmission {
+    pub campaign_id: String,
+    pub admitted_at_utc: String,
+    pub units: Vec<BenchmarkCycleAdmissionUnit>,
 }
 
 /// Plan every declared tool attempt for one permanent run and publish the immutable plan.
@@ -114,6 +162,126 @@ pub fn status_checked_in_benchmark_campaign(
     );
     validate_cycle_status_v2(&status).context("validate persisted benchmark cycle status")?;
     Ok(status)
+}
+
+/// Verify and admit every independently ready output closure in one campaign.
+///
+/// Non-ready attempts are reported without mutation. A failure for one attempt is retained in its
+/// unit outcome while all other independent ready attempts continue through the same pass.
+///
+/// # Errors
+/// Returns an error only when top-level source, plan, timestamp, or evidence-root authorities are
+/// invalid. Attempt-local admission failures are returned in [`BenchmarkCycleAdmissionUnit`].
+pub fn admit_checked_in_benchmark_campaign(
+    request: &BenchmarkCycleAdmissionRequest,
+) -> Result<BenchmarkCycleAdmission> {
+    validate_utc_timestamp(&request.admitted_at_utc, "benchmark admission admitted_at_utc")
+        .context("validate benchmark admission timestamp")?;
+    let repository_root = request
+        .repository_root
+        .canonicalize()
+        .context("canonicalize benchmark admission repository")?;
+    let study_root =
+        request.study_root.canonicalize().context("canonicalize benchmark admission STUDY root")?;
+    let benchmark_root = request
+        .benchmark_root
+        .canonicalize()
+        .context("canonicalize benchmark admission evidence root")?;
+    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
+    let mut attempts = plan
+        .cycle
+        .attempts
+        .iter()
+        .filter(|attempt| {
+            attempt.transitions.len() == 1
+                && attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned)
+        })
+        .collect::<Vec<_>>();
+    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+
+    let units = attempts
+        .into_iter()
+        .map(|attempt| {
+            admit_attempt(&study_root, &benchmark_root, &attempt.identity, &request.admitted_at_utc)
+        })
+        .collect();
+    Ok(BenchmarkCycleAdmission {
+        campaign_id: plan.cycle.campaign_id,
+        admitted_at_utc: request.admitted_at_utc.clone(),
+        units,
+    })
+}
+
+fn admit_attempt(
+    study_root: &Path,
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    admitted_at_utc: &str,
+) -> BenchmarkCycleAdmissionUnit {
+    let lifecycle = match bijux_dna_runtime::load_attempt_lifecycle(benchmark_root, identity) {
+        Ok(lifecycle) => lifecycle,
+        Err(error) => return admission_failure(benchmark_root, identity, None, error),
+    };
+    let prior_status = lifecycle.current_status();
+    if !matches!(
+        prior_status,
+        Some(BenchmarkLifecycleStatus::Collecting | BenchmarkLifecycleStatus::Passed)
+    ) {
+        return BenchmarkCycleAdmissionUnit {
+            identity: identity.clone(),
+            prior_status,
+            current_status: prior_status,
+            state: BenchmarkCycleAdmissionState::NotReady,
+            evidence: None,
+            error: None,
+        };
+    }
+    let result = (|| -> Result<BenchmarkEvidenceReference> {
+        let spec = super::load_execution_spec(benchmark_root, identity)?;
+        let publication =
+            crate::admit_benchmark_execution_outputs(study_root, &spec, admitted_at_utc)?;
+        bijux_dna_runtime::record_attempt_acceptance(
+            benchmark_root,
+            identity,
+            admitted_at_utc,
+            vec![publication.evidence.clone()],
+        )?;
+        Ok(publication.evidence)
+    })();
+    match result {
+        Ok(evidence) => BenchmarkCycleAdmissionUnit {
+            identity: identity.clone(),
+            prior_status,
+            current_status: Some(BenchmarkLifecycleStatus::Passed),
+            state: if prior_status == Some(BenchmarkLifecycleStatus::Passed) {
+                BenchmarkCycleAdmissionState::AlreadyAdmitted
+            } else {
+                BenchmarkCycleAdmissionState::Admitted
+            },
+            evidence: Some(evidence),
+            error: None,
+        },
+        Err(error) => admission_failure(benchmark_root, identity, prior_status, error),
+    }
+}
+
+fn admission_failure(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+    prior_status: Option<BenchmarkLifecycleStatus>,
+    error: anyhow::Error,
+) -> BenchmarkCycleAdmissionUnit {
+    let current_status = bijux_dna_runtime::load_attempt_lifecycle(benchmark_root, identity)
+        .ok()
+        .and_then(|lifecycle| lifecycle.current_status());
+    BenchmarkCycleAdmissionUnit {
+        identity: identity.clone(),
+        prior_status,
+        current_status: current_status.or(prior_status),
+        state: BenchmarkCycleAdmissionState::Failed,
+        evidence: None,
+        error: Some(format!("{error:#}")),
+    }
 }
 
 /// Load a campaign plan only when it matches the exact checked-out source and registry bytes.
@@ -301,6 +469,46 @@ mod tests {
             output: temporary.path().join("plan.json"),
         });
         assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn admission_reports_every_non_ready_attempt_without_mutation() -> Result<()> {
+        let repository = clean_repository()?;
+        let temporary = bijux_dna_infra::temp_dir("benchmark-cycle-admission")?;
+        let output = temporary.path().join("run-2002-plan.json");
+        let plan = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
+            repository_root: repository.path().to_path_buf(),
+            run_id: "run-2002".to_string(),
+            campaign_id: "campaign-run-2002".to_string(),
+            attempt_id: "attempt-0001".to_string(),
+            observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
+            output: output.clone(),
+        })?;
+        let benchmark_root = temporary.path().join("evidence");
+        let study_root = temporary.path().join("study");
+        fs::create_dir(&study_root)?;
+        crate::workflow::ensure_stage_campaign_attempts(&benchmark_root, &plan)?;
+
+        let admission = admit_checked_in_benchmark_campaign(&BenchmarkCycleAdmissionRequest {
+            repository_root: repository.path().to_path_buf(),
+            study_root,
+            benchmark_root: benchmark_root.clone(),
+            plan: output,
+            admitted_at_utc: "2026-08-10T00:01:00Z".to_string(),
+        })?;
+        assert_eq!(admission.units.len(), 3);
+        assert!(admission
+            .units
+            .iter()
+            .all(|unit| unit.state == BenchmarkCycleAdmissionState::NotReady));
+        for attempt in &plan.cycle.attempts {
+            assert_eq!(
+                bijux_dna_runtime::load_attempt_lifecycle(&benchmark_root, &attempt.identity)?
+                    .current_status(),
+                Some(BenchmarkLifecycleStatus::Planned)
+            );
+        }
         Ok(())
     }
 }

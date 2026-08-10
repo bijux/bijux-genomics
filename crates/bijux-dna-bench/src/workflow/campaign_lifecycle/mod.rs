@@ -10,8 +10,10 @@ mod storage;
 pub use authorities::{load_execution_authorities, BenchmarkExecutionAuthorities};
 pub use execution::{build_execution_spec, BenchmarkExecutionMaterial};
 pub use operator::{
-    load_checked_in_benchmark_campaign_plan, plan_checked_in_benchmark_campaign,
-    status_checked_in_benchmark_campaign, BenchmarkCyclePlanRequest, BenchmarkCycleStatusRequest,
+    admit_checked_in_benchmark_campaign, load_checked_in_benchmark_campaign_plan,
+    plan_checked_in_benchmark_campaign, status_checked_in_benchmark_campaign,
+    BenchmarkCycleAdmission, BenchmarkCycleAdmissionRequest, BenchmarkCycleAdmissionState,
+    BenchmarkCycleAdmissionUnit, BenchmarkCyclePlanRequest, BenchmarkCycleStatusRequest,
 };
 pub use planning::{
     plan_stage_campaign_attempts, plan_stage_campaign_retry_attempts, verify_campaign_plan_source,
