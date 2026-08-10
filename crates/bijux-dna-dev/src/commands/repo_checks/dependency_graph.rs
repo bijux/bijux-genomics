@@ -13,6 +13,7 @@ use crate::runtime::workspace::Workspace;
 
 const GRAPH_PATH: &str = "configs/ci/dependency-graph.json";
 const CARGO_MAKE_PATH: &str = "makes/cargo.mk";
+const FAST_GROUP_PATH: &str = "configs/ci/fast-groups.json";
 const GRAPH_CHECK_COMMAND: &str =
     "cargo run -q -p bijux-dna-dev -- checks run check-ci-dependency-graph";
 
@@ -59,13 +60,22 @@ pub(crate) fn check_ci_dependency_graph(
     );
     let cargo_make = std::fs::read_to_string(workspace.path(CARGO_MAKE_PATH))
         .with_context(|| format!("read {CARGO_MAKE_PATH}"))?;
-    for target in ["_ci-fast", "_ci-slow"] {
-        let body = make_target_body(&cargo_make, target)?;
-        ensure!(
-            body.contains(GRAPH_CHECK_COMMAND),
-            "{target} must validate the CI dependency graph"
-        );
-    }
+    let fast_body = make_target_body(&cargo_make, "_ci-fast")?;
+    ensure!(
+        fast_body.contains("tooling run ci-fast"),
+        "_ci-fast must delegate to the native DAG supervisor"
+    );
+    let fast_groups = std::fs::read_to_string(workspace.path(FAST_GROUP_PATH))
+        .with_context(|| format!("read {FAST_GROUP_PATH}"))?;
+    ensure!(
+        fast_groups.contains("_ci-authority-fast"),
+        "ci-fast groups must include the dependency-graph target"
+    );
+    let slow_body = make_target_body(&cargo_make, "_ci-slow")?;
+    ensure!(
+        slow_body.contains(GRAPH_CHECK_COMMAND),
+        "_ci-slow must validate the CI dependency graph"
+    );
 
     pass(
         check,

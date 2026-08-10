@@ -9,6 +9,7 @@ const AUTHORITY_PATH: &str = "configs/ci/build-authority.json";
 const WORKFLOW_PATH: &str = ".github/workflows/ci.yml";
 const RUNNER_PATH: &str = "makes/bin/run_github_workflow_gate.sh";
 const CARGO_MAKE_PATH: &str = "makes/cargo.mk";
+const FAST_GROUP_PATH: &str = "configs/ci/fast-groups.json";
 
 pub(crate) fn check_ci_build_authority(
     workspace: &Workspace,
@@ -90,13 +91,22 @@ pub(crate) fn check_ci_build_authority(
 
     let cargo_make = std::fs::read_to_string(workspace.path(CARGO_MAKE_PATH))
         .with_context(|| format!("read {CARGO_MAKE_PATH}"))?;
-    for target in ["_ci-fast", "_ci-slow"] {
-        let body = make_target_body(&cargo_make, target)?;
-        ensure!(
-            body.contains("checks run check-ci-build-authority"),
-            "{target} must validate the CI build authority"
-        );
-    }
+    let fast_body = make_target_body(&cargo_make, "_ci-fast")?;
+    ensure!(
+        fast_body.contains("tooling run ci-fast"),
+        "_ci-fast must delegate to the native DAG supervisor"
+    );
+    let fast_groups = std::fs::read_to_string(workspace.path(FAST_GROUP_PATH))
+        .with_context(|| format!("read {FAST_GROUP_PATH}"))?;
+    ensure!(
+        fast_groups.contains("_ci-authority-fast"),
+        "ci-fast groups must include the build-authority target"
+    );
+    let slow_body = make_target_body(&cargo_make, "_ci-slow")?;
+    ensure!(
+        slow_body.contains("checks run check-ci-build-authority"),
+        "_ci-slow must validate the CI build authority"
+    );
 
     pass(
         check,

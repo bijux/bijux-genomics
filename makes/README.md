@@ -79,6 +79,11 @@ CI profile automation:
 - Slow: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
 - Complete: `cargo run -q -p bijux-dna-dev -- tooling run ci-test-all-sharded`
 
+The fast profile reads `configs/ci/fast-groups.json`, runs every dependency-ready group through
+the bounded event-driven Rust supervisor, and writes exact group logs plus current, p50, p95,
+cache-state, reference-runner, and critical-path timing under `artifacts/ci/`. Warm reference
+claims require at least five successful matching observations.
+
 Current internal targets surfaced by help:
 - `domain-validate`
 - `examples-validate`

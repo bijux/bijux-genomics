@@ -15,6 +15,8 @@ Layout:
   dependency graph used for fail-closed change-impact planning.
 - `configs/ci/full-shards.json`: complete-workspace nextest coverage and exact hash partitions
   executed concurrently by the Rust CI supervisor.
+- `configs/ci/fast-groups.json`: bounded independent fast-lane groups, reference runner and
+  warm-cache timing target executed by the same event-driven supervisor.
 
 Rule:
 - Keep governed config collections in named subdirectories with their own `index.md`.
