@@ -91,6 +91,13 @@ crate and pass its generated-schema drift tests.
 non-barrier lifecycle pass. They preserve every independent attempt outcome
 without making an aggregate campaign result a scheduling barrier.
 
+`schemas/governed-data-catalog-snapshot-publication.schema.json`,
+`schemas/governed-data-catalog-registry-publication.schema.json`, and
+`schemas/campaign-report-publication.schema.json` define the versioned outcomes
+of catalog preservation, catalog admission, and campaign report publication.
+The benchmark workflow owns filesystem effects; the model crate owns their
+persisted identities and admission rules.
+
 All benchmark model schemas are generated into `schemas/`. The separate
 `benchmarks/schemas/` tree owns only domain-normalized metric contracts and must
 not contain snapshots of model-owned records.

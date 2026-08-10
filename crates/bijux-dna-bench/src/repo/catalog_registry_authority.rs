@@ -7,9 +7,11 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_governed_data_catalog_document, validate_governed_data_catalog_registry,
-    GovernedDataCatalogDocument, GovernedDataCatalogRegistry,
+    validate_governed_data_catalog_registry_publication, GovernedDataCatalogDocument,
+    GovernedDataCatalogRegistry, GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1,
 };
-use serde::Serialize;
+
+pub use bijux_dna_bench_model::GovernedDataCatalogRegistryPublication;
 
 const MAX_REGISTRY_BYTES: usize = 16 * 1024 * 1024;
 
@@ -17,13 +19,6 @@ const MAX_REGISTRY_BYTES: usize = 16 * 1024 * 1024;
 pub struct GovernedDataCatalogRegistryPublicationRequest {
     pub data_root: PathBuf,
     pub source_commit: String,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-pub struct GovernedDataCatalogRegistryPublication {
-    pub registry_path: PathBuf,
-    pub registry_sha256: String,
-    pub registry: GovernedDataCatalogRegistry,
 }
 
 /// Verify an explicit registry candidate and publish its immutable source-addressed authority.
@@ -68,7 +63,15 @@ pub fn publish_governed_data_catalog_registry(
     }
     let registry_sha256 =
         bijux_dna_infra::hash_file_sha256(&registry_path).context("hash catalog registry")?;
-    Ok(GovernedDataCatalogRegistryPublication { registry_path, registry_sha256, registry })
+    let publication = GovernedDataCatalogRegistryPublication {
+        schema_version: GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1.to_string(),
+        registry_path,
+        registry_sha256,
+        registry,
+    };
+    validate_governed_data_catalog_registry_publication(&publication)
+        .context("validate governed data catalog registry publication")?;
+    Ok(publication)
 }
 
 fn load_registry(path: &Path) -> Result<GovernedDataCatalogRegistry> {

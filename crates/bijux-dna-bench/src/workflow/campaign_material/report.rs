@@ -1,10 +1,15 @@
 //! Owner: bijux-dna-bench
 //! Plan-driven publication across crate-owned benchmark campaign reports.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::BenchmarkCampaignPlan;
+use bijux_dna_bench_model::{
+    validate_benchmark_campaign_report_publication, BenchmarkCampaignPlan,
+    BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1,
+};
+
+pub use bijux_dna_bench_model::BenchmarkCampaignReportPublication;
 
 use crate::workflow::bam_coverage::publish_bam_coverage_stage_report_with_presentation_authority;
 use crate::workflow::bam_duplication_metrics::publish_bam_duplication_metrics_stage_report_with_presentation_authority;
@@ -70,20 +75,6 @@ const REPORT_ADAPTERS: &[BenchmarkCampaignReportAdapter] = &[
     },
 ];
 
-/// Immutable publication identity shared by every governed campaign report.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
-pub struct BenchmarkCampaignReportPublication {
-    pub run_id: String,
-    pub stage_id: String,
-    pub report_path: PathBuf,
-    pub report_sha256: String,
-    pub markdown_path: PathBuf,
-    pub markdown_sha256: String,
-    pub presentation_repository_commit: String,
-    pub presentation_catalog_sha256: String,
-    pub presentation_overlaid_stage_ids: Vec<String>,
-}
-
 /// Derive and publish the report selected by a source-locked campaign plan.
 ///
 /// Each stage adapter retains ownership of its scientific and evidence validation. The validated
@@ -143,7 +134,8 @@ pub fn publish_benchmark_campaign_report_with_presentation_authority(
         plan,
         output_root,
     )?;
-    Ok(BenchmarkCampaignReportPublication {
+    let publication = BenchmarkCampaignReportPublication {
+        schema_version: BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1.to_string(),
         run_id: run_id.to_string(),
         stage_id: stage_id.to_string(),
         report_path: publication.report_path,
@@ -153,7 +145,10 @@ pub fn publish_benchmark_campaign_report_with_presentation_authority(
         presentation_repository_commit: publication.presentation_authority.repository_commit,
         presentation_catalog_sha256: publication.presentation_authority.catalog_sha256,
         presentation_overlaid_stage_ids: publication.presentation_authority.overlaid_stage_ids,
-    })
+    };
+    validate_benchmark_campaign_report_publication(&publication)
+        .context("validate benchmark campaign report publication")?;
+    Ok(publication)
 }
 
 #[cfg(test)]

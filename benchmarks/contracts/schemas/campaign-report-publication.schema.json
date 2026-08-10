@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "markdown_path": {
+      "type": "string"
+    },
+    "markdown_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "presentation_catalog_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "presentation_overlaid_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "presentation_repository_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "report_path": {
+      "type": "string"
+    },
+    "report_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.campaign_report_publication.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "stage_id",
+    "report_path",
+    "report_sha256",
+    "markdown_path",
+    "markdown_sha256",
+    "presentation_repository_commit",
+    "presentation_catalog_sha256",
+    "presentation_overlaid_stage_ids"
+  ],
+  "title": "BenchmarkCampaignReportPublication",
+  "type": "object"
+}

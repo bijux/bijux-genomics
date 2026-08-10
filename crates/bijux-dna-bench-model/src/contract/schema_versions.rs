@@ -20,6 +20,12 @@ pub const BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1: &str =
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V2: &str = "bijux.data_catalog.v2";
 pub const GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1: &str = "bijux.data_catalog_registry.v1";
+pub const GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1: &str =
+    "bijux.data_catalog_snapshot_publication.v1";
+pub const GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1: &str =
+    "bijux.data_catalog_registry_publication.v1";
+pub const BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1: &str =
+    "bijux.benchmark.campaign_report_publication.v1";
 pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
 pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
 pub const DECISION_SCHEMA_V1: &str = "bijux.bench.gate.v1";
