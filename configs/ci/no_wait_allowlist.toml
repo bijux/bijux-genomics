@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-policies
+# purpose = Expiring exceptions for bounded internal retry and backoff findings.
+# authority = bijux-dna-policies
+# stability = stable
+# last_updated = 2026-08-10
+
 schema_version = "bijux.execution.no_wait_allowlist.v1"
 
 # Exceptions are restricted to finite, typed internal retry/backoff. Scheduler,

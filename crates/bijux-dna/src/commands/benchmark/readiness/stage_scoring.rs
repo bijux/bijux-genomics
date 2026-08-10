@@ -30,6 +30,12 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_STAGE_SCORING_PATH: &str = "configs/bench/local/stage-scoring.toml";
 const STAGE_SCORING_SCHEMA_VERSION: &str = "bijux.bench.local_stage_scoring.v1";
 const STAGE_SCORING_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_scoring.v1";
+const STAGE_SCORING_CONFIG_HEADER: &str = "# schema_version = 1\n\
+# owner = bijux-dna-bench\n\
+# purpose = Governed scoring policy for active benchmark stage comparisons.\n\
+# authority = bijux-dna-bench\n\
+# stability = evolving\n\
+# last_updated = 2026-08-10\n\n";
 const STAGE_SCORING_FULL_BENCHMARK_SOURCE: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const STAGE_SCORING_MICRO_SOURCE: &str =
@@ -246,7 +252,8 @@ pub(crate) fn render_stage_scoring(
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    let rendered = toml::to_string_pretty(&config).context("serialize stage-scoring TOML")?;
+    let body = toml::to_string_pretty(&config).context("serialize stage-scoring TOML")?;
+    let rendered = format!("{STAGE_SCORING_CONFIG_HEADER}{body}");
     bijux_dna_infra::atomic_write_bytes(&output_path, rendered.as_bytes())?;
     build_stage_scoring_report(repo_root, &output_path, config.rows)
 }
@@ -853,12 +860,12 @@ fn first_stage_scoring_drift(parsed: &StageScoringConfig, expected: &StageScorin
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
     use std::sync::{Mutex, OnceLock};
 
     use super::{
         render_stage_scoring, StageScoringApplicability, StageScoringCorrectnessSignal,
-        StageScoringDecisionMode,
+        StageScoringDecisionMode, STAGE_SCORING_CONFIG_HEADER,
     };
 
     fn repo_root() -> PathBuf {
@@ -873,18 +880,26 @@ mod tests {
         LOCK.get_or_init(|| Mutex::new(()))
     }
 
+    fn artifact_tempdir(repo_root: &Path) -> tempfile::TempDir {
+        let artifact_root = repo_root.join("artifacts");
+        std::fs::create_dir_all(&artifact_root).expect("create test artifact root");
+        tempfile::tempdir_in(artifact_root).expect("temporary artifact directory")
+    }
+
     #[test]
     fn render_stage_scoring_covers_all_active_stages() {
         let _guard = test_lock().lock().expect("stage scoring unit lock");
         let repo_root = repo_root();
-        let temp_dir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
+        let temp_dir = artifact_tempdir(&repo_root);
         let output_path = temp_dir.path().join("stage-scoring.toml");
         let relative_output_path =
             output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
         let report = render_stage_scoring(&repo_root, relative_output_path.clone())
             .expect("render stage scoring");
+        let rendered = std::fs::read_to_string(&output_path).expect("read stage scoring config");
 
         assert_eq!(report.config_path, relative_output_path.to_string_lossy());
+        assert!(rendered.starts_with(STAGE_SCORING_CONFIG_HEADER));
         assert_eq!(report.row_count, 71);
         assert_eq!(
             report.multi_tool_stage_count,
@@ -919,7 +934,7 @@ mod tests {
     fn render_stage_scoring_preserves_multi_tool_ranking_contracts() {
         let _guard = test_lock().lock().expect("stage scoring unit lock");
         let repo_root = repo_root();
-        let temp_dir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
+        let temp_dir = artifact_tempdir(&repo_root);
         let output_path = temp_dir.path().join("stage-scoring.toml");
         let relative_output_path =
             output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
@@ -949,7 +964,7 @@ mod tests {
     fn render_stage_scoring_preserves_single_tool_acceptance_contracts() {
         let _guard = test_lock().lock().expect("stage scoring unit lock");
         let repo_root = repo_root();
-        let temp_dir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
+        let temp_dir = artifact_tempdir(&repo_root);
         let output_path = temp_dir.path().join("stage-scoring.toml");
         let relative_output_path =
             output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
