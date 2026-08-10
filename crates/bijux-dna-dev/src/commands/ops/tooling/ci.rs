@@ -1,6 +1,6 @@
 use super::super::suite_selection::governed_slow_expression;
 use std::collections::BTreeSet;
-use std::path::{Component, Path};
+use std::path::{Component, Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
@@ -24,6 +24,7 @@ struct FullShardContract {
     schema_version: String,
     coverage: FullShardCoverage,
     partition_strategy: String,
+    workspace_isolation: String,
     shared_target_root: String,
     report_root: String,
     shards: Vec<FullShard>,
@@ -291,6 +292,7 @@ pub(in super::super) fn tooling_ci_fast(
                 program: group.program.clone(),
                 args: group.args.clone(),
                 envs: envs.clone(),
+                current_dir: None,
             })
             .collect();
         let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
@@ -488,10 +490,16 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let mut envs = ci_test_env(workspace, false)?;
     envs.push(("CARGO_TARGET_DIR".to_string(), target_root.display().to_string()));
     let started = Instant::now();
+    let shard_workspaces = contract
+        .shards
+        .iter()
+        .map(|shard| materialize_full_shard_workspace(workspace, &report_root, shard))
+        .collect::<Result<Vec<_>>>()?;
     let specs = contract
         .shards
         .iter()
-        .map(|shard| ParallelProcessSpec {
+        .zip(&shard_workspaces)
+        .map(|(shard, shard_workspace)| ParallelProcessSpec {
             label: shard.id.clone(),
             program: "cargo".to_string(),
             args: vec![
@@ -513,6 +521,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 shard.partition.clone(),
             ],
             envs: envs.clone(),
+            current_dir: Some(shard_workspace.clone()),
         })
         .collect::<Vec<_>>();
     let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
@@ -520,7 +529,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let mut shard_receipts = Vec::with_capacity(outputs.len());
     let mut stdout = String::new();
     let mut stderr = String::new();
-    for (shard, completed) in contract.shards.iter().zip(outputs) {
+    for ((shard, shard_workspace), completed) in
+        contract.shards.iter().zip(&shard_workspaces).zip(outputs)
+    {
         let log_path = report_root.join(format!("{}.log", shard.id));
         let mut log = completed.output.stdout.clone();
         log.extend_from_slice(&completed.output.stderr);
@@ -532,6 +543,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         shard_receipts.push(serde_json::json!({
             "id": completed.label,
             "partition": shard.partition,
+            "workspace": workspace.rel(shard_workspace).to_string_lossy(),
             "duration_milliseconds": completed.duration.as_millis(),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
@@ -547,7 +559,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "all_targets": true,
                 "all_features": true,
                 "run_ignored": "all",
-                "overlap_policy": "exactly_once"
+                "overlap_policy": "exactly_once",
+                "workspace_isolation": contract.workspace_isolation
             },
             "wall_time_milliseconds": started.elapsed().as_millis(),
             "all_passed": all_passed,
@@ -555,6 +568,70 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         }),
     )?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn materialize_full_shard_workspace(
+    workspace: &Workspace,
+    report_root: &Path,
+    shard: &FullShard,
+) -> Result<PathBuf> {
+    let shard_workspace = report_root.join("workspaces").join(&shard.id);
+    if shard_workspace.exists() {
+        std::fs::remove_dir_all(&shard_workspace).with_context(|| {
+            format!("remove stale shard workspace {}", shard_workspace.display())
+        })?;
+    }
+    let shard_parent = shard_workspace.parent().context("shard workspace has no parent")?;
+    bijux_dna_infra::ensure_dir(shard_parent)?;
+    let clone = ProcessRunner::new(workspace).run_owned(
+        "git",
+        &[
+            "clone".to_string(),
+            "--shared".to_string(),
+            "--quiet".to_string(),
+            workspace.root.display().to_string(),
+            shard_workspace.display().to_string(),
+        ],
+    )?;
+    if !clone.status.success() {
+        anyhow::bail!(
+            "clone shard workspace {}: {}",
+            shard_workspace.display(),
+            String::from_utf8_lossy(&clone.stderr)
+        );
+    }
+    bijux_dna_infra::ensure_dir(shard_workspace.join("artifacts"))?;
+
+    let tracked = ProcessRunner::new(workspace).run(&["git", "ls-files", "-z"])?;
+    if !tracked.status.success() {
+        anyhow::bail!(
+            "list tracked files for shard workspace: {}",
+            String::from_utf8_lossy(&tracked.stderr)
+        );
+    }
+    for encoded in tracked.stdout.split(|byte| *byte == 0).filter(|path| !path.is_empty()) {
+        let relative = std::str::from_utf8(encoded).context("tracked path is not UTF-8")?;
+        let relative = Path::new(relative);
+        if relative.is_absolute()
+            || relative.components().any(|component| {
+                matches!(
+                    component,
+                    Component::ParentDir | Component::RootDir | Component::Prefix(_)
+                )
+            })
+        {
+            anyhow::bail!("tracked path escapes shard workspace: {}", relative.display());
+        }
+        let source = workspace.root.join(relative);
+        let destination = shard_workspace.join(relative);
+        if let Some(parent) = destination.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+        std::fs::copy(&source, &destination).with_context(|| {
+            format!("copy tracked shard source {} to {}", source.display(), destination.display())
+        })?;
+    }
+    Ok(shard_workspace)
 }
 
 fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
@@ -565,6 +642,7 @@ fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
         || contract.coverage.run_ignored != "all"
         || contract.coverage.overlap_policy != "exactly_once"
         || contract.partition_strategy != "hash"
+        || contract.workspace_isolation != "tracked_source_clone"
         || !(2..=16).contains(&contract.shards.len())
     {
         anyhow::bail!("full shard coverage contract is incomplete");
@@ -879,11 +957,12 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
-        percentile, reference_timing_samples, validate_fast_group_contract,
-        validate_full_shard_contract, FastGroup, FastGroupContract, FastReferenceRunner,
-        FastTimingHistory, FastTimingObservation, FullShard, FullShardContract, FullShardCoverage,
-        FAST_TIMING_HISTORY_SCHEMA_V1,
+        materialize_full_shard_workspace, percentile, reference_timing_samples,
+        validate_fast_group_contract, validate_full_shard_contract, FastGroup, FastGroupContract,
+        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullShard,
+        FullShardContract, FullShardCoverage, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
+    use crate::runtime::workspace::Workspace;
 
     fn contract() -> FullShardContract {
         FullShardContract {
@@ -896,6 +975,7 @@ mod tests {
                 overlap_policy: "exactly_once".to_string(),
             },
             partition_strategy: "hash".to_string(),
+            workspace_isolation: "tracked_source_clone".to_string(),
             shared_target_root: "artifacts/target".to_string(),
             report_root: "artifacts/ci/full-shards".to_string(),
             shards: (1..=4)
@@ -947,6 +1027,31 @@ mod tests {
         let mut escaping = contract();
         escaping.report_root = "../reports".to_string();
         assert!(validate_full_shard_contract(&escaping).is_err());
+
+        let mut shared_workspace = contract();
+        shared_workspace.workspace_isolation = "shared".to_string();
+        assert!(validate_full_shard_contract(&shared_workspace).is_err());
+    }
+
+    #[test]
+    fn full_shard_workspace_is_an_isolated_tracked_source_clone() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let artifact_root = workspace.path("artifacts");
+        bijux_dna_infra::ensure_dir(&artifact_root)?;
+        let report_root = tempfile::tempdir_in(&artifact_root)?;
+        let shard =
+            FullShard { id: "isolation-proof".to_string(), partition: "hash:1/4".to_string() };
+
+        let isolated = materialize_full_shard_workspace(&workspace, report_root.path(), &shard)?;
+        assert!(isolated.join(".git").is_dir());
+        assert!(isolated.join("artifacts").is_dir());
+        let root_manifest = std::fs::read(workspace.path("Cargo.toml"))?;
+        assert_eq!(std::fs::read(isolated.join("Cargo.toml"))?, root_manifest);
+        std::fs::write(isolated.join("Cargo.toml"), b"isolated mutation\n")?;
+        assert_eq!(std::fs::read(workspace.path("Cargo.toml"))?, root_manifest);
+        Ok(())
     }
 
     #[test]

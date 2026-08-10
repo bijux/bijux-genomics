@@ -8,6 +8,7 @@
     "overlap_policy": "exactly_once"
   },
   "partition_strategy": "hash",
+  "workspace_isolation": "tracked_source_clone",
   "shared_target_root": "artifacts/target",
   "report_root": "artifacts/ci/full-shards",
   "shards": [

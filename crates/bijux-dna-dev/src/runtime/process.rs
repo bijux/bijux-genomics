@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::process::Output;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
@@ -17,6 +18,7 @@ pub struct ParallelProcessSpec {
     pub program: String,
     pub args: Vec<String>,
     pub envs: Vec<(String, String)>,
+    pub current_dir: Option<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -92,10 +94,11 @@ impl<'a> ProcessRunner<'a> {
                 let root = root.clone();
                 scope.spawn(move || {
                     let started = Instant::now();
+                    let current_dir = spec.current_dir.as_ref().unwrap_or(&root);
                     let result = std::process::Command::new(&spec.program)
                         .args(&spec.args)
                         .envs(spec.envs.iter().map(|(key, value)| (key, value)))
-                        .current_dir(root)
+                        .current_dir(current_dir)
                         .output()
                         .with_context(|| format!("run parallel process {}", spec.label))
                         .map(|output| ParallelProcessOutput {
@@ -145,6 +148,7 @@ mod tests {
                 program: "sh".to_string(),
                 args: vec!["-c".to_string(), format!("printf '%s' {label}")],
                 envs: Vec::new(),
+                current_dir: None,
             })
             .collect();
         let outputs = ProcessRunner::new(&workspace).run_parallel(specs)?;
@@ -154,6 +158,27 @@ mod tests {
         );
         assert_eq!(outputs[0].output.stdout, b"first");
         assert_eq!(outputs[1].output.stdout, b"second");
+        Ok(())
+    }
+
+    #[test]
+    fn parallel_runner_honors_isolated_working_directories() -> anyhow::Result<()> {
+        let workspace = Workspace { root: std::env::current_dir()? };
+        let artifact_root = workspace.root.join("artifacts");
+        bijux_dna_infra::ensure_dir(&artifact_root)?;
+        let isolated = tempfile::tempdir_in(&artifact_root)?;
+        let outputs = ProcessRunner::new(&workspace).run_parallel(vec![ParallelProcessSpec {
+            label: "isolated".to_string(),
+            program: "pwd".to_string(),
+            args: Vec::new(),
+            envs: Vec::new(),
+            current_dir: Some(isolated.path().to_path_buf()),
+        }])?;
+
+        assert_eq!(
+            String::from_utf8(outputs[0].output.stdout.clone())?.trim(),
+            isolated.path().canonicalize()?.display().to_string()
+        );
         Ok(())
     }
 }
