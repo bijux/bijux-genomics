@@ -825,8 +825,9 @@ mod tests {
         external.run_id = "run-1094".to_string();
         external.tool_id = "angsd".to_string();
         external.negative_command[0] = "angsd".to_string();
-        let error = compile_container_qualification_specification(&request, &external)
-            .expect_err("ANGSD lacks admitted external-artifact evidence in the test inventory");
+        let Err(error) = compile_container_qualification_specification(&request, &external) else {
+            anyhow::bail!("ANGSD lacks admitted external-artifact evidence in the test inventory");
+        };
         assert!(!error.to_string().contains("retained distributable"));
         Ok(())
     }
