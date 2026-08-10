@@ -592,6 +592,31 @@ mod tests {
         Ok(publication)
     }
 
+    fn blocked_external_publication() -> Result<ContainerSecurityEvidencePublication> {
+        let mut publication = valid_publication()?;
+        let evidence = publication
+            .tools
+            .get_mut("samtools")
+            .ok_or_else(|| anyhow::anyhow!("security fixture lacks samtools evidence"))?;
+        evidence.product_support = ProductSupport::Supported;
+        evidence.artifact_delivery = ArtifactDelivery::ExternalArtifact;
+        evidence.redistribution_permitted = false;
+        evidence.availability = ArtifactAvailability::BlockedExternalAccess;
+        evidence.artifact_sha256 = None;
+        evidence.tool_contract_sha256 = None;
+        evidence.admission_evidence_sha256 = None;
+        evidence.source_identity = None;
+        evidence.structural = None;
+        evidence.sbom = None;
+        evidence.vulnerabilities = None;
+        evidence.secret_scan = None;
+        evidence.runtime_policy = None;
+        evidence.waivers.clear();
+        evidence.verdict = EvidenceVerdict::Blocked;
+        evidence.reasons = vec!["institutional artifact access has not been supplied".to_string()];
+        Ok(publication)
+    }
+
     #[test]
     fn complete_security_evidence_passes() -> Result<()> {
         validate_security_evidence_publication(&valid_publication()?)
@@ -722,27 +747,34 @@ mod tests {
 
     #[test]
     fn supported_external_blocker_cannot_be_not_applicable() -> Result<()> {
-        let mut publication = valid_publication()?;
+        let mut publication = blocked_external_publication()?;
         let Some(evidence) = publication.tools.get_mut("samtools") else {
             anyhow::bail!("security fixture lacks samtools evidence");
         };
-        evidence.product_support = ProductSupport::Supported;
-        evidence.artifact_delivery = ArtifactDelivery::ExternalArtifact;
-        evidence.redistribution_permitted = false;
-        evidence.availability = ArtifactAvailability::BlockedExternalAccess;
-        evidence.artifact_sha256 = None;
-        evidence.tool_contract_sha256 = None;
-        evidence.admission_evidence_sha256 = None;
-        evidence.source_identity = None;
-        evidence.structural = None;
-        evidence.sbom = None;
-        evidence.vulnerabilities = None;
-        evidence.secret_scan = None;
-        evidence.runtime_policy = None;
-        evidence.waivers.clear();
         evidence.verdict = EvidenceVerdict::NotApplicable;
+        evidence.reasons.clear();
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("requires Blocked")));
+        Ok(())
+    }
+
+    #[test]
+    fn external_access_blocker_derives_a_blocked_qualification_decision() -> Result<()> {
+        let publication = blocked_external_publication()?;
+        let admitted = super::super::admission::admit_security_evidence(
+            &publication,
+            &"7".repeat(64),
+            &"a".repeat(40),
+            &"b".repeat(64),
+            &"c".repeat(64),
+        )?;
+        let decision = admitted.tool_availability_decision("samtools");
+        assert_eq!(decision.verdict, EvidenceVerdict::Blocked);
+        assert_eq!(
+            decision.audit.measured_values["artifact_availability"],
+            "blocked_external_access"
+        );
+        assert!(decision.audit.reason.contains("institutional artifact access"));
         Ok(())
     }
 
