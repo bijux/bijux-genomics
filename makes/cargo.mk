@@ -508,6 +508,7 @@ github-all-frozen: ## Launch pinned GitHub workflow gates in the background.
 
 _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) _ssot-policy-fast
+	@cargo run -q -p bijux-dna-dev -- checks run check-root-layout
 	$(MAKE) fmt
 	$(MAKE) lint-workspace
 	$(MAKE) _unit-contract-fast

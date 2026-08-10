@@ -24,6 +24,7 @@ List the authoritative document for each architecture contract category.
 | Contract category | Authority |
 | --- | --- |
 | root architecture map | [docs/10-architecture/ARCHITECTURE_CONTRACT.md](ARCHITECTURE_CONTRACT.md) |
+| root tree boundary | [docs/10-architecture/ROOT_TREE_CONTRACT.md](ROOT_TREE_CONTRACT.md) |
 | crate boundaries | [docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md](CRATE_BOUNDARY_CONTRACTS.md) |
 | dependency boundaries | [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md) |
 | crate responsibility map | [docs/10-architecture/CRATE_AUTHORITY_MAP.md](CRATE_AUTHORITY_MAP.md) |
