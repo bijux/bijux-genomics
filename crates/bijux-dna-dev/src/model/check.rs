@@ -36,6 +36,7 @@ pub enum NativeCheckKey {
     CargoConfigPolicy,
     CertificationSchemaDocs,
     CiAutomationSurface,
+    CiDependencyGraph,
     ClippyAllowlistExpiry,
     ClippyAllowlistGrowth,
     ConfigSchema,

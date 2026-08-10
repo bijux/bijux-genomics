@@ -44,7 +44,9 @@ Layer responsibilities:
 
 Command boundaries:
 
-- `repo_checks.rs` is a curated facade over repository-check namespaces. Artifact guardrails, governance checks, and workspace contracts stay in separate files under `src/commands/repo_checks/`.
+- `repo_checks.rs` is a curated facade over repository-check namespaces. Artifact guardrails,
+  CI dependency validation, governance checks, non-waiting enforcement, and workspace contracts
+  stay in separate files under `src/commands/repo_checks/`.
 - `containers/runtime/mod.rs` owns general container runtime utilities. Frontend proof and report logic stays in `src/commands/containers/runtime/frontend_proofs.rs`.
 - `containers/validation/` owns policy-style validation operations that inspect container manifests, locks, generated reports, and registry parity.
 - `domain/` owns developer automation around domain indexes, inventory, schema policy, registry locks, and tool governance. It may inspect domain contracts but must not become a production domain semantics crate.

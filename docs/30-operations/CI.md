@@ -20,10 +20,15 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 
 - `make gate-essential`
 - Non-waiting execution policy: `cargo run -q -p bijux-dna-dev -- checks run check-no-wait-gate`
+- Dependency graph policy: `cargo run -q -p bijux-dna-dev -- checks run check-ci-dependency-graph`
 - The non-waiting check scans tracked scheduler, CI, automation, and lifecycle sources once and writes
   `artifacts/architecture/no-wait-gate.json`. A bounded internal retry/backoff is admissible only
   through an exact, expiring entry in `configs/ci/no_wait_allowlist.toml`; scheduler and completion
   observation must remain one-shot.
+- The dependency graph in `configs/ci/dependency-graph.json` binds every workspace crate and local
+  Cargo edge, plus generated schemas, contracts, and reports. Impact propagates from a changed
+  dependency to all declared consumers. Unmatched changes fail closed to the full gate, and the
+  nightly full lane validates reduced planning.
 - Coverage: crate boundaries, domain YAML validation, stage-contract snapshots, planner determinism, runtime layout, and evidence discovery basics.
 - Intended use: local architectural integrity checks during focused iteration without paying the full `make ci` cost.
 

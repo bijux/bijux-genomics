@@ -53,6 +53,7 @@ fn assert_policy_rule_trees(root: &Path) {
         entries([
             "OWNER.toml",
             "directory_layout.rs",
+            "dependency_graph.rs",
             "failure_policy.rs",
             "mod.rs",
             "module_files.rs",

@@ -10,6 +10,11 @@ pub mod release_evidence;
 pub mod security_evidence;
 mod source_scan;
 
+pub use checks::dependency_graph::{
+    plan_change_impact, validate_dependency_graph, ChangeImpactPlan, CiDependencyEdge,
+    CiDependencyGraph, CiDependencyKind, CiDependencyNode, CiGateFamily, CiNodeKind,
+    CiPeriodicFullValidation, CiPlannerPolicy, CI_DEPENDENCY_GRAPH_SCHEMA_V1,
+};
 pub use checks::no_wait::{
     evaluate_no_wait_gate, is_governed_no_wait_source, no_wait_gate_schema, no_wait_policy_sha256,
     AllowlistedNoWaitFinding, NoWaitAllowlist, NoWaitException, NoWaitFinding, NoWaitGateReceipt,

@@ -15,6 +15,7 @@
 - `qualification contracts`
 - `release evidence contracts`
 - `security evidence contracts`
+- `CI dependency graph and change-impact planning contracts`
 - `policy_assert!`
 - `policy_assert_eq!`
 - `policy_assert_ne!`

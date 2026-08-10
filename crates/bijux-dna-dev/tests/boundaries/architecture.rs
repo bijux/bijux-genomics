@@ -106,11 +106,17 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
-    let expected_repo_checks: BTreeSet<_> =
-        ["artifacts.rs", "governance.rs", "no_wait.rs", "ownership.rs", "workspace_contracts.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_repo_checks: BTreeSet<_> = [
+        "artifacts.rs",
+        "dependency_graph.rs",
+        "governance.rs",
+        "no_wait.rs",
+        "ownership.rs",
+        "workspace_contracts.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         repo_checks_entries, expected_repo_checks,
         "repository checks must stay partitioned by concern"

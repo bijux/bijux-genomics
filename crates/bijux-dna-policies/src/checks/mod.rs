@@ -1,3 +1,4 @@
+pub(crate) mod dependency_graph;
 pub(crate) mod directory_layout;
 pub(crate) mod failure_policy;
 pub(crate) mod module_files;

@@ -42,6 +42,9 @@ pub fn run_native_check(
         NativeCheckKey::CiAutomationSurface => {
             automation_boundary::check_ci_automation_surface(workspace, check)
         }
+        NativeCheckKey::CiDependencyGraph => {
+            repo_checks::check_ci_dependency_graph(workspace, check)
+        }
         NativeCheckKey::ClippyAllowlistExpiry => {
             repo_checks::check_clippy_allowlist_expiry(workspace, check)
         }

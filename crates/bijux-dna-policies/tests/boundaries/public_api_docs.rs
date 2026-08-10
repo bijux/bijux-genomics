@@ -29,6 +29,7 @@ fn policy__boundaries__public_api_docs__public_api_docs_match_curated_exports() 
             "qualification contracts",
             "release evidence contracts",
             "security evidence contracts",
+            "CI dependency graph and change-impact planning contracts",
             "policy_assert!",
             "policy_assert_eq!",
             "policy_assert_ne!",
@@ -46,6 +47,12 @@ fn policy__boundaries__public_api_docs__documented_root_exports_remain_compilabl
 
     let _: fn(&Path, &GuardrailConfig) -> Result<()> = bijux_dna_policies::check;
     let _: Option<GuardrailConfig> = None;
+    let _: fn(&bijux_dna_policies::CiDependencyGraph) -> Result<()> =
+        bijux_dna_policies::validate_dependency_graph;
+    let _: fn(
+        &bijux_dna_policies::CiDependencyGraph,
+        &[String],
+    ) -> Result<bijux_dna_policies::ChangeImpactPlan> = bijux_dna_policies::plan_change_impact;
     bijux_dna_policies::policy_assert!(true, "policy_assert! must be exported");
     bijux_dna_policies::policy_assert_eq!(1, 1, "policy_assert_eq! must be exported");
     bijux_dna_policies::policy_assert_ne!(1, 2, "policy_assert_ne! must be exported");

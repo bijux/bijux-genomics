@@ -50,6 +50,7 @@ check-benchmark-integrity-policy
 check-cargo-config-policy
 check-certification-schema-docs
 check-ci-automation-surface
+check-ci-dependency-graph
 check-cli-command-snapshot
 check-clippy-allowlist-expiry
 check-clippy-allowlist-growth
