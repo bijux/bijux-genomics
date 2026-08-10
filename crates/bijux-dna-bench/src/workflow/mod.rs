@@ -9,6 +9,7 @@ mod bam_endogenous_content;
 mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
+mod benchmark_matrix;
 mod campaign_cases;
 mod campaign_engine;
 mod campaign_lifecycle;
@@ -72,6 +73,10 @@ pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,
     publish_bam_mapping_summary_stage_report, render_bam_mapping_summary_markdown,
     BamMappingSummaryMaterial, BamMappingSummaryStageReportPublication,
+};
+pub use benchmark_matrix::{
+    current_benchmark_matrix_timestamp, derive_benchmark_matrix, publish_benchmark_matrix,
+    BenchmarkMatrixRequest,
 };
 pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,

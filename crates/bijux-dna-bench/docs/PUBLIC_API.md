@@ -19,6 +19,9 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_interface_catalog_for_publication(path, source_repository_root, presentation_repository_root)` keeps historical interface fields source-locked while completing only absent render metadata from an explicit presentation authority.
 - `load_checked_in_benchmark_contracts()` preserves the campaign/portfolio return contract while validating every checked-in planning input.
 - `load_checked_in_benchmark_planning_contracts()` returns the campaign registry, portfolio, and stage-interface catalog after validating defined identity consistency.
+- `derive_benchmark_matrix(request)` derives every selected stage/tool case from the supported product catalog, retains externally delivered tools, and emits explicit refusal rows for missing stage contracts or bindings.
+- `publish_benchmark_matrix(path, report)` validates summary and readiness closure before atomically publishing a matrix.
+- `current_benchmark_matrix_timestamp()` supplies the explicit generation identity used by thin operator surfaces.
 - `derive_stage_universe(repository_root, portfolio)` derives the complete domain-stage registry and enforces exact benchmark run-reservation closure.
 - `publish_checked_in_stage_universe(repository_root, mode)` writes or checks the generated canonical registry, review index, and JSON Schema.
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.
@@ -87,6 +90,10 @@ including:
 - `BenchmarkStageInterfaceCatalog`
 - `BenchmarkStageInterfaceSpec`
 - `BenchmarkPipelineParameterConfig`
+- `BenchmarkMatrixRequest`
+- `BenchmarkMatrixReport`
+- `BenchmarkMatrixRow`
+- `BenchmarkMatrixSummary`
 - `BenchmarkStageReport`
 - `BenchmarkToolReport`
 - `BenchmarkRunIdentity`

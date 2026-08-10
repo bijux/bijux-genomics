@@ -21,6 +21,9 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-interface-catalog-for-publication` | `load_stage_interface_catalog_for_publication(path, source_repository_root, presentation_repository_root)` | Complete only absent historical report-presentation tables from an explicit validated presentation authority. |
 | `load-checked-in-benchmark-contracts` | `load_checked_in_benchmark_contracts()` | Load the checked-in stage-campaign registry and benchmark portfolio while validating all checked-in planning inputs. |
 | `load-checked-in-benchmark-planning-contracts` | `load_checked_in_benchmark_planning_contracts()` | Load the checked-in stage-campaign registry, benchmark portfolio, and stage-interface catalog and validate their defined identities. |
+| `derive-benchmark-matrix` | `derive_benchmark_matrix(request)` | Derive the selected stage/tool frontier from all supported catalog pairs, retaining external deliveries and explicit refusal rows for contract drift. |
+| `publish-benchmark-matrix` | `publish_benchmark_matrix(path, report)` | Validate the complete matrix identity, surface, readiness, and summary closure before atomic publication. |
+| `current-benchmark-matrix-timestamp` | `current_benchmark_matrix_timestamp()` | Supply an explicit generation timestamp for thin operator requests. |
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |

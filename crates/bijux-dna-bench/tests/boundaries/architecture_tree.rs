@@ -95,6 +95,7 @@ fn bench_tree_matches_architecture_contract() {
             "bam_genotyping/",
             "bam_mapping_summary/",
             "bam_observation/",
+            "benchmark_matrix.rs",
             "campaign_cases.rs",
             "campaign_lifecycle/",
             "campaign_engine/",

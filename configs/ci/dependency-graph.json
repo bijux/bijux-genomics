@@ -473,6 +473,11 @@
     },
     {
       "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
       "dependency": "crate:bijux-dna-bench-model",
       "kind": "normal"
     },

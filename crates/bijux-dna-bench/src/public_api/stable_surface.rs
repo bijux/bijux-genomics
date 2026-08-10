@@ -1,6 +1,16 @@
 //! Owner: bijux-dna-bench
 //! Stable public benchmark surface re-exported by the crate root.
 
+pub use crate::workflow::{
+    current_benchmark_matrix_timestamp, derive_benchmark_matrix, publish_benchmark_matrix,
+    BenchmarkMatrixRequest,
+};
+pub use bijux_dna_bench_model::{
+    benchmark_matrix_report_schema, validate_benchmark_matrix_report, BenchmarkMatrixReport,
+    BenchmarkMatrixRow, BenchmarkMatrixSummary, BenchmarkReadiness, BenchmarkSurfaceMatch,
+    BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
+};
+
 pub use crate::artifacts::{
     admit_benchmark_execution_outputs, archive_effective_tool_parameters,
     BenchmarkExecutionAdmission, BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment,

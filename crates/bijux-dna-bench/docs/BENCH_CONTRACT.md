@@ -11,6 +11,8 @@ gating, and deterministic artifact persistence.
 - `BenchmarkObservation` records from runtime/analyze benchmark runs.
 - Typed retained-tool catalog, campaign registry, and admitted stage reports for
   stage-coverage derivation.
+- Explicit matrix requests binding repository, campaign, selected domains, data surfaces,
+  image surface, and generation identity.
 - Governed data-index/catalog authorities and exact corpus files for expectation derivation.
 - Typed checksum-pinned acquisition plans for real FASTQ corpus materialization.
 - Optional existing `observations.jsonl` when `BenchRunOptions.resume` is true.
@@ -28,6 +30,8 @@ gating, and deterministic artifact persistence.
 - Immutable exact FASTQ summaries, histograms, row identities, and expectation manifests.
 - Complete stage-specific execution material consumed by the immutable execution-spec builder.
 - Source-locked generic case matrices, admitted observation sets, and deterministic case aggregations.
+- Catalog-complete benchmark frontiers with every supported stage/tool pair and explicit
+  refusal rows for missing stage contracts or tool bindings.
 - No-clobber governed data catalogs published only after complete source and FASTQ validation.
 
 ## Required Invariants
@@ -52,6 +56,9 @@ gating, and deterministic artifact persistence.
 - Stage coverage must derive exact retained-tool closure from the environment
   catalog and may mark a stage admitted only from a fully validated passing report
   produced by the required repository commit. Historical reports remain visible as stale.
+- Matrix derivation must filter only on product support. Artifact delivery and redistribution
+  policy cannot remove a supported tool, and missing catalog/domain bindings must fail closed
+  in the planned frontier instead of disappearing.
 
 ## Failure Modes
 
