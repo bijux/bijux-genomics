@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2003",
+  "run": {
+    "run_id": "run-2003",
+    "domain": "bam",
+    "stage_id": "bam.endogenous_content"
+  },
+  "protocol_title": "BAM endogenous content benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "846580c8637ff3495585410a7d6b38379a45ffc74696c3dc4113505756c38a48",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

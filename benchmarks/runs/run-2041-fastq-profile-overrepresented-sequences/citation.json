@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2041",
+  "run": {
+    "run_id": "run-2041",
+    "domain": "fastq",
+    "stage_id": "fastq.profile_overrepresented_sequences"
+  },
+  "protocol_title": "FASTQ profile overrepresented sequences benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "49f40518dc0b445178e4f11da02b7525e2fe24150b5273631ebba48fb32e1b9a",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

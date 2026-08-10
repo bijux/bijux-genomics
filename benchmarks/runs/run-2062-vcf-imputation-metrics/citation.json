@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2062",
+  "run": {
+    "run_id": "run-2062",
+    "domain": "vcf",
+    "stage_id": "vcf.imputation_metrics"
+  },
+  "protocol_title": "VCF imputation metrics benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "f31fd2dbd4cf879922fa6dda43765131755bf0ba7acd5f1a1e123d490ae4e83c",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

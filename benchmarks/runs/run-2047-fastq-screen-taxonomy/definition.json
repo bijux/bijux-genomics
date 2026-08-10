@@ -1,0 +1,36 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2047",
+    "domain": "fastq",
+    "stage_id": "fastq.screen_taxonomy"
+  },
+  "protocol_version": "1.0.0",
+  "title": "FASTQ screen taxonomy benchmark protocol",
+  "purpose": "Compare the runnable fastq.screen_taxonomy tools using taxon_precision_recall_abundance_error_and_negative_control_specificity; downstream substitution: consume every classifier result through the same lineage and reporting stages.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "fastq-taxonomy",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "centrifuge",
+    "kaiju",
+    "kraken2",
+    "krakenuniq"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "environmental_taxonomy_truth",
+      "corpus_ids": [
+        "environmental-taxonomy-challenge"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "fastq-taxonomy-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2047",
+  "supersedes_run_ids": []
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2046",
+    "domain": "fastq",
+    "stage_id": "fastq.report_qc"
+  },
+  "protocol_version": "1.0.0",
+  "title": "FASTQ report qc benchmark protocol",
+  "purpose": "Compare the runnable fastq.report_qc tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "fastq-observational-qc",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "multiqc"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "short_read_diversity",
+      "corpus_ids": [
+        "human-short-read-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2046",
+  "supersedes_run_ids": []
+}

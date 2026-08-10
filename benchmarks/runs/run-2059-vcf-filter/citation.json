@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2059",
+  "run": {
+    "run_id": "run-2059",
+    "domain": "vcf",
+    "stage_id": "vcf.filter"
+  },
+  "protocol_title": "VCF filter benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "50667a4179fbc8e32ac026f5ab0207235a3146bfdedda535a418de724aef80e6",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

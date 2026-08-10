@@ -1,0 +1,12 @@
+{
+  "schema_version": "bijux.benchmark.run_publication_pointer.v1",
+  "run": {
+    "run_id": "run-2003",
+    "domain": "bam",
+    "stage_id": "bam.endogenous_content"
+  },
+  "protocol_sha256": "846580c8637ff3495585410a7d6b38379a45ffc74696c3dc4113505756c38a48",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

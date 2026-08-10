@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2026",
+  "run": {
+    "run_id": "run-2026",
+    "domain": "fastq",
+    "stage_id": "fastq.correct_errors"
+  },
+  "protocol_title": "FASTQ correct errors benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "08149f31f19963e798a7f70f0c6807c650da84f235612c3437012871e5601045",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2013",
+  "run": {
+    "run_id": "run-2013",
+    "domain": "bam",
+    "stage_id": "bam.gc_bias"
+  },
+  "protocol_title": "BAM gc bias benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "0683173158b2e47d8dc8268c0aa37bfdbb069948b79455958c0d8ac5c5b3ca2d",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

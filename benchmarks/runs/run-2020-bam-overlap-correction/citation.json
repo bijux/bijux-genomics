@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2020",
+  "run": {
+    "run_id": "run-2020",
+    "domain": "bam",
+    "stage_id": "bam.overlap_correction"
+  },
+  "protocol_title": "BAM overlap correction benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "799e2dd86d76e4f1b40d9b327dcd7da82b1596ad0d691d444e10a31c44462ed6",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

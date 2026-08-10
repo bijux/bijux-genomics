@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2017",
+  "run": {
+    "run_id": "run-2017",
+    "domain": "bam",
+    "stage_id": "bam.length_filter"
+  },
+  "protocol_title": "BAM length filter benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "fa4985cf3496606faf7a096bac8662f3a97a6b3e4ac905c3b1ff430cf9c35df5",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

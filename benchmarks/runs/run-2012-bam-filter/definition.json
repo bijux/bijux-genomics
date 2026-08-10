@@ -1,0 +1,41 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2012",
+    "domain": "bam",
+    "stage_id": "bam.filter"
+  },
+  "protocol_version": "1.0.0",
+  "title": "BAM filter benchmark protocol",
+  "purpose": "Compare the runnable bam.filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "bam-transformation",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "bamtools",
+    "bedtools",
+    "samtools"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "alignment_truth",
+      "corpus_ids": [
+        "alignment-truth-panel"
+      ]
+    },
+    {
+      "role": "bam_diversity",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "bam-transformation-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2012",
+  "supersedes_run_ids": []
+}

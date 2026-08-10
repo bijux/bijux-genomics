@@ -1,0 +1,33 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2039",
+    "domain": "fastq",
+    "stage_id": "fastq.normalize_abundance"
+  },
+  "protocol_version": "1.0.0",
+  "title": "FASTQ normalize abundance benchmark protocol",
+  "purpose": "Compare the runnable fastq.normalize_abundance tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "fastq-amplicon",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "seqkit"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "amplicon_truth",
+      "corpus_ids": [
+        "amplicon-community-challenge"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2039",
+  "supersedes_run_ids": []
+}

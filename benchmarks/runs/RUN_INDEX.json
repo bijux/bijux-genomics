@@ -22,7 +22,7 @@
       "stage_id": "bam.genotyping",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "455ca3173ff02b9fc0eeec8dc012e0187a51d9e605bd702770b67ef1dfcccbc9",
+      "protocol_sha256": "04a15ee8d9e52e043518df99b0f42f0825d361b1a894e6cd985756471442192d",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2001",
       "tool_ids": [
         "bcftools"
@@ -45,7 +45,7 @@
       "stage_id": "bam.coverage",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "9cf980fe2181b85d482f92ea16ef829826067e4f32644ffd38a4f8a88fac1a6f",
+      "protocol_sha256": "20491b48583657368803973d3773ad4cdb15201db356d75170538b480e7f390b",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2002",
       "tool_ids": [
         "bedtools",
@@ -68,7 +68,7 @@
       "stage_id": "bam.endogenous_content",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "dd06509ef9dbcd7a455a96653ad6d76a36132c3210e39c6a55e985fa51319981",
+      "protocol_sha256": "846580c8637ff3495585410a7d6b38379a45ffc74696c3dc4113505756c38a48",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2003",
       "tool_ids": [
         "samtools"
@@ -89,7 +89,7 @@
       "stage_id": "bam.mapping_summary",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "ea322e3f004e1dd0e7ae7f83dcd7a124de8ef982d8a5a7d0b068edb75d52ce46",
+      "protocol_sha256": "bc88a25ce32b489f6eb18d2329b9c2a3d0ead1bd3fcd0d6ce4db8cb6be2e1449",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2004",
       "tool_ids": [
         "picard",
@@ -111,7 +111,7 @@
       "stage_id": "bam.align",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "03ebd01e0fb78da4bed2465161d2922cd53dd1b180d4155b729740606c8c7ebd",
+      "protocol_sha256": "1bbabe4f141f0a717ef1333909f0552e7bdd803d8dc725adc6a6cc8ee4e82221",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2005",
       "tool_ids": [
         "bowtie2",
@@ -133,7 +133,7 @@
       "stage_id": "bam.authenticity",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "594da5411bd4bdca5514c212823da8f53d6737765b120b999c154b68122e46c7",
+      "protocol_sha256": "0e209f17cbe4152c5b80d51ad1b2b3af8adda3d6a3ac498771ff2537628489df",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2006",
       "tool_ids": [
         "authenticct",
@@ -158,7 +158,7 @@
       "stage_id": "bam.bias_mitigation",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "be03a3446e6aa7234745582843a7473ce66daf35652f1cdd8831def1ba5d830b",
+      "protocol_sha256": "2acb689e492c2bb5cbaf078b19903751552a65958f619f712715703a5fe89033",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2007",
       "tool_ids": [
         "mapdamage2"
@@ -181,7 +181,7 @@
       "stage_id": "bam.complexity",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "906ffebe502deeb36b9ae719accea8bb1f083adb6b4103b1af4716d5938f318f",
+      "protocol_sha256": "603acb76c52d18b3a875741a2c1aa86d8879df63fcbc8c548bc68b71be0c9d4f",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2008",
       "tool_ids": [
         "preseq"
@@ -203,7 +203,7 @@
       "stage_id": "bam.contamination",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "1b9b2801d655ab216603877addc3f8285ee6a4d1dbb45a3cd6a9498f2b3d66ea",
+      "protocol_sha256": "3be6fdaf945f2f212b8c4e676b3d5e8fe91bc095886e01aa6e8c57119564968c",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2009",
       "tool_ids": [
         "contammix",
@@ -229,7 +229,7 @@
       "stage_id": "bam.damage",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "cc374cd825417abf55583f99a712ff6da49f1dbf1b0c1d70e90434ad19539426",
+      "protocol_sha256": "eca6943f570905aacc7c06f79df23e7e9fcd1d6406eb99ab057f850c56048d57",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2010",
       "tool_ids": [
         "addeam",
@@ -257,7 +257,7 @@
       "stage_id": "bam.duplication_metrics",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "93dbe87ea3bf250d23b3dcf391ec77604b3839ba77d0745d62ced533864e512f",
+      "protocol_sha256": "c922130bb6edc53689fc24be471bfa661da232a7f5be9976c919e4a822f56a48",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2011",
       "tool_ids": [
         "picard",
@@ -279,7 +279,7 @@
       "stage_id": "bam.filter",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "6dbf0f62dfb558e70724d9e79e0c5367621bcf55cabeffa9386493fa04990496",
+      "protocol_sha256": "406569e74fbd08d00196ce06796da88d367b26fcc673f65a3c82d2f3fb8fcf33",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2012",
       "tool_ids": [
         "bamtools",
@@ -304,7 +304,7 @@
       "stage_id": "bam.gc_bias",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "45b9d650ecf7aae31b85711859baa749a0af648ef92c1f045fb0e50d3c311ec8",
+      "protocol_sha256": "0683173158b2e47d8dc8268c0aa37bfdbb069948b79455958c0d8ac5c5b3ca2d",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2013",
       "tool_ids": [
         "picard"
@@ -325,7 +325,7 @@
       "stage_id": "bam.haplogroups",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "af8ef0377af4ccbdc9b3883c03b499e6e24f706c765461a1a004bc2025cac0c0",
+      "protocol_sha256": "f0d0d8272fd72372b8d1feba0672a7e6e2922ea2422c498294a477e8ae009295",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2014",
       "tool_ids": [
         "yleaf"
@@ -349,7 +349,7 @@
       "stage_id": "bam.insert_size",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "ae2fce5a44a570ad39e909bff560da92632edf966ef6cca54f46372d071fc19d",
+      "protocol_sha256": "861f3b8e5a161d7ec614769667f517e7ff747f4ee81b6265371c32aefb71d02c",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2015",
       "tool_ids": [
         "picard"
@@ -370,7 +370,7 @@
       "stage_id": "bam.kinship",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "43542258436cb26504c17820da7ca32b5e20834f43cc23622f049956b979d92d",
+      "protocol_sha256": "26de956e8cd4eff30f9b0859f0d47ba32d81832309d983fbdf9aa6c287ef6873",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2016",
       "tool_ids": [
         "angsd",
@@ -395,7 +395,7 @@
       "stage_id": "bam.length_filter",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "0f814663b20d697ffee447935e34c082e93c4d410ae2ace9f9cd4f1da2529b1a",
+      "protocol_sha256": "fa4985cf3496606faf7a096bac8662f3a97a6b3e4ac905c3b1ff430cf9c35df5",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2017",
       "tool_ids": [
         "picard",
@@ -419,7 +419,7 @@
       "stage_id": "bam.mapq_filter",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "04557dc6764dfc503a1f511fe31f23c53ceae5ca0102613522135f784b469fd0",
+      "protocol_sha256": "a4f7fa95a8a9e5612c544dab880331069b888bbf087e40491a98fc2715a5aeae",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2018",
       "tool_ids": [
         "bamtools",
@@ -443,7 +443,7 @@
       "stage_id": "bam.markdup",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "d58fdda30e470e44282e4aa875b2f578894adf779717a5b4da4542763cc590cf",
+      "protocol_sha256": "bb33ade8b5ea282a6d879cc521b55598f35e237e44b63e2503dc8a2b98b9d331",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2019",
       "tool_ids": [
         "picard",
@@ -467,7 +467,7 @@
       "stage_id": "bam.overlap_correction",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "be6685dbf7eb04a128f9aa204741deb7117e24579904f0a7e9690a0dc09eb418",
+      "protocol_sha256": "799e2dd86d76e4f1b40d9b327dcd7da82b1596ad0d691d444e10a31c44462ed6",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2020",
       "tool_ids": [
         "bamutil"
@@ -490,7 +490,7 @@
       "stage_id": "bam.qc_pre",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "7664b9f2dc92147908fb819ed9c1cf1df972326de5ab5cb3db62ce5d864f6d3c",
+      "protocol_sha256": "9887bca59201688645dfb5cd9af93810f803880df6690dc611b1c6c913b1162a",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2021",
       "tool_ids": [
         "multiqc",
@@ -513,7 +513,7 @@
       "stage_id": "bam.recalibration",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "7ef696a843762fcf17244a3f4f6730a847881803f871fbf0e49368b3edbafd7c",
+      "protocol_sha256": "3eaf587f62722222e069e623cf0d19dc01af55318591cab7831deb2ecdf7eab2",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2022",
       "tool_ids": [
         "gatk"
@@ -536,7 +536,7 @@
       "stage_id": "bam.sex",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "6b0cc78b0a4dbef5adf94602c82c92cbc6237010d1448eba4f0d9eb5ff531fbd",
+      "protocol_sha256": "8916fe6775eb86dbfca1eaa0fef8356650502ffdac370a082e9ca86d08119371",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2023",
       "tool_ids": [
         "angsd",
@@ -562,7 +562,7 @@
       "stage_id": "bam.validate",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "e2bee8dc3a19c4a7c789b7c80862de41601940e2849a233fe9383354fe2a3c88",
+      "protocol_sha256": "ed9227d4b83a50fd5aaad7cd9b31703c5438ae92537d8c94f1ace39f27856307",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2024",
       "tool_ids": [
         "bamtools",
@@ -586,7 +586,7 @@
       "stage_id": "fastq.cluster_otus",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "2cb3920a6baee479ce2e4fb5362ea6b3ddba003473cea036b991cf57c065541b",
+      "protocol_sha256": "89990090aa664a645ae92ac47291574686cd8f32b28b72e172f64a76825c4605",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2025",
       "tool_ids": [
         "vsearch"
@@ -608,7 +608,7 @@
       "stage_id": "fastq.correct_errors",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "fd4154c6f4177a0bb7e787e18be38f5396dc1667b8615451353e35ebc5be31e0",
+      "protocol_sha256": "08149f31f19963e798a7f70f0c6807c650da84f235612c3437012871e5601045",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2026",
       "tool_ids": [
         "bayeshammer",
@@ -634,7 +634,7 @@
       "stage_id": "fastq.deplete_host",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "2a56a7c4c73a819f91023e0b1a54da434278d50303e50c455055aa8f2c615295",
+      "protocol_sha256": "410d490164a3030f2f645d6bab9c09be70410c54609bb824a2bff8121424a925",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2027",
       "tool_ids": [
         "bowtie2"
@@ -657,7 +657,7 @@
       "stage_id": "fastq.deplete_reference_contaminants",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "480ff2660f174311bee76051df6fb9a9dd3244ad3946624a107be0581d11fb43",
+      "protocol_sha256": "6e78c7d2a99b793e16c25edc55dbd32afb85f087b3def08ca11ee2d77b897015",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2028",
       "tool_ids": [
         "bowtie2"
@@ -680,7 +680,7 @@
       "stage_id": "fastq.deplete_rrna",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "33c060754a4234174bea2900dd1f374258f617e3db5958006e46dfe98aa1b959",
+      "protocol_sha256": "bdd14bd0b563d656368f2986cb1638470a8b1b085d1c456daa1fa28d6bc2b6c4",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2029",
       "tool_ids": [
         "sortmerna"
@@ -703,7 +703,7 @@
       "stage_id": "fastq.detect_adapters",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "a4e08cd35eebc7d9723e99feae3c029339dfb37c43fb8b0ebbd47c9a354edc7f",
+      "protocol_sha256": "3d080eb36305a023c3dc9274d9922af968ee524c3583e36f56ab2803d9312de3",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2030",
       "tool_ids": [
         "fastqc"
@@ -724,7 +724,7 @@
       "stage_id": "fastq.detect_duplicates_premerge",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "4ee0ca2b844c6396050d357d6f71bcd0a23bbd1679f883b12aec62fad0f7f4cf",
+      "protocol_sha256": "e835707d6e023e7557cc0f1d668f791e46a3bd3e9f9487ffffb12887fc547597",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2031",
       "tool_ids": [
         "bijux_dna"
@@ -746,7 +746,7 @@
       "stage_id": "fastq.estimate_library_complexity_prealign",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "2bc35da394a5311235c0b9da5112856e5945901e07024c20f6c88f950b16d6b1",
+      "protocol_sha256": "ee02926496986a2ae8c50741ec1c1cc57f78b121b1be44d01778b22d9fe6a73f",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2032",
       "tool_ids": [
         "bijux_dna"
@@ -768,7 +768,7 @@
       "stage_id": "fastq.extract_umis",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "0f686dee576b90bbdb03c0bc19d173e2403ff9cfe70d2959debd6fd0f1fbffb9",
+      "protocol_sha256": "d27a63078413838b85928ab8d0f5d16b12294f64f1ff94a01c58cc7658d58c2d",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2033",
       "tool_ids": [
         "umi_tools"
@@ -791,7 +791,7 @@
       "stage_id": "fastq.filter_low_complexity",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "78f28e781eda5851acd8a2da8ba6326c99fc21ac7c66dbfc0c349d32ef46732e",
+      "protocol_sha256": "6d9efe602e574a79ab44f9a106ed58c3fd3a1d2c472c3d87b0308a3ff55c4c68",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2034",
       "tool_ids": [
         "bbduk",
@@ -816,7 +816,7 @@
       "stage_id": "fastq.filter_reads",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "618bedfe46e0f0a57f18d0d1bf68301d91d25552396e9c269f731b0b9468fcc7",
+      "protocol_sha256": "60951e0697144788b3c68dbfa632b87114030d1c075b161500571ed05f554e32",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2035",
       "tool_ids": [
         "bbduk",
@@ -842,7 +842,7 @@
       "stage_id": "fastq.index_reference",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "59c525731d52813da312636cff79ae371a5471d4e33c4671c9e5b36d687f8030",
+      "protocol_sha256": "dd4012dae167fa33c9bb9ff137de36949acf4fd5dd09fa6bf739ee054380539a",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2036",
       "tool_ids": [
         "bowtie2_build",
@@ -865,7 +865,7 @@
       "stage_id": "fastq.infer_asvs",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "c3ac06c188ee0245d6a312960a4afe198b956e63ce1cc54af245d2b9df990c62",
+      "protocol_sha256": "a293b6289faa2428801c3deda52dc68ae710bd6fdda2038ecb1040b3d3601f98",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2037",
       "tool_ids": [
         "dada2"
@@ -887,7 +887,7 @@
       "stage_id": "fastq.merge_pairs",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "7d3400e0af220880768a3a3032ac9872e59ea93cebc7acd3c8e8604e7e534a27",
+      "protocol_sha256": "d141fc4c7e120539841977ebddf272e49c93372732fff0da681d37106c7c67c0",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2038",
       "tool_ids": [
         "adapterremoval",
@@ -916,7 +916,7 @@
       "stage_id": "fastq.normalize_abundance",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "26c0858d11d8a03206ea3a327931a0ae875f244d1206979fd12fd3ffbdaba861",
+      "protocol_sha256": "45c4394304bddf66afe01f1986b8b6d63db28329fedb7322db029bb5c84ca122",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2039",
       "tool_ids": [
         "seqkit"
@@ -938,7 +938,7 @@
       "stage_id": "fastq.normalize_primers",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "aface617282c3229369ac5479c17a3dcf601f2cb4bec52e5b5fd34a7f357c2c7",
+      "protocol_sha256": "a7ce88d16435dc6525d53447c5ae1bef5342f0171d7188b72ca21e5421fc4a75",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2040",
       "tool_ids": [
         "cutadapt"
@@ -961,7 +961,7 @@
       "stage_id": "fastq.profile_overrepresented_sequences",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "8dbe08835ed859203ff5bcfa4b8b7dc324e024d6a43e6ff7efaf7f37c2d44446",
+      "protocol_sha256": "49f40518dc0b445178e4f11da02b7525e2fe24150b5273631ebba48fb32e1b9a",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2041",
       "tool_ids": [
         "fastq_scan",
@@ -985,7 +985,7 @@
       "stage_id": "fastq.profile_read_lengths",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "e8e66c6241ebeb5c5d624fc048c232998e869cfd1c2ac17869b3934bc7ba19c5",
+      "protocol_sha256": "0a26dba2a05494983199517d323be9bad0f6bb56354b2da71f65b202123f53ff",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2042",
       "tool_ids": [
         "seqfu",
@@ -1007,7 +1007,7 @@
       "stage_id": "fastq.profile_reads",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "468fe4e180abc6a749b899e8b66c0c888c018b15559fc3da57f9c43f4d0d62c0",
+      "protocol_sha256": "0e8e8e09131f489b2d2058a76db86c2e3f3bc6b70753dafbaed4d9b366a0ff07",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2043",
       "tool_ids": [
         "seqfu",
@@ -1030,7 +1030,7 @@
       "stage_id": "fastq.remove_chimeras",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "4be0ca8799ffbbc54f630782aa9d8f41b3abc8c04e7703cb4f762b2e34163aeb",
+      "protocol_sha256": "efe8ac839c4763b676ca030c82b4b93ec8ff1f89828af4f94b19b8c601ffe03e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2044",
       "tool_ids": [
         "vsearch"
@@ -1052,7 +1052,7 @@
       "stage_id": "fastq.remove_duplicates",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "da2515405aa05deb8bd10a3fbcbf89aa3db9f543c1eaef4e8a960b737cf56760",
+      "protocol_sha256": "707799960105831b0a1f5efaf3c08f9cd828bfee22d3d576e8cdbbd4ebc64cde",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2045",
       "tool_ids": [
         "clumpify",
@@ -1076,7 +1076,7 @@
       "stage_id": "fastq.report_qc",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "146c17a723f66ee8958112d66f0be7c4069152e4052ebdae9b586f8a179ae596",
+      "protocol_sha256": "10b6846e7f0b1fb4d27fb66b15ed7bd953af0ebe9f8f831f1403940bdfebe58d",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2046",
       "tool_ids": [
         "multiqc"
@@ -1098,7 +1098,7 @@
       "stage_id": "fastq.screen_taxonomy",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "fbab5d8822916b36a5fc1ca963afd634601b4f335f53451c6fe07c50d82f4ab1",
+      "protocol_sha256": "0e976f6b69fbef89b0f2244a94a805ced2b4068daee9accb5387b3a151151d15",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2047",
       "tool_ids": [
         "centrifuge",
@@ -1123,7 +1123,7 @@
       "stage_id": "fastq.trim_polyg_tails",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "41795e84543e98c62a37d7403f4533ac1cd06760c82a58b33282f2d919b81a2a",
+      "protocol_sha256": "0da0b6ab81d22ec301320808c86a6578441c752e1dea0ffc319d7b2b75402d21",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2048",
       "tool_ids": [
         "bbduk",
@@ -1147,7 +1147,7 @@
       "stage_id": "fastq.trim_reads",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "5e34bfbcdbd73442724c8d55e81a1cd6e7ef46a8f25f72d0308843de72bc701d",
+      "protocol_sha256": "5c1447ed13d8a506afca87e855c1b111901572ef7a40a0650e690e557fa83726",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2049",
       "tool_ids": [
         "adapterremoval",
@@ -1183,7 +1183,7 @@
       "stage_id": "fastq.trim_terminal_damage",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "9df2fc353ede7674742bbca54adcbabd1792b8f605dad08fc97fd06e09885d5b",
+      "protocol_sha256": "e4d026046fc0c44c47784bc57476614d5c50834b6191aced9a33e1b005103f43",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2050",
       "tool_ids": [
         "adapterremoval",
@@ -1208,7 +1208,7 @@
       "stage_id": "fastq.validate_reads",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "430140e6d8b4b2d94fe15c12626d1ae28ffe2354d6189fe2531ce9ec90e7ae9e",
+      "protocol_sha256": "8c7ebd7825e6299a8c30f3c595c88f1ce87c919ebf47904f839ebe8aa3382023",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2051",
       "tool_ids": [
         "fastq_scan",
@@ -1233,7 +1233,7 @@
       "stage_id": "vcf.admixture",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "126534e7585dc9de18a4f8346f367b855a14c8ca1c265f94a5d4433592611354",
+      "protocol_sha256": "e307c02bf6ed7a45f6f67ba16a26505612fb0f1171c77c988f7a301888ff6c90",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2052",
       "tool_ids": [
         "plink",
@@ -1257,7 +1257,7 @@
       "stage_id": "vcf.call",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "dcaaee976bb5053be93047d700b8def5b95f8cde69d1fd40d4a4363fdf7aca5b",
+      "protocol_sha256": "6b4eb347189319fb803e6ebcac894c43d99097b2f3910e9e34bc5300216a4562",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2053",
       "tool_ids": [
         "bcftools"
@@ -1280,7 +1280,7 @@
       "stage_id": "vcf.call_diploid",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "0385fbc7acf6f6975a0b0bc21f402e5046e7c300c7268ae8466961d10f6562a3",
+      "protocol_sha256": "8eb94ded6686b1bbd9e143335e35117a5b4f3c0a6bfe069c36bb3b1f86549ba7",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2054",
       "tool_ids": [
         "bcftools"
@@ -1303,7 +1303,7 @@
       "stage_id": "vcf.call_gl",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "1a1d35fd5b5e45d2e9fefdefe8e4052df28e627fdb9bf85b785b736510c105cd",
+      "protocol_sha256": "dbb378bc2d805fa0bc10022a599fd642daa917a9352b01c9f2a22798f03f427e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2055",
       "tool_ids": [
         "angsd",
@@ -1327,7 +1327,7 @@
       "stage_id": "vcf.call_pseudohaploid",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "a090b949c5bd6f83e78018f94782d3221e75af93020f72e49a8911ccea80485b",
+      "protocol_sha256": "2728b101acd34768b60b0788fe06285b5a90b8a154fb08cd936fb6aa928ef04e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2056",
       "tool_ids": [
         "angsd",
@@ -1351,7 +1351,7 @@
       "stage_id": "vcf.damage_filter",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "d3e20192d474c34b3e44ec6f6e440a93766155f42d1dd89b4541214f8bf12e90",
+      "protocol_sha256": "4b11e4324d49f343c60c5eaeea1c3ea697c065c494d5297dc1f637c64c3b7dc7",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2057",
       "tool_ids": [
         "bcftools"
@@ -1374,7 +1374,7 @@
       "stage_id": "vcf.demography",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "1f7664f751b9b128f35a1d0477ba330a18aa2fb96e1a7533598bd23c72c958bf",
+      "protocol_sha256": "b82b4d7f7c1a8164ec20f7e4a8607e202eed0d3dd96ad5a9be170bf01cc3dc1e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2058",
       "tool_ids": [
         "ibdne"
@@ -1397,7 +1397,7 @@
       "stage_id": "vcf.filter",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "704932d32c622a21cd5647a6a25e0f876e2e681da712213932e5cf2d02a85901",
+      "protocol_sha256": "50667a4179fbc8e32ac026f5ab0207235a3146bfdedda535a418de724aef80e6",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2059",
       "tool_ids": [
         "bcftools"
@@ -1420,7 +1420,7 @@
       "stage_id": "vcf.gl_propagation",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "a7b358ad9c6c40e1b696ec5ed973e1c55f1a378e373ae4e6a62394fe129005a8",
+      "protocol_sha256": "8c0ea185bd91debf9def81eefedffc100a75b88fc9c00316e53089879810b990",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2060",
       "tool_ids": [
         "bcftools"
@@ -1443,7 +1443,7 @@
       "stage_id": "vcf.ibd",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "2063e41a57e12a73838a4b2513353f04c37d9262a4e9a97b400f03a8c025b34f",
+      "protocol_sha256": "6bd6208c8febc80e5551e25315526650a0859b3f81ccb725afa9b4f927979e9f",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2061",
       "tool_ids": [
         "germline",
@@ -1468,7 +1468,7 @@
       "stage_id": "vcf.imputation_metrics",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "bc66e8c5183ed75a16e28b680cf38c58a9b69bc3164afe89ea3aea6f41dedc59",
+      "protocol_sha256": "f31fd2dbd4cf879922fa6dda43765131755bf0ba7acd5f1a1e123d490ae4e83c",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2062",
       "tool_ids": [
         "beagle",
@@ -1494,7 +1494,7 @@
       "stage_id": "vcf.impute",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "c569dc81b158c1ce8dbcc45305410d0adf27d852758d30be1b6ab363cf93eaeb",
+      "protocol_sha256": "681d1b4e432099bb0ae5da266115b978e610fbe0f76357d3f1fac327cf2adce4",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2063",
       "tool_ids": [
         "beagle",
@@ -1520,7 +1520,7 @@
       "stage_id": "vcf.pca",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "efd4179a7b360dae3412ec4af1796bad0aa75d1b040ae1eb061c2de10ab78e6e",
+      "protocol_sha256": "0a615ff830e0b9f0774f781f738ce098859ef82d398861dfc057bea9cffc741c",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2064",
       "tool_ids": [
         "eigensoft",
@@ -1544,7 +1544,7 @@
       "stage_id": "vcf.phasing",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "cdb30eff20a4940daa98e30f6c537901f9805a2f2620b9c0b0cd31f85f3d5219",
+      "protocol_sha256": "0f702a1caca43264fe3d922a0a991678ed60d8fb14560e274b2c8f3e72de88af",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2065",
       "tool_ids": [
         "beagle",
@@ -1570,7 +1570,7 @@
       "stage_id": "vcf.population_structure",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "8e766482062e6a7f7467b5e8da136c692f4b46e7898592be140391a6921e8db0",
+      "protocol_sha256": "9a3534c3124b249454c0cafd42f4d8376b74bde9ee5ff1449ebee0a0e415ba50",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2066",
       "tool_ids": [
         "eigensoft",
@@ -1595,7 +1595,7 @@
       "stage_id": "vcf.postprocess",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "e055e4b2ce657c8ba80a8cc00a98e20bbb1c34b43866d41c962d803ad90b026f",
+      "protocol_sha256": "920e55e34eca8f851abf5f4e049755df518312f7d981f400a73cca4c0743d272",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2067",
       "tool_ids": [
         "bcftools"
@@ -1618,7 +1618,7 @@
       "stage_id": "vcf.prepare_reference_panel",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "4a57744227cd0433b9ddf840a5fe5555d8ba4c2a6867e26117b9cf9b370eede3",
+      "protocol_sha256": "a7c400841c44fe74882125cbfde569aab56d1df6dedc677ecfec04995523d990",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2068",
       "tool_ids": [
         "bcftools"
@@ -1641,7 +1641,7 @@
       "stage_id": "vcf.qc",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "705cdab8490a52b133b6a059be0f18c71a19cbd2995cad96af6e42f55fa7d641",
+      "protocol_sha256": "03d50b9123ecbedaca70d5f16ea9b4e9234696fddf14f4867f07ff4a210a2fba",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2069",
       "tool_ids": [
         "bcftools",
@@ -1666,7 +1666,7 @@
       "stage_id": "vcf.roh",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "fe5295c924e95c48d2a914e8c611dfe9262ccc27f55c70f85e5826eef2228cd1",
+      "protocol_sha256": "33d8cf8477f3b2675257df40c76c730956d20173c7f01bf1b8a0239690f70b89",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2070",
       "tool_ids": [
         "plink2"
@@ -1689,7 +1689,7 @@
       "stage_id": "vcf.stats",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "e995f6cef7bf9f1ca8857e31569b40f1ba48fb297f1e5f02c52e47df642ada9f",
+      "protocol_sha256": "0bb8df907d17d0e2c701e2036eedad46080790192e414e730c23aaf23b63d985",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2071",
       "tool_ids": [
         "bcftools"

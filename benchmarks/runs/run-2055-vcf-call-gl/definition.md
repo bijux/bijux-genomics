@@ -1,0 +1,20 @@
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- source: bijux-dna-bench::workflow::run_index -->
+# VCF call gl benchmark protocol
+
+- Run: `run-2055`
+- Stage: `vcf.call_gl`
+- Protocol version: `1.0.0`
+- State: `reserved`
+- Citation key: `bijux-benchmark-run-2055`
+
+Compare the runnable vcf.call_gl tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.
+
+## Planned tool closure
+
+- `angsd`
+- `bcftools`
+
+## Evidence status
+
+This file defines a permanent protocol; it is not execution evidence. See `current-publication.json` for the admitted publication selection and `case-index.json` for immutable case pointers.

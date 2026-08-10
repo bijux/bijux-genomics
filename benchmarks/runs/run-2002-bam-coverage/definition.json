@@ -1,0 +1,44 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2002",
+    "domain": "bam",
+    "stage_id": "bam.coverage"
+  },
+  "protocol_version": "1.0.0",
+  "title": "BAM coverage benchmark protocol",
+  "purpose": "Compare the runnable bam.coverage tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "bam-observational-qc",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "active",
+  "tool_ids": [
+    "bedtools",
+    "mosdepth",
+    "samtools"
+  ],
+  "accepted_input_contracts": [
+    "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+  ],
+  "output_contract": "bijux.benchmark.bam.coverage.bundle.v1",
+  "normalized_result_contract": "benchmarks/contracts/schemas/bam-coverage-result.schema.json",
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/contracts/schemas/bam-coverage-result.schema.json",
+      "sha256": "742538e45e2624b41b473180045d79ccbd457a7f974d0bd035be61edd7c81a98"
+    }
+  ],
+  "corpus_roles": [
+    {
+      "role": "bam_diversity",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2002",
+  "supersedes_run_ids": []
+}

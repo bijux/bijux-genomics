@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.benchmark.run_publication_pointer.v1",
+  "run": {
+    "run_id": "run-2036",
+    "domain": "fastq",
+    "stage_id": "fastq.index_reference"
+  },
+  "protocol_sha256": "dd4012dae167fa33c9bb9ff137de36949acf4fd5dd09fa6bf739ee054380539a",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

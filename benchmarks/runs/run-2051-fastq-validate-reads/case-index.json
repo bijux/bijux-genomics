@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.benchmark.run_case_index.v1",
+  "run": {
+    "run_id": "run-2051",
+    "domain": "fastq",
+    "stage_id": "fastq.validate_reads"
+  },
+  "protocol_sha256": "8c7ebd7825e6299a8c30f3c595c88f1ce87c919ebf47904f839ebe8aa3382023",
+  "cases": [],
+  "limitations": [
+    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+  ]
+}
