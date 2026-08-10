@@ -100,7 +100,8 @@ pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
     load_execution_authorities, load_execution_spec, plan_checked_in_benchmark_campaign,
     plan_stage_campaign_attempts, plan_stage_campaign_retry_attempts,
-    recover_stage_campaign_retry_lineage, verify_campaign_plan_source, BenchmarkCyclePlanRequest,
+    recover_stage_campaign_retry_lineage, status_checked_in_benchmark_campaign,
+    verify_campaign_plan_source, BenchmarkCyclePlanRequest, BenchmarkCycleStatusRequest,
     BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
 };
 pub use campaign_material::{

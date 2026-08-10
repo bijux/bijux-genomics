@@ -86,6 +86,18 @@ pub(crate) fn handle_meta_commands(
                         )?;
                         crate::commands::cli::render::json::print_pretty(&plan)?;
                     }
+                    cli::BenchCycleCommand::Status(args) => {
+                        let status =
+                            bijux_dna_api::v1::api::bench::status_checked_in_benchmark_campaign(
+                                &bijux_dna_api::v1::api::bench::BenchmarkCycleStatusRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    benchmark_root: args.benchmark_root.clone(),
+                                    plan: args.plan.clone(),
+                                    observed_at_utc: args.observed_at_utc.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&status)?;
+                    }
                 },
                 BenchCommand::Config { command } => match command {
                     BenchConfigCommand::Validate(args) => {

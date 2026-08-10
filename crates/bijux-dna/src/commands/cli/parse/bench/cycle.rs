@@ -6,6 +6,20 @@ use clap::{Args, Subcommand};
 pub enum BenchCycleCommand {
     /// Plan every declared tool attempt for one permanent benchmark run.
     Plan(BenchCyclePlanArgs),
+    /// Read the persisted lifecycle state for every attempt in one campaign.
+    Status(BenchCycleStatusArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleStatusArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub plan: PathBuf,
+    #[arg(long)]
+    pub observed_at_utc: String,
 }
 
 #[derive(Debug, Args)]
