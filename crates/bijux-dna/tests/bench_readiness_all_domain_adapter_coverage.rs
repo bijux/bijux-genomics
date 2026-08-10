@@ -107,7 +107,26 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() ->
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(4)
+    );
+    let imputation_bindings = rows
+        .iter()
+        .filter(|row| {
+            row.get("command_source").and_then(serde_json::Value::as_str)
+                == Some("vcf_imputation_family_adapter")
+        })
+        .filter_map(|row| {
+            Some(format!("{}:{}", row.get("stage_id")?.as_str()?, row.get("tool_id")?.as_str()?))
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        imputation_bindings,
+        BTreeSet::from([
+            "vcf.imputation_metrics:beagle".to_string(),
+            "vcf.imputation_metrics:impute5".to_string(),
+            "vcf.impute:beagle".to_string(),
+            "vcf.impute:impute5".to_string(),
+        ])
     );
     assert_eq!(
         command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),
