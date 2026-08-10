@@ -1,14 +1,15 @@
 use anyhow::{Context, Result};
 use bijux_dna_runner::api::{
-    plan_container_qualification_cycle, ContainerQualificationCycleAction,
-    ContainerQualificationCycleRequest, ContainerQualificationCycleState,
+    advance_container_qualification_cycle, plan_container_qualification_cycle,
+    ContainerQualificationCycleAction, ContainerQualificationCycleRequest,
+    ContainerQualificationCycleState, SlurmClientPaths,
     CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2,
 };
 
 use crate::support::repo_root;
 
 #[test]
-fn cycle_plan_is_idempotent_and_exposes_every_current_protocol_action() -> Result<()> {
+fn cycle_plan_and_closed_frontier_advance_are_idempotent() -> Result<()> {
     let repository_root = repo_root()?;
     let empty_submissions = bijux_dna_infra::temp_dir("container-cycle-empty-submissions")?;
     let legacy = empty_submissions.path().join("run-1002-adapterremoval");
@@ -34,7 +35,9 @@ fn cycle_plan_is_idempotent_and_exposes_every_current_protocol_action() -> Resul
 
     let first = plan_container_qualification_cycle(&request)?;
     let second = plan_container_qualification_cycle(&request)?;
+    let advanced = advance_container_qualification_cycle(&SlurmClientPaths::default(), &request)?;
     assert_eq!(first, second);
+    assert_eq!(first, advanced);
     assert_eq!(first.schema_version, CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2);
     assert_eq!(first.summary.unit_count, 89);
     assert_eq!(first.summary.published_count, 68);

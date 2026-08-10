@@ -106,6 +106,16 @@ pub struct ContainerQualificationCycleStatus {
     pub units: Vec<ContainerQualificationCycleUnit>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AdvancePass {
+    Collect,
+    Admit,
+    Submit,
+}
+
+const ADVANCE_PASS_ORDER: [AdvancePass; 3] =
+    [AdvancePass::Collect, AdvancePass::Admit, AdvancePass::Submit];
+
 /// Derive a scheduler-independent cycle plan from governed run and attempt evidence.
 ///
 /// # Errors
@@ -127,32 +137,63 @@ pub fn status_container_qualification_cycle(
     derive_cycle(request, Some(paths))
 }
 
-/// Submit every independently ready qualification once and return immediately.
+/// Collect, admit, and submit the complete independently ready frontier once, then return.
 ///
 /// Existing handles are loaded idempotently by the single-attempt scheduler authority.
 ///
 /// # Errors
-/// Returns an error when planning fails or any ready submission cannot be reconciled.
+/// Returns an error after the complete frontier pass when planning fails or any collection,
+/// admission, or submission cannot be reconciled.
 pub fn advance_container_qualification_cycle(
     paths: &SlurmClientPaths,
     request: &ContainerQualificationCycleRequest,
 ) -> Result<ContainerQualificationCycleStatus> {
+    let mut failures = Vec::new();
+    for pass in ADVANCE_PASS_ORDER {
+        let stage_failures = match pass {
+            AdvancePass::Collect => collect_frontier(paths, request)?,
+            AdvancePass::Admit => admit_frontier(request)?,
+            AdvancePass::Submit => submit_frontier(paths, request)?,
+        };
+        failures.extend(stage_failures.into_iter().map(|failure| {
+            format!(
+                "{}: {failure}",
+                match pass {
+                    AdvancePass::Collect => "collect",
+                    AdvancePass::Admit => "admit",
+                    AdvancePass::Submit => "submit",
+                }
+            )
+        }));
+    }
+    if failures.is_empty() {
+        plan_container_qualification_cycle(request)
+    } else {
+        bail!("one or more qualification advance actions failed: {}", failures.join("; "));
+    }
+}
+
+fn submit_frontier(
+    paths: &SlurmClientPaths,
+    request: &ContainerQualificationCycleRequest,
+) -> Result<Vec<String>> {
     let planned = plan_container_qualification_cycle(request)?;
     let mut failures = Vec::new();
     for unit in
         planned.units.iter().filter(|unit| unit.state == ContainerQualificationCycleState::Ready)
     {
-        let path = unit.specification_path.as_ref().context("ready cycle unit lacks a spec")?;
-        let spec = load_container_qualification_slurm_spec(path)?;
-        let prepared = load_prepared_container_qualification_slurm_job(&spec)?;
-        if let Err(error) = submit_prepared_container_qualification_job(paths, &prepared) {
+        let result = (|| -> Result<()> {
+            let path = unit.specification_path.as_ref().context("ready cycle unit lacks a spec")?;
+            let spec = load_container_qualification_slurm_spec(path)?;
+            let prepared = load_prepared_container_qualification_slurm_job(&spec)?;
+            submit_prepared_container_qualification_job(paths, &prepared)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
             failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
         }
     }
-    if !failures.is_empty() {
-        bail!("one or more qualification submissions failed: {}", failures.join("; "));
-    }
-    plan_container_qualification_cycle(request)
+    Ok(failures)
 }
 
 /// Run one collection pass for every submitted qualification and return immediately.
@@ -165,6 +206,17 @@ pub fn collect_container_qualification_cycle(
     paths: &SlurmClientPaths,
     request: &ContainerQualificationCycleRequest,
 ) -> Result<ContainerQualificationCycleStatus> {
+    let failures = collect_frontier(paths, request)?;
+    if !failures.is_empty() {
+        bail!("one or more qualification collections failed: {}", failures.join("; "));
+    }
+    plan_container_qualification_cycle(request)
+}
+
+fn collect_frontier(
+    paths: &SlurmClientPaths,
+    request: &ContainerQualificationCycleRequest,
+) -> Result<Vec<String>> {
     let planned = plan_container_qualification_cycle(request)?;
     let mut failures = Vec::new();
     for unit in planned.units.iter().filter(|unit| {
@@ -176,18 +228,18 @@ pub fn collect_container_qualification_cycle(
                 | ContainerQualificationCycleState::AccountingPending
         )
     }) {
-        let path = unit.specification_path.as_ref().context("active cycle unit lacks a spec")?;
-        let spec = load_container_qualification_slurm_spec(path)?;
-        if let Err(error) =
-            collect_container_qualification_slurm_job(paths, &spec, &request.observed_at_utc)
-        {
+        let result = (|| -> Result<()> {
+            let path =
+                unit.specification_path.as_ref().context("active cycle unit lacks a spec")?;
+            let spec = load_container_qualification_slurm_spec(path)?;
+            collect_container_qualification_slurm_job(paths, &spec, &request.observed_at_utc)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
             failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
         }
     }
-    if !failures.is_empty() {
-        bail!("one or more qualification collections failed: {}", failures.join("; "));
-    }
-    plan_container_qualification_cycle(request)
+    Ok(failures)
 }
 
 /// Admit every independently collected passing qualification once and return immediately.
@@ -197,23 +249,31 @@ pub fn collect_container_qualification_cycle(
 pub fn admit_container_qualification_cycle(
     request: &ContainerQualificationCycleRequest,
 ) -> Result<ContainerQualificationCycleStatus> {
+    let failures = admit_frontier(request)?;
+    if !failures.is_empty() {
+        bail!("one or more qualification admissions failed: {}", failures.join("; "));
+    }
+    plan_container_qualification_cycle(request)
+}
+
+fn admit_frontier(request: &ContainerQualificationCycleRequest) -> Result<Vec<String>> {
     let planned = plan_container_qualification_cycle(request)?;
     let mut failures = Vec::new();
     for unit in
         planned.units.iter().filter(|unit| unit.state == ContainerQualificationCycleState::Passed)
     {
-        let path = unit.specification_path.as_ref().context("passed cycle unit lacks a spec")?;
-        let spec = load_container_qualification_slurm_spec(path)?;
-        if let Err(error) =
-            super::admit_container_qualification_collection(&spec, &request.observed_at_utc)
-        {
+        let result = (|| -> Result<()> {
+            let path =
+                unit.specification_path.as_ref().context("passed cycle unit lacks a spec")?;
+            let spec = load_container_qualification_slurm_spec(path)?;
+            super::admit_container_qualification_collection(&spec, &request.observed_at_utc)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
             failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
         }
     }
-    if !failures.is_empty() {
-        bail!("one or more qualification admissions failed: {}", failures.join("; "));
-    }
-    plan_container_qualification_cycle(request)
+    Ok(failures)
 }
 
 fn derive_cycle(
@@ -620,10 +680,18 @@ mod tests {
         ContainerQualificationSlurmResources, ContainerQualificationSubmissionKind,
     };
     use super::{
-        classify_spec, discover_specifications, stale_specification_unit,
+        classify_spec, discover_specifications, stale_specification_unit, AdvancePass,
         ContainerQualificationCycleAction, ContainerQualificationCycleState,
-        ContainerQualificationSlurmSpec,
+        ContainerQualificationSlurmSpec, ADVANCE_PASS_ORDER,
     };
+
+    #[test]
+    fn advance_runs_the_complete_one_shot_frontier_in_dependency_order() {
+        assert_eq!(
+            ADVANCE_PASS_ORDER,
+            [AdvancePass::Collect, AdvancePass::Admit, AdvancePass::Submit]
+        );
+    }
 
     #[test]
     fn specification_discovery_excludes_archived_attempts() -> anyhow::Result<()> {
