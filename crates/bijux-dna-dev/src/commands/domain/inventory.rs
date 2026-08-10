@@ -547,22 +547,19 @@ mod tests {
     use super::collect_code_registry_tools;
     use crate::runtime::workspace::Workspace;
 
-    fn workspace() -> Workspace {
-        Workspace {
-            root: PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../..")
-                .canonicalize()
-                .expect("canonicalize repository root"),
-        }
+    fn workspace() -> anyhow::Result<Workspace> {
+        Ok(Workspace {
+            root: PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?,
+        })
     }
 
     #[test]
-    fn code_registry_includes_catalog_only_container_tools() {
-        let tools = collect_code_registry_tools(&workspace(), &BTreeSet::new())
-            .expect("collect code registry tools");
+    fn code_registry_includes_catalog_only_container_tools() -> anyhow::Result<()> {
+        let tools = collect_code_registry_tools(&workspace()?, &BTreeSet::new())?;
 
         for tool_id in ["diamond", "dustmasker", "seqpurge"] {
             assert!(tools.contains(tool_id), "missing catalog-only tool `{tool_id}`");
         }
+        Ok(())
     }
 }
