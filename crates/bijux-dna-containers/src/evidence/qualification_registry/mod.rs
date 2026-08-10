@@ -10,8 +10,8 @@ pub use model::{
     QualificationRunCitationRecord, QualificationRunDefinition, QualificationRunIdAudit,
     QualificationRunIdAuditRow, QualificationRunIdTombstone, QualificationRunNamespacePolicy,
     QualificationRunRegistry, QualificationRunRegistryEntry, QualificationRunRegistrySummary,
-    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
-    QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
+    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V3,
+    QUALIFICATION_RUN_REGISTRY_SCHEMA_V3,
 };
 pub use schema::{
     container_run_index_schema, qualification_run_id_audit_schema,

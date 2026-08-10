@@ -3,8 +3,8 @@ use super::{
 };
 
 const REGISTRY_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/qualification-run-registry.v2.json";
-const AUDIT_SCHEMA_PATH: &str = "containers/contracts/schemas/qualification-run-id-audit.v2.json";
+    "containers/contracts/schemas/qualification-run-registry.v3.json";
+const AUDIT_SCHEMA_PATH: &str = "containers/contracts/schemas/qualification-run-id-audit.v3.json";
 const RUN_REGISTRY_PATH: &str = "containers/contracts/qualification-runs.toml";
 const RUN_INDEX_JSON_PATH: &str = "containers/runs/RUN_INDEX.json";
 const RUN_INDEX_MARKDOWN_PATH: &str = "containers/runs/RUN_INDEX.md";
@@ -150,18 +150,20 @@ fn derive(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
             ));
         }
         return success_line(format!(
-            "qualification registry: {} retained, {} unsupported, {} allocated",
-            derived.audit.retained_mapping_count,
-            derived.audit.unsupported_tool_count,
+            "qualification registry: {} supported, {} redistributable, {} external-artifact, {} allocated",
+            derived.audit.supported_tool_count,
+            derived.audit.redistributable_tool_count,
+            derived.audit.external_artifact_tool_count,
             derived.audit.allocated_mapping_count
         ));
     }
     write_utf8(&registry_output, &registry)?;
     write_utf8(&audit_output, &audit)?;
     success_line(format!(
-        "generated {} retained qualification IDs and {} unsupported records at {}",
-        derived.audit.retained_mapping_count,
-        derived.audit.unsupported_tool_count,
+        "generated {} supported qualification IDs ({} redistributable, {} external-artifact) at {}",
+        derived.audit.supported_tool_count,
+        derived.audit.redistributable_tool_count,
+        derived.audit.external_artifact_tool_count,
         registry_output.display()
     ))
 }

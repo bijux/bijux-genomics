@@ -360,9 +360,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
     let qualification_registry_path =
-        root.join("containers/contracts/schemas/qualification-run-registry.v2.json");
+        root.join("containers/contracts/schemas/qualification-run-registry.v3.json");
     let qualification_audit_path =
-        root.join("containers/contracts/schemas/qualification-run-id-audit.v2.json");
+        root.join("containers/contracts/schemas/qualification-run-id-audit.v3.json");
     let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v2.json");
     let build_evidence_path = root.join("containers/contracts/schemas/build-evidence.v1.json");
     let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");

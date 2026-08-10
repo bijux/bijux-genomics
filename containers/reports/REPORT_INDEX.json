@@ -11,7 +11,7 @@
       "freshness": "current",
       "json": {
         "path": "containers/runs/RUN_INDEX.json",
-        "sha256": "8f48bcefc3edd982ca9189821e9720e056309b1630f9912f1c9dd950461e8ce8"
+        "sha256": "b5d6454094becbb7c4b7a527616f16dd6e88aa5db2b05cfbd44990078c671908"
       },
       "markdown": {
         "path": "containers/runs/RUN_INDEX.md",
@@ -247,7 +247,7 @@
       "freshness": "historical_unvalidated",
       "json": {
         "path": "containers/reports/qualification-run-id-audit.json",
-        "sha256": "fb0e772cf40d59e7dd657d3af627c5f98f3182453eec1d94a52b9933338816ac"
+        "sha256": "33fee0af52551723fb26b9e6f259c21115027435864c852fbbed645c099bf4e0"
       },
       "limitations": [
         "Not current: the complete source, catalog, stage/interface, data/truth, artifact, campaign, and report hash closure has not been re-admitted."
