@@ -10,6 +10,7 @@ use crate::runtime::workspace::Workspace;
 
 mod artifacts;
 mod governance;
+mod no_wait;
 mod ownership;
 mod workspace_contracts;
 
@@ -22,6 +23,7 @@ pub(crate) use governance::{
     check_benchmark_integrity_policy, check_certification_schema_docs,
     check_clippy_allowlist_expiry, check_clippy_allowlist_growth, check_deny_policy_deviations,
 };
+pub(crate) use no_wait::check_no_wait_gate;
 pub(crate) use ownership::check_ownership_audit;
 pub(crate) use workspace_contracts::{
     check_cargo_config_policy, check_config_schema, check_docs_build_contract,

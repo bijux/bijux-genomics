@@ -10,6 +10,12 @@ pub mod release_evidence;
 pub mod security_evidence;
 mod source_scan;
 
+pub use checks::no_wait::{
+    evaluate_no_wait_gate, is_governed_no_wait_source, no_wait_gate_schema, no_wait_policy_sha256,
+    AllowlistedNoWaitFinding, NoWaitAllowlist, NoWaitException, NoWaitFinding, NoWaitGateReceipt,
+    NoWaitGateSummary, NoWaitRule, NoWaitSource, NoWaitVerdict, NO_WAIT_ALLOWLIST_SCHEMA_V1,
+    NO_WAIT_GATE_SCHEMA_V1,
+};
 pub use public_api::{check, GuardrailConfig};
 pub use qualification::{
     evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_identity_evidence,

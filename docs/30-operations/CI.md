@@ -17,7 +17,13 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 - `coverage`
 
 ## Fast Local Gate
+
 - `make gate-essential`
+- Non-waiting execution policy: `cargo run -q -p bijux-dna-dev -- checks run check-no-wait-gate`
+- The non-waiting check scans tracked scheduler, CI, automation, and lifecycle sources once and writes
+  `artifacts/architecture/no-wait-gate.json`. A bounded internal retry/backoff is admissible only
+  through an exact, expiring entry in `configs/ci/no_wait_allowlist.toml`; scheduler and completion
+  observation must remain one-shot.
 - Coverage: crate boundaries, domain YAML validation, stage-contract snapshots, planner determinism, runtime layout, and evidence discovery basics.
 - Intended use: local architectural integrity checks during focused iteration without paying the full `make ci` cost.
 

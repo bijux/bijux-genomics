@@ -95,6 +95,7 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         native("check-automation-network-usage", NativeCheckKey::AutomationNetworkUsage),
         policy("check-nextest-profile-contract", "nextest_determinism_policy"),
         native("check-no-fake-artifacts", NativeCheckKey::NoFakeArtifacts),
+        native("check-no-wait-gate", NativeCheckKey::NoWaitGate),
         native("check-legacy-automation-references", NativeCheckKey::LegacyAutomationReferences),
         native("check-no-parallel-accidental", NativeCheckKey::AutomationParallelism),
         native("check-no-raw-cargo-in-makes", NativeCheckKey::NoRawCargoInMakes),

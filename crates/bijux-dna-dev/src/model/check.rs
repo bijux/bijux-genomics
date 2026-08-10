@@ -54,6 +54,7 @@ pub enum NativeCheckKey {
     MakeHelpSync,
     AutomationNetworkUsage,
     NoFakeArtifacts,
+    NoWaitGate,
     LegacyAutomationReferences,
     AutomationParallelism,
     NoRawCargoInMakes,

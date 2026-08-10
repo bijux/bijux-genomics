@@ -1,0 +1,4 @@
+schema_version = "bijux.execution.no_wait_allowlist.v1"
+
+# Exceptions are restricted to finite, typed internal retry/backoff. Scheduler,
+# CI, lifecycle, child-process, and completion-file observation cannot be exempted.

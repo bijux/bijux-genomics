@@ -100,6 +100,7 @@ check-make-help-sync
 check-map-locks
 check-nextest-profile-contract
 check-no-fake-artifacts
+check-no-wait-gate
 check-no-parallel-accidental
 check-no-raw-cargo-in-automation
 check-no-raw-cargo-in-makes

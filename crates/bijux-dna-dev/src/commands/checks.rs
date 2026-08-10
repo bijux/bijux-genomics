@@ -82,6 +82,7 @@ pub fn run_native_check(
             automation_boundary::check_automation_network_usage(workspace, check)
         }
         NativeCheckKey::NoFakeArtifacts => repo_checks::check_no_fake_artifacts(workspace, check),
+        NativeCheckKey::NoWaitGate => repo_checks::check_no_wait_gate(workspace, check),
         NativeCheckKey::LegacyAutomationReferences => {
             automation_boundary::check_legacy_automation_references(workspace, check)
         }

@@ -56,6 +56,7 @@ fn assert_policy_rule_trees(root: &Path) {
             "failure_policy.rs",
             "mod.rs",
             "module_files.rs",
+            "no_wait.rs",
             "path_match.rs",
             "public_surface.rs",
             "stable_surface.rs",
