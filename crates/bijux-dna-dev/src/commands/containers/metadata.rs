@@ -7,6 +7,53 @@ use super::*;
 
 type SummaryDigests = (BTreeMap<String, String>, BTreeMap<String, String>);
 
+fn load_container_report_index(
+    workspace: &Workspace,
+) -> Result<bijux_dna_bench::ContainerReportPortfolioIndex> {
+    let index = serde_json::from_value(read_json(
+        &workspace.path("containers/reports/REPORT_INDEX.json"),
+    )?)?;
+    bijux_dna_bench::validate_container_report_portfolio_index(&index)
+        .map_err(|error| anyhow!("invalid container report index: {error}"))?;
+    Ok(index)
+}
+
+fn indexed_report_freshness(
+    workspace: &Workspace,
+    index: &bijux_dna_bench::ContainerReportPortfolioIndex,
+    report_id: &str,
+) -> &'static str {
+    let Some(report) = index.reports.iter().find(|report| report.report_id == report_id) else {
+        return "historical_unvalidated";
+    };
+    if report.freshness != bijux_dna_bench::ContainerReportFreshness::Current {
+        return "historical_unvalidated";
+    }
+    let files =
+        [report.json.as_ref(), report.markdown.as_ref()].into_iter().flatten().collect::<Vec<_>>();
+    if files.is_empty() || !files.into_iter().all(|file| indexed_file_matches(workspace, file)) {
+        return "historical_unvalidated";
+    }
+    "current"
+}
+
+fn indexed_file_matches(
+    workspace: &Workspace,
+    file: &bijux_dna_bench::ContainerIndexedReportFile,
+) -> bool {
+    let relative = Path::new(&file.path);
+    if relative.is_absolute()
+        || relative
+            .components()
+            .any(|component| !matches!(component, std::path::Component::Normal(_)))
+    {
+        return false;
+    }
+    let path = workspace.path(&file.path);
+    path.is_file()
+        && bijux_dna_infra::hash_file_sha256(&path).is_ok_and(|sha256| sha256 == file.sha256)
+}
+
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
     let support = container_support_summary(workspace)?;
     let mut out = String::from(
@@ -178,6 +225,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
     let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
     let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
     let qualification = read_json(&workspace.path("containers/reports/qualification.json"))?;
+    let report_index = load_container_report_index(workspace)?;
     let inventory_states = inventory
         .pointer("/summary/states")
         .and_then(serde_json::Value::as_object)
@@ -233,19 +281,31 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         .pointer("/summary/dimension_passes/freshness")
         .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
-    let evidence_chain_current = qualification
-        .get("evidence_compatibility")
-        .and_then(serde_json::Value::as_object)
-        .is_some_and(|links| {
-            ["inventory_catalog", "runtime_catalog", "runtime_inventory", "repository_commit"]
-                .iter()
-                .all(|link| links.get(*link).and_then(serde_json::Value::as_bool) == Some(true))
-        });
-    let evidence_chain_status = if evidence_chain_current { "current" } else { "stale" };
-    let inventory_context = if evidence_chain_current {
-        "their published identities support the current qualification chain"
+    let qualification_freshness =
+        indexed_report_freshness(workspace, &report_index, "qualification");
+    let inventory_freshness = indexed_report_freshness(workspace, &report_index, "image-inventory");
+    let storage_freshness = indexed_report_freshness(workspace, &report_index, "image-storage");
+    let rebuild_freshness =
+        indexed_report_freshness(workspace, &report_index, "lunarc-image-rebuild");
+    let refresh_freshness =
+        indexed_report_freshness(workspace, &report_index, "lunarc-image-refresh");
+    let runtime_freshness =
+        indexed_report_freshness(workspace, &report_index, "runtime-verification");
+    let run_evidence_freshness = indexed_report_freshness(workspace, &report_index, "run-evidence");
+    let qualification_context = if qualification_freshness == "current" {
+        "the current admitted report records"
     } else {
-        "these counts are historical while the qualification chain is stale"
+        "the historical report records"
+    };
+    let qualification_evidence_context = if qualification_freshness == "current" {
+        "the current qualification report records"
+    } else {
+        "the historical qualification report records"
+    };
+    let inventory_context = if inventory_freshness == "current" {
+        "its admitted identities support a current evidence chain"
+    } else {
+        "these counts are historical and do not establish a current evidence chain"
     };
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
@@ -260,13 +320,13 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         String::new(),
         "## Published evidence and current qualification".to_string(),
         String::new(),
-        format!("- Qualification evidence chain: **{evidence_chain_status}**; the current catalog recognizes **{qualified_builds} build**, **{qualified_runtimes} runtime**, and **{qualified_freshness} freshness** passes ([details](../reports/qualification.md))."),
-        format!("- Published image inventory records **{inventory_states}**; {inventory_context} ([details](../reports/image-inventory.md))."),
-        format!("- Published canonical storage report: **{storage_verdict}**, **{storage_moved} obsolete {storage_image_noun} quarantined reversibly** ([details](../reports/image-storage.md))."),
-        format!("- Published isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md))."),
-        format!("- Published targeted image refresh: **{refresh_verdict}**, **{refresh_tools} changed {refresh_recipe_noun} rebuilt and readmitted** ([details](../reports/lunarc-image-refresh.md))."),
-        format!("- Published version/help campaign: **{runtime_status}**, **{runtime_passed} images passed at that campaign commit** ([details](../reports/runtime-verification.md))."),
-        format!("- Final run records: **{governed_runs} records**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
+        format!("- Qualification report freshness: **{qualification_freshness}**; {qualification_context} **{qualified_builds} build**, **{qualified_runtimes} runtime**, and **{qualified_freshness} freshness** passes ([details](../reports/qualification.md))."),
+        format!("- Published image inventory (**{inventory_freshness}**) records **{inventory_states}**; {inventory_context} ([details](../reports/image-inventory.md))."),
+        format!("- Published canonical storage report (**{storage_freshness}**): **{storage_verdict}**, **{storage_moved} obsolete {storage_image_noun} quarantined reversibly** ([details](../reports/image-storage.md))."),
+        format!("- Published isolated rebuild (**{rebuild_freshness}**): **{rebuild_verdict}**, **{rebuild_tools} retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md))."),
+        format!("- Published targeted image refresh (**{refresh_freshness}**): **{refresh_verdict}**, **{refresh_tools} changed {refresh_recipe_noun} rebuilt and readmitted** ([details](../reports/lunarc-image-refresh.md))."),
+        format!("- Published version/help campaign (**{runtime_freshness}**): **{runtime_status}**, **{runtime_passed} images passed at that campaign commit** ([details](../reports/runtime-verification.md))."),
+        format!("- Final run records (**{run_evidence_freshness}**): **{governed_runs} records**, **{passed_runs} execution passes**; {qualification_evidence_context} **{declared_stage_passes}** real-data passes and **{scientific_passes}** scientific acceptances ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),
@@ -1714,6 +1774,61 @@ mod tests {
             );
             assert!(!row.contains(" | `unsupported` |"));
         }
+    }
+
+    #[test]
+    fn report_freshness_requires_indexed_current_bytes() {
+        let temporary =
+            tempfile::tempdir().unwrap_or_else(|error| panic!("temporary root: {error}"));
+        let reports = temporary.path().join("containers/reports");
+        std::fs::create_dir_all(&reports)
+            .unwrap_or_else(|error| panic!("create report root: {error}"));
+        let json_path = reports.join("qualification.json");
+        let markdown_path = reports.join("qualification.md");
+        std::fs::write(&json_path, b"{}\n")
+            .unwrap_or_else(|error| panic!("write report JSON: {error}"));
+        std::fs::write(&markdown_path, b"# qualification\n")
+            .unwrap_or_else(|error| panic!("write report Markdown: {error}"));
+        let workspace = Workspace { root: temporary.path().to_path_buf() };
+        let index = bijux_dna_bench::ContainerReportPortfolioIndex {
+            schema_version: bijux_dna_bench::CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1.to_string(),
+            summary: bijux_dna_bench::ContainerReportPortfolioSummary {
+                report_count: 1,
+                current_count: 1,
+                historical_unvalidated_count: 0,
+            },
+            reports: vec![bijux_dna_bench::ContainerIndexedReport {
+                report_id: "qualification".to_string(),
+                freshness: bijux_dna_bench::ContainerReportFreshness::Current,
+                json: Some(bijux_dna_bench::ContainerIndexedReportFile {
+                    path: "containers/reports/qualification.json".to_string(),
+                    sha256: bijux_dna_infra::hash_file_sha256(&json_path)
+                        .unwrap_or_else(|error| panic!("hash report JSON: {error}")),
+                }),
+                markdown: Some(bijux_dna_bench::ContainerIndexedReportFile {
+                    path: "containers/reports/qualification.md".to_string(),
+                    sha256: bijux_dna_infra::hash_file_sha256(&markdown_path)
+                        .unwrap_or_else(|error| panic!("hash report Markdown: {error}")),
+                }),
+                limitations: vec!["current closure fixture".to_string()],
+            }],
+        };
+
+        assert_eq!(indexed_report_freshness(&workspace, &index, "qualification"), "current");
+        std::fs::write(&json_path, b"{\"drift\":true}\n")
+            .unwrap_or_else(|error| panic!("drift report JSON: {error}"));
+        assert_eq!(
+            indexed_report_freshness(&workspace, &index, "qualification"),
+            "historical_unvalidated"
+        );
+
+        let mut escaped = index;
+        escaped.reports[0].json.as_mut().unwrap_or_else(|| panic!("report JSON identity")).path =
+            "../qualification.json".to_string();
+        assert_eq!(
+            indexed_report_freshness(&workspace, &escaped, "qualification"),
+            "historical_unvalidated"
+        );
     }
 
     #[test]
