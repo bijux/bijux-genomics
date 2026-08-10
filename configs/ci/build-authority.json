@@ -1,0 +1,29 @@
+{
+  "schema": "bijux.ci.build_authority.v1",
+  "toolchain": {
+    "manifest": "rust-toolchain.toml",
+    "channel": "1.95.0",
+    "required_components": [
+      "clippy",
+      "rustfmt"
+    ]
+  },
+  "lockfile": {
+    "manifest": "Cargo.lock",
+    "metadata_mode": "locked",
+    "dependency_resolution": "workspace_lock_only"
+  },
+  "cache": {
+    "compiler_wrapper": "sccache",
+    "metrics_format": "json",
+    "before_filename": "sccache-before.json",
+    "after_filename": "sccache-after.json",
+    "publish_on_failure": true
+  },
+  "targets": {
+    "shared_prebuild_root": "artifacts/target",
+    "concurrent_target_pattern": "artifacts/github-all/targets/{gate}",
+    "concurrent_policy": "isolated_per_gate",
+    "reuse_policy": "sccache_and_shared_dev_binary"
+  }
+}

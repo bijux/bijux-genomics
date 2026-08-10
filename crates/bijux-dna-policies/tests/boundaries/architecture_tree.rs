@@ -52,6 +52,7 @@ fn assert_policy_rule_trees(root: &Path) {
         dir_entries(&root.join("src/checks")),
         entries([
             "OWNER.toml",
+            "build_authority.rs",
             "directory_layout.rs",
             "dependency_graph.rs",
             "failure_policy.rs",

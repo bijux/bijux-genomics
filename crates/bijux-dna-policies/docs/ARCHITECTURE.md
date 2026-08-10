@@ -23,8 +23,9 @@ importing repository audit orchestration.
 - `src/security_evidence/` owns typed scanner evidence, pure observation derivation, and
   deterministic security decisions.
 - `src/guardrails/` owns baseline configuration, crate presets, source inventory setup, and runner wiring.
-- `src/checks/` partitions reusable rule families by dependency graph, non-waiting execution,
-  directory layout, module files, public surface, failure policy, and stage ID literals.
+- `src/checks/` partitions reusable rule families by build authority, dependency graph,
+  non-waiting execution, directory layout, module files, public surface, failure policy, and stage
+  ID literals.
 - `src/source_scan/` performs deterministic Rust source discovery.
 - `src/policy_diagnostics/` owns the WHAT/WHY/HOW/MORE diagnostic contract and renderer.
 - `src/assertions/` owns exported assertion macros.
@@ -48,8 +49,9 @@ importing repository audit orchestration.
    external artifact can carry the same artifact-bound controls as a redistributable image.
 3. Release callers bind every tool to the exact non-release qualification evidence set. Admission
    rejects authority, coverage, support-dimension, evidence, or policy-verdict drift.
-4. CI callers provide the declarative dependency graph and changed paths; policy code validates
-   graph integrity and computes a fail-closed reverse-dependent gate plan without executing it.
+4. CI callers provide the build authority, dependency graph, and changed paths; policy code
+   validates toolchain, lock, cache-metric, target-isolation, and graph integrity and computes a
+   fail-closed reverse-dependent gate plan without executing it.
 5. Repository-audit callers use `check` and `GuardrailConfig`; guardrails collect Rust sources and
    evaluate deterministic source and layout rules.
 6. Assertion macros and `policy_diagnostics` render failures with consistent repair guidance.

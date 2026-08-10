@@ -10,6 +10,10 @@ pub mod release_evidence;
 pub mod security_evidence;
 mod source_scan;
 
+pub use checks::build_authority::{
+    validate_ci_build_authority, CiBuildAuthority, CiCacheAuthority, CiLockfileAuthority,
+    CiTargetAuthority, CiToolchainAuthority, CI_BUILD_AUTHORITY_SCHEMA_V1,
+};
 pub use checks::dependency_graph::{
     plan_change_impact, validate_dependency_graph, ChangeImpactPlan, CiDependencyEdge,
     CiDependencyGraph, CiDependencyKind, CiDependencyNode, CiGateFamily, CiNodeKind,

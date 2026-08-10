@@ -9,6 +9,7 @@ use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
 mod artifacts;
+mod build_authority;
 mod dependency_graph;
 mod governance;
 mod no_wait;
@@ -19,6 +20,7 @@ pub(crate) use artifacts::{
     check_artifact_env_contract, check_artifacts_layout, check_artifacts_tracked,
     check_assets_reference_schema, check_no_fake_artifacts, check_output_roots,
 };
+pub(crate) use build_authority::check_ci_build_authority;
 pub(crate) use dependency_graph::check_ci_dependency_graph;
 pub(crate) use governance::{
     check_audit_allowlist, check_bench_knob_discipline_downstream, check_bench_knobs,

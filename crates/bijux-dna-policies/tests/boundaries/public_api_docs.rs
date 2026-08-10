@@ -30,6 +30,7 @@ fn policy__boundaries__public_api_docs__public_api_docs_match_curated_exports() 
             "release evidence contracts",
             "security evidence contracts",
             "CI dependency graph and change-impact planning contracts",
+            "CI build authority contracts",
             "policy_assert!",
             "policy_assert_eq!",
             "policy_assert_ne!",
@@ -49,6 +50,8 @@ fn policy__boundaries__public_api_docs__documented_root_exports_remain_compilabl
     let _: Option<GuardrailConfig> = None;
     let _: fn(&bijux_dna_policies::CiDependencyGraph) -> Result<()> =
         bijux_dna_policies::validate_dependency_graph;
+    let _: fn(&bijux_dna_policies::CiBuildAuthority) -> Result<()> =
+        bijux_dna_policies::validate_ci_build_authority;
     let _: fn(
         &bijux_dna_policies::CiDependencyGraph,
         &[String],

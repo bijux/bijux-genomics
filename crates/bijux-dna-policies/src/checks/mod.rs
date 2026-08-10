@@ -1,3 +1,4 @@
+pub(crate) mod build_authority;
 pub(crate) mod dependency_graph;
 pub(crate) mod directory_layout;
 pub(crate) mod failure_policy;

@@ -509,6 +509,7 @@ github-all-frozen: ## Launch pinned GitHub workflow gates in the background.
 _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) _ssot-policy-fast
 	@cargo run -q -p bijux-dna-dev -- checks run check-root-layout
+	@cargo run -q -p bijux-dna-dev -- checks run check-ci-build-authority
 	@cargo run -q -p bijux-dna-dev -- checks run check-ci-dependency-graph
 	$(MAKE) fmt
 	$(MAKE) lint-workspace
@@ -519,6 +520,7 @@ _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) _policy-no-raw-cargo
 
 _ci-slow: ## Slow CI tier (manual): heavier integration checks.
+	@cargo run -q -p bijux-dna-dev -- checks run check-ci-build-authority
 	@cargo run -q -p bijux-dna-dev -- checks run check-ci-dependency-graph
 	$(MAKE) _install-ci-tools
 	$(MAKE) audit

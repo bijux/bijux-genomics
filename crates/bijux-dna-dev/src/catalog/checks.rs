@@ -24,6 +24,7 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         native("check-cargo-config-policy", NativeCheckKey::CargoConfigPolicy),
         native("check-certification-schema-docs", NativeCheckKey::CertificationSchemaDocs),
         native("check-ci-automation-surface", NativeCheckKey::CiAutomationSurface),
+        native("check-ci-build-authority", NativeCheckKey::CiBuildAuthority),
         native("check-ci-dependency-graph", NativeCheckKey::CiDependencyGraph),
         policy("check-cli-command-snapshot", "cli_command_snapshot_policy"),
         native("check-clippy-allowlist-expiry", NativeCheckKey::ClippyAllowlistExpiry),

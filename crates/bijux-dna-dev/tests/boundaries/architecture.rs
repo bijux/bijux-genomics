@@ -108,6 +108,7 @@ fn dev_tree_matches_architecture_contract() {
     let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
     let expected_repo_checks: BTreeSet<_> = [
         "artifacts.rs",
+        "build_authority.rs",
         "dependency_graph.rs",
         "governance.rs",
         "no_wait.rs",

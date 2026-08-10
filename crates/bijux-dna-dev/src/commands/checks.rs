@@ -42,6 +42,7 @@ pub fn run_native_check(
         NativeCheckKey::CiAutomationSurface => {
             automation_boundary::check_ci_automation_surface(workspace, check)
         }
+        NativeCheckKey::CiBuildAuthority => repo_checks::check_ci_build_authority(workspace, check),
         NativeCheckKey::CiDependencyGraph => {
             repo_checks::check_ci_dependency_graph(workspace, check)
         }
