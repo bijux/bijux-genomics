@@ -1,5 +1,4 @@
 tool=shapeit
-shipping=external
 tool_version=4.2.2
 stage=vcf.phasing
 domain=vcf

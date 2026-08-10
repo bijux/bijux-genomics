@@ -12,7 +12,7 @@ use super::domain_workflow::{
     declared_stage_key, declared_tool_key, domain_directories, failure_block, list_block,
     read_utf8, regex, scalar_from_text, success_line, write_utf8, yaml_files,
 };
-use super::schema_policy::external_tools;
+use super::schema_policy::catalog_external_artifact_tools;
 use super::{
     cargo_registry_list_stages, cargo_registry_list_tools, cargo_registry_stage_tools, toml_tools,
 };
@@ -154,7 +154,7 @@ pub(super) fn check_inventory(workspace: &Workspace) -> Result<DomainCommandOutc
 }
 
 pub(super) fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
-    let external_tools = external_tools(workspace)?;
+    let external_tools = catalog_external_artifact_tools(workspace)?;
     let mut registry_tools_by_domain = BTreeMap::<String, BTreeSet<String>>::new();
     let registry_dir = workspace.path("configs/ci/registry");
     let mut registry_files =
@@ -318,7 +318,7 @@ pub(super) fn generate_inventory(
 }
 
 pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutcome> {
-    let external = external_tools(workspace)?;
+    let external = catalog_external_artifact_tools(workspace)?;
     let mut domain_tools = BTreeSet::new();
     for domain in ["fastq", "bam"] {
         for tool_file in yaml_files(&workspace.path(&format!("domain/{domain}/tools")))? {

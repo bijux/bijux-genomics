@@ -2,7 +2,6 @@ tool=gatk
 tool_version=pinned
 stage=bam.recalibration
 domain=bam
-shipping=external
 fixture_kind=synthetic_truth
 command=gatk
 args=

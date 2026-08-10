@@ -2,7 +2,6 @@ tool=bijux_dna
 tool_version=pinned
 stage=fastq.demultiplex_reads
 domain=fastq
-shipping=external
 fixture_kind=planned
 command=bijux-dna
 args=fastq layout demultiplex --reads reads.fq --barcodes barcode_manifest.json --out sample_reads

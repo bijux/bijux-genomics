@@ -2,7 +2,6 @@ tool=dustmasker
 tool_version=pinned
 stage=fastq.filter_low_complexity
 domain=fastq
-shipping=external
 fixture_kind=synthetic_truth
 command=dustmasker
 args=

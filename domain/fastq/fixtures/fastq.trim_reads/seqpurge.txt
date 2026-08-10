@@ -2,7 +2,6 @@ tool=seqpurge
 tool_version=pinned
 stage=fastq.trim_reads
 domain=fastq
-shipping=external
 fixture_kind=truth
 command=seqpurge
 args=

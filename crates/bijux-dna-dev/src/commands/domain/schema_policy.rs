@@ -10,7 +10,7 @@ use super::domain_workflow::{
     allowed_payload_keys, domain_directories, failure_block, inline_list, read_utf8, regex,
     required_fields, scalar_from_text, success_line, top_level_keys, yaml_files,
 };
-use super::{load_toml, toml_stages, toml_tools, tool_registry_files};
+use super::{toml_stages, toml_tools, tool_registry_files};
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
@@ -524,17 +524,18 @@ pub(super) fn check_domain_tool_metadata(workspace: &Workspace) -> Result<Domain
     failure_block("domain tool metadata check failed", errors)
 }
 
-pub(super) fn external_tools(workspace: &Workspace) -> Result<BTreeSet<String>> {
-    let config = load_toml(&workspace.path("configs/domain/external_tools.toml"))?;
-    Ok(config
-        .get("non_container_tools")
-        .and_then(TomlValue::as_table)
-        .map(|table| table.keys().cloned().collect())
-        .unwrap_or_default())
+pub(super) fn catalog_external_artifact_tools(workspace: &Workspace) -> Result<BTreeSet<String>> {
+    let catalog = bijux_dna_containers::api::load_container_catalog(&workspace.root)?;
+    Ok(catalog
+        .tools
+        .into_iter()
+        .filter(bijux_dna_containers::api::ContainerCatalogTool::permits_external_artifact)
+        .map(|tool| tool.id)
+        .collect())
 }
 
 pub(super) fn check_external_tool_policy(workspace: &Workspace) -> Result<DomainCommandOutcome> {
-    let external = external_tools(workspace)?;
+    let external = catalog_external_artifact_tools(workspace)?;
     let mut registry_tools = BTreeSet::new();
     for path in tool_registry_files(workspace) {
         if !path.is_file() {
@@ -552,18 +553,12 @@ pub(super) fn check_external_tool_policy(workspace: &Workspace) -> Result<Domain
         }
     }
 
-    let required = [
-        "gatk",
-        "picard",
-        "preseq",
-        "bamutil",
-        "ngsbriggs",
-        "dustmasker",
-        "seqprep",
-        "seqpurge",
-        "diamond",
-        "fastq_scan",
-    ];
+    let required = BTreeSet::from([
+        "angsd".to_string(),
+        "fastuniq".to_string(),
+        "impute5".to_string(),
+        "ngsbriggs".to_string(),
+    ]);
     let mut errors = Vec::new();
     for dom_dir in domain_directories(workspace)? {
         for fixture in WalkDir::new(dom_dir.join("fixtures"))
@@ -582,20 +577,15 @@ pub(super) fn check_external_tool_policy(workspace: &Workspace) -> Result<Domain
                 .to_string();
             if !registry_tools.contains(&tool) && !external.contains(&tool) {
                 errors.push(format!(
-                    "{}: tool '{tool}' missing from registries and external_tools allowlist",
+                    "{}: tool '{tool}' missing from registries and the catalog external-artifact projection",
                     workspace.rel(fixture.path()).display()
                 ));
             }
         }
     }
-    let missing_required = required
-        .iter()
-        .filter(|tool| !external.contains(**tool))
-        .map(|tool| (*tool).to_string())
-        .collect::<Vec<_>>();
-    if !missing_required.is_empty() {
+    if external != required {
         errors.push(format!(
-            "configs/domain/external_tools.toml missing required external markers: {missing_required:?}"
+            "catalog external-artifact projection differs from the four governed licensed tools: observed {external:?}"
         ));
     }
     if errors.is_empty() {
@@ -605,7 +595,7 @@ pub(super) fn check_external_tool_policy(workspace: &Workspace) -> Result<Domain
 }
 
 pub(super) fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCommandOutcome> {
-    let external = external_tools(workspace)?;
+    let external = catalog_external_artifact_tools(workspace)?;
     let mut errors = Vec::new();
     let stage_re = regex(r#"(?m)^stage_id:\s*"?([^"\n#]+)"?\s*$"#)?;
     let tool_re = regex(r#"(?m)^tool_id:\s*"?([^"\n#]+)"?\s*$"#)?;
@@ -780,7 +770,7 @@ pub(super) fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCom
                         }
                         if !known_tools.contains(tool) && !external.contains(tool) {
                             errors.push(format!(
-                                "{}: tool '{}' not found in domain tools or external tools policy",
+                                "{}: tool '{}' not found in domain tools or the catalog external-artifact projection",
                                 workspace.rel(&path).display(),
                                 tool
                             ));
@@ -788,7 +778,7 @@ pub(super) fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCom
                         let shipping = kv.get("shipping").cloned().unwrap_or_default();
                         if shipping == "external" && !external.contains(tool) {
                             errors.push(format!(
-                                "{}: shipping=external requires tool in configs/domain/external_tools.toml",
+                                "{}: shipping=external requires external artifact delivery in containers/contracts/catalog.toml",
                                 workspace.rel(&path).display()
                             ));
                         }

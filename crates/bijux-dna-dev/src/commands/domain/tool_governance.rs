@@ -9,7 +9,7 @@ use super::domain_workflow::{
     yaml_files,
 };
 use super::load_toml;
-use super::schema_policy::external_tools;
+use super::schema_policy::catalog_external_artifact_tools;
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
@@ -112,7 +112,7 @@ pub(super) fn check_shared_tools(workspace: &Workspace) -> Result<DomainCommandO
 }
 
 pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<DomainCommandOutcome> {
-    let external = external_tools(workspace)?;
+    let external = catalog_external_artifact_tools(workspace)?;
     let docker_tools = fs::read_dir(workspace.path("containers/docker"))
         .with_context(|| format!("read {}", workspace.path("containers/docker").display()))?
         .filter_map(std::result::Result::ok)
@@ -152,7 +152,7 @@ pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<Domai
                     let candidates = [tool_id_value.clone(), tool_id_value.replace('-', "_")];
                     if candidates.iter().all(|candidate| !all_container_tools.contains(candidate)) {
                         errors.push(format!(
-                            "{}: tool_id '{}' has no matching container def (add container or mark in configs/domain/external_tools.toml)",
+                            "{}: tool_id '{}' has no matching container definition or catalog external-artifact delivery",
                             workspace.rel(&tool_file).display(),
                             tool_id_value
                         ));
