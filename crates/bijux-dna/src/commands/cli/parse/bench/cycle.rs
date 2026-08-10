@@ -12,8 +12,42 @@ pub enum BenchCycleCommand {
     Collect(BenchCycleCollectArgs),
     /// Plan every declared tool attempt for one permanent benchmark run.
     Plan(BenchCyclePlanArgs),
+    /// Compare regenerated semantic artifacts with a selected publication.
+    Replay(BenchCycleReplayArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
     Status(BenchCycleStatusArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleReplayArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub run_id: String,
+    #[arg(long)]
+    pub replay_id: String,
+    #[arg(long)]
+    pub replayed_at_utc: String,
+    #[arg(long)]
+    pub run_definition_uri: String,
+    #[arg(long, required = true)]
+    pub case_definition_uri: Vec<String>,
+    #[arg(long, required = true)]
+    pub immutable_input_uri: Vec<String>,
+    #[arg(long)]
+    pub observed_decision_uri: Option<String>,
+    #[arg(long)]
+    pub observed_report_uri: Option<String>,
+    #[arg(long)]
+    pub observed_evidence_book_uri: Option<String>,
+    #[arg(long)]
+    pub difference: Vec<String>,
+    #[arg(long, required = true)]
+    pub limitation: Vec<String>,
+    #[arg(long)]
+    pub output: PathBuf,
 }
 
 #[derive(Debug, Args)]

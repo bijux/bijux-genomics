@@ -277,4 +277,42 @@ mod tests {
         };
         assert!(matches!(command, BenchCycleCommand::Book(_)));
     }
+
+    #[test]
+    fn benchmark_cycle_replay_uses_the_public_product_namespace() {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "replay",
+            "--study-root",
+            "/study",
+            "--run-id",
+            "run-2002",
+            "--replay-id",
+            "run-2002-replay-20260810",
+            "--replayed-at-utc",
+            "2026-08-10T00:00:00Z",
+            "--run-definition-uri",
+            "study://contracts/run-2002.json",
+            "--case-definition-uri",
+            "study://contracts/run-2002-bedtools.json",
+            "--immutable-input-uri",
+            "study://data/bam/input.json",
+            "--difference",
+            "The governed replay image is not currently available.",
+            "--limitation",
+            "Replay compares semantic products rather than scheduler identities.",
+            "--output",
+            "/study/benchmarks/replays/run-2002.json",
+        ]))
+        .expect("parse benchmark cycle replay");
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Replay(_)));
+    }
 }

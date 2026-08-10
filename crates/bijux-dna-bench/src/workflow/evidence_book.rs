@@ -110,7 +110,7 @@ pub fn publish_checked_in_benchmark_evidence_book(
     Ok(book)
 }
 
-fn governed_output_path(study_root: &Path, output: &Path) -> Result<PathBuf> {
+pub(super) fn governed_output_path(study_root: &Path, output: &Path) -> Result<PathBuf> {
     let file_name = output
         .file_name()
         .filter(|name| !name.is_empty())
@@ -128,7 +128,7 @@ fn governed_output_path(study_root: &Path, output: &Path) -> Result<PathBuf> {
     Ok(parent.join(file_name))
 }
 
-fn load_indexed_receipt(
+pub(super) fn load_indexed_receipt(
     study_root: &Path,
     reference: &BenchmarkRunIndexFileReference,
 ) -> Result<BenchmarkPublicationReceipt> {
@@ -160,7 +160,49 @@ fn load_indexed_receipt(
     Ok(receipt)
 }
 
-fn read_json<T: serde::de::DeserializeOwned>(path: &Path, label: &str) -> Result<T> {
+pub(super) fn study_reference(
+    study_root: &Path,
+    uri: &str,
+    label: &str,
+) -> Result<BenchmarkEvidenceReference> {
+    let path = study_path(study_root, uri, label)?;
+    let metadata = fs::symlink_metadata(&path)
+        .with_context(|| format!("inspect {label} {}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("{label} is not a regular file");
+    }
+    Ok(BenchmarkEvidenceReference {
+        uri: uri.to_string(),
+        sha256: bijux_dna_infra::hash_file_sha256(&path)?,
+        size_bytes: metadata.len(),
+    })
+}
+
+pub(super) fn verify_study_reference(
+    study_root: &Path,
+    reference: &BenchmarkEvidenceReference,
+    label: &str,
+) -> Result<()> {
+    let observed = study_reference(study_root, &reference.uri, label)?;
+    if &observed != reference {
+        bail!("{label} differs from its immutable evidence reference");
+    }
+    Ok(())
+}
+
+fn study_path(study_root: &Path, uri: &str, label: &str) -> Result<PathBuf> {
+    let relative =
+        uri.strip_prefix("study://").with_context(|| format!("{label} is not a STUDY URI"))?;
+    let relative_path = Path::new(relative);
+    if relative_path.as_os_str().is_empty()
+        || relative_path.components().any(|component| !matches!(component, Component::Normal(_)))
+    {
+        bail!("{label} STUDY URI is unsafe");
+    }
+    Ok(study_root.join(relative_path))
+}
+
+pub(super) fn read_json<T: serde::de::DeserializeOwned>(path: &Path, label: &str) -> Result<T> {
     let metadata = fs::symlink_metadata(path).with_context(|| format!("inspect {label}"))?;
     if metadata.file_type().is_symlink() || !metadata.is_file() {
         bail!("{label} is not a regular file");

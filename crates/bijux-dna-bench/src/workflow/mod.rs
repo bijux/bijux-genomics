@@ -26,6 +26,7 @@ mod fastq_validate_reads;
 mod options;
 mod parameter_authority;
 mod publication_registry;
+mod replay;
 mod report_load;
 mod run_index;
 mod run_registry;
@@ -158,6 +159,7 @@ pub use publication_registry::{
     derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
     render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,
 };
+pub use replay::{replay_checked_in_benchmark_publication, BenchmarkReplayRequest};
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,
 };
