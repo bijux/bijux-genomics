@@ -1,5 +1,14 @@
 {
   "$defs": {
+    "ContainerArtifactDelivery": {
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ],
+      "type": "string"
+    },
     "ContainerCatalogTool": {
       "additionalProperties": false,
       "properties": {
@@ -9,8 +18,15 @@
         "apptainer_supported": {
           "type": "boolean"
         },
+        "artifact_delivery": {
+          "$ref": "#/$defs/ContainerArtifactDelivery"
+        },
         "build_network": {
           "type": "boolean"
+        },
+        "delivery_reason": {
+          "default": "",
+          "type": "string"
         },
         "display_name": {
           "type": "string"
@@ -62,6 +78,9 @@
           "default": "",
           "type": "string"
         },
+        "product_support": {
+          "$ref": "#/$defs/ContainerProductSupport"
+        },
         "purpose": {
           "type": "string"
         },
@@ -70,6 +89,9 @@
         },
         "real_test_stage": {
           "type": "string"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
         },
         "runtime_network": {
           "type": "boolean"
@@ -83,13 +105,6 @@
             "type": "string"
           },
           "type": "array"
-        },
-        "support_disposition": {
-          "type": "string"
-        },
-        "support_reason": {
-          "default": "",
-          "type": "string"
         },
         "upstream": {
           "type": "string"
@@ -106,7 +121,9 @@
         "display_name",
         "purpose",
         "version",
-        "support_disposition",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
         "upstream",
         "documentation",
         "license",
@@ -126,6 +143,14 @@
         "real_test_input_kind"
       ],
       "type": "object"
+    },
+    "ContainerProductSupport": {
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",

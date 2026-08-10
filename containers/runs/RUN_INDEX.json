@@ -2,10 +2,10 @@
   "schema_version": "bijux.container.run_index.v1",
   "source_registry": {
     "uri": "repo://containers/contracts/qualification-runs.toml",
-    "sha256": "fdea0bb07283732a8d35a1aa355cd8b0cf7009889342ceef125f0b08114a2952",
+    "sha256": "e2be48a9d4bc62bcba40d5b018e00ce4df1daaa9d1ddca97447e0107631b10b3",
     "size_bytes": 171691
   },
-  "catalog_sha256": "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b",
+  "catalog_sha256": "7dc269495d5dcb614763e84b13751b1f7f5f7ff8f2c7d66c7a3485b63c8ac904",
   "historical_max_run_number": 1140,
   "namespace": {
     "minimum": 1000,

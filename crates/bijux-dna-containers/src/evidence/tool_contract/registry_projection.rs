@@ -216,7 +216,7 @@ fn compare_registry_row(
             &tool_id,
             registry,
             "status",
-            &catalog.legacy_support_disposition(),
+            catalog.legacy_support_disposition(),
         );
         if table_bool(registry, "container")
             || !table_string(registry, "dockerfile").is_empty()

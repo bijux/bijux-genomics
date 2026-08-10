@@ -99,6 +99,8 @@ pub(super) struct ContainerCatalog {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+// These independent delivery, runtime, and architecture capabilities mirror the catalog contract.
+#[allow(clippy::struct_excessive_bools)]
 pub(super) struct ContainerToolContract {
     pub(super) id: String,
     pub(super) version: String,

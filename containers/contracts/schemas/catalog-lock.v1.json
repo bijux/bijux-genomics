@@ -1,12 +1,27 @@
 {
   "$defs": {
+    "ContainerArtifactDelivery": {
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ],
+      "type": "string"
+    },
     "ContainerCatalogLockTool": {
       "additionalProperties": false,
       "properties": {
         "apptainer_definition": {
           "type": "string"
         },
+        "artifact_delivery": {
+          "$ref": "#/$defs/ContainerArtifactDelivery"
+        },
         "contract_sha256": {
+          "type": "string"
+        },
+        "delivery_reason": {
           "type": "string"
         },
         "display_name": {
@@ -24,13 +39,13 @@
         "pinned_commit": {
           "type": "string"
         },
+        "product_support": {
+          "$ref": "#/$defs/ContainerProductSupport"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
+        },
         "source_sha256": {
-          "type": "string"
-        },
-        "support_disposition": {
-          "type": "string"
-        },
-        "support_reason": {
           "type": "string"
         },
         "upstream": {
@@ -44,8 +59,10 @@
         "id",
         "display_name",
         "version",
-        "support_disposition",
-        "support_reason",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
+        "delivery_reason",
         "upstream",
         "license",
         "source_sha256",
@@ -55,6 +72,14 @@
         "contract_sha256"
       ],
       "type": "object"
+    },
+    "ContainerProductSupport": {
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
