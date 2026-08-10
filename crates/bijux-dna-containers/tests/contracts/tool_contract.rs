@@ -301,8 +301,9 @@ fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
     let validation = validate_container_catalog(&root)?;
     assert!(validation.is_valid(), "{:?}", validation.errors);
     assert_eq!(validation.tool_count, 89);
-    assert_eq!(validation.retained_count, 85);
-    assert_eq!(validation.unsupported_count, 4);
+    assert_eq!(validation.supported_count, 89);
+    assert_eq!(validation.redistributable_image_count, 85);
+    assert_eq!(validation.external_delivery_count, 4);
 
     let malformed_root = bijux_dna_testkit::tempdir_for("container-catalog-roster-drift");
     let contract_root = malformed_root.path().join("containers/contracts");
@@ -310,8 +311,8 @@ fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
     fs::create_dir_all(malformed_root.path().join("containers/apptainer"))?;
     fs::create_dir_all(malformed_root.path().join("containers/docker"))?;
     let source = fs::read_to_string(root.join("containers/contracts/catalog.toml"))?.replacen(
-        "support_disposition = \"retained\"",
-        "support_disposition = \"unsupported\"",
+        "product_support = \"supported\"",
+        "product_support = \"retired\"",
         1,
     );
     fs::write(contract_root.join("catalog.toml"), source)?;

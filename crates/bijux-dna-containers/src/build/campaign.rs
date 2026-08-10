@@ -31,7 +31,7 @@ pub struct ApptainerImageCampaignRequest {
     pub study_root: PathBuf,
     pub apptainer_executable: PathBuf,
     pub worker_count: usize,
-    /// Optional retained-tool closure for an identity-addressed targeted campaign.
+    /// Optional redistributable-image closure for an identity-addressed targeted campaign.
     pub selected_tools: Option<BTreeSet<String>>,
 }
 
@@ -125,7 +125,7 @@ pub fn write_image_campaign_execution_schema(path: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Build or resume every retained image and publish an immutable terminal execution record.
+/// Build or resume every repository-distributable image and publish an immutable terminal record.
 ///
 /// # Errors
 /// Returns an error for source drift, invalid catalog closure, conflicting progress, invalid
@@ -143,16 +143,16 @@ pub fn execute_apptainer_image_campaign(
     if !validated.is_valid() {
         bail!("image campaign catalog validation failed: {}", validated.errors.join("; "));
     }
-    let retained_tools =
+    let redistributable_tools =
         retained_apptainer_tool_ids(&request.repository_root, &catalog.apptainer_architecture)?;
-    if retained_tools.len() != validated.retained_count {
-        bail!("image campaign retained roster differs from validated catalog");
+    if redistributable_tools.len() != validated.redistributable_image_count {
+        bail!("image campaign redistributable-image roster differs from validated catalog");
     }
-    let tools = select_campaign_tools(&retained_tools, request.selected_tools.as_ref())?;
+    let tools = select_campaign_tools(&redistributable_tools, request.selected_tools.as_ref())?;
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
         &request.repository_root.join("containers/contracts/catalog.toml"),
     )?;
-    let scope = campaign_scope(&tools, retained_tools.len());
+    let scope = campaign_scope(&tools, redistributable_tools.len());
     let evidence_root = campaign_root(
         &request.study_root.join("containers/evidence/image-campaigns"),
         &commit,
@@ -177,7 +177,7 @@ pub fn execute_apptainer_image_campaign(
     let outcomes =
         load_progress(&progress_path, &commit, &catalog_sha256, &catalog.apptainer_architecture)?;
     if outcomes.keys().any(|tool| !tools.contains(tool)) {
-        bail!("image campaign progress contains a tool outside the retained roster");
+        bail!("image campaign progress contains a tool outside the redistributable-image roster");
     }
     let outcomes = Mutex::new(outcomes);
     verify_resumed_outcomes(
@@ -302,9 +302,9 @@ pub fn verify_apptainer_image_campaign_receipt(
         &catalog_sha256,
         &catalog.apptainer_architecture,
     )?;
-    let retained_tools =
+    let redistributable_tools =
         retained_apptainer_tool_ids(repository_root, &catalog.apptainer_architecture)?;
-    let selected_tools = selected_receipt_tools(&retained_tools, tools.keys())?;
+    let selected_tools = selected_receipt_tools(&redistributable_tools, tools.keys())?;
     if tools.values().any(|outcome| {
         outcome.status != ImageCampaignToolStatus::Passed
             || outcome.publication.is_none()
@@ -318,7 +318,7 @@ pub fn verify_apptainer_image_campaign_receipt(
         catalog.apptainer_architecture.clone(),
         tools.clone(),
     );
-    let scope = campaign_scope(&selected_tools, retained_tools.len());
+    let scope = campaign_scope(&selected_tools, redistributable_tools.len());
     let canonical_path = campaign_root(
         &study_root.join("containers/evidence/image-campaigns"),
         &source_commit,
@@ -348,11 +348,11 @@ pub fn verify_apptainer_image_campaign_receipt(
 }
 
 fn selected_receipt_tools<'a>(
-    retained_tools: &[String],
+    redistributable_tools: &[String],
     execution_tools: impl Iterator<Item = &'a String>,
 ) -> Result<Vec<String>> {
     let execution_tools = execution_tools.cloned().collect::<BTreeSet<_>>();
-    let selected_tools = select_campaign_tools(retained_tools, Some(&execution_tools))?;
+    let selected_tools = select_campaign_tools(redistributable_tools, Some(&execution_tools))?;
     if selected_tools.len() != execution_tools.len() {
         bail!("image campaign receipt tool roster is invalid");
     }
@@ -360,25 +360,32 @@ fn selected_receipt_tools<'a>(
 }
 
 fn select_campaign_tools(
-    retained_tools: &[String],
+    redistributable_tools: &[String],
     selected_tools: Option<&BTreeSet<String>>,
 ) -> Result<Vec<String>> {
     let Some(selected_tools) = selected_tools else {
-        return Ok(retained_tools.to_vec());
+        return Ok(redistributable_tools.to_vec());
     };
     if selected_tools.is_empty() {
         bail!("selected image campaign contains no tools");
     }
-    let retained = retained_tools.iter().cloned().collect::<BTreeSet<_>>();
-    let unknown = selected_tools.difference(&retained).cloned().collect::<Vec<_>>();
+    let redistributable = redistributable_tools.iter().cloned().collect::<BTreeSet<_>>();
+    let unknown = selected_tools.difference(&redistributable).cloned().collect::<Vec<_>>();
     if !unknown.is_empty() {
-        bail!("selected image campaign contains unknown retained tools: {}", unknown.join(","));
+        bail!(
+            "selected image campaign contains tools outside the redistributable-image roster: {}",
+            unknown.join(",")
+        );
     }
-    Ok(retained_tools.iter().filter(|tool| selected_tools.contains(*tool)).cloned().collect())
+    Ok(redistributable_tools
+        .iter()
+        .filter(|tool| selected_tools.contains(*tool))
+        .cloned()
+        .collect())
 }
 
-fn campaign_scope(tools: &[String], retained_count: usize) -> Option<String> {
-    (tools.len() != retained_count).then(|| {
+fn campaign_scope(tools: &[String], redistributable_count: usize) -> Option<String> {
+    (tools.len() != redistributable_count).then(|| {
         format!("selected-{}", bijux_dna_infra::hash_bytes_sha256(tools.join("\n").as_bytes()))
     })
 }
@@ -470,10 +477,11 @@ fn verify_resumed_outcomes(
     outcomes: &Mutex<BTreeMap<String, ImageCampaignToolOutcome>>,
 ) -> Result<()> {
     let catalog = load_container_catalog(&request.repository_root)?;
-    let retained_tools =
+    let redistributable_tools =
         retained_apptainer_tool_ids(&request.repository_root, &catalog.apptainer_architecture)?;
-    let selected_tools = select_campaign_tools(&retained_tools, request.selected_tools.as_ref())?;
-    let scope = campaign_scope(&selected_tools, retained_tools.len());
+    let selected_tools =
+        select_campaign_tools(&redistributable_tools, request.selected_tools.as_ref())?;
+    let scope = campaign_scope(&selected_tools, redistributable_tools.len());
     let expected_image_root = campaign_root(
         &request.study_root.join("containers/staging"),
         repository_commit,
