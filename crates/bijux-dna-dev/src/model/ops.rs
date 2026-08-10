@@ -59,6 +59,7 @@ pub enum NativeOpsCommandKey {
     ToolingCiInstallTools,
     ToolingCiSlow,
     ToolingCiTest,
+    ToolingCiTestAllSharded,
     ToolingCiTestSlow,
     ToolingCleanDocs,
     ToolingCertificationGate,

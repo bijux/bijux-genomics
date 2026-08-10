@@ -1,11 +1,48 @@
 use super::super::suite_selection::governed_slow_expression;
+use std::collections::BTreeSet;
+use std::path::{Component, Path};
+use std::time::Instant;
+
+use serde::Deserialize;
+
 use super::{
     artifact_env, artifact_root_path, ci_test_env, ensure_help_only, env_or_default, fs,
     merge_outcomes, read_coverage_runner_flag, resolved_nextest_expression,
     resolved_nextest_profile, resolved_nextest_threads, resolved_run_ignored, run_check_ids,
-    run_make_target, run_program_with_env, set_assets_readonly, Context, OpsCommandOutcome, Result,
-    Workspace,
+    run_make_target, run_program_with_env, set_assets_readonly, write_json_pretty, Context,
+    OpsCommandOutcome, Result, Workspace,
 };
+use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
+
+const FULL_SHARDS_SCHEMA_V1: &str = "bijux.ci.full_shards.v1";
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FullShardContract {
+    schema_version: String,
+    coverage: FullShardCoverage,
+    partition_strategy: String,
+    shared_target_root: String,
+    report_root: String,
+    shards: Vec<FullShard>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FullShardCoverage {
+    workspace: bool,
+    all_targets: bool,
+    all_features: bool,
+    run_ignored: String,
+    overlap_policy: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FullShard {
+    id: String,
+    partition: String,
+}
 
 pub(in super::super) fn tooling_ci_fmt(
     workspace: &Workspace,
@@ -187,6 +224,148 @@ pub(in super::super) fn tooling_ci_test(
     Ok(combined)
 }
 
+pub(in super::super) fn tooling_ci_test_all_sharded(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-test-all-sharded", args)?;
+    let contract_path = workspace.path("configs/ci/full-shards.json");
+    let contract: FullShardContract = serde_json::from_slice(&fs::read(&contract_path)?)
+        .with_context(|| format!("parse {}", contract_path.display()))?;
+    validate_full_shard_contract(&contract)?;
+
+    let target_root = workspace.path(&contract.shared_target_root);
+    let report_root = workspace.path(&contract.report_root);
+    bijux_dna_infra::ensure_dir(&target_root)?;
+    bijux_dna_infra::ensure_dir(&report_root)?;
+    let mut envs = ci_test_env(workspace, false)?;
+    envs.push(("CARGO_TARGET_DIR".to_string(), target_root.display().to_string()));
+    let started = Instant::now();
+    let specs = contract
+        .shards
+        .iter()
+        .map(|shard| ParallelProcessSpec {
+            label: shard.id.clone(),
+            program: "cargo".to_string(),
+            args: vec![
+                "nextest".to_string(),
+                "run".to_string(),
+                "--workspace".to_string(),
+                "--all-targets".to_string(),
+                "--all-features".to_string(),
+                "--locked".to_string(),
+                "--config-file".to_string(),
+                "configs/rust/nextest.toml".to_string(),
+                "--profile".to_string(),
+                "full".to_string(),
+                "--run-ignored".to_string(),
+                "all".to_string(),
+                "--retries".to_string(),
+                "0".to_string(),
+                "--partition".to_string(),
+                shard.partition.clone(),
+            ],
+            envs: envs.clone(),
+        })
+        .collect::<Vec<_>>();
+    let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
+    let mut all_passed = true;
+    let mut shard_receipts = Vec::with_capacity(outputs.len());
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    for (shard, completed) in contract.shards.iter().zip(outputs) {
+        let log_path = report_root.join(format!("{}.log", shard.id));
+        let mut log = completed.output.stdout.clone();
+        log.extend_from_slice(&completed.output.stderr);
+        bijux_dna_infra::write_bytes(&log_path, &log)?;
+        let exit_code = completed.output.status.code().unwrap_or(1);
+        all_passed &= exit_code == 0;
+        stdout.push_str(&String::from_utf8_lossy(&completed.output.stdout));
+        stderr.push_str(&String::from_utf8_lossy(&completed.output.stderr));
+        shard_receipts.push(serde_json::json!({
+            "id": completed.label,
+            "partition": shard.partition,
+            "duration_milliseconds": completed.duration.as_millis(),
+            "exit_code": exit_code,
+            "log": workspace.rel(&log_path).to_string_lossy(),
+        }));
+    }
+    write_json_pretty(
+        &workspace.path("artifacts/ci/full-gate-timing.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.ci.full_gate_timing.v1",
+            "contract_sha256": bijux_dna_infra::hash_file_sha256(&contract_path)?,
+            "coverage": {
+                "workspace": true,
+                "all_targets": true,
+                "all_features": true,
+                "run_ignored": "all",
+                "overlap_policy": "exactly_once"
+            },
+            "wall_time_milliseconds": started.elapsed().as_millis(),
+            "all_passed": all_passed,
+            "shards": shard_receipts,
+        }),
+    )?;
+    Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
+    if contract.schema_version != FULL_SHARDS_SCHEMA_V1
+        || !contract.coverage.workspace
+        || !contract.coverage.all_targets
+        || !contract.coverage.all_features
+        || contract.coverage.run_ignored != "all"
+        || contract.coverage.overlap_policy != "exactly_once"
+        || contract.partition_strategy != "hash"
+        || !(2..=16).contains(&contract.shards.len())
+    {
+        anyhow::bail!("full shard coverage contract is incomplete");
+    }
+    validate_artifact_relative_path(&contract.shared_target_root)?;
+    validate_artifact_relative_path(&contract.report_root)?;
+    let denominator = contract.shards.len();
+    let mut ids = BTreeSet::new();
+    let mut indices = BTreeSet::new();
+    for shard in &contract.shards {
+        if shard.id.is_empty()
+            || !shard.id.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+            || !ids.insert(shard.id.as_str())
+        {
+            anyhow::bail!("full shard identity is invalid");
+        }
+        let value = shard
+            .partition
+            .strip_prefix("hash:")
+            .context("full shard partition must use hash strategy")?;
+        let (index, declared_denominator) =
+            value.split_once('/').context("full shard partition is malformed")?;
+        let index = index.parse::<usize>().context("full shard index is invalid")?;
+        let declared_denominator =
+            declared_denominator.parse::<usize>().context("full shard denominator is invalid")?;
+        if declared_denominator != denominator
+            || !(1..=denominator).contains(&index)
+            || !indices.insert(index)
+        {
+            anyhow::bail!("full shard partitions do not cover the hash space exactly once");
+        }
+    }
+    Ok(())
+}
+
+fn validate_artifact_relative_path(value: &str) -> Result<()> {
+    let path = Path::new(value);
+    if path.is_absolute()
+        || !path.starts_with("artifacts")
+        || path.components().any(|component| {
+            matches!(component, Component::ParentDir | Component::RootDir | Component::Prefix(_))
+        })
+    {
+        anyhow::bail!("full shard output path must remain under artifacts/");
+    }
+    Ok(())
+}
+
 pub(in super::super) fn tooling_ci_test_slow(
     workspace: &Workspace,
     args: &[String],
@@ -306,4 +485,47 @@ pub(in super::super) fn tooling_ci_coverage(
         &envs,
     )?;
     Ok(merge_outcomes(merge_outcomes(clean, json_report), html_report))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{validate_full_shard_contract, FullShard, FullShardContract, FullShardCoverage};
+
+    fn contract() -> FullShardContract {
+        FullShardContract {
+            schema_version: "bijux.ci.full_shards.v1".to_string(),
+            coverage: FullShardCoverage {
+                workspace: true,
+                all_targets: true,
+                all_features: true,
+                run_ignored: "all".to_string(),
+                overlap_policy: "exactly_once".to_string(),
+            },
+            partition_strategy: "hash".to_string(),
+            shared_target_root: "artifacts/target".to_string(),
+            report_root: "artifacts/ci/full-shards".to_string(),
+            shards: (1..=4)
+                .map(|index| FullShard {
+                    id: format!("hash-{index}-of-4"),
+                    partition: format!("hash:{index}/4"),
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn full_shard_contract_covers_hash_space_exactly_once() {
+        assert!(validate_full_shard_contract(&contract()).is_ok());
+    }
+
+    #[test]
+    fn full_shard_contract_rejects_overlap_and_escaping_outputs() {
+        let mut overlap = contract();
+        overlap.shards[3].partition = "hash:3/4".to_string();
+        assert!(validate_full_shard_contract(&overlap).is_err());
+
+        let mut escaping = contract();
+        escaping.report_root = "../reports".to_string();
+        assert!(validate_full_shard_contract(&escaping).is_err());
+    }
 }

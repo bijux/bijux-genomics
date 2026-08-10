@@ -1,4 +1,6 @@
 use std::process::Output;
+use std::sync::mpsc;
+use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result};
 
@@ -7,6 +9,21 @@ use crate::runtime::workspace::Workspace;
 #[derive(Debug)]
 pub struct ProcessRunner<'a> {
     workspace: &'a Workspace,
+}
+
+#[derive(Debug, Clone)]
+pub struct ParallelProcessSpec {
+    pub label: String,
+    pub program: String,
+    pub args: Vec<String>,
+    pub envs: Vec<(String, String)>,
+}
+
+#[derive(Debug)]
+pub struct ParallelProcessOutput {
+    pub label: String,
+    pub output: Output,
+    pub duration: Duration,
 }
 
 impl<'a> ProcessRunner<'a> {
@@ -53,5 +70,90 @@ impl<'a> ProcessRunner<'a> {
                     format!("run {program} {}", args.join(" "))
                 }
             })
+    }
+
+    /// Run independent processes concurrently and return outputs in declaration order.
+    ///
+    /// Completion is delivered through a channel as each child exits; no polling or sleeps are
+    /// used. All launched children are collected before a launch failure is returned.
+    ///
+    /// # Errors
+    /// Returns an error when a child cannot be launched or its completion cannot be collected.
+    pub fn run_parallel(
+        &self,
+        specs: Vec<ParallelProcessSpec>,
+    ) -> Result<Vec<ParallelProcessOutput>> {
+        let root = self.workspace.root.clone();
+        let count = specs.len();
+        let (sender, receiver) = mpsc::channel();
+        std::thread::scope(|scope| {
+            for (index, spec) in specs.into_iter().enumerate() {
+                let sender = sender.clone();
+                let root = root.clone();
+                scope.spawn(move || {
+                    let started = Instant::now();
+                    let result = std::process::Command::new(&spec.program)
+                        .args(&spec.args)
+                        .envs(spec.envs.iter().map(|(key, value)| (key, value)))
+                        .current_dir(root)
+                        .output()
+                        .with_context(|| format!("run parallel process {}", spec.label))
+                        .map(|output| ParallelProcessOutput {
+                            label: spec.label,
+                            output,
+                            duration: started.elapsed(),
+                        });
+                    let _ = sender.send((index, result));
+                });
+            }
+            drop(sender);
+            let mut outputs = (0..count).map(|_| None).collect::<Vec<_>>();
+            let mut first_error = None;
+            for (index, result) in receiver {
+                match result {
+                    Ok(output) => outputs[index] = Some(output),
+                    Err(error) if first_error.is_none() => first_error = Some(error),
+                    Err(_) => {}
+                }
+            }
+            if let Some(error) = first_error {
+                return Err(error);
+            }
+            outputs
+                .into_iter()
+                .enumerate()
+                .map(|(index, output)| {
+                    output.with_context(|| format!("parallel process {index} was not collected"))
+                })
+                .collect()
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ParallelProcessSpec, ProcessRunner};
+    use crate::runtime::workspace::Workspace;
+
+    #[test]
+    fn parallel_runner_collects_every_child_in_declaration_order() -> anyhow::Result<()> {
+        let workspace = Workspace { root: std::env::current_dir()? };
+        let specs = ["first", "second"]
+            .into_iter()
+            .map(|label| ParallelProcessSpec {
+                label: label.to_string(),
+                program: "sh".to_string(),
+                args: vec!["-c".to_string(), format!("printf '%s' {label}")],
+                envs: Vec::new(),
+            })
+            .collect();
+        let outputs = ProcessRunner::new(&workspace).run_parallel(specs)?;
+        assert_eq!(
+            outputs.iter().map(|output| output.label.as_str()).collect::<Vec<_>>(),
+            ["first", "second"]
+        );
+        assert_eq!(outputs[0].output.stdout, b"first");
+        assert_eq!(outputs[1].output.stdout, b"second");
+        Ok(())
     }
 }

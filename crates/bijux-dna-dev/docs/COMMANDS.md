@@ -431,6 +431,7 @@ ci-fmt
 ci-install-tools
 ci-slow
 ci-test
+ci-test-all-sharded
 ci-test-slow
 clean-docs
 config-inventory

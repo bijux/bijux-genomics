@@ -95,6 +95,9 @@ pub(super) fn run_native_ops_command(
         }
         NativeOpsCommandKey::ToolingCiSlow => tooling::tooling_ci_slow(workspace, args),
         NativeOpsCommandKey::ToolingCiTest => tooling::tooling_ci_test(workspace, args),
+        NativeOpsCommandKey::ToolingCiTestAllSharded => {
+            tooling::tooling_ci_test_all_sharded(workspace, args)
+        }
         NativeOpsCommandKey::ToolingCiTestSlow => tooling::tooling_ci_test_slow(workspace, args),
         NativeOpsCommandKey::ToolingCleanDocs => tooling::tooling_clean_docs(workspace, args),
         NativeOpsCommandKey::ToolingCertificationGate => {
