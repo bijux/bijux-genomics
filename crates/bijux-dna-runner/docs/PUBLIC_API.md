@@ -73,6 +73,11 @@
 - `observe_container_qualification_slurm_job`
 - `collect_container_qualification_slurm_job`
 - `cancel_container_qualification_slurm_job`
+- `plan_container_qualification_cycle`
+- `advance_container_qualification_cycle`
+- `status_container_qualification_cycle`
+- `collect_container_qualification_cycle`
+- `admit_container_qualification_cycle`
 - `archive_failed_container_qualification_attempt`
 - `rollback_failed_container_qualification_attempt_archive`
 - `ContainerQualificationPreparationRequest`
@@ -83,11 +88,19 @@
 - `ContainerQualificationAccountingRecord`
 - `ContainerQualificationSchedulerEvidence`
 - `ContainerQualificationSchedulerStatus`
+- `ContainerQualificationCycleAction`
+- `ContainerQualificationCycleRequest`
+- `ContainerQualificationCycleState`
+- `ContainerQualificationCycleStatus`
+- `ContainerQualificationCycleSummary`
+- `ContainerQualificationCycleUnit`
 - `CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3`
 - `CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4`
 - `CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5`
 - `CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1`
 - `CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1`
+- `CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1` (deserialize compatibility)
+- `CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2`
 - `CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1`
 
 ## Stability Rules

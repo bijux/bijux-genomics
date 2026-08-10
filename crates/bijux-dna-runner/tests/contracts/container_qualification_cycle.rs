@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use bijux_dna_runner::api::{
     plan_container_qualification_cycle, ContainerQualificationCycleAction,
     ContainerQualificationCycleRequest, ContainerQualificationCycleState,
-    CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2,
 };
 
 use crate::support::repo_root;
@@ -35,13 +35,13 @@ fn cycle_plan_is_idempotent_and_exposes_every_current_protocol_action() -> Resul
     let first = plan_container_qualification_cycle(&request)?;
     let second = plan_container_qualification_cycle(&request)?;
     assert_eq!(first, second);
-    assert_eq!(first.schema_version, CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1);
+    assert_eq!(first.schema_version, CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2);
     assert_eq!(first.summary.unit_count, 89);
     assert_eq!(first.summary.published_count, 68);
     assert_eq!(first.summary.blocked_count, 21);
     assert_eq!(first.summary.ready_count, 0);
     assert_eq!(first.summary.active_count, 0);
-    assert_eq!(first.earliest_poll_at_utc, None);
+    assert_eq!(first.earliest_observation_at_utc, None);
     assert!(
         first
             .units

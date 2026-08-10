@@ -22,7 +22,9 @@ use crate::backend::slurm::{SlurmClientPaths, SlurmJobState};
 
 pub const CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_cycle_status.v1";
-const DEFAULT_POLL_INTERVAL_SECONDS: i64 = 300;
+pub const CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2: &str =
+    "bijux.runner.container_qualification_cycle_status.v2";
+const DEFAULT_OBSERVATION_INTERVAL_SECONDS: i64 = 300;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContainerQualificationCycleRequest {
@@ -56,7 +58,8 @@ pub enum ContainerQualificationCycleAction {
     None,
     Prepare,
     Submit,
-    Poll,
+    #[serde(alias = "poll")]
+    Observe,
     Collect,
     Admit,
     ArchiveFailure,
@@ -97,7 +100,8 @@ pub struct ContainerQualificationCycleStatus {
     pub schema_version: String,
     pub observed_at_utc: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub earliest_poll_at_utc: Option<String>,
+    #[serde(alias = "earliest_poll_at_utc")]
+    pub earliest_observation_at_utc: Option<String>,
     pub summary: ContainerQualificationCycleSummary,
     pub units: Vec<ContainerQualificationCycleUnit>,
 }
@@ -303,12 +307,13 @@ fn derive_cycle(
                 | ContainerQualificationCycleState::AccountingPending
         )
     });
-    let earliest_poll_at_utc = active
-        .then(|| (observed_at + Duration::seconds(DEFAULT_POLL_INTERVAL_SECONDS)).to_rfc3339());
+    let earliest_observation_at_utc = active.then(|| {
+        (observed_at + Duration::seconds(DEFAULT_OBSERVATION_INTERVAL_SECONDS)).to_rfc3339()
+    });
     Ok(ContainerQualificationCycleStatus {
-        schema_version: CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2.to_string(),
         observed_at_utc: observed_at.to_rfc3339(),
-        earliest_poll_at_utc,
+        earliest_observation_at_utc,
         summary: summarize(&units),
         units,
     })
@@ -462,7 +467,7 @@ fn classify_spec(
         } else {
             (
                 ContainerQualificationCycleState::Submitted,
-                ContainerQualificationCycleAction::Poll,
+                ContainerQualificationCycleAction::Observe,
                 None,
             )
         };
@@ -516,22 +521,22 @@ fn scheduler_state(
     match state {
         SlurmJobState::Submitted => (
             ContainerQualificationCycleState::Submitted,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             None,
         ),
         SlurmJobState::Pending => (
             ContainerQualificationCycleState::Pending,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             None,
         ),
         SlurmJobState::Running => (
             ContainerQualificationCycleState::Running,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             None,
         ),
         SlurmJobState::AccountingPending => (
             ContainerQualificationCycleState::AccountingPending,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             Some("terminal accounting is not available yet"),
         ),
         SlurmJobState::Completed
@@ -695,6 +700,43 @@ mod tests {
             &spec.repository_commit,
         )
         .is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn observation_action_serializes_without_polling_semantics() -> anyhow::Result<()> {
+        assert_eq!(
+            serde_json::to_string(&ContainerQualificationCycleAction::Observe)?,
+            r#""observe""#
+        );
+        assert_eq!(
+            serde_json::from_str::<ContainerQualificationCycleAction>(r#""poll""#)?,
+            ContainerQualificationCycleAction::Observe
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn historical_poll_timestamp_deserializes_as_observation_cadence() -> anyhow::Result<()> {
+        let status: super::ContainerQualificationCycleStatus =
+            serde_json::from_value(serde_json::json!({
+                "schema_version": super::CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1,
+                "observed_at_utc": "2026-08-10T12:00:00Z",
+                "earliest_poll_at_utc": "2026-08-10T12:05:00Z",
+                "summary": {
+                    "unit_count": 0,
+                    "published_count": 0,
+                    "blocked_count": 0,
+                    "ready_count": 0,
+                    "active_count": 0,
+                    "passed_count": 0,
+                    "admitted_count": 0,
+                    "failed_count": 0
+                },
+                "units": []
+            }))?;
+
+        assert_eq!(status.earliest_observation_at_utc.as_deref(), Some("2026-08-10T12:05:00Z"));
         Ok(())
     }
 }
