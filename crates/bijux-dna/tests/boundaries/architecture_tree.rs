@@ -306,6 +306,7 @@ fn dna_tree_matches_architecture_contract() {
         "active_scope.rs",
         "config.rs",
         "corpus_fastq.rs",
+        "cycle.rs",
         "data_index.rs",
         "fastq/",
         "local.rs",
