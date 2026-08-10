@@ -89,7 +89,8 @@ pub fn parse_process_cli(argv: &[String]) -> cli::Cli {
 
 #[cfg(test)]
 mod tests {
-    use super::normalize_cli_argv;
+    use super::{normalize_cli_argv, parse_cli_from_argv};
+    use crate::commands::cli::DnaCommand;
 
     fn argv(values: &[&str]) -> Vec<String> {
         values.iter().map(|value| (*value).to_string()).collect()
@@ -136,5 +137,14 @@ mod tests {
             host_route,
             argv(&["bijux-dna", "--platform=test", "--log-level=debug", "env", "info"])
         );
+    }
+
+    #[test]
+    fn benchmark_product_namespace_retains_the_short_alias() {
+        for namespace in ["benchmark", "bench"] {
+            let parsed = parse_cli_from_argv(&argv(&["bijux-dna", namespace, "status"]))
+                .expect("parse benchmark namespace");
+            assert!(matches!(parsed.command, DnaCommand::Bench(_)));
+        }
     }
 }
