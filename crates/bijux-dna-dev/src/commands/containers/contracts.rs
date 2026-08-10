@@ -6,9 +6,9 @@ use super::{
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const LOCK_PATH: &str = "containers/contracts/catalog.lock.json";
 const QUALIFICATION_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/qualification-assessment.v2.json";
+    "containers/contracts/schemas/qualification-assessment.v3.json";
 const QUALIFICATION_REPORT_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/qualification-report.v3.json";
+    "containers/contracts/schemas/qualification-report.v4.json";
 
 pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let validation = bijux_dna_containers::evidence::validate_container_catalog(&workspace.root)?;

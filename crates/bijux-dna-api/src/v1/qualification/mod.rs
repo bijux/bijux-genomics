@@ -8,13 +8,13 @@ use anyhow::{Context, Result};
 
 pub use bijux_dna_policies::{
     evaluate_publication_freshness, render_qualification_report_json,
-    render_qualification_report_markdown, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
-    ImmutablePublicationIdentity, PublicationArtifactIdentity, PublicationAuthority,
-    PublicationDisposition, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
-    PublicationIdentityMismatch, QualificationAssessment, QualificationClaim,
-    QualificationEvidenceSource, QualificationReport, QualificationReportSummary,
-    SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V2, QUALIFICATION_REPORT_SCHEMA_V3,
-    REQUIRED_EVIDENCE_DIMENSIONS,
+    render_qualification_report_markdown, ArtifactAvailability, ArtifactDelivery, EvidenceDecision,
+    EvidenceDimension, EvidenceVerdict, ImmutablePublicationIdentity, ProductSupport,
+    PublicationArtifactIdentity, PublicationAuthority, PublicationDisposition,
+    PublicationFreshnessEvaluation, PublicationFreshnessVerdict, PublicationIdentityMismatch,
+    QualificationAssessment, QualificationClaim, QualificationEvidenceSource, QualificationReport,
+    QualificationReportSummary, SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V3,
+    QUALIFICATION_REPORT_SCHEMA_V4, REQUIRED_EVIDENCE_DIMENSIONS,
 };
 
 pub use derivation::derive_container_qualification_report;

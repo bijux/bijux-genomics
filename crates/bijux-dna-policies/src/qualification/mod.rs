@@ -11,13 +11,13 @@ pub use decision::{
     ExecutionEvidenceStatus, BENCHMARK_EVIDENCE_RULE_V1, BUILD_EVIDENCE_RULE_V1,
     CATALOG_EVIDENCE_RULE_V1, EXECUTION_EVIDENCE_RULE_V1, FRESHNESS_EVIDENCE_RULE_V1,
     RELEASE_EVIDENCE_RULE_V1, RUNTIME_EVIDENCE_RULE_V1, SECURITY_EVIDENCE_RULE_V1,
-    SOURCE_IDENTITY_RULE_V1, SUPPORT_DISPOSITION_RULE_V1,
+    SOURCE_IDENTITY_RULE_V1, SUPPORT_DIMENSIONS_RULE_V2, SUPPORT_DISPOSITION_RULE_V1,
 };
 pub use evaluation::REQUIRED_EVIDENCE_DIMENSIONS;
 pub use model::{
-    DecisionAudit, EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
-    QualificationAssessment, QualificationClaim, SupportDisposition,
-    QUALIFICATION_ASSESSMENT_SCHEMA_V2,
+    ArtifactAvailability, ArtifactDelivery, DecisionAudit, EvidenceDecision, EvidenceDimension,
+    EvidenceVerdict, ProductSupport, PublicationDisposition, QualificationAssessment,
+    QualificationClaim, SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V3,
 };
 pub use publication::{
     evaluate_publication_freshness, ImmutablePublicationIdentity, PublicationArtifactIdentity,
@@ -27,5 +27,5 @@ pub use publication::{
 pub use render::{render_qualification_report_json, render_qualification_report_markdown};
 pub use report::{
     QualificationEvidenceSource, QualificationReport, QualificationReportSummary,
-    QUALIFICATION_REPORT_SCHEMA_V3,
+    QUALIFICATION_REPORT_SCHEMA_V4,
 };

@@ -1,0 +1,377 @@
+{
+  "$defs": {
+    "ArtifactAvailability": {
+      "enum": [
+        "admitted",
+        "blocked_external_access",
+        "unavailable"
+      ],
+      "type": "string"
+    },
+    "ArtifactDelivery": {
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ],
+      "type": "string"
+    },
+    "DecisionAudit": {
+      "additionalProperties": false,
+      "properties": {
+        "measured_values": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "outcome": {
+          "$ref": "#/$defs/EvidenceVerdict"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "rule_version": {
+          "type": "string"
+        },
+        "thresholds": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "rule_version",
+        "measured_values",
+        "thresholds",
+        "outcome",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "EvidenceDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "audit": {
+          "$ref": "#/$defs/DecisionAudit"
+        },
+        "evidence_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "verdict": {
+          "$ref": "#/$defs/EvidenceVerdict"
+        }
+      },
+      "required": [
+        "verdict",
+        "audit"
+      ],
+      "type": "object"
+    },
+    "EvidenceVerdict": {
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "missing",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "ProductSupport": {
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
+    },
+    "PublicationDisposition": {
+      "enum": [
+        "current",
+        "superseded"
+      ],
+      "type": "string"
+    },
+    "QualificationAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_delivery": {
+          "$ref": "#/$defs/ArtifactDelivery"
+        },
+        "availability": {
+          "$ref": "#/$defs/ArtifactAvailability"
+        },
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/QualificationClaim"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "dimensions": {
+          "additionalProperties": false,
+          "properties": {
+            "benchmark": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "build": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "catalog": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "freshness": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "real_data": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "release": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "runtime": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "science": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "security": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "source": {
+              "$ref": "#/$defs/EvidenceDecision"
+            },
+            "stage": {
+              "$ref": "#/$defs/EvidenceDecision"
+            }
+          },
+          "type": "object"
+        },
+        "product_support": {
+          "$ref": "#/$defs/ProductSupport"
+        },
+        "publication_disposition": {
+          "$ref": "#/$defs/PublicationDisposition"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "bijux.container.qualification_assessment.v3",
+          "type": "string"
+        },
+        "subject_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "subject_id",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
+        "availability",
+        "publication_disposition",
+        "dimensions",
+        "claims"
+      ],
+      "type": "object"
+    },
+    "QualificationClaim": {
+      "enum": [
+        "unsupported",
+        "planned",
+        "built",
+        "runtime_verified",
+        "stage_verified",
+        "real_data_verified",
+        "science_verified",
+        "benchmark_verified",
+        "security_verified",
+        "release_verified",
+        "qualified",
+        "failed",
+        "superseded",
+        "blocked"
+      ],
+      "type": "string"
+    },
+    "QualificationEvidenceSource": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "QualificationReportSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "blocked_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dimension_passes": {
+          "additionalProperties": false,
+          "properties": {
+            "benchmark": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "build": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "catalog": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "freshness": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "real_data": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "release": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "runtime": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "science": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "security": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "source": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "stage": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "excluded_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "failed_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "qualified_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "retired_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "supported_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unverified_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tool_count",
+        "supported_count",
+        "retired_count",
+        "excluded_count",
+        "qualified_count",
+        "unverified_count",
+        "blocked_count",
+        "failed_count",
+        "dimension_passes"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assessments": {
+      "items": {
+        "$ref": "#/$defs/QualificationAssessment"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.container.qualification_report.v4",
+      "type": "string"
+    },
+    "sources": {
+      "additionalProperties": {
+        "$ref": "#/$defs/QualificationEvidenceSource"
+      },
+      "type": "object"
+    },
+    "summary": {
+      "$ref": "#/$defs/QualificationReportSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "sources",
+    "summary",
+    "assessments"
+  ],
+  "title": "QualificationReport",
+  "type": "object"
+}

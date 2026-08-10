@@ -9,13 +9,13 @@ use bijux_dna_containers::evidence::{
 };
 use bijux_dna_policies::{
     evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_identity_evidence,
-    evaluate_source_identity, AdmittedSecurityEvidence, BenchmarkEvidenceObservation,
-    ContainerSecurityEvidencePublication, EvidenceDecision, EvidenceDimension,
-    ExecutionEvidenceObservation, ExecutionEvidenceStatus, PublicationDisposition,
-    QualificationAssessment, QualificationEvidenceSource, QualificationReport, SupportDisposition,
-    BUILD_EVIDENCE_RULE_V1, CATALOG_EVIDENCE_RULE_V1, FRESHNESS_EVIDENCE_RULE_V1,
-    RELEASE_EVIDENCE_RULE_V1, REQUIRED_EVIDENCE_DIMENSIONS, RUNTIME_EVIDENCE_RULE_V1,
-    SECURITY_EVIDENCE_RULE_V1, SUPPORT_DISPOSITION_RULE_V1,
+    evaluate_source_identity, AdmittedSecurityEvidence, ArtifactAvailability, ArtifactDelivery,
+    BenchmarkEvidenceObservation, ContainerSecurityEvidencePublication, EvidenceDecision,
+    EvidenceDimension, ExecutionEvidenceObservation, ExecutionEvidenceStatus, ProductSupport,
+    PublicationDisposition, QualificationAssessment, QualificationEvidenceSource,
+    QualificationReport, BUILD_EVIDENCE_RULE_V1, CATALOG_EVIDENCE_RULE_V1,
+    FRESHNESS_EVIDENCE_RULE_V1, RELEASE_EVIDENCE_RULE_V1, REQUIRED_EVIDENCE_DIMENSIONS,
+    RUNTIME_EVIDENCE_RULE_V1, SECURITY_EVIDENCE_RULE_V1, SUPPORT_DIMENSIONS_RULE_V2,
 };
 use bijux_dna_runtime::{
     load_run_evidence_index, AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
@@ -132,7 +132,7 @@ pub fn derive_container_qualification_report(
         })
         .collect::<Result<Vec<_>>>()?;
 
-    QualificationReport::v3(sources, assessments)
+    QualificationReport::v4(sources, assessments)
 }
 
 fn load_security_publication(
@@ -153,14 +153,30 @@ fn derive_tool_assessment(
     runs: &[&RunEvidenceRecord],
     context: &QualificationContext<'_>,
 ) -> Result<QualificationAssessment> {
-    if !tool.is_redistributable_image() {
+    if !tool.is_product_supported() {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
             .map(|dimension| (dimension, not_applicable(tool)))
             .collect();
-        return QualificationAssessment::v2(
+        return QualificationAssessment::v3(
             tool.id.clone(),
-            SupportDisposition::Unsupported,
+            product_support(tool.product_support),
+            artifact_delivery(tool.artifact_delivery),
+            tool.redistribution_permitted,
+            ArtifactAvailability::Unavailable,
+            PublicationDisposition::Current,
+            dimensions,
+        );
+    }
+
+    if !tool.is_redistributable_image() {
+        let dimensions = unavailable_external_artifact_dimensions(tool, context);
+        return QualificationAssessment::v3(
+            tool.id.clone(),
+            ProductSupport::Supported,
+            artifact_delivery(tool.artifact_delivery),
+            tool.redistribution_permitted,
+            ArtifactAvailability::Unavailable,
             PublicationDisposition::Current,
             dimensions,
         );
@@ -173,11 +189,28 @@ fn derive_tool_assessment(
         .selected_image_sha256
         .as_deref()
         .ok_or_else(|| anyhow::anyhow!("qualification inventory has no image for {}", tool.id))?;
-    let execution_observations = execution_observations(runs);
-    let scientific_observations = scientific_observations(runs);
-    let stage = evaluate_execution_evidence(&execution_observations, &tool.real_test_stage);
-    let science = evaluate_scientific_acceptance(&scientific_observations, &tool.real_test_stage);
-    let dimensions = BTreeMap::from([
+    let dimensions = redistributable_image_dimensions(tool, runs, context, image_sha256);
+    QualificationAssessment::v3(
+        tool.id.clone(),
+        ProductSupport::Supported,
+        ArtifactDelivery::RedistributableImage,
+        tool.redistribution_permitted,
+        ArtifactAvailability::Admitted,
+        PublicationDisposition::Current,
+        dimensions,
+    )
+}
+
+fn redistributable_image_dimensions(
+    tool: &ContainerCatalogTool,
+    runs: &[&RunEvidenceRecord],
+    context: &QualificationContext<'_>,
+    image_sha256: &str,
+) -> BTreeMap<EvidenceDimension, EvidenceDecision> {
+    let stage = evaluate_execution_evidence(&execution_observations(runs), &tool.real_test_stage);
+    let science =
+        evaluate_scientific_acceptance(&scientific_observations(runs), &tool.real_test_stage);
+    BTreeMap::from([
         (
             EvidenceDimension::Catalog,
             evaluate_identity_evidence(
@@ -238,13 +271,82 @@ fn derive_tool_assessment(
                 "no immutable release publication covers this evidence set",
             ),
         ),
-    ]);
-    QualificationAssessment::v2(
-        tool.id.clone(),
-        SupportDisposition::Retained,
-        PublicationDisposition::Current,
-        dimensions,
-    )
+    ])
+}
+
+fn product_support(
+    support: bijux_dna_containers::evidence::ContainerProductSupport,
+) -> ProductSupport {
+    match support {
+        bijux_dna_containers::evidence::ContainerProductSupport::Supported => {
+            ProductSupport::Supported
+        }
+        bijux_dna_containers::evidence::ContainerProductSupport::Retired => ProductSupport::Retired,
+        bijux_dna_containers::evidence::ContainerProductSupport::Excluded => {
+            ProductSupport::Excluded
+        }
+    }
+}
+
+fn artifact_delivery(
+    delivery: bijux_dna_containers::evidence::ContainerArtifactDelivery,
+) -> ArtifactDelivery {
+    match delivery {
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::RedistributableImage => {
+            ArtifactDelivery::RedistributableImage
+        }
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::ExternalArtifact => {
+            ArtifactDelivery::ExternalArtifact
+        }
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::PrivateSiteBuild => {
+            ArtifactDelivery::PrivateSiteBuild
+        }
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::SiteModule => {
+            ArtifactDelivery::SiteModule
+        }
+    }
+}
+
+fn unavailable_external_artifact_dimensions(
+    tool: &ContainerCatalogTool,
+    context: &QualificationContext<'_>,
+) -> BTreeMap<EvidenceDimension, EvidenceDecision> {
+    REQUIRED_EVIDENCE_DIMENSIONS
+        .into_iter()
+        .map(|dimension| {
+            let decision = match dimension {
+                EvidenceDimension::Catalog => evaluate_identity_evidence(
+                    CATALOG_EVIDENCE_RULE_V1,
+                    "catalog_sha256",
+                    &context.chain.catalog_sha256,
+                ),
+                EvidenceDimension::Source => evaluate_source_identity(
+                    &tool.source_sha256,
+                    &tool.pinned_commit,
+                    &bijux_dna_infra::hash_bytes_sha256(
+                        format!("git:{}", tool.pinned_commit).as_bytes(),
+                    ),
+                ),
+                _ => EvidenceDecision::blocked(
+                    SUPPORT_DIMENSIONS_RULE_V2,
+                    BTreeMap::from([
+                        ("product_support".to_string(), "supported".to_string()),
+                        (
+                            "artifact_delivery".to_string(),
+                            tool.artifact_delivery.as_str().to_string(),
+                        ),
+                        ("availability".to_string(), "unavailable".to_string()),
+                    ]),
+                    BTreeMap::from([(
+                        "availability".to_string(),
+                        "admitted checksum-bound artifact".to_string(),
+                    )]),
+                    "no admitted external artifact is present in the current qualification evidence chain",
+                ),
+            };
+            (dimension, decision)
+        })
+        .collect()
 }
 
 fn security_decision(
@@ -344,13 +446,16 @@ fn freshness_identity(
 
 fn not_applicable(tool: &ContainerCatalogTool) -> EvidenceDecision {
     EvidenceDecision::not_applicable(
-        SUPPORT_DISPOSITION_RULE_V1,
+        SUPPORT_DIMENSIONS_RULE_V2,
+        BTreeMap::from([
+            ("product_support".to_string(), tool.product_support.as_str().to_string()),
+            ("artifact_delivery".to_string(), tool.artifact_delivery.as_str().to_string()),
+        ]),
         BTreeMap::from([(
-            "support_disposition".to_string(),
-            tool.legacy_support_disposition().to_string(),
+            "product_support".to_string(),
+            "supported for qualification".to_string(),
         )]),
-        BTreeMap::from([("retained".to_string(), "required for qualification".to_string())]),
-        "tool is outside the retained qualification population",
+        "tool is retired or excluded from the product qualification population",
     )
 }
 
