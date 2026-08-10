@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::{Component, Path};
-use std::time::Duration;
 
 use crate::{
     atomic_create_json, ensure_dir, hash_bytes_sha256, hash_file_sha256, read_to_end_bounded,
@@ -20,7 +19,6 @@ const ATTEMPT_ARCHIVES_DIR: &str = ".attempt-archives";
 const ATTEMPT_ARCHIVE_ROLLBACKS_DIR: &str = ".attempt-archive-rollbacks";
 const ATTEMPT_ARCHIVE_RECEIPT: &str = "attempt-archive.json";
 const MAX_ATTEMPT_ARCHIVE_RECEIPT_BYTES: usize = 16 * 1024 * 1024;
-const ATTEMPT_ARCHIVE_LOCK_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Derive stable source, archive, and rollback-receipt paths for one governed attempt.
 ///
@@ -84,8 +82,7 @@ pub fn archive_attempt_layout(
 ) -> Result<AttemptArchivePaths, IoError> {
     validate_timestamp(archived_at_utc, "archive timestamp")?;
     let paths = attempt_archive_paths(owner_root, identity)?;
-    let _lock =
-        FileLock::acquire(&attempt_lock_path(owner_root, identity), ATTEMPT_ARCHIVE_LOCK_TIMEOUT)?;
+    let _lock = FileLock::try_acquire(&attempt_lock_path(owner_root, identity))?;
     let source_exists = path_exists(&paths.source.attempt_dir)?;
     let archive_exists = path_exists(&paths.archive_dir)?;
     match (source_exists, archive_exists) {
@@ -133,8 +130,7 @@ pub fn verify_attempt_archive(
 ) -> Result<AttemptArchivePaths, IoError> {
     validate_timestamp(archived_at_utc, "archive timestamp")?;
     let paths = attempt_archive_paths(owner_root, identity)?;
-    let _lock =
-        FileLock::acquire(&attempt_lock_path(owner_root, identity), ATTEMPT_ARCHIVE_LOCK_TIMEOUT)?;
+    let _lock = FileLock::try_acquire(&attempt_lock_path(owner_root, identity))?;
     verify_attempt_archive_locked(&paths, owner, identity, disposition, archived_at_utc)?;
     Ok(paths)
 }
@@ -158,8 +154,7 @@ pub fn rollback_attempt_archive(
     validate_timestamp(archived_at_utc, "archive timestamp")?;
     validate_timestamp(rolled_back_at_utc, "rollback timestamp")?;
     let paths = attempt_archive_paths(owner_root, identity)?;
-    let _lock =
-        FileLock::acquire(&attempt_lock_path(owner_root, identity), ATTEMPT_ARCHIVE_LOCK_TIMEOUT)?;
+    let _lock = FileLock::try_acquire(&attempt_lock_path(owner_root, identity))?;
     let source_receipt = paths.source.manifests_dir.join(ATTEMPT_ARCHIVE_RECEIPT);
     let source_exists = path_exists(&paths.source.attempt_dir)?;
     let archive_exists = path_exists(&paths.archive_dir)?;

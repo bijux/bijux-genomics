@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_containers::api::RuntimeKind;
@@ -17,11 +16,8 @@ pub(crate) fn acquire_run_lease(
     layout: &RunLayout,
     run_id: &str,
 ) -> Result<(bijux_dna_infra::FileLock, RunLeaseV1)> {
-    let lock = bijux_dna_infra::FileLock::acquire(
-        &layout.run_dir.join("run.lock"),
-        Duration::from_millis(250),
-    )
-    .map_err(|err| anyhow!("acquire exclusive run lease for {run_id}: {err}"))?;
+    let lock = bijux_dna_infra::FileLock::try_acquire(&layout.run_dir.join("run.lock"))
+        .map_err(|err| anyhow!("acquire exclusive run lease for {run_id}: {err}"))?;
     let lease = RunLeaseV1 {
         schema_version: "bijux.run_lease.v1".to_string(),
         run_id: run_id.to_string(),

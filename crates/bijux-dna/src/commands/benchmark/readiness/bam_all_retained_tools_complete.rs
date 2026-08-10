@@ -1005,7 +1005,6 @@ impl Drop for CurrentDirGuard {
 #[cfg(all(test, feature = "bam_downstream"))]
 mod tests {
     use std::path::{Path, PathBuf};
-    use std::time::Duration;
 
     use super::{
         render_bam_all_retained_tools_complete, BamAllRetainedToolsCompleteReport,
@@ -1021,9 +1020,8 @@ mod tests {
     }
 
     fn benchmark_readiness_test_lock(root: &Path) -> bijux_dna_infra::FileLock {
-        bijux_dna_infra::FileLock::acquire(
+        bijux_dna_infra::FileLock::try_acquire(
             &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
-            Duration::from_mins(5),
         )
         .expect("acquire benchmark readiness test lock")
     }

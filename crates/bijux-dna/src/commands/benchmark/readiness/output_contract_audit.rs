@@ -1122,7 +1122,6 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::fs;
     use std::path::{Path, PathBuf};
-    use std::time::Duration;
 
     use super::{
         build_output_contract_audit_report, local_stage_proof_output_path,
@@ -1137,9 +1136,8 @@ mod tests {
     }
 
     fn benchmark_readiness_test_lock(root: &Path) -> bijux_dna_infra::FileLock {
-        bijux_dna_infra::FileLock::acquire(
+        bijux_dna_infra::FileLock::try_acquire(
             &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
-            Duration::from_mins(5),
         )
         .expect("acquire benchmark readiness test lock")
     }

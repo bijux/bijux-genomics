@@ -1,12 +1,10 @@
 #[cfg(feature = "bam_downstream")]
-use std::path::{Path, PathBuf};
-#[cfg(feature = "bam_downstream")]
-use std::time::Duration;
-
 #[cfg(feature = "bam_downstream")]
 use anyhow::{anyhow, Context, Result};
 #[cfg(feature = "bam_downstream")]
 use serde::Serialize;
+#[cfg(feature = "bam_downstream")]
+use std::path::{Path, PathBuf};
 
 #[cfg(feature = "bam_downstream")]
 const LOCAL_KINSHIP_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bam.kinship.local_smoke.report.v1";
@@ -18,8 +16,6 @@ const KINSHIP_TOOL_REPORT_SCHEMA_VERSION: &str = "bijux.bam.kinship.v1";
 const KINSHIP_STAGE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.kinship.stage_metrics.v1";
 #[cfg(feature = "bam_downstream")]
 const LOCAL_KINSHIP_SMOKE_LOCK_PATH: &str = "artifacts/test-locks/bam-kinship-local-smoke.lock";
-#[cfg(feature = "bam_downstream")]
-const LOCAL_KINSHIP_SMOKE_LOCK_TIMEOUT: Duration = Duration::from_mins(5);
 
 #[cfg(feature = "bam_downstream")]
 #[derive(Debug, Clone, Serialize)]
@@ -88,11 +84,8 @@ pub fn write_local_kinship_smoke_report() -> Result<PathBuf> {
 
 #[cfg(feature = "bam_downstream")]
 fn local_kinship_smoke_lock(repo_root: &Path) -> Result<bijux_dna_infra::FileLock> {
-    bijux_dna_infra::FileLock::acquire(
-        &repo_root.join(LOCAL_KINSHIP_SMOKE_LOCK_PATH),
-        LOCAL_KINSHIP_SMOKE_LOCK_TIMEOUT,
-    )
-    .map_err(|err| anyhow!("acquire BAM kinship local-smoke lock: {err}"))
+    bijux_dna_infra::FileLock::try_acquire(&repo_root.join(LOCAL_KINSHIP_SMOKE_LOCK_PATH))
+        .map_err(|err| anyhow!("acquire BAM kinship local-smoke lock: {err}"))
 }
 
 /// Write durable `bam.kinship` report, summary, and pairwise-segment artifacts beside stage outputs.

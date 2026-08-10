@@ -16,13 +16,13 @@
   `append_line`, `copy_file`, `rename`, `read_to_end_bounded`, `remove_file`,
   `remove_file_if_exists`, `remove_dir_all`, `remove_path_if_exists`, `IoError`, `IoErrorKind`,
   and `classify_io_error`.
-- Locking and logging: `FileLock` and `init_logging`.
+- Locking and logging: one-shot `FileLock::try_acquire` and `init_logging`.
 - Paths: `bench_base_dir`, `bench_data_dir`, `bench_suites_dir`, `bench_tools_dir`,
   `configs_dir`, `configs_file`, `normalize_run_base_dir`, `pipeline_run_dir`,
   `run_layout_paths`, and `run_stage_dir`.
 - Retry: `RetryPolicy`, `Clock`, `SystemClock`, `backoff_delay`, and `retry_with`.
 - Run layout: `RunLayoutContract`, `RunLayoutPaths`, `RUN_LAYOUT_CONTRACT`,
-  `PIPELINE_RUN_DIR_TEMPLATE`, `lock_run`, and `publish_run`.
+  `PIPELINE_RUN_DIR_TEMPLATE`, `try_lock_run`, and `publish_run`.
 - Attempt layout: `AttemptLayoutIdentity`, `AttemptLayoutPaths`, `AttemptLayoutManifestV1`,
   `AttemptEvidenceOwner`, `ATTEMPT_LAYOUT_CONTRACT`, `ATTEMPT_LAYOUT_SCHEMA_V1`,
   `attempt_layout_paths`, `attempt_layout_schema`, `ensure_attempt_layout`, and

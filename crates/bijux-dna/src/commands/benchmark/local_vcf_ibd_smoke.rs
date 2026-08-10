@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_stages_vcf::pipeline::{
@@ -52,7 +52,6 @@ const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 const GOVERNED_IBD_SEGMENT_MARKER_MINIMUM: usize = 1;
 const PROBE_IBD_SEGMENT_MARKER_MINIMUM: usize = 50;
 const VCF_BENCHMARK_MUTATOR_LOCK_PATH: &str = "artifacts/test-locks/vcf-benchmark-mutators.lock";
-const VCF_BENCHMARK_MUTATOR_LOCK_TIMEOUT: Duration = Duration::from_mins(5);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct GovernedVcfIbdSmokeContract {
@@ -482,11 +481,8 @@ pub(super) fn run_local_vcf_ibd_smoke_unlocked(
 }
 
 pub(super) fn benchmark_output_lock(repo_root: &Path) -> Result<bijux_dna_infra::FileLock> {
-    bijux_dna_infra::FileLock::acquire(
-        &repo_root.join(VCF_BENCHMARK_MUTATOR_LOCK_PATH),
-        VCF_BENCHMARK_MUTATOR_LOCK_TIMEOUT,
-    )
-    .map_err(|err| anyhow!("acquire VCF benchmark output lock: {err}"))
+    bijux_dna_infra::FileLock::try_acquire(&repo_root.join(VCF_BENCHMARK_MUTATOR_LOCK_PATH))
+        .map_err(|err| anyhow!("acquire VCF benchmark output lock: {err}"))
 }
 
 fn resolve_governed_vcf_ibd_smoke_contract(

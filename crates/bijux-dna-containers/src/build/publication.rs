@@ -34,7 +34,6 @@ pub struct CanonicalApptainerImagePublicationRequest {
     pub apptainer_executable: PathBuf,
     pub maximum_build_invocations: u32,
     pub retry_delay: Duration,
-    pub lock_timeout: Duration,
     pub destination: CanonicalApptainerImageDestination,
     pub campaign_scope: Option<String>,
 }
@@ -50,7 +49,6 @@ impl CanonicalApptainerImagePublicationRequest {
             apptainer_executable: PathBuf::from("apptainer"),
             maximum_build_invocations: 3,
             retry_delay: Duration::from_secs(2),
-            lock_timeout: Duration::from_secs(30),
             destination: CanonicalApptainerImageDestination::Active,
             campaign_scope: None,
         }
@@ -174,7 +172,7 @@ pub fn publish_canonical_apptainer_image(
     )?;
     let build_input_root = roots.evidence.join("build-inputs");
     let lock_path = roots.evidence.join(".build-locks").join(format!("{}.lock", request.tool_id));
-    let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, request.lock_timeout)
+    let _lock = bijux_dna_infra::FileLock::try_acquire(&lock_path)
         .with_context(|| format!("acquire canonical image lock for {}", request.tool_id))?;
 
     let prepared = prepare_apptainer_tool_contract_for_publication(&ToolContractBuildRequest {

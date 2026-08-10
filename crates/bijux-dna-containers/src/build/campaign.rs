@@ -161,10 +161,7 @@ pub fn execute_apptainer_image_campaign(
     let image_root =
         campaign_root(&request.study_root.join("containers/staging"), &commit, scope.as_deref());
     bijux_dna_infra::ensure_dir(&evidence_root)?;
-    let _lock = bijux_dna_infra::FileLock::acquire(
-        &evidence_root.join("campaign.lock"),
-        std::time::Duration::from_secs(30),
-    )?;
+    let _lock = bijux_dna_infra::FileLock::try_acquire(&evidence_root.join("campaign.lock"))?;
     let plan = ImageCampaignPlan {
         schema_version: IMAGE_CAMPAIGN_PLAN_SCHEMA_V1.to_string(),
         repository_commit: commit.clone(),

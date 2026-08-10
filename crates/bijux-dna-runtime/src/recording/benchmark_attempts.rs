@@ -3,7 +3,6 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
@@ -20,7 +19,6 @@ const ATTEMPT_FILE: &str = "attempt.json";
 const SCHEDULER_OBSERVATIONS_DIR: &str = "scheduler-observations";
 const TRANSITIONS_DIR: &str = "transitions";
 const MAX_LIFECYCLE_FILE_BYTES: usize = 1024 * 1024;
-const LIFECYCLE_LOCK_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Derive the owned directory for one permanent benchmark attempt.
 ///
@@ -611,7 +609,7 @@ fn acquire_attempt_lock(
         .join(&identity.tool_id)
         .join(&identity.campaign_id)
         .join(format!("{}.lock", identity.attempt_id));
-    bijux_dna_infra::FileLock::acquire(&lock_path, LIFECYCLE_LOCK_TIMEOUT)
+    bijux_dna_infra::FileLock::try_acquire(&lock_path)
         .with_context(|| format!("acquire benchmark attempt lock {}", lock_path.display()))
 }
 

@@ -34,6 +34,7 @@ None. The full command inventory is intentionally empty; see `COMMANDS.md`.
 
 ## Forbidden Effects
 
+- Sleep-based lock polling; lock contention is reported by one non-blocking observation.
 - Process spawning and shell command execution.
 - Network access.
 - Domain-specific writes or source-tree mutation in tests.
