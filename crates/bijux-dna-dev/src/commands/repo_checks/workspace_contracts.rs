@@ -540,6 +540,7 @@ pub(crate) fn check_no_user_path_literals(
         "crates/bijux-dna-dev/src/commands/ops/tooling/acquisition.rs",
     ];
     let mut offenders = Vec::new();
+    offenders.extend(embedded_workspace_mirror_roots(&workspace.root)?);
     for root in [workspace.path("crates"), workspace.path("makes")] {
         for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
@@ -565,9 +566,31 @@ pub(crate) fn check_no_user_path_literals(
         }
     }
     if offenders.is_empty() {
-        return pass(check, "source files avoid host-specific user paths");
+        return pass(
+            check,
+            "source files avoid host-specific user paths and no embedded workspace mirror exists",
+        );
     }
     fail(check, offenders.join("\n"))
+}
+
+fn embedded_workspace_mirror_roots(root: &std::path::Path) -> Result<Vec<String>> {
+    let mut offenders = Vec::new();
+    for entry in std::fs::read_dir(root)
+        .with_context(|| format!("read workspace root {}", root.display()))?
+    {
+        let entry = entry?;
+        let name = entry.file_name();
+        let name = name.to_string_lossy();
+        let windows_drive = name.len() == 2
+            && name.as_bytes()[0].is_ascii_alphabetic()
+            && name.as_bytes()[1] == b':';
+        if matches!(name.as_ref(), "Users" | "home") || windows_drive {
+            offenders.push(format!("{name}/: embedded absolute-workspace mirror root"));
+        }
+    }
+    offenders.sort();
+    Ok(offenders)
 }
 
 pub(crate) fn check_readme_links(
@@ -853,4 +876,30 @@ fn source_like_scan_path(rel: &str) -> bool {
         || has_extension(rel, "toml")
         || has_extension(rel, "yaml")
         || has_extension(rel, "yml")
+}
+
+#[cfg(test)]
+mod embedded_workspace_mirror_tests {
+    use super::embedded_workspace_mirror_roots;
+
+    #[test]
+    fn embedded_absolute_roots_are_rejected_without_traversal() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        std::fs::create_dir(root.path().join("Users"))?;
+        std::fs::create_dir(root.path().join("home"))?;
+        std::fs::create_dir(root.path().join("C:"))?;
+        std::fs::create_dir(root.path().join("benchmarks"))?;
+
+        let offenders = embedded_workspace_mirror_roots(root.path())?;
+
+        assert_eq!(
+            offenders,
+            vec![
+                "C:/: embedded absolute-workspace mirror root",
+                "Users/: embedded absolute-workspace mirror root",
+                "home/: embedded absolute-workspace mirror root",
+            ]
+        );
+        Ok(())
+    }
 }
