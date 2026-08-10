@@ -33,6 +33,7 @@ pub mod metrics;
 pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
+pub mod reference;
 pub mod stage_specs;
 pub mod types;
 

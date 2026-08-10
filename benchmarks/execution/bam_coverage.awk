@@ -3,18 +3,19 @@ BEGIN {
   FS = "[\t ]+"
 }
 
-mode == "summary" && source == "bedtools" {
-  span = $3 - $2
-  reference_bases += span
-  depth_sum += span * $4
-  if ($4 > 0) {
-    covered_bases += span
+mode == "summary" && FILENAME ~ /reference-span[.]tsv$/ {
+  if ($1 == "reference_bases") {
+    reference_bases = $2
   }
   next
 }
 
-mode == "summary" && source == "samtools" && FILENAME ~ /reference-span[.]tsv$/ && $1 == "reference_bases" {
-  reference_bases = $2
+mode == "summary" && source == "bedtools" {
+  span = $3 - $2
+  depth_sum += span * $4
+  if ($4 > 0) {
+    covered_bases += span
+  }
   next
 }
 
@@ -25,13 +26,12 @@ mode == "summary" && source == "samtools" {
 }
 
 mode == "summary" && source == "mosdepth" && FILENAME ~ /summary[.]txt$/ && $1 == "total" {
-  reference_bases = $2
-  mean_depth = $4
+  depth_sum = $3
   next
 }
 
-mode == "summary" && source == "mosdepth" && FILENAME ~ /global[.]dist[.]txt$/ && $1 == "total" && $2 == 1 {
-  covered_fraction = $3
+mode == "summary" && source == "mosdepth" && FILENAME ~ /quantized[.]bed$/ && $4 == "1:inf" {
+  covered_bases += $3 - $2
   next
 }
 
@@ -41,9 +41,7 @@ mode != "summary" && NR > 1 {
 
 END {
   if (mode == "summary") {
-    if (source == "mosdepth") {
-      covered_bases = int(reference_bases * covered_fraction + 0.5)
-    } else if (reference_bases > 0) {
+    if (reference_bases > 0) {
       mean_depth = depth_sum / reference_bases
     }
     if (reference_bases <= 0 || covered_bases <= 0 || covered_bases > reference_bases || mean_depth <= 0) {
