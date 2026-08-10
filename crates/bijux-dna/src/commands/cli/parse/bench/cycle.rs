@@ -6,6 +6,8 @@ use clap::{Args, Subcommand};
 pub enum BenchCycleCommand {
     /// Admit every independently ready benchmark output closure.
     Admit(BenchCycleAdmitArgs),
+    /// Collect, admit, prepare, and submit the bounded ready frontier once.
+    Advance(BenchCycleAdvanceArgs),
     /// Publish a reviewer-facing book from current admitted publication receipts.
     Book(BenchCycleBookArgs),
     /// Observe scheduler-active attempts once and collect accounting-ready transitions.
@@ -16,6 +18,32 @@ pub enum BenchCycleCommand {
     Replay(BenchCycleReplayArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
     Status(BenchCycleStatusArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleAdvanceArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub data_index: PathBuf,
+    #[arg(long)]
+    pub inventory: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub plan: PathBuf,
+    #[arg(long)]
+    pub operator: String,
+    #[arg(long)]
+    pub advanced_at_utc: String,
+    #[arg(long)]
+    pub account: String,
+    #[arg(long)]
+    pub partition: String,
+    #[arg(long, default_value_t = 32)]
+    pub maximum_submissions: usize,
 }
 
 #[derive(Debug, Args)]

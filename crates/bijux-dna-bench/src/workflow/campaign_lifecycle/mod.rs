@@ -5,6 +5,7 @@ mod authorities;
 mod execution;
 mod operator;
 mod planning;
+mod preparation;
 mod storage;
 
 pub use authorities::{load_execution_authorities, BenchmarkExecutionAuthorities};
@@ -17,6 +18,11 @@ pub use operator::{
 };
 pub use planning::{
     plan_stage_campaign_attempts, plan_stage_campaign_retry_attempts, verify_campaign_plan_source,
+};
+pub use preparation::{
+    prepare_checked_in_benchmark_campaign, BenchmarkCyclePreparation,
+    BenchmarkCyclePreparationRequest, BenchmarkCyclePreparationState,
+    BenchmarkCyclePreparationUnit,
 };
 pub use storage::{
     ensure_execution_spec, ensure_stage_campaign_attempts, load_execution_spec,

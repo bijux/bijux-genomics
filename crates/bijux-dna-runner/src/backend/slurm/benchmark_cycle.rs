@@ -13,8 +13,9 @@ use bijux_dna_bench_model::{
 use serde::{Deserialize, Serialize};
 
 use super::{
-    collect_slurm_job, load_benchmark_slurm_job_handle, SlurmAccounting, SlurmClientPaths,
-    SlurmEvidenceSource, SlurmJobObservation, SlurmJobState,
+    collect_slurm_job, load_benchmark_slurm_job_handle, prepare_benchmark_slurm_job,
+    submit_prepared_benchmark_job, SlurmAccounting, SlurmClientPaths, SlurmEvidenceSource,
+    SlurmJobObservation, SlurmJobState,
 };
 
 const MAX_EXECUTION_SPEC_BYTES: usize = 16 * 1024 * 1024;
@@ -37,6 +38,172 @@ pub struct BenchmarkCampaignCollection {
     pub campaign_id: String,
     pub observed_at_utc: String,
     pub units: Vec<BenchmarkCampaignCollectionUnit>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkCampaignSubmissionState {
+    Submitted,
+    AlreadyActive,
+    LimitReached,
+    NotReady,
+    Failed,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCampaignSubmissionUnit {
+    pub identity: BenchmarkAttemptIdentity,
+    pub prior_status: BenchmarkLifecycleStatus,
+    pub current_status: BenchmarkLifecycleStatus,
+    pub state: BenchmarkCampaignSubmissionState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCampaignSubmission {
+    pub campaign_id: String,
+    pub submitted_at_utc: String,
+    pub maximum_submissions: usize,
+    pub units: Vec<BenchmarkCampaignSubmissionUnit>,
+}
+
+/// Submit at most `maximum_submissions` independently ready attempts and return immediately.
+///
+/// Scheduler effects are crash-bounded by persisted submission intents. Attempt-local failures do
+/// not prevent independent siblings from being considered in the same pass.
+///
+/// # Errors
+/// Returns an error when shared plan, timestamp, bound, or evidence-root authority is invalid.
+pub fn submit_benchmark_campaign_frontier(
+    paths: &SlurmClientPaths,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    submitted_at_utc: &str,
+    maximum_submissions: usize,
+) -> Result<BenchmarkCampaignSubmission> {
+    validate_campaign_plan(plan).context("validate benchmark campaign submission plan")?;
+    validate_utc_timestamp(submitted_at_utc, "benchmark submission submitted_at_utc")?;
+    if maximum_submissions == 0 {
+        bail!("benchmark submission maximum must be greater than zero");
+    }
+    let benchmark_root = benchmark_root.canonicalize()?;
+    let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
+    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+    let mut effects_attempted = 0usize;
+    let mut units = Vec::with_capacity(attempts.len());
+    for attempt in attempts {
+        let identity = &attempt.identity;
+        let lifecycle = bijux_dna_runtime::load_attempt_lifecycle(&benchmark_root, identity)?;
+        let prior_status = lifecycle
+            .current_status()
+            .context("benchmark submission attempt has no lifecycle status")?;
+        if matches!(
+            prior_status,
+            BenchmarkLifecycleStatus::Submitted | BenchmarkLifecycleStatus::Running
+        ) {
+            units.push(submission_unit(
+                identity,
+                prior_status,
+                prior_status,
+                BenchmarkCampaignSubmissionState::AlreadyActive,
+                None,
+                None,
+            ));
+            continue;
+        }
+        if prior_status != BenchmarkLifecycleStatus::Ready {
+            units.push(submission_unit(
+                identity,
+                prior_status,
+                prior_status,
+                BenchmarkCampaignSubmissionState::NotReady,
+                None,
+                None,
+            ));
+            continue;
+        }
+        if effects_attempted == maximum_submissions {
+            units.push(submission_unit(
+                identity,
+                prior_status,
+                prior_status,
+                BenchmarkCampaignSubmissionState::LimitReached,
+                None,
+                None,
+            ));
+            continue;
+        }
+        effects_attempted += 1;
+        let result = (|| -> Result<String> {
+            let spec = load_execution_spec(&benchmark_root, identity)?;
+            let prepared = prepare_benchmark_slurm_job(&spec, submitted_at_utc)?;
+            let handle = submit_prepared_benchmark_job(paths, &prepared)?;
+            bijux_dna_runtime::record_attempt_submission(
+                &benchmark_root,
+                identity,
+                submitted_at_utc,
+                vec![bijux_dna_bench_model::BenchmarkJobReference {
+                    scheduler: "slurm".to_string(),
+                    job_id: handle.job_id.clone(),
+                }],
+            )?;
+            Ok(handle.job_id)
+        })();
+        match result {
+            Ok(job_id) => units.push(submission_unit(
+                identity,
+                prior_status,
+                BenchmarkLifecycleStatus::Submitted,
+                BenchmarkCampaignSubmissionState::Submitted,
+                Some(job_id),
+                None,
+            )),
+            Err(error) => {
+                let current_status =
+                    bijux_dna_runtime::load_attempt_lifecycle(&benchmark_root, identity)
+                        .ok()
+                        .and_then(|value| value.current_status())
+                        .unwrap_or(prior_status);
+                units.push(submission_unit(
+                    identity,
+                    prior_status,
+                    current_status,
+                    BenchmarkCampaignSubmissionState::Failed,
+                    None,
+                    Some(format!("{error:#}")),
+                ));
+            }
+        }
+    }
+    Ok(BenchmarkCampaignSubmission {
+        campaign_id: plan.cycle.campaign_id.clone(),
+        submitted_at_utc: submitted_at_utc.to_string(),
+        maximum_submissions,
+        units,
+    })
+}
+
+fn submission_unit(
+    identity: &BenchmarkAttemptIdentity,
+    prior_status: BenchmarkLifecycleStatus,
+    current_status: BenchmarkLifecycleStatus,
+    state: BenchmarkCampaignSubmissionState,
+    job_id: Option<String>,
+    error: Option<String>,
+) -> BenchmarkCampaignSubmissionUnit {
+    BenchmarkCampaignSubmissionUnit {
+        identity: identity.clone(),
+        prior_status,
+        current_status,
+        state,
+        job_id,
+        error,
+    }
 }
 
 /// Observe every scheduler-active attempt at most once and persist accounting-ready transitions.
@@ -257,6 +424,46 @@ mod tests {
         assert_eq!(collection.units[0].prior_status, BenchmarkLifecycleStatus::Planned);
         assert_eq!(collection.units[0].current_status, BenchmarkLifecycleStatus::Planned);
         assert!(collection.units[0].scheduler_observation.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn submission_frontier_skips_planned_attempts_without_scheduler_effects() -> Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("benchmark-campaign-submission")?;
+        let plan = planned_campaign();
+        bijux_dna_runtime::ensure_attempt_lifecycle(temporary.path(), &plan.cycle.attempts[0])?;
+        let unavailable = PathBuf::from("/scheduler-command-must-not-run");
+        let paths = SlurmClientPaths {
+            sbatch: unavailable.clone(),
+            squeue: unavailable.clone(),
+            sacct: unavailable.clone(),
+            scancel: unavailable,
+        };
+
+        let submission = submit_benchmark_campaign_frontier(
+            &paths,
+            temporary.path(),
+            &plan,
+            "2026-08-10T00:01:00Z",
+            1,
+        )?;
+        assert_eq!(submission.units.len(), 1);
+        assert_eq!(submission.units[0].state, BenchmarkCampaignSubmissionState::NotReady);
+        assert_eq!(submission.units[0].current_status, BenchmarkLifecycleStatus::Planned);
+        Ok(())
+    }
+
+    #[test]
+    fn submission_frontier_rejects_an_unbounded_zero_limit() -> Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("benchmark-campaign-zero-submission")?;
+        assert!(submit_benchmark_campaign_frontier(
+            &SlurmClientPaths::default(),
+            temporary.path(),
+            &planned_campaign(),
+            "2026-08-10T00:01:00Z",
+            0,
+        )
+        .is_err());
         Ok(())
     }
 

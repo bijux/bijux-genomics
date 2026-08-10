@@ -3,7 +3,9 @@
 
 pub use super::benchmark::{prepare_benchmark_slurm_job, PreparedBenchmarkSlurmJob};
 pub use super::benchmark_cycle::{
-    collect_benchmark_campaign_cycle, BenchmarkCampaignCollection, BenchmarkCampaignCollectionUnit,
+    collect_benchmark_campaign_cycle, submit_benchmark_campaign_frontier,
+    BenchmarkCampaignCollection, BenchmarkCampaignCollectionUnit, BenchmarkCampaignSubmission,
+    BenchmarkCampaignSubmissionState, BenchmarkCampaignSubmissionUnit,
 };
 pub use super::client::{
     cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,

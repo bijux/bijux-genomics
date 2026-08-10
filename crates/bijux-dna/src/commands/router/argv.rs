@@ -201,6 +201,44 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_cycle_advance_uses_the_public_product_namespace() {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "advance",
+            "--study-root",
+            "/study",
+            "--data-index",
+            "/study/data/index.json",
+            "--inventory",
+            "/study/containers/inventory.json",
+            "--benchmark-root",
+            "/study/benchmarks/attempts",
+            "--plan",
+            "/study/benchmarks/plans/run-2002.json",
+            "--operator",
+            "operator",
+            "--advanced-at-utc",
+            "2026-08-10T00:00:00Z",
+            "--account",
+            "project",
+            "--partition",
+            "compute",
+            "--maximum-submissions",
+            "8",
+        ]))
+        .expect("parse benchmark cycle advance");
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Advance(_)));
+    }
+
+    #[test]
     fn benchmark_cycle_collect_uses_the_public_product_namespace() {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
