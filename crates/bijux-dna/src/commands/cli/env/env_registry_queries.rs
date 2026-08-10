@@ -594,7 +594,7 @@ mod env_registry_query_tests {
             "benchmark",
         )
         .expect("read-length benchmark tools");
-        assert_eq!(tools, vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]);
+        assert_eq!(tools, vec!["seqfu", "seqkit"]);
     }
 
     #[test]

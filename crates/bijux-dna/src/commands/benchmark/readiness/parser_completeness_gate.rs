@@ -368,10 +368,10 @@ mod tests {
         assert_eq!(report.domain_stage_counts.get("fastq"), Some(&27));
         assert_eq!(report.domain_stage_counts.get("bam"), Some(&24));
         assert_eq!(report.domain_tool_counts.get("fastq"), Some(&42));
-        assert_eq!(report.domain_tool_counts.get("bam"), Some(&25));
-        assert_eq!(report.domain_row_counts.get("fastq"), Some(&71));
+        assert_eq!(report.domain_tool_counts.get("bam"), Some(&26));
+        assert_eq!(report.domain_row_counts.get("fastq"), Some(&69));
         assert_eq!(report.domain_row_counts.get("bam"), Some(&49));
-        assert_eq!(report.gate_domain_row_counts.get("fastq"), Some(&69));
+        assert_eq!(report.gate_domain_row_counts.get("fastq"), Some(&67));
         assert_eq!(report.gate_domain_row_counts.get("bam"), Some(&49));
         assert!(report.excluded_readiness_gap_counts.is_empty());
         assert!(!report.excluded_readiness_gap_counts.contains_key("parser"));
