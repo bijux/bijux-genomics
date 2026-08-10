@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 
+use anyhow::Context as _;
 use bijux_dna_containers::api::derive_container_registry_projection_report;
 use tempfile::tempdir;
 
@@ -11,7 +12,13 @@ const EMPTY_REGISTRIES: [&str; 4] = [
     "tool_registry_vcf_downstream.toml",
 ];
 
-fn write_fixture(root: &Path, support_disposition: &str, registry: &str) -> anyhow::Result<()> {
+fn write_fixture(
+    root: &Path,
+    product_support: &str,
+    artifact_delivery: &str,
+    redistribution_permitted: bool,
+    registry: &str,
+) -> anyhow::Result<()> {
     let registry_root = root.join("configs/ci/registry");
     fs::create_dir_all(&registry_root)?;
     fs::create_dir_all(root.join("containers/contracts"))?;
@@ -34,7 +41,9 @@ id = "tool"
 display_name = "Tool"
 purpose = "fixture"
 version = "1.0"
-support_disposition = "{support_disposition}"
+product_support = "{product_support}"
+artifact_delivery = "{artifact_delivery}"
+redistribution_permitted = {redistribution_permitted}
 upstream = "https://example.invalid/tool"
 documentation = "https://example.invalid/tool/docs"
 license = "MIT"
@@ -69,7 +78,9 @@ fn registry_projection_reports_catalog_version_divergence() -> anyhow::Result<()
     let fixture = tempdir()?;
     write_fixture(
         fixture.path(),
-        "retained",
+        "supported",
+        "redistributable_image",
+        true,
         r#"[[tools]]
 id = "tool"
 version = "2.0"
@@ -88,14 +99,16 @@ runtimes = []
 }
 
 #[test]
-fn registry_projection_rejects_unsupported_recipe_claims() -> anyhow::Result<()> {
+fn registry_projection_rejects_external_delivery_recipe_claims() -> anyhow::Result<()> {
     let fixture = tempdir()?;
     write_fixture(
         fixture.path(),
-        "unsupported",
+        "supported",
+        "external_artifact",
+        false,
         r#"[[tools]]
 id = "tool"
-status = "unsupported"
+status = "supported"
 version = "1.0"
 container = true
 runtimes = ["docker"]
@@ -106,9 +119,22 @@ dockerfile = "containers/docker/Dockerfile.arm64.tool"
     let report = derive_container_registry_projection_report(fixture.path())?;
 
     assert!(!report.passed);
-    assert!(report
-        .violations
-        .iter()
-        .any(|line| line.contains("unsupported tool claims a container recipe")));
+    assert!(report.violations.iter().any(|line| line
+        .contains("external_artifact delivery claims a redistributable container recipe")));
+    Ok(())
+}
+
+#[test]
+fn live_registry_projection_preserves_all_product_supported_tools() -> anyhow::Result<()> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .context("container crate must be inside the repository")?;
+
+    let report = derive_container_registry_projection_report(root)?;
+
+    assert!(report.passed, "{:?}", report.violations);
+    assert_eq!(report.projected_tool_count, 89);
+    assert!(report.unprojected_tool_ids.is_empty());
     Ok(())
 }
