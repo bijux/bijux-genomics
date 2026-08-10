@@ -9,7 +9,11 @@ const RUN_REGISTRY_PATH: &str = "containers/contracts/qualification-runs.toml";
 const RUN_INDEX_JSON_PATH: &str = "containers/runs/RUN_INDEX.json";
 const RUN_INDEX_MARKDOWN_PATH: &str = "containers/runs/RUN_INDEX.md";
 const RUN_INDEX_SCHEMA_PATH: &str = "containers/contracts/schemas/run-index.v1.json";
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-registry -- generate <current-runs-root> <attempt-ledger> <supplemental-history> <registry-output> <audit-output>\n  bijux-dna-dev containers run qualification-registry -- check <current-runs-root> <attempt-ledger> <supplemental-history> <registry-output> <audit-output>\n  bijux-dna-dev containers run qualification-registry -- generate-index\n  bijux-dna-dev containers run qualification-registry -- check-index\n  bijux-dna-dev containers run qualification-registry -- generate-schemas [<registry-schema> <audit-schema>]\n  bijux-dna-dev containers run qualification-registry -- check-schemas\n  bijux-dna-dev containers run qualification-registry -- generate-index-schema\n  bijux-dna-dev containers run qualification-registry -- check-index-schema";
+const REPORT_INDEX_JSON_PATH: &str = "containers/reports/REPORT_INDEX.json";
+const REPORT_INDEX_MARKDOWN_PATH: &str = "containers/reports/REPORT_INDEX.md";
+const REPORT_INDEX_SCHEMA_PATH: &str =
+    "containers/contracts/schemas/report-portfolio-index.v1.json";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-registry -- generate <current-runs-root> <attempt-ledger> <supplemental-history> <registry-output> <audit-output>\n  bijux-dna-dev containers run qualification-registry -- check <current-runs-root> <attempt-ledger> <supplemental-history> <registry-output> <audit-output>\n  bijux-dna-dev containers run qualification-registry -- generate-index\n  bijux-dna-dev containers run qualification-registry -- check-index\n  bijux-dna-dev containers run qualification-registry -- generate-report-index\n  bijux-dna-dev containers run qualification-registry -- check-report-index\n  bijux-dna-dev containers run qualification-registry -- generate-schemas [<registry-schema> <audit-schema>]\n  bijux-dna-dev containers run qualification-registry -- check-schemas\n  bijux-dna-dev containers run qualification-registry -- generate-index-schema\n  bijux-dna-dev containers run qualification-registry -- check-index-schema\n  bijux-dna-dev containers run qualification-registry -- generate-report-index-schema\n  bijux-dna-dev containers run qualification-registry -- check-report-index-schema";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -23,12 +27,59 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
         "check" => derive(workspace, options, true),
         "generate-index" if options.is_empty() => index(workspace, false),
         "check-index" if options.is_empty() => index(workspace, true),
+        "generate-report-index" if options.is_empty() => report_index(workspace, false),
+        "check-report-index" if options.is_empty() => report_index(workspace, true),
         "generate-schemas" => generate_schemas(workspace, options),
         "check-schemas" => check_schemas(workspace, options),
         "generate-index-schema" if options.is_empty() => index_schema(workspace, false),
         "check-index-schema" if options.is_empty() => index_schema(workspace, true),
+        "generate-report-index-schema" if options.is_empty() => {
+            report_index_schema(workspace, false)
+        }
+        "check-report-index-schema" if options.is_empty() => report_index_schema(workspace, true),
         _ => anyhow::bail!(USAGE),
     }
+}
+
+fn report_index(workspace: &Workspace, check: bool) -> Result<ContainerCommandOutcome> {
+    let index =
+        bijux_dna_containers::api::derive_container_report_portfolio_index(&workspace.root)?;
+    let json = bijux_dna_containers::api::render_container_report_portfolio_index_json(&index)?;
+    let markdown =
+        bijux_dna_containers::api::render_container_report_portfolio_index_markdown(&index);
+    let json_path = workspace.path(REPORT_INDEX_JSON_PATH);
+    let markdown_path = workspace.path(REPORT_INDEX_MARKDOWN_PATH);
+    if check {
+        if read_utf8(&json_path)? != json || read_utf8(&markdown_path)? != markdown {
+            return Ok(ContainerCommandOutcome::failure(
+                "container report portfolio index drifted from report files\n",
+            ));
+        }
+    } else {
+        write_utf8(&json_path, &json)?;
+        write_utf8(&markdown_path, &markdown)?;
+    }
+    success_line(format!(
+        "container report index: {} current, {} historical or unvalidated",
+        index.summary.current_count, index.summary.historical_unvalidated_count
+    ))
+}
+
+fn report_index_schema(workspace: &Workspace, check: bool) -> Result<ContainerCommandOutcome> {
+    let path = workspace.path(REPORT_INDEX_SCHEMA_PATH);
+    let expected = serde_json::to_string_pretty(
+        &bijux_dna_containers::api::container_report_portfolio_index_schema(),
+    )? + "\n";
+    if check {
+        if read_utf8(&path)? != expected {
+            return Ok(ContainerCommandOutcome::failure(
+                "container report-index schema drifted from Rust model authority\n",
+            ));
+        }
+    } else {
+        write_utf8(&path, &expected)?;
+    }
+    success_line("container report-index schema: OK")
 }
 
 fn index(workspace: &Workspace, check: bool) -> Result<ContainerCommandOutcome> {
