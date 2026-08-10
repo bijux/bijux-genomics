@@ -1,8 +1,8 @@
 use super::evidence_support::materialize_governed_evidence;
 use super::operations::{
     acquire_run_lease, build_backend_record, build_health_report, build_scheduling_decision,
-    default_control_state, initial_queue_state, maybe_mock_slurm_submission, release_run_lease,
-    ControlAwareRunner,
+    default_control_state, initial_queue_state, maybe_mock_slurm_submission, read_control_state,
+    release_run_lease, ControlAwareRunner,
 };
 use super::planner_manifest_support::plan_manifest_from_request;
 use super::{summary_artifact, Result};
@@ -14,17 +14,25 @@ use bijux_dna_engine::Engine;
 use bijux_dna_runner::{ApptainerRunner, DockerRunner, LocalRunner};
 use bijux_dna_runtime::run_layout::{
     CancellationPolicyV1, CheckpointPolicyV1, ExecutorDescriptorV1, RunCheckpointV1,
-    RunEnvironment, RunExecutionModeV1, RunExecutorDescriptorV1, RunFailureV1, RunLifecycleStateV1,
-    RunQueueLifecycleStateV1, RunQueueTransitionV1, RunStateTransitionV1, RunStateV1,
-    RuntimePolicyV1, ToolImageDigest,
+    RunControlActionV1, RunControlInterruption, RunEnvironment, RunExecutionModeV1,
+    RunExecutorDescriptorV1, RunFailureV1, RunLifecycleStateV1, RunQueueLifecycleStateV1,
+    RunQueueTransitionV1, RunStateTransitionV1, RunStateV1, RuntimePolicyV1, ToolImageDigest,
 };
 use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 /// # Errors
 /// Returns an error if execution fails.
-#[allow(clippy::too_many_lines)]
 pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
+    execute_with_initial_control(request, None)
+}
+
+#[allow(clippy::too_many_lines)]
+pub(crate) fn execute_with_initial_control(
+    request: &ExecuteRequest,
+    initial_control: Option<RunControlActionV1>,
+) -> Result<ExecuteResponse> {
     let runner_contract = runner_contract(request.runner);
     for step in request.graph.steps() {
         ensure_stage_supported_by_runner(runner_contract, step.stage_id.as_str())?;
@@ -50,6 +58,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
     let environment = run_environment(request.runner, &request.graph);
     let queue_state = Arc::new(Mutex::new(initial_queue_state(&run_id, &request.graph)));
     let mut control_state = default_control_state(&run_id);
+    control_state.requested_action = initial_control;
     let mut transitions = vec![
         transition(None, RunLifecycleStateV1::Planned, "run request accepted"),
         transition(
@@ -153,7 +162,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                 transitions.clone(),
                 None,
             )?;
-            let runner = build_runner(request.runner)?;
+            let runner = build_runner(request.runner, request.graph.step_timeout_s())?;
             let managed_runner = ControlAwareRunner::new(
                 runner,
                 layout.clone(),
@@ -207,6 +216,28 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         None,
                     )
                 }
+                Err(err)
+                    if matches!(
+                        err.downcast_ref::<RunControlInterruption>(),
+                        Some(RunControlInterruption::Paused { .. })
+                    ) =>
+                {
+                    transitions.push(transition(
+                        Some(RunLifecycleStateV1::Running),
+                        RunLifecycleStateV1::Paused,
+                        err.to_string(),
+                    ));
+                    let paused_checkpoint = RunCheckpointV1 {
+                        schema_version: "bijux.run_checkpoint.v1".to_string(),
+                        run_id: run_id.clone(),
+                        mode: request.mode,
+                        updated_at: bijux_dna_runtime::run_layout::now_string(),
+                        completed_stage_ids: Vec::new(),
+                        pending_stage_ids: all_stage_ids.clone(),
+                        next_stage_id: first_stage_id.clone(),
+                    };
+                    (RunLifecycleStateV1::Paused, paused_checkpoint, None)
+                }
                 Err(err) => {
                     let failure = failure_record(&run_id, request.mode, &err.to_string());
                     {
@@ -218,27 +249,32 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         let mut queue_state_guard = queue_state
                             .lock()
                             .map_err(|_| anyhow!("queue state mutex poisoned for {run_id}"))?;
-                        queue_state_guard.state = terminal_state;
+                        if queue_state_guard.state != terminal_state {
+                            let previous_state = queue_state_guard.state;
+                            queue_state_guard.state = terminal_state;
+                            queue_state_guard.transitions.push(RunQueueTransitionV1 {
+                                from_state: Some(previous_state),
+                                to_state: terminal_state,
+                                occurred_at: bijux_dna_runtime::run_layout::now_string(),
+                                detail: Some(failure.message.clone()),
+                            });
+                        }
                         queue_state_guard.active_step_id = None;
-                        queue_state_guard.transitions.push(RunQueueTransitionV1 {
-                            from_state: Some(RunQueueLifecycleStateV1::Running),
-                            to_state: terminal_state,
-                            occurred_at: bijux_dna_runtime::run_layout::now_string(),
-                            detail: Some(failure.message.clone()),
-                        });
                         bijux_dna_runtime::run_layout::write_queue_state(
                             &layout,
                             &queue_state_guard,
                         )?;
                     }
-                    control_state.observed_state =
+                    let mut terminal_control =
+                        read_control_state(&layout).unwrap_or_else(|| control_state.clone());
+                    terminal_control.observed_state =
                         if failure.state == RunLifecycleStateV1::Cancelled {
                             RunQueueLifecycleStateV1::Cancelled
                         } else {
                             RunQueueLifecycleStateV1::Failed
                         };
-                    control_state.updated_at = bijux_dna_runtime::run_layout::now_string();
-                    bijux_dna_runtime::run_layout::write_control_state(&layout, &control_state)?;
+                    terminal_control.updated_at = bijux_dna_runtime::run_layout::now_string();
+                    bijux_dna_runtime::run_layout::write_control_state(&layout, &terminal_control)?;
                     bijux_dna_runtime::run_layout::write_failure_record(&layout, &failure)?;
                     transitions.push(transition(
                         Some(RunLifecycleStateV1::Running),
@@ -259,7 +295,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         &layout,
                         &run_id,
                         request.mode,
-                        RunLifecycleStateV1::Failed,
+                        failure.state,
                         transitions,
                         Some(layout.failure_path.clone()),
                     )?;
@@ -269,7 +305,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         &run_id,
                         &correlation_id,
                         request.mode,
-                        RunLifecycleStateV1::Failed,
+                        failure.state,
                         &graph_hash,
                         Some(&failure),
                     )?;
@@ -300,7 +336,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         &request.graph,
                         &run_id,
                         request.mode,
-                        RunLifecycleStateV1::Failed,
+                        failure.state,
                         &run_id,
                         Vec::new(),
                         vec![bijux_dna_runtime::run_layout::CacheDecisionV1 {
@@ -398,7 +434,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         checkpoint_path: layout.checkpoint_path,
                         failure_path: Some(layout.failure_path),
                         mode: request.mode,
-                        state: RunLifecycleStateV1::Failed,
+                        state: failure.state,
                         report_path: None,
                         evidence_bundle_path,
                         evidence_verification_path: layout.evidence_verification_path,
@@ -462,7 +498,9 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         Vec::new(),
         vec![bijux_dna_runtime::run_layout::CacheDecisionV1 {
             stage_id: "runtime".to_string(),
-            status: if matches!(request.mode, RunExecutionModeV1::Enforced) {
+            status: if state == RunLifecycleStateV1::Paused {
+                "blocked".to_string()
+            } else if matches!(request.mode, RunExecutionModeV1::Enforced) {
                 "miss".to_string()
             } else {
                 "advisory".to_string()
@@ -473,12 +511,18 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                     RunExecutionModeV1::DryRun => "dry_run_uses_dedicated_endpoint",
                     RunExecutionModeV1::Simulation => "simulation_skips_cache_reuse",
                     RunExecutionModeV1::Advisory => "advisory_skips_cache_reuse",
+                    RunExecutionModeV1::Enforced if state == RunLifecycleStateV1::Paused => {
+                        "execution_paused_pending_resume"
+                    }
                     RunExecutionModeV1::Enforced => "runner_execution_materialized_fresh_outputs",
                 }
                 .to_string(),
             ),
-            message: "runtime cache decisions are recorded explicitly for governed replay"
-                .to_string(),
+            message: if state == RunLifecycleStateV1::Paused {
+                "paused execution is not reusable until its pending frontier completes".to_string()
+            } else {
+                "runtime cache decisions are recorded explicitly for governed replay".to_string()
+            },
         }],
         Vec::new(),
     )?;
@@ -563,12 +607,16 @@ fn runner_contract(runner: RuntimeKind) -> RunnerContractKind {
     }
 }
 
-fn build_runner(runner: RuntimeKind) -> Result<Box<dyn bijux_dna_runtime::Runner>> {
+fn build_runner(
+    runner: RuntimeKind,
+    step_timeout_s: Option<u64>,
+) -> Result<Box<dyn bijux_dna_runtime::Runner>> {
+    let timeout = step_timeout_s.map(Duration::from_secs);
     match runner {
-        RuntimeKind::Local => Ok(Box::new(LocalRunner::new(None))),
-        RuntimeKind::Docker => Ok(Box::new(DockerRunner::new(None))),
+        RuntimeKind::Local => Ok(Box::new(LocalRunner::new(timeout))),
+        RuntimeKind::Docker => Ok(Box::new(DockerRunner::new(timeout))),
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
-            Ok(Box::new(ApptainerRunner::new(runner, None)))
+            Ok(Box::new(ApptainerRunner::new(runner, timeout)))
         }
     }
 }

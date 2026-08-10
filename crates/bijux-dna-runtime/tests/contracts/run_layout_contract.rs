@@ -10,8 +10,9 @@ use bijux_dna_runtime::run_layout::{
     scheduling_decision_from_admission, transition_slurm_submission,
     validate_run_layout_storage_isolation, validate_smoke_workflow_plan, ExecutorCapabilitiesV1,
     FallbackSafetyRequestV1, RunCheckpointV1, RunControlActionV1, RunControlStateV1,
-    RunExecutionModeV1, RunQueueLifecycleStateV1, RunQueueStateV1, RunResourceRequestV1,
-    RuntimeResourceLimitsV1, SlurmJobStateV1, SlurmSubmissionRecordV1, StageExecutionRequirementV1,
+    RunExecutionModeV1, RunLifecycleStateV1, RunQueueLifecycleStateV1, RunQueueStateV1,
+    RunResourceRequestV1, RuntimeResourceLimitsV1, SlurmJobStateV1, SlurmSubmissionRecordV1,
+    StageExecutionRequirementV1,
 };
 
 #[test]
@@ -416,6 +417,15 @@ fn pause_resume_cancel_controls_are_idempotent_and_audited() {
     assert_eq!(queue_state.state, RunQueueLifecycleStateV1::Cancelled);
     assert!(control_state.audit_log.len() >= 3);
     assert!(control_audit_summary(&control_state).contains("audit_entries="));
+}
+
+#[test]
+fn paused_run_lifecycle_state_is_a_stable_non_failure_encoding() {
+    let encoded = serde_json::to_string(&RunLifecycleStateV1::Paused)
+        .unwrap_or_else(|err| panic!("serialize paused lifecycle state: {err}"));
+    assert_eq!(encoded, "\"paused\"");
+    assert_ne!(RunLifecycleStateV1::Paused, RunLifecycleStateV1::Failed);
+    assert_ne!(RunLifecycleStateV1::Paused, RunLifecycleStateV1::Cancelled);
 }
 
 #[test]

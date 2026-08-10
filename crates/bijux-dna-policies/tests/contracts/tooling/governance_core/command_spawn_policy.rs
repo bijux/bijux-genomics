@@ -129,3 +129,25 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__command_spawn_policy__run_controls_never_poll_for_progress() {
+    let root = workspace_root();
+    let operations = std::fs::read_to_string(
+        root.join("crates/bijux-dna-api/src/runtime/run/reporting/operations.rs"),
+    )
+    .expect("read run control operations");
+    let failure_injection = std::fs::read_to_string(
+        root.join("crates/bijux-dna-api/src/runtime/run/reporting/failure_injection.rs"),
+    )
+    .expect("read failure injection controls");
+
+    for forbidden in
+        ["thread::sleep", "while started.elapsed()", ".join(\"run_control.json\").exists()"]
+    {
+        bijux_dna_policies::policy_assert!(
+            !operations.contains(forbidden) && !failure_injection.contains(forbidden),
+            "run controls must persist one observation and return; forbidden polling token: {forbidden}"
+        );
+    }
+}

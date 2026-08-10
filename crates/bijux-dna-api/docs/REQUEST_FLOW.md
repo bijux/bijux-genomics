@@ -61,7 +61,10 @@ Status must not mutate the run.
    path and current audited state.
 
 Control operations must remain auditable and must not bypass the governed
-runner/runtime state machine.
+runner/runtime state machine. The runner observes control once at each safe
+stage boundary. A pause persists `paused` and returns from that execution
+invocation without polling; resume is a later explicit invocation over the
+persisted checkpoint.
 
 ## Operator Health
 

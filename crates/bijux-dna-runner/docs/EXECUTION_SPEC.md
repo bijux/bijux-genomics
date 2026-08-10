@@ -8,7 +8,8 @@ The execution spec is the runner contract for turning already-planned tool inten
 - `mounts`: explicit host paths only; inputs are read-only and outputs are writable.
 - `stdout/stderr`: captured verbatim and stored per step.
 - `exit semantics`: exit code `0` is success; nonzero exits are recorded as failed tool execution.
-- `timeouts`: timeout failures are normalized into failed execution outcomes with captured context.
+- `timeouts`: graph step deadlines are propagated to every backend runner; a timed-out local child
+  is killed, reaped, and returned as an explicitly classified timeout failure.
 - `file permissions`: output writes follow the declared runtime root and backend permissions.
 - `external artifacts`: `external-artifact://<tool>` plans require an admission record; the runner
   reverifies its catalog, checksum, version evidence, stage allowlist, and command binding before

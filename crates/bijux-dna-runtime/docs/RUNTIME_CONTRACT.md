@@ -27,6 +27,9 @@ Core surfaces:
 - Runtime resource admission and scheduling decision assembly.
 - Queue restore decisions with duplicate-dispatch prevention.
 - Idempotent pause/resume/cancel control actions with append-only audit records.
+- `paused` is a durable non-failure lifecycle state. A runner observes control once at a safe
+  stage boundary, persists the queue/control transition, and returns immediately; a later
+  operator invocation resumes from the persisted checkpoint.
 - Run-layout storage isolation checks for traversal and out-of-root paths.
 
 See `ARTIFACTS.md` for the full file inventory under a run layout.
