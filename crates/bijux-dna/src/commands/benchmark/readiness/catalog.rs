@@ -25,7 +25,9 @@ struct ReadinessContainerCatalog {
 struct ReadinessContainerCatalogTool {
     id: String,
     version: String,
-    support_disposition: String,
+    product_support: String,
+    artifact_delivery: String,
+    redistribution_permitted: bool,
     #[serde(default)]
     external_artifact_supported: bool,
     domains: Vec<String>,
@@ -173,10 +175,7 @@ pub(crate) fn load_benchmark_integrated_container_tool_ids(
     let integrated_tool_ids = load_readiness_container_catalog(repo_root)?
         .tools
         .into_iter()
-        .filter(|tool| {
-            tool.support_disposition == "retained"
-                || (tool.support_disposition == "unsupported" && tool.external_artifact_supported)
-        })
+        .filter(|tool| tool.product_support == "supported")
         .map(|tool| tool.id)
         .collect::<BTreeSet<_>>();
     if integrated_tool_ids.is_empty() {
@@ -193,9 +192,12 @@ pub(crate) fn load_external_artifact_tool_contracts(
         .into_iter()
         .filter(|tool| tool.external_artifact_supported)
         .map(|mut tool| {
-            if tool.support_disposition != "unsupported" {
+            if tool.product_support != "supported"
+                || tool.artifact_delivery == "redistributable_image"
+                || tool.redistribution_permitted
+            {
                 return Err(anyhow!(
-                    "external artifact tool `{}` must use the unsupported redistribution disposition",
+                    "external artifact tool `{}` must remain supported with non-redistributable external delivery",
                     tool.id
                 ));
             }
@@ -282,14 +284,21 @@ fn load_readiness_container_catalog(repo_root: &Path) -> Result<ReadinessContain
                 catalog_path.display()
             ));
         }
+        if !matches!(tool.product_support.as_str(), "supported" | "retired" | "excluded") {
+            return Err(anyhow!(
+                "container catalog tool `{}` has unsupported product state `{}`",
+                tool.id,
+                tool.product_support
+            ));
+        }
         if !matches!(
-            tool.support_disposition.as_str(),
-            "retained" | "unsupported" | "retired" | "excluded"
+            tool.artifact_delivery.as_str(),
+            "redistributable_image" | "external_artifact" | "private_site_build" | "site_module"
         ) {
             return Err(anyhow!(
-                "container catalog tool `{}` has unsupported disposition `{}`",
+                "container catalog tool `{}` has unsupported artifact delivery `{}`",
                 tool.id,
-                tool.support_disposition
+                tool.artifact_delivery
             ));
         }
     }

@@ -193,7 +193,7 @@ pub fn compile_container_qualification_specification(
         .iter()
         .find(|tool| tool.id == source.tool_id)
         .context("qualification tool is absent from the catalog")?;
-    if catalog_tool.support_disposition != "retained" || !catalog_tool.apptainer_supported {
+    if !catalog_tool.is_redistributable_image() || !catalog_tool.apptainer_supported {
         bail!("qualification compiler accepts only retained distributable tools");
     }
     let run = registry

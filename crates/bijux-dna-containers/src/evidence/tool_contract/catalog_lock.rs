@@ -7,7 +7,10 @@ use anyhow::{bail, Context, Result};
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
-use super::{load_container_catalog, validate_container_catalog, ContainerCatalogTool};
+use super::{
+    load_container_catalog, validate_container_catalog, ContainerArtifactDelivery,
+    ContainerCatalogTool, ContainerProductSupport,
+};
 
 pub const CONTAINER_CATALOG_LOCK_SCHEMA_V1: &str = "bijux.container.catalog_lock.v1";
 pub const CONTAINER_CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -39,8 +42,10 @@ pub struct ContainerCatalogLockTool {
     pub id: String,
     pub display_name: String,
     pub version: String,
-    pub support_disposition: String,
-    pub support_reason: String,
+    pub product_support: ContainerProductSupport,
+    pub artifact_delivery: ContainerArtifactDelivery,
+    pub redistribution_permitted: bool,
+    pub delivery_reason: String,
     pub upstream: String,
     pub license: String,
     pub source_sha256: String,
@@ -65,7 +70,7 @@ pub fn derive_container_catalog_lock(repository_root: &Path) -> Result<Container
         let unresolved = catalog
             .tools
             .iter()
-            .filter(|tool| tool.support_disposition == "retained")
+            .filter(|tool| tool.is_redistributable_image())
             .filter(|tool| !has_concrete_source_identity(tool))
             .map(|tool| tool.id.as_str())
             .collect::<Vec<_>>();
@@ -86,8 +91,10 @@ pub fn derive_container_catalog_lock(repository_root: &Path) -> Result<Container
                 id: tool.id,
                 display_name: tool.display_name,
                 version: tool.version,
-                support_disposition: tool.support_disposition,
-                support_reason: tool.support_reason,
+                product_support: tool.product_support,
+                artifact_delivery: tool.artifact_delivery,
+                redistribution_permitted: tool.redistribution_permitted,
+                delivery_reason: tool.delivery_reason,
                 upstream: tool.upstream,
                 license: tool.license,
                 source_sha256: tool.source_sha256,

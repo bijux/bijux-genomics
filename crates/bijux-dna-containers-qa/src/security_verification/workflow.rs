@@ -109,7 +109,7 @@ pub fn execute_security_verification(
     let tasks = catalog
         .tools
         .iter()
-        .filter(|tool| tool.support_disposition == "retained" && tool.apptainer_supported)
+        .filter(|tool| tool.is_redistributable_image() && tool.apptainer_supported)
         .map(|tool| {
             let image = resolve_catalog_locked_apptainer_image(
                 &inventory,

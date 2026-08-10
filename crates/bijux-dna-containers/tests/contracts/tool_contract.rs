@@ -10,7 +10,8 @@ use bijux_dna_containers::evidence::tool_contract::{
     load_container_catalog, prepare_apptainer_tool_contract, retained_apptainer_tool_ids,
     tool_contract_is_compatible, tool_contract_labels, validate_container_catalog,
     validate_tool_contract, validate_tool_contract_labels, validate_tool_image_identity_evidence,
-    verify_apptainer_tool_contract, ToolContractBuildRequest,
+    verify_apptainer_tool_contract, ContainerArtifactDelivery, ContainerProductSupport,
+    ToolContractBuildRequest,
 };
 
 #[test]
@@ -154,9 +155,25 @@ fn canonical_catalog_loader_preserves_the_complete_contract_and_rejects_unknown_
     let catalog = load_container_catalog(&root)?;
     assert_eq!(catalog.tools.len(), 89);
     assert_eq!(
-        catalog.tools.iter().filter(|tool| tool.support_disposition == "retained").count(),
-        85
+        catalog
+            .tools
+            .iter()
+            .filter(|tool| tool.product_support == ContainerProductSupport::Supported)
+            .count(),
+        89
     );
+    assert_eq!(catalog.tools.iter().filter(|tool| tool.is_redistributable_image()).count(), 85);
+    for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        let tool = catalog
+            .tools
+            .iter()
+            .find(|tool| tool.id == tool_id)
+            .with_context(|| format!("catalog omits {tool_id}"))?;
+        assert_eq!(tool.product_support, ContainerProductSupport::Supported);
+        assert_eq!(tool.artifact_delivery, ContainerArtifactDelivery::ExternalArtifact);
+        assert!(!tool.redistribution_permitted);
+        assert!(tool.external_artifact_supported);
+    }
     let samtools = catalog
         .tools
         .iter()

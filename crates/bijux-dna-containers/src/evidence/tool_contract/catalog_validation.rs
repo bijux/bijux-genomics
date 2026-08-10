@@ -6,7 +6,9 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use super::{load_container_catalog, ContainerCatalog};
+use super::{
+    load_container_catalog, ContainerArtifactDelivery, ContainerCatalog, ContainerProductSupport,
+};
 
 const CATALOG_SCHEMA: &str = "bijux.container.catalog.v1";
 const EVIDENCE_SCHEMA: &str = "bijux.container.evidence.v1";
@@ -44,16 +46,21 @@ pub fn validate_container_catalog(repository_root: &Path) -> Result<ContainerCat
 
     let retained_count = count_disposition(&catalog, "retained");
     let unsupported_count = count_disposition(&catalog, "unsupported");
-    if catalog.tools.len() != 89 || retained_count != 85 || unsupported_count != 4 {
+    let supported_count = catalog.tools.iter().filter(|tool| tool.is_product_supported()).count();
+    if catalog.tools.len() != 89
+        || supported_count != 89
+        || retained_count != 85
+        || unsupported_count != 4
+    {
         errors.push(format!(
-            "catalog roster must contain 89 tools, 85 retained, and 4 unsupported; observed {}, {}, and {}",
-            catalog.tools.len(), retained_count, unsupported_count
+            "catalog roster must contain 89 supported tools, 85 redistributable images, and 4 external deliveries; observed {}, {}, {}, and {}",
+            catalog.tools.len(), supported_count, retained_count, unsupported_count
         ));
     }
     let unresolved_source_identities = catalog
         .tools
         .iter()
-        .filter(|tool| tool.support_disposition == "retained")
+        .filter(|tool| tool.legacy_support_disposition() == "retained")
         .filter(|tool| {
             (tool.source_sha256.is_empty() || is_placeholder_digest(&tool.source_sha256))
                 && (tool.pinned_commit.is_empty() || is_placeholder_digest(&tool.pinned_commit))
@@ -159,23 +166,19 @@ fn validate_tools(repository_root: &Path, catalog: &ContainerCatalog, errors: &m
         {
             errors.push(format!("{}: version must be concrete", tool.id));
         }
-        if !matches!(
-            tool.support_disposition.as_str(),
-            "retained" | "unsupported" | "retired" | "excluded"
-        ) {
+        if tool.product_support == ContainerProductSupport::Supported
+            && tool.artifact_delivery == ContainerArtifactDelivery::RedistributableImage
+            && !tool.delivery_reason.is_empty()
+        {
             errors.push(format!(
-                "{}: unsupported support disposition {}",
-                tool.id, tool.support_disposition
-            ));
-        }
-        if tool.support_disposition == "retained" && !tool.support_reason.is_empty() {
-            errors.push(format!("{}: retained tool must not carry a support reason", tool.id));
-        }
-        if tool.support_disposition != "retained" && tool.support_reason.trim().is_empty() {
-            errors.push(format!(
-                "{}: non-retained tool must explain its support disposition",
+                "{}: redistributable tool must not carry a delivery reason",
                 tool.id
             ));
+        }
+        if tool.artifact_delivery != ContainerArtifactDelivery::RedistributableImage
+            && tool.delivery_reason.trim().is_empty()
+        {
+            errors.push(format!("{}: external delivery must carry a delivery reason", tool.id));
         }
         validate_external_artifact_support(tool, errors);
         if !tool.upstream.starts_with("https://") {
@@ -185,7 +188,7 @@ fn validate_tools(repository_root: &Path, catalog: &ContainerCatalog, errors: &m
             errors.push(format!("{}: documentation must be an https URL", tool.id));
         }
         if tool.license.trim().is_empty()
-            || (tool.support_disposition == "retained" && tool.license == "NOASSERTION")
+            || (tool.redistribution_permitted && tool.license == "NOASSERTION")
         {
             errors.push(format!("{}: retained distribution requires an explicit license", tool.id));
         }
@@ -226,12 +229,14 @@ fn validate_external_artifact_support(
     errors: &mut Vec<String>,
 ) {
     if tool.external_artifact_supported {
-        if tool.support_disposition != "unsupported"
+        if !tool.is_product_supported()
+            || !tool.permits_external_artifact()
+            || tool.redistribution_permitted
             || tool.apptainer_supported
             || tool.docker_arm64_supported
         {
             errors.push(format!(
-                "{}: external artifact support requires an unsupported, non-distributed tool",
+                "{}: external artifact support requires supported, non-redistributable external delivery",
                 tool.id
             ));
         }
@@ -258,11 +263,12 @@ fn validate_external_artifact_support(
             tool.id
         ));
     }
-    if tool.support_disposition == "unsupported" && !tool.external_artifact_supported {
-        errors.push(format!(
-            "{}: unsupported tool must expose a governed external artifact path",
-            tool.id
-        ));
+    if tool.permits_external_artifact() && !tool.external_artifact_supported {
+        errors.push(format!("{}: external delivery must expose a governed artifact path", tool.id));
+    }
+    if tool.is_redistributable_image() != tool.redistribution_permitted {
+        errors
+            .push(format!("{}: artifact delivery contradicts redistribution permission", tool.id));
     }
 }
 
@@ -279,7 +285,7 @@ fn validate_recipe_paths(
                 tool.id
             ));
         }
-    } else if tool.support_disposition == "retained" || !tool.apptainer_definition.is_empty() {
+    } else if tool.is_redistributable_image() || !tool.apptainer_definition.is_empty() {
         errors.push(format!("{}: unsupported Apptainer contract is inconsistent", tool.id));
     }
     if tool.docker_arm64_supported {
@@ -291,7 +297,7 @@ fn validate_recipe_paths(
             errors.push(format!("{}: Docker ARM64 contract is inconsistent", tool.id));
         }
     } else if !tool.dockerfile.is_empty()
-        || (tool.support_disposition == "retained" && tool.docker_arm64_reason.trim().is_empty())
+        || (tool.is_redistributable_image() && tool.docker_arm64_reason.trim().is_empty())
     {
         errors.push(format!("{}: unsupported Docker ARM64 contract is inconsistent", tool.id));
     }
@@ -367,7 +373,7 @@ fn strings<const N: usize>(values: [&str; N]) -> BTreeSet<String> {
 }
 
 fn count_disposition(catalog: &ContainerCatalog, disposition: &str) -> usize {
-    catalog.tools.iter().filter(|tool| tool.support_disposition == disposition).count()
+    catalog.tools.iter().filter(|tool| tool.legacy_support_disposition() == disposition).count()
 }
 
 fn is_snake_component(value: &str) -> bool {

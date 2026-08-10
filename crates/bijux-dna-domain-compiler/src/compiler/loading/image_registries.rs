@@ -32,14 +32,14 @@ pub(super) fn build_images_toml(
         let contract = container_catalog.get(&tool.id);
         let version =
             contract.map_or_else(|| tool.default_version.clone(), |entry| entry.version.clone());
-        let enabled = contract.is_none_or(|entry| entry.support_disposition == "retained");
+        let enabled = contract.is_none_or(ContainerToolContract::is_redistributable_image);
         image_versions.insert(tool.id.clone(), (version, enabled));
     }
     for (tool_id, (domain_version, domain_enabled)) in vcf_image_versions {
         let contract = container_catalog.get(tool_id);
         let version =
             contract.map_or_else(|| domain_version.clone(), |entry| entry.version.clone());
-        let retained = contract.is_none_or(|entry| entry.support_disposition == "retained");
+        let retained = contract.is_none_or(ContainerToolContract::is_redistributable_image);
         image_versions
             .entry(tool_id.clone())
             .and_modify(|(_, enabled)| *enabled = *enabled || (*domain_enabled && retained))

@@ -574,8 +574,8 @@ pub(super) fn check_upstream_provenance(workspace: &Workspace) -> Result<Contain
         let upstream = table_string(row, "upstream");
         let documentation = table_string(row, "documentation");
         let license = table_string(row, "license");
-        let disposition = table_string(row, "support_disposition");
-        let support_reason = table_string(row, "support_reason");
+        let disposition = table_string(row, "artifact_delivery");
+        let support_reason = table_string(row, "delivery_reason");
         let source_sha = table_string(row, "source_sha256");
         let commit = table_string(row, "pinned_commit");
         let resolved_sha = source_sha.len() == 64
@@ -597,10 +597,10 @@ pub(super) fn check_upstream_provenance(workspace: &Workspace) -> Result<Contain
         if license.is_empty() {
             errors.push(format!("{tool_id}: upstream license must be explicit"));
         }
-        if disposition == "retained" && !resolved_sha && !resolved_commit {
+        if disposition == "redistributable_image" && !resolved_sha && !resolved_commit {
             errors.push(format!("{tool_id}: immutable upstream identity is unresolved"));
         }
-        if disposition != "retained" && support_reason.is_empty() {
+        if disposition != "redistributable_image" && support_reason.is_empty() {
             errors.push(format!(
                 "{tool_id}: non-retained provenance requires an explicit support reason"
             ));

@@ -597,7 +597,7 @@ pub(in super::super) fn check_docker_arm64_completeness(
         .flatten()
         .filter_map(toml::Value::as_table)
         .filter(|row| {
-            table_string(row, "support_disposition") == "retained"
+            table_string(row, "artifact_delivery") == "redistributable_image"
                 && table_bool(row, "docker_arm64_supported")
         })
         .map(|row| table_string(row, "id"))

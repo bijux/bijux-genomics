@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
 use bijux_dna_containers::evidence::{
-    resolve_catalog_locked_apptainer_image, ContainerCatalog, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    resolve_catalog_locked_apptainer_image, ContainerArtifactDelivery, ContainerCatalog,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerSupportDisposition,
     ImageCandidateDisposition, ImageInventoryPublicationIdentity,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
@@ -186,7 +186,8 @@ fn catalog_locked_resolution_rejects_stale_and_unselectable_authorities() -> any
     unsupported.tools[0].candidates.clear();
     unsupported.summary.states = BTreeMap::from([("unsupported".to_owned(), 1)]);
     let mut unsupported_catalog = catalog.clone();
-    unsupported_catalog.tools[0].support_disposition = "unsupported".to_owned();
+    unsupported_catalog.tools[0].artifact_delivery = ContainerArtifactDelivery::ExternalArtifact;
+    unsupported_catalog.tools[0].redistribution_permitted = false;
     unsupported_catalog.tools[0].apptainer_supported = false;
     assert!(resolve_catalog_locked_apptainer_image(
         &unsupported,

@@ -144,8 +144,8 @@ pub(super) fn write_vcf_generated_views(
         let _ = writeln!(tools_vcf_toml, "id = \"{}\"", tool.tool_id);
         let _ = writeln!(tools_vcf_toml, "tool_id = \"{}\"", tool.tool_id);
         let _ = writeln!(tools_vcf_toml, "domain = \"vcf\"");
-        let vcf_status = match contract.support_disposition.as_str() {
-            "unsupported" | "retired" | "excluded" => contract.support_disposition.as_str(),
+        let vcf_status = match contract.product_support.as_str() {
+            "retired" | "excluded" => contract.product_support.as_str(),
             _ if tool.status == "supported" => "production",
             _ => "planned",
         };
@@ -181,10 +181,10 @@ pub(super) fn write_vcf_generated_views(
             toml_array(&tool.expected_artifacts)
         );
         let _ = writeln!(tools_vcf_toml, "metrics_schema = \"{}\"", tool.metrics_schema_id);
-        let comparability_notes = if contract.support_reason.is_empty() {
+        let comparability_notes = if contract.delivery_reason.is_empty() {
             &tool.comparability_notes
         } else {
-            &contract.support_reason
+            &contract.delivery_reason
         };
         let _ = writeln!(
             tools_vcf_toml,

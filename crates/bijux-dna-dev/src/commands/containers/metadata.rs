@@ -1236,12 +1236,10 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         let license_row = licenses.get(tool).cloned().unwrap_or_default();
         let network_row = network.get(tool).cloned().unwrap_or_default();
         let catalog_row = catalog_rows.get(tool).cloned().unwrap_or_default();
-        let support_disposition = catalog_row
-            .get("support_disposition")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("unknown");
+        let support_disposition =
+            catalog_row.get("artifact_delivery").and_then(toml::Value::as_str).unwrap_or("unknown");
         let support_reason =
-            catalog_row.get("support_reason").and_then(toml::Value::as_str).unwrap_or_default();
+            catalog_row.get("delivery_reason").and_then(toml::Value::as_str).unwrap_or_default();
         let external_artifact_supported = table_bool(&catalog_row, "external_artifact_supported");
         let purpose = catalog_row
             .get("purpose")
@@ -1495,7 +1493,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         let contract = catalog
             .get(&tool)
             .ok_or_else(|| anyhow!("container catalog missing registry tool: {tool}"))?;
-        if table_string(contract, "support_disposition") != "retained"
+        if table_string(contract, "artifact_delivery") != "redistributable_image"
             || !table_bool(contract, "apptainer_supported")
         {
             continue;

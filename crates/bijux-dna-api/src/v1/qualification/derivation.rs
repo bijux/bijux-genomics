@@ -153,7 +153,7 @@ fn derive_tool_assessment(
     runs: &[&RunEvidenceRecord],
     context: &QualificationContext<'_>,
 ) -> Result<QualificationAssessment> {
-    if tool.support_disposition != "retained" {
+    if !tool.is_redistributable_image() {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
             .map(|dimension| (dimension, not_applicable(tool)))
@@ -345,7 +345,10 @@ fn freshness_identity(
 fn not_applicable(tool: &ContainerCatalogTool) -> EvidenceDecision {
     EvidenceDecision::not_applicable(
         SUPPORT_DISPOSITION_RULE_V1,
-        BTreeMap::from([("support_disposition".to_string(), tool.support_disposition.clone())]),
+        BTreeMap::from([(
+            "support_disposition".to_string(),
+            tool.legacy_support_disposition().to_string(),
+        )]),
         BTreeMap::from([("retained".to_string(), "required for qualification".to_string())]),
         "tool is outside the retained qualification population",
     )

@@ -242,7 +242,7 @@ fn derive_registry_rows(
     let missing_retained = catalog
         .tools
         .iter()
-        .filter(|tool| tool.support_disposition == "retained")
+        .filter(|tool| tool.legacy_support_disposition() == "retained")
         .filter(|tool| {
             !current.contains_key(&tool.id) && !reservations.contains_key(tool.id.as_str())
         })
@@ -258,7 +258,8 @@ fn derive_registry_rows(
         allocated_mapping_count: 0,
     };
     for tool in &catalog.tools {
-        let runnable = tool.support_disposition == "retained" || tool.external_artifact_supported;
+        let runnable =
+            tool.legacy_support_disposition() == "retained" || tool.external_artifact_supported;
         let (run_id, identity_source, resource_profile, acceptance_adapter) = if runnable {
             let (run_id, source) = if let Some(number) = current.get(&tool.id) {
                 let current_run_id = format!("run-{number}");
@@ -299,11 +300,15 @@ fn derive_registry_rows(
                 Some(acceptance_adapter_for(&tool.real_test_stage).to_string()),
             )
         } else {
-            bail!("tool {} has unsupported disposition {}", tool.id, tool.support_disposition);
+            bail!(
+                "tool {} has unsupported disposition {}",
+                tool.id,
+                tool.legacy_support_disposition()
+            );
         };
         derived.audit_rows.push(QualificationRunIdAuditRow {
             tool_id: tool.id.clone(),
-            support_disposition: tool.support_disposition.clone(),
+            support_disposition: tool.legacy_support_disposition().to_string(),
             run_id: run_id.clone(),
             identity_source: identity_source.to_string(),
             stage_id: tool.real_test_stage.clone(),
@@ -311,7 +316,7 @@ fn derive_registry_rows(
         });
         derived.entries.push(QualificationRunRegistryEntry {
             tool_id: tool.id.clone(),
-            support_disposition: tool.support_disposition.clone(),
+            support_disposition: tool.legacy_support_disposition().to_string(),
             run_id,
             stage_id: tool.real_test_stage.clone(),
             input_role: tool.real_test_input_kind.clone(),
@@ -358,7 +363,7 @@ fn derive_run_definitions(
     let retained_tools = catalog
         .tools
         .iter()
-        .filter(|tool| tool.support_disposition == "retained")
+        .filter(|tool| tool.legacy_support_disposition() == "retained")
         .map(|tool| tool.id.clone())
         .collect::<Vec<_>>();
     let mut runs = Vec::with_capacity(RUN_NAMESPACE_SIZE);
@@ -404,8 +409,8 @@ fn derive_run_definitions(
             .iter()
             .position(|candidate| *candidate == number)
             .context("tool run chain does not contain run")?;
-        let is_current =
-            tool.support_disposition == "retained" && current.get(tool_id) == Some(&number);
+        let is_current = tool.legacy_support_disposition() == "retained"
+            && current.get(tool_id) == Some(&number);
         let is_allocated = allocated_runs.contains(&number)
             || (tool.external_artifact_supported && current.get(tool_id) == Some(&number));
         let state = if is_current {
@@ -697,7 +702,7 @@ pub fn validate_qualification_run_registry(
     let mut unsupported = 0;
     for (tool, row) in catalog.tools.iter().zip(&registry.tools) {
         if row.tool_id != tool.id
-            || row.support_disposition != tool.support_disposition
+            || row.support_disposition != tool.legacy_support_disposition()
             || row.stage_id != tool.real_test_stage
             || row.input_role != tool.real_test_input_kind
         {
@@ -706,7 +711,7 @@ pub fn validate_qualification_run_registry(
         if !tool_ids.insert(row.tool_id.as_str()) {
             bail!("qualification registry contains duplicate tool {}", row.tool_id);
         }
-        match tool.support_disposition.as_str() {
+        match tool.legacy_support_disposition() {
             "retained" => {
                 retained += 1;
                 let run_id = row.run_id.as_deref().context("retained tool has no run ID")?;
@@ -780,7 +785,7 @@ fn validate_run_definitions(
     let retained_tools = catalog
         .tools
         .iter()
-        .filter(|tool| tool.support_disposition == "retained")
+        .filter(|tool| tool.legacy_support_disposition() == "retained")
         .map(|tool| tool.id.as_str())
         .collect::<BTreeSet<_>>();
     let mut citation_keys = BTreeSet::new();

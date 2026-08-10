@@ -311,7 +311,7 @@ pub(super) fn runnable_stage_tools(
 ) -> Result<BTreeMap<String, BTreeSet<String>>> {
     let mut stages: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for tool in &catalog.tools {
-        if tool.support_disposition != "retained" && !tool.external_artifact_supported {
+        if !tool.is_product_supported() {
             continue;
         }
         for stage_id in &tool.stage_ids {

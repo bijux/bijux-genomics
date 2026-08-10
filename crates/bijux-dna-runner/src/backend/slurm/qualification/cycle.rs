@@ -326,7 +326,7 @@ fn external_artifact_blocker(
         Path::new(&loaded.distributable_image_root),
         &path,
     )?;
-    if admission.status
+    if admission.availability
         == bijux_dna_containers::api::ExternalArtifactAdmissionStatus::BlockedExternalAccess
     {
         let detail = format!(

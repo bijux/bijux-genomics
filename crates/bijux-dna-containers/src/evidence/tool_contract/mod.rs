@@ -17,7 +17,8 @@ mod version_lock;
 
 pub use catalog::{
     catalog_identity_at_commit, load_container_catalog, retained_apptainer_tool_ids,
-    ContainerCatalog, ContainerCatalogTool, CONTAINER_CATALOG_SCHEMA_V1,
+    ContainerArtifactDelivery, ContainerCatalog, ContainerCatalogTool, ContainerProductSupport,
+    CONTAINER_CATALOG_SCHEMA_V1,
 };
 pub use catalog_lock::{
     derive_container_catalog_lock, load_container_catalog_lock, render_container_catalog_lock,

@@ -135,7 +135,7 @@ fn derive_tool(
     evidence_by_digest: &BTreeMap<String, Vec<IndexedBuildEvidence>>,
     run_references: &BTreeMap<String, Vec<String>>,
 ) -> Result<ContainerImageInventoryTool> {
-    let support_disposition = support_disposition(&tool.support_disposition)?;
+    let support_disposition = support_disposition(tool.legacy_support_disposition())?;
     if !tool.apptainer_supported {
         return Ok(ContainerImageInventoryTool {
             tool: tool.id.clone(),

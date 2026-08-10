@@ -40,7 +40,8 @@ fn validate_contract(
     for (field, value) in [
         ("id", contract.id.as_str()),
         ("version", contract.version.as_str()),
-        ("support_disposition", contract.support_disposition.as_str()),
+        ("product_support", contract.product_support.as_str()),
+        ("artifact_delivery", contract.artifact_delivery.as_str()),
         ("upstream", contract.upstream.as_str()),
         ("license", contract.license.as_str()),
         ("expected_bin", contract.expected_bin.as_str()),
@@ -52,20 +53,32 @@ fn validate_contract(
             bail!("{}: tool {} has empty {field}", catalog_path.display(), contract.id);
         }
     }
-    if !matches!(
-        contract.support_disposition.as_str(),
-        "retained" | "unsupported" | "retired" | "excluded"
-    ) {
+    if !matches!(contract.product_support.as_str(), "supported" | "retired" | "excluded") {
         bail!(
-            "{}: tool {} has invalid support disposition `{}`",
+            "{}: tool {} has invalid product support `{}`",
             catalog_path.display(),
             contract.id,
-            contract.support_disposition
+            contract.product_support
         );
     }
-    if contract.external_artifact_supported && contract.support_disposition != "unsupported" {
+    if !matches!(
+        contract.artifact_delivery.as_str(),
+        "redistributable_image" | "external_artifact" | "private_site_build" | "site_module"
+    ) {
         bail!(
-            "{}: external artifact tool {} must use the unsupported redistribution disposition",
+            "{}: tool {} has invalid artifact delivery `{}`",
+            catalog_path.display(),
+            contract.id,
+            contract.artifact_delivery
+        );
+    }
+    if contract.external_artifact_supported
+        && (contract.product_support != "supported"
+            || contract.artifact_delivery == "redistributable_image"
+            || contract.redistribution_permitted)
+    {
+        bail!(
+            "{}: external artifact tool {} must remain supported with non-redistributable external delivery",
             catalog_path.display(),
             contract.id
         );

@@ -124,7 +124,7 @@ fn derive_contract(
         schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V2.to_string(),
         tool_id: source.tool.id.clone(),
         version: source.tool.version.clone(),
-        support_disposition: source.tool.support_disposition.clone(),
+        support_disposition: source.tool.legacy_support_disposition().to_string(),
         catalog_entry_sha256,
         catalog_sha256,
         recipe_path,

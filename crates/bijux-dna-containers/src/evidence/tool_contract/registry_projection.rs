@@ -99,7 +99,7 @@ pub fn derive_container_registry_projection_report(
     for tool_id in &unprojected_tool_ids {
         if catalog_by_id
             .get(tool_id.as_str())
-            .is_some_and(|tool| tool.support_disposition == "retained")
+            .is_some_and(|tool| tool.legacy_support_disposition() == "retained")
         {
             violations
                 .push(format!("retained catalog tool {tool_id:?} has no registry projection"));
@@ -209,14 +209,14 @@ fn compare_registry_row(
         expected_pin_strategy(catalog),
     );
 
-    if catalog.support_disposition != "retained" {
+    if catalog.legacy_support_disposition() != "retained" {
         compare_text_field(
             violations,
             registry_path,
             &tool_id,
             registry,
             "status",
-            &catalog.support_disposition,
+            &catalog.legacy_support_disposition(),
         );
         if table_bool(registry, "container")
             || !table_string(registry, "dockerfile").is_empty()
@@ -224,7 +224,7 @@ fn compare_registry_row(
         {
             violations.push(format!(
                 "{registry_path}: {tool_id} {} tool claims a container recipe",
-                catalog.support_disposition
+                catalog.legacy_support_disposition()
             ));
         }
     }

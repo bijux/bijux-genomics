@@ -396,8 +396,8 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                     .unwrap_or(false)
                 {
                     "external_artifact"
-                } else if row.get("support_disposition").and_then(TomlValue::as_str)
-                    == Some("retained")
+                } else if row.get("artifact_delivery").and_then(TomlValue::as_str)
+                    == Some("redistributable_image")
                 {
                     "packaged"
                 } else {
@@ -457,8 +457,8 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                     .unwrap_or(false)
                 {
                     "external_artifact"
-                } else if entry.get("support_disposition").and_then(TomlValue::as_str)
-                    == Some("retained")
+                } else if entry.get("artifact_delivery").and_then(TomlValue::as_str)
+                    == Some("redistributable_image")
                 {
                     "packaged"
                 } else {
