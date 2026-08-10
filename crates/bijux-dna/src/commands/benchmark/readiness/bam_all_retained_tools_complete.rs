@@ -1011,6 +1011,7 @@ mod tests {
         BAM_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION,
         DEFAULT_BAM_ALL_RETAINED_TOOLS_COMPLETE_PATH,
     };
+    use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -1029,6 +1030,7 @@ mod tests {
     #[test]
     fn render_bam_all_retained_tools_complete_reports_governed_pass_state() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
         let _lock = benchmark_readiness_test_lock(&root);
         let report = render_bam_all_retained_tools_complete(
             &root,

@@ -1127,6 +1127,7 @@ mod tests {
         build_output_contract_audit_report, local_stage_proof_output_path,
         DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
+    use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -1170,6 +1171,7 @@ mod tests {
     #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
         let _lock = benchmark_readiness_test_lock(&root);
         let report = build_output_contract_audit_report(
             &root,

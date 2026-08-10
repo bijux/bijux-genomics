@@ -57,3 +57,27 @@ fn repository_lock_implementations_have_no_polling() -> anyhow::Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn repository_mutating_unit_tests_serialize_before_one_shot_process_lock() -> anyhow::Result<()> {
+    let repo_root = support::repo_root()?;
+    let source_root = repo_root.join("crates/bijux-dna/src/commands/benchmark");
+    for entry in walkdir::WalkDir::new(&source_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().is_some_and(|extension| extension == "rs"))
+    {
+        let source = std::fs::read_to_string(entry.path())?;
+        let takes_process_lock = source.contains("RepoProcessLock::acquire")
+            || source.contains("benchmark_readiness_test_lock(&root)");
+        if takes_process_lock {
+            assert!(
+                source.contains("acquire_cwd_lock"),
+                "{} takes the one-shot repository process lock without first participating in the event-driven unit-test mutex",
+                entry.path().strip_prefix(&repo_root)?.display()
+            );
+        }
+    }
+    Ok(())
+}
