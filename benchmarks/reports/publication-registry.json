@@ -2,7 +2,7 @@
   "schema_version": "bijux.benchmark.publication_registry.v1",
   "summary": {
     "current_product_count": 5,
-    "active_stage_report_count": 0,
+    "active_stage_report_count": 1,
     "historical_stage_report_count": 10,
     "quarantined_surface_count": 0,
     "quarantined_file_count": 0
@@ -54,6 +54,16 @@
       "json_sha256": "59edc439413e8ca508a25dce06ae20b7b34c6ce65e3ed0bfe9a766246fb5bba4",
       "markdown_path": "benchmarks/reports/historical/9348a2417384417ab59052193b56717b69cb0309/run-2001-bam-genotyping.md",
       "markdown_sha256": "f7e64db50b55ec573a2c1ae7184d9d9e9828ef34ed1c182481e4312bbbb954f5"
+    },
+    {
+      "run_id": "run-2002",
+      "stage_id": "bam.coverage",
+      "source_commit": "8282c2232d021ce60f07edb1ddc65d85598836ed",
+      "disposition": "active",
+      "json_path": "benchmarks/reports/run-2002-bam-coverage.json",
+      "json_sha256": "b299fd3d9559390e646fd32deaedc2432821baccfaf01a74d45aef2ca69b8c78",
+      "markdown_path": "benchmarks/reports/run-2002-bam-coverage.md",
+      "markdown_sha256": "7697a4cabdd44339caa59455013573961202c048ca4c64c456ad9ebae7d60968"
     },
     {
       "run_id": "run-2002",
