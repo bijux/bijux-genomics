@@ -1,5 +1,5 @@
 use std::io::Read;
-use std::process::{Child, ExitStatus};
+use std::process::{Child, Command, ExitStatus};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
@@ -11,6 +11,17 @@ pub(crate) struct SupervisedOutput {
     pub(crate) stdout: Vec<u8>,
     pub(crate) stderr: Vec<u8>,
     pub(crate) timed_out: bool,
+}
+
+/// Put a supervised command in its own process group so timeout cancellation
+/// reaches descendants that inherited the command's output pipes.
+pub(crate) fn isolate_process_group(command: &mut Command) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt as _;
+
+        command.process_group(0);
+    }
 }
 
 /// Wait for the operating system's child-exit notification while independent
@@ -28,7 +39,7 @@ pub(crate) fn wait_for_output(
     {
         (status, false)
     } else {
-        child.kill().with_context(|| format!("kill timed out {label}"))?;
+        terminate_process_group(child, label)?;
         let status = child.wait().with_context(|| format!("reap timed out {label}"))?;
         (status, true)
     };
@@ -38,6 +49,24 @@ pub(crate) fn wait_for_output(
         stderr: join_pipe(stderr, "stderr", label)?,
         timed_out,
     })
+}
+
+fn terminate_process_group(child: &mut Child, label: &str) -> Result<()> {
+    #[cfg(unix)]
+    {
+        let process_group = format!("-{}", child.id());
+        let status = Command::new("kill")
+            .args(["-KILL", "--", process_group.as_str()])
+            .status()
+            .with_context(|| format!("signal timed out process group for {label}"))?;
+        if status.success() {
+            return Ok(());
+        }
+        Err(anyhow!("signal timed out process group for {label} failed with {status}"))
+    }
+
+    #[cfg(not(unix))]
+    child.kill().with_context(|| format!("kill timed out {label}"))
 }
 
 fn drain<R>(mut pipe: R, stream: &'static str, label: &str) -> JoinHandle<Result<Vec<u8>>>
@@ -90,11 +119,10 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn timed_wait_kills_and_reaps_at_deadline() -> anyhow::Result<()> {
-        let mut child = Command::new("sh")
-            .args(["-c", "exec tail -f /dev/null"])
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
+        let mut command = Command::new("sh");
+        command.args(["-c", "tail -f /dev/null"]).stdout(Stdio::piped()).stderr(Stdio::piped());
+        super::isolate_process_group(&mut command);
+        let mut child = command.spawn()?;
         let output = wait_for_output(&mut child, Duration::from_millis(20), "timeout probe")?;
 
         assert!(output.timed_out);

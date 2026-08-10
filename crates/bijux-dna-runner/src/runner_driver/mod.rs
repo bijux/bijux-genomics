@@ -114,6 +114,7 @@ pub(crate) fn run_local_command(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    crate::process_supervision::isolate_process_group(&mut child);
     let mut child = child.spawn().with_context(|| format!("run local command {command}"))?;
     let (status, stdout, stderr, timed_out) = if let Some(timeout) = timeout {
         let output = crate::process_supervision::wait_for_output(

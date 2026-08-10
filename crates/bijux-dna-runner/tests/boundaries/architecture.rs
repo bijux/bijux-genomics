@@ -45,6 +45,7 @@ fn runner_tree_matches_architecture_contract() {
         "command_runner/",
         "command_runner.rs",
         "lib.rs",
+        "process_supervision.rs",
         "public_api/",
         "repo_root/",
         "runner_driver/",
@@ -82,6 +83,7 @@ fn runner_tree_matches_architecture_contract() {
     let slurm_entries = dir_entries(&root.join("src/backend/slurm"));
     let expected_slurm: BTreeSet<_> = [
         "benchmark.rs",
+        "benchmark_cycle.rs",
         "client.rs",
         "contracts.rs",
         "corpus_materialization/",

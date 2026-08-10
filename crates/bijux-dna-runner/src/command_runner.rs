@@ -57,6 +57,7 @@ pub fn run_command_with_context_and_timeout(
     child.stdin(std::process::Stdio::null());
     child.stdout(std::process::Stdio::piped());
     child.stderr(std::process::Stdio::piped());
+    crate::process_supervision::isolate_process_group(&mut child);
 
     let mut process = child.spawn().with_context(|| format!("run command {command}"))?;
     let supervised = crate::process_supervision::wait_for_output(
@@ -218,7 +219,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn timed_command_kills_and_reaps_at_deadline() -> anyhow::Result<()> {
-        let args = vec!["-c".to_string(), "printf ready; exec tail -f /dev/null".to_string()];
+        let args = vec!["-c".to_string(), "printf ready; tail -f /dev/null".to_string()];
         let output = run_command_with_context_and_timeout(
             "sh",
             &args,

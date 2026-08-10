@@ -24,13 +24,14 @@ pub fn docker_wait(container_id: &str) -> Result<i32> {
 /// # Errors
 /// Returns an error if the timeout is reached or `docker wait` fails.
 pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> Result<i32> {
-    let mut child = Command::new("docker")
+    let mut command = Command::new("docker");
+    command
         .arg("wait")
         .arg(container_id)
         .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .context("docker wait")?;
+        .stderr(std::process::Stdio::piped());
+    crate::process_supervision::isolate_process_group(&mut command);
+    let mut child = command.spawn().context("docker wait")?;
     let output = crate::process_supervision::wait_for_output(
         &mut child,
         timeout,

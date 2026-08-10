@@ -28,6 +28,7 @@ fn dependency_graph_matches_runner_boundary() {
             "sha2",
             "tracing",
             "uuid",
+            "wait-timeout",
             "walkdir",
         ]),
         "runtime dependencies must stay limited to execution contracts, environment resolution, infra effects, validation, timestamps, and deterministic identity"
