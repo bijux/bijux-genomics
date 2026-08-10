@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_dna_containers::api::{
     apply_image_activation_plan, create_image_activation_plan, load_image_activation_plan,
-    rollback_image_activation_plan, verify_image_activation_plan, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventorySummary,
-    ContainerImageInventoryTool, ContainerImageState, ContainerSupportDisposition,
+    rollback_image_activation_plan, verify_image_activation_plan, ContainerArtifactDelivery,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    ContainerImageInventoryTool, ContainerImageState, ContainerProductSupport,
     ImageActivationPlanRequest, ImageActivationPlanState, ImageCandidateDisposition,
-    ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
+    ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
 };
 
 #[test]
@@ -136,7 +136,9 @@ fn write_inventory(path: &Path, study: &Path, staging: &Path) -> Result<()> {
             Ok(ContainerImageInventoryTool {
                 tool: tool.to_string(),
                 version: "1.0.0".to_string(),
-                support_disposition: ContainerSupportDisposition::Retained,
+                product_support: ContainerProductSupport::Supported,
+                artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+                redistribution_permitted: true,
                 apptainer_supported: true,
                 state: ContainerImageState::Current,
                 selected_image_sha256: Some(sha256.clone()),
@@ -155,7 +157,7 @@ fn write_inventory(path: &Path, study: &Path, staging: &Path) -> Result<()> {
         })
         .collect::<Result<Vec<_>>>()?;
     let publication = ContainerImageInventoryPublication {
-        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2.to_string(),
+        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3.to_string(),
         catalog_sha256: "b".repeat(64),
         repository_commit: "a".repeat(40),
         publication: ImageInventoryPublicationIdentity {

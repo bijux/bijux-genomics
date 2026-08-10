@@ -648,10 +648,12 @@ pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerC
             continue;
         }
         registry_ids.insert(tool_id.clone());
-        if table_bool(&row, "container") && support.get(&tool_id).is_some_and(|summary| {
-            summary.artifact_delivery
+        if table_bool(&row, "container")
+            && support.get(&tool_id).is_some_and(|summary| {
+                summary.artifact_delivery
                 == bijux_dna_containers::evidence::ContainerArtifactDelivery::RedistributableImage
-        }) {
+            })
+        {
             registry_container_ids.insert(tool_id);
         }
     }

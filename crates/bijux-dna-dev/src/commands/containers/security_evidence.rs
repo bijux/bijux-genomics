@@ -111,7 +111,7 @@ fn compose(
         .tools
         .iter()
         .filter(|tool| {
-            tool.support_disposition == containers::ContainerSupportDisposition::Retained
+            tool.artifact_delivery == containers::ContainerArtifactDelivery::RedistributableImage
         })
         .map(|tool| (tool.tool.as_str(), tool))
         .collect::<BTreeMap<_, _>>();
@@ -122,7 +122,7 @@ fn compose(
             .keys()
             .any(|tool_id| !inventory_by_tool.contains_key(tool_id.as_str()))
     {
-        bail!("raw security tool set differs from the retained image inventory");
+        bail!("raw security tool set differs from the redistributable image inventory");
     }
 
     let mut observations = BTreeMap::new();

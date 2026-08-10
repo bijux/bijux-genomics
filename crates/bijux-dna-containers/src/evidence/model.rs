@@ -3,10 +3,14 @@ use std::collections::BTreeMap;
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
+use super::tool_contract::{ContainerArtifactDelivery, ContainerProductSupport};
+
 pub const CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1: &str =
     "bijux.container.image_inventory_publication.v1";
 pub const CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2: &str =
     "bijux.container.image_inventory_publication.v2";
+pub const CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3: &str =
+    "bijux.container.image_inventory_publication.v3";
 pub const CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1: &str =
     "bijux.container.runtime_verification_publication.v1";
 pub const CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2: &str =
@@ -49,7 +53,9 @@ pub struct ImageInventoryPublicationIdentity {
 pub struct ContainerImageInventoryTool {
     pub tool: String,
     pub version: String,
-    pub support_disposition: ContainerSupportDisposition,
+    pub product_support: ContainerProductSupport,
+    pub artifact_delivery: ContainerArtifactDelivery,
+    pub redistribution_permitted: bool,
     pub apptainer_supported: bool,
     pub state: ContainerImageState,
     pub selected_image_sha256: Option<String>,
@@ -57,23 +63,14 @@ pub struct ContainerImageInventoryTool {
     pub candidates: Vec<ContainerImageCandidate>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ContainerSupportDisposition {
-    Retained,
-    Unsupported,
-    Retired,
-    Excluded,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ContainerImageState {
     Current,
     Historical,
     Ambiguous,
     Missing,
-    Unsupported,
+    NotApplicable,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -188,7 +185,7 @@ pub enum RuntimeEvidenceStatus {
 fn image_inventory_publication_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
+        "const": CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
     })
 }
 

@@ -6,11 +6,11 @@ use anyhow::{bail, Context, Result};
 use crate::evidence::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
     load_container_catalog, repository_commit_is_ancestor, repository_head_commit,
-    BuildEvidenceStatus, ContainerDetachedImage, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    BuildEvidenceStatus, ContainerArtifactDelivery, ContainerDetachedImage,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
-    ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
-    ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
+    DetachedImageDisposition, ImageCandidateDisposition, ImageInventoryPublicationIdentity,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
 };
 
 use super::source::{
@@ -110,7 +110,7 @@ pub fn derive_image_inventory_evidence(
         serde_json::to_vec_pretty(&scan).context("serialize raw image inventory scan")?;
     crate::evidence::validate_image_inventory_scan(&scan)?;
     let publication = ContainerImageInventoryPublication {
-        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2.to_string(),
+        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3.to_string(),
         catalog_sha256,
         repository_commit,
         publication: ImageInventoryPublicationIdentity {
@@ -135,14 +135,17 @@ fn derive_tool(
     evidence_by_digest: &BTreeMap<String, Vec<IndexedBuildEvidence>>,
     run_references: &BTreeMap<String, Vec<String>>,
 ) -> Result<ContainerImageInventoryTool> {
-    let support_disposition = support_disposition(tool.legacy_support_disposition())?;
-    if !tool.apptainer_supported {
+    if tool.artifact_delivery != ContainerArtifactDelivery::RedistributableImage
+        || !tool.apptainer_supported
+    {
         return Ok(ContainerImageInventoryTool {
             tool: tool.id.clone(),
             version: tool.version.clone(),
-            support_disposition,
-            apptainer_supported: false,
-            state: ContainerImageState::Unsupported,
+            product_support: tool.product_support,
+            artifact_delivery: tool.artifact_delivery,
+            redistribution_permitted: tool.redistribution_permitted,
+            apptainer_supported: tool.apptainer_supported,
+            state: ContainerImageState::NotApplicable,
             selected_image_sha256: None,
             candidates: Vec::new(),
         });
@@ -161,7 +164,9 @@ fn derive_tool(
     Ok(ContainerImageInventoryTool {
         tool: tool.id.clone(),
         version: tool.version.clone(),
-        support_disposition,
+        product_support: tool.product_support,
+        artifact_delivery: tool.artifact_delivery,
+        redistribution_permitted: tool.redistribution_permitted,
         apptainer_supported: true,
         state,
         selected_image_sha256: selected,
@@ -392,7 +397,7 @@ fn inventory_summary(
 ) -> ContainerImageInventorySummary {
     let mut states = BTreeMap::new();
     for tool in tools {
-        *states.entry(image_state_name(&tool.state).to_string()).or_insert(0) += 1;
+        *states.entry(image_state_name(tool.state).to_string()).or_insert(0) += 1;
     }
     let historical_candidates = tools
         .iter()
@@ -422,13 +427,13 @@ fn inventory_summary(
     }
 }
 
-fn image_state_name(state: &ContainerImageState) -> &'static str {
+fn image_state_name(state: ContainerImageState) -> &'static str {
     match state {
         ContainerImageState::Current => "current",
         ContainerImageState::Historical => "historical",
         ContainerImageState::Ambiguous => "ambiguous",
         ContainerImageState::Missing => "missing",
-        ContainerImageState::Unsupported => "unsupported",
+        ContainerImageState::NotApplicable => "not_applicable",
     }
 }
 
@@ -468,14 +473,4 @@ fn recipe_at_evidence_commit(
         &evidence.evidence.repository_commit,
         &tool.apptainer_definition,
     )
-}
-
-fn support_disposition(value: &str) -> Result<ContainerSupportDisposition> {
-    match value {
-        "retained" => Ok(ContainerSupportDisposition::Retained),
-        "unsupported" => Ok(ContainerSupportDisposition::Unsupported),
-        "retired" => Ok(ContainerSupportDisposition::Retired),
-        "excluded" => Ok(ContainerSupportDisposition::Excluded),
-        _ => bail!("unsupported catalog support disposition: {value}"),
-    }
 }

@@ -7,7 +7,7 @@ use super::{
 
 const SCAN_SCHEMA_PATH: &str = "containers/contracts/schemas/image-inventory-scan.v2.json";
 const PUBLICATION_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/image-inventory-publication.v2.json";
+    "containers/contracts/schemas/image-inventory-publication.v3.json";
 const PUBLICATION_PATH: &str = "containers/reports/image-inventory.json";
 const REPORT_PATH: &str = "containers/reports/image-inventory.md";
 const GENERATE_USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output> [<additional-image-root> <additional-build-evidence-root>]...";
