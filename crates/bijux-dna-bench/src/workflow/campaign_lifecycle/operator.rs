@@ -51,8 +51,9 @@ pub fn plan_checked_in_benchmark_campaign(
         .canonicalize()
         .context("canonicalize benchmark cycle repository")?;
     let campaign_registry_path = repository_root.join(CAMPAIGN_REGISTRY_PATH);
-    let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)
-        .context("resolve benchmark cycle source commit")?;
+    let repository_commit =
+        bijux_dna_containers::api::clean_repository_head_commit(&repository_root)
+            .context("require a clean benchmark cycle source repository")?;
     let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(&campaign_registry_path)
         .context("hash benchmark campaign registry")?;
     let registry = load_stage_campaign_registry(&campaign_registry_path)?;
@@ -126,8 +127,9 @@ pub fn load_checked_in_benchmark_campaign_plan(
     let repository_root =
         repository_root.canonicalize().context("canonicalize benchmark cycle repository")?;
     let plan = load_plan(plan_path)?;
-    let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)
-        .context("resolve benchmark cycle source commit")?;
+    let repository_commit =
+        bijux_dna_containers::api::clean_repository_head_commit(&repository_root)
+            .context("require a clean benchmark cycle source repository")?;
     let campaign_registry_sha256 =
         bijux_dna_infra::hash_file_sha256(&repository_root.join(CAMPAIGN_REGISTRY_PATH))
             .context("hash benchmark campaign registry")?;
@@ -187,8 +189,9 @@ fn publish_plan(output: &Path, plan: &bijux_dna_bench_model::BenchmarkCampaignPl
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::process::Command;
 
-    fn repository_root() -> PathBuf {
+    fn workspace_root() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(Path::parent)
@@ -196,12 +199,43 @@ mod tests {
             .to_path_buf()
     }
 
+    fn clean_repository() -> Result<tempfile::TempDir> {
+        let repository = bijux_dna_infra::temp_dir("benchmark-cycle-repository")?;
+        let contracts = repository.path().join("benchmarks/contracts");
+        fs::create_dir_all(&contracts)?;
+        fs::copy(
+            workspace_root().join(CAMPAIGN_REGISTRY_PATH),
+            contracts.join("stage-campaigns.toml"),
+        )?;
+        for arguments in [
+            vec!["init", "--initial-branch=main"],
+            vec!["config", "user.email", "tests@bijux.invalid"],
+            vec!["config", "user.name", "Bijux Tests"],
+            vec!["add", CAMPAIGN_REGISTRY_PATH],
+            vec!["commit", "-m", "test: seed campaign registry"],
+        ] {
+            let output = Command::new("git")
+                .current_dir(repository.path())
+                .args(arguments)
+                .output()
+                .context("execute benchmark cycle Git fixture command")?;
+            if !output.status.success() {
+                bail!(
+                    "benchmark cycle Git fixture command failed: {}",
+                    String::from_utf8_lossy(&output.stderr).trim()
+                );
+            }
+        }
+        Ok(repository)
+    }
+
     #[test]
     fn checked_in_plan_is_idempotent_and_refuses_identity_replacement() -> Result<()> {
+        let repository = clean_repository()?;
         let temporary = bijux_dna_infra::temp_dir("benchmark-cycle-plan")?;
         let output = temporary.path().join("run-2002-plan.json");
         let mut request = BenchmarkCyclePlanRequest {
-            repository_root: repository_root(),
+            repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
@@ -220,10 +254,11 @@ mod tests {
 
     #[test]
     fn status_reads_each_persisted_attempt_without_scheduler_observation() -> Result<()> {
+        let repository = clean_repository()?;
         let temporary = bijux_dna_infra::temp_dir("benchmark-cycle-status")?;
         let output = temporary.path().join("run-2002-plan.json");
         let plan = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
-            repository_root: repository_root(),
+            repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
@@ -236,7 +271,7 @@ mod tests {
         bijux_dna_runtime::record_attempt_ready(&benchmark_root, identity, "2026-08-10T00:01:00Z")?;
 
         let status = status_checked_in_benchmark_campaign(&BenchmarkCycleStatusRequest {
-            repository_root: repository_root(),
+            repository_root: repository.path().to_path_buf(),
             benchmark_root,
             plan: output,
             observed_at_utc: "2026-08-10T00:02:00Z".to_string(),
@@ -249,6 +284,23 @@ mod tests {
         assert!(status.attempts[0].transitions.last().is_some_and(|transition| {
             transition.jobs.is_empty() && transition.accounting.is_empty()
         }));
+        Ok(())
+    }
+
+    #[test]
+    fn planning_rejects_dirty_source_even_when_the_registry_is_unchanged() -> Result<()> {
+        let repository = clean_repository()?;
+        fs::write(repository.path().join("uncommitted-source.rs"), "fn dirty() {}\n")?;
+        let temporary = bijux_dna_infra::temp_dir("benchmark-cycle-dirty-source")?;
+        let result = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
+            repository_root: repository.path().to_path_buf(),
+            run_id: "run-2002".to_string(),
+            campaign_id: "campaign-run-2002".to_string(),
+            attempt_id: "attempt-0001".to_string(),
+            observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
+            output: temporary.path().join("plan.json"),
+        });
+        assert!(result.is_err());
         Ok(())
     }
 }
