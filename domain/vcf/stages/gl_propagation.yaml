@@ -25,6 +25,7 @@ metrics:
   - name: "genotyped_sites"
   - name: "gl_propagation_pass_rate"
 compatible_tools: ["bcftools"]
+single_tool_justification: "bcftools is the sole admitted backend with a governed transform contract that preserves and verifies GL/PL fields across VCF handoffs."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "GL/PL tags are retained through filtering and post-processing."
