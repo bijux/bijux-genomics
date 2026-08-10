@@ -10,6 +10,7 @@ pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1: &str =
     "bijux.benchmark.data_portfolio_audit.v1";
 pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2: &str =
     "bijux.benchmark.data_portfolio_audit.v2";
+pub const BENCHMARK_DATA_FITNESS_SCHEMA_V1: &str = "bijux.benchmark.data_fitness.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V1: &str = "bijux.benchmark.corpus_acquisition.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V2: &str = "bijux.benchmark.corpus_acquisition.v2";
 pub const FASTQ_CORPUS_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.fastq_corpus_source.v1";

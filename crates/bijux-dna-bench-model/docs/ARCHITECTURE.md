@@ -7,10 +7,11 @@ and decision records, and statistical helpers.
 ## Source Map
 
 - `src/public_api/` exposes the curated stable surface.
-- `src/model/` owns observations, suites, decisions, summaries, graph nodes,
-  persisted container report-portfolio identities, and suite support records.
-- `src/contract/` validates records, suite shape, stage governance, graph edges,
-  parameter bindings, container report freshness, diversity requirements, and analysis requirements.
+- `src/model/` owns observations, suites, decisions, summaries, graph nodes, stage-profile data
+  fitness, persisted container report-portfolio identities, and suite support records.
+- `src/contract/` validates records, suite shape, stage governance, graph edges, data-fitness and
+  portfolio closure, parameter bindings, container report freshness, diversity requirements, and
+  analysis requirements.
 - `src/compare/` builds deterministic typed diffs between benchmark summaries.
 - `src/policy/` owns typed gate configuration, violations, and decision records.
   `bijux-dna-science` owns scientific gate evaluation.

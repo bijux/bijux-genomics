@@ -7,8 +7,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_benchmark_data_index, validate_benchmark_data_portfolio_audit, BenchmarkCorpusClass,
-    BenchmarkCorpusDataAudit, BenchmarkCorpusStatus, BenchmarkDataIndex, BenchmarkDataIndexRecord,
+    validate_benchmark_data_index, validate_benchmark_data_portfolio_audit,
+    validate_data_fitness_portfolio_alignment, BenchmarkCorpusClass, BenchmarkCorpusDataAudit,
+    BenchmarkCorpusStatus, BenchmarkDataIndex, BenchmarkDataIndexRecord,
     BenchmarkDataPortfolioAudit, BenchmarkDataPortfolioAuditSummary,
     BenchmarkDataSourceSpecIdentity, BenchmarkEligibility, BenchmarkEvidenceScope,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset, DataIntegrityStatus,
@@ -18,10 +19,12 @@ use bijux_dna_bench_model::{
 use serde::Deserialize;
 
 use crate::{
-    load_benchmark_data_source_spec, load_benchmark_portfolio, load_fastq_corpus_source_spec,
+    load_benchmark_data_fitness_rubric, load_benchmark_data_source_spec, load_benchmark_portfolio,
+    load_fastq_corpus_source_spec,
 };
 
 const PORTFOLIO_PATH: &str = "benchmarks/contracts/portfolio.toml";
+const DATA_FITNESS_PATH: &str = "benchmarks/contracts/data-fitness.toml";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
 
 #[derive(Deserialize)]
@@ -99,8 +102,16 @@ pub fn derive_benchmark_data_portfolio_audit(
         &repository_root.join(PORTFOLIO_PATH),
         "benchmark portfolio",
     )?;
+    let data_fitness_path = governed_file(
+        &repository_root,
+        &repository_root.join(DATA_FITNESS_PATH),
+        "benchmark data-fitness rubric",
+    )?;
     let data_index_path = governed_file(&study_root, &request.data_index_path, "data index")?;
     let portfolio = load_benchmark_portfolio(&portfolio_path)?;
+    let data_fitness = load_benchmark_data_fitness_rubric(&data_fitness_path)?;
+    validate_data_fitness_portfolio_alignment(&data_fitness, &portfolio)
+        .context("validate benchmark data-fitness rubric against portfolio profiles")?;
     let index_bytes = read_bounded(&data_index_path, "data index")?;
     let index: BenchmarkDataIndex = serde_json::from_slice(&index_bytes)
         .with_context(|| format!("parse data index {}", data_index_path.display()))?;

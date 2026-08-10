@@ -14,6 +14,15 @@ contains only executable campaigns whose complete tool closure, inputs,
 parameters, resource measurements, quality metrics, interpretation, and
 limitations have been reviewed.
 
+`data-fitness.toml` is the machine-evaluable corpus fitness policy for every
+scientific profile in `portfolio.toml`. It sets minimum real-sample, case,
+study, and input-scale requirements; requires representative layouts, truth,
+controls, contamination or damage treatment, ancestry treatment, access
+identity, bias assessment, and limitations; and permits a reduced minimum only
+through an explicit, claim-restricted scientific exception. Checked-in
+planning and governed data audits reject drift between the rubric and the
+portfolio profile universe.
+
 `run-registry.json` is the generated permanent namespace authority for
 `run-2001` through `run-2071`. It records lifecycle, retained-tool closure,
 scientific profile and corpus roles, interface contracts, supersession fields,

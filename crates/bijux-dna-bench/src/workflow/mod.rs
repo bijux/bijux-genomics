@@ -195,11 +195,11 @@ pub use stage_universe::{
     BenchmarkUniverseWriteMode,
 };
 pub use suite_load::{
-    load_benchmark_portfolio, load_bundle_catalog, load_bundle_manifest,
-    load_checked_in_benchmark_contracts, load_checked_in_benchmark_planning_contracts,
-    load_corpus_catalog, load_corpus_manifest, load_stage_campaign_registry,
-    load_stage_interface_catalog, load_stage_interface_catalog_for_publication,
-    load_stage_interface_catalog_from_repo, load_suite, BenchmarkPublicationInterfaceCatalog,
-    BenchmarkReportPresentationAuthority,
+    load_benchmark_data_fitness_rubric, load_benchmark_portfolio, load_bundle_catalog,
+    load_bundle_manifest, load_checked_in_benchmark_contracts,
+    load_checked_in_benchmark_planning_contracts, load_corpus_catalog, load_corpus_manifest,
+    load_stage_campaign_registry, load_stage_interface_catalog,
+    load_stage_interface_catalog_for_publication, load_stage_interface_catalog_from_repo,
+    load_suite, BenchmarkPublicationInterfaceCatalog, BenchmarkReportPresentationAuthority,
 };
 pub use summary::summarize;
