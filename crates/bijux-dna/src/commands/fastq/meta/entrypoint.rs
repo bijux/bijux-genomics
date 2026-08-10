@@ -86,6 +86,20 @@ pub(crate) fn handle_meta_commands(
                             )?;
                         crate::commands::cli::render::json::print_pretty(&admission)?;
                     }
+                    cli::BenchCycleCommand::Book(args) => {
+                        let book =
+                            bijux_dna_api::v1::api::bench::publish_checked_in_benchmark_evidence_book(
+                                &bijux_dna_api::v1::api::bench::BenchmarkEvidenceBookRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    study_root: args.study_root.clone(),
+                                    book_id: args.book_id.clone(),
+                                    generated_at_utc: args.generated_at_utc.clone(),
+                                    limitations: args.limitation.clone(),
+                                    output: args.output.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&book)?;
+                    }
                     cli::BenchCycleCommand::Collect(args) => {
                         let plan =
                             bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(

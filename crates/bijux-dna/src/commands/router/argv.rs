@@ -249,4 +249,32 @@ mod tests {
         };
         assert!(matches!(command, BenchCycleCommand::Admit(_)));
     }
+
+    #[test]
+    fn benchmark_cycle_book_uses_the_public_product_namespace() {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "book",
+            "--study-root",
+            "/study",
+            "--book-id",
+            "benchmark-book-2026-08-10",
+            "--generated-at-utc",
+            "2026-08-10T00:00:00Z",
+            "--limitation",
+            "Only independently admitted current publications are included.",
+            "--output",
+            "/study/benchmarks/evidence-books/book.json",
+        ]))
+        .expect("parse benchmark cycle book");
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Book(_)));
+    }
 }
