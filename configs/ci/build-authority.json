@@ -1,5 +1,5 @@
 {
-  "schema": "bijux.ci.build_authority.v1",
+  "schema": "bijux.ci.build_authority.v2",
   "toolchain": {
     "manifest": "rust-toolchain.toml",
     "channel": "1.95.0",
@@ -7,6 +7,11 @@
       "clippy",
       "rustfmt"
     ]
+  },
+  "test_executor": {
+    "package": "cargo-nextest",
+    "subcommand": "nextest",
+    "version": "0.9.100"
   },
   "lockfile": {
     "manifest": "Cargo.lock",

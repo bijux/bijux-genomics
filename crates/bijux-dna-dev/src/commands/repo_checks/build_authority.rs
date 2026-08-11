@@ -71,6 +71,10 @@ pub(crate) fn check_ci_build_authority(
         workflow.contains(&format!("RUSTC_WRAPPER: {}", authority.cache.compiler_wrapper)),
         "GitHub workflow compiler wrapper differs from the build authority"
     );
+    ensure!(
+        workflow.contains(&format!("CARGO_NEXTEST_VERSION: {}", authority.test_executor.version)),
+        "GitHub workflow nextest version differs from the build authority"
+    );
 
     let runner = std::fs::read_to_string(workspace.path(RUNNER_PATH))
         .with_context(|| format!("read {RUNNER_PATH}"))?;
@@ -111,8 +115,8 @@ pub(crate) fn check_ci_build_authority(
     pass(
         check,
         format!(
-            "validated Rust {}, locked metadata, sccache JSON receipts, and isolated concurrent targets",
-            authority.toolchain.channel
+            "validated Rust {}, cargo-nextest {}, locked metadata, sccache JSON receipts, and isolated concurrent targets",
+            authority.toolchain.channel, authority.test_executor.version
         ),
     )
 }

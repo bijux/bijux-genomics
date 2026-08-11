@@ -3,6 +3,7 @@ use std::collections::BTreeSet;
 use std::path::{Component, Path, PathBuf};
 use std::time::{Duration, Instant};
 
+use bijux_dna_policies::{validate_ci_build_authority, CiBuildAuthority};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -217,18 +218,31 @@ pub(in super::super) fn tooling_ci_install_tools(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-install-tools", args)?;
-    run_program_with_env(
+    let authority = read_ci_build_authority(&workspace.path("configs/ci/build-authority.json"))?;
+    let executor = run_program_with_env(
         workspace,
         "cargo",
         &[
             "install".to_string(),
             "--locked".to_string(),
-            "cargo-nextest".to_string(),
+            authority.test_executor.package,
+            "--version".to_string(),
+            authority.test_executor.version,
+        ],
+        &artifact_env(workspace)?,
+    )?;
+    let supporting_tools = run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "install".to_string(),
+            "--locked".to_string(),
             "cargo-llvm-cov".to_string(),
             "cargo-deny".to_string(),
         ],
         &artifact_env(workspace)?,
-    )
+    )?;
+    Ok(merge_outcomes(executor, supporting_tools))
 }
 
 pub(in super::super) fn tooling_ci_fast(
@@ -498,6 +512,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
 
     let report_root = workspace.path(&contract.report_root);
     let build_authority_path = workspace.path(&contract.build_authority);
+    let build_authority = read_ci_build_authority(&build_authority_path)?;
+    require_ci_test_executor(workspace, &build_authority)?;
     let build_authority_sha256 = bijux_dna_infra::hash_file_sha256(&build_authority_path)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
     let started = Instant::now();
@@ -592,6 +608,48 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         }),
     )?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn read_ci_build_authority(path: &Path) -> Result<CiBuildAuthority> {
+    let authority: CiBuildAuthority = serde_json::from_slice(&fs::read(path)?)
+        .with_context(|| format!("parse {}", path.display()))?;
+    validate_ci_build_authority(&authority)?;
+    Ok(authority)
+}
+
+fn require_ci_test_executor(workspace: &Workspace, authority: &CiBuildAuthority) -> Result<()> {
+    let output = ProcessRunner::new(workspace).run_owned(
+        "cargo",
+        &[authority.test_executor.subcommand.clone(), "--version".to_string()],
+    )?;
+    let observed = if output.status.success() {
+        String::from_utf8(output.stdout)?.trim().to_string()
+    } else {
+        String::from_utf8_lossy(&output.stderr).trim().to_string()
+    };
+    validate_ci_test_executor_observation(authority, output.status.success(), &observed)
+}
+
+fn validate_ci_test_executor_observation(
+    authority: &CiBuildAuthority,
+    available: bool,
+    observed: &str,
+) -> Result<()> {
+    if !available {
+        anyhow::bail!(
+            "required CI test executor {} {} is unavailable ({observed}); run `cargo run -p bijux-dna-dev -- tooling run ci-install-tools` once before launching shards",
+            authority.test_executor.package,
+            authority.test_executor.version
+        );
+    }
+    let expected =
+        format!("{} {}", authority.test_executor.package, authority.test_executor.version);
+    if !observed.lines().next().is_some_and(|line| line.starts_with(&expected)) {
+        anyhow::bail!(
+            "CI test executor version mismatch: expected {expected}, observed {observed}"
+        );
+    }
+    Ok(())
 }
 
 fn materialize_full_shard_workspace(
@@ -1085,7 +1143,8 @@ pub(in super::super) fn tooling_ci_coverage(
 mod tests {
     use super::{
         full_shard_env, full_shard_root_receipt, full_shard_roots,
-        materialize_full_shard_workspace, percentile, reference_timing_samples,
+        materialize_full_shard_workspace, percentile, read_ci_build_authority,
+        reference_timing_samples, validate_ci_test_executor_observation,
         validate_fast_group_contract, validate_full_shard_contract, validate_full_shard_root_set,
         FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
         FastTimingObservation, FullShard, FullShardContract, FullShardCoverage,
@@ -1146,6 +1205,28 @@ mod tests {
     #[test]
     fn full_shard_contract_covers_hash_space_exactly_once() {
         assert!(validate_full_shard_contract(&contract()).is_ok());
+    }
+
+    #[test]
+    fn full_shards_refuse_missing_or_drifted_test_executor_before_launch() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let authority =
+            read_ci_build_authority(&workspace.path("configs/ci/build-authority.json"))?;
+
+        let missing = validate_ci_test_executor_observation(&authority, false, "no such command")
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("missing nextest did not fail closed"))?;
+        assert!(missing.to_string().contains("before launching shards"));
+
+        let drifted =
+            validate_ci_test_executor_observation(&authority, true, "cargo-nextest 0.9.99")
+                .err()
+                .ok_or_else(|| anyhow::anyhow!("drifted nextest did not fail closed"))?;
+        assert!(drifted.to_string().contains("version mismatch"));
+
+        validate_ci_test_executor_observation(&authority, true, "cargo-nextest 0.9.100 (build)")
     }
 
     #[test]

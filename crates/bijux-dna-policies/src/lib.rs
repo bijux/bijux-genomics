@@ -12,7 +12,7 @@ mod source_scan;
 
 pub use checks::build_authority::{
     validate_ci_build_authority, CiBuildAuthority, CiCacheAuthority, CiLockfileAuthority,
-    CiTargetAuthority, CiToolchainAuthority, CI_BUILD_AUTHORITY_SCHEMA_V1,
+    CiTargetAuthority, CiTestExecutorAuthority, CiToolchainAuthority, CI_BUILD_AUTHORITY_SCHEMA_V2,
 };
 pub use checks::dependency_graph::{
     plan_change_impact, validate_dependency_graph, ChangeImpactPlan, CiDependencyEdge,

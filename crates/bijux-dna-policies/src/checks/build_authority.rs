@@ -3,16 +3,25 @@ use std::collections::BTreeSet;
 use anyhow::{ensure, Result};
 use serde::{Deserialize, Serialize};
 
-pub const CI_BUILD_AUTHORITY_SCHEMA_V1: &str = "bijux.ci.build_authority.v1";
+pub const CI_BUILD_AUTHORITY_SCHEMA_V2: &str = "bijux.ci.build_authority.v2";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CiBuildAuthority {
     pub schema: String,
     pub toolchain: CiToolchainAuthority,
+    pub test_executor: CiTestExecutorAuthority,
     pub lockfile: CiLockfileAuthority,
     pub cache: CiCacheAuthority,
     pub targets: CiTargetAuthority,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CiTestExecutorAuthority {
+    pub package: String,
+    pub subcommand: String,
+    pub version: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -57,7 +66,7 @@ pub struct CiTargetAuthority {
 /// cache metrics, or a shared Cargo target lock across concurrent gates.
 pub fn validate_ci_build_authority(authority: &CiBuildAuthority) -> Result<()> {
     ensure!(
-        authority.schema == CI_BUILD_AUTHORITY_SCHEMA_V1,
+        authority.schema == CI_BUILD_AUTHORITY_SCHEMA_V2,
         "unsupported CI build authority schema"
     );
     ensure!(
@@ -70,6 +79,12 @@ pub fn validate_ci_build_authority(authority: &CiBuildAuthority) -> Result<()> {
     ensure!(
         components == BTreeSet::from(["clippy", "rustfmt"]),
         "CI toolchain must require exactly clippy and rustfmt"
+    );
+    ensure!(
+        authority.test_executor.package == "cargo-nextest"
+            && authority.test_executor.subcommand == "nextest"
+            && authority.test_executor.version == "0.9.100",
+        "CI test executor must use the pinned cargo-nextest authority"
     );
     ensure!(authority.lockfile.manifest == "Cargo.lock", "CI lock authority must use Cargo.lock");
     ensure!(
@@ -105,16 +120,22 @@ pub fn validate_ci_build_authority(authority: &CiBuildAuthority) -> Result<()> {
 mod tests {
     use super::{
         validate_ci_build_authority, CiBuildAuthority, CiCacheAuthority, CiLockfileAuthority,
-        CiTargetAuthority, CiToolchainAuthority, CI_BUILD_AUTHORITY_SCHEMA_V1,
+        CiTargetAuthority, CiTestExecutorAuthority, CiToolchainAuthority,
+        CI_BUILD_AUTHORITY_SCHEMA_V2,
     };
 
     fn authority() -> CiBuildAuthority {
         CiBuildAuthority {
-            schema: CI_BUILD_AUTHORITY_SCHEMA_V1.to_string(),
+            schema: CI_BUILD_AUTHORITY_SCHEMA_V2.to_string(),
             toolchain: CiToolchainAuthority {
                 manifest: "rust-toolchain.toml".to_string(),
                 channel: "1.95.0".to_string(),
                 required_components: vec!["clippy".to_string(), "rustfmt".to_string()],
+            },
+            test_executor: CiTestExecutorAuthority {
+                package: "cargo-nextest".to_string(),
+                subcommand: "nextest".to_string(),
+                version: "0.9.100".to_string(),
             },
             lockfile: CiLockfileAuthority {
                 manifest: "Cargo.lock".to_string(),
@@ -153,6 +174,13 @@ mod tests {
     fn rejects_cache_metrics_that_disappear_on_failure() {
         let mut authority = authority();
         authority.cache.publish_on_failure = false;
+        assert!(validate_ci_build_authority(&authority).is_err());
+    }
+
+    #[test]
+    fn rejects_unpinned_test_executor() {
+        let mut authority = authority();
+        authority.test_executor.version.clear();
         assert!(validate_ci_build_authority(&authority).is_err());
     }
 }

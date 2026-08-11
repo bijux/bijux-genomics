@@ -13,6 +13,8 @@ Layout:
 - `configs/ci/budgets/`: fast-tier command and wall-clock budget policy.
 - `configs/ci/dependency-graph.json`: source, crate, generated-asset, contract, and report
   dependency graph used for fail-closed change-impact planning.
+- `configs/ci/build-authority.json`: the single Rust toolchain, pinned test executor, lockfile,
+  compiler-cache, and target-isolation authority.
 - `configs/ci/full-shards.json`: complete-workspace nextest coverage and exact hash partitions
   executed concurrently by the Rust CI supervisor with disjoint per-shard compile, test,
   temporary, coverage, and profile-output roots under one declared build authority.
