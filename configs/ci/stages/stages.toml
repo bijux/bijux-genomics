@@ -140,7 +140,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["coverage_at_damage_sites>=0.2"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
+tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.duplication_metrics"
@@ -254,7 +254,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["shared_markers>=5000"]
 sex_kinship_sufficiency = ["kinship_informative_markers>=5000", "panel_match=true"]
-tools = ["king"]
+tools = ["angsd", "king"]
 
 [[stages]]
 id = "bam.length_filter"
@@ -387,7 +387,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["chrX_chrY_covered_sites>=1000"]
 sex_kinship_sufficiency = ["chrY_observed_sites>=100", "chrX_coverage_stable=true"]
-tools = ["rxy", "yleaf"]
+tools = ["angsd", "rxy", "yleaf"]
 
 [[stages]]
 id = "bam.validate"
@@ -805,7 +805,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["clumpify"]
+tools = ["clumpify", "fastuniq"]
 
 [[stages]]
 id = "fastq.report_qc"
