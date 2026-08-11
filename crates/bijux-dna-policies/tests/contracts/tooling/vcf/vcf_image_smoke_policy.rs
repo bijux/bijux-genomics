@@ -6,6 +6,37 @@ use std::collections::BTreeSet;
 
 use walkdir::WalkDir;
 
+fn external_artifact_contract_violations(tool_id: &str, tool: &toml::Value) -> Vec<String> {
+    if tool.get("artifact_delivery").and_then(toml::Value::as_str) != Some("external_artifact") {
+        return Vec::new();
+    }
+    let mut violations = Vec::new();
+    let dockerfile = tool.get("dockerfile").and_then(toml::Value::as_str).unwrap_or("");
+    let apptainer = tool.get("apptainer_def").and_then(toml::Value::as_str).unwrap_or("");
+    let container_ref = tool.get("container_ref").and_then(toml::Value::as_str).unwrap_or("");
+    let container = tool.get("container").and_then(toml::Value::as_bool);
+    let runtimes = tool.get("runtimes").and_then(toml::Value::as_array).map_or(0, Vec::len);
+    if tool.get("product_support").and_then(toml::Value::as_str) != Some("supported")
+        || tool.get("redistribution_permitted").and_then(toml::Value::as_bool) != Some(false)
+        || tool.get("external_artifact_supported").and_then(toml::Value::as_bool) != Some(true)
+    {
+        violations.push(format!(
+            "external VCF tool {tool_id} must remain supported, non-redistributable, and externally admissible"
+        ));
+    }
+    if container != Some(false)
+        || runtimes != 0
+        || !container_ref.starts_with("external@")
+        || !dockerfile.is_empty()
+        || !apptainer.is_empty()
+    {
+        violations.push(format!(
+            "external VCF tool {tool_id} must use external identity without repository recipes"
+        ));
+    }
+    violations
+}
+
 #[test]
 fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_smoke_paths() {
     let root = support::workspace_root();
@@ -61,13 +92,16 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
                 "vcf tool {tool_id} missing image entry in configs/ci/tools/images.toml"
             ));
         }
+        let external_artifact = tool.get("artifact_delivery").and_then(toml::Value::as_str)
+            == Some("external_artifact");
+        offenders.extend(external_artifact_contract_violations(tool_id, &tool));
         let dockerfile = tool.get("dockerfile").and_then(toml::Value::as_str).unwrap_or_default();
-        if dockerfile.is_empty() || !root.join(dockerfile).exists() {
+        if !external_artifact && (dockerfile.is_empty() || !root.join(dockerfile).exists()) {
             offenders.push(format!("vcf tool {tool_id} missing dockerfile at `{dockerfile}`"));
         }
         let apptainer_def =
             tool.get("apptainer_def").and_then(toml::Value::as_str).unwrap_or_default();
-        if apptainer_def.is_empty() || !root.join(apptainer_def).exists() {
+        if !external_artifact && (apptainer_def.is_empty() || !root.join(apptainer_def).exists()) {
             offenders
                 .push(format!("vcf tool {tool_id} missing apptainer def at `{apptainer_def}`"));
         }
@@ -84,4 +118,39 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     }
 
     assert!(offenders.is_empty(), "vcf image/smoke policy violations:\n{}", offenders.join("\n"));
+}
+
+#[test]
+fn licensed_external_vcf_tools_require_admission_identity_instead_of_repository_recipes() {
+    let row: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "external_artifact"
+product_support = "supported"
+redistribution_permitted = false
+external_artifact_supported = true
+container = false
+container_ref = "external@licensed-installation"
+runtimes = []
+dockerfile = ""
+apptainer_def = ""
+"#,
+    )
+    .expect("parse external artifact fixture");
+    assert!(external_artifact_contract_violations("licensed-vcf-tool", &row).is_empty());
+
+    let invalid: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "external_artifact"
+product_support = "supported"
+redistribution_permitted = true
+external_artifact_supported = false
+container = true
+container_ref = "repository@image"
+runtimes = ["docker"]
+dockerfile = "containers/docker/forbidden"
+apptainer_def = "containers/apptainer/forbidden.def"
+"#,
+    )
+    .expect("parse invalid external artifact fixture");
+    assert_eq!(external_artifact_contract_violations("licensed-vcf-tool", &invalid).len(), 2);
 }

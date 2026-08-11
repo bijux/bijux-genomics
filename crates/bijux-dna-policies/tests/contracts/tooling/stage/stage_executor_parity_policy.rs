@@ -121,6 +121,40 @@ fn yaml_metric_keys(v: &serde_yaml::Value) -> Vec<String> {
         .unwrap_or_default()
 }
 
+fn external_artifact_contract_violations(tool_id: &str, tool: &toml::Value) -> Vec<String> {
+    if tool.get("artifact_delivery").and_then(toml::Value::as_str) != Some("external_artifact") {
+        return Vec::new();
+    }
+    let mut violations = Vec::new();
+    let product_support = tool.get("product_support").and_then(toml::Value::as_str);
+    let redistribution = tool.get("redistribution_permitted").and_then(toml::Value::as_bool);
+    let external_supported = tool.get("external_artifact_supported").and_then(toml::Value::as_bool);
+    let container = tool.get("container").and_then(toml::Value::as_bool);
+    let container_ref = tool.get("container_ref").and_then(toml::Value::as_str).unwrap_or("");
+    let runtimes = tool.get("runtimes").and_then(toml::Value::as_array).map_or(0, Vec::len);
+    let dockerfile = tool.get("dockerfile").and_then(toml::Value::as_str).unwrap_or("");
+    let apptainer = tool.get("apptainer_def").and_then(toml::Value::as_str).unwrap_or("");
+    if product_support != Some("supported")
+        || redistribution != Some(false)
+        || external_supported != Some(true)
+    {
+        violations.push(format!(
+            "external tool {tool_id} must remain supported, non-redistributable, and externally admissible"
+        ));
+    }
+    if container != Some(false)
+        || !container_ref.starts_with("external@")
+        || runtimes != 0
+        || !dockerfile.is_empty()
+        || !apptainer.is_empty()
+    {
+        violations.push(format!(
+            "external tool {tool_id} must use external identity without repository runtimes or recipes"
+        ));
+    }
+    violations
+}
+
 #[test]
 #[allow(clippy::too_many_lines)]
 fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consistent() {
@@ -248,7 +282,14 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
             let host_only =
                 doc.get("host_only").and_then(serde_yaml::Value::as_bool).unwrap_or(false);
             let host_only_justification = yaml_str(doc, "host_only_justification").unwrap_or("");
-            if !(host_only || runtimes.contains("docker") && runtimes.contains("apptainer")) {
+            let external_violations = external_artifact_contract_violations(&tool_id, tool);
+            let external_artifact = tool.get("artifact_delivery").and_then(toml::Value::as_str)
+                == Some("external_artifact");
+            offenders.extend(external_violations);
+            if !(external_artifact
+                || host_only
+                || runtimes.contains("docker") && runtimes.contains("apptainer"))
+            {
                 offenders.push(format!(
                     "stage {stage_id} tool {tool_id} must provide docker+apptainer runtimes"
                 ));
@@ -337,4 +378,39 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
         "stage executor parity policy violations:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn licensed_external_tools_require_admission_identity_instead_of_repository_recipes() {
+    let row: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "external_artifact"
+product_support = "supported"
+redistribution_permitted = false
+external_artifact_supported = true
+container = false
+container_ref = "external@licensed-installation"
+runtimes = []
+dockerfile = ""
+apptainer_def = ""
+"#,
+    )
+    .expect("parse external artifact fixture");
+    assert!(external_artifact_contract_violations("licensed-tool", &row).is_empty());
+
+    let invalid: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "external_artifact"
+product_support = "supported"
+redistribution_permitted = true
+external_artifact_supported = true
+container = true
+container_ref = "repository@image"
+runtimes = ["docker"]
+dockerfile = "containers/docker/forbidden"
+apptainer_def = "containers/apptainer/forbidden.def"
+"#,
+    )
+    .expect("parse invalid external artifact fixture");
+    assert_eq!(external_artifact_contract_violations("licensed-tool", &invalid).len(), 2);
 }
