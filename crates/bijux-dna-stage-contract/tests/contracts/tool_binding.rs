@@ -26,13 +26,14 @@ const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
+const VALIDATE_READS_STAGE: &str = "fastq.validate_reads";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 20);
+    assert_eq!(retained.bindings().len(), 23);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -56,8 +57,66 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 28);
+    assert_eq!(all.bindings().len(), 31);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_validate_reads_bindings_close_governed_single_stream_qualification() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(VALIDATE_READS_STAGE));
+
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["fastqvalidator", "fqtools", "seqtk"]
+    );
+    for binding in bindings {
+        assert_eq!(binding.resources.runtime, "apptainer");
+        assert_eq!(binding.resources.threads, 4);
+        assert_eq!(binding.inputs.len(), 1);
+        assert_eq!(binding.inputs[0].name, "reads_r1");
+        assert_eq!(
+            binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+            ["validation_report", "validated_reads_manifest"]
+        );
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.validate_reads.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.validate_reads.compare");
+
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::new(),
+                outputs: BTreeMap::from([
+                    ("validation_report".to_owned(), "/result/validation.json".to_owned()),
+                    (
+                        "validated_reads_manifest".to_owned(),
+                        "/result/validated-reads.json".to_owned(),
+                    ),
+                ]),
+            },
+        )?;
+        assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+        assert!(command[2].contains("/input/sample.fastq.gz"));
+        assert!(command[2].contains("/result/validation.json"));
+        assert!(command[2].contains("/result/validated-reads.json"));
+        assert!(command[2].contains("bijux.fastq.validate.report.v1"));
+        assert!(command[2].contains("bijux.fastq.validate.lineage.v1"));
+        assert!(command[2].contains(&format!("\"tool_id\":\"{}\"", binding.tool_id)));
+    }
     Ok(())
 }
 

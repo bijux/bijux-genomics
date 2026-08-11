@@ -57,6 +57,8 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bowtie2_align(),
         bwa_align(),
         centrifuge_screen_taxonomy(),
+        fastqvalidator_validate_reads(),
+        fqtools_validate_reads(),
         kaiju_screen_taxonomy(),
         kraken2_screen_taxonomy(),
         krakenuniq_screen_taxonomy(),
@@ -71,11 +73,66 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         samtools_duplication_metrics(),
         samtools_endogenous_content(),
         samtools_mapping_summary(),
+        seqtk_validate_reads(),
         umi_tools_extract_umis(),
     ] {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn fastqvalidator_validate_reads() -> ToolBindingV1 {
+    validate_reads_binding(
+        "fastqvalidator",
+        "'${executable}' --file '${input:reads_r1}'",
+        &["single_end_reads", "structural_fastq_validation"],
+    )
+}
+
+fn fqtools_validate_reads() -> ToolBindingV1 {
+    validate_reads_binding(
+        "fqtools",
+        "'${executable}' validate '${input:reads_r1}'",
+        &["single_end_reads", "fqtools_fastq_validation"],
+    )
+}
+
+fn seqtk_validate_reads() -> ToolBindingV1 {
+    validate_reads_binding(
+        "seqtk",
+        "'${executable}' seq '${input:reads_r1}'",
+        &["single_end_reads", "seqtk_fastq_parsing"],
+    )
+}
+
+fn validate_reads_binding(
+    tool_id: &str,
+    backend_command: &str,
+    backend_capabilities: &[&str],
+) -> ToolBindingV1 {
+    let command = format!(
+        "set +e; {backend_command} > \"$TMPDIR/bijux-{tool_id}-validation.log\" 2>&1; status=$?; if [ \"$status\" -eq 0 ]; then strict_pass=true; else strict_pass=false; fi; printf '{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"{tool_id}\",\"validated_inputs\":1,\"strict_pass\":%s,\"exit_code\":%s}}\\n' \"$strict_pass\" \"$status\" > '${{output:validation_report}}'; printf '{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"{tool_id}\",\"input_r1\":\"reads_r1\",\"validation_report\":\"validation_report\",\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"]}}\\n' > '${{output:validated_reads_manifest}}'; exit \"$status\""
+    );
+    let mut capabilities = vec!["report_only_validation"];
+    capabilities.extend_from_slice(backend_capabilities);
+    retained_binding(
+        "fastq.validate_reads",
+        tool_id,
+        &capabilities,
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &[],
+        &[output("validation_report", JSON), output("validated_reads_manifest", JSON)],
+        &["/bin/sh", "-c", &command],
+        "bijux.benchmark.fastq.validate_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads",
+        "benchmark.fastq.validate_reads.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+            "native_validation_log_remains_attempt_evidence_only",
+        ],
+    )
 }
 
 fn centrifuge_screen_taxonomy() -> ToolBindingV1 {

@@ -844,16 +844,19 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 17);
+        assert_eq!(coverage.summary.binding_ready_count, 20);
         for tool_id in [
             "angsd",
             "centrifuge",
+            "fastqvalidator",
             "fastuniq",
+            "fqtools",
             "impute5",
             "kaiju",
             "kraken2",
             "krakenuniq",
             "ngsbriggs",
+            "seqtk",
         ] {
             let unit = coverage
                 .units
