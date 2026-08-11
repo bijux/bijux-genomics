@@ -44,10 +44,11 @@ pub(super) fn validate_spec(spec: &ManagedSlurmJobSpec) -> Result<()> {
         bail!("managed Slurm memory must be between 128 and 1048576 MiB");
     }
     let repository = canonical_directory(&spec.repository_path, "repository")?;
-    if bijux_dna_containers::api::clean_repository_head_commit(&repository)?
-        != spec.repository_commit
-    {
-        bail!("managed Slurm repository commit differs from specification");
+    if !bijux_dna_containers::api::repository_commit_is_ancestor_of_head(
+        &repository,
+        &spec.repository_commit,
+    )? {
+        bail!("managed Slurm repository commit is not retained in source history");
     }
     require_exact_file(&spec.worker_path, &spec.worker_sha256, "worker")?;
     let attempt_root = canonical_directory(&spec.attempt_root, "attempt root")?;
@@ -67,6 +68,16 @@ pub(super) fn validate_spec(spec: &ManagedSlurmJobSpec) -> Result<()> {
         && spec.dependency_condition != SlurmDependencyCondition::AfterOk
     {
         bail!("managed Slurm afterany requires at least one dependency");
+    }
+    Ok(())
+}
+
+pub(super) fn validate_submission_source(spec: &ManagedSlurmJobSpec) -> Result<()> {
+    let repository = canonical_directory(&spec.repository_path, "repository")?;
+    if bijux_dna_containers::api::clean_repository_head_commit(&repository)?
+        != spec.repository_commit
+    {
+        bail!("managed Slurm repository commit differs from specification");
     }
     Ok(())
 }

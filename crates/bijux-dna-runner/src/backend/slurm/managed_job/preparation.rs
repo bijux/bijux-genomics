@@ -11,7 +11,9 @@ use super::super::SlurmSubmitRequest;
 use super::contracts::{
     ManagedSlurmJobSpec, PreparedManagedSlurmJob, PREPARED_MANAGED_SLURM_JOB_SCHEMA_V1,
 };
-use super::validation::{canonical_directory, read_json, validate_spec};
+use super::validation::{
+    canonical_directory, read_json, validate_spec, validate_submission_source,
+};
 
 /// Prepare immutable scheduler material without submitting or waiting.
 ///
@@ -19,6 +21,7 @@ use super::validation::{canonical_directory, read_json, validate_spec};
 /// Returns an error for invalid authority, conflicting retained material, or unsafe scheduler data.
 pub fn prepare_managed_slurm_job(spec: &ManagedSlurmJobSpec) -> Result<PreparedManagedSlurmJob> {
     validate_spec(spec)?;
+    validate_submission_source(spec)?;
     let specification_path = spec.attempt_root.join("managed-slurm-job-spec.json");
     ensure_json_identity(&specification_path, spec)?;
     let specification_sha256 = bijux_dna_infra::hash_file_sha256(&specification_path)?;

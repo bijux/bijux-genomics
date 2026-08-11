@@ -17,7 +17,9 @@ use super::contracts::{
     SUBMISSION_FAILURE_SCHEMA_V1, SUBMISSION_INTENT_SCHEMA_V1,
 };
 use super::preparation::ensure_json_identity;
-use super::validation::{canonical_directory, read_json, validate_spec, validate_timestamp};
+use super::validation::{
+    canonical_directory, read_json, validate_spec, validate_submission_source, validate_timestamp,
+};
 
 /// Load and revalidate immutable prepared scheduler material.
 ///
@@ -41,6 +43,7 @@ pub fn submit_prepared_managed_slurm_job(
     paths: &SlurmClientPaths,
     spec: &ManagedSlurmJobSpec,
 ) -> Result<SlurmJobHandle> {
+    validate_submission_source(spec)?;
     let prepared = load_prepared_managed_slurm_job(spec)?;
     let scheduler_root = spec.attempt_root.join("scheduler");
     let intent = SubmissionIntent {

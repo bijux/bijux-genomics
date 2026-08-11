@@ -149,6 +149,57 @@ fn terminal_collection_is_immutable_across_later_observations() -> anyhow::Resul
 }
 
 #[cfg(unix)]
+#[test]
+fn observation_and_collection_survive_source_advances_but_submission_does_not() -> anyhow::Result<()>
+{
+    let fixture = fixture()?;
+    prepare_managed_slurm_job(&fixture.spec)?;
+    let scheduler = scheduler(fixture.root.path(), "printf '456789\\n'\n")?;
+    let handle = submit_prepared_managed_slurm_job(&scheduler, &fixture.spec)?;
+
+    std::fs::write(fixture.spec.repository_path.join("later-authority.txt"), b"later authority\n")?;
+    run_git(&fixture.spec.repository_path, &["add", "later-authority.txt"])?;
+    run_git(
+        &fixture.spec.repository_path,
+        &[
+            "-c",
+            "user.name=Bijux Test",
+            "-c",
+            "user.email=bijux@example.invalid",
+            "commit",
+            "-qm",
+            "advance fixture source",
+        ],
+    )?;
+
+    let loaded = load_managed_slurm_job_spec(
+        &fixture.spec.attempt_root.join("managed-slurm-job-spec.json"),
+    )?;
+    assert_eq!(loaded, fixture.spec);
+    let Err(error) = prepare_managed_slurm_job(&fixture.spec) else {
+        anyhow::bail!("preparation accepted an advanced repository");
+    };
+    assert!(error.to_string().contains("commit differs from specification"));
+    let Err(error) = submit_prepared_managed_slurm_job(&scheduler, &fixture.spec) else {
+        anyhow::bail!("submission accepted an advanced repository");
+    };
+    assert!(error.to_string().contains("commit differs from specification"));
+
+    std::fs::write(&handle.stdout_path, b"worker stdout\n")?;
+    std::fs::write(&handle.stderr_path, b"")?;
+    write_executable(&scheduler.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &scheduler.sacct,
+        "#!/bin/sh\nprintf '%s\\n' '456789|COMPLETED|0:0|12|00:00:10|128K|n001|None'\n",
+    )?;
+    let observation = observe_managed_slurm_job(&scheduler, &fixture.spec, "2026-08-11T10:02:00Z")?;
+    assert_eq!(observation.state, SlurmJobState::Completed);
+    let collection = collect_managed_slurm_job(&scheduler, &fixture.spec, "2026-08-11T10:03:00Z")?;
+    assert!(collection.evidence.is_some());
+    Ok(())
+}
+
+#[cfg(unix)]
 fn scheduler(root: &Path, sbatch_body: &str) -> anyhow::Result<SlurmClientPaths> {
     let paths = SlurmClientPaths {
         sbatch: root.join("sbatch"),
