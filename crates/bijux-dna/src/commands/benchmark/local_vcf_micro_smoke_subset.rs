@@ -33,7 +33,7 @@ use super::readiness::vcf_local_container_probe::{
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-use bijux_dna_bench::{BenchmarkStageFamily, VCF_STAGE_FAMILIES};
+use bijux_dna_api::v1::api::bench::{BenchmarkStageFamily, VCF_STAGE_FAMILIES};
 
 pub(crate) const DEFAULT_VCF_MICRO_SMOKE_SUMMARY_PATH: &str =
     "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json";

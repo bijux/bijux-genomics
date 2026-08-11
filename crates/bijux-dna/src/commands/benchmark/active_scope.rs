@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_bench_model::{
+use bijux_dna_api::v1::api::bench::{
     validate_active_scope_fast_validation_report, ActiveScopeFastValidationCheck,
     ActiveScopeFastValidationReport, ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1,
 };

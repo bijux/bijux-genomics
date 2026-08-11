@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-pub use bijux_dna_bench_model::{
+pub use bijux_dna_api::v1::api::bench::{
     BamBenchmarkCampaignReport, BamBenchmarkCampaignSummary, BamBenchmarkGoalEntry,
     BamMatrixRowRef, BamScenario,
 };
@@ -24,14 +24,14 @@ pub fn bam_benchmark_campaign(
     })?;
     let appraisal = appraise_matrix_report(matrix.clone())?;
     let queue = hardening_queue_from_appraisal(appraisal.clone())?;
-    let report = bijux_dna_bench::derive_bam_benchmark_campaign(
+    let report = bijux_dna_api::v1::api::bench::derive_bam_benchmark_campaign(
         matrix,
         &appraisal,
         &queue,
         args.goals.as_deref(),
     )?;
     if let Some(path) = &args.out {
-        bijux_dna_bench::publish_bam_benchmark_campaign_report(path, &report)?;
+        bijux_dna_api::v1::api::bench::publish_bam_benchmark_campaign_report(path, &report)?;
     }
     Ok(report)
 }

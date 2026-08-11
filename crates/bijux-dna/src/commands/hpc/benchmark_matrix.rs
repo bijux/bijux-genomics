@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-pub use bijux_dna_bench::{
+pub use bijux_dna_api::v1::api::bench::{
     BenchmarkMatrixReport, BenchmarkMatrixRow, BenchmarkMatrixSummary, BenchmarkReadiness,
     BenchmarkSurfaceMatch, BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
 };
@@ -16,15 +16,17 @@ fn workspace_root() -> Result<PathBuf> {
 pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixReport> {
     let dry_run =
         campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
-    bijux_dna_bench::derive_benchmark_matrix(&bijux_dna_bench::BenchmarkMatrixRequest {
-        repository_root: workspace_root()?,
-        campaign_id: dry_run.campaign_id,
-        domain: args.domain.clone(),
-        corpora_root: PathBuf::from(dry_run.layout.corpora_root),
-        databases_root: PathBuf::from(dry_run.layout.databases_root),
-        images_root: PathBuf::from(dry_run.layout.images_root),
-        generated_at: bijux_dna_bench::current_benchmark_matrix_timestamp(),
-    })
+    bijux_dna_api::v1::api::bench::derive_benchmark_matrix(
+        &bijux_dna_api::v1::api::bench::BenchmarkMatrixRequest {
+            repository_root: workspace_root()?,
+            campaign_id: dry_run.campaign_id,
+            domain: args.domain.clone(),
+            corpora_root: PathBuf::from(dry_run.layout.corpora_root),
+            databases_root: PathBuf::from(dry_run.layout.databases_root),
+            images_root: PathBuf::from(dry_run.layout.images_root),
+            generated_at: bijux_dna_api::v1::api::bench::current_benchmark_matrix_timestamp(),
+        },
+    )
 }
 
 #[cfg(test)]

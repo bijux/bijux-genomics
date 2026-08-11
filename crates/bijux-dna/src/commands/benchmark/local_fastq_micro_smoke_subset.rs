@@ -15,7 +15,7 @@ use super::readiness::fastq_local_container_probe::{
 use super::readiness::tool_probe_support::{path_relative_to_repo, repo_relative_path};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-use bijux_dna_bench::{BenchmarkStageFamily, FASTQ_STAGE_FAMILIES};
+use bijux_dna_api::v1::api::bench::{BenchmarkStageFamily, FASTQ_STAGE_FAMILIES};
 
 pub(crate) const DEFAULT_FASTQ_MICRO_SMOKE_SUMMARY_PATH: &str =
     "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json";

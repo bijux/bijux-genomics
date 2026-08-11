@@ -15,7 +15,7 @@ use super::readiness::bam_local_container_probe::{
 use super::readiness::tool_probe_support::{path_relative_to_repo, repo_relative_path};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-use bijux_dna_bench::{BenchmarkStageFamily, BAM_STAGE_FAMILIES};
+use bijux_dna_api::v1::api::bench::{BenchmarkStageFamily, BAM_STAGE_FAMILIES};
 
 pub(crate) const DEFAULT_BAM_MICRO_SMOKE_SUMMARY_PATH: &str =
     "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json";
