@@ -28,6 +28,10 @@ not own CLI commands or process execution.
 | `validate-report-admission` | `contract::validate_report_admission` | Validate exact source bytes, canonical parsed-report identity, and the nested stage-report contract. |
 | `validate-container-report-portfolio-index` | `contract::validate_container_report_portfolio_index` | Validate report identity, checksummed file closure, summary counts, and conservative freshness promotion. |
 | `container-report-portfolio-index-schema` | `container_report_portfolio_index_schema` | Generate the persisted container report-portfolio JSON Schema from its Rust model. |
+| `validate-appraisal-report` | `contract::validate_appraisal_report` | Validate persisted appraisal identity, finding vocabulary and order, uniqueness, and exact summary closure. |
+| `appraisal-report-schema` | `appraisal_report_schema` | Generate the persisted benchmark-appraisal JSON Schema from its Rust model. |
+| `validate-hardening-queue-report` | `contract::validate_hardening_queue_report` | Validate deterministic queue allocation, canonical ordering, and grouped row/appraiser links. |
+| `hardening-queue-report-schema` | `hardening_queue_report_schema` | Generate the persisted hardening-queue JSON Schema from its Rust model. |
 | `validate-benchmark-matrix-report` | `contract::validate_benchmark_matrix_report` | Validate persisted matrix identity, unique rows, readiness semantics, surface matches, and exact summary closure. |
 | `benchmark-matrix-report-schema` | `benchmark_matrix_report_schema` | Generate the persisted benchmark-matrix JSON Schema from its Rust model. |
 | `validate-governed-data-catalog-snapshot-publication` | `contract::validate_governed_data_catalog_snapshot_publication` | Validate the versioned candidate-registry path, exact preserved/retained count closure, and embedded governed catalog registry. |

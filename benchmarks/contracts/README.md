@@ -96,6 +96,12 @@ matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and
 render the validated record.
 
+`schemas/appraisal-report.schema.json` and
+`schemas/hardening-queue-report.schema.json` define the admitted findings and
+deterministic remediation queue derived from that matrix. The benchmark model
+owns their versions, vocabulary, ordering, identity, and exact aggregate
+closure; the benchmark workflow owns derivation and atomic publication.
+
 `schemas/governed-data-catalog-snapshot-publication.schema.json`,
 `schemas/governed-data-catalog-registry-publication.schema.json`, and
 `schemas/campaign-report-publication.schema.json` define the versioned outcomes

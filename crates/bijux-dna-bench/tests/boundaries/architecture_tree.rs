@@ -89,6 +89,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow")),
         entries([
             "attempt_migration.rs",
+            "appraisal.rs",
             "bam_coverage/",
             "bam_duplication_metrics/",
             "bam_endogenous_content/",

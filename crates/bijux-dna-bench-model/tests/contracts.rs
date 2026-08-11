@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/appraisal.rs"]
+mod mod_contracts_appraisal_rs;
 #[path = "contracts/benchmark_execution.rs"]
 mod mod_contracts_benchmark_execution_rs;
 #[path = "contracts/benchmark_interfaces.rs"]

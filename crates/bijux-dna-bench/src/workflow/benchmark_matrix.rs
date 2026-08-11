@@ -107,6 +107,19 @@ pub fn publish_benchmark_matrix(path: &Path, report: &BenchmarkMatrixReport) -> 
         .with_context(|| format!("publish benchmark matrix {}", path.display()))
 }
 
+/// Load and validate a persisted benchmark matrix.
+///
+/// # Errors
+/// Returns an error when the file cannot be read, parsed, or admitted.
+pub fn load_benchmark_matrix_report(path: &Path) -> Result<BenchmarkMatrixReport> {
+    let raw = std::fs::read(path).with_context(|| format!("read {}", path.display()))?;
+    let report = serde_json::from_slice::<BenchmarkMatrixReport>(&raw)
+        .with_context(|| format!("parse {}", path.display()))?;
+    validate_benchmark_matrix_report(&report)
+        .with_context(|| format!("validate benchmark matrix {}", path.display()))?;
+    Ok(report)
+}
+
 #[allow(clippy::too_many_arguments)]
 fn append_domain_rows(
     rows: &mut Vec<BenchmarkMatrixRow>,
@@ -768,6 +781,7 @@ mod tests {
             serde_json::from_slice(&std::fs::read(&output).expect("read publication"))
                 .expect("parse publication");
         assert_eq!(persisted, report);
+        assert_eq!(load_benchmark_matrix_report(&output).expect("load publication"), report);
 
         let mut invalid = report;
         invalid.summary.total_rows += 1;

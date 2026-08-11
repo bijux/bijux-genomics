@@ -3,6 +3,7 @@
 //! Must not perform IO or depend on repo/policy/compare logic.
 
 pub mod admission;
+pub mod appraisal;
 pub mod benchmark_matrix;
 pub mod campaign_engine;
 pub mod container_report_portfolio;
@@ -34,6 +35,12 @@ pub mod summary;
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+#[allow(unused_imports)]
+pub use appraisal::{
+    appraisal_report_schema, hardening_queue_report_schema, AppraisalFinding, AppraisalReport,
+    AppraisalSummary, HardeningQueueEntry, HardeningQueueReport, APPRAISAL_REPORT_SCHEMA_V1,
+    HARDENING_QUEUE_REPORT_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use benchmark_matrix::{

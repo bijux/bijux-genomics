@@ -1075,8 +1075,8 @@ pub fn fastq_benchmark_campaign(
         fail_on_refuse: false,
         json: false,
     })?;
-    let appraisal = appraise_matrix_report(matrix.clone());
-    let queue = hardening_queue_from_appraisal(appraisal.clone());
+    let appraisal = appraise_matrix_report(matrix.clone())?;
+    let queue = hardening_queue_from_appraisal(appraisal.clone())?;
     let selected_goals = selected_goal_ids(args.goals.as_deref())?;
     let entries = build_goal_entries(&selected_goals, &matrix, &appraisal.findings, &queue.entries);
     let report = FastqBenchmarkCampaignReport {

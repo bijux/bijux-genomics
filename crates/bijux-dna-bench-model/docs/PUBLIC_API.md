@@ -80,6 +80,11 @@ Model contracts:
 - `BenchmarkExecutionResources`
 - `BenchmarkExecutionRuntimePolicy`
 - `BenchmarkExecutionAcceptance`
+- `AppraisalReport`
+- `AppraisalFinding`
+- `AppraisalSummary`
+- `HardeningQueueReport`
+- `HardeningQueueEntry`
 - `BenchmarkMatrixReport`
 - `BenchmarkMatrixSummary`
 - `BenchmarkMatrixRow`
@@ -153,6 +158,8 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
+- `APPRAISAL_REPORT_SCHEMA_V1`
+- `HARDENING_QUEUE_REPORT_SCHEMA_V1`
 - `BENCHMARK_MATRIX_REPORT_SCHEMA_V1`
 - `CORPUS_ACQUISITION_SCHEMA_V1`
 - `CORPUS_ACQUISITION_SCHEMA_V2`
@@ -187,6 +194,8 @@ Schema derivation:
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
+- `appraisal_report_schema`
+- `hardening_queue_report_schema`
 - `benchmark_matrix_report_schema`
 - `corpus_acquisition_plan_schema`
 - `fastq_corpus_source_spec_schema`
@@ -194,6 +203,8 @@ Schema derivation:
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
 - `validate_scheduler_observation`
+- `validate_appraisal_report`
+- `validate_hardening_queue_report`
 - `validate_benchmark_matrix_report`
 - `validate_execution_spec`
 - `validate_corpus_acquisition_plan`

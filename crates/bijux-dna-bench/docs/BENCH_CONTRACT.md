@@ -32,6 +32,8 @@ gating, and deterministic artifact persistence.
 - Source-locked generic case matrices, admitted observation sets, and deterministic case aggregations.
 - Catalog-complete benchmark frontiers with every supported stage/tool pair and explicit
   refusal rows for missing stage contracts or tool bindings.
+- Versioned matrix appraisals and deterministic hardening queues admitted against generated
+  schemas and exact aggregate closure.
 - No-clobber governed data catalogs published only after complete source and FASTQ validation.
 
 ## Required Invariants
@@ -59,6 +61,8 @@ gating, and deterministic artifact persistence.
 - Matrix derivation must filter only on product support. Artifact delivery and redistribution
   policy cannot remove a supported tool, and missing catalog/domain bindings must fail closed
   in the planned frontier instead of disappearing.
+- Appraisal and hardening-queue loading, construction, validation, grouping, ordering, and atomic
+  persistence belong to this crate; the CLI may only adapt arguments and render admitted results.
 
 ## Failure Modes
 

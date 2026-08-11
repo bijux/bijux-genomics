@@ -20,8 +20,13 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_checked_in_benchmark_contracts()` preserves the campaign/portfolio return contract while validating every checked-in planning input.
 - `load_checked_in_benchmark_planning_contracts()` returns the campaign registry, portfolio, and stage-interface catalog after validating defined identity consistency.
 - `derive_benchmark_matrix(request)` derives every selected stage/tool case from the supported product catalog, retains externally delivered tools, and emits explicit refusal rows for missing stage contracts or bindings.
+- `load_benchmark_matrix_report(path)` parses and admits a persisted matrix before appraisal or campaign use.
 - `publish_benchmark_matrix(path, report)` validates summary and readiness closure before atomically publishing a matrix.
 - `current_benchmark_matrix_timestamp()` supplies the explicit generation identity used by thin operator surfaces.
+- `appraise_matrix_report(matrix)` runs every registered product appraiser against an admitted matrix and validates exact finding-summary closure.
+- `hardening_queue_from_appraisal(report)` groups admitted findings into a deterministic, contiguous hardening queue.
+- `load_appraisal_report(path)` and `load_hardening_queue_report(path)` parse and admit persisted appraisal products.
+- `publish_appraisal_report(path, report)` and `publish_hardening_queue_report(path, report)` validate before atomic publication.
 - `derive_stage_universe(repository_root, portfolio)` derives the complete domain-stage registry and enforces exact benchmark run-reservation closure.
 - `publish_checked_in_stage_universe(repository_root, mode)` writes or checks the generated canonical registry, review index, and JSON Schema.
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.

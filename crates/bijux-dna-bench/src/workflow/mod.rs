@@ -2,6 +2,7 @@
 //! Benchmark workflow facade over summary, evaluation, suite loading, and suite persistence.
 #![allow(dead_code)]
 
+mod appraisal;
 mod attempt_migration;
 mod bam_coverage;
 mod bam_duplication_metrics;
@@ -44,6 +45,10 @@ mod summary_fairness;
 mod summary_scope;
 mod summary_statistics;
 
+pub use appraisal::{
+    appraise_matrix_report, hardening_queue_from_appraisal, load_appraisal_report,
+    load_hardening_queue_report, publish_appraisal_report, publish_hardening_queue_report,
+};
 pub use attempt_migration::{
     apply_attempt_migration, plan_attempt_migration, rollback_attempt_migration,
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,
@@ -75,8 +80,8 @@ pub use bam_mapping_summary::{
     BamMappingSummaryMaterial, BamMappingSummaryStageReportPublication,
 };
 pub use benchmark_matrix::{
-    current_benchmark_matrix_timestamp, derive_benchmark_matrix, publish_benchmark_matrix,
-    BenchmarkMatrixRequest,
+    current_benchmark_matrix_timestamp, derive_benchmark_matrix, load_benchmark_matrix_report,
+    publish_benchmark_matrix, BenchmarkMatrixRequest,
 };
 pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,

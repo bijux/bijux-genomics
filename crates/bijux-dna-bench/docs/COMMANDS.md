@@ -22,8 +22,13 @@ These operations are exported through the crate root and `public_api`.
 | `load-checked-in-benchmark-contracts` | `load_checked_in_benchmark_contracts()` | Load the checked-in stage-campaign registry and benchmark portfolio while validating all checked-in planning inputs. |
 | `load-checked-in-benchmark-planning-contracts` | `load_checked_in_benchmark_planning_contracts()` | Load the checked-in stage-campaign registry, benchmark portfolio, and stage-interface catalog and validate their defined identities. |
 | `derive-benchmark-matrix` | `derive_benchmark_matrix(request)` | Derive the selected stage/tool frontier from all supported catalog pairs, retaining external deliveries and explicit refusal rows for contract drift. |
+| `load-benchmark-matrix-report` | `load_benchmark_matrix_report(path)` | Parse and admit a persisted benchmark matrix before product workflow use. |
 | `publish-benchmark-matrix` | `publish_benchmark_matrix(path, report)` | Validate the complete matrix identity, surface, readiness, and summary closure before atomic publication. |
 | `current-benchmark-matrix-timestamp` | `current_benchmark_matrix_timestamp()` | Supply an explicit generation timestamp for thin operator requests. |
+| `appraise-matrix-report` | `appraise_matrix_report(matrix)` | Run every registered product appraiser and validate canonical finding and summary closure. |
+| `derive-hardening-queue` | `hardening_queue_from_appraisal(report)` | Group admitted findings into a deterministic contiguous hardening queue. |
+| `load-appraisal-products` | `load_appraisal_report(path)`, `load_hardening_queue_report(path)` | Parse and validate persisted appraisal and hardening-queue records. |
+| `publish-appraisal-products` | `publish_appraisal_report(path, report)`, `publish_hardening_queue_report(path, report)` | Validate and atomically publish appraisal and hardening-queue records. |
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |

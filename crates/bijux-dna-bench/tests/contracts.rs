@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/appraisal.rs"]
+mod mod_contracts_appraisal_rs;
 #[path = "contracts/benching/architecture.rs"]
 mod mod_contracts_architecture_rs;
 #[path = "contracts/attempt_migration.rs"]
