@@ -600,8 +600,7 @@ mod tests {
     use crate::commands::benchmark::readiness::vcf_stage_readiness_support::collect_vcf_stage_readiness_bindings;
 
     fn repo_root() -> std::path::PathBuf {
-        let crate_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-        crate_root.parent().and_then(std::path::Path::parent).expect("repo root").to_path_buf()
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]

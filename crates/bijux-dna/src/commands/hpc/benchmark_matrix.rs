@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::Result;
 pub use bijux_dna_bench::{
     BenchmarkMatrixReport, BenchmarkMatrixRow, BenchmarkMatrixSummary, BenchmarkReadiness,
     BenchmarkSurfaceMatch, BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
@@ -10,21 +10,7 @@ use crate::commands::cli::BenchmarkMatrixArgs;
 use crate::commands::hpc::campaign_dry_run;
 
 fn workspace_root() -> Result<PathBuf> {
-    let mut cursor = std::env::current_dir().context("resolve current directory")?;
-    loop {
-        if cursor.join("domain").is_dir()
-            && cursor.join("containers/contracts/catalog.toml").is_file()
-        {
-            return Ok(cursor);
-        }
-        let Some(parent) = cursor.parent() else {
-            break;
-        };
-        cursor = parent.to_path_buf();
-    }
-    Err(anyhow!(
-        "unable to locate workspace root containing domain/ and containers/contracts/catalog.toml"
-    ))
+    crate::commands::support::workspace_root::resolve_repo_root()
 }
 
 pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixReport> {
@@ -44,11 +30,13 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
 #[cfg(test)]
 mod tests {
     use super::workspace_root;
+    use anyhow::Result;
 
     #[test]
-    fn workspace_discovery_uses_product_catalog_authority() {
-        let root = workspace_root().expect("workspace root");
+    fn workspace_discovery_uses_product_catalog_authority() -> Result<()> {
+        let root = workspace_root()?;
         assert!(root.join("domain").is_dir());
         assert!(root.join("containers/contracts/catalog.toml").is_file());
+        Ok(())
     }
 }

@@ -965,11 +965,11 @@ mod tests {
     #[test]
     fn governed_vcf_pca_smoke_reports_complete_cohort_rows() {
         let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
         let _cwd_lock = acquire_cwd_lock();
-        let _repo_lock =
-            RepoProcessLock::acquire(repo_root, "benchmark-readiness-mutators").expect("repo lock");
-        let report = run_local_vcf_pca_smoke(repo_root, "plink2").expect("run local pca smoke");
+        let _repo_lock = RepoProcessLock::acquire(&repo_root, "benchmark-readiness-mutators")
+            .expect("repo lock");
+        let report = run_local_vcf_pca_smoke(&repo_root, "plink2").expect("run local pca smoke");
         assert_eq!(report.stage_id, "vcf.pca");
         assert_eq!(report.tool_id, "plink2");
         assert_eq!(report.corpus_id, "vcf_production_regression");
@@ -988,9 +988,9 @@ mod tests {
     #[test]
     fn governed_vcf_pca_smoke_supports_retained_eigensoft_binding() {
         let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
         let report =
-            run_local_vcf_pca_smoke(repo_root, "eigensoft").expect("run eigensoft pca smoke");
+            run_local_vcf_pca_smoke(&repo_root, "eigensoft").expect("run eigensoft pca smoke");
         assert_eq!(report.stage_id, "vcf.pca");
         assert_eq!(report.tool_id, "eigensoft");
         assert_eq!(report.corpus_id, "vcf_production_regression");
