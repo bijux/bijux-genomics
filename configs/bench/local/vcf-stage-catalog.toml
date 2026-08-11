@@ -262,10 +262,13 @@ local_smoke_mode = "vcf_cohort"
 [[rows]]
 stage_id = "vcf.ibd"
 stage_name = "Identity-by-Descent Inference"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "germline"
 metrics_schema_id = "bijux.vcf.ibd.v1"
-input_types = ["vcf"]
+input_types = [
+    "genetic_map",
+    "vcf",
+]
 output_types = ["tsv"]
 required_assets = ["vcf_index"]
 benchmark_category = "identity_by_descent"
@@ -274,10 +277,13 @@ local_smoke_mode = "vcf_cohort"
 [[rows]]
 stage_id = "vcf.demography"
 stage_name = "Demographic Inference"
-support_status = "planned"
+support_status = "supported"
 default_tool_id = "ibdne"
 metrics_schema_id = "bijux.vcf.demography.v1"
-input_types = ["tsv"]
+input_types = [
+    "genetic_map",
+    "tsv",
+]
 output_types = ["json"]
 required_assets = []
 benchmark_category = "demography"
