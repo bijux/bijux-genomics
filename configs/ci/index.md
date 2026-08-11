@@ -14,7 +14,8 @@ Layout:
 - `configs/ci/dependency-graph.json`: source, crate, generated-asset, contract, and report
   dependency graph used for fail-closed change-impact planning.
 - `configs/ci/full-shards.json`: complete-workspace nextest coverage and exact hash partitions
-  executed concurrently by the Rust CI supervisor.
+  executed concurrently by the Rust CI supervisor with disjoint per-shard compile, test,
+  temporary, coverage, and profile-output roots under one declared build authority.
 - `configs/ci/fast-groups.json`: bounded independent fast-lane groups, reference runner and
   warm-cache timing target executed by the same event-driven supervisor.
 

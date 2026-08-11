@@ -14,7 +14,7 @@ use super::{
 };
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
-const FULL_SHARDS_SCHEMA_V1: &str = "bijux.ci.full_shards.v1";
+const FULL_SHARDS_SCHEMA_V2: &str = "bijux.ci.full_shards.v2";
 const FAST_GROUPS_SCHEMA_V1: &str = "bijux.ci.fast_groups.v1";
 const FAST_TIMING_HISTORY_SCHEMA_V1: &str = "bijux.ci.fast_timing_history.v1";
 
@@ -25,7 +25,8 @@ struct FullShardContract {
     coverage: FullShardCoverage,
     partition_strategy: String,
     workspace_isolation: String,
-    shared_target_root: String,
+    build_authority: String,
+    shard_artifact_root: String,
     report_root: String,
     shards: Vec<FullShard>,
 }
@@ -45,6 +46,18 @@ struct FullShardCoverage {
 struct FullShard {
     id: String,
     partition: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FullShardRoots {
+    artifact_root: PathBuf,
+    cargo_target: PathBuf,
+    test_target: PathBuf,
+    coverage_target: PathBuf,
+    test_tmp: PathBuf,
+    coverage_tmp: PathBuf,
+    test_profraw: PathBuf,
+    coverage_profraw: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
@@ -483,54 +496,61 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_full_shard_contract(&contract)?;
 
-    let target_root = workspace.path(&contract.shared_target_root);
     let report_root = workspace.path(&contract.report_root);
-    bijux_dna_infra::ensure_dir(&target_root)?;
+    let build_authority_path = workspace.path(&contract.build_authority);
+    let build_authority_sha256 = bijux_dna_infra::hash_file_sha256(&build_authority_path)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
-    let mut envs = ci_test_env(workspace, false)?;
-    envs.push(("CARGO_TARGET_DIR".to_string(), target_root.display().to_string()));
     let started = Instant::now();
     let shard_workspaces = contract
         .shards
         .iter()
         .map(|shard| materialize_full_shard_workspace(workspace, &report_root, shard))
         .collect::<Result<Vec<_>>>()?;
+    let shard_roots = contract
+        .shards
+        .iter()
+        .map(|shard| full_shard_roots(workspace, &contract, shard))
+        .collect::<Vec<_>>();
+    validate_full_shard_root_set(workspace, &shard_roots)?;
     let specs = contract
         .shards
         .iter()
         .zip(&shard_workspaces)
-        .map(|(shard, shard_workspace)| ParallelProcessSpec {
-            label: shard.id.clone(),
-            program: "cargo".to_string(),
-            args: vec![
-                "nextest".to_string(),
-                "run".to_string(),
-                "--workspace".to_string(),
-                "--all-targets".to_string(),
-                "--all-features".to_string(),
-                "--locked".to_string(),
-                "--config-file".to_string(),
-                "configs/rust/nextest.toml".to_string(),
-                "--profile".to_string(),
-                "full".to_string(),
-                "--run-ignored".to_string(),
-                "all".to_string(),
-                "--retries".to_string(),
-                "0".to_string(),
-                "--partition".to_string(),
-                shard.partition.clone(),
-            ],
-            envs: envs.clone(),
-            current_dir: Some(shard_workspace.clone()),
+        .zip(&shard_roots)
+        .map(|((shard, shard_workspace), roots)| {
+            Ok(ParallelProcessSpec {
+                label: shard.id.clone(),
+                program: "cargo".to_string(),
+                args: vec![
+                    "nextest".to_string(),
+                    "run".to_string(),
+                    "--workspace".to_string(),
+                    "--all-targets".to_string(),
+                    "--all-features".to_string(),
+                    "--locked".to_string(),
+                    "--config-file".to_string(),
+                    "configs/rust/nextest.toml".to_string(),
+                    "--profile".to_string(),
+                    "full".to_string(),
+                    "--run-ignored".to_string(),
+                    "all".to_string(),
+                    "--retries".to_string(),
+                    "0".to_string(),
+                    "--partition".to_string(),
+                    shard.partition.clone(),
+                ],
+                envs: full_shard_env(roots)?,
+                current_dir: Some(shard_workspace.clone()),
+            })
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
     let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
     let mut all_passed = true;
     let mut shard_receipts = Vec::with_capacity(outputs.len());
     let mut stdout = String::new();
     let mut stderr = String::new();
-    for ((shard, shard_workspace), completed) in
-        contract.shards.iter().zip(&shard_workspaces).zip(outputs)
+    for (((shard, shard_workspace), roots), completed) in
+        contract.shards.iter().zip(&shard_workspaces).zip(&shard_roots).zip(outputs)
     {
         let log_path = report_root.join(format!("{}.log", shard.id));
         let mut log = completed.output.stdout.clone();
@@ -544,6 +564,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "id": completed.label,
             "partition": shard.partition,
             "workspace": workspace.rel(shard_workspace).to_string_lossy(),
+            "environment_roots": full_shard_root_receipt(roots),
             "duration_milliseconds": completed.duration.as_millis(),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
@@ -552,15 +573,18 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     write_json_pretty(
         &workspace.path("artifacts/ci/full-gate-timing.json"),
         &serde_json::json!({
-            "schema_version": "bijux.ci.full_gate_timing.v1",
+            "schema_version": "bijux.ci.full_gate_timing.v2",
             "contract_sha256": bijux_dna_infra::hash_file_sha256(&contract_path)?,
+            "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
+            "build_authority_sha256": build_authority_sha256,
             "coverage": {
                 "workspace": true,
                 "all_targets": true,
                 "all_features": true,
                 "run_ignored": "all",
                 "overlap_policy": "exactly_once",
-                "workspace_isolation": contract.workspace_isolation
+                "workspace_isolation": contract.workspace_isolation,
+                "output_isolation": "disjoint_per_shard_roots"
             },
             "wall_time_milliseconds": started.elapsed().as_millis(),
             "all_passed": all_passed,
@@ -634,21 +658,124 @@ fn materialize_full_shard_workspace(
     Ok(shard_workspace)
 }
 
+fn full_shard_roots(
+    workspace: &Workspace,
+    contract: &FullShardContract,
+    shard: &FullShard,
+) -> FullShardRoots {
+    let artifact_root = workspace.path(&contract.shard_artifact_root).join(&shard.id);
+    FullShardRoots {
+        cargo_target: artifact_root.join("target/cargo"),
+        test_target: artifact_root.join("target/test"),
+        coverage_target: artifact_root.join("target/coverage"),
+        test_tmp: artifact_root.join("tmp/test"),
+        coverage_tmp: artifact_root.join("tmp/coverage"),
+        test_profraw: artifact_root.join("coverage/profraw-test"),
+        coverage_profraw: artifact_root.join("coverage/profraw-coverage"),
+        artifact_root,
+    }
+}
+
+fn validate_full_shard_root_set(
+    workspace: &Workspace,
+    shard_roots: &[FullShardRoots],
+) -> Result<()> {
+    let governed_artifacts = workspace.path("artifacts");
+    for roots in shard_roots {
+        for root in roots.all() {
+            if !root.is_absolute() || !root.starts_with(&governed_artifacts) {
+                anyhow::bail!("full shard output root is outside artifacts: {}", root.display());
+            }
+        }
+        let mut distinct = roots.all().into_iter().collect::<BTreeSet<_>>();
+        distinct.remove(roots.artifact_root.as_path());
+        if distinct.len() != roots.all().len() - 1 {
+            anyhow::bail!("full shard runtime roots are not distinct");
+        }
+    }
+    for (index, left) in shard_roots.iter().enumerate() {
+        for right in shard_roots.iter().skip(index + 1) {
+            if left
+                .all()
+                .into_iter()
+                .any(|left_root| right.all().into_iter().any(|right_root| left_root == right_root))
+            {
+                anyhow::bail!("full shard output roots overlap");
+            }
+        }
+    }
+    Ok(())
+}
+
+fn full_shard_env(roots: &FullShardRoots) -> Result<Vec<(String, String)>> {
+    for root in roots.all() {
+        bijux_dna_infra::ensure_dir(root)?;
+    }
+    Ok(vec![
+        ("ARTIFACT_ROOT".to_string(), roots.artifact_root.display().to_string()),
+        ("ISO_ROOT".to_string(), roots.artifact_root.display().to_string()),
+        ("CARGO_TARGET_DIR".to_string(), roots.cargo_target.display().to_string()),
+        ("TEST_TARGET_DIR".to_string(), roots.test_target.display().to_string()),
+        ("COV_TARGET_DIR".to_string(), roots.coverage_target.display().to_string()),
+        ("TEST_TMP_DIR".to_string(), roots.test_tmp.display().to_string()),
+        ("COV_TMP_DIR".to_string(), roots.coverage_tmp.display().to_string()),
+        ("TEST_PROFRAW_DIR".to_string(), roots.test_profraw.display().to_string()),
+        ("COV_PROFRAW_DIR".to_string(), roots.coverage_profraw.display().to_string()),
+        ("TZ".to_string(), "UTC".to_string()),
+        ("LC_ALL".to_string(), "C".to_string()),
+    ])
+}
+
+fn full_shard_root_receipt(roots: &FullShardRoots) -> serde_json::Value {
+    serde_json::json!({
+        "artifact_root": roots.artifact_root.display().to_string(),
+        "iso_root": roots.artifact_root.display().to_string(),
+        "cargo_target_dir": roots.cargo_target.display().to_string(),
+        "test_target_dir": roots.test_target.display().to_string(),
+        "coverage_target_dir": roots.coverage_target.display().to_string(),
+        "test_tmp_dir": roots.test_tmp.display().to_string(),
+        "coverage_tmp_dir": roots.coverage_tmp.display().to_string(),
+        "test_profraw_dir": roots.test_profraw.display().to_string(),
+        "coverage_profraw_dir": roots.coverage_profraw.display().to_string(),
+    })
+}
+
+impl FullShardRoots {
+    fn all(&self) -> [&Path; 8] {
+        [
+            &self.artifact_root,
+            &self.cargo_target,
+            &self.test_target,
+            &self.coverage_target,
+            &self.test_tmp,
+            &self.coverage_tmp,
+            &self.test_profraw,
+            &self.coverage_profraw,
+        ]
+    }
+}
+
 fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
-    if contract.schema_version != FULL_SHARDS_SCHEMA_V1
+    if contract.schema_version != FULL_SHARDS_SCHEMA_V2
         || !contract.coverage.workspace
         || !contract.coverage.all_targets
         || !contract.coverage.all_features
         || contract.coverage.run_ignored != "all"
         || contract.coverage.overlap_policy != "exactly_once"
         || contract.partition_strategy != "hash"
-        || contract.workspace_isolation != "tracked_source_clone"
+        || contract.workspace_isolation != "tracked_source_clone_with_disjoint_outputs"
+        || contract.build_authority != "configs/ci/build-authority.json"
         || !(2..=16).contains(&contract.shards.len())
     {
         anyhow::bail!("full shard coverage contract is incomplete");
     }
-    validate_artifact_relative_path(&contract.shared_target_root)?;
+    validate_artifact_relative_path(&contract.shard_artifact_root)?;
     validate_artifact_relative_path(&contract.report_root)?;
+    let report_root = Path::new(&contract.report_root);
+    let shard_artifact_root = Path::new(&contract.shard_artifact_root);
+    if shard_artifact_root == report_root || !shard_artifact_root.starts_with(report_root) {
+        anyhow::bail!("full shard artifact root must be a child of the report root");
+    }
     let denominator = contract.shards.len();
     let mut ids = BTreeSet::new();
     let mut indices = BTreeSet::new();
@@ -957,16 +1084,18 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
+        full_shard_env, full_shard_root_receipt, full_shard_roots,
         materialize_full_shard_workspace, percentile, reference_timing_samples,
-        validate_fast_group_contract, validate_full_shard_contract, FastGroup, FastGroupContract,
-        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullShard,
-        FullShardContract, FullShardCoverage, FAST_TIMING_HISTORY_SCHEMA_V1,
+        validate_fast_group_contract, validate_full_shard_contract, validate_full_shard_root_set,
+        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullShard, FullShardContract, FullShardCoverage,
+        FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
     fn contract() -> FullShardContract {
         FullShardContract {
-            schema_version: "bijux.ci.full_shards.v1".to_string(),
+            schema_version: "bijux.ci.full_shards.v2".to_string(),
             coverage: FullShardCoverage {
                 workspace: true,
                 all_targets: true,
@@ -975,8 +1104,9 @@ mod tests {
                 overlap_policy: "exactly_once".to_string(),
             },
             partition_strategy: "hash".to_string(),
-            workspace_isolation: "tracked_source_clone".to_string(),
-            shared_target_root: "artifacts/target".to_string(),
+            workspace_isolation: "tracked_source_clone_with_disjoint_outputs".to_string(),
+            build_authority: "configs/ci/build-authority.json".to_string(),
+            shard_artifact_root: "artifacts/ci/full-shards/shards".to_string(),
             report_root: "artifacts/ci/full-shards".to_string(),
             shards: (1..=4)
                 .map(|index| FullShard {
@@ -1031,6 +1161,64 @@ mod tests {
         let mut shared_workspace = contract();
         shared_workspace.workspace_isolation = "shared".to_string();
         assert!(validate_full_shard_contract(&shared_workspace).is_err());
+
+        let mut shared_outputs = contract();
+        shared_outputs.shard_artifact_root = shared_outputs.report_root.clone();
+        assert!(validate_full_shard_contract(&shared_outputs).is_err());
+
+        let mut unknown_authority = contract();
+        unknown_authority.build_authority = "configs/ci/another-authority.json".to_string();
+        assert!(validate_full_shard_contract(&unknown_authority).is_err());
+    }
+
+    #[test]
+    fn full_shard_runtime_roots_are_absolute_complete_and_disjoint() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let contract = contract();
+        let roots = contract
+            .shards
+            .iter()
+            .map(|shard| full_shard_roots(&workspace, &contract, shard))
+            .collect::<Vec<_>>();
+        validate_full_shard_root_set(&workspace, &roots)?;
+
+        let first_env =
+            full_shard_env(&roots[0])?.into_iter().collect::<std::collections::BTreeMap<_, _>>();
+        for name in [
+            "ARTIFACT_ROOT",
+            "ISO_ROOT",
+            "CARGO_TARGET_DIR",
+            "TEST_TARGET_DIR",
+            "COV_TARGET_DIR",
+            "TEST_TMP_DIR",
+            "COV_TMP_DIR",
+            "TEST_PROFRAW_DIR",
+            "COV_PROFRAW_DIR",
+        ] {
+            let value = first_env
+                .get(name)
+                .ok_or_else(|| anyhow::anyhow!("missing shard environment variable {name}"))?;
+            let path = std::path::Path::new(value);
+            assert!(path.is_absolute());
+            assert!(path.starts_with(workspace.path("artifacts")));
+        }
+        assert_ne!(first_env["CARGO_TARGET_DIR"], first_env["TEST_TARGET_DIR"]);
+        assert_ne!(first_env["TEST_TARGET_DIR"], first_env["COV_TARGET_DIR"]);
+        assert_ne!(first_env["TEST_TMP_DIR"], first_env["COV_TMP_DIR"]);
+        assert_ne!(first_env["TEST_PROFRAW_DIR"], first_env["COV_PROFRAW_DIR"]);
+        let receipt = full_shard_root_receipt(&roots[0]);
+        assert_eq!(receipt["artifact_root"], first_env["ARTIFACT_ROOT"]);
+        assert_eq!(receipt["iso_root"], first_env["ISO_ROOT"]);
+        assert_eq!(receipt["cargo_target_dir"], first_env["CARGO_TARGET_DIR"]);
+        assert_eq!(receipt["test_target_dir"], first_env["TEST_TARGET_DIR"]);
+        assert_eq!(receipt["coverage_target_dir"], first_env["COV_TARGET_DIR"]);
+        assert_eq!(receipt["test_tmp_dir"], first_env["TEST_TMP_DIR"]);
+        assert_eq!(receipt["coverage_tmp_dir"], first_env["COV_TMP_DIR"]);
+        assert_eq!(receipt["test_profraw_dir"], first_env["TEST_PROFRAW_DIR"]);
+        assert_eq!(receipt["coverage_profraw_dir"], first_env["COV_PROFRAW_DIR"]);
+        Ok(())
     }
 
     #[test]

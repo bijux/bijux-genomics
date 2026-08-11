@@ -27,6 +27,10 @@ targets, and isolated concurrent target roots.
   then gives each concurrent gate its own `artifacts/github-all/targets/<gate>` target root so no
   useful concurrency is serialized by one Cargo target lock. Gates reuse compiler output through
   sccache and reuse only the immutable path to the prebuilt developer binary.
+- Complete-workspace hash shards each use a tracked-source clone and a distinct absolute artifact
+  root. Cargo targets, test and coverage targets, temporary directories, and profraw directories
+  are disjoint between shards; all shards retain the single toolchain and sccache authority from
+  `configs/ci/build-authority.json`.
 - The local helper surface for cache-aware Rust workflows is
   [makes/cargo-dev.mk](../../makes/cargo-dev.mk).
 - Crate-local `RUSTFLAGS` overrides require governance review.
