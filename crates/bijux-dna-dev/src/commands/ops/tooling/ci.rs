@@ -1349,9 +1349,9 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
-        ci_output_path, ci_output_path_under, full_archive_args, full_archive_roots,
-        full_shard_args, full_shard_env, full_shard_root_receipt, full_shard_roots,
-        materialize_full_shard_workspace, percentile, read_ci_build_authority,
+        artifact_root_path, ci_output_path, ci_output_path_under, full_archive_args,
+        full_archive_roots, full_shard_args, full_shard_env, full_shard_root_receipt,
+        full_shard_roots, materialize_full_shard_workspace, percentile, read_ci_build_authority,
         reference_timing_samples, set_full_archive_readonly, validate_ci_test_executor_observation,
         validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
         validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
@@ -1487,6 +1487,7 @@ mod tests {
         let first_env = full_shard_env(&roots[0], &shard_workspace)?
             .into_iter()
             .collect::<std::collections::BTreeMap<_, _>>();
+        let governed_artifacts = artifact_root_path(&workspace)?;
         for name in [
             "ARTIFACT_ROOT",
             "ISO_ROOT",
@@ -1503,7 +1504,7 @@ mod tests {
                 .ok_or_else(|| anyhow::anyhow!("missing shard environment variable {name}"))?;
             let path = std::path::Path::new(value);
             assert!(path.is_absolute());
-            assert!(path.starts_with(workspace.path("artifacts")));
+            assert!(path.starts_with(&governed_artifacts));
         }
         assert_ne!(first_env["CARGO_TARGET_DIR"], first_env["TEST_TARGET_DIR"]);
         assert_ne!(first_env["TEST_TARGET_DIR"], first_env["COV_TARGET_DIR"]);
