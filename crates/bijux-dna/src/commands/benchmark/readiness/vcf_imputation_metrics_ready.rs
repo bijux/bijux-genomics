@@ -649,7 +649,7 @@ mod tests {
         }
 
         let impute5 = report.rows.iter().find(|row| row.tool_id == "impute5").expect("IMPUTE5 row");
-        assert_eq!(impute5.tool_status, "production");
+        assert_eq!(impute5.tool_status, "supported");
         assert!(impute5.command_ready);
         assert!(impute5.output_ready);
         assert!(impute5.parser_ready);
