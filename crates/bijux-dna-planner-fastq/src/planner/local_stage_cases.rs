@@ -1840,7 +1840,7 @@ pub fn local_trim_reads_output_contract_plans(
             adapter_bank.as_ref()
         };
         match tool_spec.tool_id.as_str() {
-            "seqkit" | "seqpurge" => {
+            "seqkit" | "seqpurge" | "seqprep" => {
                 tool_options.quality_cutoff = None;
             }
             "fastx_clipper" | "leehom" => {

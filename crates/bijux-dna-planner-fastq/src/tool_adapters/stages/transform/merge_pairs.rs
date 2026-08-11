@@ -206,6 +206,13 @@ fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
             report_json,
             raw_backend_report_txt: Some(out_dir.join("leehom.log")),
         },
+        "seqprep" => MergeOutputs {
+            merged_reads: out_dir.join("seqprep.merged.fastq.gz"),
+            unmerged_reads_r1: Some(out_dir.join("seqprep.unmerged_r1.fastq.gz")),
+            unmerged_reads_r2: Some(out_dir.join("seqprep.unmerged_r2.fastq.gz")),
+            report_json,
+            raw_backend_report_txt: Some(out_dir.join("seqprep.log")),
+        },
         _ => return Err(anyhow!("unsupported merge tool")),
     };
     Ok(outputs)
@@ -219,6 +226,7 @@ fn merge_engine(tool: &str) -> Result<MergeEngine> {
         "bbmerge" => MergeEngine::Bbmerge,
         "flash2" => MergeEngine::Flash2,
         "leehom" => MergeEngine::Leehom,
+        "seqprep" => MergeEngine::Seqprep,
         _ => return Err(anyhow!("unsupported merge tool")),
     };
     Ok(engine)
@@ -270,7 +278,7 @@ fn validate_merge_options(tool: &str, options: &MergePlanOptions) -> Result<()> 
     {
         return Err(anyhow!("merge planning does not yet map min_length for {tool}"));
     }
-    if options.merge_overlap.is_some() && matches!(tool, "leehom") {
+    if options.merge_overlap.is_some() && matches!(tool, "leehom" | "seqprep") {
         return Err(anyhow!("merge planning does not yet map merge_overlap for {tool}"));
     }
     Ok(())
@@ -361,6 +369,7 @@ fn base_merge_command(
         "bbmerge" => bbmerge_merge_command(r1, r2, outputs, effective_params)?,
         "flash2" => flash2_merge_command(r1, r2, out_dir, effective_params),
         "leehom" => leehom_merge_command(r1, r2, out_dir, effective_params),
+        "seqprep" => seqprep_merge_command(r1, r2, outputs)?,
         _ => return Err(anyhow!("unsupported merge tool")),
     };
     let command =
@@ -566,6 +575,22 @@ fn leehom_merge_command(
     ]
 }
 
+fn seqprep_merge_command(r1: &Path, r2: &Path, outputs: &MergeOutputs) -> Result<Vec<String>> {
+    Ok(vec![
+        "seqprep".to_string(),
+        "-f".to_string(),
+        r1.display().to_string(),
+        "-r".to_string(),
+        r2.display().to_string(),
+        "-1".to_string(),
+        required_unmerged_output("seqprep", "unmerged_reads_r1", outputs, true)?,
+        "-2".to_string(),
+        required_unmerged_output("seqprep", "unmerged_reads_r2", outputs, false)?,
+        "-s".to_string(),
+        outputs.merged_reads.display().to_string(),
+    ])
+}
+
 fn unmerged_output_or_null(
     tool: &str,
     label: &str,
@@ -611,6 +636,7 @@ fn merge_raw_backend_report_format(tool: &str) -> Option<&'static str> {
         "bbmerge" => Some("bbmerge_log"),
         "flash2" => Some("flash2_log"),
         "leehom" => Some("leehom_log"),
+        "seqprep" => Some("seqprep_log"),
         _ => None,
     }
 }
@@ -652,7 +678,10 @@ fn normalize_tools_with_allowlist(
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::{merge_command_template, merge_outputs, MergeEffectiveParams, MergeEngine};
+    use super::{
+        merge_command_template, merge_outputs, seqprep_merge_command, MergeEffectiveParams,
+        MergeEngine,
+    };
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
     };
@@ -696,5 +725,33 @@ mod tests {
 
         let script = &command[2];
         assert!(script.contains("'--outputcollapsedtruncated' '/dev/null'"));
+    }
+
+    #[test]
+    fn seqprep_merge_matches_admitted_run_1082_native_outputs() {
+        let outputs = merge_outputs("seqprep", Path::new("out")).expect("seqprep outputs");
+        let command = seqprep_merge_command(
+            Path::new("sample_R1.fastq.gz"),
+            Path::new("sample_R2.fastq.gz"),
+            &outputs,
+        )
+        .expect("seqprep command");
+
+        assert_eq!(
+            command,
+            [
+                "seqprep",
+                "-f",
+                "sample_R1.fastq.gz",
+                "-r",
+                "sample_R2.fastq.gz",
+                "-1",
+                "out/seqprep.unmerged_r1.fastq.gz",
+                "-2",
+                "out/seqprep.unmerged_r2.fastq.gz",
+                "-s",
+                "out/seqprep.merged.fastq.gz",
+            ]
+        );
     }
 }

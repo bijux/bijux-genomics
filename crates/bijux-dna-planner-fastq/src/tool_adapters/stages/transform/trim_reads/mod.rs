@@ -329,7 +329,7 @@ fn trim_command_template(
             ));
         }
         "cutadapt" | "atropos" | "adapterremoval" | "alientrimmer" | "fastx_clipper" | "skewer"
-        | "leehom" | "trim_galore" => {
+        | "leehom" | "trim_galore" | "seqprep" => {
             return adapter_oriented_trim_command_template(
                 tool.tool_id.as_str(),
                 r1,
@@ -526,8 +526,76 @@ fn adapter_oriented_trim_command_template(
             adapter_bank,
             options,
         ),
+        "seqprep" => seqprep_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
         _ => Err(anyhow!("unsupported adapter-oriented trim tool: {tool_id}")),
     }
+}
+
+fn seqprep_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let r2 = r2.ok_or_else(|| anyhow!("SeqPrep adapter trimming requires paired reads"))?;
+    let output_r2 = output_r2
+        .ok_or_else(|| anyhow!("SeqPrep adapter trimming requires the second mate output"))?;
+    let log_path = raw_backend_report_path(report_json, "seqprep", "log");
+    let (adapter_r1, adapter_r2) = resolved_adapter_pair(adapter_bank);
+    let mut command = vec![
+        "seqprep".to_string(),
+        "-f".to_string(),
+        r1.display().to_string(),
+        "-r".to_string(),
+        r2.display().to_string(),
+        "-1".to_string(),
+        output_r1.display().to_string(),
+        "-2".to_string(),
+        output_r2.display().to_string(),
+    ];
+    if matches!(options.resolved_adapter_policy().as_str(), "bank" | "ancient_strict") {
+        command.extend(["-A".to_string(), adapter_r1, "-B".to_string(), adapter_r2]);
+    }
+    if let Some(min_length) = options.min_length {
+        command.extend(["-L".to_string(), min_length.to_string()]);
+    }
+    let mut script =
+        format!("set -eu\n{} 2> {}\n", shell_join(&command), shell_quote_path(&log_path));
+    script.push_str(&write_trim_report_script(
+        "seqprep",
+        r1,
+        Some(r2),
+        output_r1,
+        Some(output_r2),
+        report_json,
+        threads,
+        adapter_bank,
+        None,
+        None,
+        options,
+        Some(&log_path),
+        Some("seqprep_log"),
+    ));
+    Ok(wrap_trim_shell_script_with_report(
+        &script,
+        output_r1,
+        Some(output_r2),
+        report_json,
+        Some(&log_path),
+    ))
 }
 
 fn generic_trim_command_template(
@@ -1719,9 +1787,10 @@ fn shell_quote_str(value: &str) -> String {
 mod tests {
     use super::{
         adapterremoval_command_template, alientrimmer_command_template, atropos_command_template,
-        fastx_clipper_command_template, leehom_trim_command_template, plan,
-        skewer_trim_command_template, trim_backend_mode, trim_galore_command_template,
-        TrimPlanOptions, FALLBACK_TRIM_ADAPTER_R1, FALLBACK_TRIM_ADAPTER_R2,
+        fastx_clipper_command_template, leehom_trim_command_template, plan, plan_with_options,
+        seqprep_trim_command_template, skewer_trim_command_template, trim_backend_mode,
+        trim_galore_command_template, TrimPlanOptions, FALLBACK_TRIM_ADAPTER_R1,
+        FALLBACK_TRIM_ADAPTER_R2,
     };
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
@@ -1925,6 +1994,55 @@ mod tests {
         assert!(script.contains("mv 'leehom_r2.fq.gz' 'out/R2.leehom.fastq.gz'"));
         assert!(script.contains("rm -f 'leehom.fq.gz' 'leehom.fail.fq.gz' 'leehom_r1.fail.fq.gz' 'leehom_r2.fail.fq.gz'"));
         assert!(script.contains("--log 'out/trim_report.leehom.log'"));
+    }
+
+    #[test]
+    fn seqprep_trim_preserves_pairs_without_enabling_merge_output() {
+        let adapter_bank = serde_json::json!({
+            "enabled_entries": [
+                {"sequence": "ACGTACGT"},
+                {"sequence": "TGCATGCA"}
+            ]
+        });
+        let command = seqprep_trim_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.seqprep.fastq.gz"),
+            Some(Path::new("out/R2.seqprep.fastq.gz")),
+            Path::new("out/trim_report.json"),
+            4,
+            Some(&adapter_bank),
+            &TrimPlanOptions {
+                min_length: Some(30),
+                adapter_policy: Some("bank".to_string()),
+                ..TrimPlanOptions::default()
+            },
+        )
+        .expect("seqprep trim command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(script.contains("'seqprep' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz'"));
+        assert!(script.contains("'-1' 'out/R1.seqprep.fastq.gz' '-2' 'out/R2.seqprep.fastq.gz'"));
+        assert!(script.contains("'-A' 'ACGTACGT' '-B' 'TGCATGCA' '-L' '30'"));
+        assert!(!script.contains("'-s'"));
+        assert!(script.contains("2> 'out/trim_report.seqprep.log'"));
+    }
+
+    #[test]
+    fn seqprep_trim_rejects_quality_cutoff_instead_of_misusing_overlap_score() {
+        let error = plan_with_options(
+            &tool("seqprep"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            None,
+            None,
+            None,
+            &TrimPlanOptions { quality_cutoff: Some(20), ..TrimPlanOptions::default() },
+        )
+        .expect_err("SeqPrep must not map quality cutoff to overlap mismatch scoring");
+
+        assert!(error.to_string().contains("-q controls overlap mismatch scoring"));
     }
 
     #[test]

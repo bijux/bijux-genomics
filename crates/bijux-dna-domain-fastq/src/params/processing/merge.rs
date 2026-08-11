@@ -14,6 +14,7 @@ pub enum MergeEngine {
     Bbmerge,
     Flash2,
     Leehom,
+    Seqprep,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

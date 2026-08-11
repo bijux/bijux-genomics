@@ -53,7 +53,7 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 /// Returns an error if a binding violates the schema or duplicates a stage/tool pair.
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
-    for binding in [
+    for binding in vec![
         adapterremoval_merge_pairs(),
         bbduk_filter_low_complexity(),
         bbmerge_merge_pairs(),
@@ -72,7 +72,9 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         kaiju_screen_taxonomy(),
         kraken2_screen_taxonomy(),
         krakenuniq_screen_taxonomy(),
+        leehom_merge_pairs(),
         mosdepth_coverage(),
+        pear_merge_pairs(),
         picard_gc_bias(),
         picard_insert_size(),
         picard_duplication_metrics(),
@@ -90,14 +92,148 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         seqkit_profile_read_lengths(),
         seqkit_profile_reads(),
         seqkit_stats_profile_reads(),
+        seqprep_merge_pairs(),
         seqtk_validate_reads(),
         star_index_reference(),
         umi_tools_extract_umis(),
         vsearch_cluster_otus(),
-    ] {
+        vsearch_merge_pairs(),
+    ]
+    .into_boxed_slice()
+    {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn leehom_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "leehom",
+        &["paired_end_reads", "ancient_dna_overlap_merge", "native_result_directory"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("leehom_result_directory", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:leehom_result_directory}'\n'${executable}' -fq1 '${input:reads_r1}' -fq2 '${input:reads_r2}' -fqo '${output:leehom_result_directory}/leehom' -t '${parameter:threads}' > '${output:leehom_result_directory}/leehom.log' 2>&1",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_directory_contains_merged_unmerged_and_backend_log_evidence",
+            "ancient_dna_overlap_behavior_requires_damage_stratified_comparative_evidence",
+        ],
+    )
+}
+
+fn pear_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "pear",
+        &["paired_end_reads", "statistical_overlap_merge", "native_result_directory"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[output("pear_result_directory", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:pear_result_directory}'\n'${executable}' -f '${input:reads_r1}' -r '${input:reads_r2}' -o '${output:pear_result_directory}/pear' -j '${parameter:threads}' -v '${parameter:merge_overlap}' -n '${parameter:min_len}' > '${output:pear_result_directory}/pear.log' 2>&1",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_directory_contains_assembled_unassembled_and_backend_log_evidence",
+            "comparative_admission_requires_identical_overlap_and_minimum_length_policy",
+        ],
+    )
+}
+
+fn seqprep_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "seqprep",
+        &["paired_end_reads", "overlap_merge", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &[],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+        ],
+        &[
+            "${executable}",
+            "-f",
+            "${input:reads_r1}",
+            "-r",
+            "${input:reads_r2}",
+            "-1",
+            "${output:unmerged_reads_r1}",
+            "-2",
+            "${output:unmerged_reads_r2}",
+            "-s",
+            "${output:merged_reads}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(1, 2, 1),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_command_matches_admitted_run_1082_execution_evidence",
+            "executor_captured_streams_preserve_native_seqprep_diagnostics",
+        ],
+    )
+}
+
+fn vsearch_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "vsearch",
+        &["paired_end_reads", "overlap_merge", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+        ],
+        &[
+            "${executable}",
+            "--fastq_mergepairs",
+            "${input:reads_r1}",
+            "--reverse",
+            "${input:reads_r2}",
+            "--fastqout",
+            "${output:merged_reads}",
+            "--fastqout_notmerged_fwd",
+            "${output:unmerged_reads_r1}",
+            "--fastqout_notmerged_rev",
+            "${output:unmerged_reads_r2}",
+            "--threads",
+            "${parameter:threads}",
+            "--fastq_minovlen",
+            "${parameter:merge_overlap}",
+            "--fastq_minmergelen",
+            "${parameter:min_len}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "qualification_emits_unmerged_pairs_instead_of_discarding_them",
+            "the_merge_binding_is_independent_of_the_vsearch_otu_clustering_binding",
+        ],
+    )
 }
 
 fn adapterremoval_merge_pairs() -> ToolBindingV1 {

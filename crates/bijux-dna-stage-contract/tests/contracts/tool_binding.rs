@@ -42,7 +42,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 40);
+    assert_eq!(retained.bindings().len(), 44);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -66,7 +66,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 48);
+    assert_eq!(all.bindings().len(), 52);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
     Ok(())
 }
@@ -81,15 +81,100 @@ fn canonical_merge_pair_bindings_preserve_each_native_output_shape() -> Result<(
             .iter()
             .map(|binding| binding.tool_id.to_string())
             .collect::<Vec<_>>(),
-        ["adapterremoval", "bbmerge", "flash2"]
+        ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "seqprep", "vsearch"]
     );
     assert_adapterremoval_merge_binding(&registry, &stage)?;
     assert_bbmerge_merge_binding(&registry, &stage)?;
     assert_flash2_merge_binding(&registry, &stage)?;
+    assert_directory_merge_bindings(&registry, &stage)?;
+    assert_direct_merge_bindings(&registry, &stage)?;
     assert!(registry.bindings_for_stage(&stage).iter().all(|binding| {
         binding.downstream_probe_id == "benchmark.fastq.merge_pairs.consume"
             && binding.normalizer_id == "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs"
     }));
+    Ok(())
+}
+
+fn paired_merge_inputs() -> BTreeMap<String, String> {
+    BTreeMap::from([
+        ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+        ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+    ])
+}
+
+fn assert_directory_merge_bindings(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    for (tool, output_name, output_path, required_fragment) in [
+        ("leehom", "leehom_result_directory", "/result/leehom", "-fqo '/result/leehom/leehom'"),
+        ("pear", "pear_result_directory", "/result/pear", "-o '/result/pear/pear'"),
+    ] {
+        let binding = registry
+            .binding(stage, &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} merge binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: paired_merge_inputs(),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([
+                    ("threads".to_owned(), "4".to_owned()),
+                    ("merge_overlap".to_owned(), "11".to_owned()),
+                    ("min_len".to_owned(), "30".to_owned()),
+                ]),
+                outputs: BTreeMap::from([(output_name.to_owned(), output_path.to_owned())]),
+            },
+        )?;
+        assert_eq!(command[..2], ["sh", "-lc"]);
+        assert!(command[2].contains(required_fragment));
+        assert_eq!(
+            binding.outputs[0].artifact_contract_id,
+            "bijux.auxiliary.artifact.directory.v1"
+        );
+    }
+    Ok(())
+}
+
+fn assert_direct_merge_bindings(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    let outputs = BTreeMap::from([
+        ("merged_reads".to_owned(), "/result/merged.fastq.gz".to_owned()),
+        ("unmerged_reads_r1".to_owned(), "/result/unmerged-R1.fastq.gz".to_owned()),
+        ("unmerged_reads_r2".to_owned(), "/result/unmerged-R2.fastq.gz".to_owned()),
+    ]);
+    let seqprep = registry
+        .binding(stage, &ToolId::new("seqprep"))
+        .ok_or_else(|| anyhow::anyhow!("canonical SeqPrep merge binding is missing"))?;
+    let seqprep_command = render_tool_command(
+        seqprep,
+        &ToolBindingRenderContext {
+            executable: "seqprep".to_owned(),
+            inputs: paired_merge_inputs(),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::new(),
+            outputs: outputs.clone(),
+        },
+    )?;
+    assert_eq!(seqprep_command[0], "seqprep");
+    assert!(seqprep_command.windows(2).any(|pair| pair == ["-s", "/result/merged.fastq.gz"]));
+
+    let vsearch = registry
+        .binding(stage, &ToolId::new("vsearch"))
+        .ok_or_else(|| anyhow::anyhow!("canonical VSEARCH merge binding is missing"))?;
+    let vsearch_command = render_tool_command(
+        vsearch,
+        &ToolBindingRenderContext {
+            executable: "vsearch".to_owned(),
+            inputs: paired_merge_inputs(),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+                ("min_len".to_owned(), "30".to_owned()),
+            ]),
+            outputs,
+        },
+    )?;
+    assert!(vsearch_command.contains(&"--fastqout_notmerged_fwd".to_owned()));
+    assert!(vsearch_command.contains(&"--fastq_minmergelen".to_owned()));
     Ok(())
 }
 

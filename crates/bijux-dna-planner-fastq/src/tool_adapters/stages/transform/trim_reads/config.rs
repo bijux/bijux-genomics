@@ -82,6 +82,7 @@ pub fn trim_output_name(tool: &str) -> Option<&'static str> {
         "prinseq" => Some("prinseq_good.fastq"),
         "seqkit" => Some("seqkit.fastq.gz"),
         "seqpurge" => Some("seqpurge.fastq.gz"),
+        "seqprep" => Some("seqprep.fastq.gz"),
         "skewer" => Some("skewer.fastq.gz"),
         "leehom" => Some("leehom.fastq.gz"),
         "alientrimmer" => Some("alientrimmer.fastq.gz"),
@@ -171,7 +172,7 @@ pub(super) fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOption
     if matches!(options.adapter_policy.as_deref(), Some("bank" | "ancient_strict")) {
         match tool_id {
             "fastp" | "cutadapt" | "atropos" | "adapterremoval" | "alientrimmer"
-            | "trim_galore" | "fastx_clipper" | "skewer" | "leehom" => {}
+            | "trim_galore" | "fastx_clipper" | "skewer" | "leehom" | "seqprep" => {}
             _ => {
                 return Err(anyhow!(
                     "trim planning does not yet execute adapter bank policies for {tool_id}"
@@ -183,10 +184,15 @@ pub(super) fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOption
     if !uses_length_or_quality {
         return Ok(());
     }
+    if tool_id == "seqprep" && options.quality_cutoff.is_some() {
+        return Err(anyhow!(
+            "trim planning does not map quality_cutoff to SeqPrep because -q controls overlap mismatch scoring"
+        ));
+    }
     match tool_id {
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
         | "alientrimmer" | "trim_galore" | "skewer" | "prinseq" => Ok(()),
-        "seqkit" | "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
+        "seqkit" | "seqpurge" | "seqprep" if options.quality_cutoff.is_none() => Ok(()),
         _ => Err(anyhow!("trim planning does not yet map min_length/quality_cutoff for {tool_id}")),
     }
 }

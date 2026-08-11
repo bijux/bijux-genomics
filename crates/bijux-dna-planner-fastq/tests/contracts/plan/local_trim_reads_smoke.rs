@@ -97,6 +97,7 @@ fn local_trim_reads_output_contract_plans_cover_all_governed_tools() -> Result<(
             "leehom".to_string(),
             "prinseq".to_string(),
             "seqkit".to_string(),
+            "seqprep".to_string(),
             "skewer".to_string(),
             "trim_galore".to_string(),
             "trimmomatic".to_string(),
