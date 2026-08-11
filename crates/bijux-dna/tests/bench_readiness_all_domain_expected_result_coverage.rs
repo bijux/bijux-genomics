@@ -113,7 +113,7 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
     );
     assert_eq!(
         report_section_counts.get("variant_calling").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(6)
     );
     assert_eq!(
         report_section_counts.get("normalization").and_then(serde_json::Value::as_u64),
@@ -132,6 +132,25 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
+
+    let variant_calling_bindings = rows
+        .iter()
+        .filter(|row| {
+            row.get("report_section").and_then(serde_json::Value::as_str) == Some("variant_calling")
+        })
+        .map(|row| {
+            (
+                row.get("stage_id")
+                    .and_then(serde_json::Value::as_str)
+                    .expect("variant-calling stage id"),
+                row.get("tool_id")
+                    .and_then(serde_json::Value::as_str)
+                    .expect("variant-calling tool id"),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    assert!(variant_calling_bindings.contains(&("vcf.call_gl", "angsd")));
+    assert!(variant_calling_bindings.contains(&("vcf.call_pseudohaploid", "angsd")));
 
     let taxonomy_rows = rows
         .iter()
