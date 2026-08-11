@@ -22,6 +22,7 @@ mod cross_campaign;
 mod data_portfolio_audit;
 mod evaluation;
 mod evidence_book;
+mod fastq_campaign;
 mod fastq_detect_adapters;
 mod fastq_expectations;
 mod fastq_profile_read_lengths;
@@ -150,6 +151,10 @@ pub use data_portfolio_audit::{
 };
 pub use evaluation::{compare, gate};
 pub use evidence_book::{publish_checked_in_benchmark_evidence_book, BenchmarkEvidenceBookRequest};
+pub use fastq_campaign::{
+    derive_fastq_benchmark_campaign, load_fastq_benchmark_campaign_report,
+    publish_fastq_benchmark_campaign_report,
+};
 pub use fastq_detect_adapters::{
     prepare_fastq_detect_adapters_material_from_expectations,
     publish_fastq_detect_adapters_stage_report, render_fastq_detect_adapters_markdown,

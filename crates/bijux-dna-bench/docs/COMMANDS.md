@@ -32,6 +32,9 @@ These operations are exported through the crate root and `public_api`.
 | `derive-cross-benchmark-campaign` | `derive_cross_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a cross-domain goal campaign from admitted matrix and appraisal products. |
 | `load-cross-benchmark-campaign` | `load_cross_benchmark_campaign_report(path)` | Parse and admit a persisted cross-domain campaign report. |
 | `publish-cross-benchmark-campaign` | `publish_cross_benchmark_campaign_report(path, report)` | Validate and atomically publish a cross-domain campaign report. |
+| `derive-fastq-benchmark-campaign` | `derive_fastq_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a FASTQ goal campaign from admitted matrix and appraisal products. |
+| `load-fastq-benchmark-campaign` | `load_fastq_benchmark_campaign_report(path)` | Parse and admit a persisted FASTQ campaign report. |
+| `publish-fastq-benchmark-campaign` | `publish_fastq_benchmark_campaign_report(path, report)` | Validate and atomically publish a FASTQ campaign report. |
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |

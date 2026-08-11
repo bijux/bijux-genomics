@@ -30,6 +30,9 @@ The `public_api` module itself is private. Stable exports are owned by
 - `derive_cross_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected cross-domain goal closure.
 - `load_cross_benchmark_campaign_report(path)` parses and admits a persisted cross-domain campaign report.
 - `publish_cross_benchmark_campaign_report(path, report)` validates before atomic publication.
+- `derive_fastq_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected FASTQ goal closure.
+- `load_fastq_benchmark_campaign_report(path)` parses and admits a persisted FASTQ campaign report.
+- `publish_fastq_benchmark_campaign_report(path, report)` validates before atomic publication.
 - `derive_stage_universe(repository_root, portfolio)` derives the complete domain-stage registry and enforces exact benchmark run-reservation closure.
 - `publish_checked_in_stage_universe(repository_root, mode)` writes or checks the generated canonical registry, review index, and JSON Schema.
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.

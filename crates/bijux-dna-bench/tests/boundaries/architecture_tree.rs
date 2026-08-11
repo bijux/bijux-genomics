@@ -108,6 +108,7 @@ fn bench_tree_matches_architecture_contract() {
             "data_portfolio_audit.rs",
             "evaluation.rs",
             "evidence_book.rs",
+            "fastq_campaign.rs",
             "fastq_detect_adapters/",
             "fastq_expectations/",
             "fastq_profile_read_lengths/",
