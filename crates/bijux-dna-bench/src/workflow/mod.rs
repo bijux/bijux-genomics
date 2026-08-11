@@ -29,6 +29,7 @@ mod fastq_expectations;
 mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
+mod hardening_campaign;
 mod options;
 mod parameter_authority;
 mod publication_registry;
@@ -186,6 +187,10 @@ pub use fastq_validate_reads::{
     prepare_fastq_validate_reads_material_from_expectations,
     publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
     FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
+};
+pub use hardening_campaign::{
+    derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,
+    publish_hardening_benchmark_campaign_report,
 };
 pub use options::BenchRunOptions;
 pub use publication_registry::{

@@ -39,6 +39,9 @@ The `public_api` module itself is private. Stable exports are owned by
 - `derive_vcf_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected VCF goal closure.
 - `load_vcf_benchmark_campaign_report(path)` parses and admits a persisted VCF campaign report.
 - `publish_vcf_benchmark_campaign_report(path, report)` validates before atomic publication.
+- `derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected portfolio hardening closure.
+- `load_hardening_benchmark_campaign_report(path)` parses and admits a persisted hardening campaign report.
+- `publish_hardening_benchmark_campaign_report(path, report)` validates before atomic publication.
 - `derive_stage_universe(repository_root, portfolio)` derives the complete domain-stage registry and enforces exact benchmark run-reservation closure.
 - `publish_checked_in_stage_universe(repository_root, mode)` writes or checks the generated canonical registry, review index, and JSON Schema.
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.

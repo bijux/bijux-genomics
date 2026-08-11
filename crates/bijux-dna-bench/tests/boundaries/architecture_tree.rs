@@ -115,6 +115,7 @@ fn bench_tree_matches_architecture_contract() {
             "fastq_profile_read_lengths/",
             "fastq_profile_reads/",
             "fastq_validate_reads/",
+            "hardening_campaign.rs",
             "mod.rs",
             "options.rs",
             "parameter_authority.rs",
