@@ -12,6 +12,7 @@ const DIRECTORY: &str = "bijux.auxiliary.artifact.directory.v1";
 const FILE: &str = "bijux.auxiliary.artifact.file.v1";
 const FASTA: &str = "bijux.reference.artifact.fasta.v1";
 const FASTQ_PAIRED: &str = "bijux.fastq.artifact.paired_end.v1";
+const FASTQ_SINGLE: &str = "bijux.fastq.artifact.single_end.v1";
 const JSON: &str = "bijux.auxiliary.artifact.json.v1";
 const SAM: &str = "bijux.sam.artifact.unsorted.v1";
 const TABLE: &str = "bijux.auxiliary.artifact.table.v1";
@@ -77,6 +78,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         samtools_mapping_summary(),
         seqfu_profile_read_lengths(),
         seqfu_profile_reads(),
+        seqkit_filter_reads(),
         seqkit_profile_read_lengths(),
         seqkit_profile_reads(),
         seqkit_stats_profile_reads(),
@@ -86,6 +88,37 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn seqkit_filter_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_reads",
+        "seqkit",
+        &["single_end_reads", "minimum_length_filter", "streaming_fastq_transform"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[output("filtered_reads_r1", FASTQ_SINGLE)],
+        &[
+            "${executable}",
+            "seq",
+            "-j",
+            "${parameter:threads}",
+            "-m",
+            "1",
+            "-o",
+            "${output:filtered_reads_r1}",
+            "${input:reads_r1}",
+        ],
+        "bijux.benchmark.fastq.filter_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads",
+        "benchmark.fastq.filter_reads.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "comparative_case_admission_requires_the_closed_filter_reads_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
 }
 
 fn fastqc_detect_adapters() -> ToolBindingV1 {
