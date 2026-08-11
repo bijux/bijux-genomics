@@ -213,6 +213,7 @@ fn low_complexity_command_template(
         return Ok(command);
     }
     if tool.tool_id.as_str() == "fastp" {
+        let complexity_percent = fastp_complexity_percent(options.resolved_entropy_threshold())?;
         let mut command = vec![
             "fastp".to_string(),
             "--in1".to_string(),
@@ -225,7 +226,7 @@ fn low_complexity_command_template(
             "--disable_quality_filtering".to_string(),
             "--low_complexity_filter".to_string(),
             "--complexity_threshold".to_string(),
-            options.resolved_entropy_threshold().to_string(),
+            complexity_percent,
         ];
         if let Some(raw_backend_report) = raw_backend_report {
             command.extend(["--json".to_string(), raw_backend_report.display().to_string()]);
@@ -276,12 +277,27 @@ fn ensure_low_complexity_option_support(
     tool_id: &str,
     options: &LowComplexityPlanOptions,
 ) -> Result<()> {
+    let entropy_threshold = options.resolved_entropy_threshold();
+    if !entropy_threshold.is_finite() || !(0.0..=1.0).contains(&entropy_threshold) {
+        return Err(anyhow!(
+            "low-complexity entropy_threshold must be a finite fraction between 0 and 1"
+        ));
+    }
     if tool_id == "prinseq" && options.polyx_threshold.is_some() {
         return Err(anyhow!(
             "prinseq low-complexity planning does not support explicit polyx_threshold"
         ));
     }
     Ok(())
+}
+
+fn fastp_complexity_percent(entropy_threshold: f64) -> Result<String> {
+    if !entropy_threshold.is_finite() || !(0.0..=1.0).contains(&entropy_threshold) {
+        return Err(anyhow!(
+            "fastp low-complexity threshold requires a finite canonical fraction between 0 and 1"
+        ));
+    }
+    Ok(format!("{:.0}", entropy_threshold * 100.0))
 }
 
 #[cfg(test)]
@@ -368,9 +384,22 @@ mod tests {
             .command
             .template
             .windows(2)
-            .any(|window| window == ["--complexity_threshold", "0.6"]));
+            .any(|window| window == ["--complexity_threshold", "60"]));
         assert!(plan.command.template.windows(2).any(|window| window == ["--poly_x_min_len", "8"]));
         assert!(plan.command.template.iter().any(|token| token == "--disable_adapter_trimming"));
         assert!(plan.command.template.iter().any(|token| token == "--disable_quality_filtering"));
+    }
+
+    #[test]
+    fn fastp_low_complexity_plan_rejects_out_of_range_canonical_fraction() {
+        let error = plan_low_complexity(
+            &tool("fastp"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &LowComplexityPlanOptions { entropy_threshold: Some(1.01), polyx_threshold: None },
+        )
+        .expect_err("out-of-range canonical fraction should fail before command rendering");
+        assert!(error.to_string().contains("finite fraction between 0 and 1"));
     }
 }
