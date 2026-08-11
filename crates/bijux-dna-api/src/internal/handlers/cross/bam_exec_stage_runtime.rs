@@ -678,7 +678,7 @@ fn write_normalized_bam_metrics(
         );
     }
     let normalized_metrics = serde_json::json!({
-        "schema_version": super::bam_normalized_metrics_contract::BAM_NORMALIZED_METRICS_SCHEMA_VERSION,
+        "schema_version": bijux_dna_bench_model::normalized_result::bam_envelope::BAM_NORMALIZED_METRICS_SCHEMA_VERSION,
         "stage_id": stage.as_str(),
         "tool_id": plan.tool_id,
         "tool_version": plan.tool_version,
@@ -713,7 +713,9 @@ fn write_normalized_bam_metrics(
             "contracts.tool_wrapper"
         ],
     });
-    super::bam_normalized_metrics_contract::validate_bam_normalized_metrics(&normalized_metrics)
+    bijux_dna_bench_model::normalized_result::bam_envelope::validate_bam_normalized_metrics(
+        &normalized_metrics,
+    )
         .with_context(|| format!("validate normalized metrics for {}", stage.as_str()))?;
     let stage_metrics = bijux_dna_core::metrics::StageMetricsV1 {
         schema_version: "bijux.stage_metrics.v1".to_string(),

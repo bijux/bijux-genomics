@@ -1,14 +1,19 @@
+//! Canonical BAM execution-metrics envelope, validation, and generated schema.
+
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct BamNormalizedMetricsStageContract {
-    pub(crate) stage_id: &'static str,
-    pub(crate) extension_id: &'static str,
+pub struct BamNormalizedMetricsStageContract {
+    /// Governed stage identity accepted by this extension.
+    pub stage_id: &'static str,
+    /// Stable extension identity embedded in the generated schema.
+    pub extension_id: &'static str,
 }
 
-pub(crate) const BAM_NORMALIZED_METRICS_SCHEMA_VERSION: &str = "bijux.bam.metrics.normalized.v1";
-pub(crate) const BAM_NORMALIZED_METRICS_SCHEMA_ID: &str =
-    "bijux.schemas.bench.bam-normalized-metrics.v1";
+/// Persisted schema version for the BAM execution-metrics envelope.
+pub const BAM_NORMALIZED_METRICS_SCHEMA_VERSION: &str = "bijux.bam.metrics.normalized.v1";
+/// JSON Schema identity for the BAM execution-metrics envelope.
+pub const BAM_NORMALIZED_METRICS_SCHEMA_ID: &str = "bijux.schemas.bench.bam-normalized-metrics.v1";
 
 const BAM_NORMALIZED_METRICS_REQUIRED_KEYS: &[&str] = &[
     "schema_version",
@@ -135,19 +140,25 @@ const BAM_NORMALIZED_METRICS_STAGE_CONTRACTS: &[BamNormalizedMetricsStageContrac
     },
 ];
 
-#[cfg(test)]
-pub(crate) fn bam_normalized_metrics_stage_contracts(
-) -> &'static [BamNormalizedMetricsStageContract] {
+/// Return every governed BAM stage extension in deterministic order.
+#[must_use]
+pub fn bam_normalized_metrics_stage_contracts() -> &'static [BamNormalizedMetricsStageContract] {
     BAM_NORMALIZED_METRICS_STAGE_CONTRACTS
 }
 
-pub(crate) fn bam_normalized_metrics_contract_for_stage(
+/// Resolve the normalized-metrics extension for `stage_id`.
+#[must_use]
+pub fn bam_normalized_metrics_contract_for_stage(
     stage_id: &str,
 ) -> Option<&'static BamNormalizedMetricsStageContract> {
     BAM_NORMALIZED_METRICS_STAGE_CONTRACTS.iter().find(|contract| contract.stage_id == stage_id)
 }
 
-pub(crate) fn validate_bam_normalized_metrics(
+/// Validate a persisted BAM normalized-metrics payload against its stage envelope.
+///
+/// # Errors
+/// Returns an error when the payload or its governed stage extension is invalid.
+pub fn validate_bam_normalized_metrics(
     metrics: &serde_json::Value,
 ) -> Result<&'static BamNormalizedMetricsStageContract> {
     let object = metrics
@@ -304,8 +315,10 @@ fn validate_normalized_keys(stage_id: &str, value: Option<&serde_json::Value>) -
     Ok(())
 }
 
+/// Render the canonical BAM normalized-metrics JSON Schema.
+#[must_use]
 #[allow(clippy::too_many_lines)]
-pub(crate) fn render_bam_normalized_metrics_schema() -> serde_json::Value {
+pub fn render_bam_normalized_metrics_schema() -> serde_json::Value {
     let stage_ids = BAM_NORMALIZED_METRICS_STAGE_CONTRACTS
         .iter()
         .map(|contract| contract.stage_id)

@@ -14,6 +14,10 @@ use bijux_dna_bench_model::normalized_result::bam::{
     BenchmarkBamGenotypingResult, BenchmarkBamInsertSizeCohortMetrics,
     BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult, BenchmarkBamMappingSummaryResult,
 };
+use bijux_dna_bench_model::normalized_result::bam_envelope::{
+    bam_normalized_metrics_stage_contracts, render_bam_normalized_metrics_schema,
+    validate_bam_normalized_metrics, BAM_NORMALIZED_METRICS_SCHEMA_VERSION,
+};
 use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_detect_adapters_metrics_schema, fastq_detect_adapters_probe_schema,
     fastq_detect_adapters_result_schema, fastq_profile_read_lengths_metrics_schema,
@@ -26,6 +30,71 @@ use bijux_dna_bench_model::normalized_result::fastq::{
 use bijux_dna_bench_model::normalized_result::{
     bam_downstream_probe_schema, BenchmarkDownstreamProbeRecord,
 };
+
+#[test]
+fn bam_execution_metrics_envelope_is_model_owned_and_matches_checked_schema() -> anyhow::Result<()>
+{
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let checked_path = repository_root.join("benchmarks/schemas/bam-normalized-metrics.v1.json");
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(checked_path)?)?;
+    assert_eq!(checked, render_bam_normalized_metrics_schema());
+
+    let contracts = bam_normalized_metrics_stage_contracts();
+    assert_eq!(contracts.len(), 24);
+    let unique_stage_ids = contracts
+        .iter()
+        .map(|contract| contract.stage_id)
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_stage_ids.len(), contracts.len());
+
+    let payload = serde_json::json!({
+        "schema_version": BAM_NORMALIZED_METRICS_SCHEMA_VERSION,
+        "stage_id": "bam.damage",
+        "tool_id": "mapdamage2",
+        "tool_version": "2.2.3",
+        "execution": {
+            "runtime_s": 1.25,
+            "memory_mb": 128.0,
+            "exit_code": 0,
+            "status": "ok"
+        },
+        "outputs_count": 1,
+        "artifacts": {
+            "required_count": 1,
+            "missing_required": [],
+            "items": {
+                "damage_profile": { "path": "results/mapdamage", "exists": true }
+            }
+        },
+        "contracts": {
+            "bam_invariants": true,
+            "output_contract": true,
+            "tool_wrapper": true
+        },
+        "normalized_keys": [
+            "stage_id",
+            "tool_id",
+            "tool_version",
+            "execution.runtime_s",
+            "execution.memory_mb",
+            "execution.exit_code",
+            "artifacts.required_count",
+            "artifacts.missing_required",
+            "contracts.bam_invariants",
+            "contracts.output_contract",
+            "contracts.tool_wrapper"
+        ]
+    });
+    assert_eq!(validate_bam_normalized_metrics(&payload)?.stage_id, "bam.damage");
+
+    let mut unknown_stage = payload;
+    unknown_stage["stage_id"] = serde_json::json!("bam.unknown");
+    assert!(validate_bam_normalized_metrics(&unknown_stage).is_err());
+    Ok(())
+}
 
 #[test]
 fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::Result<()> {

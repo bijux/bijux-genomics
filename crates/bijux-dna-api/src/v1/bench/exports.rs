@@ -239,7 +239,7 @@ pub fn write_fastq_normalized_metrics_schema(path: &Path) -> Result<()> {
 /// Render the governed BAM normalized metrics schema.
 #[must_use]
 pub fn render_bam_normalized_metrics_schema() -> serde_json::Value {
-    crate::internal::handlers::cross::render_governed_bam_normalized_metrics_schema()
+    bijux_dna_bench_model::normalized_result::bam_envelope::render_bam_normalized_metrics_schema()
 }
 
 /// Write the governed BAM normalized metrics schema to disk.

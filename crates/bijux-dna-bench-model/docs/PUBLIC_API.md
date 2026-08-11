@@ -235,10 +235,20 @@ Schema derivation:
 - `validate_benchmark_data_index`
 - `validate_utc_timestamp`
 
+Normalized BAM execution metrics:
+
+- `normalized_result::bam_envelope::bam_normalized_metrics_stage_contracts`
+- `normalized_result::bam_envelope::bam_normalized_metrics_contract_for_stage`
+- `normalized_result::bam_envelope::validate_bam_normalized_metrics`
+- `normalized_result::bam_envelope::render_bam_normalized_metrics_schema`
+- `normalized_result::bam_envelope::BAM_NORMALIZED_METRICS_SCHEMA_VERSION`
+- `normalized_result::bam_envelope::BAM_NORMALIZED_METRICS_SCHEMA_ID`
+
 Namespaces:
 
 - `compare`
 - `contract`
+- `normalized_result`
 
 ## Managed Operations
 

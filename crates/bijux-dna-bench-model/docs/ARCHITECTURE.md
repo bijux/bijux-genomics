@@ -8,7 +8,8 @@ and decision records, and statistical helpers.
 
 - `src/public_api/` exposes the curated stable surface.
 - `src/model/` owns observations, suites, decisions, summaries, graph nodes, stage-profile data
-  fitness, persisted container report-portfolio identities, and suite support records.
+  fitness, persisted container report-portfolio identities, normalized-result records and
+  execution-metrics envelopes, and suite support records.
 - `src/contract/` validates records, suite shape, stage governance, graph edges, data-fitness and
   portfolio closure, parameter bindings, container report freshness, diversity requirements, and
   analysis requirements.

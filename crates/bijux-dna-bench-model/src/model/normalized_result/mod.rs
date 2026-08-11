@@ -1,6 +1,7 @@
 //! Canonical persisted normalized result records grouped by benchmark domain.
 
 pub mod bam;
+pub mod bam_envelope;
 pub mod fastq;
 
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
