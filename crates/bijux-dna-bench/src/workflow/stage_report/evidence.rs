@@ -2,6 +2,7 @@
 //! Admitted attempt, scheduler, source, and image evidence for stage reports.
 
 use std::fs;
+use std::io::ErrorKind;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
@@ -129,12 +130,12 @@ fn validate_attempt_spec(
     let result_root = Path::new(&spec.outputs.result_root)
         .canonicalize()
         .context("canonicalize benchmark specification result root")?;
-    let source_root = Path::new(&spec.source.repository_path)
-        .canonicalize()
-        .context("canonicalize benchmark specification repository")?;
+    validate_recorded_repository_location(repository_root, &spec.source.repository_path)?;
+    let source_commit = bijux_dna_containers::api::clean_repository_head_commit(repository_root)
+        .context("verify benchmark report source repository")?;
     if spec.identity != *identity
         || result_root != attempt_root
-        || source_root != repository_root
+        || source_commit != spec.source.repository_commit
         || spec.source.repository_commit != plan.repository_commit
         || spec.measurement.warmup_repetitions != campaign.warmup_repetitions
         || spec.measurement.measured_repetitions != campaign.measured_repetitions
@@ -159,6 +160,26 @@ fn validate_attempt_spec(
         bail!("benchmark execution catalog lock differs from source");
     }
     Ok(())
+}
+
+fn validate_recorded_repository_location(
+    repository_root: &Path,
+    recorded_repository_path: &str,
+) -> Result<()> {
+    let recorded_path = Path::new(recorded_repository_path);
+    match fs::symlink_metadata(recorded_path) {
+        Ok(_) => {
+            let recorded_root = recorded_path
+                .canonicalize()
+                .context("canonicalize recorded benchmark specification repository")?;
+            if recorded_root != repository_root {
+                bail!("recorded benchmark repository differs from publication authority");
+            }
+            Ok(())
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error).context("inspect recorded benchmark specification repository"),
+    }
 }
 
 fn input_locks(inputs: &[BenchmarkExecutionInput]) -> Result<Vec<BenchmarkReportInputLock>> {
@@ -201,10 +222,32 @@ fn format_elapsed(seconds: u64) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::format_elapsed;
+    use super::{format_elapsed, validate_recorded_repository_location};
 
     #[test]
     fn elapsed_accounting_renders_without_day_rollover() {
         assert_eq!(format_elapsed(90_061), "25:01:01");
+    }
+
+    #[test]
+    fn missing_recorded_repository_path_is_non_authoritative() -> anyhow::Result<()> {
+        let authority = bijux_dna_infra::temp_dir("benchmark-report-source-authority")?;
+        let missing = authority.path().join("retired-execution-checkout");
+        validate_recorded_repository_location(
+            authority.path(),
+            missing.to_str().ok_or_else(|| anyhow::anyhow!("temporary path is not UTF-8"))?,
+        )
+    }
+
+    #[test]
+    fn existing_recorded_repository_path_must_match_authority() -> anyhow::Result<()> {
+        let authority = bijux_dna_infra::temp_dir("benchmark-report-source-mismatch")?;
+        let recorded = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        assert!(validate_recorded_repository_location(
+            authority.path(),
+            recorded.to_str().ok_or_else(|| anyhow::anyhow!("manifest path is not UTF-8"))?,
+        )
+        .is_err());
+        Ok(())
     }
 }
