@@ -32,6 +32,8 @@ not own CLI commands or process execution.
 | `appraisal-report-schema` | `appraisal_report_schema` | Generate the persisted benchmark-appraisal JSON Schema from its Rust model. |
 | `validate-hardening-queue-report` | `contract::validate_hardening_queue_report` | Validate deterministic queue allocation, canonical ordering, and grouped row/appraiser links. |
 | `hardening-queue-report-schema` | `hardening_queue_report_schema` | Generate the persisted hardening-queue JSON Schema from its Rust model. |
+| `validate-cross-benchmark-campaign-report` | `contract::validate_cross_benchmark_campaign_report` | Validate cross-domain campaign identity, selected-goal closure, nested evidence links, status semantics, and exact summary totals. |
+| `cross-benchmark-campaign-report-schema` | `cross_benchmark_campaign_report_schema` | Generate the persisted cross-domain benchmark-campaign JSON Schema from its Rust model. |
 | `validate-benchmark-matrix-report` | `contract::validate_benchmark_matrix_report` | Validate persisted matrix identity, unique rows, readiness semantics, surface matches, and exact summary closure. |
 | `benchmark-matrix-report-schema` | `benchmark_matrix_report_schema` | Generate the persisted benchmark-matrix JSON Schema from its Rust model. |
 | `validate-governed-data-catalog-snapshot-publication` | `contract::validate_governed_data_catalog_snapshot_publication` | Validate the versioned candidate-registry path, exact preserved/retained count closure, and embedded governed catalog registry. |

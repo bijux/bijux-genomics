@@ -102,6 +102,12 @@ deterministic remediation queue derived from that matrix. The benchmark model
 owns their versions, vocabulary, ordering, identity, and exact aggregate
 closure; the benchmark workflow owns derivation and atomic publication.
 
+`schemas/cross-benchmark-campaign-report.schema.json` defines the persisted
+cross-domain goal selection, scenario and matrix-row references, appraisal and
+hardening subsets, and exact campaign summary. The benchmark model owns its
+version and admission rules; command surfaces only adapt arguments and render
+validated records.
+
 `schemas/governed-data-catalog-snapshot-publication.schema.json`,
 `schemas/governed-data-catalog-registry-publication.schema.json`, and
 `schemas/campaign-report-publication.schema.json` define the versioned outcomes

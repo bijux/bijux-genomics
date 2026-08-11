@@ -8,6 +8,7 @@ pub mod benchmark_matrix;
 pub mod campaign_engine;
 pub mod container_report_portfolio;
 pub mod corpus;
+pub mod cross_campaign;
 pub mod data_catalog_registry;
 pub mod data_fitness;
 pub mod data_portfolio_audit;
@@ -78,6 +79,12 @@ pub use corpus::{
     CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
     FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+};
+#[allow(unused_imports)]
+pub use cross_campaign::{
+    cross_benchmark_campaign_report_schema, CrossBenchmarkCampaignReport,
+    CrossBenchmarkCampaignSummary, CrossBenchmarkGoalEntry, CrossMatrixRowRef, CrossScenario,
+    CROSS_BENCHMARK_CAMPAIGN_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use data_catalog_registry::{

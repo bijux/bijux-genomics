@@ -19,8 +19,9 @@ pub use crate::contract::{
     validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
     validate_benchmark_run_registry, validate_benchmark_stage_result_manifest,
     validate_campaign_plan, validate_container_report_portfolio_index,
-    validate_corpus_acquisition_plan, validate_cycle_admission, validate_cycle_preparation,
-    validate_cycle_status_v1, validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
+    validate_corpus_acquisition_plan, validate_cross_benchmark_campaign_report,
+    validate_cycle_admission, validate_cycle_preparation, validate_cycle_status_v1,
+    validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
     validate_data_fitness_rubric, validate_execution_spec, validate_fastq_corpus_source_spec,
     validate_fastq_read_length_expectations, validate_governed_data_catalog,
     validate_governed_data_catalog_document, validate_governed_data_catalog_registry,
@@ -95,6 +96,11 @@ pub use crate::model::container_report_portfolio::{
     container_report_portfolio_index_schema, ContainerIndexedReport, ContainerIndexedReportFile,
     ContainerReportFreshness, ContainerReportPortfolioIndex, ContainerReportPortfolioSummary,
     CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1,
+};
+pub use crate::model::cross_campaign::{
+    cross_benchmark_campaign_report_schema, CrossBenchmarkCampaignReport,
+    CrossBenchmarkCampaignSummary, CrossBenchmarkGoalEntry, CrossMatrixRowRef, CrossScenario,
+    CROSS_BENCHMARK_CAMPAIGN_SCHEMA_V1,
 };
 pub use crate::model::data_catalog_registry::{
     governed_data_catalog_registry_schema, GovernedDataCatalogRegistry,

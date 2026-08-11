@@ -9,6 +9,7 @@ mod benchmark_matrix;
 mod compatibility;
 mod container_report_portfolio;
 mod corpus_expectations;
+mod cross_campaign;
 mod data_catalog_registry;
 mod data_fitness;
 mod data_index;
@@ -38,6 +39,7 @@ pub use compatibility::{
 };
 pub use container_report_portfolio::validate_container_report_portfolio_index;
 pub use corpus_expectations::validate_fastq_read_length_expectations;
+pub use cross_campaign::validate_cross_benchmark_campaign_report;
 pub use data_catalog_registry::validate_governed_data_catalog_registry;
 pub use data_fitness::{validate_data_fitness_portfolio_alignment, validate_data_fitness_rubric};
 pub use data_index::validate_benchmark_data_index;
