@@ -14,6 +14,10 @@ The execution spec is the runner contract for turning already-planned tool inten
 - `external artifacts`: `external-artifact://<tool>` plans require an admission record; the runner
   reverifies its catalog, checksum, version evidence, stage allowlist, and command binding before
   selecting local binary or Apptainer SIF execution.
+- `site execution bindings`: `BIJUX_DNA_RUNNER_BINDINGS` may name one absolute, regular JSON
+  manifest using `bijux.runner.execution_bindings.v1`. Exact command keys resolve to a declared
+  program and argument prefix. Every declared file identity is rechecked for type, size, and
+  SHA-256 before spawn, and the captured command records the resolved invocation.
 
 ## Hashing
 Invocation hash includes command, args, env, cwd, mounts, and image digest.

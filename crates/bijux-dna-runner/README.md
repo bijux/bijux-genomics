@@ -55,7 +55,8 @@ See `docs/TESTS.md` for suite ownership and failure meaning.
 ## Where to start in code
 - `src/public_api/mod.rs` for the stable consumer-facing runner surface.
 - `src/runner_driver/` for the `Runner` implementation used by higher layers.
-- `src/command_runner.rs` for command execution primitives and invocation identity wiring.
+- `src/command_runner.rs` for command execution primitives, verified site bindings, and invocation
+  identity wiring.
 - `src/backend/` for backend kinds and backend-facing facade exports.
 - `src/step_runner/` for Docker/Apptainer orchestration, effects, records, identity, inputs, and artifacts.
 

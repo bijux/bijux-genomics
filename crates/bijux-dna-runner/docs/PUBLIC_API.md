@@ -22,6 +22,11 @@
 - `invocation_hash`
 - `run_command`
 - `run_command_with_context`
+- `ExecutionBindingManifestV1`
+- `CommandExecutionBindingV1`
+- `BoundFileIdentityV1`
+- `RUNNER_EXECUTION_BINDINGS_ENV`
+- `RUNNER_EXECUTION_BINDINGS_SCHEMA_V1`
 - `CommandOutputV1`
 - `execute_observer_command`
 - `execute_external_artifact_step`

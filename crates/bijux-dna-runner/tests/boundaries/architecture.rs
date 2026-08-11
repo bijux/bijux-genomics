@@ -58,7 +58,7 @@ fn runner_tree_matches_architecture_contract() {
 
     let command_runner_entries = dir_entries(&root.join("src/command_runner"));
     let expected_command_runner: BTreeSet<_> =
-        ["command_line.rs", "command_output.rs", "invocation_identity.rs"]
+        ["command_line.rs", "command_output.rs", "execution_binding.rs", "invocation_identity.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
