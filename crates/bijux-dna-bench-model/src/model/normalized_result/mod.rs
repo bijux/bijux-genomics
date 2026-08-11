@@ -3,6 +3,7 @@
 pub mod bam;
 pub mod bam_envelope;
 pub mod fastq;
+pub mod fastq_envelope;
 
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize};

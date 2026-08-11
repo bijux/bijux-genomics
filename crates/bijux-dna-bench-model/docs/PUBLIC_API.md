@@ -244,6 +244,16 @@ Normalized BAM execution metrics:
 - `normalized_result::bam_envelope::BAM_NORMALIZED_METRICS_SCHEMA_VERSION`
 - `normalized_result::bam_envelope::BAM_NORMALIZED_METRICS_SCHEMA_ID`
 
+Normalized FASTQ execution metrics:
+
+- `normalized_result::fastq_envelope::fastq_normalized_metrics_stage_contracts`
+- `normalized_result::fastq_envelope::fastq_normalized_metrics_contract_for_stage`
+- `normalized_result::fastq_envelope::required_metrics_keys`
+- `normalized_result::fastq_envelope::validate_fastq_normalized_metrics`
+- `normalized_result::fastq_envelope::render_fastq_normalized_metrics_schema`
+- `normalized_result::fastq_envelope::FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION`
+- `normalized_result::fastq_envelope::FASTQ_NORMALIZED_METRICS_SCHEMA_ID`
+
 Namespaces:
 
 - `compare`

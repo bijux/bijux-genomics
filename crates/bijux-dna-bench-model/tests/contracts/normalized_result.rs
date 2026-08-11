@@ -27,6 +27,10 @@ use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_validate_reads_probe_schema, fastq_validate_reads_result_schema,
     BenchmarkFastqProfileMetrics, BenchmarkFastqProfileProbe, BenchmarkFastqProfileResult,
 };
+use bijux_dna_bench_model::normalized_result::fastq_envelope::{
+    fastq_normalized_metrics_stage_contracts, render_fastq_normalized_metrics_schema,
+    validate_fastq_normalized_metrics, FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION,
+};
 use bijux_dna_bench_model::normalized_result::{
     bam_downstream_probe_schema, BenchmarkDownstreamProbeRecord,
 };
@@ -93,6 +97,42 @@ fn bam_execution_metrics_envelope_is_model_owned_and_matches_checked_schema() ->
     let mut unknown_stage = payload;
     unknown_stage["stage_id"] = serde_json::json!("bam.unknown");
     assert!(validate_bam_normalized_metrics(&unknown_stage).is_err());
+    Ok(())
+}
+
+#[test]
+fn fastq_execution_metrics_envelope_is_model_owned_and_matches_checked_schema() -> anyhow::Result<()>
+{
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let checked_path = repository_root.join("benchmarks/schemas/fastq-normalized-metrics.v1.json");
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(checked_path)?)?;
+    assert_eq!(checked, render_fastq_normalized_metrics_schema());
+
+    let contracts = fastq_normalized_metrics_stage_contracts();
+    assert_eq!(contracts.len(), 27);
+    let unique_stage_ids = contracts
+        .iter()
+        .map(|contract| contract.stage_id)
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_stage_ids.len(), contracts.len());
+
+    let payload = serde_json::json!({
+        "schema_version": FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION,
+        "stage": "fastq.validate_reads",
+        "report_json": "validate-reads.json",
+        "validator": "seqkit",
+        "failure_class": null,
+        "strict_pass": true,
+        "exit_code": 0
+    });
+    assert_eq!(validate_fastq_normalized_metrics(&payload)?.stage_id, "fastq.validate_reads");
+
+    let mut unknown_stage = payload;
+    unknown_stage["stage"] = serde_json::json!("fastq.unknown");
+    assert!(validate_fastq_normalized_metrics(&unknown_stage).is_err());
     Ok(())
 }
 
