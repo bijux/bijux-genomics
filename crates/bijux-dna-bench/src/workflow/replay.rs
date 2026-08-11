@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Semantic replay receipts for current benchmark publication selections.
 
 use std::fs;

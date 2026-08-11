@@ -82,7 +82,9 @@ fn benchmark_references_canonical_ids() {
         .filter_map(Result::ok)
         .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "rs"))
     {
-        let contents = std::fs::read_to_string(entry.path()).expect("read source");
+        let contents = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &std::fs::read_to_string(entry.path()).expect("read source"),
+        );
         for literal in extract_string_literals(&contents) {
             if is_stage_id(&literal) && !allowed_stages.contains(&literal) {
                 offenders.push(format!(

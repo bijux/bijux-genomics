@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Immutable common coverage denominator derived from an admitted BAM header.
 
 use std::path::Path;

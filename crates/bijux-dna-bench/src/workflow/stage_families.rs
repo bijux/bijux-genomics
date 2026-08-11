@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Stable benchmark stage-family declarations.
+
 /// One stable benchmark family used to select and summarize related stages.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BenchmarkStageFamily {

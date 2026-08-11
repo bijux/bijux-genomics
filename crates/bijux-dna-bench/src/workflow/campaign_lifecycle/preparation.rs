@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! One-shot preparation of independently ready benchmark campaign attempts.
 
 use std::path::PathBuf;

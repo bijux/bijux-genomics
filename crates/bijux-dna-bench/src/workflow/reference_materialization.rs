@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Rust-owned materialization of immutable benchmark reference bundles.
 
 use std::collections::BTreeSet;

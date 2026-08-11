@@ -73,6 +73,7 @@ fn publishable_benchmark_authorities_exclude_disposable_data_roots() -> Result<(
             let Ok(contents) = fs::read_to_string(entry.path()) else {
                 continue;
             };
+            let contents = bijux_dna_testkit::workspace_support::strip_rust_test_modules(&contents);
             for disposable_root in DISPOSABLE_ROOTS {
                 if contents.contains(disposable_root) {
                     violations.push(format!(

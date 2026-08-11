@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Catalog-complete benchmark frontier derivation and publication.
 
 use std::collections::{BTreeMap, BTreeSet};
