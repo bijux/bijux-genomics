@@ -349,6 +349,7 @@ dependencies = [
  "bijux-dna-db-ref",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
+ "bijux-dna-domain-vcf",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runtime",

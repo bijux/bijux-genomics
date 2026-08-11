@@ -33,4 +33,5 @@ bijux-dna-policies = { path = "../bijux-dna-policies" }
 insta = { version = "1", features = ["json"] }
 tempfile = { workspace = true }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
+bijux-dna-domain-vcf.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
