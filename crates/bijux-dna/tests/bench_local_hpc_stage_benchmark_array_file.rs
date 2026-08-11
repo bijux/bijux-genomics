@@ -8,9 +8,7 @@ use std::process::Command;
 mod support;
 
 fn render_paths(repo_root: &Path, label: &str) -> (tempfile::TempDir, PathBuf, PathBuf) {
-    let temp_dir = tempfile::Builder::new()
-        .prefix(label)
-        .tempdir_in(repo_root.join("runs/bench/hpc-dry-run"))
+    let temp_dir = support::hpc_dry_run_test_directory(repo_root, label)
         .expect("temporary HPC dry-run directory");
     let script_path = temp_dir.path().join("stage-benchmark-array.sbatch");
     let manifest_path = temp_dir.path().join("stage-benchmark-array-manifest.json");

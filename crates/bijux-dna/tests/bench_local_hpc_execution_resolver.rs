@@ -9,9 +9,7 @@ use std::process::Command;
 mod support;
 
 fn render_manifest_path(repo_root: &Path, label: &str) -> (tempfile::TempDir, PathBuf) {
-    let temp_dir = tempfile::Builder::new()
-        .prefix(label)
-        .tempdir_in(repo_root.join("runs/bench/hpc-dry-run"))
+    let temp_dir = support::hpc_dry_run_test_directory(repo_root, label)
         .expect("temporary HPC dry-run directory");
     let manifest_path = temp_dir.path().join("execution-resolver.tsv");
     (temp_dir, manifest_path)
