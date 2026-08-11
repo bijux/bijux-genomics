@@ -226,6 +226,29 @@ fn admits_exact_verified_fastq_closure_in_deterministic_order() -> Result<()> {
 }
 
 #[test]
+fn admits_fastq_closure_reverified_from_existing_governed_bytes() -> Result<()> {
+    let fixture = corpus_fixture()?;
+    let catalog_path = fixture.study_root.join("data/catalog/human-short-read-diversity.json");
+    let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path)?)?;
+    for file in catalog["files"].as_array_mut().expect("catalog files") {
+        file["materialization_status"] = Value::String("verified_existing".to_string());
+    }
+    write_json(&catalog_path, &catalog)?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    index["records"][0]["catalog_sha256"] =
+        Value::String(bijux_dna_infra::hash_file_sha256(&catalog_path)?);
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted =
+        admit_fastq_benchmark_corpus(&fixture.study_root, &fixture.data_index, CORPUS_ID, 2, 3)?;
+
+    assert_eq!(admitted.sample_count, 2);
+    assert_eq!(admitted.file_count, 3);
+    assert_eq!(admitted.input_bytes, 54);
+    Ok(())
+}
+
+#[test]
 fn rejects_file_bytes_that_drift_after_index_publication() -> Result<()> {
     let fixture = corpus_fixture()?;
     fs::write(&fixture.first_fastq, b"@read-1\nAAAAA\n+\n!!!!!\n")?;

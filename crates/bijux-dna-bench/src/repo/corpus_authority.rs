@@ -10,8 +10,8 @@ use bijux_dna_bench_model::{
     AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCorpusFile,
     AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BenchmarkDataIndex,
     BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility, BenchmarkFastqLayout,
-    DataIntegrityStatus, GovernedDataCatalogDocument, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    CorpusMaterializationDisposition, DataIntegrityStatus, GovernedDataCatalogDocument,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use serde::Deserialize;
 
@@ -37,7 +37,8 @@ struct DataCatalogFile {
     kind: String,
     layout: String,
     mate: Option<u8>,
-    materialization_status: String,
+    #[serde(rename = "materialization_status")]
+    _materialization_status: CorpusMaterializationDisposition,
     path: String,
     sha256: String,
     size_bytes: u64,
@@ -130,9 +131,6 @@ pub fn admit_fastq_benchmark_corpus(
             .with_context(|| format!("catalog file has unknown sample {}", file.accession))?;
         if layout != *declared_layout {
             bail!("catalog file layout disagrees for sample {}", file.accession);
-        }
-        if file.materialization_status != "downloaded" {
-            bail!("catalog file is not materialized for sample {}", file.accession);
         }
         validate_mate(layout, file.mate, &file.accession)?;
         validate_sha256(&file.sha256, "catalog file")?;
@@ -253,7 +251,7 @@ pub fn admit_alignment_truth_set(
     let mut samples = BTreeMap::new();
     let mut input_bytes = 0_u64;
     for file in catalog.files.into_iter().filter(|file| file.kind == "alignment-truth") {
-        if file.materialization_status != "downloaded" || file.mate.is_some() {
+        if file.mate.is_some() {
             bail!("alignment truth is not an admitted non-mate file for {}", file.accession);
         }
         if !declared_samples.contains(&file.accession) {
