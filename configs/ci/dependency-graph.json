@@ -738,6 +738,11 @@
     },
     {
       "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
       "dependency": "crate:bijux-dna-domain-bam",
       "kind": "normal"
     },
