@@ -6,13 +6,16 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::bam::{
+    BenchmarkBamAlignCohortMetrics, BenchmarkBamAlignMetrics, BenchmarkBamAlignResult,
+    BenchmarkBamAlignValues,
+};
 use bijux_dna_bench_model::{
     BenchmarkCampaignPlan, BenchmarkExecutionSpec, BenchmarkMetricDistribution,
     BenchmarkReportDeterminism, BenchmarkReportVerdict, BenchmarkScientificStratum,
     BenchmarkScientificValue, BenchmarkStageCampaignSpec, BenchmarkStageInterfaceSpec,
     BenchmarkToolReport,
 };
-use serde_json::Value;
 
 use crate::workflow::stage_report::{
     distribution, load_admitted_attempt_evidence, read_resource_observation,
@@ -137,7 +140,8 @@ fn derive_observation(
     if samples.len() != super::super::EXPECTED_SAMPLE_COUNT as usize {
         bail!("alignment result lacks the governed sample count");
     }
-    let metrics: Value = read_json(&root.join(format!("{prefix}.metrics.json")))?;
+    let metrics: BenchmarkBamAlignCohortMetrics =
+        read_json(&root.join(format!("{prefix}.metrics.json")))?;
     let probe: bijux_dna_bench_model::normalized_result::BenchmarkDownstreamProbeRecord =
         read_json(&root.join(format!("{prefix}.report-qc.json")))?;
     let (fastq_bytes, reference_bytes, truth_bytes) = input_byte_classes(spec)?;
@@ -145,14 +149,24 @@ fn derive_observation(
         .checked_add(reference_bytes)
         .and_then(|value| value.checked_add(truth_bytes))
         .context("alignment report input overflow")?;
-    if metrics.get("sample_count").and_then(Value::as_u64)
-        != Some(super::super::EXPECTED_SAMPLE_COUNT)
-        || metrics.get("input_bytes").and_then(Value::as_u64) != Some(input_bytes)
-        || metrics.get("output_bytes").and_then(Value::as_u64).unwrap_or_default() == 0
+    if metrics.sample_count != super::super::EXPECTED_SAMPLE_COUNT
+        || metrics.input_bytes != input_bytes
+        || metrics.output_bytes == 0
         || !probe.complete
         || probe.stage_id != "benchmark.bam.align.compare"
     {
         bail!("alignment aggregate metrics or downstream probe are invalid");
+    }
+    for metric in SCIENTIFIC_METRICS {
+        let expected = samples
+            .values()
+            .map(|sample| scientific_number(&sample[metric]))
+            .sum::<Result<f64>>()?
+            / samples.len() as f64;
+        let observed = alignment_cohort_metric(&metrics, metric)?;
+        if (observed - expected).abs() > 1e-9_f64.max(expected.abs() * 1e-12) {
+            bail!("alignment aggregate metric differs from retained sample strata");
+        }
     }
     let total_reads = samples.values().try_fold(0_u64, |total, values| {
         total
@@ -164,7 +178,7 @@ fn derive_observation(
         samples,
         total_reads,
         input_bytes,
-        output_bytes: metrics["output_bytes"].as_u64().context("output bytes")?,
+        output_bytes: metrics.output_bytes,
         result_sha256: bijux_dna_infra::hash_file_sha256(&result_path)?,
     })
 }
@@ -218,22 +232,19 @@ fn validate_sample_artifacts(
     for (sample_id, expected) in samples {
         let stem = super::super::inputs::normalized_id(sample_id);
         let prefix = format!("{repetition_prefix}.{stem}");
-        let bundle: Value =
+        let bundle: BenchmarkBamAlignResult =
             read_json(&root.join(format!("{prefix}.alignment-truth-summary.json")))?;
-        let metrics: Value = read_json(&root.join(format!("{prefix}.metrics.json")))?;
+        let metrics: BenchmarkBamAlignMetrics =
+            read_json(&root.join(format!("{prefix}.metrics.json")))?;
         let probe: bijux_dna_bench_model::normalized_result::BenchmarkDownstreamProbeRecord =
             read_json(&root.join(format!("{prefix}.report-qc.json")))?;
-        if bundle.get("sample_id").and_then(Value::as_str) != Some(sample_id)
-            || bundle.get("stage_id").and_then(Value::as_str) != Some("bam.align")
-            || bundle.get("tool_id").and_then(Value::as_str) != Some(identity.tool_id.as_str())
-            || !probe.complete
-        {
+        if bundle.sample_id != *sample_id || bundle.tool_id != identity.tool_id || !probe.complete {
             bail!("alignment sample bundle or probe identity is invalid");
         }
         for (metric, value) in expected {
             let expected = scientific_number(value)?;
-            if bundle.get(metric).and_then(Value::as_f64) != Some(expected)
-                || metrics.get(metric).and_then(Value::as_f64) != Some(expected)
+            if alignment_metric(&bundle.values, metric)? != expected
+                || alignment_metric(&metrics.values, metric)? != expected
             {
                 bail!("alignment sample bundle differs from cohort summary");
             }
@@ -244,16 +255,43 @@ fn validate_sample_artifacts(
             .checked_add(reference_bytes)
             .and_then(|value| value.checked_add(truth))
             .context("alignment sample size overflow")?;
-        if metrics.get("fastq_input_bytes").and_then(Value::as_u64) != Some(fastq)
-            || metrics.get("reference_input_bytes").and_then(Value::as_u64) != Some(reference_bytes)
-            || metrics.get("reference_index_input_bytes").and_then(Value::as_u64) != Some(0)
-            || metrics.get("truth_input_bytes").and_then(Value::as_u64) != Some(truth)
-            || metrics.get("input_bytes").and_then(Value::as_u64) != Some(total)
+        if metrics.fastq_input_bytes != fastq
+            || metrics.reference_input_bytes != reference_bytes
+            || metrics.reference_index_input_bytes != 0
+            || metrics.truth_input_bytes != truth
+            || metrics.input_bytes != total
+            || metrics.output_bytes == 0
         {
             bail!("alignment sample byte metrics differ from execution inputs");
         }
     }
     Ok(())
+}
+
+fn alignment_metric(values: &BenchmarkBamAlignValues, metric: &str) -> Result<f64> {
+    match metric {
+        "total_reads" => Ok(values.total_reads as f64),
+        "mapped_reads" => Ok(values.mapped_reads as f64),
+        "alignment_rate" => Ok(values.alignment_rate),
+        "expected_mapped_reads" => Ok(values.expected_mapped_reads as f64),
+        "exact_placement_reads" => Ok(values.exact_placement_reads as f64),
+        "placement_precision" => Ok(values.placement_precision),
+        "placement_recall" => Ok(values.placement_recall),
+        _ => bail!("alignment metric is outside the normalized result contract: {metric}"),
+    }
+}
+
+fn alignment_cohort_metric(values: &BenchmarkBamAlignCohortMetrics, metric: &str) -> Result<f64> {
+    match metric {
+        "total_reads" => Ok(values.total_reads),
+        "mapped_reads" => Ok(values.mapped_reads),
+        "alignment_rate" => Ok(values.alignment_rate),
+        "expected_mapped_reads" => Ok(values.expected_mapped_reads),
+        "exact_placement_reads" => Ok(values.exact_placement_reads),
+        "placement_precision" => Ok(values.placement_precision),
+        "placement_recall" => Ok(values.placement_recall),
+        _ => bail!("alignment metric is outside the cohort measurement contract: {metric}"),
+    }
 }
 
 fn aggregate_observations(

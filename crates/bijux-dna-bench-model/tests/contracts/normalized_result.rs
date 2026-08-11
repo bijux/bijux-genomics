@@ -1,15 +1,18 @@
 use bijux_dna_bench_model::normalized_result::bam::{
-    bam_align_metrics_schema, bam_align_result_schema, bam_coverage_metrics_schema,
-    bam_coverage_result_schema, bam_duplication_metrics_measurements_schema,
-    bam_duplication_metrics_result_schema, bam_endogenous_content_metrics_schema,
-    bam_endogenous_content_result_schema, bam_gc_bias_metrics_schema, bam_gc_bias_result_schema,
-    bam_genotyping_metrics_schema, bam_genotyping_result_schema, bam_insert_size_metrics_schema,
+    bam_align_cohort_metrics_schema, bam_align_metrics_schema, bam_align_result_schema,
+    bam_coverage_metrics_schema, bam_coverage_result_schema,
+    bam_duplication_metrics_measurements_schema, bam_duplication_metrics_result_schema,
+    bam_endogenous_content_metrics_schema, bam_endogenous_content_result_schema,
+    bam_gc_bias_cohort_metrics_schema, bam_gc_bias_metrics_schema, bam_gc_bias_result_schema,
+    bam_genotyping_metrics_schema, bam_genotyping_result_schema,
+    bam_insert_size_cohort_metrics_schema, bam_insert_size_metrics_schema,
     bam_insert_size_result_schema, bam_mapping_summary_metrics_schema,
-    bam_mapping_summary_result_schema, BenchmarkBamAlignMetrics, BenchmarkBamAlignResult,
-    BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult, BenchmarkBamDuplicationMetricsResult,
-    BenchmarkBamEndogenousContentResult, BenchmarkBamGcBiasMetrics, BenchmarkBamGcBiasResult,
-    BenchmarkBamGenotypingResult, BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult,
-    BenchmarkBamMappingSummaryResult,
+    bam_mapping_summary_result_schema, BenchmarkBamAlignCohortMetrics, BenchmarkBamAlignMetrics,
+    BenchmarkBamAlignResult, BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult,
+    BenchmarkBamDuplicationMetricsResult, BenchmarkBamEndogenousContentResult,
+    BenchmarkBamGcBiasCohortMetrics, BenchmarkBamGcBiasMetrics, BenchmarkBamGcBiasResult,
+    BenchmarkBamGenotypingResult, BenchmarkBamInsertSizeCohortMetrics,
+    BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult, BenchmarkBamMappingSummaryResult,
 };
 use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_detect_adapters_metrics_schema, fastq_detect_adapters_probe_schema,
@@ -154,6 +157,10 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
     let schemas = [
         ("bam-align-result.schema.json", serde_json::to_value(bam_align_result_schema())?),
         ("bam-align-metrics.schema.json", serde_json::to_value(bam_align_metrics_schema())?),
+        (
+            "bam-align-cohort-metrics.schema.json",
+            serde_json::to_value(bam_align_cohort_metrics_schema())?,
+        ),
         ("bam-coverage-result.schema.json", serde_json::to_value(bam_coverage_result_schema())?),
         ("bam-coverage-metrics.schema.json", serde_json::to_value(bam_coverage_metrics_schema())?),
         (
@@ -196,8 +203,16 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
             "bam-insert-size-metrics.schema.json",
             serde_json::to_value(bam_insert_size_metrics_schema())?,
         ),
+        (
+            "bam-insert-size-cohort-metrics.schema.json",
+            serde_json::to_value(bam_insert_size_cohort_metrics_schema())?,
+        ),
         ("bam-gc-bias-result.schema.json", serde_json::to_value(bam_gc_bias_result_schema())?),
         ("bam-gc-bias-metrics.schema.json", serde_json::to_value(bam_gc_bias_metrics_schema())?),
+        (
+            "bam-gc-bias-cohort-metrics.schema.json",
+            serde_json::to_value(bam_gc_bias_cohort_metrics_schema())?,
+        ),
         ("bam-downstream-probe.schema.json", serde_json::to_value(bam_downstream_probe_schema())?),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
@@ -295,6 +310,53 @@ fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
     let mut unsupported_probe = probe;
     unsupported_probe["stage_id"] = serde_json::json!("benchmark.bam.invented.consume");
     assert!(serde_json::from_value::<BenchmarkDownstreamProbeRecord>(unsupported_probe).is_err());
+    Ok(())
+}
+
+#[test]
+fn normalized_bam_cohort_metrics_fail_closed() -> anyhow::Result<()> {
+    let align = serde_json::json!({
+        "sample_count": 10,
+        "total_reads": 100.0,
+        "mapped_reads": 80.0,
+        "alignment_rate": 0.8,
+        "expected_mapped_reads": 90.0,
+        "exact_placement_reads": 70.0,
+        "placement_precision": 0.875,
+        "placement_recall": 0.777_777_777_778,
+        "input_bytes": 210,
+        "output_bytes": 50
+    });
+    serde_json::from_value::<BenchmarkBamAlignCohortMetrics>(align.clone())?;
+    let mut unknown = align;
+    unknown["invented"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<BenchmarkBamAlignCohortMetrics>(unknown).is_err());
+
+    serde_json::from_value::<BenchmarkBamGcBiasCohortMetrics>(serde_json::json!({
+        "sample_count": 10,
+        "gc_bias_score": 0.2,
+        "at_dropout": 1.0,
+        "gc_dropout": 20.0,
+        "total_clusters": 100.0,
+        "aligned_reads": 80.0,
+        "windows": 50.0,
+        "read_starts": 70.0,
+        "input_bytes": 210,
+        "output_bytes": 50
+    }))?;
+    serde_json::from_value::<BenchmarkBamInsertSizeCohortMetrics>(serde_json::json!({
+        "sample_count": 10,
+        "median_insert_size": 100.0,
+        "mean_insert_size": 110.0,
+        "standard_deviation": 20.0,
+        "median_absolute_deviation": 15.0,
+        "minimum_insert_size": 50.0,
+        "maximum_insert_size": 200.0,
+        "read_pairs": 100.0,
+        "pair_orientation_fr_fraction": 1.0,
+        "input_bytes": 210,
+        "output_bytes": 50
+    }))?;
     Ok(())
 }
 

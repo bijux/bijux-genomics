@@ -6,13 +6,17 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::bam::{
+    BenchmarkBamGcBiasCohortMetrics, BenchmarkBamGcBiasMetrics, BenchmarkBamGcBiasResult,
+    BenchmarkBamGcBiasValues, BenchmarkBamInsertSizeCohortMetrics, BenchmarkBamInsertSizeMetrics,
+    BenchmarkBamInsertSizeResult, BenchmarkBamInsertSizeValues,
+};
 use bijux_dna_bench_model::{
     BenchmarkCampaignPlan, BenchmarkExecutionSpec, BenchmarkMetricDistribution,
     BenchmarkReportDeterminism, BenchmarkReportVerdict, BenchmarkScientificStratum,
     BenchmarkScientificValue, BenchmarkStageCampaignSpec, BenchmarkStageInterfaceSpec,
     BenchmarkToolReport,
 };
-use serde_json::Value;
 
 use super::ReportPolicy;
 use crate::workflow::stage_report::{
@@ -25,6 +29,95 @@ struct CohortObservation {
     input_bytes: u64,
     output_bytes: u64,
     result_sha256: String,
+}
+
+enum PicardCohortMetrics {
+    GcBias(BenchmarkBamGcBiasCohortMetrics),
+    InsertSize(BenchmarkBamInsertSizeCohortMetrics),
+}
+
+impl PicardCohortMetrics {
+    fn sample_count(&self) -> u64 {
+        match self {
+            Self::GcBias(value) => value.sample_count,
+            Self::InsertSize(value) => value.sample_count,
+        }
+    }
+
+    fn input_bytes(&self) -> u64 {
+        match self {
+            Self::GcBias(value) => value.input_bytes,
+            Self::InsertSize(value) => value.input_bytes,
+        }
+    }
+
+    fn output_bytes(&self) -> u64 {
+        match self {
+            Self::GcBias(value) => value.output_bytes,
+            Self::InsertSize(value) => value.output_bytes,
+        }
+    }
+
+    fn scientific_metric(&self, metric: &str) -> Result<f64> {
+        match self {
+            Self::GcBias(value) => gc_bias_cohort_metric(value, metric),
+            Self::InsertSize(value) => insert_size_cohort_metric(value, metric),
+        }
+    }
+}
+
+enum PicardSampleResult {
+    GcBias(BenchmarkBamGcBiasResult),
+    InsertSize(BenchmarkBamInsertSizeResult),
+}
+
+impl PicardSampleResult {
+    fn identity(&self) -> (&str, &str) {
+        match self {
+            Self::GcBias(value) => (&value.sample_id, &value.tool_id),
+            Self::InsertSize(value) => (&value.sample_id, &value.tool_id),
+        }
+    }
+
+    fn scientific_metric(&self, metric: &str) -> Result<f64> {
+        match self {
+            Self::GcBias(value) => gc_bias_metric(&value.values, metric),
+            Self::InsertSize(value) => insert_size_metric(&value.values, metric),
+        }
+    }
+}
+
+enum PicardSampleMetrics {
+    GcBias(BenchmarkBamGcBiasMetrics),
+    InsertSize(BenchmarkBamInsertSizeMetrics),
+}
+
+impl PicardSampleMetrics {
+    fn scientific_metric(&self, metric: &str) -> Result<f64> {
+        match self {
+            Self::GcBias(value) => gc_bias_metric(&value.values, metric),
+            Self::InsertSize(value) => insert_size_metric(&value.values, metric),
+        }
+    }
+
+    fn input_bytes(&self) -> (u64, u64, u64, u64, u64) {
+        match self {
+            Self::GcBias(value) => (
+                value.bam_input_bytes,
+                value.bam_index_input_bytes,
+                value.reference_input_bytes,
+                value.input_bytes,
+                value.output_bytes,
+            ),
+            Self::InsertSize(value) => (
+                value.bam_input_bytes,
+                value.bam_index_input_bytes,
+                0,
+                value.input_bytes,
+                value.output_bytes,
+            ),
+        }
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -132,7 +225,7 @@ fn derive_observation(
     if samples.len() != super::super::EXPECTED_SAMPLE_COUNT {
         bail!("Picard cohort result lacks the governed sample count");
     }
-    let metrics: Value = read_json(&root.join(format!("{prefix}.metrics.json")))?;
+    let metrics = read_cohort_metrics(&root.join(format!("{prefix}.metrics.json")), policy)?;
     let probe: bijux_dna_bench_model::normalized_result::BenchmarkDownstreamProbeRecord =
         read_json(&root.join(format!("{prefix}.report-qc.json")))?;
     let (bam_bytes, bam_index_bytes, reference_bytes) = input_byte_classes(spec)?;
@@ -140,10 +233,9 @@ fn derive_observation(
         .checked_add(bam_index_bytes)
         .and_then(|value| value.checked_add(reference_bytes))
         .context("Picard cohort report input overflow")?;
-    if metrics.get("sample_count").and_then(Value::as_u64)
-        != Some(super::super::EXPECTED_SAMPLE_COUNT as u64)
-        || metrics.get("input_bytes").and_then(Value::as_u64) != Some(input_bytes)
-        || metrics.get("output_bytes").and_then(Value::as_u64).unwrap_or_default() == 0
+    if metrics.sample_count() != super::super::EXPECTED_SAMPLE_COUNT as u64
+        || metrics.input_bytes() != input_bytes
+        || metrics.output_bytes() == 0
         || !probe.complete
         || probe.stage_id != format!("benchmark.{}.consume", policy.stage_id)
     {
@@ -155,10 +247,7 @@ fn derive_observation(
             .map(|sample| scientific_number(&sample[*metric]))
             .sum::<Result<f64>>()?
             / samples.len() as f64;
-        let observed = metrics
-            .get(*metric)
-            .and_then(Value::as_f64)
-            .with_context(|| format!("Picard cohort aggregate metrics omit {metric}"))?;
+        let observed = metrics.scientific_metric(metric)?;
         if (observed - expected).abs() > 1e-9_f64.max(expected.abs() * 1e-12) {
             bail!("Picard cohort aggregate metric differs from retained sample strata");
         }
@@ -167,7 +256,7 @@ fn derive_observation(
     Ok(CohortObservation {
         samples,
         input_bytes,
-        output_bytes: metrics["output_bytes"].as_u64().context("output bytes")?,
+        output_bytes: metrics.output_bytes(),
         result_sha256: bijux_dna_infra::hash_file_sha256(&result_path)?,
     })
 }
@@ -278,21 +367,21 @@ fn validate_sample_artifacts(
     for (sample_id, expected) in samples {
         let stem = normalized_id(sample_id);
         let prefix = format!("repetitions/repetition-{repetition}.{stem}");
-        let bundle: Value = read_json(&root.join(format!("{prefix}.{}.json", policy.result_stem)))?;
-        let metrics: Value = read_json(&root.join(format!("{prefix}.metrics.json")))?;
+        let bundle = read_sample_result(
+            &root.join(format!("{prefix}.{}.json", policy.result_stem)),
+            policy,
+        )?;
+        let metrics = read_sample_metrics(&root.join(format!("{prefix}.metrics.json")), policy)?;
         let probe: bijux_dna_bench_model::normalized_result::BenchmarkDownstreamProbeRecord =
             read_json(&root.join(format!("{prefix}.report-qc.json")))?;
-        if bundle.get("sample_id").and_then(Value::as_str) != Some(sample_id)
-            || bundle.get("stage_id").and_then(Value::as_str) != Some(policy.stage_id)
-            || bundle.get("tool_id").and_then(Value::as_str) != Some("picard")
-            || !probe.complete
-        {
+        let (bundle_sample_id, bundle_tool_id) = bundle.identity();
+        if bundle_sample_id != sample_id || bundle_tool_id != "picard" || !probe.complete {
             bail!("Picard sample bundle or downstream probe identity is invalid");
         }
         for (metric, value) in expected {
             let expected = scientific_number(value)?;
-            if bundle.get(metric).and_then(Value::as_f64) != Some(expected)
-                || metrics.get(metric).and_then(Value::as_f64) != Some(expected)
+            if bundle.scientific_metric(metric)? != expected
+                || metrics.scientific_metric(metric)? != expected
             {
                 bail!("Picard sample bundle differs from normalized cohort summary");
             }
@@ -304,15 +393,99 @@ fn validate_sample_artifacts(
             .checked_add(bam_index_bytes)
             .and_then(|value| value.checked_add(reference_bytes))
             .context("Picard sample report input overflow")?;
-        if metrics.get("bam_input_bytes").and_then(Value::as_u64) != Some(bam_bytes)
-            || metrics.get("bam_index_input_bytes").and_then(Value::as_u64) != Some(bam_index_bytes)
-            || metrics.get("input_bytes").and_then(Value::as_u64) != Some(expected_input)
-            || metrics.get("output_bytes").and_then(Value::as_u64).unwrap_or_default() == 0
+        let (observed_bam, observed_index, observed_reference, observed_input, observed_output) =
+            metrics.input_bytes();
+        if observed_bam != bam_bytes
+            || observed_index != bam_index_bytes
+            || observed_reference != reference_bytes
+            || observed_input != expected_input
+            || observed_output == 0
         {
             bail!("Picard sample byte metrics differ from execution inputs");
         }
     }
     Ok(())
+}
+
+fn read_cohort_metrics(path: &Path, policy: &ReportPolicy) -> Result<PicardCohortMetrics> {
+    match policy.stage_id {
+        "bam.gc_bias" => read_json(path).map(PicardCohortMetrics::GcBias),
+        "bam.insert_size" => read_json(path).map(PicardCohortMetrics::InsertSize),
+        stage_id => bail!("unsupported Picard cohort metrics stage: {stage_id}"),
+    }
+}
+
+fn read_sample_result(path: &Path, policy: &ReportPolicy) -> Result<PicardSampleResult> {
+    match policy.stage_id {
+        "bam.gc_bias" => read_json(path).map(PicardSampleResult::GcBias),
+        "bam.insert_size" => read_json(path).map(PicardSampleResult::InsertSize),
+        stage_id => bail!("unsupported Picard result stage: {stage_id}"),
+    }
+}
+
+fn read_sample_metrics(path: &Path, policy: &ReportPolicy) -> Result<PicardSampleMetrics> {
+    match policy.stage_id {
+        "bam.gc_bias" => read_json(path).map(PicardSampleMetrics::GcBias),
+        "bam.insert_size" => read_json(path).map(PicardSampleMetrics::InsertSize),
+        stage_id => bail!("unsupported Picard measurement stage: {stage_id}"),
+    }
+}
+
+fn gc_bias_metric(values: &BenchmarkBamGcBiasValues, metric: &str) -> Result<f64> {
+    match metric {
+        "gc_bias_score" => Ok(values.gc_bias_score),
+        "at_dropout" => Ok(values.at_dropout),
+        "gc_dropout" => Ok(values.gc_dropout),
+        "total_clusters" => Ok(values.total_clusters as f64),
+        "aligned_reads" => Ok(values.aligned_reads as f64),
+        "windows" => Ok(values.windows as f64),
+        "read_starts" => Ok(values.read_starts as f64),
+        _ => bail!("GC-bias metric is outside the normalized result contract: {metric}"),
+    }
+}
+
+fn gc_bias_cohort_metric(values: &BenchmarkBamGcBiasCohortMetrics, metric: &str) -> Result<f64> {
+    match metric {
+        "gc_bias_score" => Ok(values.gc_bias_score),
+        "at_dropout" => Ok(values.at_dropout),
+        "gc_dropout" => Ok(values.gc_dropout),
+        "total_clusters" => Ok(values.total_clusters),
+        "aligned_reads" => Ok(values.aligned_reads),
+        "windows" => Ok(values.windows),
+        "read_starts" => Ok(values.read_starts),
+        _ => bail!("GC-bias metric is outside the cohort measurement contract: {metric}"),
+    }
+}
+
+fn insert_size_metric(values: &BenchmarkBamInsertSizeValues, metric: &str) -> Result<f64> {
+    match metric {
+        "median_insert_size" => Ok(values.median_insert_size),
+        "mean_insert_size" => Ok(values.mean_insert_size),
+        "standard_deviation" => Ok(values.standard_deviation),
+        "median_absolute_deviation" => Ok(values.median_absolute_deviation),
+        "minimum_insert_size" => Ok(values.minimum_insert_size as f64),
+        "maximum_insert_size" => Ok(values.maximum_insert_size as f64),
+        "read_pairs" => Ok(values.read_pairs as f64),
+        "pair_orientation_fr_fraction" => Ok(values.pair_orientation_fr_fraction),
+        _ => bail!("insert-size metric is outside the normalized result contract: {metric}"),
+    }
+}
+
+fn insert_size_cohort_metric(
+    values: &BenchmarkBamInsertSizeCohortMetrics,
+    metric: &str,
+) -> Result<f64> {
+    match metric {
+        "median_insert_size" => Ok(values.median_insert_size),
+        "mean_insert_size" => Ok(values.mean_insert_size),
+        "standard_deviation" => Ok(values.standard_deviation),
+        "median_absolute_deviation" => Ok(values.median_absolute_deviation),
+        "minimum_insert_size" => Ok(values.minimum_insert_size),
+        "maximum_insert_size" => Ok(values.maximum_insert_size),
+        "read_pairs" => Ok(values.read_pairs),
+        "pair_orientation_fr_fraction" => Ok(values.pair_orientation_fr_fraction),
+        _ => bail!("insert-size metric is outside the cohort measurement contract: {metric}"),
+    }
 }
 
 fn input_byte_classes(spec: &BenchmarkExecutionSpec) -> Result<(u64, u64, u64)> {

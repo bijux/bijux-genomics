@@ -87,6 +87,32 @@ pub struct BenchmarkBamAlignMetrics {
     pub output_bytes: u64,
 }
 
+/// Aggregate metrics emitted for one measured alignment-cohort repetition.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamAlignCohortMetrics {
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub sample_count: u64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub total_reads: f64,
+    #[schemars(schema_with = "nonnegative_number_schema")]
+    pub mapped_reads: f64,
+    #[schemars(schema_with = "fraction_schema")]
+    pub alignment_rate: f64,
+    #[schemars(schema_with = "nonnegative_number_schema")]
+    pub expected_mapped_reads: f64,
+    #[schemars(schema_with = "nonnegative_number_schema")]
+    pub exact_placement_reads: f64,
+    #[schemars(schema_with = "fraction_schema")]
+    pub placement_precision: f64,
+    #[schemars(schema_with = "fraction_schema")]
+    pub placement_recall: f64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub input_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub output_bytes: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkBamCoverageValues {
@@ -319,6 +345,32 @@ pub struct BenchmarkBamGcBiasMetrics {
     pub output_bytes: u64,
 }
 
+/// Aggregate metrics emitted for one measured GC-bias cohort repetition.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamGcBiasCohortMetrics {
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub sample_count: u64,
+    #[schemars(schema_with = "fraction_schema")]
+    pub gc_bias_score: f64,
+    #[schemars(schema_with = "percentage_schema")]
+    pub at_dropout: f64,
+    #[schemars(schema_with = "percentage_schema")]
+    pub gc_dropout: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub total_clusters: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub aligned_reads: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub windows: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub read_starts: f64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub input_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub output_bytes: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkBamInsertSizeValues {
@@ -370,6 +422,34 @@ pub struct BenchmarkBamInsertSizeMetrics {
     pub bam_input_bytes: u64,
     pub bam_index_input_bytes: u64,
     pub input_bytes: u64,
+    pub output_bytes: u64,
+}
+
+/// Aggregate metrics emitted for one measured insert-size cohort repetition.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamInsertSizeCohortMetrics {
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub sample_count: u64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub median_insert_size: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub mean_insert_size: f64,
+    #[schemars(schema_with = "nonnegative_number_schema")]
+    pub standard_deviation: f64,
+    #[schemars(schema_with = "nonnegative_number_schema")]
+    pub median_absolute_deviation: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub minimum_insert_size: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub maximum_insert_size: f64,
+    #[schemars(schema_with = "positive_number_schema")]
+    pub read_pairs: f64,
+    #[schemars(schema_with = "fraction_schema")]
+    pub pair_orientation_fr_fraction: f64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub input_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
     pub output_bytes: u64,
 }
 
@@ -425,6 +505,11 @@ pub fn bam_align_metrics_schema() -> Schema {
 }
 
 #[must_use]
+pub fn bam_align_cohort_metrics_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamAlignCohortMetrics)
+}
+
+#[must_use]
 pub fn bam_coverage_result_schema() -> Schema {
     schemars::schema_for!(BenchmarkBamCoverageResult)
 }
@@ -475,6 +560,11 @@ pub fn bam_gc_bias_metrics_schema() -> Schema {
 }
 
 #[must_use]
+pub fn bam_gc_bias_cohort_metrics_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamGcBiasCohortMetrics)
+}
+
+#[must_use]
 pub fn bam_insert_size_result_schema() -> Schema {
     schemars::schema_for!(BenchmarkBamInsertSizeResult)
 }
@@ -482,6 +572,11 @@ pub fn bam_insert_size_result_schema() -> Schema {
 #[must_use]
 pub fn bam_insert_size_metrics_schema() -> Schema {
     schemars::schema_for!(BenchmarkBamInsertSizeMetrics)
+}
+
+#[must_use]
+pub fn bam_insert_size_cohort_metrics_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamInsertSizeCohortMetrics)
 }
 
 #[must_use]
