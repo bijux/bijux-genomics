@@ -8,7 +8,14 @@ use std::process::Command;
 use anyhow::Context;
 use anyhow::Result;
 #[cfg(unix)]
-use bijux_dna_containers_qa::api::bind_qualification_source_to_frozen_repository;
+use bijux_dna_containers_qa::api::{
+    bind_qualification_source_to_frozen_repository, freeze_repository, ContainerGovernance,
+    ContainerPathPolicy, ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy,
+    ContainerSlurmPolicy, QualificationSpecificationInputKindV1, QualificationSpecificationInputV1,
+    QualificationSpecificationSiteResourcesV1, QualificationSpecificationSourceV1,
+    RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
+    QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1,
+};
 use bijux_dna_containers_qa::api::{
     evaluate_container_qualification, plan_container_qualification, ContainerPipelineContract,
     ContainerPipelineV2, QualificationFailureClass, QualificationProbeKind,
@@ -152,22 +159,17 @@ fn qualification_planning_rejects_benchmark_measurement_authority() -> Result<()
 #[cfg(unix)]
 #[test]
 fn qualification_source_binding_requires_the_governed_commit_freeze() -> Result<()> {
-    use bijux_dna_containers_qa::api::{
-        freeze_repository, ContainerGovernance, ContainerPathPolicy, ContainerPreflightPolicy,
-        ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
-        QualificationSpecificationSiteResourcesV1, QualificationSpecificationSourceV1,
-        RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
-        QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1,
-    };
-
     let temporary = bijux_dna_testkit::tempdir_for("qualification-source-freeze");
     let active = temporary.path().join("repository");
     let study = temporary.path().join("study");
+    let study_alias = temporary.path().join("study-alias");
     let frozen_repositories = study.join("data/evidence/source-checkouts");
     fs::create_dir_all(&active)?;
     for relative in ["containers", "data", "results", "finalization"] {
         fs::create_dir_all(study.join(relative))?;
     }
+    std::os::unix::fs::symlink(&study, &study_alias)?;
+    fs::write(study.join("data/input.fastq"), b"@read\nACGT\n+\nIIII\n")?;
     git(&active, &["init", "--quiet"])?;
     git(&active, &["config", "user.name", "Bijux Test"])?;
     git(&active, &["config", "user.email", "test@bijux.invalid"])?;
@@ -175,19 +177,84 @@ fn qualification_source_binding_requires_the_governed_commit_freeze() -> Result<
     git(&active, &["add", "source.txt"])?;
     git(&active, &["commit", "--quiet", "-m", "fixture"])?;
     let commit = git(&active, &["rev-parse", "HEAD"])?;
-    let governance = ContainerGovernance {
+    let governance = qualification_governance(active, &study, frozen_repositories);
+    let frozen = freeze_repository(&RepositoryFreezeRequest {
+        governance: governance.clone(),
+        hostname: "worker".to_string(),
+        commit: commit.clone(),
+        scope: RepositoryFreezeScope::Complete,
+        checkout_paths: Vec::new(),
+        source_namespace: "source-freezes".to_string(),
+    })?;
+    let source = QualificationSpecificationSourceV1 {
+        schema_version: QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1.to_string(),
+        catalog_sha256: "a".repeat(64),
+        registry_sha256: "b".repeat(64),
+        inventory_sha256: "c".repeat(64),
+        governed_study_root: study_alias.clone(),
+        repository_path: PathBuf::from("/mutable/repository"),
+        repository_commit: commit,
+        run_id: "run-1001".to_string(),
+        tool_id: "tool".to_string(),
+        campaign: "campaign".to_string(),
+        corpus: "corpus".to_string(),
+        corpus_role: "fastq".to_string(),
+        sample: "sample".to_string(),
+        operator: "operator".to_string(),
+        submitted_at_utc: "2026-08-11T00:00:00Z".to_string(),
+        result_root: study_alias.join("results/run-1001"),
+        inputs: vec![QualificationSpecificationInputV1 {
+            binding_input: "reads_r1".to_string(),
+            artifact_contract_id: "bijux.fastq.artifact.single_end.v1".to_string(),
+            id: "input-reads".to_string(),
+            kind: QualificationSpecificationInputKindV1::Data,
+            path: study_alias.join("data/input.fastq"),
+            mount_path: PathBuf::from("/input/input.fastq"),
+            sha256: "d".repeat(64),
+        }],
+        parameters: std::collections::BTreeMap::new(),
+        outputs: Vec::new(),
+        negative_command: vec!["tool".to_string(), "--invalid".to_string()],
+        site: QualificationSpecificationSiteResourcesV1 {
+            account: "science".to_string(),
+            partition: "compute".to_string(),
+            walltime: "00:30:00".to_string(),
+        },
+    };
+
+    let bound = bind_qualification_source_to_frozen_repository(&source, &governance, &frozen)?;
+    assert_eq!(bound.repository_path, frozen.canonicalize()?);
+    assert_eq!(bound.governed_study_root, study.canonicalize()?);
+    assert_eq!(bound.result_root, study.canonicalize()?.join("results/run-1001"));
+    assert_eq!(bound.inputs[0].path, study.canonicalize()?.join("data/input.fastq"));
+    let outside = temporary.path().join("outside").join(&source.repository_commit);
+    fs::create_dir_all(&outside)?;
+    let error = bind_qualification_source_to_frozen_repository(&source, &governance, &outside)
+        .err()
+        .context("qualification source accepted an unmanaged repository path")?;
+    assert!(error.to_string().contains("not frozen by commit identity"));
+    Ok(())
+}
+
+#[cfg(unix)]
+fn qualification_governance(
+    active_repository: PathBuf,
+    study_root: &Path,
+    frozen_repositories: PathBuf,
+) -> ContainerGovernance {
+    ContainerGovernance {
         schema_version: CONTAINER_GOVERNANCE_SCHEMA_V1.to_string(),
         site: ContainerSitePolicy {
             id: "test-site".to_string(),
             hostname_regex: "^worker$".to_string(),
         },
         paths: ContainerPathPolicy {
-            study_root: study.clone(),
-            containers_root: study.join("containers"),
-            data_root: study.join("data"),
-            results_root: study.join("results"),
-            finalization_root: study.join("finalization"),
-            active_repository: active,
+            study_root: study_root.to_path_buf(),
+            containers_root: study_root.join("containers"),
+            data_root: study_root.join("data"),
+            results_root: study_root.join("results"),
+            finalization_root: study_root.join("finalization"),
+            active_repository,
             frozen_repositories,
         },
         runtime: ContainerRuntimePolicy { apptainer_architecture: "linux/amd64".to_string() },
@@ -205,52 +272,7 @@ fn qualification_source_binding_requires_the_governed_commit_freeze() -> Result<
             required_commands: vec!["git".to_string()],
             required_contracts: vec!["source.txt".to_string()],
         },
-    };
-    let frozen = freeze_repository(&RepositoryFreezeRequest {
-        governance: governance.clone(),
-        hostname: "worker".to_string(),
-        commit: commit.clone(),
-        scope: RepositoryFreezeScope::Complete,
-        checkout_paths: Vec::new(),
-        source_namespace: "source-freezes".to_string(),
-    })?;
-    let source = QualificationSpecificationSourceV1 {
-        schema_version: QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1.to_string(),
-        catalog_sha256: "a".repeat(64),
-        registry_sha256: "b".repeat(64),
-        inventory_sha256: "c".repeat(64),
-        governed_study_root: study,
-        repository_path: PathBuf::from("/mutable/repository"),
-        repository_commit: commit,
-        run_id: "run-1001".to_string(),
-        tool_id: "tool".to_string(),
-        campaign: "campaign".to_string(),
-        corpus: "corpus".to_string(),
-        corpus_role: "fastq".to_string(),
-        sample: "sample".to_string(),
-        operator: "operator".to_string(),
-        submitted_at_utc: "2026-08-11T00:00:00Z".to_string(),
-        result_root: temporary.path().join("study/results/run-1001"),
-        inputs: Vec::new(),
-        parameters: std::collections::BTreeMap::new(),
-        outputs: Vec::new(),
-        negative_command: vec!["tool".to_string(), "--invalid".to_string()],
-        site: QualificationSpecificationSiteResourcesV1 {
-            account: "science".to_string(),
-            partition: "compute".to_string(),
-            walltime: "00:30:00".to_string(),
-        },
-    };
-
-    let bound = bind_qualification_source_to_frozen_repository(&source, &governance, &frozen)?;
-    assert_eq!(bound.repository_path, frozen.canonicalize()?);
-    let outside = temporary.path().join("outside").join(&source.repository_commit);
-    fs::create_dir_all(&outside)?;
-    let error = bind_qualification_source_to_frozen_repository(&source, &governance, &outside)
-        .err()
-        .context("qualification source accepted an unmanaged repository path")?;
-    assert!(error.to_string().contains("not frozen by commit identity"));
-    Ok(())
+    }
 }
 
 #[cfg(unix)]

@@ -7,8 +7,8 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
     validate_container_governance, verify_frozen_repository, ContainerGovernance,
-    ContainerImageState, ContainerPipelineContract, ContainerPipelineV2,
-    ImageCandidateDisposition, QualificationRunState, CONTAINER_PIPELINE_SCHEMA_V2,
+    ContainerImageState, ContainerPipelineContract, ContainerPipelineV2, ImageCandidateDisposition,
+    QualificationRunState, CONTAINER_PIPELINE_SCHEMA_V2,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
@@ -177,6 +177,23 @@ pub fn bind_qualification_source_to_frozen_repository(
     if study_root != governed_study_root {
         bail!("qualification source STUDY root differs from site governance");
     }
+    let result_relative = source
+        .result_root
+        .strip_prefix(&source.governed_study_root)
+        .context("qualification result root is outside its declared STUDY root")?;
+    require_safe_relative(result_relative, "qualification result root")?;
+    let input_relatives = source
+        .inputs
+        .iter()
+        .map(|input| {
+            let relative = input
+                .path
+                .strip_prefix(&source.governed_study_root)
+                .context("qualification input is outside its declared STUDY root")?;
+            require_safe_relative(relative, "qualification input")?;
+            Ok(relative.to_path_buf())
+        })
+        .collect::<Result<Vec<_>>>()?;
     let frozen_root = governance
         .paths
         .frozen_repositories
@@ -193,7 +210,12 @@ pub fn bind_qualification_source_to_frozen_repository(
     verify_frozen_repository(&repository, &source.repository_commit)
         .context("verify qualification source frozen repository")?;
     let mut bound = source.clone();
+    bound.governed_study_root.clone_from(&governed_study_root);
     bound.repository_path = repository;
+    bound.result_root = governed_study_root.join(result_relative);
+    for (input, relative) in bound.inputs.iter_mut().zip(input_relatives) {
+        input.path = governed_study_root.join(relative);
+    }
     Ok(bound)
 }
 
