@@ -16,6 +16,10 @@ use crate::workflow::bam_duplication_metrics::publish_bam_duplication_metrics_st
 use crate::workflow::bam_endogenous_content::publish_bam_endogenous_content_stage_report_with_presentation_authority;
 use crate::workflow::bam_genotyping::publish_bam_genotyping_stage_report_with_presentation_authority;
 use crate::workflow::bam_mapping_summary::publish_bam_mapping_summary_stage_report_with_presentation_authority;
+use crate::workflow::bam_picard_cohort::{
+    publish_bam_gc_bias_stage_report_with_presentation_authority,
+    publish_bam_insert_size_stage_report_with_presentation_authority,
+};
 use crate::workflow::fastq_detect_adapters::publish_fastq_detect_adapters_stage_report_with_presentation_authority;
 use crate::workflow::fastq_profile_read_lengths::publish_fastq_profile_read_lengths_stage_report_with_presentation_authority;
 use crate::workflow::fastq_profile_reads::publish_fastq_profile_reads_stage_report_with_presentation_authority;
@@ -56,6 +60,14 @@ const REPORT_ADAPTERS: &[BenchmarkCampaignReportAdapter] = &[
     BenchmarkCampaignReportAdapter {
         stage_id: "bam.duplication_metrics",
         publish: publish_bam_duplication_metrics_stage_report_with_presentation_authority,
+    },
+    BenchmarkCampaignReportAdapter {
+        stage_id: "bam.gc_bias",
+        publish: publish_bam_gc_bias_stage_report_with_presentation_authority,
+    },
+    BenchmarkCampaignReportAdapter {
+        stage_id: "bam.insert_size",
+        publish: publish_bam_insert_size_stage_report_with_presentation_authority,
     },
     BenchmarkCampaignReportAdapter {
         stage_id: "fastq.detect_adapters",

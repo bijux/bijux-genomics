@@ -11,6 +11,7 @@ mod bam_endogenous_content;
 mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
+mod bam_picard_cohort;
 mod benchmark_matrix;
 mod campaign_cases;
 mod campaign_engine;
@@ -88,6 +89,10 @@ pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,
     publish_bam_mapping_summary_stage_report, render_bam_mapping_summary_markdown,
     BamMappingSummaryMaterial, BamMappingSummaryStageReportPublication,
+};
+pub use bam_picard_cohort::{
+    prepare_bam_picard_cohort_material, publish_bam_gc_bias_stage_report,
+    publish_bam_insert_size_stage_report, BamPicardCohortMaterial,
 };
 pub use benchmark_matrix::{
     current_benchmark_matrix_timestamp, derive_benchmark_matrix, load_benchmark_matrix_report,

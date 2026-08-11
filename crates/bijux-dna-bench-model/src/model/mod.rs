@@ -237,8 +237,8 @@ pub use report::{
     BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
     BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
-    BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
-    BenchmarkStageReportDesign, BenchmarkToolReport,
+    BenchmarkReportVerdict, BenchmarkScientificStratum, BenchmarkScientificValue,
+    BenchmarkStageReport, BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 #[allow(unused_imports)]
 pub use run_index::{

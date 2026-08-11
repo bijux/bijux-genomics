@@ -99,7 +99,16 @@ pub struct BenchmarkToolReport {
     pub input_bytes: BTreeMap<String, u64>,
     pub performance: BTreeMap<String, BenchmarkMetricDistribution>,
     pub scientific_observations: BTreeMap<String, Vec<BenchmarkScientificValue>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub scientific_strata: Vec<BenchmarkScientificStratum>,
     pub determinism: BenchmarkReportDeterminism,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkScientificStratum {
+    pub sample_id: String,
+    pub observations: BTreeMap<String, Vec<BenchmarkScientificValue>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

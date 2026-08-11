@@ -240,8 +240,8 @@ pub use crate::model::report::{
     BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
     BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
-    BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
-    BenchmarkStageReportDesign, BenchmarkToolReport,
+    BenchmarkReportVerdict, BenchmarkScientificStratum, BenchmarkScientificValue,
+    BenchmarkStageReport, BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 pub use crate::model::run_index::{
     benchmark_protocol_citation_schema, benchmark_run_case_index_schema,
