@@ -980,7 +980,7 @@ mod tests {
     use super::{render_vcf_imputation_family_adapter, DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH};
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().expect("repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]

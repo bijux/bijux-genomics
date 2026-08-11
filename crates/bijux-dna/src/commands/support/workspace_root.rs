@@ -40,9 +40,23 @@ pub(crate) fn resolve_repo_root() -> Result<PathBuf> {
 
 #[cfg(test)]
 mod tests {
+    use std::{fs, path::Path};
+
     use anyhow::{bail, Result};
 
-    use super::validate_repo_root;
+    use super::{resolve_repo_root, validate_repo_root};
+
+    fn rust_sources_below(root: &Path, sources: &mut Vec<std::path::PathBuf>) -> Result<()> {
+        for entry in fs::read_dir(root)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                rust_sources_below(&path, sources)?;
+            } else if path.extension().and_then(|extension| extension.to_str()) == Some("rs") {
+                sources.push(path);
+            }
+        }
+        Ok(())
+    }
 
     #[test]
     fn declared_root_must_contain_repository_contracts() -> Result<()> {
@@ -52,6 +66,25 @@ mod tests {
         };
 
         assert!(error.to_string().contains("does not identify a Bijux Genomics repository root"));
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_tests_do_not_embed_the_archive_build_root() -> Result<()> {
+        let benchmark_root = resolve_repo_root()?.join("crates/bijux-dna/src/commands/benchmark");
+        let mut sources = Vec::new();
+        rust_sources_below(&benchmark_root, &mut sources)?;
+
+        let forbidden = concat!("env!(", "\"CARGO_MANIFEST_DIR\")");
+        let offenders = sources
+            .into_iter()
+            .filter(|path| fs::read_to_string(path).is_ok_and(|source| source.contains(forbidden)))
+            .collect::<Vec<_>>();
+
+        assert!(
+            offenders.is_empty(),
+            "benchmark tests must resolve the validated runtime repository authority: {offenders:?}"
+        );
         Ok(())
     }
 }

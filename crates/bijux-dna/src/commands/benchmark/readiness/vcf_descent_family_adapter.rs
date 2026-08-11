@@ -737,13 +737,14 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::{render_vcf_descent_family_adapter, DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH};
-    use std::path::{Path, PathBuf};
+    use std::path::PathBuf;
 
     #[test]
     fn vcf_descent_family_adapter_tracks_governed_rows() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+        let root =
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
         let report = render_vcf_descent_family_adapter(
-            root,
+            &root,
             PathBuf::from(DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH),
         )
         .expect("render VCF descent-family adapter");

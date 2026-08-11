@@ -1053,10 +1053,7 @@ mod tests {
     use crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory;
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[cfg(feature = "bam_downstream")]

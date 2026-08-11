@@ -886,9 +886,9 @@ mod tests {
     #[test]
     fn governed_vcf_admixture_smoke_reports_complete_cohort_rows() {
         let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
         let report =
-            run_local_vcf_admixture_smoke(repo_root, "plink2").expect("run local admixture smoke");
+            run_local_vcf_admixture_smoke(&repo_root, "plink2").expect("run local admixture smoke");
         assert_eq!(report.stage_id, "vcf.admixture");
         assert_eq!(report.tool_id, "plink2");
         assert_eq!(report.corpus_id, "vcf_production_regression");
