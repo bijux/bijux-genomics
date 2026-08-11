@@ -31,7 +31,7 @@ fn policy_files() -> BTreeSet<String> {
 
 #[test]
 fn policy__boundaries__policy_docs_anchor__policy_docs_index_covers_all_policies() {
-    let index_path = support::workspace_root().join("docs/INDEX.md");
+    let index_path = support::workspace_root().join("docs/index.md");
     let index = support::read_to_string(&index_path);
     let policies = policy_files();
     let mut missing = Vec::new();
@@ -43,7 +43,7 @@ fn policy__boundaries__policy_docs_anchor__policy_docs_index_covers_all_policies
     bijux_dna_policies::policy_assert!(
         missing.is_empty(),
         "policy INDEX.md must list every policy test file.\n\
-How to fix: add missing filenames to docs/INDEX.md.\n\
+How to fix: add missing filenames to docs/index.md.\n\
 Missing:\n{}",
         missing.join("\n")
     );
