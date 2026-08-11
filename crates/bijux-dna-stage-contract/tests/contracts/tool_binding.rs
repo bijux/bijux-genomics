@@ -4,11 +4,12 @@ use anyhow::Result;
 use bijux_dna_core::contract::ToolConstraints;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    canonical_retained_tool_bindings, canonical_tool_bindings, project_tool_parameters,
-    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
-    BindingParameterV1, EffectiveToolParameterSourceV1, OutputDiscoveryV1, ToolArtifactSourceV1,
-    ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1, ToolParameterProjectionRequest,
-    EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
+    canonical_external_artifact_tool_bindings, canonical_retained_tool_bindings,
+    canonical_tool_bindings, project_tool_parameters, render_tool_command, validate_tool_binding,
+    BindingInputV1, BindingOutputV1, BindingParameterV1, EffectiveToolParameterSourceV1,
+    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext,
+    ToolBindingV1, ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
+    TOOL_BINDING_SCHEMA_V1,
 };
 
 const ALIGN_STAGE: &str = "bam.align";
@@ -24,13 +25,14 @@ const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
+const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 16);
+    assert_eq!(retained.bindings().len(), 20);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -45,6 +47,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
             binding.artifact_source,
             ToolArtifactSourceV1::CatalogImage { catalog_tool_id: binding.tool_id.clone() }
         );
+        assert_eq!(binding.resources.runtime, "apptainer");
         assert!(!binding.command_template.iter().any(|token| [
             "bash", "sh", "python", "samtools", "gatk"
         ]
@@ -53,8 +56,71 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 24);
+    assert_eq!(all.bindings().len(), 28);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_taxonomy_bindings_close_all_governed_read_classifiers() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage_id = StageId::new(SCREEN_TAXONOMY_STAGE);
+    let bindings = registry.bindings_for_stage(&stage_id);
+
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["centrifuge", "kaiju", "kraken2", "krakenuniq"]
+    );
+    for binding in bindings {
+        assert_eq!(binding.resources.runtime, "apptainer");
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.screen_taxonomy.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.screen_taxonomy.compare");
+        assert_eq!(
+            binding.inputs.iter().map(|input| input.name.as_str()).collect::<Vec<_>>(),
+            ["reads_r1", "taxonomy_database"]
+        );
+        assert_eq!(
+            binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+            ["screen_report_tsv", "native_assignments"]
+        );
+
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([
+                    ("reads_r1".to_owned(), "/input/sample_R1.fastq.gz".to_owned()),
+                    ("taxonomy_database".to_owned(), "/input/taxonomy".to_owned()),
+                ]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+                outputs: BTreeMap::from([
+                    ("screen_report_tsv".to_owned(), "/result/screen.tsv".to_owned()),
+                    ("native_assignments".to_owned(), "/result/assignments.tsv".to_owned()),
+                ]),
+            },
+        )?;
+        let rendered = command.join(" ");
+        assert!(rendered.contains("/input/sample_R1.fastq.gz"));
+        assert!(rendered.contains("/input/taxonomy"));
+        assert!(rendered.contains("/result/screen.tsv"));
+        assert!(rendered.contains("/result/assignments.tsv"));
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_external_bindings_preserve_external_runtime_identity() -> Result<()> {
+    let registry = canonical_external_artifact_tool_bindings()?;
+    assert_eq!(registry.bindings().len(), 8);
+    assert!(registry.bindings().all(|binding| binding.resources.runtime == "external_artifact"));
     Ok(())
 }
 

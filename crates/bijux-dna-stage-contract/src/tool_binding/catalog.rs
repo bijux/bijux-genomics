@@ -56,6 +56,10 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bedtools_coverage(),
         bowtie2_align(),
         bwa_align(),
+        centrifuge_screen_taxonomy(),
+        kaiju_screen_taxonomy(),
+        kraken2_screen_taxonomy(),
+        krakenuniq_screen_taxonomy(),
         mosdepth_coverage(),
         picard_gc_bias(),
         picard_insert_size(),
@@ -72,6 +76,114 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn centrifuge_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "centrifuge",
+        &["single_end_reads", "taxonomy_database", "read_level_taxonomy_assignments"],
+        &[input("reads_r1", FASTQ_PAIRED), input("taxonomy_database", "bijux.auxiliary.artifact.database.v1")],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' -x '${input:taxonomy_database}/reference' -q -U '${input:reads_r1}' -S '${output:native_assignments}' --report-file '${output:screen_report_tsv}' -p '${parameter:threads}'",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &["qualification_binding_uses_the_governed_single_end_profile"],
+    )
+}
+
+fn kaiju_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "kaiju",
+        &["single_end_reads", "protein_level_taxonomy", "taxonomy_database"],
+        &[input("reads_r1", FASTQ_PAIRED), input("taxonomy_database", "bijux.auxiliary.artifact.database.v1")],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' -t '${input:taxonomy_database}/taxonomy/nodes.dmp' -f '${input:taxonomy_database}/kaiju/kaiju_db.fmi' -i '${input:reads_r1}' -o '${output:native_assignments}' -z '${parameter:threads}' && kaiju2table -t '${input:taxonomy_database}/taxonomy/nodes.dmp' -n '${input:taxonomy_database}/taxonomy/names.dmp' -r genus -o '${output:screen_report_tsv}' '${output:native_assignments}'",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "kaiju2table_must_be_present_in_the_same_admitted_image",
+        ],
+    )
+}
+
+fn kraken2_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "kraken2",
+        &["single_end_reads", "exact_kmer_taxonomy", "taxonomy_database"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("taxonomy_database", "bijux.auxiliary.artifact.database.v1"),
+        ],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "${executable}",
+            "--db",
+            "${input:taxonomy_database}",
+            "--threads",
+            "${parameter:threads}",
+            "--report",
+            "${output:screen_report_tsv}",
+            "--output",
+            "${output:native_assignments}",
+            "${input:reads_r1}",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &["qualification_binding_uses_the_governed_single_end_profile"],
+    )
+}
+
+fn krakenuniq_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "krakenuniq",
+        &["single_end_reads", "unique_kmer_taxonomy", "taxonomy_database"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("taxonomy_database", "bijux.auxiliary.artifact.database.v1"),
+        ],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "${executable}",
+            "--db",
+            "${input:taxonomy_database}",
+            "--threads",
+            "${parameter:threads}",
+            "--fastq-input",
+            "--report-file",
+            "${output:screen_report_tsv}",
+            "--output",
+            "${output:native_assignments}",
+            "${input:reads_r1}",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &["qualification_binding_uses_the_governed_single_end_profile"],
+    )
 }
 
 fn bedtools_coverage() -> ToolBindingV1 {
@@ -766,10 +878,11 @@ fn external_binding(
     inputs: &[BindingInputV1],
     outputs: &[BindingOutputV1],
     command_template: &[&str],
-    resources: ToolConstraints,
+    mut resources: ToolConstraints,
     normalizer_id: &str,
     limitations: &[&str],
 ) -> ToolBindingV1 {
+    resources.runtime = "external_artifact".to_string();
     let mut binding_limitations = vec![
         "external_artifact_admission_required".to_string(),
         "artifact_redistribution_prohibited".to_string(),
@@ -823,5 +936,5 @@ fn output(name: &str, artifact_contract_id: &str) -> BindingOutputV1 {
 }
 
 fn resources(threads: u32, mem_gb: u32, tmp_gb: u32) -> ToolConstraints {
-    ToolConstraints { runtime: "external_artifact".to_string(), mem_gb, tmp_gb, threads }
+    ToolConstraints { runtime: "apptainer".to_string(), mem_gb, tmp_gb, threads }
 }

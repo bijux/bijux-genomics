@@ -844,12 +844,22 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        assert_eq!(coverage.summary.binding_ready_count, 17);
+        for tool_id in [
+            "angsd",
+            "centrifuge",
+            "fastuniq",
+            "impute5",
+            "kaiju",
+            "kraken2",
+            "krakenuniq",
+            "ngsbriggs",
+        ] {
             let unit = coverage
                 .units
                 .iter()
                 .find(|unit| unit.tool_id == tool_id)
-                .context("licensed external tool is missing from coverage")?;
+                .context("governed tool binding is missing from coverage")?;
             assert!(unit.binding_ready);
         }
         Ok(())
