@@ -40,7 +40,7 @@ pub use bijux_dna_bench::{
     BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
 pub use bijux_dna_runner::api::{
-    collect_benchmark_campaign_cycle, collect_corpus_materialization_slurm_job,
+    cancel_slurm_jobs, collect_benchmark_campaign_cycle, collect_corpus_materialization_slurm_job,
     load_corpus_materialization_slurm_job_handle, load_corpus_materialization_slurm_spec,
     load_prepared_corpus_materialization_slurm_job, observe_corpus_materialization_slurm_job,
     prepare_corpus_materialization_slurm_job, publish_corpus_materialization_evidence_correction,
@@ -49,8 +49,9 @@ pub use bijux_dna_runner::api::{
     CorpusMaterializationCollection, CorpusMaterializationEvidence,
     CorpusMaterializationEvidenceCorrection, CorpusMaterializationEvidenceCorrectionRequest,
     CorpusMaterializationEvidenceStatus, CorpusMaterializationSlurmResources,
-    CorpusMaterializationSlurmSpec, PreparedCorpusMaterializationSlurmJob, SlurmClientPaths,
-    SlurmJobHandle, SlurmJobObservation, CORPUS_MATERIALIZATION_EVIDENCE_CORRECTION_SCHEMA_V1,
+    CorpusMaterializationSlurmSpec, PreparedCorpusMaterializationSlurmJob, SlurmCancelReport,
+    SlurmCancelRequest, SlurmClientPaths, SlurmJobHandle, SlurmJobObservation,
+    CORPUS_MATERIALIZATION_EVIDENCE_CORRECTION_SCHEMA_V1,
     CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1, CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
     CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
 };

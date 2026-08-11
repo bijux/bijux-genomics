@@ -8,12 +8,14 @@ pub use super::benchmark_cycle::{
     BenchmarkCampaignSubmissionState, BenchmarkCampaignSubmissionUnit,
 };
 pub use super::client::{
-    cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,
+    cancel_slurm_job, cancel_slurm_jobs, collect_slurm_job, observe_slurm_job, submit_slurm_batch,
+    submit_slurm_job,
 };
 pub use super::contracts::{
     SlurmAccounting, SlurmArraySpec, SlurmArrayTaskAccounting, SlurmBatchSubmission,
-    SlurmClientPaths, SlurmDependencyCondition, SlurmEvidenceSource, SlurmJobHandle,
-    SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
+    SlurmCancelReport, SlurmCancelRequest, SlurmClientPaths, SlurmDependencyCondition,
+    SlurmEvidenceSource, SlurmJobHandle, SlurmJobObservation, SlurmJobState,
+    SlurmSubmissionFailure, SlurmSubmitRequest, SLURM_CANCELLATION_SCHEMA_V1,
     SLURM_JOB_HANDLE_SCHEMA_V1,
 };
 pub use super::corpus_materialization::{

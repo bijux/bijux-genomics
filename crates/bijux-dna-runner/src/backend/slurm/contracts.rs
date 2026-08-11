@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 pub const SLURM_JOB_HANDLE_SCHEMA_V1: &str = "bijux.runner.slurm_job_handle.v1";
+pub const SLURM_CANCELLATION_SCHEMA_V1: &str = "bijux.runner.slurm_cancellation.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SlurmClientPaths {
@@ -13,6 +14,22 @@ pub struct SlurmClientPaths {
     pub squeue: PathBuf,
     pub sacct: PathBuf,
     pub scancel: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SlurmCancelRequest {
+    pub job_ids: Vec<String>,
+    pub manifest_path: Option<PathBuf>,
+    pub mock: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SlurmCancelReport {
+    pub schema_version: String,
+    pub mode: String,
+    pub requested_job_ids: Vec<String>,
+    pub cancelled_job_ids: Vec<String>,
 }
 
 impl Default for SlurmClientPaths {

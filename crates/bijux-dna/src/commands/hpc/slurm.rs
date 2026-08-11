@@ -62,14 +62,6 @@ pub struct CopyBackManifestReport {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct SlurmCancelReport {
-    pub schema_version: &'static str,
-    pub mode: String,
-    pub requested_job_ids: Vec<String>,
-    pub cancelled_job_ids: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
 pub struct SlurmMonitorReport {
     pub schema_version: &'static str,
     pub campaign_id: String,
@@ -884,56 +876,17 @@ pub fn submit_campaign(args: &SlurmSubmitCampaignArgs) -> Result<SlurmSubmission
     )
 }
 
-fn collect_cancel_job_ids(args: &SlurmCancelArgs) -> Result<Vec<String>> {
-    let mut ids = args
-        .job_id
-        .iter()
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-        .collect::<Vec<_>>();
-    if let Some(manifest_path) = &args.manifest {
-        let raw = std::fs::read_to_string(manifest_path)
-            .with_context(|| format!("read {}", manifest_path.display()))?;
-        let value: serde_json::Value = serde_json::from_str(&raw)
-            .with_context(|| format!("parse {}", manifest_path.display()))?;
-        let manifest_ids = value
-            .get("jobs")
-            .and_then(|rows| rows.as_array())
-            .into_iter()
-            .flatten()
-            .filter_map(|row| row.get("scheduler_job_id").and_then(|id| id.as_str()))
-            .map(ToOwned::to_owned)
-            .collect::<Vec<_>>();
-        ids.extend(manifest_ids);
-    }
-    ids.sort();
-    ids.dedup();
-    if ids.is_empty() {
-        return Err(anyhow!("cancel requires --job-id values or --manifest containing jobs"));
-    }
-    Ok(ids)
-}
-
-pub fn cancel_jobs(args: &SlurmCancelArgs) -> Result<SlurmCancelReport> {
-    let requested_job_ids = collect_cancel_job_ids(args)?;
-    if args.mock_cancel {
-        return Ok(SlurmCancelReport {
-            schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
-            mode: "mock".to_string(),
-            requested_job_ids: requested_job_ids.clone(),
-            cancelled_job_ids: requested_job_ids,
-        });
-    }
-    let output = run_command("scancel", &requested_job_ids).context("run scancel")?;
-    if output.exit_code != 0 {
-        return Err(anyhow!("scancel failed: {}", output.stderr.trim()));
-    }
-    Ok(SlurmCancelReport {
-        schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
-        mode: "real".to_string(),
-        requested_job_ids: requested_job_ids.clone(),
-        cancelled_job_ids: requested_job_ids,
-    })
+pub fn cancel_jobs(
+    args: &SlurmCancelArgs,
+) -> Result<bijux_dna_api::v1::api::bench::SlurmCancelReport> {
+    bijux_dna_api::v1::api::bench::cancel_slurm_jobs(
+        &bijux_dna_api::v1::api::bench::SlurmClientPaths::default(),
+        &bijux_dna_api::v1::api::bench::SlurmCancelRequest {
+            job_ids: args.job_id.clone(),
+            manifest_path: args.manifest.clone(),
+            mock: args.mock_cancel,
+        },
+    )
 }
 
 fn is_encrypted_bundle_marker(path: &Path) -> bool {
