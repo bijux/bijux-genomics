@@ -177,11 +177,11 @@ pub fn bind_qualification_source_to_frozen_repository(
     if study_root != governed_study_root {
         bail!("qualification source STUDY root differs from site governance");
     }
-    let result_relative = source
+    let declared_result_relative = source
         .result_root
         .strip_prefix(&source.governed_study_root)
         .context("qualification result root is outside its declared STUDY root")?;
-    require_safe_relative(result_relative, "qualification result root")?;
+    require_safe_relative(declared_result_relative, "qualification result root")?;
     let input_relatives = source
         .inputs
         .iter()
@@ -199,6 +199,13 @@ pub fn bind_qualification_source_to_frozen_repository(
         .frozen_repositories
         .canonicalize()
         .context("canonicalize governed frozen-repository root")?;
+    let governed_results_root = governance
+        .paths
+        .results_root
+        .canonicalize()
+        .context("canonicalize governed qualification results root")?;
+    let result_name = format!("{}-{}", source.run_id, source.tool_id);
+    require_safe_component(&result_name, "qualification result identity")?;
     let repository =
         frozen_repository.canonicalize().context("canonicalize qualification frozen repository")?;
     if repository.parent() != Some(frozen_root.as_path())
@@ -212,7 +219,7 @@ pub fn bind_qualification_source_to_frozen_repository(
     let mut bound = source.clone();
     bound.governed_study_root.clone_from(&governed_study_root);
     bound.repository_path = repository;
-    bound.result_root = governed_study_root.join(result_relative);
+    bound.result_root = governed_results_root.join("container-validation").join(result_name);
     for (input, relative) in bound.inputs.iter_mut().zip(input_relatives) {
         input.path = governed_study_root.join(relative);
     }
@@ -780,6 +787,14 @@ fn require_safe_relative(path: &Path, label: &str) -> Result<()> {
         || path.components().any(|component| !matches!(component, Component::Normal(_)))
     {
         bail!("{label} must be a safe relative path");
+    }
+    Ok(())
+}
+
+fn require_safe_component(value: &str, label: &str) -> Result<()> {
+    let mut components = Path::new(value).components();
+    if !matches!(components.next(), Some(Component::Normal(_))) || components.next().is_some() {
+        bail!("{label} must be a safe path component");
     }
     Ok(())
 }

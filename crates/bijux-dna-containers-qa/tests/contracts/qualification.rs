@@ -202,7 +202,7 @@ fn qualification_source_binding_requires_the_governed_commit_freeze() -> Result<
         sample: "sample".to_string(),
         operator: "operator".to_string(),
         submitted_at_utc: "2026-08-11T00:00:00Z".to_string(),
-        result_root: study_alias.join("results/run-1001"),
+        result_root: study_alias.join("attempts/container-qualification/tool/legacy/results"),
         inputs: vec![QualificationSpecificationInputV1 {
             binding_input: "reads_r1".to_string(),
             artifact_contract_id: "bijux.fastq.artifact.single_end.v1".to_string(),
@@ -225,7 +225,10 @@ fn qualification_source_binding_requires_the_governed_commit_freeze() -> Result<
     let bound = bind_qualification_source_to_frozen_repository(&source, &governance, &frozen)?;
     assert_eq!(bound.repository_path, frozen.canonicalize()?);
     assert_eq!(bound.governed_study_root, study.canonicalize()?);
-    assert_eq!(bound.result_root, study.canonicalize()?.join("results/run-1001"));
+    assert_eq!(
+        bound.result_root,
+        study.canonicalize()?.join("results/container-validation/run-1001-tool")
+    );
     assert_eq!(bound.inputs[0].path, study.canonicalize()?.join("data/input.fastq"));
     let outside = temporary.path().join("outside").join(&source.repository_commit);
     fs::create_dir_all(&outside)?;
