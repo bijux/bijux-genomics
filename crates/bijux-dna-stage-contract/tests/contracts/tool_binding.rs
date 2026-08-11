@@ -26,6 +26,7 @@ const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
+const DETECT_ADAPTERS_STAGE: &str = "fastq.detect_adapters";
 const VALIDATE_READS_STAGE: &str = "fastq.validate_reads";
 const PROFILE_READ_LENGTHS_STAGE: &str = "fastq.profile_read_lengths";
 const PROFILE_READS_STAGE: &str = "fastq.profile_reads";
@@ -35,7 +36,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 28);
+    assert_eq!(retained.bindings().len(), 29);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -59,8 +60,52 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 36);
+    assert_eq!(all.bindings().len(), 37);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_fastqc_binding_preserves_directory_evidence_for_shared_normalization() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(DETECT_ADAPTERS_STAGE));
+    assert_eq!(bindings.len(), 1);
+    let binding = bindings[0];
+
+    assert_eq!(binding.tool_id.as_str(), "fastqc");
+    assert_eq!(binding.outputs.len(), 1);
+    assert_eq!(binding.outputs[0].name, "adapter_evidence_dir");
+    assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.auxiliary.artifact.directory.v1");
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.fastq.detect_adapters.bundle.v1"
+    );
+    assert_eq!(
+        binding.normalizer_id,
+        "bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters"
+    );
+    assert_eq!(binding.downstream_probe_id, "benchmark.fastq.detect_adapters.compare");
+    assert_eq!(binding.resources.threads, 4);
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "fastqc".to_owned(),
+            inputs: BTreeMap::from([("reads_r1".to_owned(), "/input/sample.fastq.gz".to_owned())]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+            outputs: BTreeMap::from([(
+                "adapter_evidence_dir".to_owned(),
+                "/result/fastqc".to_owned(),
+            )]),
+        },
+    )?;
+    assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+    assert_eq!(
+        command[2],
+        "mkdir -p '/result/fastqc' && 'fastqc' --outdir '/result/fastqc' --threads '4' '/input/sample.fastq.gz'"
+    );
+    assert!(!command[2].contains("fastq_detect_adapters.sh"));
     Ok(())
 }
 

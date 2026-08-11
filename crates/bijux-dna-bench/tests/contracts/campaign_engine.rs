@@ -173,6 +173,42 @@ fn checked_in_run_2005_plans_both_aligners_through_canonical_bindings() -> Resul
 }
 
 #[test]
+fn checked_in_run_2030_plans_fastqc_through_the_canonical_binding() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2030");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "fastq.detect_adapters");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2030 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert!(!matrix.cases.is_empty());
+    assert!(matrix.cases.iter().all(|case| {
+        case.run_id == "run-2030"
+            && case.tool_id == "fastqc"
+            && case.binding.resources.threads == 4
+            && case.binding.normalized_output_contract_id == case.interface.output_contract
+            && case.binding.outputs.iter().any(|output| {
+                output.name == "adapter_evidence_dir"
+                    && output.artifact_contract_id == "bijux.auxiliary.artifact.directory.v1"
+            })
+    }));
+    Ok(())
+}
+
+#[test]
 fn checked_in_run_2003_plans_endogenous_content_through_canonical_binding() -> Result<()> {
     let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
     campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2003");

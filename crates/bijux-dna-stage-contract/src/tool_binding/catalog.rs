@@ -8,6 +8,7 @@ use super::{
 };
 
 const BAM: &str = "bijux.bam.artifact.coordinate_sorted_indexed.v1";
+const DIRECTORY: &str = "bijux.auxiliary.artifact.directory.v1";
 const FILE: &str = "bijux.auxiliary.artifact.file.v1";
 const FASTA: &str = "bijux.reference.artifact.fasta.v1";
 const FASTQ_PAIRED: &str = "bijux.fastq.artifact.paired_end.v1";
@@ -57,6 +58,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bowtie2_align(),
         bwa_align(),
         centrifuge_screen_taxonomy(),
+        fastqc_detect_adapters(),
         fastqvalidator_validate_reads(),
         fqtools_validate_reads(),
         kaiju_screen_taxonomy(),
@@ -84,6 +86,31 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn fastqc_detect_adapters() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.detect_adapters",
+        "fastqc",
+        &["single_end_reads", "adapter_content_evidence", "full_input_qc"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("adapter_evidence_dir", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "mkdir -p '${output:adapter_evidence_dir}' && '${executable}' --outdir '${output:adapter_evidence_dir}' --threads '${parameter:threads}' '${input:reads_r1}'",
+        ],
+        "bijux.benchmark.fastq.detect_adapters.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters",
+        "benchmark.fastq.detect_adapters.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "native_fastqc_directory_is_preserved_as_raw_attempt_evidence",
+            "adapter_report_json_is_emitted_by_the_shared_result_normalizer",
+        ],
+    )
 }
 
 fn fastqvalidator_validate_reads() -> ToolBindingV1 {
