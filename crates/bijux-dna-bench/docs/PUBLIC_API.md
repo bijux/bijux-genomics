@@ -63,6 +63,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `plan_stage_campaign_retry_attempts(registry, repository_commit, campaign_registry_sha256, prior_attempts, attempt_id, observed_at_utc)` derives linked retry origins from one complete terminal lineage.
 - `verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)` rejects stale source or campaign declaration identity before execution state is created.
 - `ensure_stage_campaign_attempts(root, plan)` validates source locks, then preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
+- `resolve_benchmark_runtime(platform, runtime_override)` applies the benchmark-owned container-runtime policy before execution is allocated.
 - `plan_benchmark_cases(request)` selects one permanent run, closes its governed data and tool bindings, and immutably publishes its generic case matrix.
 - `admit_benchmark_cases(request)` validates normalized observations against their exact case matrix and publishes an immutable admitted set.
 - `aggregate_benchmark_cases(request)` validates an admitted observation set and publishes deterministic case aggregations.

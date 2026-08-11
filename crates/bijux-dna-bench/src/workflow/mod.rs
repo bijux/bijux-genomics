@@ -41,6 +41,7 @@ mod report_load;
 mod run_index;
 mod run_registry;
 mod run_suite;
+mod runtime_selection;
 mod scientific_readiness;
 mod source_authority;
 mod stage_coverage;
@@ -224,6 +225,7 @@ pub use run_registry::{
     derive_benchmark_run_registry, publish_checked_in_benchmark_run_registry,
     render_benchmark_run_registry_markdown, BenchmarkRunRegistryWriteMode,
 };
+pub use runtime_selection::resolve_benchmark_runtime;
 pub use scientific_readiness::{
     derive_scientific_readiness, publish_checked_in_scientific_readiness,
     render_scientific_readiness_markdown,

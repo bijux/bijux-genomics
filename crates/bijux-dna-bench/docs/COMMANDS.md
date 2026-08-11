@@ -75,6 +75,7 @@ These operations are exported through the crate root and `public_api`.
 | `load-benchmark-execution-authorities` | `load_execution_authorities(repository_root, inventory_path, repository_commit, plan)` | Load and hash exact campaign, interface, catalog, and image-inventory authorities, rejecting source or closure drift. |
 | `ensure-benchmark-execution-spec` | `ensure_execution_spec(benchmark_root, spec)` | Crash-safely persist one immutable executable specification beside its wholly planned attempt lifecycle. |
 | `load-benchmark-execution-spec` | `load_execution_spec(benchmark_root, identity)` | Load and validate a persisted executable specification against its immutable attempt identity. |
+| `resolve-benchmark-runtime` | `resolve_benchmark_runtime(platform, runtime_override)` | Select an explicit container runtime and reject local execution before benchmark allocation. |
 | `ensure-stage-campaign-attempts` | `ensure_stage_campaign_attempts(root, plan)` | Validate source locks, then preflight and crash-safely initialize every immutable planned attempt in a campaign cycle. |
 | `plan-benchmark-cases` | `plan_benchmark_cases(request)` | Select one permanent run, close its governed data and tool authorities, and immutably publish its generic case matrix. |
 | `admit-benchmark-cases` | `admit_benchmark_cases(request)` | Validate normalized observations against their exact case matrix and publish an immutable admitted set. |

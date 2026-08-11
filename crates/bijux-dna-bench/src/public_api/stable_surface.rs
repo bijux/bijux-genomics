@@ -114,7 +114,7 @@ pub use crate::workflow::{
     render_fastq_profile_reads_markdown, render_fastq_validate_reads_markdown,
     render_scientific_readiness_markdown, render_stage_coverage_markdown,
     render_stage_report_markdown, render_stage_universe_markdown,
-    replay_checked_in_benchmark_publication, rollback_attempt_migration,
+    replay_checked_in_benchmark_publication, resolve_benchmark_runtime, rollback_attempt_migration,
     status_checked_in_benchmark_campaign, summarize,
     validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
     validate_benchmark_case_aggregations, validate_benchmark_case_matrix, verify_attempt_migration,
