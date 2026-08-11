@@ -72,6 +72,57 @@ struct FullArchiveRoots {
     build_log: PathBuf,
 }
 
+struct FullShardEphemera {
+    report_workspaces: PathBuf,
+    archive_file: PathBuf,
+    archive_target: PathBuf,
+    shard_artifact_roots: Vec<PathBuf>,
+    armed: bool,
+}
+
+impl FullShardEphemera {
+    fn new(
+        report_root: &Path,
+        archive_roots: &FullArchiveRoots,
+        shard_roots: &[FullShardRoots],
+    ) -> Result<Self> {
+        let archive_target = archive_roots
+            .cargo_target
+            .parent()
+            .context("full shard archive Cargo target has no parent")?
+            .to_path_buf();
+        Ok(Self {
+            report_workspaces: report_root.join("workspaces"),
+            archive_file: archive_roots.archive_file.clone(),
+            archive_target,
+            shard_artifact_roots: shard_roots
+                .iter()
+                .map(|roots| roots.artifact_root.clone())
+                .collect(),
+            armed: true,
+        })
+    }
+
+    fn retain_bounded_evidence(&mut self) -> Result<()> {
+        remove_full_shard_ephemera(&self.report_workspaces)?;
+        for path in &self.shard_artifact_roots {
+            remove_full_shard_ephemera(path)?;
+        }
+        remove_full_shard_ephemera(&self.archive_target)?;
+        remove_full_shard_ephemera(&self.archive_file)?;
+        self.armed = false;
+        Ok(())
+    }
+}
+
+impl Drop for FullShardEphemera {
+    fn drop(&mut self) {
+        if self.armed {
+            let _ = self.retain_bounded_evidence();
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct FastGroupContract {
@@ -531,6 +582,13 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
     let archive_roots = full_archive_roots(workspace, &contract)?;
     validate_full_archive_roots(workspace, &archive_roots)?;
+    let shard_roots = contract
+        .shards
+        .iter()
+        .map(|shard| full_shard_roots(workspace, &contract, shard))
+        .collect::<Result<Vec<_>>>()?;
+    validate_full_shard_root_set(workspace, &shard_roots)?;
+    let mut ephemera = FullShardEphemera::new(&report_root, &archive_roots, &shard_roots)?;
     prepare_full_archive_roots(&archive_roots)?;
     let archive_workspace =
         materialize_full_shard_workspace(workspace, &report_root, "archive-build")?;
@@ -577,11 +635,19 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
                 "build_authority_sha256": build_authority_sha256,
                 "archive": archive_receipt,
+                "evidence_retention": {
+                    "policy": "bounded_logs_and_receipts",
+                    "archive_retained": false,
+                    "build_targets_retained": false,
+                    "isolated_workspaces_retained": false,
+                    "shard_runtime_artifacts_retained": false,
+                },
                 "wall_time_milliseconds": started.elapsed().as_millis(),
                 "all_passed": false,
                 "shards": [],
             }),
         )?;
+        ephemera.retain_bounded_evidence()?;
         return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
     }
     let shard_workspaces = contract
@@ -589,12 +655,6 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .iter()
         .map(|shard| materialize_full_shard_workspace(workspace, &report_root, &shard.id))
         .collect::<Result<Vec<_>>>()?;
-    let shard_roots = contract
-        .shards
-        .iter()
-        .map(|shard| full_shard_roots(workspace, &contract, shard))
-        .collect::<Result<Vec<_>>>()?;
-    validate_full_shard_root_set(workspace, &shard_roots)?;
     let specs = contract
         .shards
         .iter()
@@ -653,6 +713,13 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
             "build_authority_sha256": build_authority_sha256,
             "archive": archive_receipt,
+            "evidence_retention": {
+                "policy": "bounded_logs_and_receipts",
+                "archive_retained": false,
+                "build_targets_retained": false,
+                "isolated_workspaces_retained": false,
+                "shard_runtime_artifacts_retained": false,
+            },
             "coverage": {
                 "workspace": true,
                 "all_targets": true,
@@ -667,7 +734,24 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "shards": shard_receipts,
         }),
     )?;
+    ephemera.retain_bounded_evidence()?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
+    let Ok(metadata) = path.symlink_metadata() else {
+        return Ok(());
+    };
+    if metadata.file_type().is_symlink() {
+        anyhow::bail!("full shard ephemeral path is a symlink: {}", path.display());
+    }
+    if metadata.is_dir() {
+        std::fs::remove_dir_all(path)
+            .with_context(|| format!("remove full shard ephemeral directory {}", path.display()))
+    } else {
+        std::fs::remove_file(path)
+            .with_context(|| format!("remove full shard ephemeral file {}", path.display()))
+    }
 }
 
 fn read_ci_build_authority(path: &Path) -> Result<CiBuildAuthority> {
@@ -1355,8 +1439,8 @@ mod tests {
         reference_timing_samples, set_full_archive_readonly, validate_ci_test_executor_observation,
         validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
         validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
-        FastTimingHistory, FastTimingObservation, FullShard, FullShardContract, FullShardCoverage,
-        FAST_TIMING_HISTORY_SCHEMA_V1,
+        FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract,
+        FullShardCoverage, FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -1595,6 +1679,52 @@ mod tests {
         set_full_archive_readonly(&archive)?;
 
         assert!(std::fs::metadata(&archive)?.permissions().readonly());
+        Ok(())
+    }
+
+    #[test]
+    fn full_shards_retain_only_bounded_logs_and_receipts() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let report_root = root.path().join("full-shards");
+        let archive_root = report_root.join("archive");
+        let shard_root = report_root.join("shards/hash-1-of-4");
+        std::fs::create_dir_all(report_root.join("workspaces/hash-1-of-4"))?;
+        std::fs::create_dir_all(archive_root.join("target/cargo"))?;
+        std::fs::create_dir_all(&shard_root)?;
+        std::fs::write(report_root.join("hash-1-of-4.log"), b"test failure\n")?;
+        std::fs::write(report_root.join("full-gate-timing.json"), b"{}\n")?;
+        std::fs::write(archive_root.join("build.log"), b"archive build\n")?;
+        std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
+        std::fs::write(archive_root.join("target/cargo/output"), b"cargo output\n")?;
+        std::fs::write(shard_root.join("output"), b"shard output\n")?;
+
+        let archive_roots = FullArchiveRoots {
+            artifact_root: archive_root.clone(),
+            cargo_target: archive_root.join("target/cargo"),
+            archive_file: archive_root.join("workspace-tests.tar.zst"),
+            build_log: archive_root.join("build.log"),
+        };
+        let shard_roots = vec![FullShardRoots {
+            artifact_root: shard_root.clone(),
+            archive_extract: shard_root.join("nextest/archive"),
+            cargo_target: shard_root.join("target/cargo"),
+            test_target: shard_root.join("target/test"),
+            coverage_target: shard_root.join("target/coverage"),
+            test_tmp: shard_root.join("tmp/test"),
+            coverage_tmp: shard_root.join("tmp/coverage"),
+            test_profraw: shard_root.join("coverage/profraw-test"),
+            coverage_profraw: shard_root.join("coverage/profraw-coverage"),
+        }];
+        let mut ephemera = FullShardEphemera::new(&report_root, &archive_roots, &shard_roots)?;
+        ephemera.retain_bounded_evidence()?;
+
+        assert!(!report_root.join("workspaces").exists());
+        assert!(!archive_root.join("target").exists());
+        assert!(!archive_root.join("workspace-tests.tar.zst").exists());
+        assert!(!shard_root.exists());
+        assert!(archive_root.join("build.log").is_file());
+        assert!(report_root.join("hash-1-of-4.log").is_file());
+        assert!(report_root.join("full-gate-timing.json").is_file());
         Ok(())
     }
 
