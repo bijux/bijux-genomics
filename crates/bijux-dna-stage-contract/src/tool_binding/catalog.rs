@@ -90,10 +90,59 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         seqtk_validate_reads(),
         star_index_reference(),
         umi_tools_extract_umis(),
+        vsearch_cluster_otus(),
     ] {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn vsearch_cluster_otus() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.cluster_otus",
+        "vsearch",
+        &[
+            "single_end_or_merged_amplicon_reads",
+            "identity_threshold_clustering",
+            "native_uc_and_otu_tables",
+        ],
+        &[input("reads", FASTQ_SINGLE)],
+        &["identity_threshold", "threads"],
+        &[
+            output("otu_representatives", FASTA),
+            output("otu_clusters", TABLE),
+            output("otu_table", TABLE),
+        ],
+        &[
+            "${executable}",
+            "--cluster_fast",
+            "${input:reads}",
+            "--id",
+            "${parameter:identity_threshold}",
+            "--sizein",
+            "--sizeout",
+            "--relabel",
+            "OTU_",
+            "--threads",
+            "${parameter:threads}",
+            "--centroids",
+            "${output:otu_representatives}",
+            "--uc",
+            "${output:otu_clusters}",
+            "--otutabout",
+            "${output:otu_table}",
+        ],
+        "bijux.benchmark.fastq.cluster_otus.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus",
+        "benchmark.fastq.cluster_otus.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_requires_single_end_or_premerged_amplicon_reads",
+            "qualification_identity_threshold_is_0.97",
+            "taxonomy_ready_derivatives_and_governed_reports_are_normalizer_outputs_not_native_vsearch_outputs",
+            "comparative_case_admission_requires_the_closed_cluster_otus_stage_interface",
+        ],
+    )
 }
 
 fn dada2_infer_asvs() -> ToolBindingV1 {

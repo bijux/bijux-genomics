@@ -25,6 +25,7 @@ const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
+const CLUSTER_OTUS_STAGE: &str = "fastq.cluster_otus";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
 const DETECT_ADAPTERS_STAGE: &str = "fastq.detect_adapters";
 const INFER_ASVS_STAGE: &str = "fastq.infer_asvs";
@@ -40,7 +41,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 36);
+    assert_eq!(retained.bindings().len(), 37);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -64,8 +65,74 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 44);
+    assert_eq!(all.bindings().len(), 45);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_vsearch_cluster_binding_preserves_native_clustering_outputs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(CLUSTER_OTUS_STAGE), &ToolId::new("vsearch"))
+        .ok_or_else(|| anyhow::anyhow!("canonical VSEARCH cluster-OTUs binding is missing"))?;
+
+    assert_eq!(binding.inputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["otu_representatives", "otu_clusters", "otu_table"]
+    );
+    assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.reference.artifact.fasta.v1");
+    assert!(binding
+        .outputs
+        .iter()
+        .skip(1)
+        .all(|output| output.artifact_contract_id == "bijux.auxiliary.artifact.table.v1"));
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.fastq.cluster_otus.bundle.v1"
+    );
+    assert_eq!(binding.downstream_probe_id, "benchmark.fastq.cluster_otus.consume");
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "vsearch".to_owned(),
+            inputs: BTreeMap::from([("reads".to_owned(), "/input/amplicons.fastq".to_owned())]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("identity_threshold".to_owned(), "0.97".to_owned()),
+                ("threads".to_owned(), "4".to_owned()),
+            ]),
+            outputs: BTreeMap::from([
+                ("otu_representatives".to_owned(), "/result/centroids.fasta".to_owned()),
+                ("otu_clusters".to_owned(), "/result/clusters.uc".to_owned()),
+                ("otu_table".to_owned(), "/result/otu-table.tsv".to_owned()),
+            ]),
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "vsearch",
+            "--cluster_fast",
+            "/input/amplicons.fastq",
+            "--id",
+            "0.97",
+            "--sizein",
+            "--sizeout",
+            "--relabel",
+            "OTU_",
+            "--threads",
+            "4",
+            "--centroids",
+            "/result/centroids.fasta",
+            "--uc",
+            "/result/clusters.uc",
+            "--otutabout",
+            "/result/otu-table.tsv",
+        ]
+    );
     Ok(())
 }
 

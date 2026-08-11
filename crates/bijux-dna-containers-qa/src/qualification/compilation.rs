@@ -877,7 +877,7 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 30);
+        assert_eq!(coverage.summary.binding_ready_count, 31);
         for tool_id in [
             "angsd",
             "bbduk",
@@ -900,6 +900,7 @@ mod tests {
             "seqkit_stats",
             "seqtk",
             "star",
+            "vsearch",
         ] {
             let unit = coverage
                 .units
