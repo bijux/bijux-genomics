@@ -6,8 +6,9 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
-    ContainerImageState, ContainerPipelineContract, ContainerPipelineV2, ImageCandidateDisposition,
-    QualificationRunState, CONTAINER_PIPELINE_SCHEMA_V2,
+    validate_container_governance, verify_frozen_repository, ContainerGovernance,
+    ContainerImageState, ContainerPipelineContract, ContainerPipelineV2,
+    ImageCandidateDisposition, QualificationRunState, CONTAINER_PIPELINE_SCHEMA_V2,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
@@ -150,6 +151,50 @@ pub fn qualification_specification_source_schema() -> Schema {
 pub fn write_qualification_specification_source_schema(path: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_json(path, &qualification_specification_source_schema())
         .context("write qualification specification source schema")
+}
+
+/// Bind one declarative qualification source to its governed, commit-addressed repository freeze.
+///
+/// # Errors
+/// Returns an error when governance and source roots differ, the target is outside the governed
+/// frozen-repository root, or the snapshot is not commit-exact, self-contained, clean, and
+/// read-only.
+pub fn bind_qualification_source_to_frozen_repository(
+    source: &QualificationSpecificationSourceV1,
+    governance: &ContainerGovernance,
+    frozen_repository: &Path,
+) -> Result<QualificationSpecificationSourceV1> {
+    validate_container_governance(governance)?;
+    if source.schema_version != QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1 {
+        bail!("unsupported qualification specification source schema");
+    }
+    let study_root = source
+        .governed_study_root
+        .canonicalize()
+        .context("canonicalize qualification source STUDY root")?;
+    let governed_study_root =
+        governance.paths.study_root.canonicalize().context("canonicalize governed STUDY root")?;
+    if study_root != governed_study_root {
+        bail!("qualification source STUDY root differs from site governance");
+    }
+    let frozen_root = governance
+        .paths
+        .frozen_repositories
+        .canonicalize()
+        .context("canonicalize governed frozen-repository root")?;
+    let repository =
+        frozen_repository.canonicalize().context("canonicalize qualification frozen repository")?;
+    if repository.parent() != Some(frozen_root.as_path())
+        || repository.file_name().and_then(|name| name.to_str())
+            != Some(source.repository_commit.as_str())
+    {
+        bail!("qualification source repository is not frozen by commit identity");
+    }
+    verify_frozen_repository(&repository, &source.repository_commit)
+        .context("verify qualification source frozen repository")?;
+    let mut bound = source.clone();
+    bound.repository_path = repository;
+    Ok(bound)
 }
 
 /// Compile one checksum-bound, stage-bound qualification source into the current pipeline model.
