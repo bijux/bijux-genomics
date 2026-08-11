@@ -149,7 +149,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_reference_materialization_retains_all_governed_authorities() -> anyhow::Result<()> {
+    fn benchmark_reference_materialization_retains_all_governed_authorities() -> anyhow::Result<()>
+    {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
             "benchmark",
