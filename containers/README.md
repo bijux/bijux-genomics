@@ -98,6 +98,12 @@ canonical_inventory="${inventory_root}/image-inventory.json"
 cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- \
   "${source_repository}" "${study_root}" "${canonical_inventory}" \
   /usr/bin/apptainer "${inventory_root}/execution-bindings.json" bcftools
+
+# Admitted licensed artifacts join the same manifest without changing runner logic.
+cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- \
+  "${source_repository}" "${study_root}" "${canonical_inventory}" \
+  /usr/bin/apptainer "${inventory_root}/mixed-execution-bindings.json" \
+  bcftools --external-admission "${active_image_root}" "${admitted_angsd_record}"
 ```
 
 The source checkout and all evidence roots are mandatory. This allows a newer
