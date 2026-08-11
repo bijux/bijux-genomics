@@ -30,6 +30,9 @@ The `public_api` module itself is private. Stable exports are owned by
 - `derive_cross_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected cross-domain goal closure.
 - `load_cross_benchmark_campaign_report(path)` parses and admits a persisted cross-domain campaign report.
 - `publish_cross_benchmark_campaign_report(path, report)` validates before atomic publication.
+- `derive_bam_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected BAM goal closure.
+- `load_bam_benchmark_campaign_report(path)` parses and admits a persisted BAM campaign report.
+- `publish_bam_benchmark_campaign_report(path, report)` validates before atomic publication.
 - `derive_fastq_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected FASTQ goal closure.
 - `load_fastq_benchmark_campaign_report(path)` parses and admits a persisted FASTQ campaign report.
 - `publish_fastq_benchmark_campaign_report(path, report)` validates before atomic publication.

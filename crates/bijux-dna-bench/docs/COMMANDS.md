@@ -32,6 +32,9 @@ These operations are exported through the crate root and `public_api`.
 | `derive-cross-benchmark-campaign` | `derive_cross_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a cross-domain goal campaign from admitted matrix and appraisal products. |
 | `load-cross-benchmark-campaign` | `load_cross_benchmark_campaign_report(path)` | Parse and admit a persisted cross-domain campaign report. |
 | `publish-cross-benchmark-campaign` | `publish_cross_benchmark_campaign_report(path, report)` | Validate and atomically publish a cross-domain campaign report. |
+| `derive-bam-benchmark-campaign` | `derive_bam_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a BAM goal campaign from admitted matrix and appraisal products. |
+| `load-bam-benchmark-campaign` | `load_bam_benchmark_campaign_report(path)` | Parse and admit a persisted BAM campaign report. |
+| `publish-bam-benchmark-campaign` | `publish_bam_benchmark_campaign_report(path, report)` | Validate and atomically publish a BAM campaign report. |
 | `derive-fastq-benchmark-campaign` | `derive_fastq_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a FASTQ goal campaign from admitted matrix and appraisal products. |
 | `load-fastq-benchmark-campaign` | `load_fastq_benchmark_campaign_report(path)` | Parse and admit a persisted FASTQ campaign report. |
 | `publish-fastq-benchmark-campaign` | `publish_fastq_benchmark_campaign_report(path, report)` | Validate and atomically publish a FASTQ campaign report. |

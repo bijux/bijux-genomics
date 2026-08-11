@@ -90,6 +90,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "attempt_migration.rs",
             "appraisal.rs",
+            "bam_campaign.rs",
             "bam_coverage/",
             "bam_duplication_metrics/",
             "bam_endogenous_content/",

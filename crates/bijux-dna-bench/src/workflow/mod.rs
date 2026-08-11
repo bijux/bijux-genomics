@@ -4,6 +4,7 @@
 
 mod appraisal;
 mod attempt_migration;
+mod bam_campaign;
 mod bam_coverage;
 mod bam_duplication_metrics;
 mod bam_endogenous_content;
@@ -55,6 +56,10 @@ pub use attempt_migration::{
     apply_attempt_migration, plan_attempt_migration, rollback_attempt_migration,
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,
     BenchmarkAttemptMigrationVerificationEntry,
+};
+pub use bam_campaign::{
+    derive_bam_benchmark_campaign, load_bam_benchmark_campaign_report,
+    publish_bam_benchmark_campaign_report,
 };
 pub use bam_coverage::{
     prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus,
