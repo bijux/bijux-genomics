@@ -50,7 +50,7 @@ fn bench_readiness_tool_execution_modes_report_governs_all_benchmark_tools() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("primary_operator_runtime")
     );
-    assert_eq!(payload.get("mode_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(payload.get("mode_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -75,4 +75,17 @@ fn bench_readiness_tool_execution_modes_report_governs_all_benchmark_tools() {
         .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc"))
         .expect("multiqc row");
     assert_eq!(multiqc.get("execution_mode").and_then(serde_json::Value::as_str), Some("python"));
+
+    let germline = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("germline"))
+        .expect("germline row");
+    assert_eq!(
+        germline.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("containerized")
+    );
+    assert_eq!(
+        germline.get("domains").and_then(serde_json::Value::as_array),
+        Some(&vec![serde_json::Value::String("vcf".to_string())])
+    );
 }

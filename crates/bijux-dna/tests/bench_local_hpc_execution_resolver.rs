@@ -101,15 +101,39 @@ fn bench_local_render_hpc_execution_resolver_reports_selected_tool_runtime_surfa
         .iter()
         .find(|row| row.get("tool_id").map(String::as_str) == Some("germline"))
         .expect("germline selected benchmark row");
-    assert_eq!(germline.get("execution_mode").map(String::as_str), Some("unclassified"));
-    assert_eq!(
-        germline.get("resolution_kind").map(String::as_str),
-        Some("unavailable_with_reason")
-    );
+    assert_eq!(germline.get("execution_mode").map(String::as_str), Some("containerized"));
+    assert_eq!(germline.get("resolution_kind").map(String::as_str), Some("apptainer_image"));
     assert!(
         germline
+            .get("resolution_target")
+            .is_some_and(|value| value.starts_with("${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/germline/")),
+        "classified VCF tools with admitted images must resolve through the governed Apptainer cache"
+    );
+
+    let plink = rows
+        .iter()
+        .find(|row| row.get("tool_id").map(String::as_str) == Some("plink"))
+        .expect("plink selected benchmark row");
+    assert_eq!(plink.get("execution_mode").map(String::as_str), Some("containerized"));
+    assert_eq!(plink.get("resolution_kind").map(String::as_str), Some("unavailable_with_reason"));
+    assert!(
+        plink
             .get("unavailable_reason")
             .is_some_and(|value| value.contains("planned container source")),
-        "unclassified planned tools must surface the governed unavailable reason"
+        "classified planned tools must retain their independent availability reason"
     );
+
+    for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        let row = rows
+            .iter()
+            .find(|row| row.get("tool_id").map(String::as_str) == Some(tool_id))
+            .expect("licensed external selected benchmark row");
+        assert_eq!(row.get("execution_mode").map(String::as_str), Some("external"));
+        assert_eq!(row.get("resolution_kind").map(String::as_str), Some("unavailable_with_reason"));
+        assert!(
+            row.get("unavailable_reason")
+                .is_some_and(|value| value.contains("external artifact admission")),
+            "licensed external product support must remain classified independently from artifact admission"
+        );
+    }
 }
