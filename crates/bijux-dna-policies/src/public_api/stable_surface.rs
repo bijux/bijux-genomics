@@ -40,3 +40,6 @@ pub use crate::security_evidence::{
     VulnerabilityWaiver, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
     CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2,
 };
+pub use crate::tool_eligibility::{
+    select_eligible_tools, ToolEligibilityCandidate, ToolEligibilityPolicy, ToolEligibilityTier,
+};

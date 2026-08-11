@@ -18,6 +18,7 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 - Derive typed qualification claims and portable report summaries from admitted evidence facts.
 - Validate publication freshness and typed container security evidence without executing scanners.
 - Derive and admit checksum-bound release publications without performing publication I/O.
+- Decide role-based tool eligibility from explicit, effect-free caller observations.
 
 ## Allowed Test Responsibilities
 - Inspect workspace dependency graphs and manifests.
