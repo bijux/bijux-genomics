@@ -29,6 +29,7 @@ const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
 const DETECT_ADAPTERS_STAGE: &str = "fastq.detect_adapters";
 const FILTER_LOW_COMPLEXITY_STAGE: &str = "fastq.filter_low_complexity";
 const FILTER_READS_STAGE: &str = "fastq.filter_reads";
+const INDEX_REFERENCE_STAGE: &str = "fastq.index_reference";
 const VALIDATE_READS_STAGE: &str = "fastq.validate_reads";
 const PROFILE_READ_LENGTHS_STAGE: &str = "fastq.profile_read_lengths";
 const PROFILE_READS_STAGE: &str = "fastq.profile_reads";
@@ -38,7 +39,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 33);
+    assert_eq!(retained.bindings().len(), 35);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -62,8 +63,74 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 41);
+    assert_eq!(all.bindings().len(), 43);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_index_reference_bindings_collect_complete_index_directories() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(INDEX_REFERENCE_STAGE));
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bowtie2_build", "star"]
+    );
+
+    let expected_commands = BTreeMap::from([
+        (
+            "bowtie2_build",
+            "set -eu\nmkdir -p '/result/index'\n'/images/bowtie2-build' --threads '4' '/input/reference.fa' '/result/index/reference'",
+        ),
+        (
+            "star",
+            "set -eu\nmkdir -p '/result/index'\n'/images/star' --runMode genomeGenerate --runThreadN '4' --genomeDir '/result/index' --genomeFastaFiles '/input/reference.fa'",
+        ),
+    ]);
+    for binding in bindings {
+        assert_eq!(binding.inputs[0].artifact_contract_id, "bijux.reference.artifact.fasta.v1");
+        assert_eq!(
+            binding.outputs[0].artifact_contract_id,
+            "bijux.auxiliary.artifact.directory.v1"
+        );
+        assert_eq!(binding.outputs[0].discovery, OutputDiscoveryV1::ExactPath);
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.index_reference.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::fastq::index_reference"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.index_reference.consume");
+        assert!(binding
+            .limitations
+            .iter()
+            .any(|limitation| limitation.contains("compatible_alignment_consumer")));
+
+        let executable = if binding.tool_id.as_str() == "bowtie2_build" {
+            "/images/bowtie2-build"
+        } else {
+            "/images/star"
+        };
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: executable.to_owned(),
+                inputs: BTreeMap::from([(
+                    "reference_fasta".to_owned(),
+                    "/input/reference.fa".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+                outputs: BTreeMap::from([(
+                    "reference_index".to_owned(),
+                    "/result/index".to_owned(),
+                )]),
+            },
+        )?;
+        assert_eq!(command, ["sh", "-lc", expected_commands[binding.tool_id.as_str()]]);
+    }
     Ok(())
 }
 

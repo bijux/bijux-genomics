@@ -57,6 +57,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bbduk_filter_low_complexity(),
         bcftools_genotyping(),
         bedtools_coverage(),
+        bowtie2_build_index_reference(),
         bowtie2_align(),
         bwa_align(),
         centrifuge_screen_taxonomy(),
@@ -86,11 +87,63 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         seqkit_profile_reads(),
         seqkit_stats_profile_reads(),
         seqtk_validate_reads(),
+        star_index_reference(),
         umi_tools_extract_umis(),
     ] {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn bowtie2_build_index_reference() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.index_reference",
+        "bowtie2_build",
+        &["reference_fasta", "fm_index_build", "multi_file_index_directory"],
+        &[input("reference_fasta", FASTA)],
+        &["threads"],
+        &[output("reference_index", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:reference_index}'\n'${executable}' --threads '${parameter:threads}' '${input:reference_fasta}' '${output:reference_index}/reference'",
+        ],
+        "bijux.benchmark.fastq.index_reference.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::index_reference",
+        "benchmark.fastq.index_reference.consume",
+        resources(4, 16, 16),
+        &[
+            "the_governed_output_is_a_directory_containing_the_complete_bowtie2_prefix_family",
+            "the_downstream_probe_must_project_the_reference_prefix_inside_the_governed_directory",
+            "index_formats_are_tool_specific_and_require_a_compatible_alignment_consumer",
+            "comparative_case_admission_requires_the_closed_index_reference_stage_interface",
+        ],
+    )
+}
+
+fn star_index_reference() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.index_reference",
+        "star",
+        &["reference_fasta", "splice_aware_index_build", "multi_file_index_directory"],
+        &[input("reference_fasta", FASTA)],
+        &["threads"],
+        &[output("reference_index", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:reference_index}'\n'${executable}' --runMode genomeGenerate --runThreadN '${parameter:threads}' --genomeDir '${output:reference_index}' --genomeFastaFiles '${input:reference_fasta}'",
+        ],
+        "bijux.benchmark.fastq.index_reference.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::index_reference",
+        "benchmark.fastq.index_reference.consume",
+        resources(4, 16, 16),
+        &[
+            "the_governed_output_is_the_complete_star_genome_directory",
+            "index_formats_are_tool_specific_and_require_a_compatible_alignment_consumer",
+            "comparative_case_admission_requires_the_closed_index_reference_stage_interface",
+        ],
+    )
 }
 
 fn bbduk_filter_low_complexity() -> ToolBindingV1 {
