@@ -5,7 +5,6 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
 
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
@@ -254,22 +253,14 @@ pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
 
 /// Stability: v1 (stable).
 /// Descriptor for one governed stage-specific VCF normalized metrics schema.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct VcfNormalizedMetricsStageSchemaDescriptor {
-    pub stage_id: String,
-    pub schema_version: String,
-    pub schema_id: String,
-    pub file_name: String,
-    pub extension_id: String,
-    pub required_key_count: usize,
-}
+pub use bijux_dna_bench_model::normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor;
 
 /// Render the governed VCF normalized metrics schema.
 ///
 /// # Errors
 /// Returns an error if the governed schema cannot be rendered.
 pub fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value> {
-    crate::internal::vcf::normalized_metrics_contract::render_vcf_normalized_metrics_schema()
+    bijux_dna_bench_model::normalized_result::vcf_envelope::render_vcf_normalized_metrics_schema()
 }
 
 /// Render the governed stage-specific VCF normalized metrics schema.
@@ -277,9 +268,7 @@ pub fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value> {
 /// # Errors
 /// Returns an error if the stage-specific schema cannot be rendered.
 pub fn render_vcf_normalized_metrics_stage_schema(stage_id: &str) -> Result<serde_json::Value> {
-    crate::internal::vcf::normalized_metrics_contract::render_vcf_normalized_metrics_stage_schema(
-        stage_id,
-    )
+    bijux_dna_bench_model::normalized_result::vcf_envelope::render_vcf_normalized_metrics_stage_schema(stage_id)
 }
 
 /// Validate a normalized VCF metrics payload against the governed stage schema contract.
@@ -289,16 +278,7 @@ pub fn render_vcf_normalized_metrics_stage_schema(stage_id: &str) -> Result<serd
 pub fn validate_vcf_normalized_metrics(
     metrics: &serde_json::Value,
 ) -> Result<VcfNormalizedMetricsStageSchemaDescriptor> {
-    crate::internal::vcf::normalized_metrics_contract::validate_vcf_normalized_metrics(metrics).map(
-        |descriptor| VcfNormalizedMetricsStageSchemaDescriptor {
-            stage_id: descriptor.stage_id,
-            schema_version: descriptor.schema_version,
-            schema_id: descriptor.schema_id,
-            file_name: descriptor.file_name,
-            extension_id: descriptor.extension_id,
-            required_key_count: descriptor.required_key_count,
-        },
-    )
+    bijux_dna_bench_model::normalized_result::vcf_envelope::validate_vcf_normalized_metrics(metrics)
 }
 
 /// Describe the governed stage-specific VCF normalized metrics schema set.
@@ -307,20 +287,8 @@ pub fn validate_vcf_normalized_metrics(
 /// Returns an error if the governed stage schema descriptors cannot be enumerated.
 pub fn vcf_normalized_metrics_stage_schema_descriptors(
 ) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {
-    crate::internal::vcf::normalized_metrics_contract::vcf_normalized_metrics_stage_descriptors()
-        .map(|descriptors| {
-            descriptors
-                .into_iter()
-                .map(|descriptor| VcfNormalizedMetricsStageSchemaDescriptor {
-                    stage_id: descriptor.stage_id,
-                    schema_version: descriptor.schema_version,
-                    schema_id: descriptor.schema_id,
-                    file_name: descriptor.file_name,
-                    extension_id: descriptor.extension_id,
-                    required_key_count: descriptor.required_key_count,
-                })
-                .collect()
-        })
+    bijux_dna_bench_model::normalized_result::vcf_envelope::vcf_normalized_metrics_stage_descriptors(
+    )
 }
 
 /// Write the governed VCF normalized metrics schema to disk.

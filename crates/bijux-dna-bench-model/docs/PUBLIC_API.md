@@ -254,6 +254,15 @@ Normalized FASTQ execution metrics:
 - `normalized_result::fastq_envelope::FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION`
 - `normalized_result::fastq_envelope::FASTQ_NORMALIZED_METRICS_SCHEMA_ID`
 
+Normalized VCF execution metrics:
+
+- `normalized_result::vcf_envelope::vcf_normalized_metrics_stage_descriptors`
+- `normalized_result::vcf_envelope::validate_vcf_normalized_metrics`
+- `normalized_result::vcf_envelope::render_vcf_normalized_metrics_schema`
+- `normalized_result::vcf_envelope::render_vcf_normalized_metrics_stage_schema`
+- `normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor`
+- `normalized_result::vcf_envelope::VCF_NORMALIZED_METRICS_SCHEMA_ID`
+
 Namespaces:
 
 - `compare`

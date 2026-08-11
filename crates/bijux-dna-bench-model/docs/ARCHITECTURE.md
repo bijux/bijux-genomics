@@ -38,8 +38,8 @@ downstream crates.
 ## Dependency Direction
 
 Normal dependencies are pure model support: core ids/contracts, stage contracts,
-FASTQ domain identifiers, analysis metric semantics, serialization, validation
-errors, and seeded sampling.
+FASTQ and VCF domain identifiers and metrics contracts, analysis metric semantics,
+serialization, validation errors, and seeded sampling.
 
 ## Command Inventory
 

@@ -31,6 +31,10 @@ use bijux_dna_bench_model::normalized_result::fastq_envelope::{
     fastq_normalized_metrics_stage_contracts, render_fastq_normalized_metrics_schema,
     validate_fastq_normalized_metrics, FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION,
 };
+use bijux_dna_bench_model::normalized_result::vcf_envelope::{
+    render_vcf_normalized_metrics_schema, render_vcf_normalized_metrics_stage_schema,
+    validate_vcf_normalized_metrics, vcf_normalized_metrics_stage_descriptors,
+};
 use bijux_dna_bench_model::normalized_result::{
     bam_downstream_probe_schema, BenchmarkDownstreamProbeRecord,
 };
@@ -133,6 +137,51 @@ fn fastq_execution_metrics_envelope_is_model_owned_and_matches_checked_schema() 
     let mut unknown_stage = payload;
     unknown_stage["stage"] = serde_json::json!("fastq.unknown");
     assert!(validate_fastq_normalized_metrics(&unknown_stage).is_err());
+    Ok(())
+}
+
+#[test]
+fn vcf_execution_metrics_envelope_is_model_owned_and_matches_checked_schemas() -> anyhow::Result<()>
+{
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        repository_root.join("benchmarks/schemas/vcf-normalized-metrics.v1.json"),
+    )?)?;
+    assert_eq!(checked, render_vcf_normalized_metrics_schema()?);
+
+    let descriptors = vcf_normalized_metrics_stage_descriptors()?;
+    assert_eq!(descriptors.len(), 20);
+    let unique_stage_ids = descriptors
+        .iter()
+        .map(|descriptor| descriptor.stage_id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_stage_ids.len(), descriptors.len());
+    for descriptor in descriptors {
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
+            repository_root
+                .join("benchmarks/schemas/vcf-normalized-metrics")
+                .join(&descriptor.file_name),
+        )?)?;
+        assert_eq!(checked, render_vcf_normalized_metrics_stage_schema(&descriptor.stage_id)?);
+    }
+
+    let payload = serde_json::json!({
+        "schema_version": "bijux.vcf.call.v1",
+        "stage_id": "vcf.call",
+        "tool_id": "bcftools",
+        "variant_count": 4,
+        "snp_count": 3,
+        "indel_count": 1,
+        "sample_count": 2
+    });
+    assert_eq!(validate_vcf_normalized_metrics(&payload)?.stage_id, "vcf.call");
+
+    let mut unknown_stage = payload;
+    unknown_stage["stage_id"] = serde_json::json!("vcf.unknown");
+    assert!(validate_vcf_normalized_metrics(&unknown_stage).is_err());
     Ok(())
 }
 
