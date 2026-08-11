@@ -54,7 +54,9 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
     for binding in [
+        adapterremoval_merge_pairs(),
         bbduk_filter_low_complexity(),
+        bbmerge_merge_pairs(),
         bcftools_genotyping(),
         bedtools_coverage(),
         bowtie2_build_index_reference(),
@@ -65,6 +67,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         fastp_filter_low_complexity(),
         fastqc_detect_adapters(),
         fastqvalidator_validate_reads(),
+        flash2_merge_pairs(),
         fqtools_validate_reads(),
         kaiju_screen_taxonomy(),
         kraken2_screen_taxonomy(),
@@ -95,6 +98,128 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn adapterremoval_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "adapterremoval",
+        &["paired_end_reads", "deterministic_overlap_collapse", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+            output("adapterremoval_settings", FILE),
+        ],
+        &[
+            "${executable}",
+            "--threads",
+            "${parameter:threads}",
+            "--file1",
+            "${input:reads_r1}",
+            "--file2",
+            "${input:reads_r2}",
+            "--collapse-deterministic",
+            "--gzip",
+            "--output1",
+            "${output:unmerged_reads_r1}",
+            "--output2",
+            "${output:unmerged_reads_r2}",
+            "--outputcollapsed",
+            "${output:merged_reads}",
+            "--outputcollapsedtruncated",
+            "/dev/null",
+            "--settings",
+            "${output:adapterremoval_settings}",
+            "--singleton",
+            "/dev/null",
+            "--discarded",
+            "/dev/null",
+            "--minalignmentlength",
+            "${parameter:merge_overlap}",
+            "--minlength",
+            "${parameter:min_len}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "qualification_emits_unmerged_pairs_instead_of_discarding_them",
+            "collapsed_truncated_singletons_and_discarded_reads_are_intentionally_not_admitted_outputs",
+        ],
+    )
+}
+
+fn bbmerge_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "bbmerge",
+        &["paired_end_reads", "overlap_merge", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+        ],
+        &[
+            "${executable}",
+            "in1=${input:reads_r1}",
+            "in2=${input:reads_r2}",
+            "out=${output:merged_reads}",
+            "outu1=${output:unmerged_reads_r1}",
+            "outu2=${output:unmerged_reads_r2}",
+            "threads=${parameter:threads}",
+            "minoverlap=${parameter:merge_overlap}",
+            "mininsert=${parameter:min_len}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "qualification_emits_unmerged_pairs_instead_of_discarding_them",
+            "executor_captured_streams_preserve_native_bbmerge_diagnostics",
+        ],
+    )
+}
+
+fn flash2_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "flash2",
+        &["paired_end_reads", "overlap_merge", "native_result_directory"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap"],
+        &[output("flash2_result_directory", DIRECTORY)],
+        &[
+            "${executable}",
+            "-o",
+            "flash2",
+            "-d",
+            "${output:flash2_result_directory}",
+            "-t",
+            "${parameter:threads}",
+            "-m",
+            "${parameter:merge_overlap}",
+            "${input:reads_r1}",
+            "${input:reads_r2}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_directory_contains_extended_fragments_and_both_uncombined_read_files",
+            "executor_captured_streams_preserve_native_flash2_diagnostics",
+        ],
+    )
 }
 
 fn vsearch_cluster_otus() -> ToolBindingV1 {

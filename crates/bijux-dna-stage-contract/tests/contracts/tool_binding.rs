@@ -26,6 +26,7 @@ const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 const CLUSTER_OTUS_STAGE: &str = "fastq.cluster_otus";
+const MERGE_PAIRS_STAGE: &str = "fastq.merge_pairs";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
 const DETECT_ADAPTERS_STAGE: &str = "fastq.detect_adapters";
 const INFER_ASVS_STAGE: &str = "fastq.infer_asvs";
@@ -41,7 +42,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 37);
+    assert_eq!(retained.bindings().len(), 40);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -65,8 +66,157 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 45);
+    assert_eq!(all.bindings().len(), 48);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_merge_pair_bindings_preserve_each_native_output_shape() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(MERGE_PAIRS_STAGE);
+    assert_eq!(
+        registry
+            .bindings_for_stage(&stage)
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["adapterremoval", "bbmerge", "flash2"]
+    );
+    assert_adapterremoval_merge_binding(&registry, &stage)?;
+    assert_bbmerge_merge_binding(&registry, &stage)?;
+    assert_flash2_merge_binding(&registry, &stage)?;
+    assert!(registry.bindings_for_stage(&stage).iter().all(|binding| {
+        binding.downstream_probe_id == "benchmark.fastq.merge_pairs.consume"
+            && binding.normalizer_id == "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs"
+    }));
+    Ok(())
+}
+
+fn assert_adapterremoval_merge_binding(
+    registry: &ToolBindingRegistry,
+    stage: &StageId,
+) -> Result<()> {
+    let adapterremoval = registry
+        .binding(stage, &ToolId::new("adapterremoval"))
+        .ok_or_else(|| anyhow::anyhow!("canonical AdapterRemoval merge binding is missing"))?;
+    let adapterremoval_command = render_tool_command(
+        adapterremoval,
+        &ToolBindingRenderContext {
+            executable: "adapterremoval".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+                ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+                ("min_len".to_owned(), "30".to_owned()),
+            ]),
+            outputs: BTreeMap::from([
+                ("merged_reads".to_owned(), "/result/merged.fastq.gz".to_owned()),
+                ("unmerged_reads_r1".to_owned(), "/result/unmerged-R1.fastq.gz".to_owned()),
+                ("unmerged_reads_r2".to_owned(), "/result/unmerged-R2.fastq.gz".to_owned()),
+                ("adapterremoval_settings".to_owned(), "/result/settings.txt".to_owned()),
+            ]),
+        },
+    )?;
+    assert!(adapterremoval_command
+        .windows(2)
+        .any(|pair| pair == ["--outputcollapsed", "/result/merged.fastq.gz"]));
+    assert!(adapterremoval_command
+        .windows(2)
+        .any(|pair| pair == ["--settings", "/result/settings.txt"]));
+    assert_eq!(
+        adapterremoval.normalized_output_contract_id,
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1"
+    );
+    Ok(())
+}
+
+fn assert_bbmerge_merge_binding(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    let bbmerge = registry
+        .binding(stage, &ToolId::new("bbmerge"))
+        .ok_or_else(|| anyhow::anyhow!("canonical BBMerge binding is missing"))?;
+    let bbmerge_command = render_tool_command(
+        bbmerge,
+        &ToolBindingRenderContext {
+            executable: "bbmerge".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+                ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+                ("min_len".to_owned(), "30".to_owned()),
+            ]),
+            outputs: BTreeMap::from([
+                ("merged_reads".to_owned(), "/result/merged.fastq".to_owned()),
+                ("unmerged_reads_r1".to_owned(), "/result/unmerged-R1.fastq".to_owned()),
+                ("unmerged_reads_r2".to_owned(), "/result/unmerged-R2.fastq".to_owned()),
+            ]),
+        },
+    )?;
+    assert_eq!(
+        bbmerge_command,
+        [
+            "bbmerge",
+            "in1=/input/R1.fastq.gz",
+            "in2=/input/R2.fastq.gz",
+            "out=/result/merged.fastq",
+            "outu1=/result/unmerged-R1.fastq",
+            "outu2=/result/unmerged-R2.fastq",
+            "threads=4",
+            "minoverlap=11",
+            "mininsert=30",
+        ]
+    );
+    Ok(())
+}
+
+fn assert_flash2_merge_binding(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    let flash2 = registry
+        .binding(stage, &ToolId::new("flash2"))
+        .ok_or_else(|| anyhow::anyhow!("canonical FLASH2 binding is missing"))?;
+    let flash2_command = render_tool_command(
+        flash2,
+        &ToolBindingRenderContext {
+            executable: "flash2".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+                ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+            ]),
+            outputs: BTreeMap::from([(
+                "flash2_result_directory".to_owned(),
+                "/result/flash2".to_owned(),
+            )]),
+        },
+    )?;
+    assert_eq!(
+        flash2_command,
+        [
+            "flash2",
+            "-o",
+            "flash2",
+            "-d",
+            "/result/flash2",
+            "-t",
+            "4",
+            "-m",
+            "11",
+            "/input/R1.fastq.gz",
+            "/input/R2.fastq.gz",
+        ]
+    );
+    assert_eq!(flash2.outputs[0].artifact_contract_id, "bijux.auxiliary.artifact.directory.v1");
     Ok(())
 }
 

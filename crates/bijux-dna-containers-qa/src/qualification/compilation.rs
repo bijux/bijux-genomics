@@ -877,10 +877,12 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 31);
+        assert_eq!(coverage.summary.binding_ready_count, 34);
         for tool_id in [
             "angsd",
+            "adapterremoval",
             "bbduk",
+            "bbmerge",
             "bowtie2_build",
             "centrifuge",
             "dada2",
@@ -888,6 +890,7 @@ mod tests {
             "fastqc",
             "fastqvalidator",
             "fastuniq",
+            "flash2",
             "fqtools",
             "impute5",
             "kaiju",
