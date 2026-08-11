@@ -15,6 +15,7 @@ use bijux_dna_stage_contract::{
 const ALIGN_STAGE: &str = "bam.align";
 const ALIGN_BUNDLE: &str = "bijux.benchmark.bam.align.bundle.v1";
 const UNSORTED_SAM: &str = "bijux.sam.artifact.unsorted.v1";
+const FASTQ_PAIRED: &str = "bijux.fastq.artifact.paired_end.v1";
 const GENOTYPING_STAGE: &str = "bam.genotyping";
 const COVERAGE_STAGE: &str = "bam.coverage";
 const ENDOGENOUS_CONTENT_STAGE: &str = "bam.endogenous_content";
@@ -42,7 +43,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 44);
+    assert_eq!(retained.bindings().len(), 47);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -66,7 +67,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 52);
+    assert_eq!(all.bindings().len(), 55);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
     Ok(())
 }
@@ -92,6 +93,74 @@ fn canonical_merge_pair_bindings_preserve_each_native_output_shape() -> Result<(
         binding.downstream_probe_id == "benchmark.fastq.merge_pairs.consume"
             && binding.normalizer_id == "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs"
     }));
+    Ok(())
+}
+
+#[test]
+fn canonical_error_correction_bindings_preserve_paired_native_outputs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(CORRECT_ERRORS_STAGE);
+    assert_eq!(
+        registry
+            .bindings_for_stage(&stage)
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["bayeshammer", "lighter", "musket", "rcorrector"]
+    );
+    let inputs = paired_merge_inputs();
+    let outputs = BTreeMap::from([
+        ("corrected_reads_r1".to_owned(), "/result/corrected-R1.fastq.gz".to_owned()),
+        ("corrected_reads_r2".to_owned(), "/result/corrected-R2.fastq.gz".to_owned()),
+    ]);
+    for (tool, parameters, required_fragments) in [
+        (
+            "bayeshammer",
+            BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("phred_offset".to_owned(), "33".to_owned()),
+                ("max_memory_gb".to_owned(), "16".to_owned()),
+            ]),
+            ["--phred-offset '33'", "r1.list", "r2.list"],
+        ),
+        (
+            "lighter",
+            BTreeMap::from([
+                ("threads".to_owned(), "16".to_owned()),
+                ("kmer_size".to_owned(), "31".to_owned()),
+                ("genome_size".to_owned(), "2506966135".to_owned()),
+            ]),
+            ["-K '31' '2506966135'", "outputs.list", "normalize"],
+        ),
+        (
+            "musket",
+            BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("kmer_size".to_owned(), "21".to_owned()),
+                ("musket_kmer_budget".to_owned(), "134217728".to_owned()),
+            ]),
+            ["-k '21' '134217728'", "-omulti", "-inorder"],
+        ),
+    ] {
+        let binding = registry.binding(&stage, &ToolId::new(tool)).ok_or_else(|| {
+            anyhow::anyhow!("canonical {tool} error-correction binding is missing")
+        })?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: inputs.clone(),
+                input_sets: BTreeMap::new(),
+                parameters,
+                outputs: outputs.clone(),
+            },
+        )?;
+        assert_eq!(command[..2], ["/bin/sh", "-c"]);
+        for fragment in required_fragments {
+            assert!(command[2].contains(fragment), "{tool} command omitted {fragment}");
+        }
+        assert!(binding.outputs.iter().all(|output| output.artifact_contract_id == FASTQ_PAIRED));
+    }
     Ok(())
 }
 

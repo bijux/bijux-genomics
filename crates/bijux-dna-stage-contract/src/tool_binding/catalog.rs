@@ -57,6 +57,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         adapterremoval_merge_pairs(),
         bbduk_filter_low_complexity(),
         bbmerge_merge_pairs(),
+        bayeshammer_correct_errors(),
         bcftools_genotyping(),
         bedtools_coverage(),
         bowtie2_build_index_reference(),
@@ -73,7 +74,9 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         kraken2_screen_taxonomy(),
         krakenuniq_screen_taxonomy(),
         leehom_merge_pairs(),
+        lighter_correct_errors(),
         mosdepth_coverage(),
+        musket_correct_errors(),
         pear_merge_pairs(),
         picard_gc_bias(),
         picard_insert_size(),
@@ -1235,6 +1238,90 @@ fn rcorrector_correct_errors() -> ToolBindingV1 {
             "paired_end_binding",
             "exactly_two_native_corrected_outputs_are_required",
             "lexical_native_output_order_must_preserve_read_one_before_read_two",
+        ],
+    )
+}
+
+fn bayeshammer_correct_errors() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.correct_errors",
+        "bayeshammer",
+        &["paired_end_reads", "bayesian_kmer_error_correction", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "phred_offset", "max_memory_gb"],
+        &[
+            output("corrected_reads_r1", FASTQ_PAIRED),
+            output("corrected_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-bayeshammer-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; '${executable}' --threads '${parameter:threads}' --phred-offset '${parameter:phred_offset}' -m '${parameter:max_memory_gb}' -1 '${input:reads_r1}' -2 '${input:reads_r2}' -o \"$work\"; find \"$work/corrected\" -maxdepth 1 -type f -name '*_1*.cor.fastq.gz' | LC_ALL=C sort > \"$work/r1.list\"; find \"$work/corrected\" -maxdepth 1 -type f -name '*_2*.cor.fastq.gz' | LC_ALL=C sort > \"$work/r2.list\"; test \"$(wc -l < \"$work/r1.list\" | tr -d '[:space:]')\" -eq 1; test \"$(wc -l < \"$work/r2.list\" | tr -d '[:space:]')\" -eq 1; cp -- \"$(sed -n '1p' \"$work/r1.list\")\" '${output:corrected_reads_r1}'; cp -- \"$(sed -n '1p' \"$work/r2.list\")\" '${output:corrected_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.correct_errors.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
+        "bijux.stage_probe.fastq.correct_errors.v1",
+        resources(4, 16, 8),
+        &[
+            "paired_end_binding",
+            "native_corrected_mate_names_are_resolved_independently",
+            "ambiguous_or_missing_native_mate_outputs_fail_before_admission",
+        ],
+    )
+}
+
+fn lighter_correct_errors() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.correct_errors",
+        "lighter",
+        &["paired_end_reads", "spectrum_kmer_error_correction", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "kmer_size", "genome_size"],
+        &[
+            output("corrected_reads_r1", FASTQ_PAIRED),
+            output("corrected_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-lighter-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; '${executable}' -K '${parameter:kmer_size}' '${parameter:genome_size}' -t '${parameter:threads}' -od \"$work\" -r '${input:reads_r1}' -r '${input:reads_r2}'; find \"$work\" -maxdepth 1 -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) | LC_ALL=C sort > \"$work/outputs.list\"; test \"$(wc -l < \"$work/outputs.list\" | tr -d '[:space:]')\" -eq 2; normalize() { src=$1; dest=$2; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$(sed -n '1p' \"$work/outputs.list\")\" '${output:corrected_reads_r1}'; normalize \"$(sed -n '2p' \"$work/outputs.list\")\" '${output:corrected_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.correct_errors.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
+        "bijux.stage_probe.fastq.correct_errors.v1",
+        resources(16, 64, 64),
+        &[
+            "paired_end_binding",
+            "genome_size_must_match_the_governed_reference_scope",
+            "exactly_two_native_corrected_outputs_are_required",
+        ],
+    )
+}
+
+fn musket_correct_errors() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.correct_errors",
+        "musket",
+        &["paired_end_reads", "multistage_kmer_error_correction", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "kmer_size", "musket_kmer_budget"],
+        &[
+            output("corrected_reads_r1", FASTQ_PAIRED),
+            output("corrected_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-musket-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; prefix=\"$work/corrected\"; '${executable}' -p '${parameter:threads}' -k '${parameter:kmer_size}' '${parameter:musket_kmer_budget}' -omulti \"$prefix\" -inorder '${input:reads_r1}' '${input:reads_r2}'; normalize() { src=$1; dest=$2; test -f \"$src\"; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$prefix.0\" '${output:corrected_reads_r1}'; normalize \"$prefix.1\" '${output:corrected_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.correct_errors.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
+        "bijux.stage_probe.fastq.correct_errors.v1",
+        resources(4, 8, 4),
+        &[
+            "paired_end_binding",
+            "musket_kmer_budget_is_an_explicit_reproducibility_parameter",
+            "inorder_preserves_mate_correspondence_in_native_outputs",
         ],
     )
 }
