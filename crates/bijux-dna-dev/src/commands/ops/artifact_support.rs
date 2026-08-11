@@ -1,6 +1,5 @@
 use super::{anyhow, sha256_hex, Context, Path, PathBuf, Result, Workspace};
 use crate::model::ops::OpsCommandOutcome;
-use std::fs::OpenOptions;
 use std::io::Write as _;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -76,16 +75,12 @@ fn download_verified_file(
             .with_context(|| format!("download {url}"))?
             .error_for_status()
             .with_context(|| format!("download {url}"))?;
-        let mut output = OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(&partial)
-            .with_context(|| format!("create partial acquisition {}", partial.display()))?;
-        std::io::copy(&mut response, &mut output)
-            .with_context(|| format!("stream {url} to {}", partial.display()))?;
-        output.flush().with_context(|| format!("flush {}", partial.display()))?;
-        output.sync_all().with_context(|| format!("sync {}", partial.display()))?;
-        drop(output);
+        bijux_dna_infra::atomic_create_with(&partial, |output| {
+            std::io::copy(&mut response, output)?;
+            output.flush()?;
+            output.sync_all()
+        })
+        .with_context(|| format!("stream {url} to {}", partial.display()))?;
 
         let observed_size = std::fs::metadata(&partial)
             .with_context(|| format!("inspect {}", partial.display()))?

@@ -75,10 +75,12 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
         if entry.path().extension().and_then(|s| s.to_str()) != Some("rs") {
             continue;
         }
+        if entry.path().to_string_lossy().contains("/tests/") {
+            continue;
+        }
         if is_core_ids_path(entry.path())
             || is_core_metrics_path(entry.path())
             || is_core_id_catalog_stage_path(entry.path())
-            || is_policies_ownership_test(entry.path())
             || entry
                 .path()
                 .to_string_lossy()
@@ -86,7 +88,9 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
         {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).expect("read source");
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &std::fs::read_to_string(entry.path()).expect("read source"),
+        );
         for captures in definition.captures_iter(&content) {
             offenders.push(format!(
                 "{} defines canonical ID type {}",

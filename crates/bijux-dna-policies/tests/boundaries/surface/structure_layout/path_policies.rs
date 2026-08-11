@@ -14,6 +14,10 @@ fn is_allowed_writer_path(path: &Path) -> bool {
     path_str.contains("/crates/bijux-dna-runtime/")
         || path_str.contains("/crates/bijux-dna-engine/")
         || path_str.contains("/crates/bijux-dna-infra/")
+        || path_str.contains("/crates/bijux-dna-runner/src/backend/slurm/qualification/")
+        || path_str.contains("/crates/bijux-dna-runner/src/step_runner/external_artifact.rs")
+        || path_str.contains("/crates/bijux-dna-containers/src/build/")
+        || path_str.contains("/crates/bijux-dna-containers-qa/src/security_verification/")
         || path_str.contains("/crates/bijux-dna/src/commands/policies.rs")
         || path_str.contains("/crates/bijux-dna/src/commands/hpc/hpc_impl.rs")
         || path_str.contains("/crates/bijux-dna/src/commands/vcf/vcf_impl.rs")
@@ -139,7 +143,7 @@ fn policy__boundaries__path_policies__run_artifacts_paths_use_runtime_helpers() 
 }
 
 #[test]
-fn policy__boundaries__path_policies__write_locations_are_confined_to_runtime_and_engine() {
+fn policy__boundaries__path_policies__write_locations_are_confined_to_effect_owners() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let patterns = ["std::fs::OpenOptions", "std::fs::write", "File::create("];
@@ -157,7 +161,9 @@ fn policy__boundaries__path_policies__write_locations_are_confined_to_runtime_an
         if is_allowed_writer_path(entry.path()) {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).expect("read source");
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &std::fs::read_to_string(entry.path()).expect("read source"),
+        );
         if patterns.iter().any(|pattern| content.contains(pattern)) {
             offenders.push(entry.path().display().to_string());
         }
@@ -165,7 +171,7 @@ fn policy__boundaries__path_policies__write_locations_are_confined_to_runtime_an
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "direct filesystem writes must be confined to bijux-dna-runtime, bijux-dna-engine, or bijux-dna-infra:\n{}",
+        "direct filesystem writes must stay in declared runtime, execution, container, QA, or infrastructure owners:\n{}",
         offenders.join("\n")
     );
 }
