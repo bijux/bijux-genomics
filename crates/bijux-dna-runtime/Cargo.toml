@@ -11,7 +11,6 @@ serde_json.workspace = true
 opentelemetry = { workspace = true, optional = true }
 bijux-dna-core.workspace = true
 bijux-dna-bench-model.workspace = true
-bijux-dna-containers.workspace = true
 anyhow.workspace = true
 sha2.workspace = true
 bijux-dna-infra = { workspace = true, features = ["yaml"] }

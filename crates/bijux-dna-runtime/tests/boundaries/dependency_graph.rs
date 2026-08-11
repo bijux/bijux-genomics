@@ -20,7 +20,6 @@ fn dependency_graph_matches_runtime_boundary() {
         keys([
             "anyhow",
             "bijux-dna-bench-model",
-            "bijux-dna-containers",
             "bijux-dna-core",
             "bijux-dna-infra",
             "chrono",
@@ -45,6 +44,7 @@ fn dependency_graph_matches_runtime_boundary() {
         "bijux-dna-api",
         "bijux-dna-analyze",
         "bijux-dna-bench",
+        "bijux-dna-containers",
         "bijux-dna-engine",
         "bijux-dna-pipelines",
         "bijux-dna-planner-bam",
