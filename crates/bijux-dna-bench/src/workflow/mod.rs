@@ -47,6 +47,7 @@ mod summary;
 mod summary_fairness;
 mod summary_scope;
 mod summary_statistics;
+mod vcf_campaign;
 
 pub use appraisal::{
     appraise_matrix_report, hardening_queue_from_appraisal, load_appraisal_report,
@@ -228,3 +229,7 @@ pub use suite_load::{
     load_suite, BenchmarkPublicationInterfaceCatalog, BenchmarkReportPresentationAuthority,
 };
 pub use summary::summarize;
+pub use vcf_campaign::{
+    derive_vcf_benchmark_campaign, load_vcf_benchmark_campaign_report,
+    publish_vcf_benchmark_campaign_report,
+};

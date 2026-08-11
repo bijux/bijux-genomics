@@ -134,6 +134,7 @@ fn bench_tree_matches_architecture_contract() {
             "summary_fairness.rs",
             "summary_scope.rs",
             "summary_statistics.rs",
+            "vcf_campaign.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
     );
