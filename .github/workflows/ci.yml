@@ -39,7 +39,7 @@ jobs:
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-fmt
       - name: "Run repository formatting gate"
@@ -62,7 +62,7 @@ jobs:
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-lint
       - name: "Run repository lint gate"
@@ -82,7 +82,7 @@ jobs:
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-audit
       - name: "Install Rust audit tools"
@@ -106,7 +106,7 @@ jobs:
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-test
       - name: "Install cargo-nextest"
@@ -127,7 +127,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "SSOT policy fast gate"
@@ -151,7 +151,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Workspace formatting and lint gate"
@@ -176,7 +176,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Unit and contract gate"
@@ -200,7 +200,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Release readiness gate"
@@ -224,7 +224,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "FASTQ container readiness gate"
@@ -248,7 +248,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Profile invariants gate"
@@ -272,7 +272,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Cargo policy gate"
@@ -343,7 +343,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Active benchmark readiness"
@@ -363,7 +363,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Parser fixtures"
@@ -383,7 +383,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Adapter rendering"
@@ -403,7 +403,7 @@ jobs:
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Science fixtures"
