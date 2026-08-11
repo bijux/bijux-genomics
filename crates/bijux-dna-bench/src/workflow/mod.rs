@@ -41,6 +41,7 @@ mod run_suite;
 mod scientific_readiness;
 mod source_authority;
 mod stage_coverage;
+mod stage_families;
 mod stage_report;
 mod stage_universe;
 mod suite_load;
@@ -217,6 +218,9 @@ pub use source_authority::load_benchmark_data_source_spec;
 pub use stage_coverage::{
     derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
     BenchmarkCoverageWriteMode,
+};
+pub use stage_families::{
+    BenchmarkStageFamily, BAM_STAGE_FAMILIES, FASTQ_STAGE_FAMILIES, VCF_STAGE_FAMILIES,
 };
 pub use stage_report::{
     publish_stage_report, render_stage_report_markdown, BenchmarkStageReportPublication,
