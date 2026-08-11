@@ -38,7 +38,7 @@ bijux-dna-domain-compiler: bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna
 bijux-dna-domain-fastq: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-domain-vcf: bijux-dna-core bijux-dna-policies
 bijux-dna-engine: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
-bijux-dna-containers: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
+bijux-dna-containers: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-containers-qa: bijux-dna-analyze bijux-dna-core bijux-dna-domain-fastq bijux-dna-containers bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-infra: bijux-dna-policies bijux-dna-testkit
 bijux-dna-pipelines: bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-policies bijux-dna-runtime bijux-dna-testkit

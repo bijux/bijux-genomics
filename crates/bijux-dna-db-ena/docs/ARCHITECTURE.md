@@ -8,48 +8,14 @@
 - preserve stable `client`, `download`, and `model` module paths while curating
   a higher-level public API facade
 
-## Source tree
+## Source layout
 
-```text
-src/
-├── cli/
-│   ├── args.rs
-│   ├── commands/
-│   │   ├── download.rs
-│   │   ├── mod.rs
-│   │   └── query.rs
-│   └── mod.rs
-├── cli_entrypoint.rs
-├── client/
-│   ├── error.rs
-│   ├── filereport/
-│   │   ├── headers.rs
-│   │   ├── mod.rs
-│   │   ├── request.rs
-│   │   └── rows.rs
-│   └── mod.rs
-├── download/
-│   ├── config.rs
-│   ├── mod.rs
-│   ├── output_layout.rs
-│   ├── plan.rs
-│   ├── report.rs
-│   ├── runtime.rs
-│   ├── task.rs
-│   ├── transfer.rs
-│   └── verified_transfer.rs
-├── lib.rs
-├── main.rs
-├── manifest_store.rs
-├── model/
-│   ├── manifest.rs
-│   ├── mod.rs
-│   ├── query.rs
-│   ├── record.rs
-│   └── source_selection.rs
-└── public_api/
-    └── mod.rs
-```
+- `lib.rs` and `public_api/` expose the curated library surface.
+- `cli_entrypoint.rs` and `cli/` own the binary handoff and command assembly.
+- `client/filereport/` owns request fields, response headers, and row decoding.
+- `download/` owns planning, bounded transfer, checksums, and output layout.
+- `model/` owns manifests, queries, records, and source-selection contracts.
+- `manifest_store.rs` owns persisted manifest admission.
 
 ## Responsibilities
 
@@ -70,12 +36,7 @@ src/
 - prefer focused submodules over growing `client/mod.rs`, `download/mod.rs`, or `cli/mod.rs`
 - update this map and the architecture boundary test together when the layout changes intentionally
 
-## Test Tree
+## Verification
 
-```text
-tests/
-├── boundaries.rs
-├── boundaries/
-│   └── architecture.rs
-└── guardrails.rs
-```
+`tests/boundaries/architecture.rs` protects the durable source layout; the
+crate-level boundary and guardrail suites protect public ownership and effects.

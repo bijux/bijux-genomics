@@ -25,22 +25,12 @@ belong under `docs/`.
 - `src/workflow/` owns suite loading, summarization, comparison, gate evaluation,
   suite persistence, runtime attempt-lifecycle composition, fairness checks,
   scope grouping, and summary statistics.
-- `src/workflow/campaign_engine/` separates registry-driven case planning,
-  immutable evidence persistence, aggregation, and stage-report projection without
-  stage or tool dispatch.
-- `src/workflow/campaign_cases.rs` owns the source-locked case planning, admitted
-  observation, and aggregation workflows composed by operator commands.
-- `src/workflow/container_report_portfolio.rs` owns container report discovery, complete-file
-  identity derivation, conservative freshness aggregation, and paper-facing rendering.
+- `src/workflow/campaign_engine/` separates generic case planning, immutable
+  evidence persistence, aggregation, and report projection.
 - `src/workflow/run_suite/` separates suite orchestration from artifact
   persistence.
-- `src/workflow/fastq_expectations/` separates scientific expectation rendering
-  from immutable publication storage; derivation delegates to `bijux-dna-science`.
-- `src/workflow/fastq_profile_read_lengths/` owns the run-2042 input mounts,
-  exact tool commands, required output closure, and immutable parameter evidence.
-- `src/workflow/bam_mapping_summary/` owns the run-2004 BAM/BAI mounts, Picard and
-  Samtools commands, normalized primary-read contract, output closure, and
-  immutable parameter evidence.
+- Stage-specific workflow modules own their scientific inputs, command contracts,
+  normalized outputs, and parameter evidence.
 - `src/workflow/summary/` separates grouping, row metrics, and stratum assembly.
 - `src/repo/` owns repository-root discovery, workspace path policy, domain-specific
   FASTQ and BAM corpus admission, repository contracts, run metadata, run artifact loaders,
