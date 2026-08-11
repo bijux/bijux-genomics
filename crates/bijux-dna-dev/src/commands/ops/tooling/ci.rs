@@ -266,7 +266,7 @@ pub(in super::super) fn tooling_ci_fast(
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_fast_group_contract(&contract)?;
 
-    let report_root = workspace.path(&contract.report_root);
+    let report_root = ci_output_path(workspace, &contract.report_root)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
     let envs = artifact_env(workspace)?;
     let started = Instant::now();
@@ -390,7 +390,7 @@ pub(in super::super) fn tooling_ci_fast(
         && actual_os == contract.reference_runner.os
         && actual_architecture == contract.reference_runner.architecture
         && actual_rust_toolchain == contract.reference_runner.rust_toolchain;
-    let history_path = workspace.path(&contract.timing_history);
+    let history_path = ci_output_path(workspace, &contract.timing_history)?;
     let mut history = load_fast_timing_history(&history_path)?;
     if eligible_reference_observation {
         history.observations.push(FastTimingObservation {
@@ -423,7 +423,7 @@ pub(in super::super) fn tooling_ci_fast(
         })
     });
     write_json_pretty(
-        &workspace.path(&contract.timing_report),
+        &ci_output_path(workspace, &contract.timing_report)?,
         &serde_json::json!({
             "schema_version": "bijux.ci.fast_timing.v1",
             "source_commit": source_commit,
@@ -521,7 +521,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_full_shard_contract(&contract)?;
 
-    let report_root = workspace.path(&contract.report_root);
+    let report_root = ci_output_path(workspace, &contract.report_root)?;
     let build_authority_path = workspace.path(&contract.build_authority);
     let build_authority = read_ci_build_authority(&build_authority_path)?;
     require_ci_test_executor(workspace, &build_authority)?;
@@ -529,7 +529,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     bijux_dna_infra::ensure_dir(&report_root)?;
     let started = Instant::now();
     let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
-    let archive_roots = full_archive_roots(workspace, &contract);
+    let archive_roots = full_archive_roots(workspace, &contract)?;
     validate_full_archive_roots(workspace, &archive_roots)?;
     prepare_full_archive_roots(&archive_roots)?;
     let archive_workspace =
@@ -570,7 +570,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let mut stderr = String::from_utf8_lossy(&archive_output.output.stderr).into_owned();
     if !archive_passed {
         write_json_pretty(
-            &workspace.path("artifacts/ci/full-gate-timing.json"),
+            &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
             &serde_json::json!({
                 "schema_version": "bijux.ci.full_gate_timing.v3",
                 "contract_sha256": contract_sha256,
@@ -593,7 +593,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .shards
         .iter()
         .map(|shard| full_shard_roots(workspace, &contract, shard))
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
     validate_full_shard_root_set(workspace, &shard_roots)?;
     let specs = contract
         .shards
@@ -646,7 +646,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         serde_json::Value::String(archive_sha256_after);
     archive_receipt["checksum_stable"] = serde_json::Value::Bool(archive_checksum_stable);
     write_json_pretty(
-        &workspace.path("artifacts/ci/full-gate-timing.json"),
+        &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
         &serde_json::json!({
             "schema_version": "bijux.ci.full_gate_timing.v3",
             "contract_sha256": contract_sha256,
@@ -825,9 +825,9 @@ fn full_shard_roots(
     workspace: &Workspace,
     contract: &FullShardContract,
     shard: &FullShard,
-) -> FullShardRoots {
-    let artifact_root = workspace.path(&contract.shard_artifact_root).join(&shard.id);
-    FullShardRoots {
+) -> Result<FullShardRoots> {
+    let artifact_root = ci_output_path(workspace, &contract.shard_artifact_root)?.join(&shard.id);
+    Ok(FullShardRoots {
         archive_extract: artifact_root.join("nextest/archive"),
         cargo_target: artifact_root.join("target/cargo"),
         test_target: artifact_root.join("target/test"),
@@ -837,21 +837,36 @@ fn full_shard_roots(
         test_profraw: artifact_root.join("coverage/profraw-test"),
         coverage_profraw: artifact_root.join("coverage/profraw-coverage"),
         artifact_root,
-    }
+    })
 }
 
-fn full_archive_roots(workspace: &Workspace, contract: &FullShardContract) -> FullArchiveRoots {
-    let artifact_root = workspace.path(&contract.archive_root);
-    FullArchiveRoots {
+fn full_archive_roots(
+    workspace: &Workspace,
+    contract: &FullShardContract,
+) -> Result<FullArchiveRoots> {
+    let artifact_root = ci_output_path(workspace, &contract.archive_root)?;
+    Ok(FullArchiveRoots {
         cargo_target: artifact_root.join("target/cargo"),
         archive_file: artifact_root.join("workspace-tests.tar.zst"),
         build_log: artifact_root.join("build.log"),
         artifact_root,
-    }
+    })
+}
+
+fn ci_output_path(workspace: &Workspace, configured: &str) -> Result<PathBuf> {
+    ci_output_path_under(&artifact_root_path(workspace)?, configured)
+}
+
+fn ci_output_path_under(artifact_root: &Path, configured: &str) -> Result<PathBuf> {
+    validate_artifact_relative_path(configured)?;
+    let suffix = Path::new(configured)
+        .strip_prefix("artifacts")
+        .context("full shard output path has no artifacts prefix")?;
+    Ok(artifact_root.join(suffix))
 }
 
 fn validate_full_archive_roots(workspace: &Workspace, roots: &FullArchiveRoots) -> Result<()> {
-    let governed_artifacts = workspace.path("artifacts");
+    let governed_artifacts = artifact_root_path(workspace)?;
     if roots
         .all()
         .into_iter()
@@ -904,7 +919,7 @@ fn validate_full_shard_root_set(
     workspace: &Workspace,
     shard_roots: &[FullShardRoots],
 ) -> Result<()> {
-    let governed_artifacts = workspace.path("artifacts");
+    let governed_artifacts = artifact_root_path(workspace)?;
     for roots in shard_roots {
         for root in roots.all() {
             if !root.is_absolute() || !root.starts_with(&governed_artifacts) {
@@ -1327,13 +1342,13 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
-        full_archive_args, full_archive_roots, full_shard_args, full_shard_env,
-        full_shard_root_receipt, full_shard_roots, materialize_full_shard_workspace, percentile,
-        read_ci_build_authority, reference_timing_samples, set_full_archive_readonly,
-        validate_ci_test_executor_observation, validate_fast_group_contract,
-        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullShard, FullShardContract, FullShardCoverage,
+        ci_output_path, ci_output_path_under, full_archive_args, full_archive_roots,
+        full_shard_args, full_shard_env, full_shard_root_receipt, full_shard_roots,
+        materialize_full_shard_workspace, percentile, read_ci_build_authority,
+        reference_timing_samples, set_full_archive_readonly, validate_ci_test_executor_observation,
+        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
+        validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
+        FastTimingHistory, FastTimingObservation, FullShard, FullShardContract, FullShardCoverage,
         FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
@@ -1458,7 +1473,7 @@ mod tests {
             .shards
             .iter()
             .map(|shard| full_shard_roots(&workspace, &contract, shard))
-            .collect::<Vec<_>>();
+            .collect::<anyhow::Result<Vec<_>>>()?;
         validate_full_shard_root_set(&workspace, &roots)?;
 
         let first_env =
@@ -1505,7 +1520,7 @@ mod tests {
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
         let contract = contract();
-        let archive = full_archive_roots(&workspace, &contract);
+        let archive = full_archive_roots(&workspace, &contract)?;
         validate_full_archive_roots(&workspace, &archive)?;
 
         let build_args = full_archive_args(&archive.archive_file);
@@ -1515,8 +1530,10 @@ mod tests {
         assert_eq!(build_args.iter().filter(|arg| arg.as_str() == "--archive-file").count(), 1);
 
         for shard in &contract.shards {
-            let roots = full_shard_roots(&workspace, &contract, shard);
-            let remap = workspace.path(&contract.report_root).join("workspaces").join(&shard.id);
+            let roots = full_shard_roots(&workspace, &contract, shard)?;
+            let remap = ci_output_path(&workspace, &contract.report_root)?
+                .join("workspaces")
+                .join(&shard.id);
             let args =
                 full_shard_args(shard, &archive.archive_file, &roots.archive_extract, &remap);
             for forbidden in ["--workspace", "--all-targets", "--all-features", "--locked"] {
@@ -1532,6 +1549,19 @@ mod tests {
                 pair[0] == "--workspace-remap" && pair[1] == remap.display().to_string()
             }));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn ci_outputs_rebase_under_configured_artifact_authority() -> anyhow::Result<()> {
+        let authority = std::path::Path::new("/local/slurmtmp.1234/bijux/artifacts");
+
+        let archive = ci_output_path_under(authority, "artifacts/ci/full-shards/archive")?;
+        let report = ci_output_path_under(authority, "artifacts/ci/full-gate-timing.json")?;
+
+        assert_eq!(archive, authority.join("ci/full-shards/archive"));
+        assert_eq!(report, authority.join("ci/full-gate-timing.json"));
+        assert!(ci_output_path_under(authority, "../outside").is_err());
         Ok(())
     }
 

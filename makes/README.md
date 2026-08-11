@@ -64,7 +64,10 @@ Rust gate artifact layout:
   `artifacts/github-all/workspace-compile.log`
 - `make test-all` runs the complete workspace, all-target, all-feature suite (including ignored
   tests) as four exact hash partitions through the event-driven Rust supervisor; shard logs and
-  the timing receipt remain under `artifacts/ci/`
+  the timing receipt remain under `artifacts/ci/`. When `ARTIFACT_ROOT` names another governed
+  artifact authority, every archive, isolated workspace, shard root, log, and timing receipt is
+  rebased beneath that authority; this permits job-local scratch without writing build products
+  into the source checkout.
 - `make test-all-frozen` runs the complete suite from its immutable source snapshot with no
   fast/slow filter expression and no slow timeout
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
