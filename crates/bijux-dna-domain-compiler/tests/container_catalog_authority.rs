@@ -104,6 +104,39 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn supported_external_delivery_remains_in_the_governed_registry() -> Result<()> {
+    let root = support::repo_root();
+    let out_dir = support::artifact_output_dir("supported-external-delivery-")?;
+    compile_domain_configs(&CompileOptions {
+        domain_dir: root.join(DEFAULT_DOMAIN_DIR),
+        configs_dir: out_dir.path().to_path_buf(),
+        scope: DEFAULT_COMPILE_SCOPE.to_string(),
+    })?;
+
+    let governed = read_toml(&out_dir.path().join("ci/registry/tool_registry.toml"))?;
+    let experimental =
+        read_toml(&out_dir.path().join("ci/registry/tool_registry_experimental.toml"))?;
+    let governed_tools = rows_by_id(&governed, "tools")?;
+    let experimental_tools = rows_by_id(&experimental, "tools")?;
+
+    for tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        let row = governed_tools
+            .get(tool_id)
+            .with_context(|| format!("governed registry omits supported tool {tool_id}"))?;
+        assert_eq!(text(row, "product_support")?, "supported");
+        assert_eq!(text(row, "artifact_delivery")?, "external_artifact");
+        assert_eq!(text(row, "status")?, "supported");
+        assert_eq!(row.get("redistribution_permitted").and_then(toml::Value::as_bool), Some(false));
+        assert!(
+            !experimental_tools.contains_key(tool_id),
+            "supported external-delivery tool {tool_id} must not be demoted to the experimental registry"
+        );
+    }
+
+    Ok(())
+}
+
 fn assert_production_stage_bindings(
     registry: &toml::Value,
     contracts: &BTreeMap<&str, &toml::Value>,
