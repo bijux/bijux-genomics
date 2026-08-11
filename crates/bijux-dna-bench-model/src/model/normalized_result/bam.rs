@@ -5,34 +5,36 @@ use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
 pub const BAM_ALIGN_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.align.bundle.v1";
 pub const BAM_ALIGN_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.align.metrics.v1";
-pub const BAM_ALIGN_STAGE_ID: &str = "bam.align";
+pub const BAM_ALIGN_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_ALIGN;
 pub const BAM_COVERAGE_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.coverage.bundle.v1";
 pub const BAM_COVERAGE_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.coverage.metrics.v1";
-pub const BAM_COVERAGE_STAGE_ID: &str = "bam.coverage";
+pub const BAM_COVERAGE_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_COVERAGE;
 pub const BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.bam.duplication_metrics.bundle.v1";
 pub const BAM_DUPLICATION_METRICS_MEASUREMENTS_SCHEMA_V1: &str =
     "bijux.benchmark.bam.duplication_metrics.metrics.v1";
-pub const BAM_DUPLICATION_METRICS_STAGE_ID: &str = "bam.duplication_metrics";
+pub const BAM_DUPLICATION_METRICS_STAGE_ID: &str =
+    bijux_dna_core::id_catalog::BAM_DUPLICATION_METRICS;
 pub const BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.bam.endogenous_content.bundle.v1";
 pub const BAM_ENDOGENOUS_CONTENT_METRICS_SCHEMA_V1: &str =
     "bijux.benchmark.bam.endogenous_content.metrics.v1";
-pub const BAM_ENDOGENOUS_CONTENT_STAGE_ID: &str = "bam.endogenous_content";
+pub const BAM_ENDOGENOUS_CONTENT_STAGE_ID: &str =
+    bijux_dna_core::id_catalog::BAM_ENDOGENOUS_CONTENT;
 pub const BAM_GENOTYPING_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.genotyping.bundle.v1";
 pub const BAM_GENOTYPING_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.genotyping.metrics.v1";
-pub const BAM_GENOTYPING_STAGE_ID: &str = "bam.genotyping";
+pub const BAM_GENOTYPING_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_GENOTYPING;
 pub const BAM_GC_BIAS_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.gc_bias.bundle.v1";
 pub const BAM_GC_BIAS_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.gc_bias.metrics.v1";
-pub const BAM_GC_BIAS_STAGE_ID: &str = "bam.gc_bias";
+pub const BAM_GC_BIAS_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_GC_BIAS;
 pub const BAM_INSERT_SIZE_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.insert_size.bundle.v1";
 pub const BAM_INSERT_SIZE_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.insert_size.metrics.v1";
-pub const BAM_INSERT_SIZE_STAGE_ID: &str = "bam.insert_size";
+pub const BAM_INSERT_SIZE_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_INSERT_SIZE;
 pub const BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.bam.mapping_summary.bundle.v1";
 pub const BAM_MAPPING_SUMMARY_METRICS_SCHEMA_V1: &str =
     "bijux.benchmark.bam.mapping_summary.metrics.v1";
-pub const BAM_MAPPING_SUMMARY_STAGE_ID: &str = "bam.mapping_summary";
+pub const BAM_MAPPING_SUMMARY_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_MAPPING_SUMMARY;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
