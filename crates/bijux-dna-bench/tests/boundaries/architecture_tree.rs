@@ -135,6 +135,7 @@ fn bench_tree_matches_architecture_contract() {
             "stage_families.rs",
             "stage_universe.rs",
             "stage_report/",
+            "stage_tool_closure.rs",
             "summary/",
             "suite_load.rs",
             "summary_fairness.rs",
@@ -382,6 +383,7 @@ fn commands_doc_lists_managed_benchmark_operations() {
         "ensure-stage-campaign-attempts",
         "derive-stage-coverage",
         "publish-checked-in-stage-coverage",
+        "publish-checked-in-stage-tool-closure",
         "derive-stage-universe",
         "publish-checked-in-stage-universe",
     ] {

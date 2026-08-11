@@ -160,6 +160,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkStageCoverage => {
             tooling::tooling_benchmark_stage_coverage(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkStageToolClosure => {
+            tooling::tooling_benchmark_stage_tool_closure(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkStageUniverse => {
             tooling::tooling_benchmark_stage_universe(workspace, args)
         }

@@ -396,6 +396,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkStageCoverage,
         ),
         native(
+            "benchmark-stage-tool-closure",
+            "Generate or check complete catalog, domain, and benchmark protocol pair closure.",
+            NativeOpsCommandKey::ToolingBenchmarkStageToolClosure,
+        ),
+        native(
             "benchmark-stage-universe",
             "Generate or check the canonical domain-stage benchmark disposition registry.",
             NativeOpsCommandKey::ToolingBenchmarkStageUniverse,

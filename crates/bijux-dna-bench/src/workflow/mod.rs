@@ -47,6 +47,7 @@ mod source_authority;
 mod stage_coverage;
 mod stage_families;
 mod stage_report;
+mod stage_tool_closure;
 mod stage_universe;
 mod suite_load;
 mod summary;
@@ -240,6 +241,10 @@ pub use stage_families::{
 };
 pub use stage_report::{
     publish_stage_report, render_stage_report_markdown, BenchmarkStageReportPublication,
+};
+pub use stage_tool_closure::{
+    derive_benchmark_stage_tool_closure, publish_checked_in_benchmark_stage_tool_closure,
+    render_benchmark_stage_tool_closure_markdown, BenchmarkStageToolClosureWriteMode,
 };
 pub use stage_universe::{
     derive_stage_universe, publish_checked_in_stage_universe, render_stage_universe_markdown,

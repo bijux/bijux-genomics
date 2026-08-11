@@ -32,6 +32,7 @@ mod run_index;
 mod schema_versions;
 mod source_authority;
 mod stage_result;
+mod stage_tool_closure;
 mod suite;
 pub use active_scope::validate_active_scope_fast_validation_report;
 pub use appraisal::{validate_appraisal_report, validate_hardening_queue_report};
@@ -138,4 +139,5 @@ pub use schema_versions::{
 };
 pub use source_authority::validate_benchmark_data_source_spec;
 pub use stage_result::validate_benchmark_stage_result_manifest;
+pub use stage_tool_closure::validate_benchmark_stage_tool_closure;
 pub use suite::validate_suite;

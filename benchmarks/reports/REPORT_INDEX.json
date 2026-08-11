@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.benchmark.publication_registry.v1",
   "summary": {
-    "current_product_count": 5,
+    "current_product_count": 6,
     "active_stage_report_count": 0,
     "historical_stage_report_count": 11,
     "quarantined_surface_count": 0,
@@ -35,6 +35,13 @@
       "json_sha256": "bcee2885fafc2059f10f0ec8bb17830e7384054babf5a33949f3c930bbaf5796",
       "markdown_path": "benchmarks/reports/stage-benchmark-coverage.md",
       "markdown_sha256": "e6ebf41f5b334e15e54fd8f7a06af3314b511715be9b1cbef0ab74f74c4e8bc9"
+    },
+    {
+      "product_id": "stage-tool-closure",
+      "json_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.json",
+      "json_sha256": "a75a3b9f8a15855000d4f7340a08ad81f749a63d076eaf31cf4ff4ebe183cbea",
+      "markdown_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.md",
+      "markdown_sha256": "98440128195721bffdb5f56f1214c85ef992c855137f1bee1a26042052623eaf"
     },
     {
       "product_id": "scientific-benchmark-readiness",

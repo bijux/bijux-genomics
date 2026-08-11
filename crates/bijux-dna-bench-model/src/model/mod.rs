@@ -31,6 +31,7 @@ pub mod report;
 pub mod run_index;
 pub mod source_authority;
 pub mod stage_result;
+pub mod stage_tool_closure;
 pub mod suite;
 pub mod summary;
 
@@ -260,6 +261,13 @@ pub use stage_result::{
     BenchmarkStageResultOutput, BenchmarkStageResultResourceMetricSource,
     BenchmarkStageResultResourceMetrics, BenchmarkStageResultRuntime, BenchmarkStageResultStatus,
     BenchmarkStageResultTool,
+};
+#[allow(unused_imports)]
+pub use stage_tool_closure::{
+    benchmark_stage_tool_closure_schema, BenchmarkStageToolClosureDisposition,
+    BenchmarkStageToolClosureReport, BenchmarkStageToolClosureRow, BenchmarkStageToolClosureSource,
+    BenchmarkStageToolClosureSummary, BenchmarkStageToolProtocolDisposition,
+    BENCHMARK_STAGE_TOOL_CLOSURE_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use suite::{

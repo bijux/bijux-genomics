@@ -412,6 +412,7 @@ benchmark-run-registry
 benchmark-scientific-readiness
 benchmark-smoke-level1
 benchmark-stage-coverage
+benchmark-stage-tool-closure
 benchmark-stage-universe
 bijux
 cargo-targets

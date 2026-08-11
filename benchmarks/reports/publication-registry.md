@@ -4,7 +4,7 @@
 
 Path presence does not confer current benchmark authority. Current products are deterministic crate-owned governance reports; stage evidence is active only in the top-level report namespace and historical only below its exact source commit; any tracked legacy readiness output is quarantined until removed.
 
-- Current governance products: **5**
+- Current governance products: **6**
 - Active stage reports: **0**
 - Historical stage reports: **11**
 - Quarantined tracked files: **0**
@@ -17,6 +17,7 @@ Path presence does not confer current benchmark authority. Current products are 
 | `paper-run-index` | `benchmarks/runs/RUN_INDEX.json` | `benchmarks/runs/RUN_INDEX.md` |
 | `stage-universe` | `benchmarks/contracts/stage-universe.json` | `benchmarks/reports/stage-universe.md` |
 | `stage-benchmark-coverage` | `benchmarks/reports/stage-benchmark-coverage.json` | `benchmarks/reports/stage-benchmark-coverage.md` |
+| `stage-tool-closure` | `benchmarks/reports/STAGE_TOOL_CLOSURE.json` | `benchmarks/reports/STAGE_TOOL_CLOSURE.md` |
 | `scientific-benchmark-readiness` | `benchmarks/reports/scientific-benchmark-readiness.json` | `benchmarks/reports/scientific-benchmark-readiness.md` |
 
 ## Stage reports

@@ -19,10 +19,10 @@ pub use crate::contract::{
     validate_benchmark_run_definition, validate_benchmark_run_definition_revision,
     validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
     validate_benchmark_run_registry, validate_benchmark_stage_result_manifest,
-    validate_campaign_plan, validate_container_report_portfolio_index,
-    validate_corpus_acquisition_plan, validate_cross_benchmark_campaign_report,
-    validate_cycle_admission, validate_cycle_preparation, validate_cycle_status_v1,
-    validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
+    validate_benchmark_stage_tool_closure, validate_campaign_plan,
+    validate_container_report_portfolio_index, validate_corpus_acquisition_plan,
+    validate_cross_benchmark_campaign_report, validate_cycle_admission, validate_cycle_preparation,
+    validate_cycle_status_v1, validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
     validate_data_fitness_rubric, validate_execution_spec,
     validate_fastq_benchmark_campaign_report, validate_fastq_corpus_source_spec,
     validate_fastq_read_length_expectations, validate_governed_data_catalog,
@@ -259,6 +259,12 @@ pub use crate::model::stage_result::{
     BenchmarkStageResultOutput, BenchmarkStageResultResourceMetricSource,
     BenchmarkStageResultResourceMetrics, BenchmarkStageResultRuntime, BenchmarkStageResultStatus,
     BenchmarkStageResultTool,
+};
+pub use crate::model::stage_tool_closure::{
+    benchmark_stage_tool_closure_schema, BenchmarkStageToolClosureDisposition,
+    BenchmarkStageToolClosureReport, BenchmarkStageToolClosureRow, BenchmarkStageToolClosureSource,
+    BenchmarkStageToolClosureSummary, BenchmarkStageToolProtocolDisposition,
+    BENCHMARK_STAGE_TOOL_CLOSURE_SCHEMA_V1,
 };
 pub use crate::model::suite::{
     benchmark_suite_spec_schema, AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec,
