@@ -279,7 +279,7 @@ fn prinseq_filter_low_complexity() -> ToolBindingV1 {
             "-out_bad",
             "/dev/null",
             "-lc_entropy",
-            "0.5",
+            "50",
         ],
         "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity",
@@ -287,7 +287,7 @@ fn prinseq_filter_low_complexity() -> ToolBindingV1 {
         resources(4, 8, 4),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
-            "qualification_entropy_threshold_is_the_canonical_fraction_0.5",
+            "qualification_entropy_threshold_50_is_the_prinseq_integer_percent_projection_of_policy_fraction_0.5",
             "comparative_case_admission_requires_the_closed_filter_low_complexity_stage_interface",
             "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
         ],

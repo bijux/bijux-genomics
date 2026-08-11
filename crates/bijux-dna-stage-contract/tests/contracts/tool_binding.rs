@@ -308,7 +308,7 @@ fn low_complexity_expected_commands() -> BTreeMap<&'static str, Vec<&'static str
                 "-out_bad",
                 "/dev/null",
                 "-lc_entropy",
-                "0.5",
+                "50",
             ],
         ),
     ])
