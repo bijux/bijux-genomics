@@ -26,6 +26,7 @@ const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
+const TRIM_READS_STAGE: &str = "fastq.trim_reads";
 const CLUSTER_OTUS_STAGE: &str = "fastq.cluster_otus";
 const MERGE_PAIRS_STAGE: &str = "fastq.merge_pairs";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
@@ -43,7 +44,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 47);
+    assert_eq!(retained.bindings().len(), 53);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -67,8 +68,157 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 55);
+    assert_eq!(all.bindings().len(), 61);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_trim_read_bindings_preserve_representative_native_shapes() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(TRIM_READS_STAGE);
+    assert_eq!(
+        registry
+            .bindings_for_stage(&stage)
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["alientrimmer", "atropos", "fastx_clipper", "skewer", "trim_galore", "trimmomatic"]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_paired_trim_bindings_render_native_output_shapes() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(TRIM_READS_STAGE);
+    let paired_inputs = paired_merge_inputs();
+    let paired_outputs = BTreeMap::from([
+        ("trimmed_reads_r1".to_owned(), "/result/trimmed-R1.fastq.gz".to_owned()),
+        ("trimmed_reads_r2".to_owned(), "/result/trimmed-R2.fastq.gz".to_owned()),
+    ]);
+    for (tool, inputs, parameters, required_fragments) in [
+        (
+            "atropos",
+            paired_inputs.clone(),
+            BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("adapter_r1".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("adapter_r2".to_owned(), "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            ["-pe1", "-pe2", "/result/trimmed-R2.fastq.gz"],
+        ),
+        (
+            "trim_galore",
+            paired_inputs.clone(),
+            BTreeMap::from([
+                ("threads".to_owned(), "2".to_owned()),
+                ("adapter_sequence".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            ["--paired", "r1.list", "r2.list"],
+        ),
+        (
+            "trimmomatic",
+            paired_inputs.clone(),
+            BTreeMap::from([
+                ("threads".to_owned(), "2".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            ["PE", "SLIDINGWINDOW:4:20", "MINLEN:30"],
+        ),
+    ] {
+        let binding = registry
+            .binding(&stage, &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} trim binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs,
+                input_sets: BTreeMap::new(),
+                parameters,
+                outputs: paired_outputs.clone(),
+            },
+        )?;
+        let rendered = command.join(" ");
+        for fragment in required_fragments {
+            assert!(rendered.contains(fragment), "{tool} command omitted {fragment}");
+        }
+        assert_eq!(binding.outputs.len(), 2);
+    }
+
+    let alientrimmer = registry
+        .binding(&stage, &ToolId::new("alientrimmer"))
+        .ok_or_else(|| anyhow::anyhow!("canonical alientrimmer trim binding is missing"))?;
+    let alientrimmer_command = render_tool_command(
+        alientrimmer,
+        &ToolBindingRenderContext {
+            executable: "alientrimmer".to_owned(),
+            inputs: paired_inputs
+                .into_iter()
+                .chain([("adapter_reference".to_owned(), "/input/adapters.fasta".to_owned())])
+                .collect(),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::new(),
+            outputs: paired_outputs,
+        },
+    )?;
+    assert!(alientrimmer_command[2].contains("-a '/input/adapters.fasta'"));
+    assert!(alientrimmer_command[2].contains("$prefix.1.fastq.gz"));
+    assert!(alientrimmer_command[2].contains("$prefix.2.fastq.gz"));
+    Ok(())
+}
+
+#[test]
+fn canonical_single_end_trim_bindings_render_native_output_shapes() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(TRIM_READS_STAGE);
+    for (tool, parameters, required_fragment) in [
+        (
+            "fastx_clipper",
+            BTreeMap::from([
+                ("adapter_sequence".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("adapter_match_length".to_owned(), "34".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            "-M 34",
+        ),
+        (
+            "skewer",
+            BTreeMap::from([
+                ("threads".to_owned(), "2".to_owned()),
+                ("adapter_sequence".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            "skewer-trimmed.fastq.gz",
+        ),
+    ] {
+        let binding = registry
+            .binding(&stage, &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} trim binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: BTreeMap::from([("reads_r1".to_owned(), "/input/reads.fastq".to_owned())]),
+                input_sets: BTreeMap::new(),
+                parameters,
+                outputs: BTreeMap::from([(
+                    "trimmed_reads_r1".to_owned(),
+                    "/result/trimmed.fastq.gz".to_owned(),
+                )]),
+            },
+        )?;
+        assert!(command.join(" ").contains(required_fragment));
+        assert_eq!(binding.inputs.len(), 1);
+        assert_eq!(binding.outputs.len(), 1);
+    }
     Ok(())
 }
 

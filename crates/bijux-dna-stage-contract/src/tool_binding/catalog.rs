@@ -55,6 +55,8 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
     for binding in vec![
         adapterremoval_merge_pairs(),
+        alientrimmer_trim_reads(),
+        atropos_trim_reads(),
         bbduk_filter_low_complexity(),
         bbmerge_merge_pairs(),
         bayeshammer_correct_errors(),
@@ -68,6 +70,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         fastp_filter_low_complexity(),
         fastqc_detect_adapters(),
         fastqvalidator_validate_reads(),
+        fastx_clipper_trim_reads(),
         flash2_merge_pairs(),
         fqtools_validate_reads(),
         kaiju_screen_taxonomy(),
@@ -97,7 +100,10 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         seqkit_stats_profile_reads(),
         seqprep_merge_pairs(),
         seqtk_validate_reads(),
+        skewer_trim_reads(),
         star_index_reference(),
+        trim_galore_trim_reads(),
+        trimmomatic_trim_reads(),
         umi_tools_extract_umis(),
         vsearch_cluster_otus(),
         vsearch_merge_pairs(),
@@ -107,6 +113,202 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn alientrimmer_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "alientrimmer",
+        &["paired_end_reads", "reference_adapter_trimming", "pair_preserving_outputs"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("reads_r2", FASTQ_PAIRED),
+            input("adapter_reference", FASTA),
+        ],
+        &[],
+        &[
+            output("trimmed_reads_r1", FASTQ_PAIRED),
+            output("trimmed_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-alientrimmer-work\"; mkdir -p \"$work\"; prefix=\"$work/trimmed\"; '${executable}' -1 '${input:reads_r1}' -2 '${input:reads_r2}' -a '${input:adapter_reference}' -o \"$prefix\" -z -v; test -f \"$prefix.1.fastq.gz\"; test -f \"$prefix.2.fastq.gz\"; cp -- \"$prefix.1.fastq.gz\" '${output:trimmed_reads_r1}'; cp -- \"$prefix.2.fastq.gz\" '${output:trimmed_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(1, 2, 1),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "adapter_reference_identity_is_part_of_each_case",
+            "native_pair_suffixes_are_resolved_before_normalization",
+        ],
+    )
+}
+
+fn atropos_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "atropos",
+        &["paired_end_reads", "explicit_adapter_pair", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "adapter_r1", "adapter_r2", "quality_cutoff", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_PAIRED), output("trimmed_reads_r2", FASTQ_PAIRED)],
+        &[
+            "${executable}",
+            "trim",
+            "-T",
+            "${parameter:threads}",
+            "-a",
+            "${parameter:adapter_r1}",
+            "-A",
+            "${parameter:adapter_r2}",
+            "-q",
+            "${parameter:quality_cutoff}",
+            "-m",
+            "${parameter:min_length}",
+            "-pe1",
+            "${input:reads_r1}",
+            "-pe2",
+            "${input:reads_r2}",
+            "-o",
+            "${output:trimmed_reads_r1}",
+            "-p",
+            "${output:trimmed_reads_r2}",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "adapter_sequences_and_thresholds_are_explicit_case_parameters",
+            "comparative_admission_requires_the_closed_trim_reads_stage_interface",
+        ],
+    )
+}
+
+fn fastx_clipper_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "fastx_clipper",
+        &["single_end_reads", "explicit_adapter_sequence", "native_fastq_output"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["adapter_sequence", "adapter_match_length", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_SINGLE)],
+        &[
+            "${executable}",
+            "-Q33",
+            "-a",
+            "${parameter:adapter_sequence}",
+            "-M",
+            "${parameter:adapter_match_length}",
+            "-l",
+            "${parameter:min_length}",
+            "-i",
+            "${input:reads_r1}",
+            "-o",
+            "${output:trimmed_reads_r1}",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(1, 2, 1),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+            "adapter_match_length_must_not_exceed_the_adapter_sequence_length",
+        ],
+    )
+}
+
+fn skewer_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "skewer",
+        &["single_end_reads", "tail_adapter_trimming", "native_fastq_output"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads", "adapter_sequence", "quality_cutoff", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_SINGLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-skewer-work\"; mkdir -p \"$work\"; prefix=\"$work/skewer\"; '${executable}' -m tail -t '${parameter:threads}' -x '${parameter:adapter_sequence}' -q '${parameter:quality_cutoff}' -l '${parameter:min_length}' -z -o \"$prefix\" '${input:reads_r1}'; find \"$work\" -maxdepth 1 -type f \\( -name 'skewer-trimmed.fastq.gz' -o -name 'skewer-trimmed.fastq' \\) | LC_ALL=C sort > \"$work/outputs.list\"; test \"$(wc -l < \"$work/outputs.list\" | tr -d '[:space:]')\" -eq 1; src=$(sed -n '1p' \"$work/outputs.list\"); case \"$src\" in *.gz) cp -- \"$src\" '${output:trimmed_reads_r1}' ;; *) gzip -c -- \"$src\" > '${output:trimmed_reads_r1}' ;; esac",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(2, 2, 1),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+            "native_output_discovery_rejects_missing_or_ambiguous_results",
+        ],
+    )
+}
+
+fn trim_galore_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "trim_galore",
+        &["paired_end_reads", "cutadapt_backed_trimming", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "adapter_sequence", "quality_cutoff", "min_length"],
+        &[
+            output("trimmed_reads_r1", FASTQ_PAIRED),
+            output("trimmed_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-trim-galore-work\"; mkdir -p \"$work\"; '${executable}' --paired --cores '${parameter:threads}' --adapter '${parameter:adapter_sequence}' --quality '${parameter:quality_cutoff}' --length '${parameter:min_length}' --output_dir \"$work\" '${input:reads_r1}' '${input:reads_r2}'; find \"$work\" -maxdepth 1 -type f -name '*_val_1.fq*' | LC_ALL=C sort > \"$work/r1.list\"; find \"$work\" -maxdepth 1 -type f -name '*_val_2.fq*' | LC_ALL=C sort > \"$work/r2.list\"; test \"$(wc -l < \"$work/r1.list\" | tr -d '[:space:]')\" -eq 1; test \"$(wc -l < \"$work/r2.list\" | tr -d '[:space:]')\" -eq 1; normalize() { src=$1; dest=$2; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$(sed -n '1p' \"$work/r1.list\")\" '${output:trimmed_reads_r1}'; normalize \"$(sed -n '1p' \"$work/r2.list\")\" '${output:trimmed_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(2, 4, 2),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "native_val_mate_outputs_are_resolved_independently",
+            "ambiguous_or_missing_native_mate_outputs_fail_before_admission",
+        ],
+    )
+}
+
+fn trimmomatic_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "trimmomatic",
+        &["paired_end_reads", "quality_window_trimming", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "quality_cutoff", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_PAIRED), output("trimmed_reads_r2", FASTQ_PAIRED)],
+        &[
+            "${executable}",
+            "PE",
+            "-threads",
+            "${parameter:threads}",
+            "-phred33",
+            "${input:reads_r1}",
+            "${input:reads_r2}",
+            "${output:trimmed_reads_r1}",
+            "/dev/null",
+            "${output:trimmed_reads_r2}",
+            "/dev/null",
+            "SLIDINGWINDOW:4:${parameter:quality_cutoff}",
+            "MINLEN:${parameter:min_length}",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(2, 4, 2),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "unpaired_native_outputs_are_scientifically_excluded_from_the_pair_preserving_contract",
+            "quality_window_and_minimum_length_are_explicit_case_parameters",
+        ],
+    )
 }
 
 fn leehom_merge_pairs() -> ToolBindingV1 {
