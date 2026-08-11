@@ -17,7 +17,7 @@
   validation, acceptance metrics, and classified verdicts.
 - `bijux-dna-infra` for governed filesystem writes, temp dirs, path helpers, and hashing.
 
-The Slurm backend introduces no scheduler library or async runtime dependency. It invokes the configured `sbatch`, `squeue`, `sacct`, and `scancel` executables through the standard process boundary.
+The Slurm backend introduces no scheduler library or async runtime dependency. It invokes the configured `sbatch`, `squeue`, `sacct`, and `scancel` executables through the standard process boundary. Managed workers reuse these existing dependencies and infra hashing; they add no shell parser, scheduler client, or product crate dependency.
 
 ## Dev Dependencies
 - `bijux-dna-policies` for guardrail checks.

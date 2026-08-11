@@ -44,6 +44,10 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 - Missing accounting is represented as `accounting_pending`, not guessed as success or failure.
 - Collection is a read-only one-shot observation, and cancellation invokes `scancel` once for the exact job identity.
 - Scheduling cadence belongs to the caller; this crate contains no sleep, wait, or polling loop.
+- Managed Slurm jobs bind one clean repository commit and one exact executable worker. Preparation
+  publishes the wrapper and specification, duplicate-safe submission persists intent before the
+  scheduler effect, observation performs one query, and terminal collection records accounting and
+  log digests without interpreting the worker's domain output.
 - Container qualification status v2 names the next one-shot action `observe` and exposes
   `earliest_observation_at_utc`; v1 `poll` spellings remain deserialize-only compatibility aliases.
 - Container qualification `advance` runs one bounded collect pass, admits every newly passing

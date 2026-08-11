@@ -36,6 +36,7 @@ pub enum NativeOpsCommandKey {
     HpcBenchmarkSyncPull,
     HpcBenchmarkSyncPush,
     HpcBenchmarkAttemptMigration,
+    HpcManagedSlurmJob,
     LabRunBench,
     LabRunPipelines,
     SmokeRun,

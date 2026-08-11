@@ -11,6 +11,10 @@ This crate owns developer automation contracts, not production pipeline contract
 - Every executable command id must be registered under `src/catalog`.
 - Command execution must route through `src/application` and `src/commands`; `cli/` remains parsing and reporting only.
 - Command ids must be deterministic, unique within their command group, and stable unless a migration is documented.
+- `hpc run managed-slurm-job -- prepare|submit|observe|collect ...` is a thin adapter over the
+  runner-owned immutable worker lifecycle. Each operation performs one bounded scheduler action
+  and returns; submission intent, job handles, terminal accounting, and log identities remain
+  under the declared attempt root.
 - `containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output> [<additional-image-root> <additional-build-evidence-root>]...`
   delegates all image admission and selection to `bijux-dna-containers`, preserves every source
   root explicitly in the ordered raw scan, composes immutable campaign roots without copying their

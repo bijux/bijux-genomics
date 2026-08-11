@@ -16,6 +16,8 @@
 - Materialize source-locked benchmark batch scripts under their declared immutable attempt roots.
 - Persist benchmark submission intent before `sbatch` and scheduler handles immediately after a
   successful submission effect.
+- Persist managed-worker specifications, generated wrapper scripts, submission intent, scheduler
+  handles, and terminal scheduler/log evidence beneath the declared immutable attempt root.
 - Create temporary paths through `bijux-dna-infra` helpers.
 
 ## Effect Codes
@@ -29,6 +31,7 @@ Runner errors use these source-level effect codes:
 ## Forbidden Effects
 - No CLI parsing or command discovery.
 - No planner, engine, analyzer, or report effects.
+- Managed-worker collection must not interpret, admit, aggregate, or publish worker product output.
 - No writes outside declared runtime roots.
 - Generated benchmark jobs mount repository and input authorities read-only and write only to the
   declared result and scratch mounts.

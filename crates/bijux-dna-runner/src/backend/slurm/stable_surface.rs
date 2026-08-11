@@ -40,6 +40,14 @@ pub use super::image_campaign::{
     PreparedImageCampaignSlurmJob, IMAGE_CAMPAIGN_EVIDENCE_SCHEMA_V1,
     IMAGE_CAMPAIGN_PREPARED_JOB_SCHEMA_V1, IMAGE_CAMPAIGN_SLURM_SPEC_SCHEMA_V1,
 };
+pub use super::managed_job::{
+    collect_managed_slurm_job, load_managed_slurm_job_handle, load_managed_slurm_job_spec,
+    load_prepared_managed_slurm_job, observe_managed_slurm_job, prepare_managed_slurm_job,
+    submit_prepared_managed_slurm_job, ManagedSlurmJobCollection, ManagedSlurmJobEvidence,
+    ManagedSlurmJobResources, ManagedSlurmJobSpec, PreparedManagedSlurmJob,
+    MANAGED_SLURM_JOB_EVIDENCE_SCHEMA_V1, MANAGED_SLURM_JOB_SPEC_SCHEMA_V1,
+    PREPARED_MANAGED_SLURM_JOB_SCHEMA_V1,
+};
 pub use super::qualification::{
     admit_container_qualification_collection, admit_container_qualification_cycle,
     advance_container_qualification_cycle, archive_failed_container_qualification_attempt,

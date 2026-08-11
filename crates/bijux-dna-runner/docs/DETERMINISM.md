@@ -37,3 +37,10 @@ Replay does not:
 - `tests/determinism/run_id_determinism.rs` covers run-id stability.
 - `tests/determinism/replay.rs` and `tests/determinism/replay/replay_*.rs` cover replay behavior.
 - `tests/boundaries/backend/invocation_hash.rs` covers invocation identity rules.
+
+## Managed Slurm Evidence
+
+Managed-worker specifications and wrapper scripts are deterministic functions of declared source,
+worker, resource, dependency, and attempt identities. A later observation may carry a new timestamp,
+but an existing terminal collection is returned only when scheduler accounting and log hashes still
+match its immutable evidence.

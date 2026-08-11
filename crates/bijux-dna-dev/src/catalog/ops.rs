@@ -137,6 +137,11 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             "Plan, apply, verify, or roll back benchmark attempt ownership migration.",
             NativeOpsCommandKey::HpcBenchmarkAttemptMigration,
         ),
+        native(
+            "managed-slurm-job",
+            "Prepare, submit, observe, or collect one immutable external worker without waiting.",
+            NativeOpsCommandKey::HpcManagedSlurmJob,
+        ),
     ]
 }
 

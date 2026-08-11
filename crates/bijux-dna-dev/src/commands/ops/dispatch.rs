@@ -59,6 +59,7 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::HpcBenchmarkAttemptMigration => {
             hpc::hpc_benchmark_attempt_migration(workspace, args)
         }
+        NativeOpsCommandKey::HpcManagedSlurmJob => hpc::hpc_managed_slurm_job(workspace, args),
         NativeOpsCommandKey::LabRunBench => lab::lab_run_bench(workspace, args),
         NativeOpsCommandKey::LabRunPipelines => lab::lab_run_pipelines(workspace, args),
         NativeOpsCommandKey::SmokeRun => smoke::smoke_run(workspace, args),

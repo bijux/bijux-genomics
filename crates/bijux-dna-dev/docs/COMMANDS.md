@@ -367,6 +367,7 @@ run
 benchmark-attempt-migration
 benchmark-sync-pull
 benchmark-sync-push
+managed-slurm-job
 run-frontend-mini-e2e
 site-cycle-preflight
 validate-frontend-constraints

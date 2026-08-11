@@ -7,6 +7,7 @@ mod client;
 mod contracts;
 mod corpus_materialization;
 mod image_campaign;
+mod managed_job;
 mod parsing;
 mod qualification;
 mod stable_surface;
