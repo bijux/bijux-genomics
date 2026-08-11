@@ -794,10 +794,6 @@ mod tests {
             .ok_or_else(|| anyhow::anyhow!("policies crate is outside the repository"))?;
         let path = root.join("containers/contracts/schemas/security-evidence.v2.json");
         let generated = serde_json::to_value(super::super::security_evidence_schema())?;
-        if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
-            let encoded = format!("{}\n", serde_json::to_string_pretty(&generated)?);
-            std::fs::write(&path, encoded)?;
-        }
         let checked: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
         assert_eq!(checked, generated);
         Ok(())
