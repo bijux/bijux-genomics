@@ -62,46 +62,41 @@ fn tool_literals_after_identifier(line: &str) -> Vec<String> {
 
 #[test]
 fn benchmark_references_canonical_ids() {
-    let mut allowed_stages = HashSet::new();
-    for stage in bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG {
-        allowed_stages.insert((*stage).to_string());
-    }
-    for stage in bijux_dna_domain_bam::BamStage::all() {
-        allowed_stages.insert(stage.as_str().to_string());
-    }
+    let crate_root = crate::support::crate_root("bijux-dna-bench")
+        .unwrap_or_else(|err| panic!("resolve benchmark crate root: {err}"));
+    let repository_root = crate_root
+        .parent()
+        .and_then(std::path::Path::parent)
+        .unwrap_or_else(|| panic!("benchmark crate root is not under workspace crates"));
+    let closure = bijux_dna_bench::derive_benchmark_stage_tool_closure(repository_root)
+        .unwrap_or_else(|err| panic!("derive stage/tool closure: {err}"));
+    let mut allowed_stages = bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG
+        .iter()
+        .map(|stage| (*stage).to_string())
+        .collect::<HashSet<_>>();
     allowed_stages.extend(
-        bijux_dna_domain_vcf::VCF_STAGE_ID_CATALOG.iter().map(|stage| (*stage).to_string()),
+        bijux_dna_domain_bam::BamStage::all().iter().map(|stage| stage.as_str().to_string()),
     );
+    allowed_stages.extend(closure.rows.iter().map(|row| row.stage_id.clone()));
 
     let mut allowed_tools = HashSet::new();
     for stage in bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG {
         if let Some(json) = bijux_dna_domain_fastq::stage_contract_json(stage) {
             if let Some(tools) = json.get("tool_ids").and_then(|value| value.as_array()) {
-                for tool in tools {
-                    if let Some(tool) = tool.as_str() {
-                        allowed_tools.insert(tool.to_string());
-                    }
-                }
+                allowed_tools
+                    .extend(tools.iter().filter_map(|tool| tool.as_str()).map(str::to_string));
             }
         }
     }
     for stage in bijux_dna_domain_bam::BamStage::all() {
         if let Some(json) = bijux_dna_domain_bam::stage_contract_json(stage.as_str()) {
             if let Some(tools) = json.get("tool_ids").and_then(|value| value.as_array()) {
-                for tool in tools {
-                    if let Some(tool) = tool.as_str() {
-                        allowed_tools.insert(tool.to_string());
-                    }
-                }
+                allowed_tools
+                    .extend(tools.iter().filter_map(|tool| tool.as_str()).map(str::to_string));
             }
         }
     }
-    allowed_tools.extend(
-        bijux_dna_domain_vcf::coverage::VCF_DOMAIN_TOOL_CATALOG
-            .iter()
-            .map(|tool| (*tool).to_string()),
-    );
-
+    allowed_tools.extend(closure.rows.iter().map(|row| row.tool_id.clone()));
     let allowed_families = bijux_dna_bench::BAM_STAGE_FAMILIES
         .iter()
         .chain(bijux_dna_bench::FASTQ_STAGE_FAMILIES)
