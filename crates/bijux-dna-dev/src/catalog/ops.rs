@@ -185,7 +185,7 @@ pub fn test_registry() -> Vec<OpsCommandDefinition> {
         ),
         native(
             "reproduce-failure",
-            "Render reproduction commands from a nextest JSONL log.",
+            "Render binary-qualified exact reproduction commands from a nextest JSONL log.",
             NativeOpsCommandKey::TestReproduceFailure,
         ),
         native(

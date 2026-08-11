@@ -216,7 +216,8 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
 }
 
 #[test]
-fn specialized_declared_binding_counts_without_generic_stage_matrix_membership() {
+fn policy__contracts__registry_ssot_completeness_policy__specialized_declared_binding_counts_without_generic_stage_matrix_membership(
+) {
     let tool = toml::from_str::<toml::Value>(
         r#"
 id = "ibdhap"

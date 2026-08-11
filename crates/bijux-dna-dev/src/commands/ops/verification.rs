@@ -151,8 +151,19 @@ pub(super) fn test_reproduce_failure(
     if !path.is_file() {
         return Ok(OpsCommandOutcome::failure(format!("missing log file: {}\n", path.display())));
     }
+    let jsonl = read_utf8(&path)?;
+    match failed_test_reproduction_commands(&jsonl) {
+        Ok(commands) => Ok(OpsCommandOutcome::success(format!("{}\n", commands.join("\n")))),
+        Err(error) => Ok(OpsCommandOutcome::failure(format!(
+            "cannot produce a binary-qualified failed-test roster: {error:#}\n"
+        ))),
+    }
+}
+
+fn failed_test_reproduction_commands(jsonl: &str) -> Result<Vec<String>> {
     let mut failures = BTreeSet::new();
-    for line in read_utf8(&path)?.lines() {
+    let mut incomplete_failure_lines = Vec::new();
+    for (index, line) in jsonl.lines().enumerate() {
         let Ok(payload) = serde_json::from_str::<Value>(line) else {
             continue;
         };
@@ -160,35 +171,88 @@ pub(super) fn test_reproduce_failure(
         if !matches!(status, "fail" | "failed") {
             continue;
         }
-        let test_name = payload
-            .get("name")
-            .or_else(|| payload.get("test_name"))
-            .or_else(|| payload.get("test"))
-            .and_then(Value::as_str)
-            .unwrap_or_default();
-        if test_name.is_empty() {
-            continue;
-        }
-        let binary = payload
-            .get("binary")
-            .or_else(|| payload.get("binary_id"))
-            .and_then(Value::as_str)
-            .unwrap_or_default();
-        failures.insert((binary.to_string(), test_name.to_string()));
-    }
-    let mut stdout = String::new();
-    for (binary, test_name) in failures {
-        if binary.is_empty() {
-            stdout.push_str(&format!(
-                "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 {test_name}\n"
-            ));
-        } else {
-            stdout.push_str(&format!(
-                "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 {binary} {test_name}\n"
-            ));
+        let test_name =
+            first_string(&payload, &["/name", "/test_name", "/test", "/test_instance/name"]);
+        let binary_id =
+            first_string(&payload, &["/binary", "/binary_id", "/test_instance/binary_id"]);
+        match (binary_id, test_name) {
+            (Some(binary_id), Some(test_name))
+                if !binary_id.is_empty() && !test_name.is_empty() =>
+            {
+                failures.insert((binary_id.to_string(), test_name.to_string()));
+            }
+            _ => incomplete_failure_lines.push(index + 1),
         }
     }
-    Ok(OpsCommandOutcome::success(stdout))
+    if !incomplete_failure_lines.is_empty() {
+        anyhow::bail!(
+            "failed events on JSONL lines {} do not contain both binary and test identities",
+            incomplete_failure_lines.iter().map(usize::to_string).collect::<Vec<_>>().join(", ")
+        );
+    }
+    if failures.is_empty() {
+        anyhow::bail!("the JSONL log contains no failed events");
+    }
+    failures
+        .into_iter()
+        .map(|(binary_id, test_name)| reproduction_command(&binary_id, &test_name))
+        .collect()
+}
+
+fn first_string<'a>(payload: &'a Value, pointers: &[&str]) -> Option<&'a str> {
+    pointers.iter().find_map(|pointer| payload.pointer(pointer).and_then(Value::as_str))
+}
+
+fn reproduction_command(binary_id: &str, test_name: &str) -> Result<String> {
+    let (package, target) = match binary_id.split_once("::") {
+        Some((package, rest)) if rest.starts_with("bin/") => {
+            (package, BinaryTarget::Bin(&rest["bin/".len()..]))
+        }
+        Some((package, rest)) => (package, BinaryTarget::Test(rest)),
+        None => (binary_id, BinaryTarget::Lib),
+    };
+    validate_selector_component(package, "package")?;
+    if test_name.is_empty() {
+        anyhow::bail!("test identity is empty");
+    }
+    let mut command = format!(
+        "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 -p {}",
+        shell_quote(package)
+    );
+    match target {
+        BinaryTarget::Lib => command.push_str(" --lib"),
+        BinaryTarget::Test(target) => {
+            validate_selector_component(target, "test binary")?;
+            command.push_str(&format!(" --test {}", shell_quote(target)));
+        }
+        BinaryTarget::Bin(target) => {
+            validate_selector_component(target, "binary")?;
+            command.push_str(&format!(" --bin {}", shell_quote(target)));
+        }
+    }
+    command.push_str(&format!(" -- {} --exact --include-ignored", shell_quote(test_name)));
+    Ok(command)
+}
+
+enum BinaryTarget<'a> {
+    Lib,
+    Test(&'a str),
+    Bin(&'a str),
+}
+
+fn validate_selector_component(value: &str, label: &str) -> Result<()> {
+    if value.is_empty()
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.'))
+    {
+        anyhow::bail!("{label} identity is malformed: {value}");
+    }
+    Ok(())
+}
+
+fn shell_quote(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 pub(super) fn test_fastq_gold_repro(
@@ -400,4 +464,56 @@ pub(super) fn run_check_ids(stdout: &mut String, check_ids: &[&str]) -> Result<(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{failed_test_reproduction_commands, reproduction_command};
+
+    #[test]
+    fn failed_test_roster_preserves_binary_identity_for_duplicate_names() -> anyhow::Result<()> {
+        let jsonl = concat!(
+            r#"{"status":"failed","binary_id":"alpha::contracts","test_name":"same_name"}"#,
+            "\n",
+            r#"{"status":"failed","test_instance":{"binary_id":"beta::contracts","name":"same_name"}}"#,
+            "\n",
+            r#"{"status":"passed","binary_id":"gamma::contracts","test_name":"not_selected"}"#,
+        );
+        let commands = failed_test_reproduction_commands(jsonl)?;
+        assert_eq!(commands.len(), 2);
+        assert_eq!(
+            commands[0],
+            "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 -p 'alpha' --test 'contracts' -- 'same_name' --exact --include-ignored"
+        );
+        assert_eq!(
+            commands[1],
+            "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 -p 'beta' --test 'contracts' -- 'same_name' --exact --include-ignored"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn failed_test_roster_rejects_name_only_events() -> anyhow::Result<()> {
+        let error = match failed_test_reproduction_commands(
+            r#"{"status":"failed","test_name":"ambiguous_name"}"#,
+        ) {
+            Ok(commands) => anyhow::bail!("name-only failure rendered commands: {commands:?}"),
+            Err(error) => error,
+        };
+        assert!(error.to_string().contains("both binary and test identities"));
+        Ok(())
+    }
+
+    #[test]
+    fn reproduction_commands_select_library_binary_and_integration_targets() -> anyhow::Result<()> {
+        assert_eq!(
+            reproduction_command("bijux-dna-bench", "workflow::case")?,
+            "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 -p 'bijux-dna-bench' --lib -- 'workflow::case' --exact --include-ignored"
+        );
+        assert_eq!(
+            reproduction_command("bijux-dna-dev::bin/bijux-dna-dev", "commands::case")?,
+            "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 -p 'bijux-dna-dev' --bin 'bijux-dna-dev' -- 'commands::case' --exact --include-ignored"
+        );
+        Ok(())
+    }
 }
