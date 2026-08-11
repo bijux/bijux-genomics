@@ -90,6 +90,14 @@ Model contracts:
 - `CrossBenchmarkGoalEntry`
 - `CrossMatrixRowRef`
 - `CrossScenario`
+- `FastqBenchmarkCampaignReport`
+- `BamBenchmarkCampaignReport`
+- `VcfBenchmarkCampaignReport`
+- `HardeningBenchmarkCampaignReport`
+- `DomainBenchmarkCampaignSummary`
+- `DomainBenchmarkGoalEntry`
+- `DomainBenchmarkMatrixRowRef`
+- `DomainBenchmarkScenario`
 - `BenchmarkMatrixReport`
 - `BenchmarkMatrixSummary`
 - `BenchmarkMatrixRow`

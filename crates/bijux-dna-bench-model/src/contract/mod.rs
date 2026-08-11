@@ -14,6 +14,7 @@ mod data_catalog_registry;
 mod data_fitness;
 mod data_index;
 mod data_portfolio_audit;
+mod domain_campaign;
 mod execution;
 mod interfaces;
 mod lifecycle;
@@ -44,6 +45,10 @@ pub use data_catalog_registry::validate_governed_data_catalog_registry;
 pub use data_fitness::{validate_data_fitness_portfolio_alignment, validate_data_fitness_rubric};
 pub use data_index::validate_benchmark_data_index;
 pub use data_portfolio_audit::validate_benchmark_data_portfolio_audit;
+pub use domain_campaign::{
+    validate_bam_benchmark_campaign_report, validate_fastq_benchmark_campaign_report,
+    validate_hardening_benchmark_campaign_report, validate_vcf_benchmark_campaign_report,
+};
 pub use execution::validate_execution_spec;
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,

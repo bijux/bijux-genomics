@@ -25,6 +25,8 @@ mod mod_contracts_data_fitness_rs;
 mod mod_contracts_data_index_rs;
 #[path = "contracts/data_portfolio_audit.rs"]
 mod mod_contracts_data_portfolio_audit_rs;
+#[path = "contracts/domain_campaign.rs"]
+mod mod_contracts_domain_campaign_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/materialization.rs"]

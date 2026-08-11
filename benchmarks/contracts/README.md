@@ -108,6 +108,14 @@ hardening subsets, and exact campaign summary. The benchmark model owns its
 version and admission rules; command surfaces only adapt arguments and render
 validated records.
 
+`schemas/fastq-benchmark-campaign-report.schema.json`,
+`schemas/bam-benchmark-campaign-report.schema.json`,
+`schemas/vcf-benchmark-campaign-report.schema.json`, and
+`schemas/hardening-benchmark-campaign-report.schema.json` define the persisted
+domain and portfolio-hardening campaign records. The benchmark model owns their
+versions, selected-goal closure, nested evidence references, status semantics,
+and exact summaries; command surfaces only derive and render admitted records.
+
 `schemas/governed-data-catalog-snapshot-publication.schema.json`,
 `schemas/governed-data-catalog-registry-publication.schema.json`, and
 `schemas/campaign-report-publication.schema.json` define the versioned outcomes

@@ -12,6 +12,7 @@ pub mod cross_campaign;
 pub mod data_catalog_registry;
 pub mod data_fitness;
 pub mod data_portfolio_audit;
+pub mod domain_campaign;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
@@ -103,6 +104,21 @@ pub use data_portfolio_audit::{
     benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
     BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
+};
+#[allow(unused_imports)]
+pub use domain_campaign::{
+    bam_benchmark_campaign_report_schema, fastq_benchmark_campaign_report_schema,
+    hardening_benchmark_campaign_report_schema, vcf_benchmark_campaign_report_schema,
+    BamBenchmarkCampaignReport, BamBenchmarkCampaignSummary, BamBenchmarkGoalEntry,
+    BamMatrixRowRef, BamScenario, DomainBenchmarkCampaignSummary, DomainBenchmarkGoalEntry,
+    DomainBenchmarkMatrixRowRef, DomainBenchmarkScenario, FastqBenchmarkCampaignReport,
+    FastqBenchmarkCampaignSummary, FastqBenchmarkGoalEntry, FastqMatrixRowRef, FastqScenario,
+    HardeningBenchmarkCampaignReport, HardeningBenchmarkCampaignSummary,
+    HardeningBenchmarkGoalEntry, HardeningMatrixRowRef, HardeningScenario,
+    VcfBenchmarkCampaignReport, VcfBenchmarkCampaignSummary, VcfBenchmarkGoalEntry,
+    VcfMatrixRowRef, VcfScenario, BAM_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+    FASTQ_BENCHMARK_CAMPAIGN_SCHEMA_V1, HARDENING_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+    VCF_BENCHMARK_CAMPAIGN_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use execution::{
