@@ -2,6 +2,21 @@
 mod support;
 
 #[test]
+fn repo_root_honors_valid_shard_workspace_override() -> anyhow::Result<()> {
+    let _cwd_guard =
+        support::CWD_LOCK.lock().map_err(|error| anyhow::anyhow!("cwd lock: {error}"))?;
+    let _env_guard = support::EnvGuard::new()?;
+    let shard_workspace = tempfile::tempdir()?;
+    std::fs::write(shard_workspace.path().join("Cargo.lock"), "")?;
+    std::fs::create_dir(shard_workspace.path().join("crates"))?;
+    std::fs::create_dir(shard_workspace.path().join("configs"))?;
+    std::env::set_var("BIJUX_REPO_ROOT", shard_workspace.path());
+
+    assert_eq!(support::repo_root()?, shard_workspace.path());
+    Ok(())
+}
+
+#[test]
 fn repo_process_lock_returns_contention_without_polling() -> anyhow::Result<()> {
     let name = format!("repo-process-lock-contention-{}", std::process::id());
     let repo_root = support::repo_root()?;

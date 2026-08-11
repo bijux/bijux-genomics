@@ -12,6 +12,18 @@ fn looks_like_repo_root(path: &Path) -> bool {
 /// # Errors
 /// Returns an error if the repository root cannot be resolved from the current working directory.
 pub fn repo_root() -> Result<PathBuf> {
+    if let Some(path) =
+        std::env::var_os("BIJUX_REPO_ROOT").filter(|value| !value.is_empty()).map(PathBuf::from)
+    {
+        if looks_like_repo_root(&path) {
+            return Ok(path);
+        }
+        return Err(anyhow!(
+            "BIJUX_REPO_ROOT does not point to a bijux repository root: {}",
+            path.display()
+        ));
+    }
+
     let cwd = std::env::current_dir().map_err(|err| anyhow!("resolve current directory: {err}"))?;
     for candidate in cwd.ancestors() {
         if looks_like_repo_root(candidate) {

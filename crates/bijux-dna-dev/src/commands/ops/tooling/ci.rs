@@ -610,7 +610,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     &roots.archive_extract,
                     shard_workspace,
                 ),
-                envs: full_shard_env(roots)?,
+                envs: full_shard_env(roots, shard_workspace)?,
                 current_dir: Some(shard_workspace.clone()),
             })
         })
@@ -633,7 +633,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "id": completed.label,
             "partition": shard.partition,
             "workspace": workspace.rel(shard_workspace).to_string_lossy(),
-            "environment_roots": full_shard_root_receipt(roots),
+            "environment_roots": full_shard_root_receipt(roots, shard_workspace),
             "duration_milliseconds": completed.duration.as_millis(),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
@@ -946,7 +946,7 @@ fn validate_full_shard_root_set(
     Ok(())
 }
 
-fn full_shard_env(roots: &FullShardRoots) -> Result<Vec<(String, String)>> {
+fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<(String, String)>> {
     for root in roots.all() {
         bijux_dna_infra::ensure_dir(root)?;
     }
@@ -960,13 +960,20 @@ fn full_shard_env(roots: &FullShardRoots) -> Result<Vec<(String, String)>> {
         ("COV_TMP_DIR".to_string(), roots.coverage_tmp.display().to_string()),
         ("TEST_PROFRAW_DIR".to_string(), roots.test_profraw.display().to_string()),
         ("COV_PROFRAW_DIR".to_string(), roots.coverage_profraw.display().to_string()),
+        ("BIJUX_REPO_ROOT".to_string(), shard_workspace.display().to_string()),
+        (
+            "BIJUX_BENCHMARK_ROOT".to_string(),
+            shard_workspace.join("benchmarks").display().to_string(),
+        ),
         ("TZ".to_string(), "UTC".to_string()),
         ("LC_ALL".to_string(), "C".to_string()),
     ])
 }
 
-fn full_shard_root_receipt(roots: &FullShardRoots) -> serde_json::Value {
+fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> serde_json::Value {
     serde_json::json!({
+        "repository_root": shard_workspace.display().to_string(),
+        "benchmark_root": shard_workspace.join("benchmarks").display().to_string(),
         "artifact_root": roots.artifact_root.display().to_string(),
         "iso_root": roots.artifact_root.display().to_string(),
         "archive_extract_dir": roots.archive_extract.display().to_string(),
@@ -1476,8 +1483,10 @@ mod tests {
             .collect::<anyhow::Result<Vec<_>>>()?;
         validate_full_shard_root_set(&workspace, &roots)?;
 
-        let first_env =
-            full_shard_env(&roots[0])?.into_iter().collect::<std::collections::BTreeMap<_, _>>();
+        let shard_workspace = workspace.path("artifacts/ci/full-shards/workspaces/hash-1-of-4");
+        let first_env = full_shard_env(&roots[0], &shard_workspace)?
+            .into_iter()
+            .collect::<std::collections::BTreeMap<_, _>>();
         for name in [
             "ARTIFACT_ROOT",
             "ISO_ROOT",
@@ -1500,7 +1509,14 @@ mod tests {
         assert_ne!(first_env["TEST_TARGET_DIR"], first_env["COV_TARGET_DIR"]);
         assert_ne!(first_env["TEST_TMP_DIR"], first_env["COV_TMP_DIR"]);
         assert_ne!(first_env["TEST_PROFRAW_DIR"], first_env["COV_PROFRAW_DIR"]);
-        let receipt = full_shard_root_receipt(&roots[0]);
+        assert_eq!(first_env["BIJUX_REPO_ROOT"], shard_workspace.display().to_string());
+        assert_eq!(
+            first_env["BIJUX_BENCHMARK_ROOT"],
+            shard_workspace.join("benchmarks").display().to_string()
+        );
+        let receipt = full_shard_root_receipt(&roots[0], &shard_workspace);
+        assert_eq!(receipt["repository_root"], first_env["BIJUX_REPO_ROOT"]);
+        assert_eq!(receipt["benchmark_root"], first_env["BIJUX_BENCHMARK_ROOT"]);
         assert_eq!(receipt["artifact_root"], first_env["ARTIFACT_ROOT"]);
         assert_eq!(receipt["iso_root"], first_env["ISO_ROOT"]);
         assert_eq!(receipt["archive_extract_dir"], roots[0].archive_extract.display().to_string());
