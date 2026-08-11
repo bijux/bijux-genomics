@@ -11,8 +11,8 @@
 - `walkdir` for deterministic directory input hashing.
 - `bijux-dna-core` for execution steps, tool execution specs, IDs, hashing helpers, canonical JSON, and manifests.
 - `bijux-dna-runtime` for the `Runner` trait, invocations, runner results, and artifact handoff.
-- `bijux-dna-containers` for runtime kind, image catalog, image resolution, platform contracts, and
-  external-artifact admission verification and binding.
+- `bijux-dna-containers` for runtime kind, image catalog, image resolution, platform contracts,
+  frozen-repository admission, and external-artifact verification and binding.
 - `bijux-dna-containers-qa` for pipeline-derived qualification probe plans, declared-output
   validation, acceptance metrics, and classified verdicts.
 - `bijux-dna-infra` for governed filesystem writes, temp dirs, path helpers, and hashing.

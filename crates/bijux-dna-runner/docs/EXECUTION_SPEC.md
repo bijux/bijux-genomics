@@ -44,6 +44,9 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 - Missing accounting is represented as `accounting_pending`, not guessed as success or failure.
 - Collection is a read-only one-shot observation, and cancellation invokes `scancel` once for the exact job identity.
 - Scheduling cadence belongs to the caller; this crate contains no sleep, wait, or polling loop.
+- Benchmark preparation admits only a clean, self-contained, read-only repository snapshot at the
+  declared source commit. Mutable or alternate-object checkouts are rejected before any scheduler
+  script or submission intent is persisted.
 - Managed Slurm jobs bind one clean repository commit and one exact executable worker. Preparation
   publishes the wrapper and specification, duplicate-safe submission persists intent before the
   scheduler effect, observation performs one query, and terminal collection records accounting and
@@ -70,6 +73,7 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 | Image missing | Backend cannot resolve or run the declared image. | Fix the image reference or registry access. |
 | External access blocked | Admission records licensed artifact access as unavailable. | Supply and admit a lawful artifact or retain the blocker as the execution result. |
 | External identity drift | Catalog, checksum, version evidence, tool identity, or stage binding differs from admission. | Re-admit the exact artifact against the current governed contract. |
+| Mutable benchmark source | The declared repository is writable, dirty, commit-mismatched, or depends on external Git objects. | Freeze and admit the exact complete repository commit, then allocate a linked retry attempt. |
 | Permission error | Backend returns a filesystem permission failure. | Fix declared mount or output-root permissions. |
 | Timeout | Backend exceeds the declared runtime limit. | Increase the limit or reduce input size. |
 | Nonzero exit | Tool exits with a nonzero status. | Inspect captured stdout/stderr and tool arguments. |

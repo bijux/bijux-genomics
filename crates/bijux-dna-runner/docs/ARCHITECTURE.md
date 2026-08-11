@@ -16,7 +16,8 @@
 - `runner_driver/` owns the concrete `Runner` implementation used by higher layers, with artifact collection split into a dedicated companion file.
 - `backend/` owns backend kind contracts and backend-facing facade exports.
 - `backend/slurm/` owns bounded non-waiting scheduler submission, one-shot queue
-  observation, terminal accounting collection, cancellation, and fail-closed parsing.
+  observation, terminal accounting collection, cancellation, fail-closed parsing, and immutable
+  benchmark-source admission before scheduler material is persisted.
 - `backend/slurm/qualification/` owns immutable container qualification preparation,
   intent-first submission, disconnect-safe recovery, one-shot observation, terminal scheduler
   evidence, process execution, and cancellation. Container contract admission remains in

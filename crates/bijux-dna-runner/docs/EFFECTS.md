@@ -13,7 +13,8 @@
 - Spawn `sbatch`, `squeue`, `sacct`, and `scancel` only through typed Slurm contracts.
 - Read declared inputs and execution manifests.
 - Write runner-owned records, stdout/stderr captures, and artifacts under declared run/output roots.
-- Materialize source-locked benchmark batch scripts under their declared immutable attempt roots.
+- Admit a source-locked, self-contained, read-only benchmark repository before materializing batch
+  scripts under their declared immutable attempt roots.
 - Persist benchmark submission intent before `sbatch` and scheduler handles immediately after a
   successful submission effect.
 - Persist managed-worker specifications, generated wrapper scripts, submission intent, scheduler

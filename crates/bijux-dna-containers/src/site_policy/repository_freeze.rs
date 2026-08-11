@@ -53,6 +53,20 @@ pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
     Ok(target)
 }
 
+/// Verify that a repository snapshot is commit-exact, self-contained, clean, and read-only.
+///
+/// # Errors
+/// Returns an error when the commit identity is malformed, the snapshot is unavailable or
+/// mutable, Git metadata depends on external object storage, or repository state differs.
+pub fn verify_frozen_repository(target: &Path, commit: &str) -> Result<()> {
+    ensure!(
+        Regex::new(r"^[0-9a-f]{40}$")?.is_match(commit),
+        "frozen repository commit must be a full Git commit"
+    );
+    verify_existing_freeze(target, commit)?;
+    verify_read_only_snapshot(target)
+}
+
 fn validate_request(request: &RepositoryFreezeRequest) -> Result<()> {
     validate_container_governance_host(&request.governance, &request.hostname)?;
     ensure!(

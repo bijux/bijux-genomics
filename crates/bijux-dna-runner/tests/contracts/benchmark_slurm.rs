@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -11,6 +12,11 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
     BenchmarkExecutionSpec, BenchmarkRunIdentity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+};
+use bijux_dna_containers::api::{
+    freeze_repository, ContainerGovernance, ContainerPathPolicy, ContainerPreflightPolicy,
+    ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy, RepositoryFreezeRequest,
+    RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
 };
 use bijux_dna_runner::api::{
     load_benchmark_slurm_job_handle, prepare_benchmark_slurm_job, submit_prepared_benchmark_job,
@@ -26,17 +32,84 @@ struct Fixture {
     input_path: PathBuf,
 }
 
+impl Drop for Fixture {
+    fn drop(&mut self) {
+        for entry in walkdir::WalkDir::new(self.root.path())
+            .contents_first(true)
+            .follow_links(false)
+            .into_iter()
+            .flatten()
+        {
+            if entry.file_type().is_symlink() {
+                continue;
+            }
+            if let Ok(metadata) = entry.metadata() {
+                let mut permissions = metadata.permissions();
+                permissions.set_mode(permissions.mode() | 0o200);
+                let _ = std::fs::set_permissions(entry.path(), permissions);
+            }
+        }
+    }
+}
+
 #[allow(clippy::too_many_lines)]
 fn fixture() -> anyhow::Result<Fixture> {
     let root = tempfile::tempdir()?;
     let canonical_root = root.path().canonicalize()?;
-    let repository_path = canonical_root.join("source");
+    let active_repository = canonical_root.join("active-source");
+    std::fs::create_dir(&active_repository)?;
+    run_git(&active_repository, &["init", "--quiet"])?;
+    run_git(&active_repository, &["config", "user.name", "Bijux Test"])?;
+    run_git(&active_repository, &["config", "user.email", "test@bijux.invalid"])?;
+    std::fs::write(active_repository.join("README.md"), b"benchmark source\n")?;
+    run_git(&active_repository, &["add", "README.md"])?;
+    run_git(&active_repository, &["commit", "--quiet", "-m", "fixture"])?;
+    let repository_commit = run_git(&active_repository, &["rev-parse", "HEAD"])?;
+    let study_root = canonical_root.join("study");
+    let governance = ContainerGovernance {
+        schema_version: CONTAINER_GOVERNANCE_SCHEMA_V1.to_string(),
+        site: ContainerSitePolicy {
+            id: "test-site".to_string(),
+            hostname_regex: "^test-host$".to_string(),
+        },
+        paths: ContainerPathPolicy {
+            study_root: study_root.clone(),
+            containers_root: study_root.join("containers"),
+            data_root: study_root.join("data"),
+            results_root: study_root.join("results"),
+            finalization_root: study_root.join("evidence/finalization"),
+            active_repository,
+            frozen_repositories: study_root.join("data/evidence/source-checkouts"),
+        },
+        runtime: ContainerRuntimePolicy { apptainer_architecture: "linux/amd64".to_string() },
+        slurm: ContainerSlurmPolicy {
+            account: "science".to_string(),
+            scratch_environment: Some("SNIC_TMP".to_string()),
+            scratch_root: None,
+            partitions: vec!["compute".to_string()],
+            quota_command: vec!["projinfo".to_string()],
+        },
+        preflight: ContainerPreflightPolicy {
+            minimum_available_bytes: 1,
+            minimum_available_inodes: 1,
+            maximum_clock_skew_seconds: 30,
+            required_commands: vec!["git".to_string()],
+            required_contracts: vec!["containers/contracts/governance.yml".to_string()],
+        },
+    };
+    let repository_path = freeze_repository(&RepositoryFreezeRequest {
+        governance,
+        hostname: "test-host".to_string(),
+        commit: repository_commit.clone(),
+        scope: RepositoryFreezeScope::Complete,
+        checkout_paths: Vec::new(),
+        source_namespace: "source-freezes".to_string(),
+    })?;
     let image_path = canonical_root.join("seqkit.sif");
     let input_path = canonical_root.join("ERR1.fastq.gz");
     let result_root = canonical_root.join(
         "benchmarks/run-2042-fastq-profile-read-lengths/seqkit/attempts/human-short-read-length-comparison/attempt-001",
     );
-    std::fs::create_dir(&repository_path)?;
     std::fs::create_dir_all(&result_root)?;
     std::fs::write(&image_path, b"seqkit image")?;
     std::fs::write(&input_path, b"fastq input")?;
@@ -56,7 +129,7 @@ fn fixture() -> anyhow::Result<Fixture> {
         operator: "bijan".to_string(),
         prepared_at_utc: "2026-08-05T02:00:00Z".to_string(),
         source: BenchmarkExecutionSourceLock {
-            repository_commit: "1".repeat(40),
+            repository_commit,
             repository_path: repository_path.display().to_string(),
             contract_sha256: BTreeMap::from([
                 ("campaign_registry".to_string(), "2".repeat(64)),
@@ -163,6 +236,18 @@ fn fixture() -> anyhow::Result<Fixture> {
     Ok(Fixture { root, spec, input_path })
 }
 
+fn run_git(repository: &std::path::Path, arguments: &[&str]) -> anyhow::Result<String> {
+    let output = Command::new("git").arg("-C").arg(repository).args(arguments).output()?;
+    if !output.status.success() {
+        anyhow::bail!(
+            "git {} failed: {}",
+            arguments.join(" "),
+            String::from_utf8_lossy(&output.stderr).trim()
+        );
+    }
+    Ok(String::from_utf8(output.stdout)?.trim().to_string())
+}
+
 #[test]
 fn benchmark_slurm_material_is_isolated_complete_and_restart_safe() -> anyhow::Result<()> {
     let fixture = fixture()?;
@@ -211,6 +296,21 @@ fn benchmark_slurm_material_rejects_authority_drift_and_script_conflicts() -> an
     std::fs::write(&prepared.request.script_path, b"conflicting script")?;
     assert!(prepare_benchmark_slurm_job(&fixture.spec, "2026-08-05T02:10:00Z")
         .is_err_and(|error| error.to_string().contains("script conflicts")));
+    Ok(())
+}
+
+#[test]
+fn benchmark_slurm_material_rejects_mutable_source_snapshots() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let repository = PathBuf::from(&fixture.spec.source.repository_path);
+    let mut permissions = std::fs::metadata(&repository)?.permissions();
+    permissions.set_mode(permissions.mode() | 0o200);
+    std::fs::set_permissions(&repository, permissions)?;
+
+    let error = prepare_benchmark_slurm_job(&fixture.spec, "2026-08-05T02:10:00Z")
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("mutable benchmark source was accepted"))?;
+    assert!(format!("{error:#}").contains("remains writable"));
     Ok(())
 }
 
