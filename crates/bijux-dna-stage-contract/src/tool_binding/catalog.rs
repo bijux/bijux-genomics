@@ -54,9 +54,11 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
     for binding in vec![
+        addeam_damage(),
         adapterremoval_merge_pairs(),
         alientrimmer_trim_reads(),
         atropos_trim_reads(),
+        authenticct_authenticity(),
         bbduk_filter_low_complexity(),
         bbmerge_merge_pairs(),
         bayeshammer_correct_errors(),
@@ -67,6 +69,8 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bwa_align(),
         centrifuge_screen_taxonomy(),
         dada2_infer_asvs(),
+        damageprofiler_damage(),
+        damageprofiler_authenticity(),
         fastp_filter_low_complexity(),
         fastqc_detect_adapters(),
         fastqvalidator_validate_reads(),
@@ -78,6 +82,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         krakenuniq_screen_taxonomy(),
         leehom_merge_pairs(),
         lighter_correct_errors(),
+        mapdamage2_damage(),
         mosdepth_coverage(),
         musket_correct_errors(),
         pear_merge_pairs(),
@@ -85,7 +90,10 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
+        pmdtools_damage(),
+        pmdtools_authenticity(),
         prinseq_filter_low_complexity(),
+        pydamage_damage(),
         rcorrector_correct_errors(),
         rxy_sex(),
         samtools_coverage(),
@@ -113,6 +121,220 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn addeam_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "addeam",
+        &["bam_input", "terminal_deamination_profiles", "native_profile_directory"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("damage_profiles", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; bam_list=$(mktemp); trap 'rm -f \"$bam_list\"' EXIT; printf '%s\\n' '${input:bam}' > \"$bam_list\"; mkdir -p '${output:damage_profiles}'; '${executable}' profile \"$bam_list\" -classic -both -minq 20 -minl 30 -length 10 -precision 0.001 -minAligned 10000 -minConverge 0.01 -stepsConverge 500 -threads 1 -o '${output:damage_profiles}'",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(1, 4, 1),
+        &[
+            "the_bam_list_is_materialized_from_the_admitted_single_sample_bam",
+            "native_five_prime_and_three_prime_profiles_are_preserved_before_normalization",
+            "comparative_admission_requires_matching_alignment_and_damage_strata",
+        ],
+    )
+}
+
+fn damageprofiler_authenticity() -> ToolBindingV1 {
+    retained_binding(
+        "bam.authenticity",
+        "damageprofiler",
+        &["sam_input", "terminal_damage_evidence", "native_report_directory"],
+        &[input("sam", SAM)],
+        &[],
+        &[output("damageprofiler_reports", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; mkdir -p '${output:damageprofiler_reports}'; '${executable}' -i '${input:sam}' -o '${output:damageprofiler_reports}' -title bijux-sample",
+        ],
+        "bijux.benchmark.bam.authenticity.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::authenticity::plan",
+        "benchmark.bam.authenticity.consume",
+        resources(1, 8, 4),
+        &[
+            "input_sam_must_retain_recalculated_md_and_nm_tags",
+            "native_damage_tables_plots_and_logs_are_preserved_before_authenticity_normalization",
+            "authenticity_is_a_composed_scientific_verdict_not_the_native_damage_signal_alone",
+        ],
+    )
+}
+
+fn damageprofiler_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "damageprofiler",
+        &["sam_input", "terminal_damage_evidence", "native_report_directory"],
+        &[input("sam", SAM)],
+        &[],
+        &[output("damageprofiler_reports", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; mkdir -p '${output:damageprofiler_reports}'; '${executable}' -i '${input:sam}' -o '${output:damageprofiler_reports}' -title bijux-sample",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(1, 8, 4),
+        &[
+            "input_sam_must_retain_recalculated_md_and_nm_tags",
+            "native_damage_tables_plots_and_logs_are_preserved_before_damage_normalization",
+            "comparative_admission_requires_matching_alignment_and_damage_strata",
+        ],
+    )
+}
+
+fn authenticct_authenticity() -> ToolBindingV1 {
+    retained_binding(
+        "bam.authenticity",
+        "authenticct",
+        &["sam_input", "terminal_deamination_evidence", "native_deamination_table"],
+        &[input("sam", SAM)],
+        &[],
+        &[output("deamination_table", TABLE)],
+        &[
+            "${executable}",
+            "deamination",
+            "-m",
+            "20",
+            "-l",
+            "30",
+            "-b",
+            "20",
+            "-o",
+            "${output:deamination_table}",
+            "${input:sam}",
+        ],
+        "bijux.benchmark.bam.authenticity.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::authenticity::plan",
+        "benchmark.bam.authenticity.consume",
+        resources(1, 4, 1),
+        &[
+            "input_sam_must_retain_md_tags_from_the_admitted_alignment",
+            "the_native_deamination_table_is_preserved_before_authenticity_normalization",
+            "authenticity_is_a_composed_scientific_verdict_not_the_native_damage_signal_alone",
+        ],
+    )
+}
+
+fn mapdamage2_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "mapdamage2",
+        &["bam_input", "reference_bound_damage_profile", "native_report_directory"],
+        &[input("bam", BAM), input("reference", FASTA)],
+        &[],
+        &[output("mapdamage2_reports", DIRECTORY)],
+        &[
+            "${executable}",
+            "analyze",
+            "--bam",
+            "${input:bam}",
+            "--reference",
+            "${input:reference}",
+            "--out-dir",
+            "${output:mapdamage2_reports}",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(1, 8, 4),
+        &[
+            "reference_identity_must_match_the_alignment_header",
+            "native_misincorporation_composition_and_length_tables_are_preserved",
+        ],
+    )
+}
+
+fn pydamage_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "pydamage",
+        &["bam_input", "reference_grouped_damage_estimation", "native_result_directory"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("pydamage_results", DIRECTORY)],
+        &[
+            "${executable}",
+            "--outdir",
+            "${output:pydamage_results}",
+            "analyze",
+            "--group",
+            "--process",
+            "2",
+            "${input:bam}",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(2, 8, 4),
+        &[
+            "native_per_reference_damage_estimates_are_preserved_before_normalization",
+            "comparative_admission_requires_equivalent_reference_grouping_policy",
+        ],
+    )
+}
+
+fn pmdtools_damage() -> ToolBindingV1 {
+    pmdtools_binding(
+        "bam.damage",
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+    )
+}
+
+fn pmdtools_authenticity() -> ToolBindingV1 {
+    pmdtools_binding(
+        "bam.authenticity",
+        "bijux.benchmark.bam.authenticity.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::authenticity::plan",
+        "benchmark.bam.authenticity.consume",
+    )
+}
+
+fn pmdtools_binding(
+    stage_id: &str,
+    normalized_output_contract_id: &str,
+    normalizer_id: &str,
+    downstream_probe_id: &str,
+) -> ToolBindingV1 {
+    retained_binding(
+        stage_id,
+        "pmdtools",
+        &["bam_input", "per_read_pmd_scores", "native_statistics"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("pmd_scores", TABLE), output("pmd_statistics", FILE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; samtools view -h '${input:bam}' | '${executable}' --printDS --stats > '${output:pmd_scores}' 2> '${output:pmd_statistics}'",
+        ],
+        normalized_output_contract_id,
+        normalizer_id,
+        downstream_probe_id,
+        resources(1, 4, 2),
+        &[
+            "the_admitted_pmdtools_image_must_include_the_samtools_stream_adapter",
+            "native_per_read_scores_and_statistics_are_preserved_before_normalization",
+            "scientific_verdicts_are_derived_from_normalized_scores_not_process_success",
+        ],
+    )
 }
 
 fn alientrimmer_trim_reads() -> ToolBindingV1 {

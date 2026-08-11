@@ -24,6 +24,8 @@ const DUPLICATION_METRICS_STAGE: &str = "bam.duplication_metrics";
 const INSERT_SIZE_STAGE: &str = "bam.insert_size";
 const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
+const DAMAGE_STAGE: &str = "bam.damage";
+const AUTHENTICITY_STAGE: &str = "bam.authenticity";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 const TRIM_READS_STAGE: &str = "fastq.trim_reads";
@@ -44,7 +46,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 53);
+    assert_eq!(retained.bindings().len(), 61);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -68,8 +70,204 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 61);
+    assert_eq!(all.bindings().len(), 69);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_damage_bindings_own_representative_qualification_pairs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    assert_eq!(
+        registry
+            .bindings_for_stage(&StageId::new(DAMAGE_STAGE))
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
+    );
+    assert_eq!(
+        registry
+            .bindings_for_stage(&StageId::new(AUTHENTICITY_STAGE))
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["authenticct", "damageprofiler", "pmdtools"]
+    );
+    let all = canonical_tool_bindings()?;
+    assert_eq!(
+        all.bindings_for_stage(&StageId::new(DAMAGE_STAGE))
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_addeam_and_mapdamage2_bindings_render_native_profiles() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let addeam = registry
+        .binding(&StageId::new(DAMAGE_STAGE), &ToolId::new("addeam"))
+        .ok_or_else(|| anyhow::anyhow!("canonical AdDeam damage binding is missing"))?;
+    let addeam_command = render_tool_command(
+        addeam,
+        &ToolBindingRenderContext {
+            executable: "addeam".to_owned(),
+            inputs: BTreeMap::from([("bam".to_owned(), "/input/sample.bam".to_owned())]),
+            outputs: BTreeMap::from([(
+                "damage_profiles".to_owned(),
+                "/result/addeam-profiles".to_owned(),
+            )]),
+            ..ToolBindingRenderContext::default()
+        },
+    )?;
+    assert!(addeam_command[2].contains("addeam' profile"));
+    assert!(addeam_command[2].contains("/input/sample.bam"));
+    assert!(addeam_command[2].contains("-both"));
+
+    let mapdamage2 = registry
+        .binding(&StageId::new(DAMAGE_STAGE), &ToolId::new("mapdamage2"))
+        .ok_or_else(|| anyhow::anyhow!("canonical mapDamage2 damage binding is missing"))?;
+    let command = render_tool_command(
+        mapdamage2,
+        &ToolBindingRenderContext {
+            executable: "mapdamage2".to_owned(),
+            inputs: BTreeMap::from([
+                ("bam".to_owned(), "/input/sample.bam".to_owned()),
+                ("reference".to_owned(), "/input/reference.fa".to_owned()),
+            ]),
+            outputs: BTreeMap::from([(
+                "mapdamage2_reports".to_owned(),
+                "/result/mapdamage2".to_owned(),
+            )]),
+            ..ToolBindingRenderContext::default()
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "mapdamage2",
+            "analyze",
+            "--bam",
+            "/input/sample.bam",
+            "--reference",
+            "/input/reference.fa",
+            "--out-dir",
+            "/result/mapdamage2",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_damageprofiler_and_pydamage_bindings_render_native_directories() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    for (stage, tool, input, input_path, output, directory, fragments) in [
+        (
+            AUTHENTICITY_STAGE,
+            "damageprofiler",
+            "sam",
+            "/input/sample.calmd.sam",
+            "damageprofiler_reports",
+            "/result/damageprofiler",
+            ["damageprofiler' -i", "-title bijux-sample"],
+        ),
+        (
+            DAMAGE_STAGE,
+            "pydamage",
+            "bam",
+            "/input/sample.bam",
+            "pydamage_results",
+            "/result/pydamage",
+            ["--outdir", "--group"],
+        ),
+    ] {
+        let binding = registry
+            .binding(&StageId::new(stage), &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: BTreeMap::from([(input.to_owned(), input_path.to_owned())]),
+                outputs: BTreeMap::from([(output.to_owned(), directory.to_owned())]),
+                ..ToolBindingRenderContext::default()
+            },
+        )?;
+        let rendered = command.join(" ");
+        assert!(rendered.contains(input_path));
+        assert!(rendered.contains(directory));
+        for fragment in fragments {
+            assert!(rendered.contains(fragment), "{tool} command omitted `{fragment}`");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_authenticct_binding_renders_admitted_deamination_interface() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(AUTHENTICITY_STAGE), &ToolId::new("authenticct"))
+        .ok_or_else(|| anyhow::anyhow!("canonical AuthentiCT binding is missing"))?;
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "authenticct".to_owned(),
+            inputs: BTreeMap::from([("sam".to_owned(), "/input/sample.calmd.sam".to_owned())]),
+            outputs: BTreeMap::from([(
+                "deamination_table".to_owned(),
+                "/result/deamination.tsv".to_owned(),
+            )]),
+            ..ToolBindingRenderContext::default()
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "authenticct",
+            "deamination",
+            "-m",
+            "20",
+            "-l",
+            "30",
+            "-b",
+            "20",
+            "-o",
+            "/result/deamination.tsv",
+            "/input/sample.calmd.sam",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_pmdtools_bindings_share_native_score_evidence_across_stages() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    for stage in [DAMAGE_STAGE, AUTHENTICITY_STAGE] {
+        let binding = registry
+            .binding(&StageId::new(stage), &ToolId::new("pmdtools"))
+            .ok_or_else(|| anyhow::anyhow!("canonical PMDtools {stage} binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: "pmdtools".to_owned(),
+                inputs: BTreeMap::from([("bam".to_owned(), "/input/sample.bam".to_owned())]),
+                outputs: BTreeMap::from([
+                    ("pmd_scores".to_owned(), "/result/pmd-scores.tsv".to_owned()),
+                    ("pmd_statistics".to_owned(), "/result/pmd-stats.txt".to_owned()),
+                ]),
+                ..ToolBindingRenderContext::default()
+            },
+        )?;
+        let rendered = command.join(" ");
+        assert!(rendered.contains("samtools view -h '/input/sample.bam'"));
+        assert!(rendered.contains("'pmdtools' --printDS --stats"));
+        assert!(rendered.contains("/result/pmd-scores.tsv"));
+        assert!(rendered.contains("/result/pmd-stats.txt"));
+    }
     Ok(())
 }
 

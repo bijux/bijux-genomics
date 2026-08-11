@@ -36,7 +36,7 @@ outputs:
     cardinality: "One"
 execution_contract:
   required_inputs:
-    - "bam"
+    - "sam"
   expected_outputs:
     - "damage_report"
     - "terminal_position_metrics"
@@ -54,7 +54,7 @@ scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.damage:
     required_inputs:
-      - "bam"
+      - "sam"
     expected_artifacts:
       - "damage_report"
       - "terminal_position_metrics"
@@ -65,7 +65,7 @@ stage_contracts:
     notes: "DamageProfiler damage coverage preserves the governed damage report surface together with the native profile and plot artifacts."
   bam.authenticity:
     required_inputs:
-      - "bam"
+      - "sam"
     expected_artifacts:
       - "authenticity_report"
       - "summary"
@@ -83,9 +83,9 @@ comparability:
   non_comparable_with: []
 comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
-  - bam_input
+  - sam_input
 io_contract:
   required_inputs:
-    - bam
+    - sam
 
 notes: "Domain SSOT tool contract entry."
