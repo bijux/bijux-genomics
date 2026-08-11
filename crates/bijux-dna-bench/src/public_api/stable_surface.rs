@@ -42,9 +42,10 @@ pub use bijux_dna_bench_model::{
 
 pub use crate::artifacts::{
     admit_benchmark_execution_outputs, archive_effective_tool_parameters,
-    BenchmarkExecutionAdmission, BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment,
-    BenchmarkOutputFileEvidence, EffectiveToolParametersPublication,
-    BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, EFFECTIVE_TOOL_PARAMETERS_FILE,
+    revalidate_benchmark_execution_outputs, BenchmarkExecutionAdmission,
+    BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+    EffectiveToolParametersPublication, BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1,
+    EFFECTIVE_TOOL_PARAMETERS_FILE,
 };
 pub use crate::repo::{
     admit_alignment_truth_set, admit_bam_benchmark_cohort, admit_bam_benchmark_corpus,

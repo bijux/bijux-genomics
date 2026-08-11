@@ -13,7 +13,7 @@ use bijux_dna_bench_model::{
     BenchmarkSchedulerTerminalState, BenchmarkStageCampaignSpec,
 };
 
-use super::{campaign_threads, hash_json, read_json};
+use super::{campaign_threads, hash_json};
 use crate::{load_attempt_lifecycle, load_execution_spec};
 
 #[derive(Debug, Clone)]
@@ -61,13 +61,7 @@ pub(in crate::workflow) fn load_admitted_attempt_evidence(
 
     let spec = load_execution_spec(benchmark_root, identity)?;
     validate_attempt_spec(repository_root, benchmark_root, campaign, plan, identity, &spec)?;
-    let admission_path = Path::new(&spec.outputs.result_root).join("admission/acceptance.json");
-    let admission: crate::BenchmarkExecutionAdmission = read_json(&admission_path)?;
-    let replay =
-        crate::admit_benchmark_execution_outputs(study_root, &spec, &admission.admitted_at_utc)?;
-    if replay.report != admission {
-        bail!("replayed benchmark admission differs from retained acceptance evidence");
-    }
+    let replay = crate::revalidate_benchmark_execution_outputs(study_root, &spec)?;
     let retained_evidence = lifecycle
         .transitions
         .iter()
