@@ -27,6 +27,11 @@ fn contains_tool_id_token(content: &str, tool_id: &str) -> bool {
         .is_match(content)
 }
 
+fn production_tool_roster_hit_count(content: &str, roster_tokens: &[&str]) -> usize {
+    let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(content);
+    roster_tokens.iter().filter(|token| production.contains(*token)).count()
+}
+
 #[test]
 fn policy__boundaries__purity_scans__engine_has_no_domain_strings() {
     let root = repo_root();
@@ -357,6 +362,7 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "crates/bijux-dna-domain-fastq/src/contracts/parser_fixture_inventory.rs",
         "crates/bijux-dna-domain-bam/src/metrics/raw_parser_contract.rs",
         "crates/bijux-dna-domain-bam/src/benchmark_corpus_assignment.rs",
+        "crates/bijux-dna-stage-contract/src/tool_binding/catalog.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/benchmark_command_rows.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_containers.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/tool_centric_report.rs",
@@ -388,7 +394,7 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
-        let roster_hits = roster_tokens.iter().filter(|token| content.contains(*token)).count();
+        let roster_hits = production_tool_roster_hit_count(&content, &roster_tokens);
         if roster_hits >= 3 {
             offenders.push(rel.to_string());
         }
@@ -399,4 +405,26 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "tool rosters must be declared only in registry compiler/domain loaders:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn policy__boundaries__purity_scans__tool_roster_scan_ignores_test_modules_only() {
+    let roster_tokens = ["\"fastp\"", "\"cutadapt\"", "\"samtools\""];
+    let test_only = r#"
+        fn production() {}
+
+        #[cfg(test)]
+        mod tests {
+            const TOOLS: &[&str] = &["fastp", "cutadapt", "samtools"];
+        }
+    "#;
+    let production = r#"
+        const TOOLS: &[&str] = &["fastp", "cutadapt", "samtools"];
+
+        #[cfg(test)]
+        mod tests {}
+    "#;
+
+    assert_eq!(production_tool_roster_hit_count(test_only, &roster_tokens), 0);
+    assert_eq!(production_tool_roster_hit_count(production, &roster_tokens), 3);
 }
