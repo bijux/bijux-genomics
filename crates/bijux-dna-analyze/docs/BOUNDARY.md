@@ -9,6 +9,9 @@ summaries, rankings, and contract diagnostics.
 - Run index and run summary records produced by runtime-owned code
 - Stage reports, tool invocation records, benchmark reports, manifests, and fixtures
 - Pipeline defaults ledgers used for report provenance
+- Absolute `BIJUX_REPO_ROOT`, when present, as the runtime source checkout for governed provenance
+  inputs; archived binaries fall back to their compile-time checkout only when no runtime root is
+  declared, and relative overrides are not admitted
 
 ## Allowed Outputs
 - `analysis.json`, `compare.json`, `ranking.json`, and `decision_trace.json`
