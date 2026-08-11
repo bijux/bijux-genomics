@@ -27,6 +27,7 @@ const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
 const DETECT_ADAPTERS_STAGE: &str = "fastq.detect_adapters";
+const INFER_ASVS_STAGE: &str = "fastq.infer_asvs";
 const FILTER_LOW_COMPLEXITY_STAGE: &str = "fastq.filter_low_complexity";
 const FILTER_READS_STAGE: &str = "fastq.filter_reads";
 const INDEX_REFERENCE_STAGE: &str = "fastq.index_reference";
@@ -39,7 +40,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 35);
+    assert_eq!(retained.bindings().len(), 36);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -63,8 +64,69 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 43);
+    assert_eq!(all.bindings().len(), 44);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_dada2_binding_collects_the_complete_native_asv_bundle() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(INFER_ASVS_STAGE), &ToolId::new("dada2"))
+        .ok_or_else(|| anyhow::anyhow!("canonical DADA2 infer-ASVs binding is missing"))?;
+
+    assert_eq!(
+        binding.inputs.iter().map(|input| input.name.as_str()).collect::<Vec<_>>(),
+        ["reads_r1", "reads_r2"]
+    );
+    assert!(binding
+        .inputs
+        .iter()
+        .all(|input| input.artifact_contract_id == "bijux.fastq.artifact.paired_end.v1"));
+    assert_eq!(binding.outputs.len(), 1);
+    assert_eq!(binding.outputs[0].name, "asv_result_directory");
+    assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.auxiliary.artifact.directory.v1");
+    assert_eq!(binding.outputs[0].discovery, OutputDiscoveryV1::ExactPath);
+    assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.fastq.infer_asvs.bundle.v1");
+    assert_eq!(binding.downstream_probe_id, "benchmark.fastq.infer_asvs.consume");
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "dada2".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/F3D0_R1.fastq".to_owned()),
+                ("reads_r2".to_owned(), "/input/F3D0_R2.fastq".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("sample_id".to_owned(), "F3D0".to_owned()),
+                ("threads".to_owned(), "4".to_owned()),
+            ]),
+            outputs: BTreeMap::from([(
+                "asv_result_directory".to_owned(),
+                "/result/asv-bundle".to_owned(),
+            )]),
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "dada2",
+            "infer-asvs",
+            "--input",
+            "/input/F3D0_R1.fastq",
+            "--input-r2",
+            "/input/F3D0_R2.fastq",
+            "--output-dir",
+            "/result/asv-bundle",
+            "--sample-id",
+            "F3D0",
+            "--threads",
+            "4",
+        ]
+    );
     Ok(())
 }
 

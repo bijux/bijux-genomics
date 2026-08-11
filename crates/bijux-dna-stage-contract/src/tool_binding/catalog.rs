@@ -61,6 +61,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bowtie2_align(),
         bwa_align(),
         centrifuge_screen_taxonomy(),
+        dada2_infer_asvs(),
         fastp_filter_low_complexity(),
         fastqc_detect_adapters(),
         fastqvalidator_validate_reads(),
@@ -93,6 +94,45 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn dada2_infer_asvs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.infer_asvs",
+        "dada2",
+        &[
+            "paired_end_amplicon_reads",
+            "asv_inference",
+            "native_asv_result_directory",
+        ],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["sample_id", "threads"],
+        &[output("asv_result_directory", DIRECTORY)],
+        &[
+            "${executable}",
+            "infer-asvs",
+            "--input",
+            "${input:reads_r1}",
+            "--input-r2",
+            "${input:reads_r2}",
+            "--output-dir",
+            "${output:asv_result_directory}",
+            "--sample-id",
+            "${parameter:sample_id}",
+            "--threads",
+            "${parameter:threads}",
+        ],
+        "bijux.benchmark.fastq.infer_asvs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs",
+        "benchmark.fastq.infer_asvs.consume",
+        resources(4, 16, 8),
+        &[
+            "the_native_directory_must_contain_asv_table_sequences_taxonomy_ready_sequences_and_report",
+            "the_governed_wrapper_applies_maxee_2_truncq_2_phix_removal_and_consensus_chimera_removal",
+            "qualification_binding_uses_the_governed_paired_end_amplicon_profile",
+            "comparative_case_admission_requires_the_closed_infer_asvs_stage_interface",
+        ],
+    )
 }
 
 fn bowtie2_build_index_reference() -> ToolBindingV1 {
