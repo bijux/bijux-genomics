@@ -85,3 +85,43 @@ fn policy__contracts__root_architecture_contract_policy__target_architecture_ass
         missing.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__root_architecture_contract_policy__data_portfolio_separates_sources_from_evidence(
+) {
+    let root = repo_root();
+    let path = root.join("DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md");
+    let content = std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| bijux_dna_policies::policy_panic!("read {}: {err}", path.display()));
+    let required = [
+        "Status: Normative",
+        "## Ownership",
+        "## Evidence Classes",
+        "## Required Identity Closure",
+        "## Scientific Fitness",
+        "## Truth and Claim Rules",
+        "## Materialization and Admission",
+        "## Publication and Replay",
+        "`bijux-dna-bench-model`",
+        "`bijux-dna-bench`",
+        "`bijux-dna-science`",
+        "`bijux-dna-policies`",
+        "source_defined",
+        "curated_truth",
+        "masked_truth",
+        "orthogonal_expectation",
+        "observational_performance_only",
+        "tool agreement is not truth",
+        "identity-addressed STUDY",
+        "benchmarks/contracts/portfolio.toml",
+        "benchmarks/contracts/data-fitness.toml",
+    ];
+    let missing =
+        required.into_iter().filter(|needle| !content.contains(needle)).collect::<Vec<_>>();
+
+    bijux_dna_policies::policy_assert!(
+        missing.is_empty(),
+        "data portfolio and truth contract is missing required evidence boundaries:\n{}",
+        missing.join("\n")
+    );
+}

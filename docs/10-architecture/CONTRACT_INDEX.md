@@ -28,6 +28,7 @@ List the authoritative document for each architecture contract category.
 | crate boundaries | [docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md](CRATE_BOUNDARY_CONTRACTS.md) |
 | dependency boundaries | [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md) |
 | crate responsibility map | [TARGET_ARCHITECTURE.md](../../TARGET_ARCHITECTURE.md) |
+| benchmark data and truth boundary | [DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md](../../DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md) |
 | contract artifact spine | [docs/10-architecture/CONTRACT_SPINE.md](CONTRACT_SPINE.md) |
 | domain transition boundary | [docs/10-architecture/SSOT.md](SSOT.md) |
 | generated files boundary | [docs/10-architecture/GENERATED_FILES_CONTRACT.md](GENERATED_FILES_CONTRACT.md) |
