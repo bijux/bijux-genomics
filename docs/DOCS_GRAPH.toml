@@ -69,6 +69,7 @@ children = [
   "docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md",
   "docs/10-architecture/GENERATED_FILES_CONTRACT.md",
   "docs/10-architecture/POLICY_LAYER_SPLIT.md",
+  "docs/10-architecture/ROOT_TREE_CONTRACT.md",
   "docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md",
   "docs/10-architecture/SSOT.md",
   "docs/10-architecture/SYSTEM_MAP.md",
