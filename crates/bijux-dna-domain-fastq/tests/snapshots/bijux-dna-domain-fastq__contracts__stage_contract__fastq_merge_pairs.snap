@@ -51,6 +51,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "vsearch",
     "bbmerge",
     "flash2",
-    "leehom"
+    "leehom",
+    "seqprep"
   ]
 }

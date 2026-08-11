@@ -2,10 +2,59 @@ use anyhow::{Context, Result};
 use bijux_dna_domain_compiler::{
     compile_domain_configs, CompileOptions, DEFAULT_COMPILE_SCOPE, DEFAULT_DOMAIN_DIR,
 };
-use std::collections::BTreeMap;
+use serde::Deserialize;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[path = "support/mod.rs"]
 mod support;
+
+#[derive(Debug, Deserialize)]
+struct DomainPairIndex {
+    stage_tool_compatibility: BTreeMap<String, Vec<String>>,
+}
+
+#[test]
+fn authored_domain_pairs_close_over_the_supported_container_catalog() -> Result<()> {
+    let root = support::repo_root();
+    let catalog = read_toml(&root.join("containers/contracts/catalog.toml"))?;
+    let expected = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .context("catalog has no tools")?
+        .iter()
+        .filter(|tool| {
+            tool.get("product_support").and_then(toml::Value::as_str) == Some("supported")
+        })
+        .flat_map(|tool| {
+            let tool_id = tool.get("id").and_then(toml::Value::as_str).unwrap_or_default();
+            tool.get("stage_ids")
+                .and_then(toml::Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(toml::Value::as_str)
+                .map(move |stage_id| (stage_id.to_string(), tool_id.to_string()))
+        })
+        .collect::<BTreeSet<_>>();
+
+    let mut actual = BTreeSet::new();
+    for domain in ["fastq", "bam", "vcf"] {
+        let path = root.join("domain").join(domain).join("index.yaml");
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+        let index: DomainPairIndex =
+            serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+        actual.extend(index.stage_tool_compatibility.into_iter().flat_map(
+            |(stage_id, tool_ids)| {
+                tool_ids.into_iter().map(move |tool_id| (stage_id.clone(), tool_id))
+            },
+        ));
+    }
+
+    assert_eq!(expected.len(), 159);
+    assert_eq!(actual.len(), 159);
+    assert_eq!(actual, expected);
+    Ok(())
+}
 
 #[test]
 fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {

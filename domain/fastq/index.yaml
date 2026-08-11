@@ -86,6 +86,7 @@ tool_ids:
   - seqfu
   - seqkit
   - seqkit_stats
+  - seqprep
   - seqpurge
   - seqtk
   - skewer
@@ -158,6 +159,7 @@ governed_tool_ids:
   - seqfu
   - seqkit
   - seqkit_stats
+  - seqprep
   - seqtk
   - skewer
   - sortmerna
@@ -220,6 +222,7 @@ stage_tool_compatibility:
   - bbmerge
   - flash2
   - leehom
+  - seqprep
   fastq.normalize_abundance:
   - seqkit
   fastq.normalize_primers:
@@ -270,6 +273,7 @@ stage_tool_compatibility:
   - prinseq
   - seqkit
   - skewer
+  - seqprep
   fastq.trim_terminal_damage:
   - adapterremoval
   - cutadapt
@@ -321,6 +325,7 @@ stage_tool_integration:
     prinseq: governed_contract
     seqkit: governed_contract
     skewer: governed_contract
+    seqprep: governed_contract
   fastq.filter_reads:
     fastp: governed_contract
     seqkit: governed_contract
@@ -339,6 +344,7 @@ stage_tool_integration:
     bbmerge: governed_contract
     flash2: governed_contract
     leehom: governed_contract
+    seqprep: governed_contract
   fastq.remove_duplicates:
     clumpify: governed_contract
     fastuniq: governed_contract
@@ -717,6 +723,9 @@ stage_default_settings:
     leehom:
       profile: adna_sane_default
       notes: short-fragment collapse merge preset
+    seqprep:
+      profile: adna_sane_default
+      notes: paired adapter-trim and overlap-merge preset
   fastq.normalize_abundance:
     seqkit:
       profile: adna_sane_default
@@ -818,6 +827,9 @@ stage_default_settings:
     skewer:
       profile: adna_sane_default
       notes: adapter trimming benchmark preset
+    seqprep:
+      profile: adna_sane_default
+      notes: paired adapter-trim preset with retained unmerged mates
     leehom:
       profile: adna_sane_default
       notes: aDNA overlap/collapse trimming preset

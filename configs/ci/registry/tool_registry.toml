@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 7d6ab2e6886d89c93f99545b2fa04a97b70f8e13
+# source_commit: e863c721d43ed2ec89cb47eaa748ffcffac3fb9d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -2138,6 +2138,44 @@ apptainer_def = "containers/apptainer/seqkit_stats.def"
 require_labels = true
 
 [[tools]]
+id = "seqprep"
+tool_id = "seqprep"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
+external_artifact_supported = false
+stage_ids = ["fastq.merge_pairs", "fastq.trim_reads"]
+bindings = ["fastq.merge_pairs", "fastq.trim_reads"]
+tool_role = "merger"
+version = "1.3.2"
+default_version = "1.3.2"
+upstream = "https://github.com/jstjohn/SeqPrep"
+version_rule = "pinned"
+license = "MIT"
+citation = "software:https://github.com/jstjohn/SeqPrep/tree/575507b0b9c94701bdf67bb592da8ba91ba9639c"
+pinned_commit = "sha256:f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8"
+pin_strategy = "source_sha256"
+container_ref = "bijuxdna/seqprep:1.3.2"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "seqprep --version"
+help_cmd = "seqprep --help"
+smoke_version_cmd = "seqprep --version"
+smoke_help_cmd = "seqprep --help"
+expected_version_regex = "seqprep 1[.]3[.]2"
+healthcheck_cmd = "seqprep --help"
+expected_bin = "seqprep"
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
+metrics_schema = "bijux.stage.metrics.v1"
+comparability_notes = "Comparable within the same paired-end merge or adapter-trim stage contract when overlap policy, adapter policy, and retained mate handling are matched."
+dockerfile = "containers/docker/Dockerfile.arm64.seqprep"
+apptainer_def = "containers/apptainer/seqprep.def"
+require_labels = true
+
+[[tools]]
 id = "seqtk"
 tool_id = "seqtk"
 domain = "fastq"
@@ -2965,7 +3003,7 @@ requires_reporting = false
 id = "fastq.merge_pairs"
 required_tool_roles = ["merger", "transform"]
 primary_tools = ["pear"]
-optional_alternatives = ["adapterremoval", "bbmerge", "flash2", "leehom", "vsearch"]
+optional_alternatives = ["adapterremoval", "bbmerge", "flash2", "leehom", "seqprep", "vsearch"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -3097,7 +3135,7 @@ requires_reporting = false
 id = "fastq.trim_reads"
 required_tool_roles = ["trimmer", "filter", "transform", "merger"]
 primary_tools = ["fastp"]
-optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
+optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqprep", "skewer", "trim_galore", "trimmomatic"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = ["seqpurge"]
