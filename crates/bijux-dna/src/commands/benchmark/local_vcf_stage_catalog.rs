@@ -316,10 +316,7 @@ mod tests {
     };
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]
@@ -390,6 +387,7 @@ mod tests {
 
     #[test]
     fn vcf_stage_catalog_report_writes_governed_config() {
+        let _cwd_lock = crate::commands::benchmark::repo_locking::acquire_cwd_lock();
         let repo_root = repo_root();
         let report =
             render_vcf_stage_catalog(&repo_root, PathBuf::from(DEFAULT_VCF_STAGE_CATALOG_PATH))

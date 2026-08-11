@@ -1096,17 +1096,16 @@ mod tests {
     use std::path::PathBuf;
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[cfg(feature = "bam_downstream")]
     #[test]
     fn render_stage_tool_assets_reports_governed_asset_rows() {
         use super::{render_stage_tool_assets, DEFAULT_STAGE_TOOL_ASSETS_PATH};
+        use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
+        let _cwd_lock = acquire_cwd_lock();
         let root = repo_root();
         let report = render_stage_tool_assets(&root, PathBuf::from(DEFAULT_STAGE_TOOL_ASSETS_PATH))
             .expect("render stage-tool assets");
