@@ -333,7 +333,7 @@ fn checked_in_run_2013_plans_gc_bias_through_canonical_binding() -> Result<()> {
         matrix.cases[0].binding.normalized_output_contract_id,
         "bijux.benchmark.bam.gc_bias.bundle.v1"
     );
-    assert_eq!(matrix.data_snapshots.len(), 1);
+    assert_eq!(matrix.data_snapshots.len(), 2);
     Ok(())
 }
 
