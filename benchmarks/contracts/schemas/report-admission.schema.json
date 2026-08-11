@@ -325,6 +325,28 @@
       ],
       "type": "string"
     },
+    "BenchmarkScientificStratum": {
+      "additionalProperties": false,
+      "properties": {
+        "observations": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/BenchmarkScientificValue"
+            },
+            "type": "array"
+          },
+          "type": "object"
+        },
+        "sample_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample_id",
+        "observations"
+      ],
+      "type": "object"
+    },
     "BenchmarkScientificValue": {
       "anyOf": [
         {
@@ -554,6 +576,12 @@
             "type": "array"
           },
           "type": "object"
+        },
+        "scientific_strata": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkScientificStratum"
+          },
+          "type": "array"
         },
         "slurm": {
           "$ref": "#/$defs/BenchmarkReportSlurmJob"

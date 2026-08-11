@@ -2,7 +2,7 @@
   "schema_version": "bijux.benchmark.run_index.v1",
   "source_registry": {
     "uri": "repo://benchmarks/contracts/run-registry.json",
-    "sha256": "dc1dc727b97147de1802b9bb5e616dfd4610117ab0d73504cdbbe3f21ab02630",
+    "sha256": "d9d7d9e2846a16bdb1d14dd42d511ba02b0b3025aeef0b4a86aa838c4e386a26",
     "size_bytes": 91140
   },
   "summary": {
