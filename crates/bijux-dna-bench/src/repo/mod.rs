@@ -15,7 +15,8 @@ pub mod sqlite;
 mod workspace_paths;
 
 pub use bam_corpus_authority::{
-    admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, AdmittedBamGenotypingCorpus,
+    admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
+    AdmittedBamGenotypingCorpus,
 };
 pub use case_data_authority::derive_benchmark_data_snapshots;
 pub use catalog_registry_authority::{

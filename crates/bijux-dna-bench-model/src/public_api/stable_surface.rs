@@ -269,11 +269,12 @@ pub use crate::model::summary::{
 };
 pub use crate::model::{
     benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
-    benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCorpus,
-    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
-    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
-    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
-    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusAcquisitionFile,
+    benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCohort,
+    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BackendComparisonSpec,
+    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex, BenchmarkDataIndexFile,
+    BenchmarkDataIndexRecord, BenchmarkDataIndexSummary, BenchmarkEligibility,
+    BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusAcquisitionFile,
     CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusDatasetSpec,
     CorpusDomain, CorpusMaterializationDisposition, CorpusScale, CorpusSourcePolicy,
     DataIntegrityStatus, DriftScenarioSpec, FastqCorpusSourceSample, FastqCorpusSourceSpec,

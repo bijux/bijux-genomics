@@ -242,6 +242,29 @@ pub struct AdmittedBamCorpus {
     pub input_bytes: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedBamCohortSample {
+    pub sample_id: String,
+    pub bam: AdmittedBamCorpusFile,
+    pub bam_index: AdmittedBamCorpusFile,
+    pub input_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedBamCohort {
+    pub corpus_id: String,
+    pub data_index_path: String,
+    pub data_index_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub input_bytes: u64,
+    pub samples: Vec<AdmittedBamCohortSample>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthExpectationSample {
