@@ -746,8 +746,8 @@ mod tests {
         let input_sha256 = hash(&input_path)?;
         let catalog_sha256 = hash(&repository_root.join("containers/contracts/catalog.toml"))?;
         let registry_sha256 = hash(&registry_path)?;
-        let mut inventory: bijux_dna_containers::api::ContainerImageInventoryPublication =
-            serde_json::from_slice(&fs::read(source_inventory_path)?)?;
+        let mut inventory =
+            bijux_dna_containers::api::load_image_inventory_publication(&source_inventory_path)?;
         inventory.catalog_sha256.clone_from(&catalog_sha256);
         let tool = inventory
             .tools
