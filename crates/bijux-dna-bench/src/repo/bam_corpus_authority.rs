@@ -7,9 +7,10 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_benchmark_data_index, validate_governed_data_catalog_document, AdmittedBamCohort,
-    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, BenchmarkDataIndex,
-    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility, DataIntegrityStatus,
-    GovernedDataCatalogDocument, GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedReferenceBundle,
+    BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility,
+    DataIntegrityStatus, GovernedDataCatalogDocument, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use serde::Deserialize;
 
@@ -342,6 +343,56 @@ pub fn admit_bam_benchmark_cohort(
     })
 }
 
+/// Admit one FASTA, its FAI, and its sequence dictionary as a single reference identity.
+///
+/// # Errors
+/// Returns an error when the reference is ineligible, incomplete, ambiguous, or differs across
+/// the data index, catalog, and materialized bytes.
+pub fn admit_benchmark_reference(
+    study_root: &Path,
+    data_index_path: &Path,
+    reference_id: &str,
+) -> Result<AdmittedReferenceBundle> {
+    validate_identifier(reference_id, "reference")?;
+    let study_root = std::fs::canonicalize(study_root)
+        .with_context(|| format!("resolve STUDY root {}", study_root.display()))?;
+    if !study_root.is_dir() {
+        bail!("STUDY root is not a directory: {}", study_root.display());
+    }
+    let data_index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
+    let data_index_bytes = read_authority(&data_index_path, "data index")?;
+    let data_index_sha256 = bijux_dna_infra::hash_bytes_sha256(&data_index_bytes);
+    let index: BenchmarkDataIndex = serde_json::from_slice(&data_index_bytes)
+        .with_context(|| format!("parse data index {}", data_index_path.display()))?;
+    validate_benchmark_data_index(&index).context("validate benchmark data index")?;
+    let record = unique_record(&index, reference_id)?;
+    if record.benchmark_eligibility != BenchmarkEligibility::Eligible
+        || record.integrity_status != DataIntegrityStatus::Verified
+    {
+        bail!("reference is not eligible with verified integrity: {reference_id}");
+    }
+
+    let catalog = admit_record_catalog(&study_root, record)?;
+    let fasta = admit_record_role(&study_root, record, "reference-fasta")?;
+    let fasta_index = admit_record_role(&study_root, record, "reference-fasta-index")?;
+    let sequence_dictionary =
+        admit_record_role(&study_root, record, "reference-sequence-dictionary")?;
+    validate_reference_file_names(&fasta, &fasta_index, &sequence_dictionary)?;
+    let input_bytes =
+        checked_sum(&[fasta.size_bytes, fasta_index.size_bytes, sequence_dictionary.size_bytes])?;
+    Ok(AdmittedReferenceBundle {
+        reference_id: reference_id.to_string(),
+        data_index_path: path_string(&data_index_path)?,
+        data_index_sha256,
+        catalog_path: catalog.path,
+        catalog_sha256: catalog.sha256,
+        fasta,
+        fasta_index,
+        sequence_dictionary,
+        input_bytes,
+    })
+}
+
 fn parse_bam_catalog(bytes: &[u8], path: &Path) -> Result<DataCatalog> {
     let value: serde_json::Value = serde_json::from_slice(bytes)
         .with_context(|| format!("parse BAM corpus catalog {}", path.display()))?;
@@ -626,7 +677,7 @@ fn checked_sum(values: &[u64]) -> Result<u64> {
     values
         .iter()
         .try_fold(0_u64, |sum, value| sum.checked_add(*value))
-        .context("genotyping input size overflow")
+        .context("governed input size overflow")
 }
 
 fn files_by_role(
@@ -693,6 +744,33 @@ fn validate_bam_pair(
         || file_name(&bam_index.path, BAI_ROLE)? != expected_bai
     {
         bail!("BAM and BAI names do not close over sample {sample_id}");
+    }
+    Ok(())
+}
+
+fn validate_reference_file_names(
+    fasta: &AdmittedBamCorpusFile,
+    fasta_index: &AdmittedBamCorpusFile,
+    sequence_dictionary: &AdmittedBamCorpusFile,
+) -> Result<()> {
+    let fasta_name = file_name(&fasta.path, "reference FASTA")?;
+    let fasta_extension = Path::new(&fasta_name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .context("reference FASTA lacks a UTF-8 extension")?;
+    if !matches!(fasta_extension, "fa" | "fasta" | "fna")
+        || file_name(&fasta_index.path, "reference FASTA index")? != format!("{fasta_name}.fai")
+    {
+        bail!("reference FASTA and FAI names do not close over one identity");
+    }
+    let stem = Path::new(&fasta_name)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .context("reference FASTA lacks a UTF-8 stem")?;
+    if file_name(&sequence_dictionary.path, "reference sequence dictionary")?
+        != format!("{stem}.dict")
+    {
+        bail!("reference sequence dictionary name differs from its FASTA");
     }
     Ok(())
 }

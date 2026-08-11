@@ -80,12 +80,13 @@ pub use corpus::{
     benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
     benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCohort,
     AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
-    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BackendComparisonSpec,
-    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex, BenchmarkDataIndexFile,
-    BenchmarkDataIndexRecord, BenchmarkDataIndexSummary, BenchmarkEligibility,
-    BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec, CorpusDomain,
-    CorpusScale, DataIntegrityStatus, DriftScenarioSpec, FastqProfileReadsExpectationsProvenance,
-    FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedReferenceBundle,
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
+    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
+    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec,
+    CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
+    FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
+    FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
 #[allow(unused_imports)]
 pub use cross_campaign::{

@@ -265,6 +265,20 @@ pub struct AdmittedBamCohort {
     pub samples: Vec<AdmittedBamCohortSample>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedReferenceBundle {
+    pub reference_id: String,
+    pub data_index_path: String,
+    pub data_index_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub fasta: AdmittedBamCorpusFile,
+    pub fasta_index: AdmittedBamCorpusFile,
+    pub sequence_dictionary: AdmittedBamCorpusFile,
+    pub input_bytes: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthExpectationSample {

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_dna_bench::{
     admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
-    admit_fastq_benchmark_corpus, BenchmarkFastqLayout,
+    admit_benchmark_reference, admit_fastq_benchmark_corpus, BenchmarkFastqLayout,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -36,6 +36,13 @@ struct BamCohortFixture {
     study_root: PathBuf,
     data_index: PathBuf,
     first_bam: PathBuf,
+}
+
+struct BenchmarkReferenceFixture {
+    _temp: TempDir,
+    study_root: PathBuf,
+    data_index: PathBuf,
+    dictionary: PathBuf,
 }
 
 #[test]
@@ -131,6 +138,32 @@ fn rejects_bam_cohort_bytes_that_drift_after_index_publication() -> Result<()> {
         2,
     )
     .expect_err("tampered cohort BAM bytes must be rejected");
+    assert!(error.to_string().contains("size differs"));
+    Ok(())
+}
+
+#[test]
+fn admits_complete_reference_bundle() -> Result<()> {
+    let fixture = benchmark_reference_fixture()?;
+    let admitted =
+        admit_benchmark_reference(&fixture.study_root, &fixture.data_index, "grch38-reference")?;
+
+    assert_eq!(admitted.reference_id, "grch38-reference");
+    assert!(admitted.fasta.path.ends_with("GRCh38.fna"));
+    assert!(admitted.fasta_index.path.ends_with("GRCh38.fna.fai"));
+    assert!(admitted.sequence_dictionary.path.ends_with("GRCh38.dict"));
+    assert_eq!(admitted.input_bytes, 35);
+    Ok(())
+}
+
+#[test]
+fn rejects_reference_bytes_that_drift_after_index_publication() -> Result<()> {
+    let fixture = benchmark_reference_fixture()?;
+    fs::write(&fixture.dictionary, b"tampered sequence dictionary")?;
+
+    let error =
+        admit_benchmark_reference(&fixture.study_root, &fixture.data_index, "grch38-reference")
+            .expect_err("tampered reference dictionary must be rejected");
     assert!(error.to_string().contains("size differs"));
     Ok(())
 }
@@ -487,6 +520,47 @@ fn bam_cohort_fixture() -> Result<BamCohortFixture> {
         study_root,
         data_index,
     })
+}
+
+fn benchmark_reference_fixture() -> Result<BenchmarkReferenceFixture> {
+    let temp = tempfile::tempdir()?;
+    let study_root = temp.path().join("STUDY");
+    let data_index = study_root.join("data/evidence/indexes/source/data-index.json");
+    let reference_root = study_root.join("data/references/grch38-reference");
+    let catalog_root = study_root.join("data/catalog");
+    fs::create_dir_all(data_index.parent().expect("index parent"))?;
+    fs::create_dir_all(&reference_root)?;
+    fs::create_dir_all(&catalog_root)?;
+
+    let dictionary = reference_root.join("GRCh38.dict");
+    let files = write_authority_files(
+        &study_root,
+        &[
+            (reference_root.join("GRCh38.fna"), "reference-fasta", b">chr1\nACGT\n".as_slice()),
+            (
+                reference_root.join("GRCh38.fna.fai"),
+                "reference-fasta-index",
+                b"chr1\t4\n".as_slice(),
+            ),
+            (
+                dictionary.clone(),
+                "reference-sequence-dictionary",
+                b"@SQ\tSN:chr1\tLN:4\n".as_slice(),
+            ),
+        ],
+    )?;
+    let catalog = catalog_root.join("grch38-reference.json");
+    write_json(
+        &catalog,
+        &json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "grch38-reference",
+            "files": catalog_files(&study_root, &files, false),
+        }),
+    )?;
+    let record = index_record(&study_root, "grch38-reference", &catalog, &files)?;
+    write_json(&data_index, &governed_data_index(vec![record]))?;
+    Ok(BenchmarkReferenceFixture { _temp: temp, study_root, data_index, dictionary })
 }
 
 fn bam_genotyping_corpus_fixture() -> Result<BamGenotypingCorpusFixture> {
