@@ -27,13 +27,15 @@ const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
 const VALIDATE_READS_STAGE: &str = "fastq.validate_reads";
+const PROFILE_READ_LENGTHS_STAGE: &str = "fastq.profile_read_lengths";
+const PROFILE_READS_STAGE: &str = "fastq.profile_reads";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 23);
+    assert_eq!(retained.bindings().len(), 28);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -57,8 +59,104 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 31);
+    assert_eq!(all.bindings().len(), 36);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_normalizers(
+) -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let length_bindings = registry.bindings_for_stage(&StageId::new(PROFILE_READ_LENGTHS_STAGE));
+    assert_eq!(
+        length_bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["seqfu", "seqkit"]
+    );
+    for binding in length_bindings {
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_read_lengths.compare");
+        assert_eq!(binding.outputs[0].name, "length_distribution_tsv");
+        assert_eq!(binding.resources.threads, 2);
+
+        let length_command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: binding
+                    .parameters
+                    .iter()
+                    .map(|parameter| {
+                        (parameter.name.clone(), binding.resources.threads.to_string())
+                    })
+                    .collect(),
+                outputs: BTreeMap::from([(
+                    "length_distribution_tsv".to_owned(),
+                    "/result/read-lengths.tsv".to_owned(),
+                )]),
+            },
+        )?;
+        assert_eq!(length_command[0..2], ["/bin/sh", "-c"]);
+        assert!(length_command[2].contains("'/input/sample.fastq.gz'"));
+        assert!(length_command[2].ends_with("> '/result/read-lengths.tsv'"));
+        if binding.tool_id.as_str() == "seqfu" {
+            assert!(length_command[2].contains("'seqfu' tab"));
+            assert!(length_command[2].contains("length($3)"));
+        } else {
+            assert!(length_command[2].contains("'seqkit' fx2tab"));
+            assert!(length_command[2].contains("$NF"));
+        }
+    }
+
+    let profile_bindings = registry.bindings_for_stage(&StageId::new(PROFILE_READS_STAGE));
+    assert_eq!(
+        profile_bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["seqfu", "seqkit", "seqkit_stats"]
+    );
+    for binding in profile_bindings {
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.profile_reads.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_reads.compare");
+        assert_eq!(binding.outputs.len(), 1);
+        assert_eq!(binding.outputs[0].name, "qc_tsv");
+        assert_eq!(binding.resources.threads, 2);
+
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "2".to_owned())]),
+                outputs: BTreeMap::from([("qc_tsv".to_owned(), "/result/profile.tsv".to_owned())]),
+            },
+        )?;
+        assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+        assert!(command[2].contains("'/input/sample.fastq.gz'"));
+        assert!(command[2].contains("'/result/profile.tsv'"));
+        assert!(command[2].contains("'2'"));
+    }
     Ok(())
 }
 

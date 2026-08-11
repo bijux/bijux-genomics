@@ -73,6 +73,11 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         samtools_duplication_metrics(),
         samtools_endogenous_content(),
         samtools_mapping_summary(),
+        seqfu_profile_read_lengths(),
+        seqfu_profile_reads(),
+        seqkit_profile_read_lengths(),
+        seqkit_profile_reads(),
+        seqkit_stats_profile_reads(),
         seqtk_validate_reads(),
         umi_tools_extract_umis(),
     ] {
@@ -131,6 +136,128 @@ fn validate_reads_binding(
             "qualification_binding_uses_the_governed_single_end_profile",
             "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
             "native_validation_log_remains_attempt_evidence_only",
+        ],
+    )
+}
+
+fn seqfu_profile_read_lengths() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_read_lengths",
+        "seqfu",
+        &["single_end_reads", "per_record_length_observations", "report_only_profile"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &[],
+        &[output("length_distribution_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' tab '${input:reads_r1}' | awk -F '\\t' '{print $1 \"\\t\" length($3)}' > '${output:length_distribution_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "benchmark.fastq.profile_read_lengths.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "histogram_bins_are_applied_by_the_shared_result_normalizer",
+            "native_tsv_contains_record_identity_and_exact_sequence_length",
+        ],
+    )
+}
+
+fn seqfu_profile_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_reads",
+        "seqfu",
+        &["single_end_reads", "read_statistics", "gc_statistics"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("qc_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' stats --threads '${parameter:threads}' --gc '${input:reads_r1}' > '${output:qc_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "benchmark.fastq.profile_reads.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
+        ],
+    )
+}
+
+fn seqkit_profile_read_lengths() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_read_lengths",
+        "seqkit",
+        &["single_end_reads", "per_record_length_observations", "report_only_profile"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("length_distribution_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' fx2tab --name --only-id --length --threads '${parameter:threads}' '${input:reads_r1}' | awk -F '\\t' 'NF < 2 { exit 2 } { print $1 \"\\t\" $NF }' > '${output:length_distribution_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "benchmark.fastq.profile_read_lengths.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
+            "histogram_bins_are_applied_by_the_shared_result_normalizer",
+            "native_tsv_contains_record_identity_and_exact_sequence_length",
+        ],
+    )
+}
+
+fn seqkit_profile_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_reads",
+        "seqkit",
+        &["single_end_reads", "read_statistics", "tabular_statistics"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("qc_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' stats -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "benchmark.fastq.profile_reads.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
+            "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
+        ],
+    )
+}
+
+fn seqkit_stats_profile_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_reads",
+        "seqkit_stats",
+        &["single_end_reads", "read_statistics", "tabular_statistics"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("qc_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "benchmark.fastq.profile_reads.compare",
+        resources(2, 2, 2),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
         ],
     )
 }
