@@ -1,5 +1,5 @@
 //! Owner: bijux-dna-runner
-//! Restart-safe non-waiting Slurm lifecycle for FASTQ corpus acquisition.
+//! Restart-safe non-waiting Slurm lifecycle for corpus acquisition.
 
 use std::fs;
 use std::io::ErrorKind;

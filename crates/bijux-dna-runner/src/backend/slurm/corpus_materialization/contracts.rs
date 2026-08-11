@@ -1,5 +1,5 @@
 //! Owner: bijux-dna-runner
-//! Typed scheduler contracts for governed FASTQ corpus materialization.
+//! Typed scheduler contracts for governed corpus materialization.
 
 use std::path::PathBuf;
 
@@ -37,6 +37,8 @@ pub struct CorpusMaterializationSlurmSpec {
     pub repository_commit: String,
     pub executable_path: PathBuf,
     pub executable_sha256: String,
+    #[serde(default)]
+    pub command_arguments: Vec<String>,
     pub plan_path: PathBuf,
     pub plan_sha256: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]

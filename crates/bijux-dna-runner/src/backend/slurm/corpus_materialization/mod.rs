@@ -1,5 +1,5 @@
 //! Owner: bijux-dna-runner
-//! Governed FASTQ corpus materialization Slurm lifecycle.
+//! Governed corpus materialization Slurm lifecycle.
 
 mod contracts;
 mod correction;

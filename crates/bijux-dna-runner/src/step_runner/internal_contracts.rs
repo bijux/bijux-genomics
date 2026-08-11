@@ -66,7 +66,7 @@ fn ordinary_runner_refuses_external_artifact_plans_before_execution() -> anyhow:
     let step = execution_step_fixture(
         "sample-0001.vcf.call-gl.angsd",
         "vcf.call_gl",
-        &["angsd".to_string(), "-i".to_string(), "sample.bam".to_string()],
+        &["angsd".to_string(), "-i".to_string(), "sample.input".to_string()],
         "external-artifact://angsd",
         Vec::new(),
         Vec::new(),

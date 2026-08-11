@@ -128,34 +128,34 @@ pub(super) fn validate_catalog_closure(
     for file in &catalog.files {
         let path = Path::new(&file.path);
         let metadata = fs::symlink_metadata(path)
-            .with_context(|| format!("inspect admitted FASTQ {}", path.display()))?;
+            .with_context(|| format!("inspect admitted corpus file {}", path.display()))?;
         if metadata.file_type().is_symlink() || !metadata.is_file() {
-            bail!("admitted FASTQ is not a regular non-symlink file: {}", path.display());
+            bail!("admitted corpus input is not a regular non-symlink file: {}", path.display());
         }
         let canonical = path
             .canonicalize()
-            .with_context(|| format!("canonicalize admitted FASTQ {}", path.display()))?;
+            .with_context(|| format!("canonicalize admitted corpus file {}", path.display()))?;
         canonical
             .strip_prefix(&corpus_root)
-            .context("admitted FASTQ escapes governed corpus root")?;
+            .context("admitted corpus input escapes governed corpus root")?;
         if canonical != path || metadata.len() != file.size_bytes {
-            bail!("admitted FASTQ path or size differs from catalog: {}", path.display());
+            bail!("admitted corpus path or size differs from catalog: {}", path.display());
         }
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt as _;
             if metadata.permissions().mode() & 0o222 != 0 {
-                bail!("admitted FASTQ remains writable: {}", path.display());
+                bail!("admitted corpus input remains writable: {}", path.display());
             }
         }
         let sha256 = bijux_dna_infra::hash_file_sha256(path)
-            .with_context(|| format!("hash admitted FASTQ {}", path.display()))?;
+            .with_context(|| format!("hash admitted corpus file {}", path.display()))?;
         if sha256 != file.sha256 {
-            bail!("admitted FASTQ digest differs from catalog: {}", path.display());
+            bail!("admitted corpus digest differs from catalog: {}", path.display());
         }
         observed_size = observed_size
             .checked_add(file.size_bytes)
-            .context("admitted FASTQ byte total overflow")?;
+            .context("admitted corpus byte total overflow")?;
     }
     if observed_size != plan.total_size_bytes {
         bail!("governed catalog byte total differs from acquisition plan");
@@ -295,6 +295,16 @@ fn require_git_commit(value: &str) -> Result<()> {
         || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
     {
         bail!("repository commit must be a lowercase 40-character Git object id");
+    }
+    Ok(())
+}
+
+pub(super) fn validate_command_arguments(arguments: &[String]) -> Result<()> {
+    if arguments.is_empty() || arguments.len() > 128 {
+        bail!("corpus materialization command must contain between 1 and 128 arguments");
+    }
+    if arguments.iter().any(|argument| argument.is_empty() || argument.contains('\0')) {
+        bail!("corpus materialization command arguments must be non-empty and contain no NUL");
     }
     Ok(())
 }

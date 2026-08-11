@@ -1,5 +1,5 @@
 //! Owner: bijux-dna-runner
-//! Immutable Slurm material preparation for FASTQ corpus acquisition.
+//! Immutable Slurm material preparation for corpus acquisition.
 
 use std::ffi::OsStr;
 use std::fs;
@@ -14,7 +14,7 @@ use super::contracts::{
 };
 use super::validation::{
     canonical_directory, catalog_snapshot_path, ensure_json_identity, require_utc_timestamp,
-    validate_catalog_precondition, validate_specification,
+    validate_catalog_precondition, validate_command_arguments, validate_specification,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -28,6 +28,7 @@ pub fn prepare_corpus_materialization_slurm_job(
     submitted_at_utc: &str,
 ) -> Result<PreparedCorpusMaterializationSlurmJob> {
     validate_specification(spec)?;
+    validate_command_arguments(&spec.command_arguments)?;
     validate_catalog_precondition(spec)?;
     require_utc_timestamp(submitted_at_utc, "submission timestamp")?;
 
@@ -79,27 +80,10 @@ fn render_script(spec: &CorpusMaterializationSlurmSpec, specification_sha256: &s
             )
         },
     );
-    let command = [
-        shell_quote(&spec.executable_path),
-        "'bench'".to_string(),
-        "'materialize-fastq-corpus'".to_string(),
-        "'--plan'".to_string(),
-        shell_quote(&spec.plan_path),
-        "'--data-root'".to_string(),
-        shell_quote(&spec.data_root),
-        "'--repository-commit'".to_string(),
-        shell_quote(&spec.repository_commit),
-        "'--jobs'".to_string(),
-        shell_quote(spec.maximum_parallelism.to_string()),
-        "'--retries'".to_string(),
-        shell_quote(spec.retries.to_string()),
-        "'--timeout-seconds'".to_string(),
-        shell_quote(spec.timeout_seconds.to_string()),
-        "'--admitted-at-utc'".to_string(),
-        shell_quote(&spec.admitted_at_utc),
-        "'--json'".to_string(),
-    ]
-    .join(" ");
+    let command = std::iter::once(shell_quote(&spec.executable_path))
+        .chain(spec.command_arguments.iter().map(shell_quote))
+        .collect::<Vec<_>>()
+        .join(" ");
     [
         "#!/usr/bin/env bash".to_string(),
         format!("#SBATCH --job-name={}", job_name(spec)),
