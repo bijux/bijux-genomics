@@ -253,6 +253,7 @@ external-artifact
 extract-version-map
 generate-contract-lock
 generate-evidence-qualification
+generate-execution-bindings
 generate-image-inventory
 generate-image-inventory-report
 generate-image-inventory-publication-schema

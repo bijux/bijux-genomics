@@ -93,6 +93,11 @@ cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
   "${inventory_root}/scan.json" \
   "${inventory_root}/image-inventory.json"
 canonical_inventory="${inventory_root}/image-inventory.json"
+
+# Compose selected catalog-locked images into one runner site-binding manifest.
+cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- \
+  "${source_repository}" "${study_root}" "${canonical_inventory}" \
+  /usr/bin/apptainer "${inventory_root}/execution-bindings.json" bcftools
 ```
 
 The source checkout and all evidence roots are mandatory. This allows a newer

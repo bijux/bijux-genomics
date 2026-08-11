@@ -184,6 +184,9 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::GenerateEvidenceQualification => {
             contracts::generate_evidence_qualification(workspace, args)
         }
+        NativeContainerCommandKey::GenerateExecutionBindings => {
+            execution_bindings::generate(workspace, args)
+        }
         NativeContainerCommandKey::GenerateImageInventory => inventory::generate(workspace, args),
         NativeContainerCommandKey::GenerateImageInventoryReport => {
             inventory::generate_report(workspace, args)

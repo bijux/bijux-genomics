@@ -66,6 +66,7 @@ pub enum NativeContainerCommandKey {
     CheckVersionImmutability,
     CheckVersionDeprecations,
     GenerateEvidenceQualification,
+    GenerateExecutionBindings,
     GenerateImageInventory,
     GenerateImageInventoryReport,
     GenerateImageInventoryPublicationSchema,
