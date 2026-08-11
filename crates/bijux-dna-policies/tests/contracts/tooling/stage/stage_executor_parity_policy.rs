@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+#[path = "../../../support/runtime_delivery.rs"]
+mod runtime_delivery;
 #[path = "../../../support/fs.rs"]
 mod support;
 
@@ -274,11 +276,6 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
                     })
                 })
                 .unwrap_or(tool_rows[0]);
-            let runtimes = tool
-                .get("runtimes")
-                .and_then(toml::Value::as_array)
-                .map(|xs| xs.iter().filter_map(toml::Value::as_str).collect::<BTreeSet<_>>())
-                .unwrap_or_default();
             let host_only =
                 doc.get("host_only").and_then(serde_yaml::Value::as_bool).unwrap_or(false);
             let host_only_justification = yaml_str(doc, "host_only_justification").unwrap_or("");
@@ -286,12 +283,10 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
             let external_artifact = tool.get("artifact_delivery").and_then(toml::Value::as_str)
                 == Some("external_artifact");
             offenders.extend(external_violations);
-            if !(external_artifact
-                || host_only
-                || runtimes.contains("docker") && runtimes.contains("apptainer"))
-            {
-                offenders.push(format!(
-                    "stage {stage_id} tool {tool_id} must provide docker+apptainer runtimes"
+            if !external_artifact && !host_only {
+                let subject = format!("stage {stage_id} tool {tool_id}");
+                offenders.extend(runtime_delivery::redistributable_runtime_contract_violations(
+                    &root, &subject, tool,
                 ));
             }
             if host_only && host_only_justification.trim().is_empty() {
@@ -413,4 +408,49 @@ apptainer_def = "containers/apptainer/forbidden.def"
     )
     .expect("parse invalid external artifact fixture");
     assert_eq!(external_artifact_contract_violations("licensed-tool", &invalid).len(), 2);
+}
+
+#[test]
+fn redistributable_tools_may_declare_one_supported_runtime_with_its_recipe() {
+    let root = support::workspace_root();
+    let apptainer_only: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "redistributable_image"
+product_support = "supported"
+redistribution_permitted = true
+external_artifact_supported = false
+container = true
+runtimes = ["apptainer"]
+dockerfile = ""
+apptainer_def = "containers/apptainer/plink.def"
+"#,
+    )
+    .expect("parse Apptainer-only fixture");
+    assert!(runtime_delivery::redistributable_runtime_contract_violations(
+        &root,
+        "stage vcf.qc tool plink",
+        &apptainer_only
+    )
+    .is_empty());
+
+    let missing_recipe: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "redistributable_image"
+product_support = "supported"
+redistribution_permitted = true
+external_artifact_supported = false
+container = true
+runtimes = ["docker"]
+dockerfile = ""
+apptainer_def = "containers/apptainer/plink.def"
+"#,
+    )
+    .expect("parse invalid runtime fixture");
+    let violations = runtime_delivery::redistributable_runtime_contract_violations(
+        &root,
+        "stage vcf.qc tool plink",
+        &missing_recipe,
+    );
+    assert!(violations.iter().any(|message| message.contains("runtime docker missing")));
+    assert!(violations.iter().any(|message| message.contains("undeclared apptainer recipe")));
 }

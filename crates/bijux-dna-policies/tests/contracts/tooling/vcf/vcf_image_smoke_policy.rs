@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+#[path = "../../../support/runtime_delivery.rs"]
+mod runtime_delivery;
 #[path = "../../../support/fs.rs"]
 mod support;
 
@@ -95,15 +97,11 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
         let external_artifact = tool.get("artifact_delivery").and_then(toml::Value::as_str)
             == Some("external_artifact");
         offenders.extend(external_artifact_contract_violations(tool_id, &tool));
-        let dockerfile = tool.get("dockerfile").and_then(toml::Value::as_str).unwrap_or_default();
-        if !external_artifact && (dockerfile.is_empty() || !root.join(dockerfile).exists()) {
-            offenders.push(format!("vcf tool {tool_id} missing dockerfile at `{dockerfile}`"));
-        }
-        let apptainer_def =
-            tool.get("apptainer_def").and_then(toml::Value::as_str).unwrap_or_default();
-        if !external_artifact && (apptainer_def.is_empty() || !root.join(apptainer_def).exists()) {
-            offenders
-                .push(format!("vcf tool {tool_id} missing apptainer def at `{apptainer_def}`"));
+        if !external_artifact {
+            let subject = format!("vcf tool {tool_id}");
+            offenders.extend(runtime_delivery::redistributable_runtime_contract_violations(
+                &root, &subject, &tool,
+            ));
         }
     }
 
@@ -153,4 +151,49 @@ apptainer_def = "containers/apptainer/forbidden.def"
     )
     .expect("parse invalid external artifact fixture");
     assert_eq!(external_artifact_contract_violations("licensed-vcf-tool", &invalid).len(), 2);
+}
+
+#[test]
+fn vcf_tools_may_declare_one_supported_runtime_with_its_recipe() {
+    let root = support::workspace_root();
+    let apptainer_only: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "redistributable_image"
+product_support = "supported"
+redistribution_permitted = true
+external_artifact_supported = false
+container = true
+runtimes = ["apptainer"]
+dockerfile = ""
+apptainer_def = "containers/apptainer/plink.def"
+"#,
+    )
+    .expect("parse Apptainer-only fixture");
+    assert!(runtime_delivery::redistributable_runtime_contract_violations(
+        &root,
+        "vcf tool plink",
+        &apptainer_only
+    )
+    .is_empty());
+
+    let undeclared_recipe: toml::Value = toml::from_str(
+        r#"
+artifact_delivery = "redistributable_image"
+product_support = "supported"
+redistribution_permitted = true
+external_artifact_supported = false
+container = true
+runtimes = []
+dockerfile = ""
+apptainer_def = "containers/apptainer/plink.def"
+"#,
+    )
+    .expect("parse invalid runtime fixture");
+    let violations = runtime_delivery::redistributable_runtime_contract_violations(
+        &root,
+        "vcf tool plink",
+        &undeclared_recipe,
+    );
+    assert!(violations.iter().any(|message| message.contains("at least one supported")));
+    assert!(violations.iter().any(|message| message.contains("undeclared apptainer recipe")));
 }
