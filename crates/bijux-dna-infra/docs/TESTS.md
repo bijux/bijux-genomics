@@ -29,7 +29,7 @@ artifact root instead of the OS temp root.
 - Missing test documentation causes drift and confusion.
 
 ## Determinism
-- `tests/determinism/hash.rs` — hashing determinism for file inputs.
+- `tests/determinism/hash.rs` — byte, file, directory-tree, and symbolic-link identity determinism.
 - `tests/determinism/retry.rs` — retry backoff sequence remains stable.
 
 ## Boundaries

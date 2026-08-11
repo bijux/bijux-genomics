@@ -15,6 +15,7 @@ planner, runner, API, database, analysis, benchmark, or environment ownership.
 - `toml`: TOML config parsing and rendering.
 - `tracing-appender`: non-blocking log writer guard returned by `init_logging`.
 - `tracing-subscriber` with the `tracing` feature: subscriber installation and environment filters.
+- `walkdir`: deterministic, non-following directory traversal for path identities.
 - `serde_yaml` with the `yaml` feature: YAML config compatibility.
 
 Runtime dependencies intentionally exclude generic application error crates. Infra errors should use
@@ -26,7 +27,7 @@ the crate-local `IoError` taxonomy so callers can wrap them at their own boundar
 - `bijux-dna-policies`: workspace guardrails.
 - `bijux-dna-testkit`: deterministic snapshot helpers.
 - `insta`: public surface snapshot tests.
-- `regex` and `walkdir`: local boundary scans.
+- `regex`: local boundary scans.
 
 ## Forbidden Dependencies
 

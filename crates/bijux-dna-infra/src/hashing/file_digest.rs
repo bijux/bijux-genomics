@@ -18,10 +18,5 @@ pub(super) fn hash_file_sha256(path: &Path) -> Result<String, IoError> {
         hasher.update(&buffer[..count]);
     }
     let digest = hasher.finalize();
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for byte in digest {
-        use std::fmt::Write as _;
-        let _ = write!(&mut hex, "{byte:02x}");
-    }
-    Ok(hex)
+    Ok(super::sha256_hex(digest))
 }

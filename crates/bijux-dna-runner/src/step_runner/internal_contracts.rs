@@ -317,7 +317,7 @@ fn hash_path_supports_directory_outputs() -> anyhow::Result<()> {
 
     let digest = hash_path(&root)?;
 
-    assert_eq!(digest.len(), 64);
+    assert_eq!(digest, bijux_dna_infra::hash_path_sha256(&root)?);
     Ok(())
 }
 
@@ -355,10 +355,11 @@ fn hash_inputs_hashes_directories() -> anyhow::Result<()> {
     bijux_dna_infra::ensure_dir(&root)?;
     bijux_dna_infra::write_bytes(root.join("summary.txt"), b"bundle-summary")?;
 
+    let expected = bijux_dna_infra::hash_path_sha256(&root)?;
     let hashes = hash_inputs(&[root])?;
 
     assert_eq!(hashes.len(), 1);
-    assert_eq!(hashes[0].len(), 64);
+    assert_eq!(hashes[0], expected);
     Ok(())
 }
 
