@@ -183,11 +183,15 @@ fn validate_goal_entry(label: &str, entry: &DomainBenchmarkGoalEntry) -> Result<
 
     let mut rows = BTreeSet::new();
     for row in &entry.matched_rows {
+        let repetitions_match_readiness = match row.readiness_class.as_str() {
+            "ready" | "degraded" => row.repetitions > 0,
+            "refuse" => row.repetitions == 0,
+            _ => false,
+        };
         if row.row_id.trim().is_empty()
             || row.stage_id.trim().is_empty()
             || row.tool_id.trim().is_empty()
-            || row.repetitions == 0
-            || !matches!(row.readiness_class.as_str(), "ready" | "degraded" | "refuse")
+            || !repetitions_match_readiness
             || !rows.insert(row.row_id.as_str())
         {
             return Err(invalid(label, "matrix row reference is invalid"));
