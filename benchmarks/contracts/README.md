@@ -91,6 +91,11 @@ crate and pass its generated-schema drift tests.
 non-barrier lifecycle pass. They preserve every independent attempt outcome
 without making an aggregate campaign result a scheduling barrier.
 
+`schemas/active-scope-fast-validation.schema.json` defines the persisted
+closure of the fast benchmark-surface validation. The benchmark model owns its
+version, check identity, and exact category and outcome summaries; the command
+surface renders and atomically publishes only a validated record.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and

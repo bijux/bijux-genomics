@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/active_scope.rs"]
+mod mod_contracts_active_scope_rs;
 #[path = "contracts/appraisal.rs"]
 mod mod_contracts_appraisal_rs;
 #[path = "contracts/benchmark_execution.rs"]

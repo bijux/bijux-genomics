@@ -1,0 +1,113 @@
+{
+  "$defs": {
+    "ActiveScopeFastValidationCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "output_path": {
+          "type": "string"
+        },
+        "surface_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "surface_id",
+        "output_path",
+        "ok",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_root": {
+      "type": "string"
+    },
+    "category_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "checked_surface_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/ActiveScopeFastValidationCheck"
+      },
+      "type": "array"
+    },
+    "failed_category_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "failed_surface_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fixture_root": {
+      "type": "string"
+    },
+    "mode": {
+      "const": "fast",
+      "type": "string"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passed_surface_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_root": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.active_scope_validate_fast.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "mode",
+    "benchmark_root",
+    "schema_root",
+    "fixture_root",
+    "checked_surface_count",
+    "passed_surface_count",
+    "failed_surface_count",
+    "category_counts",
+    "failed_category_counts",
+    "ok",
+    "checks"
+  ],
+  "title": "ActiveScopeFastValidationReport",
+  "type": "object"
+}

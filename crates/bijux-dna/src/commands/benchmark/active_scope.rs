@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_bench_model::{
+    validate_active_scope_fast_validation_report, ActiveScopeFastValidationCheck,
+    ActiveScopeFastValidationReport, ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1,
+};
 
 use super::path_resolution::BenchmarkPathResolver;
 use super::readiness::all_domain_active_stage_tool_matrix::{
@@ -42,34 +45,6 @@ use crate::commands::fixtures::root_validation::{
 
 pub(crate) const DEFAULT_ACTIVE_SCOPE_FAST_VALIDATION_REPORT_PATH: &str =
     "artifacts/bench-active-scope/validate-fast.json";
-const ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_VERSION: &str =
-    "bijux.bench.active_scope_validate_fast.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ActiveScopeFastValidationCheck {
-    pub(crate) category: String,
-    pub(crate) surface_id: String,
-    pub(crate) output_path: String,
-    pub(crate) ok: bool,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct ActiveScopeFastValidationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) mode: String,
-    pub(crate) benchmark_root: String,
-    pub(crate) schema_root: String,
-    pub(crate) fixture_root: String,
-    pub(crate) checked_surface_count: usize,
-    pub(crate) passed_surface_count: usize,
-    pub(crate) failed_surface_count: usize,
-    pub(crate) category_counts: BTreeMap<String, usize>,
-    pub(crate) failed_category_counts: BTreeMap<String, usize>,
-    pub(crate) ok: bool,
-    pub(crate) checks: Vec<ActiveScopeFastValidationCheck>,
-}
 
 pub(crate) fn run_active_scope_validate_command(
     repo_root: &Path,
@@ -342,7 +317,7 @@ pub(crate) fn validate_active_scope_fast(
     }
 
     let report = ActiveScopeFastValidationReport {
-        schema_version: ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_VERSION,
+        schema_version: ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         mode: "fast".to_string(),
         benchmark_root: path_relative_to_repo(repo_root, resolver.benchmark_root()),
@@ -356,6 +331,7 @@ pub(crate) fn validate_active_scope_fast(
         ok: failed_surface_count == 0,
         checks,
     };
+    validate_active_scope_fast_validation_report(&report).map_err(|error| anyhow!(error))?;
 
     if let Some(parent) = output_path.parent() {
         std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;

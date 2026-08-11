@@ -4,6 +4,7 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod active_scope;
 mod appraisal;
 mod benchmark_matrix;
 mod compatibility;
@@ -32,6 +33,7 @@ mod schema_versions;
 mod source_authority;
 mod stage_result;
 mod suite;
+pub use active_scope::validate_active_scope_fast_validation_report;
 pub use appraisal::{validate_appraisal_report, validate_hardening_queue_report};
 pub use benchmark_matrix::validate_benchmark_matrix_report;
 pub use compatibility::{

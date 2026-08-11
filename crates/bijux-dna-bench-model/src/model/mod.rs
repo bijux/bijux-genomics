@@ -2,6 +2,7 @@
 //! Typed models for bench (suite, observation, summary, decision).
 //! Must not perform IO or depend on repo/policy/compare logic.
 
+pub mod active_scope;
 pub mod admission;
 pub mod appraisal;
 pub mod benchmark_matrix;
@@ -33,6 +34,11 @@ pub mod stage_result;
 pub mod suite;
 pub mod summary;
 
+#[allow(unused_imports)]
+pub use active_scope::{
+    active_scope_fast_validation_report_schema, ActiveScopeFastValidationCheck,
+    ActiveScopeFastValidationReport, ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1,
+};
 #[allow(unused_imports)]
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
