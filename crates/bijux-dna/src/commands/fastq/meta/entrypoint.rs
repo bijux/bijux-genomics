@@ -313,6 +313,22 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     crate::commands::cli::render::json::print_pretty(&publication)?;
                 }
+                BenchCommand::MaterializeReferenceBundle(args) => {
+                    let publication =
+                        bijux_dna_api::v1::api::bench::materialize_checked_in_reference_bundle(
+                            &bijux_dna_api::v1::api::bench::ReferenceBundleMaterializationRequest {
+                                data_root: args.data_root.clone(),
+                                source_archive: args.source_archive.clone(),
+                                reference_id: args.reference_id.clone(),
+                                species_id: args.species_id.clone(),
+                                build_id: args.build_id.clone(),
+                                source_commit: args.source_commit.clone(),
+                                previous_registry_path: args.previous_registry.clone(),
+                                admitted_at_utc: args.admitted_at_utc.clone(),
+                            },
+                        )?;
+                    crate::commands::cli::render::json::print_pretty(&publication)?;
+                }
                 BenchCommand::CorpusMaterialization { command } => match command {
                     cli::BenchCorpusMaterializationCommand::Prepare(args) => {
                         let spec = bijux_dna_api::v1::api::bench::load_corpus_materialization_slurm_spec(

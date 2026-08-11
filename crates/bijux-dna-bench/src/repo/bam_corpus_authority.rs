@@ -571,7 +571,7 @@ fn admit_record_catalog(
     if sha256 != record.catalog_sha256 {
         bail!("genotyping catalog digest differs from the data index: {}", record.id);
     }
-    let catalog: GenericDataCatalog = serde_json::from_slice(&bytes).context("parse catalog")?;
+    let catalog = parse_generic_data_catalog(&bytes, &path)?;
     if !matches!(
         catalog.schema_version.as_str(),
         GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
@@ -585,6 +585,46 @@ fn admit_record_catalog(
         sha256,
         size_bytes: u64::try_from(bytes.len()).context("catalog size does not fit u64")?,
     })
+}
+
+fn parse_generic_data_catalog(bytes: &[u8], path: &Path) -> Result<GenericDataCatalog> {
+    let value: serde_json::Value = serde_json::from_slice(bytes)
+        .with_context(|| format!("parse governed catalog {}", path.display()))?;
+    match value.get("schema_version").and_then(serde_json::Value::as_str) {
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V1) => serde_json::from_value(value)
+            .with_context(|| format!("parse legacy governed catalog {}", path.display())),
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {
+            let document: GovernedDataCatalogDocument = serde_json::from_value(value)
+                .with_context(|| format!("parse v2 governed catalog {}", path.display()))?;
+            validate_governed_data_catalog_document(&document)
+                .with_context(|| format!("validate v2 governed catalog {}", path.display()))?;
+            match document {
+                GovernedDataCatalogDocument::Preserved(catalog) => {
+                    serde_json::from_value(catalog.preserved_catalog).with_context(|| {
+                        format!("parse preserved governed catalog {}", path.display())
+                    })
+                }
+                GovernedDataCatalogDocument::Materialized(catalog) => Ok(GenericDataCatalog {
+                    schema_version: catalog.schema_version,
+                    id: catalog.id,
+                    files: catalog
+                        .files
+                        .into_iter()
+                        .map(|file| GenericCatalogFile {
+                            path: Some(file.path),
+                            kind: Some(file.kind),
+                            sha256: Some(file.sha256),
+                            size_bytes: Some(file.size_bytes),
+                            governed_path: None,
+                            governed_sha256: None,
+                            governed_size_bytes: None,
+                        })
+                        .collect(),
+                }),
+            }
+        }
+        _ => bail!("governed catalog schema is unsupported: {}", path.display()),
+    }
 }
 
 fn validate_record_catalog_closure(

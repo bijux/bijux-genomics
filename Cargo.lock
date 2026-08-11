@@ -348,6 +348,7 @@ dependencies = [
  "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-db-ena",
+ "bijux-dna-db-ref",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
  "bijux-dna-infra",

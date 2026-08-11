@@ -11,8 +11,9 @@ pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
     acquire_fastq_corpus, admit_checked_in_benchmark_campaign, ensure_stage_campaign_attempts,
-    load_checked_in_benchmark_campaign_plan, materialize_fastq_corpus,
-    plan_checked_in_benchmark_campaign, prepare_checked_in_benchmark_campaign,
+    load_checked_in_benchmark_campaign_plan, materialize_checked_in_reference_bundle,
+    materialize_fastq_corpus, plan_checked_in_benchmark_campaign,
+    prepare_checked_in_benchmark_campaign,
     publish_benchmark_campaign_report_with_presentation_authority, publish_benchmark_data_index,
     publish_checked_in_benchmark_evidence_book, publish_governed_data_catalog_registry,
     replay_checked_in_benchmark_publication, status_checked_in_benchmark_campaign,
@@ -34,10 +35,10 @@ pub use bijux_dna_bench::{
     BenchmarkReplayRequest, BenchmarkStageInterfaceCatalog, BenchmarkStageReport,
     CorpusAcquisitionRequest, CorpusMaterializationPublication, CorpusMaterializationRequest,
     GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
-    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
-    BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
-    BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    ReferenceBundleMaterializationRequest, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
 pub use bijux_dna_runner::api::{
     cancel_slurm_jobs, collect_benchmark_campaign_cycle, collect_corpus_materialization_slurm_job,

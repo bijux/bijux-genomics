@@ -35,6 +35,7 @@ mod hardening_campaign;
 mod options;
 mod parameter_authority;
 mod publication_registry;
+mod reference_materialization;
 mod replay;
 mod report_load;
 mod run_index;
@@ -207,6 +208,9 @@ pub use options::BenchRunOptions;
 pub use publication_registry::{
     derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
     render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,
+};
+pub use reference_materialization::{
+    materialize_checked_in_reference_bundle, ReferenceBundleMaterializationRequest,
 };
 pub use replay::{replay_checked_in_benchmark_publication, BenchmarkReplayRequest};
 pub use report_load::{
