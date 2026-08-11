@@ -51,8 +51,8 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
     assert!(
         !rows
             .iter()
-            .any(|row| row.starts_with("bam\tbam.genotyping\t")),
-        "TSV must not retain a registry-drift row for bam.genotyping once angsd is registered in production"
+            .any(|row| row.starts_with("bam\tbam.genotyping\tbcftools\t")),
+        "TSV must not retain a registry-drift row for bam.genotyping / bcftools once it is registered in production"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.damage\tngsbriggs\t")),
