@@ -18,6 +18,7 @@ mod campaign_material;
 mod container_report_portfolio;
 mod corpus_acquisition;
 mod corpus_materialization;
+mod cross_campaign;
 mod data_portfolio_audit;
 mod evaluation;
 mod evidence_book;
@@ -137,6 +138,10 @@ pub use corpus_acquisition::{
 };
 pub use corpus_materialization::{
     materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
+};
+pub use cross_campaign::{
+    derive_cross_benchmark_campaign, load_cross_benchmark_campaign_report,
+    publish_cross_benchmark_campaign_report,
 };
 pub use data_portfolio_audit::{
     derive_benchmark_data_portfolio_audit, publish_benchmark_data_portfolio_audit,

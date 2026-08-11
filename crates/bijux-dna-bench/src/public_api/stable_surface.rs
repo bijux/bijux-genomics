@@ -3,17 +3,21 @@
 
 pub use crate::workflow::{
     appraise_matrix_report, current_benchmark_matrix_timestamp, derive_benchmark_matrix,
-    hardening_queue_from_appraisal, load_appraisal_report, load_benchmark_matrix_report,
+    derive_cross_benchmark_campaign, hardening_queue_from_appraisal, load_appraisal_report,
+    load_benchmark_matrix_report, load_cross_benchmark_campaign_report,
     load_hardening_queue_report, publish_appraisal_report, publish_benchmark_matrix,
-    publish_hardening_queue_report, BenchmarkMatrixRequest,
+    publish_cross_benchmark_campaign_report, publish_hardening_queue_report,
+    BenchmarkMatrixRequest,
 };
 pub use bijux_dna_bench_model::{
     appraisal_report_schema, benchmark_matrix_report_schema, hardening_queue_report_schema,
     validate_appraisal_report, validate_benchmark_matrix_report, validate_hardening_queue_report,
     AppraisalFinding, AppraisalReport, AppraisalSummary, BenchmarkMatrixReport, BenchmarkMatrixRow,
-    BenchmarkMatrixSummary, BenchmarkReadiness, BenchmarkSurfaceMatch, HardeningQueueEntry,
-    HardeningQueueReport, APPRAISAL_REPORT_SCHEMA_V1, BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
-    HARDENING_QUEUE_REPORT_SCHEMA_V1,
+    BenchmarkMatrixSummary, BenchmarkReadiness, BenchmarkSurfaceMatch,
+    CrossBenchmarkCampaignReport, CrossBenchmarkCampaignSummary, CrossBenchmarkGoalEntry,
+    CrossMatrixRowRef, CrossScenario, HardeningQueueEntry, HardeningQueueReport,
+    APPRAISAL_REPORT_SCHEMA_V1, BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
+    CROSS_BENCHMARK_CAMPAIGN_SCHEMA_V1, HARDENING_QUEUE_REPORT_SCHEMA_V1,
 };
 
 pub use crate::artifacts::{

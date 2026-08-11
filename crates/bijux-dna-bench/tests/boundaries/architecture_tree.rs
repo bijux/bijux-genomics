@@ -104,6 +104,7 @@ fn bench_tree_matches_architecture_contract() {
             "corpus_acquisition.rs",
             "corpus_materialization/",
             "container_report_portfolio.rs",
+            "cross_campaign.rs",
             "data_portfolio_audit.rs",
             "evaluation.rs",
             "evidence_book.rs",
