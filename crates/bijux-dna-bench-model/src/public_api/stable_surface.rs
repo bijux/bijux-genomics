@@ -59,9 +59,9 @@ pub use crate::contract::{
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
     BENCHMARK_STAGE_REPORT_SCHEMA_V1, BENCHMARK_STAGE_RESULT_SCHEMA_V2,
-    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
-    FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_SCHEMA_V1,
+    DECISION_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
@@ -267,8 +267,11 @@ pub use crate::model::stage_tool_closure::{
     BENCHMARK_STAGE_TOOL_CLOSURE_SCHEMA_V1,
 };
 pub use crate::model::suite::{
-    benchmark_suite_spec_schema, AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec,
-    DatasetSpec, DiversityRequirements, ReplicatePolicy, StratificationRequirement,
+    benchmark_suite_run_manifest_schema, benchmark_suite_spec_schema, AnalysisRequirements,
+    BenchmarkParamBinding, BenchmarkStageSpec, ColdWarmContract, DatasetSpec, DecisionTraceRow,
+    DiversityRequirements, EnvironmentSnapshot, FairnessContract, MetricsArtifactRow,
+    PostconditionRow, ReplicatePolicy, RunRecordRow, ScientificDefaultsStatus,
+    StratificationRequirement, SuiteRunManifest, ToolInvocationRow,
 };
 pub use crate::model::summary::{
     benchmark_summary_schema, MetricSummary, SummaryRow, SummaryStratum,

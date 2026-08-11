@@ -125,3 +125,48 @@ fn policy__contracts__root_architecture_contract_policy__data_portfolio_separate
         missing.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__root_architecture_contract_policy__suite_run_manifest_has_one_model_authority(
+) {
+    let root = repo_root();
+    let owner_path = root.join("crates/bijux-dna-bench-model/src/model/suite/manifest.rs");
+    let consumer_path = root
+        .join("crates/bijux-dna/src/commands/benchmark/suite/suite_sections/spec_and_loading.rs");
+    let owner = std::fs::read_to_string(&owner_path).unwrap_or_else(|err| {
+        bijux_dna_policies::policy_panic!("read {}: {err}", owner_path.display())
+    });
+    let consumer = std::fs::read_to_string(&consumer_path).unwrap_or_else(|err| {
+        bijux_dna_policies::policy_panic!("read {}: {err}", consumer_path.display())
+    });
+
+    let authority_declaration = ["pub struct ", "SuiteRunManifest"].concat();
+    bijux_dna_policies::policy_assert!(
+        owner.contains(&authority_declaration),
+        "bijux-dna-bench-model must own the persisted suite run manifest"
+    );
+    let mut authorities = walkdir::WalkDir::new(root.join("crates"))
+        .follow_links(false)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().and_then(|value| value.to_str()) == Some("rs"))
+        .filter_map(|entry| {
+            std::fs::read_to_string(entry.path())
+                .ok()
+                .filter(|source| source.contains(&authority_declaration))
+                .and_then(|_| entry.path().strip_prefix(&root).ok().map(Path::to_path_buf))
+        })
+        .collect::<Vec<_>>();
+    authorities.sort();
+    bijux_dna_policies::policy_assert!(
+        authorities == [PathBuf::from("crates/bijux-dna-bench-model/src/model/suite/manifest.rs")],
+        "persisted suite run manifest authorities drifted: {authorities:?}"
+    );
+    bijux_dna_policies::policy_assert!(
+        consumer.contains("use bijux_dna_api::v1::api::bench::{")
+            && consumer.contains("SuiteRunManifest")
+            && consumer.contains("ToolInvocationRow"),
+        "the thin bijux-dna CLI must consume owner types through the documented API adapter"
+    );
+}

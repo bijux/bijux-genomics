@@ -6,6 +6,7 @@
 
 mod catalog;
 mod construction;
+mod manifest;
 mod stage_graph;
 mod support;
 
@@ -16,6 +17,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::contract::SUITE_SCHEMA_V1;
 use crate::model::graph::BenchmarkStageEdge;
+pub use manifest::{
+    benchmark_suite_run_manifest_schema, ColdWarmContract, DecisionTraceRow, EnvironmentSnapshot,
+    FairnessContract, MetricsArtifactRow, PostconditionRow, RunRecordRow, ScientificDefaultsStatus,
+    SuiteRunManifest, ToolInvocationRow,
+};
 pub use support::{
     AnalysisRequirements, DatasetSpec, DiversityRequirements, ReplicatePolicy,
     StratificationRequirement,

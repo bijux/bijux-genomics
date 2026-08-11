@@ -271,7 +271,10 @@ pub use stage_tool_closure::{
 };
 #[allow(unused_imports)]
 pub use suite::{
-    benchmark_suite_spec_schema, BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec,
+    benchmark_suite_run_manifest_schema, benchmark_suite_spec_schema, BenchmarkParamBinding,
+    BenchmarkStageSpec, BenchmarkSuiteSpec, ColdWarmContract, DecisionTraceRow,
+    EnvironmentSnapshot, FairnessContract, MetricsArtifactRow, PostconditionRow, RunRecordRow,
+    ScientificDefaultsStatus, SuiteRunManifest, ToolInvocationRow,
 };
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};

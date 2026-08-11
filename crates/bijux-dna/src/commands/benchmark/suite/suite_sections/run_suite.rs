@@ -199,7 +199,7 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
         compute_comparability_hash(&suite, &fairness, &tool_invocations, &scientific_defaults)?;
 
     let mut manifest = SuiteRunManifest {
-        schema_version: "bijux.bench.suite_run_manifest.v2".to_string(),
+        schema_version: BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2.to_string(),
         suite_id: suite.suite_id.clone(),
         run_id: run_id.clone(),
         run_context,
