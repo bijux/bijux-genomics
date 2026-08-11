@@ -9,13 +9,13 @@ use bijux_dna_containers::api::{
     ExternalArtifactAdmissionStatus, ExternalArtifactKind,
 };
 use bijux_dna_runner::command_runner::{
-    BoundFileIdentityV1, CommandExecutionBindingV1, ExecutionBindingManifestV1,
-    RUNNER_EXECUTION_BINDINGS_SCHEMA_V1,
+    BoundFileIdentityV1, CommandExecutionBindingV2, ExecutionBindingManifestV2,
+    RUNNER_EXECUTION_BINDINGS_SCHEMA_V2,
 };
 
 use super::{path_from_arg, success_line, ContainerCommandOutcome, Workspace};
 
-const USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- <repository-root> <study-root> <image-inventory> <apptainer-executable> <output> (<tool-id> | --external-admission <distributable-image-root> <record>)...";
+const USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- <repository-root> <study-root> <image-inventory> <apptainer-executable> <output> (<tool-id> | --external-admission <distributable-image-root> <record> | --bind-root-env <variable>)...";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct ExternalAdmissionSelection {
@@ -31,6 +31,7 @@ struct GenerateRequest {
     output_path: PathBuf,
     tool_ids: Vec<String>,
     external_admissions: Vec<ExternalAdmissionSelection>,
+    bind_root_envs: Vec<String>,
 }
 
 pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -59,6 +60,7 @@ pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<Contain
         &request.apptainer_executable,
         &request.tool_ids,
         &request.external_admissions,
+        &request.bind_root_envs,
         &request.repository_root,
     )?;
     bijux_dna_infra::atomic_create_json(&request.output_path, &manifest)?;
@@ -80,6 +82,7 @@ fn parse_request(workspace: &Workspace, args: &[String]) -> Result<GenerateReque
     }
     let mut tool_ids = BTreeSet::new();
     let mut external_admissions = BTreeSet::new();
+    let mut bind_root_envs = BTreeSet::new();
     let mut selections = selections.iter();
     while let Some(selection) = selections.next() {
         if selection == "--external-admission" {
@@ -98,12 +101,21 @@ fn parse_request(workspace: &Workspace, args: &[String]) -> Result<GenerateReque
                     selection.record_path.display()
                 );
             }
+        } else if selection == "--bind-root-env" {
+            let variable = selections.next().context("--bind-root-env requires a variable")?;
+            require_environment_variable(variable)?;
+            if !bind_root_envs.insert(variable.clone()) {
+                bail!("execution binding request repeats bind-root environment {variable}");
+            }
         } else {
             require_identifier(selection, "tool id")?;
             if !tool_ids.insert(selection.clone()) {
                 bail!("execution binding request repeats tool id {selection}");
             }
         }
+    }
+    if tool_ids.is_empty() && external_admissions.is_empty() {
+        bail!("execution binding request requires at least one tool or external admission");
     }
     Ok(GenerateRequest {
         repository_root: path_from_arg(workspace, repository_root),
@@ -113,6 +125,7 @@ fn parse_request(workspace: &Workspace, args: &[String]) -> Result<GenerateReque
         output_path: path_from_arg(workspace, output_path),
         tool_ids: tool_ids.into_iter().collect(),
         external_admissions: external_admissions.into_iter().collect(),
+        bind_root_envs: bind_root_envs.into_iter().collect(),
     })
 }
 
@@ -125,8 +138,9 @@ fn derive_manifest(
     apptainer_executable: &Path,
     tool_ids: &[String],
     external_admissions: &[ExternalAdmissionSelection],
+    bind_root_envs: &[String],
     repository_root: &Path,
-) -> Result<ExecutionBindingManifestV1> {
+) -> Result<ExecutionBindingManifestV2> {
     let mut commands = BTreeSet::new();
     let mut bindings = Vec::with_capacity(tool_ids.len() + external_admissions.len());
     for tool_id in tool_ids {
@@ -147,7 +161,12 @@ fn derive_manifest(
         if !commands.insert(tool.expected_bin.clone()) {
             bail!("selected tools resolve the duplicate executable command {}", tool.expected_bin);
         }
-        bindings.push(binding_from_image(&image, &tool.expected_bin, apptainer_executable));
+        bindings.push(binding_from_image(
+            &image,
+            &tool.expected_bin,
+            apptainer_executable,
+            bind_root_envs,
+        ));
     }
     for selection in external_admissions {
         let admission = bijux_dna_containers::api::verify_external_artifact_admission(
@@ -162,11 +181,15 @@ fn derive_manifest(
                 admission.expected_binary
             );
         }
-        bindings.push(binding_from_external_artifact(&admission, apptainer_executable)?);
+        bindings.push(binding_from_external_artifact(
+            &admission,
+            apptainer_executable,
+            bind_root_envs,
+        )?);
     }
     bindings.sort_by(|left, right| left.command.cmp(&right.command));
-    Ok(ExecutionBindingManifestV1 {
-        schema_version: RUNNER_EXECUTION_BINDINGS_SCHEMA_V1.to_string(),
+    Ok(ExecutionBindingManifestV2 {
+        schema_version: RUNNER_EXECUTION_BINDINGS_SCHEMA_V2.to_string(),
         bindings,
     })
 }
@@ -174,7 +197,8 @@ fn derive_manifest(
 fn binding_from_external_artifact(
     admission: &ExternalArtifactAdmission,
     apptainer_executable: &Path,
-) -> Result<CommandExecutionBindingV1> {
+    bind_root_envs: &[String],
+) -> Result<CommandExecutionBindingV2> {
     if admission.availability != ExternalArtifactAdmissionStatus::Admitted {
         bail!(
             "external artifact {} is not admitted: {:?}",
@@ -186,8 +210,8 @@ fn binding_from_external_artifact(
         .artifact
         .as_ref()
         .context("admitted external artifact has no persisted identity")?;
-    let (program, prefix_args) = match artifact.kind {
-        ExternalArtifactKind::Binary => (artifact.path.clone(), Vec::new()),
+    let (program, prefix_args, bind_root_envs) = match artifact.kind {
+        ExternalArtifactKind::Binary => (artifact.path.clone(), Vec::new(), Vec::new()),
         ExternalArtifactKind::ApptainerSif => (
             apptainer_executable.display().to_string(),
             vec![
@@ -196,12 +220,14 @@ fn binding_from_external_artifact(
                 artifact.path.clone(),
                 admission.expected_binary.clone(),
             ],
+            bind_root_envs.to_vec(),
         ),
     };
-    Ok(CommandExecutionBindingV1 {
+    Ok(CommandExecutionBindingV2 {
         command: admission.expected_binary.clone(),
         program,
         prefix_args,
+        bind_root_envs,
         required_files: vec![BoundFileIdentityV1 {
             path: artifact.path.clone(),
             sha256: artifact.sha256.clone(),
@@ -214,9 +240,10 @@ fn binding_from_image(
     image: &CurrentApptainerImage,
     expected_binary: &str,
     apptainer_executable: &Path,
-) -> CommandExecutionBindingV1 {
+    bind_root_envs: &[String],
+) -> CommandExecutionBindingV2 {
     let image_path = image.path.display().to_string();
-    CommandExecutionBindingV1 {
+    CommandExecutionBindingV2 {
         command: expected_binary.to_string(),
         program: apptainer_executable.display().to_string(),
         prefix_args: vec![
@@ -225,6 +252,7 @@ fn binding_from_image(
             image_path.clone(),
             expected_binary.to_string(),
         ],
+        bind_root_envs: bind_root_envs.to_vec(),
         required_files: vec![BoundFileIdentityV1 {
             path: image_path,
             sha256: image.sha256.clone(),
@@ -253,6 +281,18 @@ fn require_identifier(value: &str, label: &str) -> Result<()> {
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.'))
     {
         bail!("{label} is invalid: {value}");
+    }
+    Ok(())
+}
+
+fn require_environment_variable(value: &str) -> Result<()> {
+    if value.is_empty()
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit() || byte == b'_')
+        || value.as_bytes()[0].is_ascii_digit()
+    {
+        bail!("bind-root environment name is invalid: {value}");
     }
     Ok(())
 }
@@ -309,7 +349,12 @@ mod tests {
             catalog_sha256: "b".repeat(64),
         };
 
-        let binding = binding_from_image(&image, "bcftools", Path::new("/usr/bin/apptainer"));
+        let binding = binding_from_image(
+            &image,
+            "bcftools",
+            Path::new("/usr/bin/apptainer"),
+            &["TMPDIR".to_string()],
+        );
 
         assert_eq!(binding.command, "bcftools");
         assert_eq!(binding.program, "/usr/bin/apptainer");
@@ -320,6 +365,7 @@ mod tests {
         assert_eq!(binding.required_files.len(), 1);
         assert_eq!(binding.required_files[0].sha256, "5".repeat(64));
         assert_eq!(binding.required_files[0].size_bytes, 63_160_320);
+        assert_eq!(binding.bind_root_envs, ["TMPDIR"]);
     }
 
     #[test]
@@ -340,6 +386,7 @@ mod tests {
 
         assert_eq!(request.tool_ids, ["bcftools", "samtools"]);
         assert!(request.external_admissions.is_empty());
+        assert!(request.bind_root_envs.is_empty());
         let mut duplicate = args.to_vec();
         duplicate.push("bcftools".to_string());
         let Err(error) = parse_request(&workspace, &duplicate) else {
@@ -362,6 +409,8 @@ mod tests {
             "--external-admission",
             "/study/containers/current-images",
             "/study/admissions/angsd.json",
+            "--bind-root-env",
+            "TMPDIR",
         ]
         .map(str::to_string);
 
@@ -375,6 +424,43 @@ mod tests {
                 record_path: PathBuf::from("/study/admissions/angsd.json"),
             }]
         );
+        assert_eq!(request.bind_root_envs, ["TMPDIR"]);
+        Ok(())
+    }
+
+    #[test]
+    fn request_parser_rejects_invalid_or_unattached_bind_roots() -> Result<()> {
+        let workspace = Workspace { root: "/workspace".into() };
+        let invalid = [
+            "/repository",
+            "/study",
+            "/inventory.json",
+            "/usr/bin/apptainer",
+            "/bindings.json",
+            "bcftools",
+            "--bind-root-env",
+            "tmpdir",
+        ]
+        .map(str::to_string);
+        let Err(invalid_error) = parse_request(&workspace, &invalid) else {
+            bail!("invalid environment was accepted");
+        };
+        assert!(invalid_error.to_string().contains("environment name is invalid"));
+
+        let unattached = [
+            "/repository",
+            "/study",
+            "/inventory.json",
+            "/usr/bin/apptainer",
+            "/bindings.json",
+            "--bind-root-env",
+            "TMPDIR",
+        ]
+        .map(str::to_string);
+        let Err(unattached_error) = parse_request(&workspace, &unattached) else {
+            bail!("unattached bind root was accepted");
+        };
+        assert!(unattached_error.to_string().contains("requires at least one tool"));
         Ok(())
     }
 
@@ -386,10 +472,12 @@ mod tests {
                 ExternalArtifactAdmissionStatus::Admitted,
             ),
             Path::new("/usr/bin/apptainer"),
+            &["TMPDIR".to_string()],
         )?;
         assert_eq!(binary.command, "angsd");
         assert_eq!(binary.program, "/study/private/angsd");
         assert!(binary.prefix_args.is_empty());
+        assert!(binary.bind_root_envs.is_empty());
         assert_eq!(binary.required_files[0].sha256, "c".repeat(64));
 
         let sif = binding_from_external_artifact(
@@ -398,9 +486,11 @@ mod tests {
                 ExternalArtifactAdmissionStatus::Admitted,
             ),
             Path::new("/usr/bin/apptainer"),
+            &["TMPDIR".to_string()],
         )?;
         assert_eq!(sif.program, "/usr/bin/apptainer");
         assert_eq!(sif.prefix_args, ["exec", "--cleanenv", "/study/private/angsd", "angsd"]);
+        assert_eq!(sif.bind_root_envs, ["TMPDIR"]);
         Ok(())
     }
 
@@ -412,6 +502,7 @@ mod tests {
                 ExternalArtifactAdmissionStatus::BlockedExternalAccess,
             ),
             Path::new("/usr/bin/apptainer"),
+            &[],
         ) else {
             bail!("blocked access produced a runner binding");
         };

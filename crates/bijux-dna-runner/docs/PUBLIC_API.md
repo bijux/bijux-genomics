@@ -24,9 +24,12 @@
 - `run_command_with_context`
 - `ExecutionBindingManifestV1`
 - `CommandExecutionBindingV1`
+- `ExecutionBindingManifestV2`
+- `CommandExecutionBindingV2`
 - `BoundFileIdentityV1`
 - `RUNNER_EXECUTION_BINDINGS_ENV`
 - `RUNNER_EXECUTION_BINDINGS_SCHEMA_V1`
+- `RUNNER_EXECUTION_BINDINGS_SCHEMA_V2`
 - `CommandOutputV1`
 - `execute_observer_command`
 - `execute_external_artifact_step`

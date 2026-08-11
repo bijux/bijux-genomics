@@ -97,14 +97,20 @@ canonical_inventory="${inventory_root}/image-inventory.json"
 # Compose selected catalog-locked images into one runner site-binding manifest.
 cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- \
   "${source_repository}" "${study_root}" "${canonical_inventory}" \
-  /usr/bin/apptainer "${inventory_root}/execution-bindings.json" bcftools
+  /usr/bin/apptainer "${inventory_root}/execution-bindings.json" \
+  bcftools --bind-root-env TMPDIR
 
 # Admitted licensed artifacts join the same manifest without changing runner logic.
 cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- \
   "${source_repository}" "${study_root}" "${canonical_inventory}" \
   /usr/bin/apptainer "${inventory_root}/mixed-execution-bindings.json" \
-  bcftools --external-admission "${active_image_root}" "${admitted_angsd_record}"
+  bcftools --external-admission "${active_image_root}" "${admitted_angsd_record}" \
+  --bind-root-env TMPDIR
 ```
+
+Bind-root names are persisted in the version 2 manifest, while their absolute values are resolved
+and validated by the runner for each invocation. This keeps scheduler-local roots portable across
+jobs and prevents a site manifest from hard-coding one allocation's scratch path.
 
 The source checkout and all evidence roots are mandatory. This allows a newer
 automation binary to inventory an older exact-commit image campaign without

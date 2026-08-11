@@ -5,6 +5,8 @@ Runner determinism is about stable invocation identity, stable records, and repl
 ## Invocation Identity
 - Invocation hashes include command, args, environment, working directory, mounts, and image digest.
 - Hash inputs must be canonical and order-stable.
+- Version 2 site bindings persist bind-root environment names in sorted order; resolved same-path
+  bind arguments appear in the captured invocation so allocation-specific paths remain explicit.
 - Directory input hashing walks paths deterministically.
 - Container qualification attempt identity includes the permanent run ID, tool ID, campaign ID,
   and attempt ID. Scheduler job IDs remain provenance and never select an attempt directory.

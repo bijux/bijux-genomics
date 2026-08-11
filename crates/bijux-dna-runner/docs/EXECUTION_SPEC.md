@@ -15,9 +15,12 @@ The execution spec is the runner contract for turning already-planned tool inten
   reverifies its catalog, checksum, version evidence, stage allowlist, and command binding before
   selecting local binary or Apptainer SIF execution.
 - `site execution bindings`: `BIJUX_DNA_RUNNER_BINDINGS` may name one absolute, regular JSON
-  manifest using `bijux.runner.execution_bindings.v1`. Exact command keys resolve to a declared
-  program and argument prefix. Every declared file identity is rechecked for type, size, and
-  SHA-256 before spawn, and the captured command records the resolved invocation.
+  manifest. Version 2 exact command keys resolve to a declared program and argument prefix and may
+  name sorted runtime-root environment variables. The runner resolves each root once, rejects
+  missing, relative, filesystem-root, non-directory, or bind-delimiter values, and inserts explicit
+  same-path Apptainer binds before the admitted image. Every declared file identity is rechecked for
+  type, size, and SHA-256 before spawn, and the captured command records the resolved invocation.
+  Version 1 manifests remain readable without dynamic bind roots but are no longer emitted.
 
 ## Hashing
 Invocation hash includes command, args, env, cwd, mounts, and image digest.

@@ -13,8 +13,9 @@ mod invocation_identity;
 use command_line::build_command_string;
 pub use command_output::{CommandOutputV1, TimedCommandOutputV1};
 pub use execution_binding::{
-    BoundFileIdentityV1, CommandExecutionBindingV1, ExecutionBindingManifestV1,
-    RUNNER_EXECUTION_BINDINGS_ENV, RUNNER_EXECUTION_BINDINGS_SCHEMA_V1,
+    BoundFileIdentityV1, CommandExecutionBindingV1, CommandExecutionBindingV2,
+    ExecutionBindingManifestV1, ExecutionBindingManifestV2, RUNNER_EXECUTION_BINDINGS_ENV,
+    RUNNER_EXECUTION_BINDINGS_SCHEMA_V1, RUNNER_EXECUTION_BINDINGS_SCHEMA_V2,
 };
 pub use invocation_identity::invocation_hash;
 

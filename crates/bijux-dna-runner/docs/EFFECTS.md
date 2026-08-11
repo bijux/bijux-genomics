@@ -45,6 +45,8 @@ Runner errors use these source-level effect codes:
 - Do not mutate process-wide environment state for callers.
 - `BIJUX_DNA_RUNNER_BINDINGS`, when present, must be an absolute path to the typed site binding
   manifest; relative paths and symlink manifests fail before process effects.
+- Version 2 binding manifests may declare runtime-root environment names. Their values are read
+  without mutation at invocation time and must resolve to existing absolute non-root directories.
 - Treat runtime policy as input; this crate does not invent policy.
 
 ## Validation

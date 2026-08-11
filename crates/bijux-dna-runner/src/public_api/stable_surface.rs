@@ -56,8 +56,9 @@ pub use crate::backend::{
 pub use crate::command_runner::{
     invocation_hash, run_command, run_command_with_context, run_command_with_context_and_stdin,
     run_command_with_context_and_timeout, BoundFileIdentityV1, CommandExecutionBindingV1,
-    CommandOutputV1, ExecutionBindingManifestV1, TimedCommandOutputV1,
-    RUNNER_EXECUTION_BINDINGS_ENV, RUNNER_EXECUTION_BINDINGS_SCHEMA_V1,
+    CommandExecutionBindingV2, CommandOutputV1, ExecutionBindingManifestV1,
+    ExecutionBindingManifestV2, TimedCommandOutputV1, RUNNER_EXECUTION_BINDINGS_ENV,
+    RUNNER_EXECUTION_BINDINGS_SCHEMA_V1, RUNNER_EXECUTION_BINDINGS_SCHEMA_V2,
 };
 pub use crate::step_runner::{
     execute_external_artifact_step, execute_observer_command, execute_step, StageResultV1,
