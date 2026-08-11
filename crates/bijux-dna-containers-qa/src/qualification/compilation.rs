@@ -877,10 +877,12 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 24);
+        assert_eq!(coverage.summary.binding_ready_count, 27);
         for tool_id in [
             "angsd",
+            "bbduk",
             "centrifuge",
+            "fastp",
             "fastqc",
             "fastqvalidator",
             "fastuniq",
@@ -890,6 +892,7 @@ mod tests {
             "kraken2",
             "krakenuniq",
             "ngsbriggs",
+            "prinseq",
             "seqfu",
             "seqkit",
             "seqkit_stats",

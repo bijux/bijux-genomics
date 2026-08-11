@@ -54,11 +54,13 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
     for binding in [
+        bbduk_filter_low_complexity(),
         bcftools_genotyping(),
         bedtools_coverage(),
         bowtie2_align(),
         bwa_align(),
         centrifuge_screen_taxonomy(),
+        fastp_filter_low_complexity(),
         fastqc_detect_adapters(),
         fastqvalidator_validate_reads(),
         fqtools_validate_reads(),
@@ -70,6 +72,7 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
+        prinseq_filter_low_complexity(),
         rcorrector_correct_errors(),
         rxy_sex(),
         samtools_coverage(),
@@ -88,6 +91,114 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn bbduk_filter_low_complexity() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_low_complexity",
+        "bbduk",
+        &["single_end_reads", "entropy_filter", "native_filter_statistics"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[output("filtered_reads_r1", FASTQ_SINGLE), output("native_filter_statistics", TABLE)],
+        &[
+            "${executable}",
+            "in=${input:reads_r1}",
+            "out=${output:filtered_reads_r1}",
+            "stats=${output:native_filter_statistics}",
+            "entropy=0.5",
+            "threads=${parameter:threads}",
+            "overwrite=t",
+        ],
+        "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity",
+        "benchmark.fastq.filter_low_complexity.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qualification_entropy_threshold_is_the_canonical_fraction_0.5",
+            "comparative_case_admission_requires_the_closed_filter_low_complexity_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
+}
+
+fn fastp_filter_low_complexity() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_low_complexity",
+        "fastp",
+        &["single_end_reads", "low_complexity_filter", "native_json_report"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[
+            output("filtered_reads_r1", FASTQ_SINGLE),
+            output("native_filter_report", JSON),
+        ],
+        &[
+            "${executable}",
+            "--in1",
+            "${input:reads_r1}",
+            "--out1",
+            "${output:filtered_reads_r1}",
+            "--thread",
+            "${parameter:threads}",
+            "--disable_adapter_trimming",
+            "--disable_quality_filtering",
+            "--low_complexity_filter",
+            "--complexity_threshold",
+            "50",
+            "--json",
+            "${output:native_filter_report}",
+            "--html",
+            "/dev/null",
+        ],
+        "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity",
+        "benchmark.fastq.filter_low_complexity.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qualification_complexity_threshold_50_is_the_fastp_numeric_projection_of_policy_fraction_0.5",
+            "fastp_adjacent_base_change_complexity_is_not_shannon_entropy",
+            "adapter_and_quality_filtering_are_disabled_to_isolate_low_complexity_filtering",
+            "comparative_case_admission_requires_the_closed_filter_low_complexity_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
+}
+
+fn prinseq_filter_low_complexity() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_low_complexity",
+        "prinseq",
+        &["single_end_reads", "entropy_filter", "filtered_fastq_output"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[output("filtered_reads_r1", FASTQ_SINGLE)],
+        &[
+            "${executable}",
+            "-threads",
+            "${parameter:threads}",
+            "-fastq",
+            "${input:reads_r1}",
+            "-out_good",
+            "${output:filtered_reads_r1}",
+            "-out_bad",
+            "/dev/null",
+            "-lc_entropy",
+            "0.5",
+        ],
+        "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity",
+        "benchmark.fastq.filter_low_complexity.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qualification_entropy_threshold_is_the_canonical_fraction_0.5",
+            "comparative_case_admission_requires_the_closed_filter_low_complexity_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
 }
 
 fn seqkit_filter_reads() -> ToolBindingV1 {

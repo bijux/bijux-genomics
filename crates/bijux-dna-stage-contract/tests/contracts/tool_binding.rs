@@ -27,6 +27,7 @@ const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
 const DETECT_ADAPTERS_STAGE: &str = "fastq.detect_adapters";
+const FILTER_LOW_COMPLEXITY_STAGE: &str = "fastq.filter_low_complexity";
 const FILTER_READS_STAGE: &str = "fastq.filter_reads";
 const VALIDATE_READS_STAGE: &str = "fastq.validate_reads";
 const PROFILE_READ_LENGTHS_STAGE: &str = "fastq.profile_read_lengths";
@@ -37,7 +38,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 30);
+    assert_eq!(retained.bindings().len(), 33);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -61,9 +62,127 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 38);
+    assert_eq!(all.bindings().len(), 41);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
     Ok(())
+}
+
+#[test]
+fn canonical_low_complexity_bindings_project_declared_single_end_qualification() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(FILTER_LOW_COMPLEXITY_STAGE));
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bbduk", "fastp", "prinseq"]
+    );
+
+    let expected_commands = low_complexity_expected_commands();
+
+    for binding in bindings {
+        assert_eq!(binding.inputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+        assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.filter_low_complexity.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.filter_low_complexity.compare");
+        assert!(binding
+            .limitations
+            .iter()
+            .any(|limitation| limitation.contains("comparative_case_admission_requires")));
+        if binding.tool_id.as_str() == "fastp" {
+            assert!(binding.limitations.iter().any(|limitation| limitation
+                == "fastp_adjacent_base_change_complexity_is_not_shannon_entropy"));
+        }
+
+        let report_name = if binding.tool_id.as_str() == "fastp" {
+            "native-report.json"
+        } else {
+            "native-report.txt"
+        };
+        let mut outputs = BTreeMap::from([(
+            "filtered_reads_r1".to_owned(),
+            "/result/filtered.fastq.gz".to_owned(),
+        )]);
+        if binding.tool_id.as_str() == "bbduk" {
+            outputs.insert("native_filter_statistics".to_owned(), format!("/result/{report_name}"));
+        } else if binding.tool_id.as_str() == "fastp" {
+            outputs.insert("native_filter_report".to_owned(), format!("/result/{report_name}"));
+        }
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+                outputs,
+            },
+        )?;
+        assert_eq!(command, expected_commands[binding.tool_id.as_str()]);
+    }
+    Ok(())
+}
+
+fn low_complexity_expected_commands() -> BTreeMap<&'static str, Vec<&'static str>> {
+    BTreeMap::from([
+        (
+            "bbduk",
+            vec![
+                "bbduk",
+                "in=/input/sample.fastq.gz",
+                "out=/result/filtered.fastq.gz",
+                "stats=/result/native-report.txt",
+                "entropy=0.5",
+                "threads=4",
+                "overwrite=t",
+            ],
+        ),
+        (
+            "fastp",
+            vec![
+                "fastp",
+                "--in1",
+                "/input/sample.fastq.gz",
+                "--out1",
+                "/result/filtered.fastq.gz",
+                "--thread",
+                "4",
+                "--disable_adapter_trimming",
+                "--disable_quality_filtering",
+                "--low_complexity_filter",
+                "--complexity_threshold",
+                "50",
+                "--json",
+                "/result/native-report.json",
+                "--html",
+                "/dev/null",
+            ],
+        ),
+        (
+            "prinseq",
+            vec![
+                "prinseq",
+                "-threads",
+                "4",
+                "-fastq",
+                "/input/sample.fastq.gz",
+                "-out_good",
+                "/result/filtered.fastq.gz",
+                "-out_bad",
+                "/dev/null",
+                "-lc_entropy",
+                "0.5",
+            ],
+        ),
+    ])
 }
 
 #[test]
