@@ -279,6 +279,27 @@ pub struct AdmittedReferenceBundle {
     pub input_bytes: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedAlignmentTruthSample {
+    pub sample_id: String,
+    pub truth: AdmittedBamCorpusFile,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedAlignmentTruthSet {
+    pub truth_set_id: String,
+    pub data_index_path: String,
+    pub data_index_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub input_bytes: u64,
+    pub samples: Vec<AdmittedAlignmentTruthSample>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthExpectationSample {

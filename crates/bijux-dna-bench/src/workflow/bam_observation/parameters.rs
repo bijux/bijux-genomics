@@ -6,8 +6,9 @@ use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    AdmittedBamCohort, BenchmarkEffectiveParameterValue, BenchmarkEffectiveParameters,
-    BenchmarkExecutionParameterEvidence, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
+    AdmittedBamCohort, AdmittedFastqCorpus, BenchmarkEffectiveParameterValue,
+    BenchmarkEffectiveParameters, BenchmarkExecutionParameterEvidence, BenchmarkParameterValue,
+    BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
 };
 
 use super::super::parameter_authority::load_stage_parameter_authority;
@@ -29,6 +30,7 @@ pub(in crate::workflow) fn ensure_parameter_evidence(
         repository_root,
         attempt_directory,
         policy,
+        BTreeMap::new(),
         resolved_by_sample,
     )
 }
@@ -56,6 +58,37 @@ pub(in crate::workflow) fn ensure_cohort_parameter_evidence(
         repository_root,
         attempt_directory,
         policy,
+        BTreeMap::new(),
+        resolved_by_sample,
+    )
+}
+
+pub(in crate::workflow) fn ensure_alignment_parameter_evidence(
+    repository_root: &Path,
+    attempt_directory: &Path,
+    corpus: &AdmittedFastqCorpus,
+    resolved: BTreeMap<String, BenchmarkEffectiveParameterValue>,
+) -> Result<BenchmarkExecutionParameterEvidence> {
+    let sample_count = usize::try_from(corpus.sample_count).context("FASTQ sample count")?;
+    if sample_count == 0 || sample_count != corpus.samples.len() {
+        bail!("alignment FASTQ sample count differs from admitted samples");
+    }
+    let resolved_by_sample = corpus
+        .samples
+        .iter()
+        .map(|sample| (sample.sample_id.clone(), resolved.clone()))
+        .collect::<BTreeMap<_, _>>();
+    if resolved_by_sample.len() != sample_count {
+        bail!("alignment FASTQ corpus contains duplicate samples");
+    }
+    ensure_resolved_parameter_evidence(
+        repository_root,
+        attempt_directory,
+        BamParameterPolicy {
+            stage_id: "bam.align",
+            defaults_provider: "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Align)",
+        },
+        BTreeMap::from([("threads".to_string(), BenchmarkParameterValue::Integer(8))]),
         resolved_by_sample,
     )
 }
@@ -64,11 +97,13 @@ fn ensure_resolved_parameter_evidence(
     repository_root: &Path,
     attempt_directory: &Path,
     policy: BamParameterPolicy<'_>,
+    expected_overrides: BTreeMap<String, BenchmarkParameterValue>,
     mut resolved_by_sample: BTreeMap<String, BTreeMap<String, BenchmarkEffectiveParameterValue>>,
 ) -> Result<BenchmarkExecutionParameterEvidence> {
     let authority = load_stage_parameter_authority(repository_root, policy.stage_id)?;
     let stage = authority.stage;
-    if stage.defaults_provider != policy.defaults_provider || !stage.overrides.is_empty() {
+    if stage.defaults_provider != policy.defaults_provider || stage.overrides != expected_overrides
+    {
         bail!("BAM parameter authority differs from executable policy");
     }
     for resolved in resolved_by_sample.values_mut() {
@@ -76,6 +111,20 @@ fn ensure_resolved_parameter_evidence(
             "schema_version".to_string(),
             BenchmarkEffectiveParameterValue::Text(stage.parameter_schema_version.clone()),
         );
+        for (key, value) in &expected_overrides {
+            let value = match value {
+                BenchmarkParameterValue::Integer(value) => {
+                    BenchmarkEffectiveParameterValue::Integer(*value)
+                }
+                BenchmarkParameterValue::Boolean(value) => {
+                    BenchmarkEffectiveParameterValue::Boolean(*value)
+                }
+                BenchmarkParameterValue::Text(value) => {
+                    BenchmarkEffectiveParameterValue::Text(value.clone())
+                }
+            };
+            resolved.insert(key.clone(), value);
+        }
     }
 
     let overrides_path = attempt_directory.join("config-pipeline-parameters.yml");
@@ -85,7 +134,7 @@ fn ensure_resolved_parameter_evidence(
         stage_id: policy.stage_id.to_string(),
         parameter_schema_version: stage.parameter_schema_version.clone(),
         defaults_provider: policy.defaults_provider.to_string(),
-        overrides: BTreeMap::new(),
+        overrides: expected_overrides,
         resolved_by_sample,
     };
     let mut effective_bytes = serde_json::to_vec_pretty(&effective)?;

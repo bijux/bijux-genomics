@@ -4,6 +4,7 @@
 
 mod appraisal;
 mod attempt_migration;
+mod bam_alignment;
 mod bam_campaign;
 mod bam_coverage;
 mod bam_duplication_metrics;
@@ -60,6 +61,10 @@ pub use attempt_migration::{
     apply_attempt_migration, plan_attempt_migration, rollback_attempt_migration,
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,
     BenchmarkAttemptMigrationVerificationEntry,
+};
+pub use bam_alignment::{
+    prepare_bam_alignment_material, publish_bam_alignment_stage_report, BamAlignmentMaterial,
+    BamAlignmentStageReportPublication,
 };
 pub use bam_campaign::{
     derive_bam_benchmark_campaign, load_bam_benchmark_campaign_report,

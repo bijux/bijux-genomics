@@ -27,7 +27,7 @@ pub use catalog_snapshot_authority::{
     publish_governed_data_catalog_snapshots, GovernedDataCatalogSnapshotPublication,
     GovernedDataCatalogSnapshotRequest,
 };
-pub use corpus_authority::admit_fastq_benchmark_corpus;
+pub use corpus_authority::{admit_alignment_truth_set, admit_fastq_benchmark_corpus};
 pub use data_index_authority::{
     build_benchmark_data_index, publish_benchmark_data_index, render_benchmark_data_index_markdown,
     BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,

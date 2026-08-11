@@ -78,7 +78,8 @@ pub use container_report_portfolio::{
 #[allow(unused_imports)]
 pub use corpus::{
     benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
-    benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCohort,
+    benchmark_data_index_schema, fastq_profile_reads_expectations_schema,
+    AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCohort,
     AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
     AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedReferenceBundle,
     BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,

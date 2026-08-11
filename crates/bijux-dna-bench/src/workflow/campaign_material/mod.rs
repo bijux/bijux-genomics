@@ -8,11 +8,12 @@ use std::path::Path;
 
 use anyhow::{bail, Result};
 use bijux_dna_bench_model::{
-    AdmittedBamCohort, AdmittedBamCorpus, AdmittedReferenceBundle, BenchmarkAttemptIdentity,
+    AdmittedAlignmentTruthSet, AdmittedBamCohort, AdmittedBamCorpus, AdmittedFastqCorpus,
+    AdmittedReferenceBundle, BenchmarkAttemptIdentity,
 };
 
 use super::{
-    prepare_bam_coverage_material_from_corpus,
+    prepare_bam_alignment_material, prepare_bam_coverage_material_from_corpus,
     prepare_bam_duplication_metrics_material_from_corpus,
     prepare_bam_endogenous_content_material_from_corpus,
     prepare_bam_genotyping_material_from_corpus, prepare_bam_mapping_summary_material_from_corpus,
@@ -23,8 +24,9 @@ use super::{
     FastqProfileReadsExpectationPublication, FastqReadLengthExpectationPublication,
 };
 use crate::repo::{
-    admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
-    admit_benchmark_reference, AdmittedBamGenotypingCorpus,
+    admit_alignment_truth_set, admit_bam_benchmark_cohort, admit_bam_benchmark_corpus,
+    admit_bam_genotyping_corpus, admit_benchmark_reference, admit_fastq_benchmark_corpus,
+    AdmittedBamGenotypingCorpus,
 };
 
 pub use report::{
@@ -39,14 +41,22 @@ const FASTQ_EXPECTED_SAMPLE_COUNT: usize = 20;
 const FASTQ_EXPECTED_FILE_COUNT: usize = 30;
 
 const EXECUTABLE_CAMPAIGN_RUN_IDS: &[&str] = &[
-    "run-2001", "run-2002", "run-2003", "run-2004", "run-2011", "run-2013", "run-2015", "run-2030",
-    "run-2042", "run-2043", "run-2051",
+    "run-2001", "run-2002", "run-2003", "run-2004", "run-2005", "run-2011", "run-2013", "run-2015",
+    "run-2030", "run-2042", "run-2043", "run-2051",
 ];
 
 /// Admitted evidence closure required to prepare one governed campaign.
 pub enum BenchmarkCampaignEvidence {
+    BamAlignment {
+        corpus: AdmittedFastqCorpus,
+        reference: AdmittedReferenceBundle,
+        truth: AdmittedAlignmentTruthSet,
+    },
     BamGenotyping(Box<AdmittedBamGenotypingCorpus>),
-    BamPicardCohort { cohort: AdmittedBamCohort, reference: Option<AdmittedReferenceBundle> },
+    BamPicardCohort {
+        cohort: AdmittedBamCohort,
+        reference: Option<AdmittedReferenceBundle>,
+    },
     BamObservation(AdmittedBamCorpus),
     FastqReadLengths(FastqReadLengthExpectationPublication),
     FastqProfileReads(FastqProfileReadsExpectationPublication),
@@ -83,6 +93,17 @@ pub fn admit_benchmark_campaign_evidence(
         "run-2001" => Ok(BenchmarkCampaignEvidence::BamGenotyping(Box::new(
             admit_bam_genotyping_corpus(study_root, data_index)?,
         ))),
+        "run-2005" => Ok(BenchmarkCampaignEvidence::BamAlignment {
+            corpus: admit_fastq_benchmark_corpus(
+                study_root,
+                data_index,
+                "alignment-truth-panel",
+                10,
+                20,
+            )?,
+            reference: admit_benchmark_reference(study_root, data_index, "grch38-reference")?,
+            truth: admit_alignment_truth_set(study_root, data_index, "alignment-truth-panel", 10)?,
+        }),
         "run-2002" | "run-2003" | "run-2004" | "run-2011" => {
             Ok(BenchmarkCampaignEvidence::BamObservation(admit_bam_benchmark_corpus(
                 study_root,
@@ -135,6 +156,22 @@ pub fn prepare_benchmark_campaign_material(
     evidence: &BenchmarkCampaignEvidence,
 ) -> Result<BenchmarkExecutionMaterial> {
     match evidence {
+        BenchmarkCampaignEvidence::BamAlignment { corpus, reference, truth } => {
+            Ok(prepare_bam_alignment_material(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                corpus,
+                reference,
+                truth,
+            )?
+            .execution)
+        }
         BenchmarkCampaignEvidence::BamGenotyping(corpus) => {
             Ok(prepare_bam_genotyping_material_from_corpus(
                 request.repository_root,
