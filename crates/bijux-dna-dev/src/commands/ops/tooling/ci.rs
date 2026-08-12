@@ -764,10 +764,7 @@ fn make_full_shard_ephemera_removable(path: &Path) -> Result<()> {
             format!("read full shard ephemeral metadata {}", entry.path().display())
         })?;
         if metadata.file_type().is_symlink() {
-            anyhow::bail!(
-                "full shard ephemeral tree contains a symlink: {}",
-                entry.path().display()
-            );
+            continue;
         }
         let mut permissions = metadata.permissions();
         #[cfg(unix)]
@@ -1794,7 +1791,7 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    fn full_shard_ephemera_refuses_nested_symlinks() -> anyhow::Result<()> {
+    fn full_shard_ephemera_removes_nested_symlinks_without_following() -> anyhow::Result<()> {
         use std::os::unix::fs::symlink;
 
         let root = tempfile::tempdir()?;
@@ -1804,14 +1801,10 @@ mod tests {
         std::fs::write(&retained, b"retained evidence\n")?;
         symlink(&retained, ephemeral.join("escape"))?;
 
-        let error = match remove_full_shard_ephemera(&ephemeral) {
-            Ok(()) => anyhow::bail!("nested symlink was accepted as full shard ephemera"),
-            Err(error) => error.to_string(),
-        };
+        remove_full_shard_ephemera(&ephemeral)?;
 
-        assert!(error.contains("contains a symlink"), "{error}");
         assert_eq!(std::fs::read(&retained)?, b"retained evidence\n");
-        assert!(ephemeral.is_dir());
+        assert!(!ephemeral.exists());
         Ok(())
     }
 
