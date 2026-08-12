@@ -122,6 +122,33 @@ fn policy__contracts__test_determinism_policy__tests_do_not_write_to_artifacts_r
 }
 
 #[test]
+fn policy__contracts__test_determinism_policy__tests_do_not_derive_scratch_from_current_dir() {
+    let root = workspace_root();
+    let current_dir_artifacts =
+        Regex::new(r#"current_dir\(\)[^;]*;[\s\S]{0,160}\.join\(\s*[\"']artifacts(?:/|[\"'])"#)
+            .expect("compile regex");
+    assert!(current_dir_artifacts.is_match(
+        r#"let workspace = std::env::current_dir()?; let root = workspace.join("artifacts/tests");"#
+    ));
+    let mut offenders = Vec::new();
+
+    for file in rs_test_files(&root) {
+        if is_policy_file(&file) {
+            continue;
+        }
+        if current_dir_artifacts.is_match(&test_scoped_content(&file)) {
+            offenders.push(file.display().to_string());
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "tests must use TEST_TMP_DIR/TestPaths instead of deriving scratch artifacts from current_dir:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn policy__contracts__test_determinism_policy__jsonl_appends_use_locked_writer() {
     let root = workspace_root();
     let mut offenders = Vec::new();
