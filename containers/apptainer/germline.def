@@ -51,7 +51,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     germline --version | grep -Fx 'germline 1.5.3'
     germline --help >/dev/null
     rm -rf /opt/germline.tar.gz /opt/germline-f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d
-    apt-get purge -y --auto-remove curl g++ make
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

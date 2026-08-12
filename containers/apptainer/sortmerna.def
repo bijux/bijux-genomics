@@ -50,7 +50,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     sortmerna --version 2>&1 | grep -Fx 'SortMeRNA version 4.3.7'
     sortmerna -h 2>&1 | grep -F 'SortMeRNA'
     rm -rf /opt/sortmerna-4.3.7-Linux /tmp/sortmerna.tar.gz
-    apt-get purge -y --auto-remove curl
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

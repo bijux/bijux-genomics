@@ -47,8 +47,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     chmod 0755 /usr/local/bin/fastq_scan
     fastq_scan --version | grep -Fx 'fastq-scan 1.0.1'
     fastq_scan --help >/dev/null
-    apt-get purge -y curl g++ make
-    apt-get autoremove -y
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

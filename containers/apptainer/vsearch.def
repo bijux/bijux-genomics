@@ -54,7 +54,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     vsearch --version | grep -Fx 'vsearch 2.29.3'
     vsearch --help >/dev/null
     rm -rf /opt/vsearch.tar.gz /opt/vsearch-bbd17a05faaf7401176e36b7947874c1e5152cee
-    apt-get purge -y --auto-remove autoconf automake curl g++ libbz2-dev liblzma-dev libtool make pkg-config zlib1g-dev
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

@@ -50,7 +50,6 @@ From: python@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential curl patch
     /opt/atropos-build/install
-    apt-get purge -y --auto-remove build-essential curl patch
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 
