@@ -4,7 +4,10 @@
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1;
+use crate::contract::{
+    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -128,14 +131,40 @@ pub struct BenchmarkLocalPipelineDagValidationReport {
     pub nodes: Vec<BenchmarkLocalPipelineDagValidationNode>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkLocalPipelineDagValidationSetReport {
+    #[schemars(schema_with = "local_pipeline_dag_validation_set_schema_version")]
+    pub schema_version: String,
+    pub benchmark_root: String,
+    pub config_root: String,
+    pub output_path: String,
+    pub pipeline_count: usize,
+    pub valid_pipeline_count: usize,
+    pub all_valid: bool,
+    pub pipelines: Vec<BenchmarkLocalPipelineDagValidationReport>,
+}
+
 #[must_use]
 pub fn benchmark_local_pipeline_dag_validation_schema() -> Schema {
     schemars::schema_for!(BenchmarkLocalPipelineDagValidationReport)
+}
+
+#[must_use]
+pub fn benchmark_local_pipeline_dag_validation_set_schema() -> Schema {
+    schemars::schema_for!(BenchmarkLocalPipelineDagValidationSetReport)
 }
 
 fn local_pipeline_dag_validation_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1
+    })
+}
+
+fn local_pipeline_dag_validation_set_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1
     })
 }

@@ -3,27 +3,16 @@ use crate::commands::fastq::api_translation::resolve_profile_alias;
 use crate::commands::support::prelude::{
     anyhow, cli, load_manifests, render, PipelinesCommand, Result,
 };
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_pipeline_dag_validation_set,
+    BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineDagValidationSetReport,
+    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
+};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-const LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_VERSION: &str =
-    "bijux.bench.local_pipeline_dag_validation_set.v1";
 const LOCAL_PIPELINE_YAML_CONFIG_FILE: &str = "config.yaml";
 const LOCAL_PIPELINE_YAML_STAGES_FILE: &str = "stages.yaml";
-
-#[derive(Debug, Clone, Serialize)]
-struct LocalPipelineDagValidationSetReport {
-    schema_version: &'static str,
-    benchmark_root: String,
-    config_root: String,
-    output_path: String,
-    pipeline_count: usize,
-    valid_pipeline_count: usize,
-    all_valid: bool,
-    pipelines:
-        Vec<crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport>,
-}
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn handle_pipelines_command(
@@ -294,7 +283,7 @@ fn validate_all_local_pipelines(
     benchmark_paths: &BenchmarkPathResolver,
     strict: bool,
     output: Option<&Path>,
-) -> Result<LocalPipelineDagValidationSetReport> {
+) -> Result<BenchmarkLocalPipelineDagValidationSetReport> {
     let config_root = benchmark_paths.benchmark_pipeline_config_root();
     let config_paths = discover_local_pipeline_config_paths(&config_root)?;
     if config_paths.is_empty() {
@@ -328,8 +317,8 @@ fn validate_all_local_pipelines(
     }
 
     let valid_pipeline_count = pipelines.iter().filter(|report| report.valid).count();
-    let report = LocalPipelineDagValidationSetReport {
-        schema_version: LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_VERSION,
+    let report = BenchmarkLocalPipelineDagValidationSetReport {
+        schema_version: BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1.to_string(),
         benchmark_root: path_relative_to_repo(repo_root, benchmark_paths.benchmark_root()),
         config_root: path_relative_to_repo(repo_root, &config_root),
         output_path: path_relative_to_repo(repo_root, &output_path),
@@ -338,6 +327,7 @@ fn validate_all_local_pipelines(
         all_valid: valid_pipeline_count == pipelines.len(),
         pipelines,
     };
+    validate_benchmark_local_pipeline_dag_validation_set(&report)?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -382,7 +372,7 @@ fn local_pipeline_id_for_path(config_path: &Path) -> Result<String> {
 
 fn validate_local_pipeline_identity(
     repo_root: &Path,
-    report: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
+    report: &BenchmarkLocalPipelineDagValidationReport,
     config_path: &Path,
     expected_pipeline_id: &str,
 ) -> Result<()> {

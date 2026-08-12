@@ -3,9 +3,17 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::{model::BenchmarkLocalPipelineDagValidationReport, BenchError};
+use crate::{
+    model::{
+        BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineDagValidationSetReport,
+    },
+    BenchError,
+};
 
-use super::BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1;
+use super::{
+    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
+};
 
 /// Validate one persisted local pipeline DAG validation report.
 ///
@@ -41,6 +49,39 @@ pub fn validate_benchmark_local_pipeline_dag_validation(
     }
     validate_metadata(report)?;
     validate_topology(report)?;
+    Ok(())
+}
+
+/// Validate a persisted aggregate of governed local pipeline DAG validation reports.
+///
+/// # Errors
+/// Returns an error when identity, ordering, child admission, or aggregate closure drifts.
+pub fn validate_benchmark_local_pipeline_dag_validation_set(
+    report: &BenchmarkLocalPipelineDagValidationSetReport,
+) -> Result<(), BenchError> {
+    if report.schema_version != BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1 {
+        return invalid("unsupported local pipeline DAG validation-set schema");
+    }
+    for (field, value) in [
+        ("benchmark_root", report.benchmark_root.as_str()),
+        ("config_root", report.config_root.as_str()),
+        ("output_path", report.output_path.as_str()),
+    ] {
+        require_text(value, field)?;
+    }
+    if report.pipelines.is_empty()
+        || report.pipeline_count != report.pipelines.len()
+        || report.valid_pipeline_count != report.pipelines.iter().filter(|row| row.valid).count()
+        || report.all_valid != (report.valid_pipeline_count == report.pipeline_count)
+    {
+        return invalid("local pipeline DAG validation-set aggregates do not close");
+    }
+    if !report.pipelines.windows(2).all(|pair| pair[0].pipeline_id < pair[1].pipeline_id) {
+        return invalid("local pipeline DAG validation-set rows are not in canonical order");
+    }
+    for pipeline in &report.pipelines {
+        validate_benchmark_local_pipeline_dag_validation(pipeline)?;
+    }
     Ok(())
 }
 

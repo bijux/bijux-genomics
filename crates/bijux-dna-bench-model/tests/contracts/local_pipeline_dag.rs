@@ -1,8 +1,12 @@
 use bijux_dna_bench_model::{
     benchmark_local_pipeline_dag_validation_schema,
-    validate_benchmark_local_pipeline_dag_validation, BenchmarkLocalPipelineDagValidationNode,
+    benchmark_local_pipeline_dag_validation_set_schema,
+    validate_benchmark_local_pipeline_dag_validation,
+    validate_benchmark_local_pipeline_dag_validation_set, BenchmarkLocalPipelineDagValidationNode,
     BenchmarkLocalPipelineDagValidationProfile, BenchmarkLocalPipelineDagValidationReport,
+    BenchmarkLocalPipelineDagValidationSetReport,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
 };
 
 fn report() -> BenchmarkLocalPipelineDagValidationReport {
@@ -60,6 +64,27 @@ fn report() -> BenchmarkLocalPipelineDagValidationReport {
                 outputs: vec!["profile".to_string()],
             },
         ],
+    }
+}
+
+fn set_report() -> BenchmarkLocalPipelineDagValidationSetReport {
+    let first = report();
+    let mut second = first.clone();
+    second.pipeline_id = "example-z".to_string();
+    second.config_path = "benchmarks/configs/pipelines/local/example-z.toml".to_string();
+    second.output_path =
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/example-z.json".to_string();
+    BenchmarkLocalPipelineDagValidationSetReport {
+        schema_version: BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1.to_string(),
+        benchmark_root: "benchmarks".to_string(),
+        config_root: "benchmarks/configs/pipelines/local".to_string(),
+        output_path:
+            "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json"
+                .to_string(),
+        pipeline_count: 2,
+        valid_pipeline_count: 2,
+        all_valid: true,
+        pipelines: vec![first, second],
     }
 }
 
@@ -130,5 +155,59 @@ fn local_pipeline_dag_validation_rejects_unknown_fields() -> anyhow::Result<()> 
     assert!(
         serde_json::from_value::<BenchmarkLocalPipelineDagValidationReport>(missing_retry).is_err()
     );
+    Ok(())
+}
+
+#[test]
+fn local_pipeline_dag_validation_set_round_trips_and_admits() -> anyhow::Result<()> {
+    let report = set_report();
+    validate_benchmark_local_pipeline_dag_validation_set(&report)?;
+    let round_trip: BenchmarkLocalPipelineDagValidationSetReport =
+        serde_json::from_slice(&serde_json::to_vec(&report)?)?;
+    assert_eq!(round_trip, report);
+    Ok(())
+}
+
+#[test]
+fn local_pipeline_dag_validation_set_rejects_aggregate_order_and_child_drift() {
+    let mut aggregate_drift = set_report();
+    aggregate_drift.valid_pipeline_count = 1;
+    assert!(validate_benchmark_local_pipeline_dag_validation_set(&aggregate_drift).is_err());
+
+    let mut order_drift = set_report();
+    order_drift.pipelines.swap(0, 1);
+    assert!(validate_benchmark_local_pipeline_dag_validation_set(&order_drift).is_err());
+
+    let mut child_drift = set_report();
+    child_drift.pipelines[0].valid = false;
+    child_drift.valid_pipeline_count = 1;
+    child_drift.all_valid = false;
+    assert!(validate_benchmark_local_pipeline_dag_validation_set(&child_drift).is_err());
+}
+
+#[test]
+fn local_pipeline_dag_validation_set_schema_matches_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let path = repository_root
+        .join("benchmarks/contracts/schemas/local-pipeline-dag-validation-set.schema.json");
+    let generated = serde_json::to_value(benchmark_local_pipeline_dag_validation_set_schema())?;
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(&generated)?;
+        bytes.push(b'\n');
+        std::fs::write(&path, bytes)?;
+    }
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+    assert_eq!(checked, generated, "local pipeline DAG validation-set schema drifted");
+    Ok(())
+}
+
+#[test]
+fn local_pipeline_dag_validation_set_rejects_unknown_fields() -> anyhow::Result<()> {
+    let mut value = serde_json::to_value(set_report())?;
+    value["legacy_status"] = serde_json::json!("ready");
+    assert!(serde_json::from_value::<BenchmarkLocalPipelineDagValidationSetReport>(value).is_err());
     Ok(())
 }

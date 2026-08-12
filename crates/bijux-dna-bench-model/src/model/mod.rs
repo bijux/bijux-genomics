@@ -270,12 +270,13 @@ pub use local_hpc_scratch_layout::{
 };
 #[allow(unused_imports)]
 pub use local_pipeline_dag::{
-    benchmark_local_pipeline_dag_validation_schema, BenchmarkLocalPipelineAncientDnaPolicy,
+    benchmark_local_pipeline_dag_validation_schema,
+    benchmark_local_pipeline_dag_validation_set_schema, BenchmarkLocalPipelineAncientDnaPolicy,
     BenchmarkLocalPipelineDagValidationNode, BenchmarkLocalPipelineDagValidationProfile,
-    BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineExecutionContext,
-    BenchmarkLocalPipelineProjectSource, BenchmarkLocalPipelineReferenceAssets,
-    BenchmarkLocalPipelineReferenceContext, BenchmarkLocalPipelineSnpEffAssets,
-    BenchmarkLocalPipelineVariantAssets,
+    BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineDagValidationSetReport,
+    BenchmarkLocalPipelineExecutionContext, BenchmarkLocalPipelineProjectSource,
+    BenchmarkLocalPipelineReferenceAssets, BenchmarkLocalPipelineReferenceContext,
+    BenchmarkLocalPipelineSnpEffAssets, BenchmarkLocalPipelineVariantAssets,
 };
 #[allow(unused_imports)]
 pub use local_runtime_metrics::{

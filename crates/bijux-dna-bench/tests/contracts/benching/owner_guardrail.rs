@@ -151,6 +151,13 @@ fn thin_cli_uses_model_owned_local_pipeline_dag_validation_contract() {
         assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
     }
     assert!(!contents.contains("bijux.bench.local_pipeline_dag_validation.v1"));
+
+    let aggregate_cli = repo_root.join("crates/bijux-dna/src/commands/fastq/meta/pipelines.rs");
+    let aggregate_contents = fs::read_to_string(&aggregate_cli)
+        .unwrap_or_else(|err| panic!("read {}: {err}", aggregate_cli.display()));
+    assert!(aggregate_contents.contains("validate_benchmark_local_pipeline_dag_validation_set"));
+    assert!(!aggregate_contents.contains("struct LocalPipelineDagValidationSetReport {"));
+    assert!(!aggregate_contents.contains("bijux.bench.local_pipeline_dag_validation_set.v1"));
 }
 
 #[test]
