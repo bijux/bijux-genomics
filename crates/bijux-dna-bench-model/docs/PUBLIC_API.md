@@ -9,6 +9,9 @@ stable names and use namespaces only when they need grouped operations such as
 
 Model contracts:
 
+- `AllDomainParserCollectorSourceKind`
+- `AllDomainParserCollectorRow`
+- `AllDomainParserCollectorReport`
 - `BenchmarkSuiteSpec`
 - `BenchmarkObservation`
 - `BenchmarkSummary`
@@ -296,6 +299,7 @@ Schema derivation:
 - `stage_centric_report_schema`
 - `tool_centric_report_schema`
 - `corpus_centric_report_schema`
+- `all_domain_parser_collector_schema`
 - `all_domain_active_stage_tool_matrix_schema`
 - `all_domain_retained_tools_schema`
 - `stage_registry_extra_pairs_schema`
@@ -320,6 +324,7 @@ Schema derivation:
 - `validate_stage_centric_report`
 - `validate_tool_centric_report`
 - `validate_corpus_centric_report`
+- `validate_all_domain_parser_collector`
 - `validate_all_domain_active_stage_tool_matrix`
 - `validate_all_domain_retained_tools`
 - `validate_stage_registry_extra_pairs`

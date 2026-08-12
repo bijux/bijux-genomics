@@ -3,7 +3,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_parser_collector, ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
+    ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainParserCollectorReport, AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
+};
 use serde_json::Value;
 
 use super::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows;
@@ -21,55 +27,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/parser-collector-all-domains.json";
-const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT: &str =
-    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector";
-const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_parser_collector.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum AllDomainParserCollectorSourceKind {
-    FakeRun,
-    RealSmoke,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainParserCollectorRow {
-    pub(crate) record_id: String,
-    pub(crate) source_kind: AllDomainParserCollectorSourceKind,
-    pub(crate) document_kind: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) parsed_path: String,
-    pub(crate) parsed_schema_version: String,
-    pub(crate) parsed_top_level_key_count: usize,
-    pub(crate) parsed_top_level_keys: Vec<String>,
-    pub(crate) manifest_path: Option<String>,
-    pub(crate) manifest_status: Option<String>,
-    pub(crate) manifest_exit_code: Option<i32>,
-    pub(crate) declared_output_count: usize,
-    pub(crate) normalized_snapshot: BTreeMap<String, Value>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainParserCollectorReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) fixture_root: String,
-    pub(crate) fake_run_root: String,
-    pub(crate) row_count: usize,
-    pub(crate) fake_run_row_count: usize,
-    pub(crate) real_smoke_row_count: usize,
-    pub(crate) source_kind_counts: BTreeMap<String, usize>,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) document_kind_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainParserCollectorRow>,
-}
+    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH;
 
 pub(crate) fn run_render_all_domain_parser_collector(
     args: &parse::BenchReadinessRenderAllDomainParserCollectorArgs,
@@ -143,7 +101,7 @@ pub(crate) fn render_all_domain_parser_collector(
     }
 
     let report = AllDomainParserCollectorReport {
-        schema_version: ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         fixture_root: path_relative_to_repo(repo_root, &fixture_root),
         fake_run_root: path_relative_to_repo(repo_root, &fake_run_root),
@@ -438,90 +396,23 @@ fn ensure_all_domain_parser_collector_contract(
     repo_root: &Path,
     report: &AllDomainParserCollectorReport,
 ) -> Result<()> {
-    if report.row_count == 0 {
-        return Err(anyhow!("all-domain parser collector must produce at least one row"));
-    }
-    if report.fake_run_row_count == 0 || report.real_smoke_row_count == 0 {
-        return Err(anyhow!(
-            "all-domain parser collector must retain both fake_run and real_smoke evidence"
-        ));
-    }
-
-    let expected_result_count = collect_all_domain_expected_benchmark_result_rows(repo_root)?.len();
-    if report.fake_run_row_count != expected_result_count {
-        return Err(anyhow!(
-            "all-domain parser collector fake_run rows drifted from the canonical expected-result slice: expected {}, found {}",
-            expected_result_count,
-            report.fake_run_row_count
-        ));
-    }
-
+    validate_all_domain_parser_collector(report)
+        .context("validate model-owned all-domain parser-collector report")?;
+    let expected_result_ids = collect_all_domain_expected_benchmark_result_rows(repo_root)?
+        .into_iter()
+        .map(|row| row.result_id)
+        .collect::<BTreeSet<_>>();
     let fake_run_result_ids = report
         .rows
         .iter()
         .filter(|row| row.source_kind == AllDomainParserCollectorSourceKind::FakeRun)
-        .filter_map(|row| row.result_id.as_deref())
+        .filter_map(|row| row.result_id.clone())
         .collect::<BTreeSet<_>>();
-    if fake_run_result_ids.len() != expected_result_count {
+    if fake_run_result_ids != expected_result_ids {
         return Err(anyhow!(
-            "all-domain parser collector must keep one fake_run row per canonical result_id"
+            "all-domain parser collector fake-run result IDs drifted from the canonical expected-result slice"
         ));
     }
-
-    let real_smoke_domains = report
-        .rows
-        .iter()
-        .filter(|row| row.source_kind == AllDomainParserCollectorSourceKind::RealSmoke)
-        .map(|row| row.domain.as_str())
-        .collect::<BTreeSet<_>>();
-    if real_smoke_domains != BTreeSet::from(["fastq", "bam", "vcf"]) {
-        return Err(anyhow!(
-            "all-domain parser collector must keep real_smoke evidence for fastq, bam, and vcf"
-        ));
-    }
-
-    let mut seen_record_ids = BTreeSet::<&str>::new();
-    for row in &report.rows {
-        if row.record_id.trim().is_empty()
-            || row.domain.trim().is_empty()
-            || row.stage_id.trim().is_empty()
-            || row.tool_id.trim().is_empty()
-            || row.corpus_id.trim().is_empty()
-            || row.asset_profile_id.trim().is_empty()
-            || row.parsed_path.trim().is_empty()
-            || row.parsed_schema_version.trim().is_empty()
-        {
-            return Err(anyhow!(
-                "all-domain parser collector row `{}` contains a blank required field",
-                row.record_id
-            ));
-        }
-        if !seen_record_ids.insert(row.record_id.as_str()) {
-            return Err(anyhow!(
-                "all-domain parser collector contains duplicate record_id `{}`",
-                row.record_id
-            ));
-        }
-        if row.parsed_top_level_key_count != row.parsed_top_level_keys.len() {
-            return Err(anyhow!(
-                "all-domain parser collector row `{}` drifted in top-level key accounting",
-                row.record_id
-            ));
-        }
-        if row.parsed_top_level_keys.is_empty() {
-            return Err(anyhow!(
-                "all-domain parser collector row `{}` must retain parsed top-level keys",
-                row.record_id
-            ));
-        }
-        if row.normalized_snapshot.is_empty() {
-            return Err(anyhow!(
-                "all-domain parser collector row `{}` must retain normalized snapshot fields",
-                row.record_id
-            ));
-        }
-    }
-
     Ok(())
 }
 
@@ -598,10 +489,7 @@ fn manifest_status_label(
 }
 
 fn source_kind_label(value: AllDomainParserCollectorSourceKind) -> &'static str {
-    match value {
-        AllDomainParserCollectorSourceKind::FakeRun => "fake_run",
-        AllDomainParserCollectorSourceKind::RealSmoke => "real_smoke",
-    }
+    value.as_str()
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
@@ -625,7 +513,7 @@ mod tests {
     use serde_json::Value;
 
     use super::{
-        render_all_domain_parser_collector, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION,
+        render_all_domain_parser_collector, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
         DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH,
     };
 
@@ -664,7 +552,7 @@ mod tests {
         )
         .expect("render all-domain parser collector");
 
-        assert_eq!(report.schema_version, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH);
         assert_eq!(report.fixture_root, "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector");
         assert_eq!(

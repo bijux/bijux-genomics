@@ -4,6 +4,7 @@
 
 pub mod active_scope;
 pub mod admission;
+pub mod all_domain_parser_collector;
 pub mod appraisal;
 pub mod benchmark_matrix;
 pub mod campaign_engine;
@@ -64,6 +65,13 @@ pub use active_scope::{
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+#[allow(unused_imports)]
+pub use all_domain_parser_collector::{
+    all_domain_parser_collector_schema, AllDomainParserCollectorReport,
+    AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
+    ALL_DOMAIN_PARSER_COLLECTOR_FAKE_RUN_ROOT, ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT,
+    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
 };
 #[allow(unused_imports)]
 pub use appraisal::{

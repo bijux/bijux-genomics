@@ -192,6 +192,11 @@ identity, failure preservation, output evidence, aggregate closure, and the
 generated schema; the CLI only executes each governed smoke and persists the
 validated result.
 
+`schemas/all-domain-parser-collector.schema.json` defines parser and normalized
+evidence across fake-run and real-smoke sources. The benchmark model owns row
+identity, aggregate closure, canonical paths, and the required real-smoke set,
+including independent `vcf.stats` and `vcf.prepare_reference_panel` evidence.
+
 `schemas/published-results-status.schema.json` defines the persisted audit of
 published benchmark result mirrors. The benchmark model owns stage identity,
 completion and issue counters, result-root consistency, issue lineage, and the

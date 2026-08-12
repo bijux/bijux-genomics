@@ -39,6 +39,8 @@ enter through `bijux_dna_api::v1::api`.
   view contracts, schemas, and fail-closed aggregate validators.
 - The `bench` namespace exposes model-owned all-domain stage/tool scope, retained-tool,
   and registry-drift report contracts with explicit licensed-binding retention.
+- The `bench` namespace exposes the model-owned all-domain parser-collector report,
+  including exact real-smoke coverage and generated schema validation.
 - The `bench` namespace exposes the model-owned Goal 211-229 local VCF smoke-suite
   record, generated schema, and fail-closed aggregate validator.
 

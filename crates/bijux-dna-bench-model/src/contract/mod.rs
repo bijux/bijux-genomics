@@ -5,6 +5,7 @@
 #![allow(dead_code)]
 
 mod active_scope;
+mod all_domain_parser_collector;
 mod appraisal;
 mod benchmark_matrix;
 mod comparable_metrics;
@@ -55,6 +56,7 @@ mod stage_result;
 mod stage_tool_closure;
 mod suite;
 pub use active_scope::validate_active_scope_fast_validation_report;
+pub use all_domain_parser_collector::validate_all_domain_parser_collector;
 pub use appraisal::{validate_appraisal_report, validate_hardening_queue_report};
 pub use benchmark_matrix::validate_benchmark_matrix_report;
 pub use comparable_metrics::{
@@ -150,9 +152,9 @@ pub use run_index::{
     validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
 };
 pub use schema_versions::{
-    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
-    BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
+    ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1, BAM_COMPARABLE_METRICS_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,

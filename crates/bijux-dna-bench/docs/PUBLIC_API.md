@@ -105,6 +105,9 @@ The `public_api` module itself is private. Stable exports are owned by
 The public API re-exports benchmark model contracts from `bijux-dna-bench-model`,
 including:
 
+- `AllDomainParserCollectorSourceKind`
+- `AllDomainParserCollectorRow`
+- `AllDomainParserCollectorReport`
 - `BenchmarkSuiteSpec`
 - `BenchmarkObservation`
 - `BenchmarkSummary`
