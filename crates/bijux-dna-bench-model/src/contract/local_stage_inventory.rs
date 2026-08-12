@@ -30,7 +30,7 @@ pub fn validate_benchmark_local_stage_inventory(
     let mut stage_ids = BTreeSet::new();
     for stage in &inventory.stages {
         require_text(&stage.stage_id, "stages[].stage_id")?;
-        if !stage.stage_id.starts_with(prefix) {
+        if !stage.stage_id.starts_with(&prefix) {
             return invalid(format!(
                 "stage `{}` is outside `{}` domain",
                 stage.stage_id, inventory.domain
@@ -93,11 +93,9 @@ pub fn validate_benchmark_local_all_domain_stage_inventory(
     Ok(())
 }
 
-fn domain_prefix(domain: &str) -> Result<&'static str, BenchError> {
+fn domain_prefix(domain: &str) -> Result<String, BenchError> {
     match domain {
-        "fastq" => Ok("fastq."),
-        "bam" => Ok("bam."),
-        "vcf" => Ok("vcf."),
+        "fastq" | "bam" | "vcf" => Ok(format!("{domain}.")),
         other => invalid(format!("unsupported local stage-inventory domain `{other}`")),
     }
 }

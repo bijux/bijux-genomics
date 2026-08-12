@@ -17,6 +17,7 @@ fn is_allowed_writer_path(path: &Path) -> bool {
         || path_str.contains("/crates/bijux-dna-runner/src/backend/slurm/qualification/")
         || path_str.contains("/crates/bijux-dna-runner/src/step_runner/external_artifact.rs")
         || path_str.contains("/crates/bijux-dna-containers/src/build/")
+        || path_str.ends_with("/crates/bijux-dna-containers/src/site_policy/repository_archive.rs")
         || path_str.contains("/crates/bijux-dna-containers-qa/src/security_verification/")
         || path_str.contains("/crates/bijux-dna/src/commands/policies.rs")
         || path_str.contains("/crates/bijux-dna/src/commands/hpc/hpc_impl.rs")
