@@ -5,6 +5,7 @@ use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::default_params_json;
 use bijux_dna_domain_bam::BamStage;
 
+use crate::cross::angsd_genotyping_params;
 use crate::cross::fastq_to_vcf::merged_defaults::minimal_base_defaults;
 use crate::cross::fastq_to_vcf::required_stages::required_cross_stages;
 use crate::cross::workflow_registry::cross_workflow_templates_for_pipeline;
@@ -82,14 +83,7 @@ pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
         StageId::from_static("bam.genotyping"),
         ToolId::from_static(id_catalog::TOOL_ANGSD),
     );
-    defaults.params.insert(
-        StageId::from_static("bam.genotyping"),
-        DefaultParams::Bam(
-            BamStage::Genotyping
-                .parse_effective_params(&default_params_json(BamStage::Genotyping))
-                .unwrap_or_else(|err| panic!("failed to parse BAM genotyping defaults: {err}")),
-        ),
-    );
+    defaults.params.insert(StageId::from_static("bam.genotyping"), angsd_genotyping_params());
     defaults.rationales.insert(
         StageId::from_static("bam.genotyping"),
         "cross-domain FASTQ-to-VCF calling defaults".to_string(),
