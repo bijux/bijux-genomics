@@ -284,7 +284,9 @@ mod tests {
     };
 
     fn repo_root() -> PathBuf {
-        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+        crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "local-benchmark-summary",
+        )
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -293,7 +295,10 @@ mod tests {
         let root = repo_root();
         let report = render_local_benchmark_summary(
             &root,
-            PathBuf::from("artifacts/benchmark-smoke/simulated-runs/stages-benchmark-summary"),
+            std::path::Path::new(
+                "artifacts/benchmark-smoke/simulated-runs/stages-benchmark-summary",
+            )
+            .to_path_buf(),
             PathBuf::from(DEFAULT_BENCHMARK_SUMMARY_JSON_PATH),
             PathBuf::from(DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH),
         )

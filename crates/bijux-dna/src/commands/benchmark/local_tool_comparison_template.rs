@@ -178,7 +178,9 @@ mod tests {
     };
 
     fn repo_root() -> PathBuf {
-        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+        crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "local-tool-comparison-template",
+        )
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -187,9 +189,10 @@ mod tests {
         let root = repo_root();
         let report = render_local_tool_comparison_template(
             &root,
-            PathBuf::from(
+            std::path::Path::new(
                 "artifacts/benchmark-smoke/simulated-runs/stages-tool-comparison-template",
-            ),
+            )
+            .to_path_buf(),
             PathBuf::from(DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH),
         )
         .expect("render tool comparison template");

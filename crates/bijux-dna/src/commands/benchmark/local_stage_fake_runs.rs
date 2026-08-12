@@ -480,7 +480,9 @@ mod tests {
     use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 
     fn repo_root() -> PathBuf {
-        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+        crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "local-stage-fake-runs",
+        )
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -582,7 +584,8 @@ mod tests {
         let root = repo_root();
         let error = fake_run_local_stage_commands(
             &root,
-            PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fake-runs"),
+            std::path::Path::new("artifacts/benchmark-smoke/readiness/local-ready/fake-runs")
+                .to_path_buf(),
         )
         .expect_err("fake-run output outside simulated root must fail");
 

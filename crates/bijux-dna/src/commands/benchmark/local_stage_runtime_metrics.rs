@@ -115,7 +115,9 @@ mod tests {
     use std::fs;
 
     fn repo_root() -> PathBuf {
-        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+        crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "local-stage-runtime-metrics",
+        )
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -123,7 +125,8 @@ mod tests {
     fn runtime_metrics_report_tracks_fake_run_runtime_fields() {
         let root = repo_root();
         let fake_run_root =
-            PathBuf::from("artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics");
+            std::path::Path::new("artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics")
+                .to_path_buf();
         fake_run_local_stage_commands(&root, fake_run_root.clone())
             .expect("fake-run local stage commands");
         let report = collect_local_stage_runtime_metrics(
@@ -153,12 +156,14 @@ mod tests {
     #[test]
     fn runtime_metrics_report_refuses_stage_manifest_missing_runtime_fields() {
         let root = repo_root();
-        let fake_run_root = PathBuf::from(
+        let fake_run_root = std::path::Path::new(
             "artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics-missing-runtime",
-        );
-        let report_output_path = PathBuf::from(
+        )
+        .to_path_buf();
+        let report_output_path = std::path::Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/runtime-metrics.missing.json",
-        );
+        )
+        .to_path_buf();
         let fake_runs = fake_run_local_stage_commands(&root, fake_run_root.clone())
             .expect("fake-run local stage commands");
         let stage_manifest_path = root.join(
