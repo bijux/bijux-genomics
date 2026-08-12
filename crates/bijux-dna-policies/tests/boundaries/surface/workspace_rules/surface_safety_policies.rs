@@ -131,6 +131,7 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-bench/src/workflow/bam_mapping_summary/parameters.rs",
         "crates/bijux-dna-bench/src/workflow/reference_materialization.rs",
         "crates/bijux-dna-bench/src/workflow/run_index.rs",
+        "crates/bijux-dna-containers/src/site_policy/repository_archive.rs",
         "crates/bijux-dna-containers/src/site_policy/repository_freeze.rs",
         "crates/bijux-dna-runner/src/step_runner/external_artifact.rs",
     ]);

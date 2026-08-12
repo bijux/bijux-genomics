@@ -154,10 +154,14 @@ pub use crate::execution_contract::{
 };
 pub use crate::resolve::*;
 pub use crate::site_policy::{
-    container_governance_schema, freeze_repository, load_container_governance,
-    tracked_repository_files_under, validate_container_governance,
-    validate_container_governance_host, verify_frozen_repository,
-    write_container_governance_schema, ContainerGovernance, ContainerPathPolicy,
+    archive_frozen_repository, container_governance_schema, freeze_repository,
+    load_container_governance, repository_freeze_archive_receipt_schema,
+    restore_frozen_repository_archive, retire_frozen_repository, tracked_repository_files_under,
+    validate_container_governance, validate_container_governance_host, verify_frozen_repository,
+    verify_frozen_repository_archive, write_container_governance_schema,
+    write_repository_freeze_archive_receipt_schema, ContainerGovernance, ContainerPathPolicy,
     ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
-    RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
+    RepositoryFreezeArchiveReceipt, RepositoryFreezeArchiveRequest, RepositoryFreezeRequest,
+    RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
+    REPOSITORY_FREEZE_ARCHIVE_RECEIPT_SCHEMA_V1,
 };

@@ -1,6 +1,9 @@
 use std::path::Path;
 
 use anyhow::Result;
+use schemars::Schema;
+
+use super::RepositoryFreezeArchiveReceipt;
 
 const CONTAINER_GOVERNANCE_SCHEMA_JSON: &str = r#"{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -107,5 +110,19 @@ pub fn container_governance_schema() -> serde_json::Value {
 /// Returns an error when schema publication fails.
 pub fn write_container_governance_schema(path: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_bytes(path, CONTAINER_GOVERNANCE_SCHEMA_JSON.as_bytes())?;
+    Ok(())
+}
+
+#[must_use]
+pub fn repository_freeze_archive_receipt_schema() -> Schema {
+    schemars::schema_for!(RepositoryFreezeArchiveReceipt)
+}
+
+/// Write the repository-freeze archive receipt schema atomically.
+///
+/// # Errors
+/// Returns an error when schema publication fails.
+pub fn write_repository_freeze_archive_receipt_schema(path: &Path) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(path, &repository_freeze_archive_receipt_schema())?;
     Ok(())
 }

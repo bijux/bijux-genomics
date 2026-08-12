@@ -39,7 +39,8 @@
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.
 - `site_policy`: typed site governance, hostname admission, commit-addressed repository freezing
-  under governed roots, and effect-free admission of existing clean, self-contained, read-only
+  under governed roots, checksum-bound Git-bundle archival, exact restoration proof, explicit
+  retirement and rollback, and effect-free admission of existing clean, self-contained, read-only
   snapshots.
 - `public_api::api`: facade re-export for consumers that prefer one stable import path.
 

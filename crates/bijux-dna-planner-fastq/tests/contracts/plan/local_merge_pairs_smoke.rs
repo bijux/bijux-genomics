@@ -107,9 +107,7 @@ fn local_merge_pairs_output_contract_plans_cover_every_supported_tool() -> Resul
     );
     assert_eq!(plans.len(), tool_ids.len());
 
-    let Some(seqprep) =
-        plans.iter().find(|case| case.plan.tool_id.as_str() == "seqprep")
-    else {
+    let Some(seqprep) = plans.iter().find(|case| case.plan.tool_id.as_str() == "seqprep") else {
         panic!("missing SeqPrep output-contract plan");
     };
     assert_eq!(seqprep.plan.effective_params["merge_overlap"], serde_json::Value::Null);
