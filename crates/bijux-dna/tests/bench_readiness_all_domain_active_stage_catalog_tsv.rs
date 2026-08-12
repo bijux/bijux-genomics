@@ -62,7 +62,7 @@ fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {
         assert_eq!(columns[index], active_tool_count);
     }
     assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.trim_reads\tsmoke\t13\t13\t13\t13\ttrue\t1\tbenchmark_ready\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,skewer,trim_galore,trimmomatic\tread_cleanup"
+        row == &"fastq\tfastq.trim_reads\tsmoke\t14\t14\t14\t14\ttrue\t1\tbenchmark_ready\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,seqprep,skewer,trim_galore,trimmomatic\tadapterremoval,alientrimmer,atropos,bbduk,cutadapt,fastp,fastx_clipper,leehom,prinseq,seqkit,seqprep,skewer,trim_galore,trimmomatic\tread_cleanup"
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf\tvcf.stats\tsmoke\t1\t1\t1\t1\ttrue\t1\tbenchmark_ready\tbcftools\tbcftools\tquality_control"
