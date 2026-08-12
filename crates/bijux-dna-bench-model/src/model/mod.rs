@@ -18,6 +18,7 @@ pub mod execution;
 pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
+pub mod local_runtime_metrics;
 pub mod materialization;
 pub mod normalized_result;
 pub mod observation;
@@ -171,6 +172,11 @@ pub use lifecycle::{
     BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
     BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
     BenchmarkSchedulerTerminalState,
+};
+#[allow(unused_imports)]
+pub use local_runtime_metrics::{
+    benchmark_local_runtime_metrics_schema, BenchmarkLocalStageReadinessKind,
+    BenchmarkLocalStageRuntimeMetric, BenchmarkLocalStageRuntimeMetricsReport,
 };
 #[allow(unused_imports)]
 pub use materialization::{

@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
+pub(crate) use bijux_dna_api::v1::api::bench::BenchmarkLocalStageReadinessKind as LocalStageReadinessKind;
+
 use super::local_vcf_stage_matrix::{LocalVcfStageMatrixConfig, DEFAULT_VCF_STAGE_MATRIX_PATH};
 use super::path_resolution::BenchmarkPathResolver;
 
@@ -53,24 +55,6 @@ impl BenchLocalDomain {
             Self::Fastq => "bijux.bench.fastq.local_stage_matrix.v1",
             Self::Bam => "bijux.bench.bam.local_stage_matrix.v1",
             Self::Vcf => "bijux.bench.vcf.local_stage_matrix.v1",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum LocalStageReadinessKind {
-    DryRun,
-    Smoke,
-    DryOrSmoke,
-}
-
-impl LocalStageReadinessKind {
-    pub(crate) fn as_str(self) -> &'static str {
-        match self {
-            Self::DryRun => "dry_run",
-            Self::Smoke => "smoke",
-            Self::DryOrSmoke => "dry_or_smoke",
         }
     }
 }

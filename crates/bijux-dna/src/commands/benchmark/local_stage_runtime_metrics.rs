@@ -2,16 +2,20 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_runtime_metrics, BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalStageRuntimeMetric as BenchLocalStageRuntimeMetricEntry,
+    BenchmarkLocalStageRuntimeMetricsReport as BenchLocalStageRuntimeMetricsReport,
+};
 
 use crate::commands::benchmark::local_stage_commands::render_local_stage_commands;
 use crate::commands::benchmark::local_stage_fake_runs::{
     path_relative_to_repo, stage_fake_run_manifest_path, DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
 };
-use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
-use crate::commands::benchmark::local_stage_result_manifest::{
-    load_validated_stage_result_manifest_path, BenchStageResultStatus,
-};
+use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -20,31 +24,7 @@ const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
 pub(crate) const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/runtime-metrics.json";
 const LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bench.local_runtime_metrics.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageRuntimeMetricEntry {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: LocalStageReadinessKind,
-    pub(crate) tool_id: String,
-    pub(crate) manifest_path: String,
-    pub(crate) runtime_mode: String,
-    pub(crate) started_at: String,
-    pub(crate) finished_at: String,
-    pub(crate) elapsed_seconds: f64,
-    pub(crate) exit_code: i32,
-    pub(crate) status: BenchStageResultStatus,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageRuntimeMetricsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) fake_run_root: String,
-    pub(crate) report_output_path: String,
-    pub(crate) source_stage_command_manifest_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) stages: Vec<BenchLocalStageRuntimeMetricEntry>,
-}
+    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1;
 
 pub(crate) fn run_collect_runtime_metrics(
     args: &parse::BenchLocalCollectRuntimeMetricsArgs,
@@ -108,13 +88,14 @@ pub(crate) fn collect_local_stage_runtime_metrics(
     }
 
     let report = BenchLocalStageRuntimeMetricsReport {
-        schema_version: LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION,
+        schema_version: LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION.to_string(),
         fake_run_root: path_relative_to_repo(repo_root, &absolute_fake_run_root),
         report_output_path: path_relative_to_repo(repo_root, &absolute_report_output_path),
         source_stage_command_manifest_path: source_manifest.manifest_output_path,
         stage_count: stages.len(),
         stages,
     };
+    validate_benchmark_local_runtime_metrics(&report)?;
     bijux_dna_infra::atomic_write_json(&absolute_report_output_path, &report)?;
     Ok(report)
 }

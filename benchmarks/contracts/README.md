@@ -96,6 +96,11 @@ closure of the fast benchmark-surface validation. The benchmark model owns its
 version, check identity, and exact category and outcome summaries; the command
 surface renders and atomically publishes only a validated record.
 
+`schemas/local-runtime-metrics.schema.json` defines the persisted projection of
+validated local stage-result runtimes. The benchmark model owns readiness and
+runtime field vocabulary, cardinality and identity validation, and schema
+generation; the CLI only collects inputs and publishes the validated record.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and

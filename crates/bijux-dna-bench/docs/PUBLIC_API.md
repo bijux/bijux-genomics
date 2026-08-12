@@ -120,6 +120,7 @@ including:
 - `BenchmarkStageReport`
 - `BenchmarkStageResultManifest`
 - `BenchmarkStageResultValidationReport`
+- `BenchmarkLocalStageRuntimeMetricsReport`
 - `BenchmarkToolReport`
 - `BenchmarkRunIdentity`
 - `BenchmarkAttemptIdentity`
