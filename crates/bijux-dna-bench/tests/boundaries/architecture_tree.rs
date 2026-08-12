@@ -136,6 +136,7 @@ fn bench_tree_matches_architecture_contract() {
             "stage_families.rs",
             "stage_universe.rs",
             "stage_report/",
+            "stage_result.rs",
             "stage_tool_closure.rs",
             "summary/",
             "suite_load.rs",

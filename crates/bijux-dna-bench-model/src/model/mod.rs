@@ -257,10 +257,11 @@ pub use source_authority::{
 };
 #[allow(unused_imports)]
 pub use stage_result::{
-    benchmark_stage_result_schema, BenchmarkStageResultCommand, BenchmarkStageResultManifest,
-    BenchmarkStageResultOutput, BenchmarkStageResultResourceMetricSource,
-    BenchmarkStageResultResourceMetrics, BenchmarkStageResultRuntime, BenchmarkStageResultStatus,
-    BenchmarkStageResultTool,
+    benchmark_stage_result_schema, benchmark_stage_result_validation_schema,
+    BenchmarkStageResultCommand, BenchmarkStageResultManifest, BenchmarkStageResultOutput,
+    BenchmarkStageResultResourceMetricSource, BenchmarkStageResultResourceMetrics,
+    BenchmarkStageResultRuntime, BenchmarkStageResultStatus, BenchmarkStageResultTool,
+    BenchmarkStageResultValidationReport,
 };
 #[allow(unused_imports)]
 pub use stage_tool_closure::{

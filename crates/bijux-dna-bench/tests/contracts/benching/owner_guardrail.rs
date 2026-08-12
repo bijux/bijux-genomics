@@ -31,6 +31,32 @@ fn source_modules_have_owner() {
     assert!(offenders.is_empty(), "missing module owner doc comments: {offenders:?}");
 }
 
+#[test]
+fn thin_cli_delegates_stage_result_admission_to_benchmark_owners() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_result_manifest.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(
+        contents.contains("validate_benchmark_stage_result_path"),
+        "thin CLI must delegate file-backed admission to bijux-dna-bench"
+    );
+    assert!(
+        contents.contains("validate_benchmark_stage_result_manifest"),
+        "thin CLI must delegate manifest validation to bijux-dna-bench-model through the API"
+    );
+    assert!(
+        !contents.contains("struct BenchStageResultValidationReport"),
+        "thin CLI must not own the persisted validation report"
+    );
+    assert!(
+        !contents.contains("bijux.bench.stage_result_validation.v1"),
+        "thin CLI must not own the validation schema identity"
+    );
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

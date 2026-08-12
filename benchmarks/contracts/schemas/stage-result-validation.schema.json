@@ -1,0 +1,51 @@
+{
+  "$defs": {
+    "BenchmarkStageResultStatus": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "manifest_path": {
+      "type": "string"
+    },
+    "output_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.stage_result_validation.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/BenchmarkStageResultStatus"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "valid": {
+      "const": true,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_path",
+    "stage_id",
+    "tool_id",
+    "output_count",
+    "status",
+    "valid"
+  ],
+  "title": "BenchmarkStageResultValidationReport",
+  "type": "object"
+}

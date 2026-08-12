@@ -1,9 +1,12 @@
 //! Validation for persisted benchmark stage results.
 
 use crate::diagnostics::BenchError;
-use crate::model::{BenchmarkStageResultManifest, BenchmarkStageResultResourceMetricSource};
+use crate::model::{
+    BenchmarkStageResultManifest, BenchmarkStageResultResourceMetricSource,
+    BenchmarkStageResultValidationReport,
+};
 
-use super::BENCHMARK_STAGE_RESULT_SCHEMA_V2;
+use super::{BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1};
 
 /// Validate one canonical stage-result manifest.
 ///
@@ -62,6 +65,31 @@ pub fn validate_benchmark_stage_result_manifest(
         require_text(&output.declared_path, "outputs[].declared_path")?;
         require_text(&output.realized_path, "outputs[].realized_path")?;
         require_text(&output.role, "outputs[].role")?;
+    }
+    Ok(())
+}
+
+/// Validate one persisted stage-result validation report.
+///
+/// # Errors
+/// Returns an error when the report is not the exact successful projection of a valid manifest.
+pub fn validate_benchmark_stage_result_validation_report(
+    report: &BenchmarkStageResultValidationReport,
+) -> Result<(), BenchError> {
+    if report.schema_version != BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1 {
+        return invalid(format!(
+            "unsupported stage-result validation schema `{}`",
+            report.schema_version
+        ));
+    }
+    require_text(&report.manifest_path, "manifest_path")?;
+    require_text(&report.stage_id, "stage_id")?;
+    require_text(&report.tool_id, "tool_id")?;
+    if report.output_count == 0 {
+        return invalid("stage-result validation report requires at least one output");
+    }
+    if !report.valid {
+        return invalid("stage-result validation report cannot claim an invalid manifest");
     }
     Ok(())
 }

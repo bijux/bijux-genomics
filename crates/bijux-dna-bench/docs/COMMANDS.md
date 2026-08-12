@@ -46,6 +46,8 @@ These operations are exported through the crate root and `public_api`.
 | `publish-hardening-benchmark-campaign` | `publish_hardening_benchmark_campaign_report(path, report)` | Validate and atomically publish a hardening campaign report. |
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
+| `load-benchmark-stage-result-manifest` | `load_benchmark_stage_result_manifest(path)` | Parse and structurally validate one persisted stage execution result under benchmark ownership. |
+| `validate-benchmark-stage-result-path` | `validate_benchmark_stage_result_path(repository_root, path)` | Derive the stable validation report for one admitted stage execution result. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
 | `derive-container-report-portfolio-index` | `derive_container_report_portfolio_index(repository_root)` | Require the permanent run index to match its source authority, then derive checksummed current and historical container report entries. |
 | `render-container-report-portfolio-index` | `render_container_report_portfolio_index_json(index)`, `render_container_report_portfolio_index_markdown(index)` | Render the admitted container report portfolio deterministically for machine and paper-facing consumers. |

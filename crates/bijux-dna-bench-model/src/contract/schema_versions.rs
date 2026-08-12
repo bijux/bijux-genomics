@@ -89,6 +89,8 @@ pub const BENCHMARK_STAGE_INTERFACES_SCHEMA_V1: &str = "bijux.benchmark.stage_in
 pub const BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1: &str = "bijux.benchmark.pipeline_parameters.v1";
 pub const BENCHMARK_STAGE_REPORT_SCHEMA_V1: &str = "bijux.benchmark.stage_report.v1";
 pub const BENCHMARK_STAGE_RESULT_SCHEMA_V2: &str = "bijux.bench.stage_result.v2";
+pub const BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1: &str =
+    "bijux.bench.stage_result_validation.v1";
 pub const BENCHMARK_REPORT_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.report_admission.v1";
 pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.profile_read_lengths.expectations.v1";

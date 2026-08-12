@@ -1,8 +1,6 @@
-use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
 
 use bijux_dna_api::v1::api::bench::validate_benchmark_stage_result_manifest;
 pub(crate) use bijux_dna_api::v1::api::bench::{
@@ -14,24 +12,12 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkStageResultRuntime as BenchStageResultRuntimeV1,
     BenchmarkStageResultStatus as BenchStageResultStatus,
     BenchmarkStageResultTool as BenchStageResultToolV1,
+    BenchmarkStageResultValidationReport as BenchStageResultValidationReport,
     BENCHMARK_STAGE_RESULT_SCHEMA_V2 as BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
 
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-
-const BENCH_STAGE_RESULT_VALIDATION_SCHEMA_VERSION: &str = "bijux.bench.stage_result_validation.v1";
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub(crate) struct BenchStageResultValidationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) manifest_path: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) output_count: usize,
-    pub(crate) status: BenchStageResultStatus,
-    pub(crate) valid: bool,
-}
 
 pub(crate) fn run_validate_stage_result(
     args: &parse::BenchLocalValidateStageResultArgs,
@@ -55,28 +41,13 @@ pub(crate) fn validate_stage_result_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
 ) -> Result<BenchStageResultValidationReport> {
-    let manifest = load_validated_stage_result_manifest_path(manifest_path)?;
-    Ok(BenchStageResultValidationReport {
-        schema_version: BENCH_STAGE_RESULT_VALIDATION_SCHEMA_VERSION,
-        manifest_path: path_relative_to_repo(repo_root, manifest_path),
-        stage_id: manifest.stage_id,
-        tool_id: manifest.tool.id,
-        output_count: manifest.outputs.len(),
-        status: manifest.runtime.status,
-        valid: true,
-    })
+    bijux_dna_api::v1::api::bench::validate_benchmark_stage_result_path(repo_root, manifest_path)
 }
 
 pub(crate) fn load_validated_stage_result_manifest_path(
     manifest_path: &Path,
 ) -> Result<BenchStageResultManifestV1> {
-    let raw = fs::read_to_string(manifest_path)
-        .with_context(|| format!("read {}", manifest_path.display()))?;
-    let manifest: BenchStageResultManifestV1 =
-        serde_json::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
-    validate_stage_result_manifest(&manifest)
-        .with_context(|| format!("validate {}", manifest_path.display()))?;
-    Ok(manifest)
+    bijux_dna_api::v1::api::bench::load_benchmark_stage_result_manifest(manifest_path)
 }
 
 pub(crate) fn validate_stage_result_manifest(manifest: &BenchStageResultManifestV1) -> Result<()> {

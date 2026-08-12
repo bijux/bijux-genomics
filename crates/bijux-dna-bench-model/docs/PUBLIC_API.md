@@ -33,6 +33,8 @@ Model contracts:
 - `BenchmarkStageReport`
 - `BenchmarkStageReportDesign`
 - `BenchmarkToolReport`
+- `BenchmarkStageResultManifest`
+- `BenchmarkStageResultValidationReport`
 - `BenchmarkMeasurementContract`
 - `BenchmarkCorpusContract`
 - `BenchmarkCorpusClass`
@@ -173,6 +175,8 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
+- `BENCHMARK_STAGE_RESULT_SCHEMA_V2`
+- `BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1`
 - `ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1`
 - `APPRAISAL_REPORT_SCHEMA_V1`
 - `HARDENING_QUEUE_REPORT_SCHEMA_V1`
