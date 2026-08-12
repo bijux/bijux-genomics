@@ -4,34 +4,20 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    validate_benchmark_local_slurm_dependency_check,
-    BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
+    validate_benchmark_local_slurm_dependency_check, BenchmarkLocalSlurmSubmitJob,
+    BenchmarkLocalSlurmSubmitManifest, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalSlurmDependencyCheckJob as BenchLocalSlurmDependencyCheckJob,
     BenchmarkLocalSlurmDependencyCheckReport as BenchLocalSlurmDependencyCheckReport,
 };
-use serde::Deserialize;
 
 use crate::commands::benchmark::path_resolution::{
     ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-
-#[derive(Debug, Clone, Deserialize)]
-struct BenchLocalSlurmSubmitManifestRecord {
-    schema_version: String,
-    jobs: Vec<BenchLocalSlurmSubmitJobRecord>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct BenchLocalSlurmSubmitJobRecord {
-    job_name: String,
-    stage_id: Option<String>,
-    script_path: String,
-    dependencies: Vec<String>,
-}
 
 pub(crate) fn run_validate_slurm_dependencies(
     args: &parse::BenchLocalValidateSlurmDependenciesArgs,
@@ -80,11 +66,11 @@ pub(crate) fn validate_slurm_dependencies(
 
     let manifest_bytes = fs::read(&absolute_manifest)
         .with_context(|| format!("read {}", absolute_manifest.display()))?;
-    let manifest: BenchLocalSlurmSubmitManifestRecord = serde_json::from_slice(&manifest_bytes)
+    let manifest: BenchmarkLocalSlurmSubmitManifest = serde_json::from_slice(&manifest_bytes)
         .with_context(|| format!("parse {}", absolute_manifest.display()))?;
 
     let mut report_findings = Vec::new();
-    if manifest.schema_version != "bijux.bench.local_slurm_submit_manifest.v1" {
+    if manifest.schema_version != BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1 {
         report_findings.push(format!(
             "unexpected submit manifest schema `{}` in {}",
             manifest.schema_version,
@@ -135,7 +121,7 @@ pub(crate) fn validate_slurm_dependencies(
 fn inspect_job_dependency_sources(
     repo_root: &Path,
     root_path: &Path,
-    job: BenchLocalSlurmSubmitJobRecord,
+    job: BenchmarkLocalSlurmSubmitJob,
 ) -> Result<BenchLocalSlurmDependencyCheckJob> {
     let script_path = resolve_script_path(repo_root, root_path, &job.script_path);
     let script_body = fs::read_to_string(&script_path)

@@ -61,6 +61,8 @@ mod mod_contracts_local_pipeline_dag_rs;
 mod mod_contracts_local_runtime_metrics_rs;
 #[path = "contracts/local_slurm_dependency.rs"]
 mod mod_contracts_local_slurm_dependency_rs;
+#[path = "contracts/local_slurm_submit.rs"]
+mod mod_contracts_local_slurm_submit_rs;
 #[path = "contracts/local_stage_commands.rs"]
 mod mod_contracts_local_stage_commands_rs;
 #[path = "contracts/local_stage_completion.rs"]

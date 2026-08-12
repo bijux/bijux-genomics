@@ -33,6 +33,7 @@ pub mod local_hpc_scratch_layout;
 pub mod local_pipeline_dag;
 pub mod local_runtime_metrics;
 pub mod local_slurm_dependency;
+pub mod local_slurm_submit;
 pub mod local_stage_commands;
 pub mod local_stage_completion;
 pub mod local_stage_inventory;
@@ -292,6 +293,12 @@ pub use local_slurm_dependency::{
     BenchmarkLocalSlurmDependencyCheckReport, BenchmarkLocalSlurmDryRunReport,
     BenchmarkLocalSlurmScriptEntry, BenchmarkLocalSlurmShellSyntaxEntry,
     BenchmarkLocalSlurmShellSyntaxReport,
+};
+#[allow(unused_imports)]
+pub use local_slurm_submit::{
+    benchmark_local_slurm_submit_manifest_schema, BenchmarkLocalSlurmSubmitJob,
+    BenchmarkLocalSlurmSubmitLogs, BenchmarkLocalSlurmSubmitManifest,
+    BenchmarkLocalSlurmSubmitResources,
 };
 #[allow(unused_imports)]
 pub use local_stage_commands::{

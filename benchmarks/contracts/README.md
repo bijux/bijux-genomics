@@ -177,6 +177,11 @@ script-rendering record. The benchmark model owns domain identity, readiness
 vocabulary, resource and path invariants, uniqueness, aggregate closure, and
 the generated schema; the CLI only derives run paths and writes script bodies.
 
+`schemas/local-slurm-submit-manifest.schema.json` defines persisted local Slurm
+jobs, resources, logs, artifact outputs, sample scopes, and dependency edges.
+The benchmark model owns these records, their generated schema, and admission
+closure; the CLI only projects admitted plans into one-shot submission inputs.
+
 `schemas/local-stage-commands.schema.json` defines persisted stage commands,
 argument vectors, resource ceilings, and input/output artifact projections.
 The benchmark model owns these records, their schema, identity uniqueness, and

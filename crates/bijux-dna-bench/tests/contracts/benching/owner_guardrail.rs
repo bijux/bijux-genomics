@@ -237,6 +237,32 @@ fn thin_cli_uses_model_owned_local_stage_command_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_local_slurm_submit_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let submit_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_submit_manifest.rs");
+    let submit_contents = fs::read_to_string(&submit_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", submit_source.display()));
+    assert!(submit_contents.contains("validate_benchmark_local_slurm_submit_manifest"));
+    for forbidden in [
+        "struct BenchLocalSlurmSubmitManifest {",
+        "struct BenchLocalSlurmSubmitJob {",
+        "struct BenchLocalSlurmSubmitResources {",
+        "struct BenchLocalSlurmSubmitLogs {",
+        "bijux.bench.local_slurm_submit_manifest.v1",
+    ] {
+        assert!(!submit_contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let dependency_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_dependency_check.rs");
+    let dependency_contents = fs::read_to_string(&dependency_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", dependency_source.display()));
+    assert!(!dependency_contents.contains("struct BenchLocalSlurmSubmitManifestRecord {"));
+    assert!(!dependency_contents.contains("struct BenchLocalSlurmSubmitJobRecord {"));
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =
