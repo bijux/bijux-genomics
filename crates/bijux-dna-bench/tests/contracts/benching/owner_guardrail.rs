@@ -85,6 +85,32 @@ fn thin_cli_uses_model_owned_local_benchmark_summary_contract() {
     assert!(!contents.contains("bijux.bench.local_benchmark_summary.v1"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_local_stage_completion_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    for (file_name, validator, forbidden) in [
+        (
+            "local_stage_manifest_completion.rs",
+            "validate_benchmark_local_stage_manifest_completion",
+            "struct BenchLocalStageManifestCompletionReport",
+        ),
+        (
+            "local_stage_output_completion.rs",
+            "validate_benchmark_local_stage_output_completion",
+            "struct BenchLocalStageOutputCompletionReport",
+        ),
+    ] {
+        let cli_source = repo_root.join("crates/bijux-dna/src/commands/benchmark").join(file_name);
+        let contents = fs::read_to_string(&cli_source)
+            .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+        assert!(contents.contains(validator));
+        assert!(!contents.contains(forbidden));
+        assert!(!contents.contains("bijux.bench.local_stage_manifest_completion.v1"));
+        assert!(!contents.contains("bijux.bench.local_stage_output_completion.v1"));
+    }
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

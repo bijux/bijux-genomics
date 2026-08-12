@@ -20,6 +20,7 @@ pub mod interfaces;
 pub mod lifecycle;
 pub mod local_benchmark_summary;
 pub mod local_runtime_metrics;
+pub mod local_stage_completion;
 pub mod materialization;
 pub mod normalized_result;
 pub mod observation;
@@ -183,6 +184,13 @@ pub use local_benchmark_summary::{
 pub use local_runtime_metrics::{
     benchmark_local_runtime_metrics_schema, BenchmarkLocalStageReadinessKind,
     BenchmarkLocalStageRuntimeMetric, BenchmarkLocalStageRuntimeMetricsReport,
+};
+#[allow(unused_imports)]
+pub use local_stage_completion::{
+    benchmark_local_stage_manifest_completion_schema,
+    benchmark_local_stage_output_completion_schema, BenchmarkLocalStageManifestCompletionEntry,
+    BenchmarkLocalStageManifestCompletionReport, BenchmarkLocalStageMissingOutputEntry,
+    BenchmarkLocalStageOutputCompletionEntry, BenchmarkLocalStageOutputCompletionReport,
 };
 #[allow(unused_imports)]
 pub use materialization::{

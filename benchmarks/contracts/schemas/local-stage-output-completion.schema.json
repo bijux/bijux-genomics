@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "BenchmarkLocalStageMissingOutputEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "declared_path": {
+          "type": "string"
+        },
+        "expected_fake_run_path": {
+          "type": "string"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "declared_path",
+        "expected_fake_run_path",
+        "role",
+        "optional"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageOutputCompletionEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "complete": {
+          "type": "boolean"
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missing_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missing_outputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalStageMissingOutputEntry"
+          },
+          "type": "array"
+        },
+        "present_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "tool_id",
+        "declared_output_count",
+        "present_output_count",
+        "missing_output_count",
+        "complete",
+        "missing_outputs"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "complete": {
+      "type": "boolean"
+    },
+    "complete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fake_run_root": {
+      "type": "string"
+    },
+    "incomplete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "report_output_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_stage_output_completion.v1",
+      "type": "string"
+    },
+    "source_stage_command_manifest_path": {
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalStageOutputCompletionEntry"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "fake_run_root",
+    "report_output_path",
+    "source_stage_command_manifest_path",
+    "stage_count",
+    "complete_stage_count",
+    "incomplete_stage_count",
+    "complete",
+    "stages"
+  ],
+  "title": "BenchmarkLocalStageOutputCompletionReport",
+  "type": "object"
+}

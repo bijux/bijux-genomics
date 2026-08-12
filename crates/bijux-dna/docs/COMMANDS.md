@@ -2169,11 +2169,13 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local check-manifest-completion`
   `check-manifest-completion` writes `artifacts/benchmark-smoke/readiness/local-ready/manifest-completion-report.json` and
   marks a stage complete only when its fake-run `stage-result.json` exists under the selected
-  `artifacts/benchmark-smoke/simulated-runs/stages/` tree.
+  `artifacts/benchmark-smoke/simulated-runs/stages/` tree. The command publishes only after the
+  benchmark-model manifest-completion contract admits the identity, counters, and stage rows.
 - `bijux-dna bench local check-output-completion`
   `check-output-completion` writes `artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.json` and marks a
   stage complete only when every declared fake-run output exists under the selected
-  `artifacts/benchmark-smoke/simulated-runs/stages/` tree.
+  `artifacts/benchmark-smoke/simulated-runs/stages/` tree. The command publishes only after the
+  benchmark-model output-completion contract admits missing-artifact and counter closure.
 - `bijux-dna bench local collect-runtime-metrics`
   `collect-runtime-metrics` writes `artifacts/benchmark-smoke/readiness/local-ready/runtime-metrics.json` by reading validated
   fake-run `stage-result.json` manifests and extracting per-stage start, end, elapsed, exit, and

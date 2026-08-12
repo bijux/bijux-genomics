@@ -101,6 +101,12 @@ validated local stage-result runtimes. The benchmark model owns readiness and
 runtime field vocabulary, cardinality and identity validation, and schema
 generation; the CLI only collects inputs and publishes the validated record.
 
+`schemas/local-stage-manifest-completion.schema.json` and
+`schemas/local-stage-output-completion.schema.json` define the independent
+manifest-presence and declared-output completeness records. The benchmark model
+owns their identities, rows, counters, completion invariants, and schema
+generation; the CLI only observes the filesystem and publishes admitted records.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated

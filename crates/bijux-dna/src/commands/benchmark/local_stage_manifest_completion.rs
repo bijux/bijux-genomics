@@ -2,14 +2,21 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_stage_manifest_completion, BenchmarkLocalStageManifestCompletionEntry,
+    BenchmarkLocalStageManifestCompletionReport,
+    BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalStageManifestCompletionEntry as BenchLocalStageManifestCompletionEntry,
+    BenchmarkLocalStageManifestCompletionReport as BenchLocalStageManifestCompletionReport,
+};
 
 use crate::commands::benchmark::local_stage_commands::render_local_stage_commands;
 use crate::commands::benchmark::local_stage_fake_runs::{
     path_relative_to_repo, stage_fake_run_manifest_path, stage_fake_run_output_path,
     DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
 };
-use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -17,34 +24,6 @@ const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 const DEFAULT_MANIFEST_COMPLETION_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/manifest-completion-report.json";
-const LOCAL_STAGE_MANIFEST_COMPLETION_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bench.local_stage_manifest_completion.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageManifestCompletionEntry {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: LocalStageReadinessKind,
-    pub(crate) tool_id: String,
-    pub(crate) stage_manifest_path: String,
-    pub(crate) manifest_exists: bool,
-    pub(crate) declared_output_count: usize,
-    pub(crate) present_output_count: usize,
-    pub(crate) complete: bool,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageManifestCompletionReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) fake_run_root: String,
-    pub(crate) report_output_path: String,
-    pub(crate) source_stage_command_manifest_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) complete_stage_count: usize,
-    pub(crate) incomplete_stage_count: usize,
-    pub(crate) complete: bool,
-    pub(crate) stages: Vec<BenchLocalStageManifestCompletionEntry>,
-}
-
 pub(crate) fn run_check_manifest_completion(
     args: &parse::BenchLocalCheckManifestCompletionArgs,
 ) -> Result<()> {
@@ -70,7 +49,7 @@ pub(crate) fn check_local_stage_manifest_completion(
     repo_root: &Path,
     fake_run_root: PathBuf,
     report_output_path: PathBuf,
-) -> Result<BenchLocalStageManifestCompletionReport> {
+) -> Result<BenchmarkLocalStageManifestCompletionReport> {
     let source_manifest = render_local_stage_commands(
         repo_root,
         PathBuf::from(DEFAULT_RENDERED_STAGE_COMMANDS_PATH),
@@ -97,7 +76,7 @@ pub(crate) fn check_local_stage_manifest_completion(
             .filter(|artifact| stage_fake_run_output_path(&stage_root, &artifact.path).exists())
             .count();
         let manifest_exists = stage_manifest_path.is_file();
-        stages.push(BenchLocalStageManifestCompletionEntry {
+        stages.push(BenchmarkLocalStageManifestCompletionEntry {
             stage_id: command.stage_id.clone(),
             readiness_kind: command.readiness_kind,
             tool_id: command.tool_id.clone(),
@@ -111,8 +90,8 @@ pub(crate) fn check_local_stage_manifest_completion(
 
     let complete_stage_count = stages.iter().filter(|stage| stage.complete).count();
     let incomplete_stage_count = stages.len().saturating_sub(complete_stage_count);
-    let report = BenchLocalStageManifestCompletionReport {
-        schema_version: LOCAL_STAGE_MANIFEST_COMPLETION_REPORT_SCHEMA_VERSION,
+    let report = BenchmarkLocalStageManifestCompletionReport {
+        schema_version: BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1.to_string(),
         fake_run_root: path_relative_to_repo(repo_root, &absolute_fake_run_root),
         report_output_path: path_relative_to_repo(repo_root, &absolute_report_output_path),
         source_stage_command_manifest_path: source_manifest.manifest_output_path,
@@ -122,6 +101,7 @@ pub(crate) fn check_local_stage_manifest_completion(
         complete: incomplete_stage_count == 0,
         stages,
     };
+    validate_benchmark_local_stage_manifest_completion(&report)?;
     bijux_dna_infra::atomic_write_json(&absolute_report_output_path, &report)?;
     Ok(report)
 }
@@ -132,8 +112,8 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     use super::{
-        check_local_stage_manifest_completion, DEFAULT_MANIFEST_COMPLETION_REPORT_PATH,
-        LOCAL_STAGE_MANIFEST_COMPLETION_REPORT_SCHEMA_VERSION,
+        check_local_stage_manifest_completion, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+        DEFAULT_MANIFEST_COMPLETION_REPORT_PATH,
     };
     #[cfg(feature = "bam_downstream")]
     use crate::commands::benchmark::local_stage_fake_runs::{
@@ -159,7 +139,7 @@ mod tests {
         )
         .expect("check local stage manifest completion");
 
-        assert_eq!(report.schema_version, LOCAL_STAGE_MANIFEST_COMPLETION_REPORT_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1);
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.complete_stage_count, 51);
         assert_eq!(report.incomplete_stage_count, 0);
