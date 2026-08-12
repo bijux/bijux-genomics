@@ -8,6 +8,7 @@ fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_d
     let checksum = root.join("assets/toy/core-v1/CHECKSUMS.sha256");
     assert!(checksum.exists(), "missing governed toy checksum: {}", checksum.display());
     let status = std::process::Command::new("cargo")
+        .current_dir(&root)
         .arg("run")
         .arg("-q")
         .arg("-p")
@@ -31,6 +32,7 @@ fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_d
 fn slow__policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_flag() {
     let root = support::workspace_root();
     let status = std::process::Command::new("cargo")
+        .current_dir(&root)
         .arg("run")
         .arg("-q")
         .arg("-p")
