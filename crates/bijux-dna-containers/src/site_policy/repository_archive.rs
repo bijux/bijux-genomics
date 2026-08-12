@@ -75,7 +75,7 @@ pub fn archive_frozen_repository(
             .output()
             .context("create frozen repository bundle")?;
         ensure_command_succeeded(&output, "git bundle create")?;
-        verify_bundle(&partial_bundle)?;
+        verify_bundle(&request.snapshot, &partial_bundle)?;
         prove_restoration(
             &archive_root,
             &identity,
@@ -159,7 +159,12 @@ pub fn verify_frozen_repository_archive(
             "repository archive source index drifted"
         );
     }
-    verify_bundle(&receipt.bundle_path)?;
+    let verification_repository = if request.snapshot.is_dir() {
+        &request.snapshot
+    } else {
+        &request.governance.paths.active_repository
+    };
+    verify_bundle(verification_repository, &receipt.bundle_path)?;
     let identity = archive_identity(&relative, &request.commit);
     prove_restoration(
         &archive_root,
@@ -388,8 +393,13 @@ fn restore_bundle(
     Ok(())
 }
 
-fn verify_bundle(bundle: &Path) -> Result<()> {
-    let output = Command::new("git").args(["bundle", "verify"]).arg(bundle).output()?;
+fn verify_bundle(repository: &Path, bundle: &Path) -> Result<()> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .args(["bundle", "verify"])
+        .arg(bundle)
+        .output()?;
     ensure_command_succeeded(&output, "git bundle verify")
 }
 
@@ -502,4 +512,51 @@ fn make_path_owner_writable(path: &Path) -> Result<()> {
     permissions.set_mode(permissions.mode() | 0o200);
     std::fs::set_permissions(path, permissions)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+    use std::process::Command;
+
+    use anyhow::{ensure, Context, Result};
+
+    use super::verify_bundle;
+
+    #[test]
+    fn bundle_verification_uses_explicit_repository_context() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let repository = root.path().join("repository");
+        std::fs::create_dir(&repository)?;
+        git(&repository, &["init", "--quiet"])?;
+        git(&repository, &["config", "user.name", "Bijux Test"])?;
+        git(&repository, &["config", "user.email", "test@bijux.invalid"])?;
+        std::fs::write(repository.join("source.txt"), "source\n")?;
+        git(&repository, &["add", "source.txt"])?;
+        git(&repository, &["commit", "--quiet", "-m", "fixture"])?;
+        let bundle = root.path().join("repository.bundle");
+        let bundle_argument = bundle.to_str().context("bundle path is not UTF-8")?;
+        git(&repository, &["bundle", "create", bundle_argument, "HEAD"])?;
+
+        let external = root.path().join("external-working-directory");
+        std::fs::create_dir(&external)?;
+        let ambient = Command::new("git")
+            .args(["bundle", "verify"])
+            .arg(&bundle)
+            .current_dir(&external)
+            .output()?;
+        ensure!(!ambient.status.success(), "ambient non-repository unexpectedly verified bundle");
+        verify_bundle(&repository, &bundle)
+    }
+
+    fn git(repository: &Path, arguments: &[&str]) -> Result<()> {
+        let output = Command::new("git").arg("-C").arg(repository).args(arguments).output()?;
+        ensure!(
+            output.status.success(),
+            "git {} failed: {}",
+            arguments.join(" "),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(())
+    }
 }
