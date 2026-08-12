@@ -82,10 +82,10 @@ pub use materialization::{
     validate_governed_preserved_data_catalog, validate_utc_timestamp,
 };
 pub use planning::{
-    validate_benchmark_portfolio, validate_benchmark_run_registry,
-    validate_defined_campaign_portfolio_alignment, validate_portfolio_campaign_alignment,
-    validate_scientific_readiness, validate_stage_campaign_registry, validate_stage_coverage,
-    validate_stage_universe,
+    validate_benchmark_local_hpc_job_graph, validate_benchmark_portfolio,
+    validate_benchmark_run_registry, validate_defined_campaign_portfolio_alignment,
+    validate_portfolio_campaign_alignment, validate_scientific_readiness,
+    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
 };
 pub use protocol::{
     benchmark_run_definition_sha256, validate_benchmark_case_definition,
@@ -131,8 +131,8 @@ pub use schema_versions::{
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1,
     BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1,
-    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
-    BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1, BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1,

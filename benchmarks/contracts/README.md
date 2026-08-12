@@ -113,6 +113,11 @@ and aggregate local benchmark stage inventories. The benchmark model owns
 domain membership, stage identity, cardinality, and exact domain-count closure;
 the CLI only loads reviewed matrices and publishes admitted records.
 
+`schemas/local-hpc-job-graph.schema.json` defines the persisted local HPC
+benchmark topology. The benchmark model owns job-kind identity, reciprocal edge
+closure, root derivation, topological ordering, and exact counters; the CLI only
+constructs the graph from selected jobs and admits it before use.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated

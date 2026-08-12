@@ -1,17 +1,18 @@
 use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::contract::{
-    validate_benchmark_portfolio, validate_benchmark_publication_registry,
-    validate_portfolio_campaign_alignment, validate_scientific_readiness,
-    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
-    BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    validate_benchmark_local_hpc_job_graph, validate_benchmark_portfolio,
+    validate_benchmark_publication_registry, validate_portfolio_campaign_alignment,
+    validate_scientific_readiness, validate_stage_campaign_registry, validate_stage_coverage,
+    validate_stage_universe, BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
     BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusClass,
     BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkCurrentPublication,
     BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
-    BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
-    BenchmarkProfileAssignment, BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
+    BenchmarkExecutionScheduler, BenchmarkLocalHpcJobGraph, BenchmarkLocalHpcJobGraphNode,
+    BenchmarkMeasurementContract, BenchmarkPortfolio, BenchmarkProfileAssignment,
+    BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
     BenchmarkQuarantinedPublicationSurface, BenchmarkScientificProfile,
     BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
     BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
@@ -20,7 +21,7 @@ use bijux_dna_bench_model::{
     BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
     BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus, BenchmarkStagePublication,
     BenchmarkStagePublicationDisposition, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
-    BenchmarkStageUniverseSummary,
+    BenchmarkStageUniverseSummary, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
 };
 
 const TEST_SHA256: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -238,6 +239,10 @@ fn checked_planning_schemas_match_model_authority() -> anyhow::Result<()> {
         (
             "stage-universe.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_stage_universe_schema())?,
+        ),
+        (
+            "local-hpc-job-graph.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_local_hpc_job_graph_schema())?,
         ),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
@@ -469,4 +474,77 @@ fn benchmark_stage_universe_rejects_non_monotonic_run_reservation() {
     assert!(error
         .as_deref()
         .is_some_and(|message| message.contains("monotonic and contiguous from run-2001")));
+}
+
+fn local_hpc_job_graph() -> BenchmarkLocalHpcJobGraph {
+    BenchmarkLocalHpcJobGraph {
+        schema_version: BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1.to_string(),
+        manifest_path: "runs/bench/hpc-dry-run/all-domain-slurm-submit-manifest.json".to_string(),
+        job_count: 2,
+        benchmark_job_count: 1,
+        essential_pipeline_job_count: 1,
+        dependency_count: 1,
+        root_job_ids: vec!["benchmark:fastq:profile".to_string()],
+        topological_order: vec![
+            "benchmark:fastq:profile".to_string(),
+            "pipeline:fastq:report".to_string(),
+        ],
+        nodes: vec![
+            BenchmarkLocalHpcJobGraphNode {
+                job_id_local: "benchmark:fastq:profile".to_string(),
+                job_kind: "benchmark_result".to_string(),
+                result_id: Some("fastq-profile".to_string()),
+                pipeline_id: None,
+                node_id: None,
+                domain: "fastq".to_string(),
+                stage_id: "fastq.profile_reads".to_string(),
+                tool_id: "seqkit".to_string(),
+                corpus_id: "fastq-cohort".to_string(),
+                asset_profile_id: "fastq-assets".to_string(),
+                dependency_count: 0,
+                dependent_count: 1,
+                dependencies: Vec::new(),
+                dependents: vec!["pipeline:fastq:report".to_string()],
+            },
+            BenchmarkLocalHpcJobGraphNode {
+                job_id_local: "pipeline:fastq:report".to_string(),
+                job_kind: "essential_pipeline_node".to_string(),
+                result_id: None,
+                pipeline_id: Some("fastq-qc".to_string()),
+                node_id: Some("report".to_string()),
+                domain: "fastq".to_string(),
+                stage_id: "fastq.report_qc".to_string(),
+                tool_id: "multiqc".to_string(),
+                corpus_id: "fastq-cohort".to_string(),
+                asset_profile_id: "fastq-assets".to_string(),
+                dependency_count: 1,
+                dependent_count: 0,
+                dependencies: vec!["benchmark:fastq:profile".to_string()],
+                dependents: Vec::new(),
+            },
+        ],
+    }
+}
+
+#[test]
+fn local_hpc_job_graph_validates_exact_identity_and_edge_closure() -> anyhow::Result<()> {
+    let graph = local_hpc_job_graph();
+    validate_benchmark_local_hpc_job_graph(&graph)?;
+    assert_eq!(
+        serde_json::from_slice::<BenchmarkLocalHpcJobGraph>(&serde_json::to_vec(&graph)?)?,
+        graph
+    );
+    Ok(())
+}
+
+#[test]
+fn local_hpc_job_graph_rejects_nonreciprocal_and_misordered_edges() {
+    let mut nonreciprocal = local_hpc_job_graph();
+    nonreciprocal.nodes[0].dependents.clear();
+    nonreciprocal.nodes[0].dependent_count = 0;
+    assert!(validate_benchmark_local_hpc_job_graph(&nonreciprocal).is_err());
+
+    let mut misordered = local_hpc_job_graph();
+    misordered.topological_order.reverse();
+    assert!(validate_benchmark_local_hpc_job_graph(&misordered).is_err());
 }

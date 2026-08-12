@@ -54,6 +54,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `validate_benchmark_local_stage_output_completion(report)` admits declared-output completeness evidence before publication.
 - `validate_benchmark_local_stage_inventory(inventory)` admits one domain-local stage inventory.
 - `validate_benchmark_local_all_domain_stage_inventory(report)` admits exact cross-domain inventory and count closure.
+- `validate_benchmark_local_hpc_job_graph(graph)` admits exact job identity, dependency, root, ordering, and counter closure.
 - `derive_container_report_portfolio_index(repository_root)` derives the current and historical container report portfolio while requiring the permanent run index to match its source authority.
 - `render_container_report_portfolio_index_json(index)` and `render_container_report_portfolio_index_markdown(index)` render the admitted portfolio deterministically.
 - `publish_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, output_root)` publishes a source-locked historical campaign and returns the exact presentation commit, catalog digest, and overlaid stage IDs in its receipt.
@@ -130,6 +131,7 @@ including:
 - `BenchmarkLocalStageOutputCompletionReport`
 - `BenchmarkLocalStageInventory`
 - `BenchmarkLocalAllDomainStageInventory`
+- `BenchmarkLocalHpcJobGraph`
 - `BenchmarkToolReport`
 - `BenchmarkRunIdentity`
 - `BenchmarkAttemptIdentity`

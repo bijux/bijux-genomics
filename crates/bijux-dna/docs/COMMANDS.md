@@ -2076,7 +2076,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local validate-hpc-dependency-simulation`
   `validate-hpc-dependency-simulation` reloads
   `runs/bench/hpc-dry-run/slurm-dependency-simulation.json` and rebuilds the expected simulation
-  report from the current governed HPC job graph. The command fails closed if failed-job choice,
+  report from the current benchmark-model-admitted HPC job graph. The command fails closed if failed-job choice,
   descendant blocking, sibling continuation, benchmark continuation, or any per-job dependency
   status drifts from the governed dry-run dependency contract.
 - `bijux-dna bench local render-hpc-resume-simulation`

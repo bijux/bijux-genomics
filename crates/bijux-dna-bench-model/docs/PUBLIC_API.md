@@ -41,6 +41,8 @@ Model contracts:
 - `BenchmarkLocalStageInventory`
 - `BenchmarkLocalStageInventoryEntry`
 - `BenchmarkLocalAllDomainStageInventory`
+- `BenchmarkLocalHpcJobGraph`
+- `BenchmarkLocalHpcJobGraphNode`
 - `BenchmarkLocalStageManifestCompletionReport`
 - `BenchmarkLocalStageManifestCompletionEntry`
 - `BenchmarkLocalStageOutputCompletionReport`
@@ -195,6 +197,7 @@ Policy and diagnostics:
 - `BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1`
 - `BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1`
 - `BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1`
+- `BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1`
 - `BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1`
 - `BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1`
 - `BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1`
@@ -236,6 +239,7 @@ Schema derivation:
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
+- `benchmark_local_hpc_job_graph_schema`
 - `active_scope_fast_validation_report_schema`
 - `appraisal_report_schema`
 - `hardening_queue_report_schema`
@@ -247,6 +251,7 @@ Schema derivation:
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
 - `validate_scheduler_observation`
+- `validate_benchmark_local_hpc_job_graph`
 - `validate_active_scope_fast_validation_report`
 - `validate_appraisal_report`
 - `validate_hardening_queue_report`

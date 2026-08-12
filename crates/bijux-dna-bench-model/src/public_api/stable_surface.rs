@@ -13,8 +13,9 @@ pub use crate::contract::{
     validate_benchmark_case_definition, validate_benchmark_citation_record,
     validate_benchmark_data_index, validate_benchmark_data_portfolio_audit,
     validate_benchmark_data_source_spec, validate_benchmark_evidence_book,
-    validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_runtime_metrics,
-    validate_benchmark_local_stage_inventory, validate_benchmark_local_stage_manifest_completion,
+    validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_hpc_job_graph,
+    validate_benchmark_local_runtime_metrics, validate_benchmark_local_stage_inventory,
+    validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion, validate_benchmark_local_summary,
     validate_benchmark_matrix_report, validate_benchmark_protocol_citation,
     validate_benchmark_publication_receipt, validate_benchmark_publication_registry,
@@ -53,8 +54,8 @@ pub use crate::contract::{
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1,
     BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1,
-    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
-    BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1, BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1,
@@ -157,7 +158,10 @@ pub use crate::model::execution::{
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
     BenchmarkExecutionSpec,
 };
-pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
+pub use crate::model::graph::{
+    benchmark_local_hpc_job_graph_schema, BenchmarkGraphNode, BenchmarkGraphNodeKind,
+    BenchmarkLocalHpcJobGraph, BenchmarkLocalHpcJobGraphNode, BenchmarkStageEdge,
+};
 pub use crate::model::interfaces::{
     benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
     BenchmarkParameterValue, BenchmarkPipelineParameterConfig,

@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcJobGraphNode": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dependency_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dependent_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dependents": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "job_kind": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id_local",
+        "job_kind",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "dependency_count",
+        "dependent_count",
+        "dependencies",
+        "dependents"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "essential_pipeline_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcJobGraphNode"
+      },
+      "type": "array"
+    },
+    "root_job_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_job_graph.v1",
+      "type": "string"
+    },
+    "topological_order": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_path",
+    "job_count",
+    "benchmark_job_count",
+    "essential_pipeline_job_count",
+    "dependency_count",
+    "root_job_ids",
+    "topological_order",
+    "nodes"
+  ],
+  "title": "BenchmarkLocalHpcJobGraph",
+  "type": "object"
+}

@@ -146,7 +146,10 @@ pub use execution::{
     BenchmarkExecutionSpec,
 };
 #[allow(unused_imports)]
-pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
+pub use graph::{
+    benchmark_local_hpc_job_graph_schema, BenchmarkGraphNode, BenchmarkGraphNodeKind,
+    BenchmarkLocalHpcJobGraph, BenchmarkLocalHpcJobGraphNode, BenchmarkStageEdge,
+};
 #[allow(unused_imports)]
 pub use interfaces::{
     BenchmarkParameterValue, BenchmarkPipelineParameterConfig,
