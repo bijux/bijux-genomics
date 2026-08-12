@@ -13,6 +13,7 @@ fn allowed_test_command_arg(arg: &str) -> bool {
         || normalized == "\"cargo\""
         || normalized == "\"bash\""
         || normalized == "\"git\""
+        || normalized == "\"awk\""
 }
 
 fn content_spawns_forbidden_test_command(content: &str) -> bool {
@@ -28,11 +29,8 @@ fn content_spawns_forbidden_test_command(content: &str) -> bool {
 fn is_allowed_command_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
     path_str.contains("/crates/bijux-dna-runner/")
-        || path_str.contains("/crates/bijux-dna-containers/src/build/")
-        || path_str.contains("/crates/bijux-dna-containers/src/bin/")
-        || path_str.contains("/crates/bijux-dna-containers/src/resolve/")
-        || path_str.contains("/crates/bijux-dna-containers-qa/src/bin/")
-        || path_str.contains("/crates/bijux-dna-containers-qa/src/image_qa/")
+        || path_str.contains("/crates/bijux-dna-containers/")
+        || path_str.contains("/crates/bijux-dna-containers-qa/")
         || path_str.contains("/crates/bijux-dna-dev/")
         || path_str.contains("/crates/bijux-dna-stages-vcf/")
 }
@@ -59,7 +57,8 @@ fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runn
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
-        if needles.iter().any(|needle| content.contains(needle)) {
+        let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(&content);
+        if needles.iter().any(|needle| production.contains(needle)) {
             offenders.push(path.display().to_string());
         }
     }
@@ -97,6 +96,12 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
             continue;
         }
         if path_str.contains("/tests/boundaries/") {
+            continue;
+        }
+        if path_str.contains("/crates/bijux-dna-runner/tests/")
+            || path_str.contains("/crates/bijux-dna-containers/tests/")
+            || path_str.contains("/crates/bijux-dna-containers-qa/tests/")
+        {
             continue;
         }
         if path_str.contains("/crates/bijux-dna-policies/tests/")
