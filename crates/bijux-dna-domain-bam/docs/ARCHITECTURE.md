@@ -20,6 +20,7 @@ src/
 │   └── pre/
 ├── pipeline_contract.rs
 ├── prelude.rs
+├── reference.rs
 ├── stage_specs/
 └── types/
 ```
@@ -28,6 +29,7 @@ src/
 
 - `stage_specs/` owns the ordered BAM stage model and stage contract JSON.
 - `alignment.rs` owns the stable artifact boundary exchanged with cross-domain pipeline stages.
+- `reference.rs` owns deterministic BAM-header reference-span inspection.
 - `params/` owns typed effective params and default parameter shapes.
 - `metrics/` owns typed metric models and deterministic parsers for small fixture formats.
 - `invariants/` owns BAM domain rules and verdict mapping.

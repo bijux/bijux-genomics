@@ -8,6 +8,7 @@ Public modules exported from `src/lib.rs`:
 - params
 - pipeline_contract
 - prelude
+- reference
 - stage_specs
 - types
 
