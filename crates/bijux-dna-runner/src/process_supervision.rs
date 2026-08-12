@@ -13,6 +13,11 @@ pub(crate) struct SupervisedOutput {
     pub(crate) timed_out: bool,
 }
 
+pub(crate) struct SupervisedStatus {
+    pub(crate) status: ExitStatus,
+    pub(crate) timed_out: bool,
+}
+
 /// Put a supervised command in its own process group so timeout cancellation
 /// reaches descendants that inherited the command's output pipes.
 pub(crate) fn isolate_process_group(command: &mut Command) {
@@ -34,21 +39,30 @@ pub(crate) fn wait_for_output(
 ) -> Result<SupervisedOutput> {
     let stdout = child.stdout.take().map(|pipe| drain(pipe, "stdout", label));
     let stderr = child.stderr.take().map(|pipe| drain(pipe, "stderr", label));
-    let (status, timed_out) = if let Some(status) =
-        child.wait_timeout(timeout).with_context(|| format!("wait for {label}"))?
-    {
-        (status, false)
-    } else {
-        terminate_process_group(child, label)?;
-        let status = child.wait().with_context(|| format!("reap timed out {label}"))?;
-        (status, true)
-    };
+    let SupervisedStatus { status, timed_out } = wait_for_status(child, timeout, label)?;
     Ok(SupervisedOutput {
         status,
         stdout: join_pipe(stdout, "stdout", label)?,
         stderr: join_pipe(stderr, "stderr", label)?,
         timed_out,
     })
+}
+
+/// Wait for child exit without polling when its output is already directed to
+/// durable files, killing and reaping the full process group at the deadline.
+pub(crate) fn wait_for_status(
+    child: &mut Child,
+    timeout: Duration,
+    label: &str,
+) -> Result<SupervisedStatus> {
+    if let Some(status) =
+        child.wait_timeout(timeout).with_context(|| format!("wait for {label}"))?
+    {
+        return Ok(SupervisedStatus { status, timed_out: false });
+    }
+    terminate_process_group(child, label)?;
+    let status = child.wait().with_context(|| format!("reap timed out {label}"))?;
+    Ok(SupervisedStatus { status, timed_out: true })
 }
 
 fn terminate_process_group(child: &mut Child, label: &str) -> Result<()> {
