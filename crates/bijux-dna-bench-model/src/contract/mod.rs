@@ -34,6 +34,7 @@ mod materialization;
 mod planning;
 mod protocol;
 mod publication;
+mod publication_findings;
 mod publication_outcome;
 mod publication_registry;
 mod publication_status;
@@ -112,6 +113,7 @@ pub use publication::{
     validate_benchmark_citation_record, validate_benchmark_evidence_book,
     validate_benchmark_publication_receipt,
 };
+pub use publication_findings::validate_benchmark_publication_findings;
 pub use publication_outcome::{
     validate_benchmark_campaign_report_publication,
     validate_governed_data_catalog_registry_publication,

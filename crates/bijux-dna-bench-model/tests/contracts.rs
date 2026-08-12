@@ -59,6 +59,8 @@ mod mod_contracts_materialization_rs;
 mod mod_contracts_normalized_result_rs;
 #[path = "contracts/protocol.rs"]
 mod mod_contracts_protocol_rs;
+#[path = "contracts/publication_findings.rs"]
+mod mod_contracts_publication_findings_rs;
 #[path = "contracts/publication_outcome.rs"]
 mod mod_contracts_publication_outcome_rs;
 #[path = "contracts/publication.rs"]

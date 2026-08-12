@@ -3,13 +3,16 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::bench::validate_benchmark_publication_status;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_publication_findings, validate_benchmark_publication_status,
+};
 
 use super::models::PublicationCorpusSpec;
 use super::{
     audit_publication_docs, benchmark_corpus_spec_path, benchmark_publication_contracts,
     benchmark_publication_exclusions, load_json_value, publication_artifact_file_name,
-    render_publication_docs_markdown, BenchmarkPublicationStatusReport, StageAuditIssue,
+    render_publication_docs_markdown, BenchmarkPublicationFindings,
+    BenchmarkPublicationStatusReport, StageAuditIssue,
 };
 
 type SupplementalFindingsPayload =
@@ -30,6 +33,7 @@ pub(super) fn write_corpus_fastq_docs_status(
     let (supplemental_findings, mut audit_warnings, findings_generated_at_utc) =
         load_supplemental_findings(
             &docs_root.join(publication_artifact_file_name(corpus_id, "publication-findings.json")),
+            corpus_id,
         )?;
     let (results_by_stage, results_warnings) = load_results_status(
         &docs_root.join(publication_artifact_file_name(corpus_id, "results-status.json")),
@@ -84,7 +88,10 @@ pub(super) fn expected_counts_for_scope(
     }
 }
 
-pub(super) fn load_supplemental_findings(path: &Path) -> Result<SupplementalFindingsPayload> {
+pub(super) fn load_supplemental_findings(
+    path: &Path,
+    corpus_id: &str,
+) -> Result<SupplementalFindingsPayload> {
     if !path.is_file() {
         return Ok((
             BTreeMap::new(),
@@ -92,64 +99,30 @@ pub(super) fn load_supplemental_findings(path: &Path) -> Result<SupplementalFind
             None,
         ));
     }
-    let payload = load_json_value(path)?;
-    let mut warnings = Vec::new();
-    let generated_at_utc = payload
-        .get("generated_at_utc")
-        .and_then(|value| value.as_str())
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToOwned::to_owned);
-    if generated_at_utc.is_none() {
-        warnings.push(format!(
-            "supplemental findings freshness is untracked in {}; add generated_at_utc",
-            path.display()
+    let payload = load_publication_findings(path, corpus_id)?;
+    let generated_at_utc = Some(payload.generated_at_utc);
+    let mut findings_by_stage = BTreeMap::<String, Vec<StageAuditIssue>>::new();
+    for finding in payload.findings {
+        findings_by_stage.entry(finding.stage_id.clone()).or_default().push(finding);
+    }
+    Ok((findings_by_stage, Vec::new(), generated_at_utc))
+}
+
+pub(super) fn load_publication_findings(
+    path: &Path,
+    corpus_id: &str,
+) -> Result<BenchmarkPublicationFindings> {
+    let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let findings: BenchmarkPublicationFindings = serde_json::from_str(&raw)
+        .with_context(|| format!("parse typed publication findings from {}", path.display()))?;
+    validate_benchmark_publication_findings(&findings)?;
+    if findings.corpus_id != corpus_id {
+        return Err(anyhow!(
+            "publication findings corpus `{}` does not match requested corpus `{corpus_id}`",
+            findings.corpus_id
         ));
     }
-    let findings = payload.get("findings").and_then(|value| value.as_array()).ok_or_else(|| {
-        anyhow!("supplemental findings in {} must declare a findings array", path.display())
-    })?;
-
-    let mut findings_by_stage = BTreeMap::<String, Vec<StageAuditIssue>>::new();
-    for finding in findings {
-        let invalid_message = || {
-            anyhow!(
-                "invalid supplemental finding in {}: stage_id, issue_id, and detail are required",
-                path.display()
-            )
-        };
-        let stage_id = finding
-            .get("stage_id")
-            .and_then(|value| value.as_str())
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .ok_or_else(invalid_message)?;
-        let issue_id = finding
-            .get("issue_id")
-            .and_then(|value| value.as_str())
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .ok_or_else(invalid_message)?;
-        let detail = finding
-            .get("detail")
-            .and_then(|value| value.as_str())
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .ok_or_else(invalid_message)?;
-        findings_by_stage.entry(stage_id.to_string()).or_default().push(StageAuditIssue {
-            stage_id: stage_id.to_string(),
-            issue_id: issue_id.to_string(),
-            severity: finding
-                .get("severity")
-                .and_then(|value| value.as_str())
-                .map(str::trim)
-                .filter(|value| !value.is_empty())
-                .unwrap_or("error")
-                .to_string(),
-            detail: detail.to_string(),
-        });
-    }
-    Ok((findings_by_stage, warnings, generated_at_utc))
+    Ok(findings)
 }
 
 fn load_results_status(path: &Path) -> Result<(BTreeMap<String, serde_json::Value>, Vec<String>)> {

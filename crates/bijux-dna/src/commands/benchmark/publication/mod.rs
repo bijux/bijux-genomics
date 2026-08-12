@@ -59,7 +59,7 @@ use self::runtime_audit::{
 };
 use bijux_dna_api::v1::api::bench::{
     BenchmarkPublicationAuditIssue as StageAuditIssue,
-    BenchmarkPublicationExcludedStage as ExcludedStageEntry,
+    BenchmarkPublicationExcludedStage as ExcludedStageEntry, BenchmarkPublicationFindings,
     BenchmarkPublicationStageStatus as PublicationStageReport, BenchmarkPublicationStatusReport,
     BenchmarkRemediationIssue as RemediationIssue,
     BenchmarkRemediationIssueGroup as RemediationIssueGroup,
@@ -70,7 +70,7 @@ use bijux_dna_api::v1::api::bench::{
 #[cfg(test)]
 use bijux_dna_api::v1::api::bench::{
     PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue,
-    BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
+    BENCHMARK_PUBLICATION_FINDINGS_SCHEMA_V1, BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
 };
 
 #[cfg(test)]
@@ -1060,7 +1060,7 @@ reason = "Compact validation fixture."
     }
 
     #[test]
-    fn load_supplemental_findings_warns_when_freshness_missing() {
+    fn load_supplemental_findings_rejects_unversioned_input() {
         let temp = tempdir().expect("tempdir");
         let findings_path = temp.path().join("findings.json");
         write_json(
@@ -1073,11 +1073,9 @@ reason = "Compact validation fixture."
                 }],
             }),
         );
-        let (findings, warnings, generated_at_utc) =
-            super::load_supplemental_findings(&findings_path).expect("findings");
-        assert!(findings.contains_key("fastq.validate_reads"));
-        assert_eq!(generated_at_utc, None);
-        assert!(warnings.iter().any(|warning| warning.contains("generated_at_utc")));
+        let error = super::load_supplemental_findings(&findings_path, "corpus-01")
+            .expect_err("unversioned findings must fail closed");
+        assert!(error.to_string().contains("parse typed publication findings"));
     }
 
     #[test]
@@ -1205,14 +1203,17 @@ reason = "Compact validation fixture."
                     }],
                 }],
             }),
-            &serde_json::json!({
-                "findings": [{
-                    "stage_id": "fastq.validate_reads",
-                    "issue_id": "publication-gap",
-                    "detail": "supplemental finding",
-                    "severity": "error",
+            &super::BenchmarkPublicationFindings {
+                schema_version: super::BENCHMARK_PUBLICATION_FINDINGS_SCHEMA_V1.to_string(),
+                corpus_id: "corpus-01".to_string(),
+                generated_at_utc: "2026-03-28T00:00:00Z".to_string(),
+                findings: vec![super::StageAuditIssue {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    issue_id: "publication-gap".to_string(),
+                    detail: "supplemental finding".to_string(),
+                    severity: "error".to_string(),
                 }],
-            }),
+            },
             &serde_json::json!({
                 "stages": [{
                     "stage_id": "fastq.validate_reads",

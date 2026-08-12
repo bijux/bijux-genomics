@@ -35,6 +35,7 @@ pub mod observation;
 pub mod planning;
 pub mod protocol;
 pub mod publication;
+pub mod publication_findings;
 pub mod publication_outcome;
 pub mod publication_registry;
 pub mod publication_status;
@@ -291,6 +292,11 @@ pub use publication::{
     benchmark_publication_receipt_schema, BenchmarkCitationAssetIdentity, BenchmarkCitationRecord,
     BenchmarkCitationToolIdentity, BenchmarkEvidenceBook, BenchmarkEvidenceBookEntry,
     BenchmarkEvidenceBookStatus, BenchmarkPublicationReceipt,
+};
+#[allow(unused_imports)]
+pub use publication_findings::{
+    benchmark_publication_findings_schema, BenchmarkPublicationFindings,
+    BENCHMARK_PUBLICATION_FINDINGS_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use publication_outcome::{

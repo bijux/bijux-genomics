@@ -174,6 +174,11 @@ publication audit. The benchmark model owns coverage, exclusions, stage and
 tool identity, issue lineage, result-root consistency, and generated schema;
 the CLI only inspects publication inputs and renders the validated audit.
 
+`schemas/publication-findings.schema.json` defines supplemental findings used
+by publication audit and remediation. The benchmark model owns corpus identity,
+freshness, issue identity and severity, uniqueness, and the generated schema;
+the CLI only loads and groups the admitted findings.
+
 `schemas/remediation-queue.schema.json` defines the persisted benchmark
 remediation queue. The benchmark model owns stage ownership, open/clear state,
 issue grouping, publication lineage, recommended actions, counters, and the
