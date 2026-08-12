@@ -107,6 +107,12 @@ manifest-presence and declared-output completeness records. The benchmark model
 owns their identities, rows, counters, completion invariants, and schema
 generation; the CLI only observes the filesystem and publishes admitted records.
 
+`schemas/local-stage-inventory.schema.json` and
+`schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
+and aggregate local benchmark stage inventories. The benchmark model owns
+domain membership, stage identity, cardinality, and exact domain-count closure;
+the CLI only loads reviewed matrices and publishes admitted records.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated

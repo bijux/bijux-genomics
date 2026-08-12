@@ -92,6 +92,9 @@ pub const BENCHMARK_STAGE_RESULT_SCHEMA_V2: &str = "bijux.bench.stage_result.v2"
 pub const BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1: &str =
     "bijux.bench.stage_result_validation.v1";
 pub const BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1: &str = "bijux.bench.local_runtime_metrics.v1";
+pub const BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1: &str = "bijux.bench.local_stage_inventory.v1";
+pub const BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1: &str =
+    "bijux.bench.local_all_domain_stage_inventory.v1";
 pub const BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1: &str =
     "bijux.bench.local_stage_manifest_completion.v1";
 pub const BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1: &str =

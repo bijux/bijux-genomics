@@ -38,6 +38,9 @@ Model contracts:
 - `BenchmarkLocalStageRuntimeMetricsReport`
 - `BenchmarkLocalStageRuntimeMetric`
 - `BenchmarkLocalStageReadinessKind`
+- `BenchmarkLocalStageInventory`
+- `BenchmarkLocalStageInventoryEntry`
+- `BenchmarkLocalAllDomainStageInventory`
 - `BenchmarkLocalStageManifestCompletionReport`
 - `BenchmarkLocalStageManifestCompletionEntry`
 - `BenchmarkLocalStageOutputCompletionReport`
@@ -190,6 +193,8 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_RESULT_SCHEMA_V2`
 - `BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1`
 - `BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1`
+- `BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1`
+- `BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1`
 - `BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1`
 - `BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1`
 - `BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1`

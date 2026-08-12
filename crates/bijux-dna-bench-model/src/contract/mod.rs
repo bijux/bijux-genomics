@@ -22,6 +22,7 @@ mod lifecycle;
 mod local_benchmark_summary;
 mod local_runtime_metrics;
 mod local_stage_completion;
+mod local_stage_inventory;
 mod materialization;
 mod planning;
 mod protocol;
@@ -71,6 +72,9 @@ pub use local_runtime_metrics::validate_benchmark_local_runtime_metrics;
 pub use local_stage_completion::{
     validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion,
+};
+pub use local_stage_inventory::{
+    validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
 };
 pub use materialization::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
@@ -126,7 +130,8 @@ pub use schema_versions::{
     BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1, BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1,
-    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1,
+    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1,
+    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,

@@ -37,6 +37,8 @@ mod mod_contracts_local_benchmark_summary_rs;
 mod mod_contracts_local_runtime_metrics_rs;
 #[path = "contracts/local_stage_completion.rs"]
 mod mod_contracts_local_stage_completion_rs;
+#[path = "contracts/local_stage_inventory.rs"]
+mod mod_contracts_local_stage_inventory_rs;
 #[path = "contracts/materialization.rs"]
 mod mod_contracts_materialization_rs;
 #[path = "contracts/normalized_result.rs"]

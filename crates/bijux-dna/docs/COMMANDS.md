@@ -1600,6 +1600,7 @@ Visible aliases are part of the operator surface:
   stage inventory directly. Multi-domain requests such as `--domain fastq,bam,vcf` write
   `artifacts/benchmark-smoke/readiness/all-domain-stage-list.json` and report separate `domain_counts` plus
   the unified `total_stage_count` so FASTQ, BAM, and VCF coverage cannot silently drift together.
+  Domain-local and aggregate records are published only after benchmark-model admission.
 - `bijux-dna bench local render-vcf-stage-catalog`
   `render-vcf-stage-catalog` writes `configs/bench/local/vcf-stage-catalog.toml`, deriving the
   governed VCF stage catalog from the domain downstream order, stage-spec metadata, and VCF IO

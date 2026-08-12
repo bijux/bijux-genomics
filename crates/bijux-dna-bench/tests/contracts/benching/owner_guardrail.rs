@@ -111,6 +111,22 @@ fn thin_cli_uses_model_owned_local_stage_completion_contracts() {
     }
 }
 
+#[test]
+fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_inventory.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_stage_inventory"));
+    assert!(contents.contains("validate_benchmark_local_all_domain_stage_inventory"));
+    assert!(!contents.contains("struct BenchLocalStageInventory"));
+    assert!(!contents.contains("struct BenchLocalAllDomainStageInventory"));
+    assert!(!contents.contains("bijux.bench.local_stage_inventory.v1"));
+    assert!(!contents.contains("bijux.bench.local_all_domain_stage_inventory.v1"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;
