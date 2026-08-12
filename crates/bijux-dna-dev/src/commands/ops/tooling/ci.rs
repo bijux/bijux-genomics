@@ -1081,9 +1081,9 @@ fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<
             "BIJUX_BENCHMARK_ROOT".to_string(),
             shard_workspace.join("benchmarks").display().to_string(),
         ),
-        // Snapshot assertions embed build-time manifest paths; the runtime root keeps
-        // pending snapshots inside the isolated shard checkout.
-        ("INSTA_WORKSPACE_ROOT".to_string(), shard_workspace.display().to_string()),
+        // Archived snapshot assertions retain their compile-time source paths. Shards
+        // therefore fail with a rendered diff but never write pending source files.
+        ("INSTA_UPDATE".to_string(), "no".to_string()),
         ("TZ".to_string(), "UTC".to_string()),
         ("LC_ALL".to_string(), "C".to_string()),
     ])
@@ -1093,7 +1093,8 @@ fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> se
     serde_json::json!({
         "repository_root": shard_workspace.display().to_string(),
         "benchmark_root": shard_workspace.join("benchmarks").display().to_string(),
-        "snapshot_root": shard_workspace.display().to_string(),
+        "snapshot_source_authority": "archive_compile_time_metadata",
+        "snapshot_update_policy": "no",
         "artifact_root": roots.artifact_root.display().to_string(),
         "iso_root": roots.artifact_root.display().to_string(),
         "archive_extract_dir": roots.archive_extract.display().to_string(),
@@ -1592,7 +1593,8 @@ mod tests {
     }
 
     #[test]
-    fn full_shard_runtime_roots_are_absolute_complete_and_disjoint() -> anyhow::Result<()> {
+    fn full_shard_runtime_roots_are_absolute_complete_disjoint_and_read_only() -> anyhow::Result<()>
+    {
         let root =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
@@ -1619,7 +1621,6 @@ mod tests {
             "COV_TMP_DIR",
             "TEST_PROFRAW_DIR",
             "COV_PROFRAW_DIR",
-            "INSTA_WORKSPACE_ROOT",
         ] {
             let value = first_env
                 .get(name)
@@ -1637,11 +1638,13 @@ mod tests {
             first_env["BIJUX_BENCHMARK_ROOT"],
             shard_workspace.join("benchmarks").display().to_string()
         );
-        assert_eq!(first_env["INSTA_WORKSPACE_ROOT"], shard_workspace.display().to_string());
+        assert_eq!(first_env["INSTA_UPDATE"], "no");
+        assert!(!first_env.contains_key("INSTA_WORKSPACE_ROOT"));
         let receipt = full_shard_root_receipt(&roots[0], &shard_workspace);
         assert_eq!(receipt["repository_root"], first_env["BIJUX_REPO_ROOT"]);
         assert_eq!(receipt["benchmark_root"], first_env["BIJUX_BENCHMARK_ROOT"]);
-        assert_eq!(receipt["snapshot_root"], first_env["INSTA_WORKSPACE_ROOT"]);
+        assert_eq!(receipt["snapshot_source_authority"], "archive_compile_time_metadata");
+        assert_eq!(receipt["snapshot_update_policy"], first_env["INSTA_UPDATE"]);
         assert_eq!(receipt["artifact_root"], first_env["ARTIFACT_ROOT"]);
         assert_eq!(receipt["iso_root"], first_env["ISO_ROOT"]);
         assert_eq!(receipt["archive_extract_dir"], roots[0].archive_extract.display().to_string());
