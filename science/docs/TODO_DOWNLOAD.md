@@ -67,6 +67,7 @@ and
 | `source.fastq.tool.seqfu.upstream` | `seqfu` | `fastq.profile_read_lengths,fastq.profile_reads` | `science/docs/upstream/fastq/tools/seqfu/repo` | https://github.com/telatin/seqfu2 |
 | `source.fastq.tool.seqkit.upstream` | `seqkit` | `fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.profile_read_lengths,fastq.profile_reads,fastq.trim_reads,fastq.trim_terminal_damage` | `science/docs/upstream/fastq/tools/seqkit/repo` | https://github.com/shenwei356/seqkit |
 | `source.fastq.tool.seqkit_stats.upstream` | `seqkit_stats` | `fastq.profile_reads` | `science/docs/upstream/fastq/tools/seqkit_stats/repo` | https://github.com/shenwei356/seqkit |
+| `source.fastq.tool.seqprep.upstream` | `seqprep` | `fastq.merge_pairs,fastq.trim_reads` | `science/docs/upstream/fastq/tools/seqprep/repo` | https://github.com/jstjohn/SeqPrep |
 | `source.fastq.tool.seqpurge.upstream` | `seqpurge` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/seqpurge/repo` | https://github.com/imgag/ngs-bits |
 | `source.fastq.tool.seqtk.upstream` | `seqtk` | `fastq.validate_reads` | `science/docs/upstream/fastq/tools/seqtk/repo` | https://github.com/lh3/seqtk |
 | `source.fastq.tool.skewer.upstream` | `skewer` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/skewer/repo` | https://github.com/relipmoc/skewer |
