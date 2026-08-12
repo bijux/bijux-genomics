@@ -104,7 +104,6 @@ fn validate_published_stage(stage: &BenchmarkDossierStageEntry) -> Result<(), Be
         "local-cache-mirror" => Some(stage.expected_local_cache_mirror_run_root.as_str()),
         "local-results-root" => Some(stage.expected_local_results_run_root.as_str()),
         "remote-results-root" => Some(stage.expected_remote_run_root.as_str()),
-        "remote-custom" | "custom" => None,
         _ => None,
     };
     if expected_root.is_some_and(|expected| run_root != expected) {
