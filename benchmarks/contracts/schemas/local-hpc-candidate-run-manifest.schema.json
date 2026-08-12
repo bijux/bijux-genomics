@@ -1,0 +1,429 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcAssetStagingInput": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "artifact_role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "checksum_sha256": {
+          "type": "string"
+        },
+        "consumer_result_id": {
+          "type": "string"
+        },
+        "member_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_kind": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "staged_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_kind",
+        "source_path",
+        "staged_path",
+        "checksum_sha256",
+        "size_bytes",
+        "member_count",
+        "consumer_result_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcCandidateBehavior": {
+      "additionalProperties": false,
+      "properties": {
+        "only_available_execution_resolution": {
+          "type": "boolean"
+        },
+        "only_benchmark_result_jobs": {
+          "type": "boolean"
+        },
+        "only_dependency_free_jobs": {
+          "type": "boolean"
+        },
+        "only_known_assets": {
+          "type": "boolean"
+        },
+        "only_known_execution_modes": {
+          "type": "boolean"
+        },
+        "only_small_input_footprints": {
+          "type": "boolean"
+        },
+        "only_small_resource_envelopes": {
+          "type": "boolean"
+        },
+        "proven": {
+          "type": "boolean"
+        },
+        "selected_rows_keep_expected_outputs": {
+          "type": "boolean"
+        },
+        "selected_rows_keep_stop_conditions": {
+          "type": "boolean"
+        },
+        "vcf_rows_excluded_for_unknown_execution_modes": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "only_benchmark_result_jobs",
+        "only_dependency_free_jobs",
+        "only_known_assets",
+        "only_known_execution_modes",
+        "only_available_execution_resolution",
+        "only_small_resource_envelopes",
+        "only_small_input_footprints",
+        "selected_rows_keep_expected_outputs",
+        "selected_rows_keep_stop_conditions",
+        "vcf_rows_excluded_for_unknown_execution_modes",
+        "proven"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcCandidateJob": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "command_entrypoint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "execution_mode": {
+          "type": "string"
+        },
+        "execution_mode_summary": {
+          "type": "string"
+        },
+        "expected_outputs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "expected_stage_result_manifest_path": {
+          "type": "string"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "representative_group_id": {
+          "type": "string"
+        },
+        "resolution_kind": {
+          "type": "string"
+        },
+        "resolution_target": {
+          "type": "string"
+        },
+        "resource_hint": {
+          "$ref": "#/$defs/BenchmarkLocalHpcCandidateResourceHint"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "selection_reason": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "staged_input_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "staged_input_total_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "staged_inputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalHpcAssetStagingInput"
+          },
+          "type": "array"
+        },
+        "stop_conditions": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalHpcCandidateStopCondition"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "representative_group_id",
+        "selection_reason",
+        "job_id_local",
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "execution_mode",
+        "execution_mode_summary",
+        "resolution_kind",
+        "resolution_target",
+        "expected_stage_result_manifest_path",
+        "expected_outputs",
+        "resource_hint",
+        "staged_input_count",
+        "staged_input_total_bytes",
+        "staged_inputs",
+        "stop_conditions"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcCandidateResourceCeiling": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus_per_task_max": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "memory_mb_max": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scratch_gb_max": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "staged_input_bytes_max": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "walltime_minutes_max": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cpus_per_task_max",
+        "memory_mb_max",
+        "walltime_minutes_max",
+        "scratch_gb_max",
+        "staged_input_bytes_max"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcCandidateResourceHint": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus_per_task": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "memory_mb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scratch_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "time_limit": {
+          "type": "string"
+        },
+        "walltime_minutes": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cpus_per_task",
+        "memory_mb",
+        "time_limit",
+        "walltime_minutes",
+        "scratch_gb"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcCandidateStopCondition": {
+      "additionalProperties": false,
+      "properties": {
+        "condition_id": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "source_surface": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "condition_id",
+        "source_surface",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "behavior": {
+      "$ref": "#/$defs/BenchmarkLocalHpcCandidateBehavior"
+    },
+    "benchmark_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "eligible_small_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "evaluated_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "exclusion_reason_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "representative_group_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "resource_ceiling": {
+      "$ref": "#/$defs/BenchmarkLocalHpcCandidateResourceCeiling"
+    },
+    "root_benchmark_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcCandidateJob"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_candidate_run_manifest.v1",
+      "type": "string"
+    },
+    "selected_domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "selected_execution_mode_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "selected_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "selected_resolution_kind_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "selected_staged_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "selected_staged_input_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "selection_profile_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "selection_profile_id",
+    "evaluated_job_count",
+    "benchmark_job_count",
+    "root_benchmark_job_count",
+    "eligible_small_job_count",
+    "representative_group_count",
+    "selected_job_count",
+    "selected_staged_input_count",
+    "selected_staged_input_bytes",
+    "selected_domain_counts",
+    "selected_execution_mode_counts",
+    "selected_resolution_kind_counts",
+    "exclusion_reason_counts",
+    "resource_ceiling",
+    "behavior",
+    "rows"
+  ],
+  "title": "BenchmarkLocalHpcCandidateRunManifest",
+  "type": "object"
+}

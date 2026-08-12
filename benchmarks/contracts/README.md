@@ -135,6 +135,13 @@ source kinds, checksums, shared-source consistency, consumer lineage,
 repository containment, canonical ordering, and exact counters; the CLI only
 discovers repository inputs and assembles the validated manifest.
 
+`schemas/local-hpc-candidate-run-manifest.schema.json` defines the persisted
+bounded candidate subset chosen for an initial HPC execution. The benchmark
+model owns representative identity, resource and input ceilings, stop
+conditions, behavior proofs, canonical ordering, exact counters, and schema
+generation; the CLI only derives candidates from admitted planning inputs and
+publishes the validated manifest.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,

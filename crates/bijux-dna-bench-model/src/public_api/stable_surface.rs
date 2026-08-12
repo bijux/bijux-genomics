@@ -20,7 +20,8 @@ pub use crate::contract::{
     validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_corpus_run,
     validate_benchmark_local_corpus_skip_report,
     validate_benchmark_local_corpus_stage_compatibility_report,
-    validate_benchmark_local_hpc_asset_staging_manifest, validate_benchmark_local_hpc_job_graph,
+    validate_benchmark_local_hpc_asset_staging_manifest,
+    validate_benchmark_local_hpc_candidate_run_manifest, validate_benchmark_local_hpc_job_graph,
     validate_benchmark_local_hpc_result_collection_simulation_report,
     validate_benchmark_local_hpc_scratch_layout, validate_benchmark_local_pipeline_dag_validation,
     validate_benchmark_local_pipeline_dag_validation_set, validate_benchmark_local_runtime_metrics,
@@ -77,7 +78,8 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,
-    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
@@ -261,6 +263,16 @@ pub use crate::model::local_corpus_stage_compatibility::{
 pub use crate::model::local_hpc_asset_staging::{
     benchmark_local_hpc_asset_staging_schema, BenchmarkLocalHpcAssetStagingInput,
     BenchmarkLocalHpcAssetStagingJob, BenchmarkLocalHpcAssetStagingManifest,
+};
+pub use crate::model::local_hpc_candidate_run::{
+    benchmark_local_hpc_candidate_run_manifest_schema, BenchmarkLocalHpcCandidateBehavior,
+    BenchmarkLocalHpcCandidateJob, BenchmarkLocalHpcCandidateResourceCeiling,
+    BenchmarkLocalHpcCandidateResourceHint, BenchmarkLocalHpcCandidateRunManifest,
+    BenchmarkLocalHpcCandidateStopCondition, BENCHMARK_LOCAL_HPC_CANDIDATE_CPUS_PER_TASK_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_MEMORY_MB_MAX, BENCHMARK_LOCAL_HPC_CANDIDATE_PROFILE_ID,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_SCRATCH_GB_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_STAGED_INPUT_BYTES_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_WALLTIME_MINUTES_MAX,
 };
 pub use crate::model::local_hpc_result_collection_simulation::{
     benchmark_local_hpc_result_collection_simulation_schema,
