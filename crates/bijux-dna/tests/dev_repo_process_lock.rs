@@ -106,15 +106,22 @@ fn repository_mutating_unit_tests_serialize_before_one_shot_process_lock() -> an
 }
 
 #[test]
-fn nextest_full_profile_serializes_every_declared_benchmark_repository_mutator(
-) -> anyhow::Result<()> {
+fn nextest_full_profile_serializes_benchmark_product_writers() -> anyhow::Result<()> {
     let _cwd_guard =
         support::CWD_LOCK.lock().map_err(|error| anyhow::anyhow!("cwd lock: {error}"))?;
     let repo_root = support::repo_root()?;
     let config = std::fs::read_to_string(repo_root.join("configs/rust/nextest.toml"))?;
     assert!(config.contains("[test-groups.benchmark-repository-mutators]"));
+    let group = config
+        .split("[test-groups.benchmark-repository-mutators]\n")
+        .nth(1)
+        .and_then(|tail| tail.split("\n[").next())
+        .ok_or_else(|| anyhow::anyhow!("benchmark repository mutator group is missing"))?;
+    assert!(group.contains("max-threads = 1"));
     assert!(!config.contains("[test-groups.micro-benchmark-mutators]"));
     assert!(!config.contains("[test-groups.vcf-benchmark-mutators]"));
+    assert!(config.contains("binary(/^(?:bench_|config_|dev_crates_|fixtures_|plan_validate_)/)"));
+    assert!(config.contains("test(/^commands::benchmark::/)"));
 
     let integration_root = repo_root.join("crates/bijux-dna/tests");
     for entry in walkdir::WalkDir::new(&integration_root)
@@ -133,13 +140,16 @@ fn nextest_full_profile_serializes_every_declared_benchmark_repository_mutator(
                     anyhow::anyhow!("integration test path has no UTF-8 file stem")
                 })?;
             assert!(
-                config.contains(binary),
-                "configs/rust/nextest.toml does not assign `{binary}` to the benchmark repository mutator group"
+                ["bench_", "config_", "dev_crates_", "fixtures_", "plan_validate_"]
+                    .iter()
+                    .any(|prefix| binary.starts_with(prefix)),
+                "repository-mutating integration binary `{binary}` escaped the full-profile prefix contract"
             );
         }
     }
 
     let unit_root = repo_root.join("crates/bijux-dna/src/commands/benchmark");
+    let mut mutating_unit_count = 0;
     for entry in walkdir::WalkDir::new(&unit_root)
         .into_iter()
         .filter_map(Result::ok)
@@ -150,28 +160,9 @@ fn nextest_full_profile_serializes_every_declared_benchmark_repository_mutator(
         if source.contains("RepoProcessLock::acquire")
             || source.contains("benchmark_readiness_test_lock(&root)")
         {
-            let module = entry
-                .path()
-                .strip_prefix(&unit_root)?
-                .with_extension("")
-                .to_string_lossy()
-                .replace(std::path::MAIN_SEPARATOR, "::");
-            let module_name =
-                entry.path().file_stem().and_then(|value| value.to_str()).ok_or_else(|| {
-                    anyhow::anyhow!("unit test source path has no UTF-8 file stem")
-                })?;
-            assert!(
-                config.contains(module_name),
-                "configs/rust/nextest.toml does not assign `{module}` unit tests to the benchmark repository mutator group"
-            );
+            mutating_unit_count += 1;
         }
     }
-
-    for module in ["local_vcf_demography_smoke", "local_vcf_ibd_smoke"] {
-        assert!(
-            config.contains(module),
-            "configs/rust/nextest.toml does not assign `{module}` output-locking tests to the benchmark repository mutator group"
-        );
-    }
+    assert!(mutating_unit_count > 0, "benchmark unit mutator inventory became vacuous");
     Ok(())
 }
