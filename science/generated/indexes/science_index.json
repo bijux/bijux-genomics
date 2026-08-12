@@ -21,37 +21,40 @@
   "decisions": 3,
   "bindings": 5,
   "releases": 1,
-  "fastq_container_reference_rows": 45,
-  "fastq_download_backlog_rows": 45,
+  "fastq_container_reference_rows": 46,
+  "fastq_download_backlog_rows": 46,
   "fastq_paper_archive_rows": 47,
-  "fastq_environment_rows": 90,
-  "fastq_closure_gate_rows": 90,
-  "fastq_truth_delta_rows": 31,
-  "fastq_missing_closure_prerequisite_rows": 137,
+  "fastq_environment_rows": 92,
+  "fastq_closure_gate_rows": 92,
+  "fastq_truth_delta_rows": 33,
+  "fastq_missing_closure_prerequisite_rows": 144,
   "fastq_default_binding_risk_rows": 27,
   "fastq_closure_summary": {
-    "total_rows": 90,
+    "total_rows": 92,
     "default_rows": 27,
     "world_class_closed_rows": 41,
-    "declared_closed_with_gaps_rows": 31,
+    "declared_closed_with_gaps_rows": 33,
     "not_closed_rows": 18,
     "blocking_reason_counts": {
       "missing_benchmark_support": 20,
-      "missing_container_ref": 4,
+      "missing_container_ref": 3,
       "missing_environment_qa_stage": 47,
-      "missing_paper_archive": 20,
+      "missing_paper_archive": 22,
+      "missing_paper_root": 2,
       "missing_runtime_surface": 4,
-      "missing_upstream_archive": 20,
+      "missing_upstream_archive": 22,
       "registry_not_production": 4,
+      "source_backlog_missing_evidence_map": 2,
       "stage_not_marked_closed": 18
     },
     "warning_reason_counts": {
-      "non_default_binding": 63,
+      "non_default_binding": 65,
       "planned_binding_not_admitted": 21
     }
   },
   "fastq_evidence_summary": {
     "backlog_status_counts": {
+      "missing_evidence_map": 1,
       "ready": 45
     },
     "paper_status_counts": {
@@ -65,12 +68,14 @@
     },
     "prerequisite_counts": {
       "missing_benchmark_support": 20,
-      "missing_container_ref": 4,
+      "missing_container_ref": 3,
       "missing_environment_qa_stage": 47,
-      "missing_paper_archive": 20,
+      "missing_paper_archive": 22,
+      "missing_paper_root": 2,
       "missing_runtime_surface": 4,
-      "missing_upstream_archive": 20,
+      "missing_upstream_archive": 22,
       "registry_not_production": 4,
+      "source_backlog_missing_evidence_map": 2,
       "stage_not_marked_closed": 18
     },
     "default_risk_counts": {
@@ -80,12 +85,14 @@
     },
     "truth_delta_reason_counts": {
       "missing_benchmark_support": 2,
-      "missing_container_ref": 4,
+      "missing_container_ref": 3,
       "missing_environment_qa_stage": 29,
-      "missing_paper_archive": 2,
+      "missing_paper_archive": 4,
+      "missing_paper_root": 2,
       "missing_runtime_surface": 4,
-      "missing_upstream_archive": 2,
-      "registry_not_production": 4
+      "missing_upstream_archive": 4,
+      "registry_not_production": 4,
+      "source_backlog_missing_evidence_map": 2
     }
   }
 }

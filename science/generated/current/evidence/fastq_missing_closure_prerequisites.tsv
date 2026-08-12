@@ -77,6 +77,10 @@ fastq.materialize_qc_manifest	bijux_dna	missing_environment_qa_stage	advisory	bi
 fastq.materialize_qc_manifest	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_paper_archive is resolved
 fastq.materialize_qc_manifest	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_upstream_archive is resolved
 fastq.materialize_qc_manifest	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until stage_not_marked_closed is resolved
+fastq.merge_pairs	seqprep	missing_paper_archive	advisory	seqprep cannot be treated as world-class closed for fastq.merge_pairs until missing_paper_archive is resolved
+fastq.merge_pairs	seqprep	missing_paper_root	advisory	seqprep cannot be treated as world-class closed for fastq.merge_pairs until missing_paper_root is resolved
+fastq.merge_pairs	seqprep	missing_upstream_archive	advisory	seqprep cannot be treated as world-class closed for fastq.merge_pairs until missing_upstream_archive is resolved
+fastq.merge_pairs	seqprep	source_backlog_missing_evidence_map	advisory	seqprep cannot be treated as world-class closed for fastq.merge_pairs until source_backlog_missing_evidence_map is resolved
 fastq.normalize_abundance	seqkit	missing_environment_qa_stage	blocking	seqkit cannot be treated as world-class closed for fastq.normalize_abundance until missing_environment_qa_stage is resolved
 fastq.normalize_primers	cutadapt	missing_environment_qa_stage	blocking	cutadapt cannot be treated as world-class closed for fastq.normalize_primers until missing_environment_qa_stage is resolved
 fastq.normalize_read_names	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until missing_benchmark_support is resolved
@@ -106,7 +110,6 @@ fastq.profile_read_lengths	seqfu	missing_environment_qa_stage	advisory	seqfu can
 fastq.profile_read_lengths	seqkit	missing_environment_qa_stage	blocking	seqkit cannot be treated as world-class closed for fastq.profile_read_lengths until missing_environment_qa_stage is resolved
 fastq.remove_chimeras	vsearch	missing_environment_qa_stage	blocking	vsearch cannot be treated as world-class closed for fastq.remove_chimeras until missing_environment_qa_stage is resolved
 fastq.remove_duplicates	clumpify	missing_environment_qa_stage	blocking	clumpify cannot be treated as world-class closed for fastq.remove_duplicates until missing_environment_qa_stage is resolved
-fastq.remove_duplicates	fastuniq	missing_container_ref	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_container_ref is resolved
 fastq.remove_duplicates	fastuniq	missing_environment_qa_stage	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_environment_qa_stage is resolved
 fastq.remove_duplicates	fastuniq	missing_runtime_surface	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_runtime_surface is resolved
 fastq.remove_duplicates	fastuniq	registry_not_production	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until registry_not_production is resolved
@@ -125,6 +128,10 @@ fastq.subsample_reads	bijux_dna	missing_upstream_archive	advisory	bijux_dna cann
 fastq.subsample_reads	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.subsample_reads until stage_not_marked_closed is resolved
 fastq.trim_polyg_tails	bbduk	missing_environment_qa_stage	advisory	bbduk cannot be treated as world-class closed for fastq.trim_polyg_tails until missing_environment_qa_stage is resolved
 fastq.trim_polyg_tails	fastp	missing_environment_qa_stage	blocking	fastp cannot be treated as world-class closed for fastq.trim_polyg_tails until missing_environment_qa_stage is resolved
+fastq.trim_reads	seqprep	missing_paper_archive	advisory	seqprep cannot be treated as world-class closed for fastq.trim_reads until missing_paper_archive is resolved
+fastq.trim_reads	seqprep	missing_paper_root	advisory	seqprep cannot be treated as world-class closed for fastq.trim_reads until missing_paper_root is resolved
+fastq.trim_reads	seqprep	missing_upstream_archive	advisory	seqprep cannot be treated as world-class closed for fastq.trim_reads until missing_upstream_archive is resolved
+fastq.trim_reads	seqprep	source_backlog_missing_evidence_map	advisory	seqprep cannot be treated as world-class closed for fastq.trim_reads until source_backlog_missing_evidence_map is resolved
 fastq.trim_reads	seqpurge	missing_container_ref	advisory	seqpurge cannot be treated as world-class closed for fastq.trim_reads until missing_container_ref is resolved
 fastq.trim_reads	seqpurge	missing_runtime_surface	advisory	seqpurge cannot be treated as world-class closed for fastq.trim_reads until missing_runtime_surface is resolved
 fastq.trim_reads	seqpurge	registry_not_production	advisory	seqpurge cannot be treated as world-class closed for fastq.trim_reads until registry_not_production is resolved
