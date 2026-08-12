@@ -131,6 +131,7 @@ struct LocalStageProof {
     observed_paths_by_id: BTreeMap<String, Vec<String>>,
     undeclared_stage_output_ids: Vec<String>,
     independent_execution_proven: bool,
+    execution_blocker: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -329,6 +330,16 @@ fn collect_fastq_bam_stage_proofs(
     declared_output_ids: &BTreeMap<FastqBamToolKey, FastqBamDeclaredOutputBundle>,
 ) -> Result<BTreeMap<FastqBamToolKey, LocalStageProof>> {
     let mut proofs = BTreeMap::<FastqBamToolKey, LocalStageProof>::new();
+    let external_artifact_bindings = load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .flat_map(|contract| {
+            contract
+                .stage_ids
+                .into_iter()
+                .filter(|stage_id| stage_id.starts_with("fastq.") || stage_id.starts_with("bam."))
+                .map(move |stage_id| (stage_id, contract.tool_id.clone()))
+        })
+        .collect::<BTreeSet<_>>();
     let stage_keys = declared_output_ids
         .keys()
         .map(|key| FastqBamStageKey { domain: key.domain.clone(), stage_id: key.stage_id.clone() })
@@ -341,6 +352,15 @@ fn collect_fastq_bam_stage_proofs(
                 for tool_key in declared_output_ids.keys().filter(|key| {
                     key.domain == stage_key.domain && key.stage_id == stage_key.stage_id
                 }) {
+                    if external_artifact_bindings
+                        .contains(&(tool_key.stage_id.clone(), tool_key.tool_id.clone()))
+                    {
+                        proofs.insert(
+                            tool_key.clone(),
+                            external_artifact_local_stage_proof(tool_key),
+                        );
+                        continue;
+                    }
                     let declared_bundle = declared_output_ids
                         .get(tool_key)
                         .expect("declared fastq/bam ids exist for blocked proof fallback");
@@ -369,6 +389,7 @@ fn collect_fastq_bam_stage_proofs(
                             observed_paths_by_id: BTreeMap::new(),
                             undeclared_stage_output_ids: Vec::new(),
                             independent_execution_proven: false,
+                            execution_blocker: None,
                         },
                     );
                 }
@@ -386,6 +407,12 @@ fn collect_fastq_bam_stage_proofs(
             .keys()
             .filter(|key| key.domain == stage_key.domain && key.stage_id == stage_key.stage_id)
         {
+            if external_artifact_bindings
+                .contains(&(tool_key.stage_id.clone(), tool_key.tool_id.clone()))
+            {
+                proofs.insert(tool_key.clone(), external_artifact_local_stage_proof(tool_key));
+                continue;
+            }
             let declared_bundle = declared_output_ids
                 .get(tool_key)
                 .expect("declared fastq/bam ids exist for collected proof");
@@ -468,11 +495,28 @@ fn collect_fastq_bam_stage_proofs(
                     observed_paths_by_id: BTreeMap::new(),
                     undeclared_stage_output_ids: Vec::new(),
                     independent_execution_proven: false,
+                    execution_blocker: None,
                 },
             );
         }
     }
     Ok(proofs)
+}
+
+fn external_artifact_local_stage_proof(tool_key: &FastqBamToolKey) -> LocalStageProof {
+    LocalStageProof {
+        proof_surface: PROOF_SURFACE_EXTERNAL_ARTIFACT_ADMISSION,
+        proof_path: "containers/contracts/catalog.toml".to_string(),
+        proof_tool_id: Some(tool_key.tool_id.clone()),
+        observed_ids: BTreeSet::new(),
+        observed_paths_by_id: BTreeMap::new(),
+        undeclared_stage_output_ids: Vec::new(),
+        independent_execution_proven: false,
+        execution_blocker: Some(format!(
+            "blocked_external_access: `{}` / `{}` requires a checksum-admitted operator-provided artifact before output execution proof can be collected",
+            tool_key.stage_id, tool_key.tool_id
+        )),
+    }
 }
 
 fn supports_direct_declared_output_proof(stage_id: &str) -> bool {
@@ -616,6 +660,7 @@ fn collect_local_stage_proof_from_plans(
         observed_paths_by_id,
         undeclared_stage_output_ids,
         independent_execution_proven,
+        execution_blocker: None,
     })
 }
 
@@ -683,6 +728,7 @@ fn collect_direct_declared_output_proof(
         observed_paths_by_id,
         undeclared_stage_output_ids: Vec::new(),
         independent_execution_proven: true,
+        execution_blocker: None,
     })
 }
 
@@ -875,7 +921,7 @@ fn build_row(
                 proof.observed_paths_by_id.clone(),
                 proof.undeclared_stage_output_ids.clone(),
                 proof.independent_execution_proven,
-                None,
+                proof.execution_blocker.clone(),
             )
         }
         "vcf" => {
@@ -1250,9 +1296,12 @@ mod tests {
             .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.blocked_row_count, 7);
+        assert_eq!(report.blocked_row_count, 11);
         assert_eq!(report.passed_row_count + report.blocked_row_count, report.row_count);
-        assert_eq!(report.blocked_tool_ids, ["angsd", "germline", "ibdne", "ibdseq", "impute5"]);
+        assert_eq!(
+            report.blocked_tool_ids,
+            ["angsd", "fastuniq", "germline", "ibdne", "ibdseq", "impute5", "ngsbriggs"]
+        );
         assert!(report.failed_stage_ids.is_empty());
         assert!(report.failed_tool_ids.is_empty());
         let external_artifact_rows = report
@@ -1260,7 +1309,7 @@ mod tests {
             .iter()
             .filter(|row| row.output_proof_surface == "external_artifact_admission")
             .collect::<Vec<_>>();
-        assert_eq!(external_artifact_rows.len(), 4);
+        assert_eq!(external_artifact_rows.len(), 8);
         assert!(external_artifact_rows.iter().all(|row| {
             !row.passed
                 && !row.independent_execution_proven
