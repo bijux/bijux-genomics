@@ -80,6 +80,12 @@ Model contracts:
 - `CorpusCentricCorpusReport`
 - `CorpusCentricStageRow`
 - `ReadinessComparisonContractStatus`
+- `AllDomainActiveStageToolMatrixReport`
+- `AllDomainActiveStageToolMatrixRow`
+- `AllDomainRetainedToolsReport`
+- `AllDomainRetainedToolRow`
+- `StageRegistryExtraPairsReport`
+- `StageRegistryExtraPairRow`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -239,6 +245,9 @@ Policy and diagnostics:
 - `STAGE_CENTRIC_REPORT_SCHEMA_V1`
 - `TOOL_CENTRIC_REPORT_SCHEMA_V1`
 - `CORPUS_CENTRIC_REPORT_SCHEMA_V1`
+- `ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1`
+- `ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1`
+- `STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1`
@@ -284,6 +293,9 @@ Schema derivation:
 - `stage_centric_report_schema`
 - `tool_centric_report_schema`
 - `corpus_centric_report_schema`
+- `all_domain_active_stage_tool_matrix_schema`
+- `all_domain_retained_tools_schema`
+- `stage_registry_extra_pairs_schema`
 - `governed_data_catalog_schema`
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
@@ -304,6 +316,9 @@ Schema derivation:
 - `validate_stage_centric_report`
 - `validate_tool_centric_report`
 - `validate_corpus_centric_report`
+- `validate_all_domain_active_stage_tool_matrix`
+- `validate_all_domain_retained_tools`
+- `validate_stage_registry_extra_pairs`
 - `validate_governed_data_catalog`
 - `validate_governed_data_catalog_registry`
 - `validate_benchmark_data_index`

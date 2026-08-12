@@ -81,6 +81,8 @@ mod mod_contracts_remediation_queue_rs;
 mod mod_contracts_replay_rs;
 #[path = "contracts/run_index.rs"]
 mod mod_contracts_run_index_rs;
+#[path = "contracts/scope_views.rs"]
+mod mod_contracts_scope_views_rs;
 #[path = "contracts/source_authority.rs"]
 mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]

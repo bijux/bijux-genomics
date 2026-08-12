@@ -178,6 +178,14 @@ views over the same stage-tool closure. The benchmark model owns nested identity
 tool and stage rosters, blocker lineage, metric applicability, and every aggregate;
 the CLI derives and renders only reports admitted by those contracts.
 
+`schemas/all-domain-active-stage-tool-matrix.schema.json`,
+`schemas/all-domain-retained-tools.schema.json`, and
+`schemas/stage-registry-extra-pairs.schema.json` define the benchmark scope
+closure, retained product tool roster, and registry drift view. The benchmark
+model requires all eight supported licensed bindings and validates identity,
+status, exception lineage, and aggregate closure before thin CLI writers persist
+TSV output.
+
 `schemas/published-results-status.schema.json` defines the persisted audit of
 published benchmark result mirrors. The benchmark model owns stage identity,
 completion and issue counters, result-root consistency, issue lineage, and the

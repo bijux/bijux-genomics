@@ -48,6 +48,7 @@ mod replay;
 mod report;
 mod run_index;
 mod schema_versions;
+mod scope_views;
 mod source_authority;
 mod stage_result;
 mod stage_tool_closure;
@@ -147,6 +148,7 @@ pub use run_index::{
     validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
 };
 pub use schema_versions::{
+    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
     BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
@@ -191,8 +193,12 @@ pub use schema_versions::{
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
-    STAGE_CENTRIC_REPORT_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
-    TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub use scope_views::{
+    validate_all_domain_active_stage_tool_matrix, validate_all_domain_retained_tools,
+    validate_stage_registry_extra_pairs,
 };
 pub use source_authority::validate_benchmark_data_source_spec;
 pub use stage_result::{

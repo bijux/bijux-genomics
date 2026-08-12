@@ -230,8 +230,7 @@ fn readiness_views_reject_nested_and_aggregate_drift() {
 #[test]
 fn readiness_views_preserve_declared_metric_order() {
     let mut stage = stage_report();
-    stage.stages[0].shared_metric_fields =
-        vec!["precision".to_string(), "accuracy".to_string()];
+    stage.stages[0].shared_metric_fields = vec!["precision".to_string(), "accuracy".to_string()];
     stage.stages[0].shared_metric_field_count = 2;
     assert!(validate_stage_centric_report(&stage).is_ok());
 }

@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "AllDomainRetainedToolRow": {
+      "additionalProperties": false,
+      "properties": {
+        "active_binding_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "active_stage_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "active_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "benchmark_ready_binding_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "benchmark_ready_stage_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "benchmark_ready_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "benchmark_statuses": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "domains",
+        "active_stage_count",
+        "benchmark_ready_stage_count",
+        "active_binding_count",
+        "benchmark_ready_binding_count",
+        "benchmark_statuses",
+        "active_stage_ids",
+        "benchmark_ready_stage_ids"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_matrix_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "benchmark_ready_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_tool_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "mixed_status_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "not_benchmark_ready_only_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainRetainedToolRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.retained_tool_inventory.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "active_matrix_tool_count",
+    "benchmark_ready_tool_count",
+    "mixed_status_tool_count",
+    "not_benchmark_ready_only_tool_count",
+    "domain_tool_counts",
+    "rows"
+  ],
+  "title": "AllDomainRetainedToolsReport",
+  "type": "object"
+}

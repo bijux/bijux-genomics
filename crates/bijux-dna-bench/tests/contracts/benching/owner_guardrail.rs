@@ -302,6 +302,11 @@ fn thin_cli_uses_model_owned_comparable_metric_contracts() {
             assert!(!source.contains(forbidden_type));
         }
         assert!(!source.contains(forbidden_schema));
+        if file_name == "all_domain_active_stage_tool_matrix.rs" {
+            for licensed_tool in ["\"angsd\"", "\"fastuniq\"", "\"impute5\"", "\"ngsbriggs\""] {
+                assert!(!source.contains(licensed_tool));
+            }
+        }
     }
 }
 
@@ -342,6 +347,42 @@ fn thin_cli_uses_model_owned_readiness_view_contracts() {
         ),
     ] {
         let source = fs::read_to_string(cli_root.join(file_name)).expect("read readiness command");
+        assert!(source.contains(validator));
+        for forbidden_type in forbidden_types {
+            assert!(!source.contains(forbidden_type));
+        }
+        assert!(!source.contains(forbidden_schema));
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_scope_view_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/readiness");
+    for (file_name, validator, forbidden_types, forbidden_schema) in [
+        (
+            "all_domain_active_stage_tool_matrix.rs",
+            "validate_all_domain_active_stage_tool_matrix",
+            [
+                "struct AllDomainActiveStageToolMatrixRow",
+                "struct AllDomainActiveStageToolMatrixReport",
+            ],
+            "bijux.bench.readiness.all_domain_active_stage_tool_matrix.v1",
+        ),
+        (
+            "all_domain_retained_tools.rs",
+            "validate_all_domain_retained_tools",
+            ["struct AllDomainRetainedToolRow", "struct AllDomainRetainedToolsReport"],
+            "bijux.bench.readiness.retained_tool_inventory.v1",
+        ),
+        (
+            "stage_registry_extra_pairs.rs",
+            "validate_stage_registry_extra_pairs",
+            ["struct StageRegistryExtraPairRow", "struct StageRegistryExtraPairsReport"],
+            "bijux.bench.readiness.stage_registry_extra_pairs.v1",
+        ),
+    ] {
+        let source = fs::read_to_string(cli_root.join(file_name)).expect("read scope-view command");
         assert!(source.contains(validator));
         for forbidden_type in forbidden_types {
             assert!(!source.contains(forbidden_type));
