@@ -10,7 +10,8 @@ Start with the [container operating guide](../README.md) for execution and the
 
 ## Independent support and artifact dimensions
 
-- **Product support** is catalog policy: `supported`, `retired`, or `excluded`.
+- **Product support** is [catalog policy](../contracts/catalog.toml): `supported`,
+  `retired`, or `excluded`.
 - **Artifact delivery** is `redistributable_image`, `external_artifact`,
   `private_site_build`, or `site_module`.
 - **Redistribution permission** records whether Bijux may publish the artifact
