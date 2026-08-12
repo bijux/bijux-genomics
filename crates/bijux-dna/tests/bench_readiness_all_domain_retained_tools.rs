@@ -60,7 +60,7 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         support::json_u64(&payload, "not_benchmark_ready_only_tool_count")
             .expect("not-ready-only tool count");
     assert_eq!(benchmark_ready_tool_count + not_benchmark_ready_only_tool_count, row_count);
-    assert_eq!(not_benchmark_ready_only_tool_count, 1);
+    assert_eq!(not_benchmark_ready_only_tool_count, 0);
 
     let domain_counts = payload
         .get("domain_tool_counts")
@@ -77,7 +77,7 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(external_tool_id)
                 && row.get("benchmark_statuses").and_then(serde_json::Value::as_array).is_some_and(
                     |statuses| {
-                        statuses.iter().any(|status| status.as_str() == Some("not_benchmark_ready"))
+                        statuses.iter().any(|status| status.as_str() == Some("benchmark_ready"))
                     },
                 )
         }));

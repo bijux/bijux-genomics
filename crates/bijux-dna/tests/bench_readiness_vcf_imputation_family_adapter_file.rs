@@ -54,7 +54,10 @@ fn bench_readiness_vcf_imputation_family_adapter_writes_governed_json_file() {
                 == Some("benchmark_ready")
         })
         .count();
-    assert_eq!(benchmark_ready_rows, 2, "beagle must remain the only benchmark-ready backend");
+    assert_eq!(
+        benchmark_ready_rows, 4,
+        "beagle and externally delivered IMPUTE5 must remain benchmark-ready backends"
+    );
 
     let minimac_row = rows
         .iter()

@@ -93,7 +93,7 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
                     == Some("fastq.trim_reads")
         })
         .expect("trim reads stage");
-    assert_eq!(trim_reads.get("tool_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(trim_reads.get("tool_count").and_then(serde_json::Value::as_u64), Some(14));
     assert_eq!(trim_reads.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         trim_reads.get("comparison_contract_status").and_then(serde_json::Value::as_str),

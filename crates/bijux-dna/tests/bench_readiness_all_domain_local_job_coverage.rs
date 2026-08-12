@@ -114,6 +114,10 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
         Some(11)
     );
     assert_eq!(
+        command_source_counts.get("vcf_angsd_adapter").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
         Some(4)
     );
@@ -125,7 +129,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(4)
     );
     assert_eq!(
         command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),
