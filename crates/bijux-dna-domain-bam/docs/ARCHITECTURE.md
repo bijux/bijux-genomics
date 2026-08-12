@@ -27,6 +27,7 @@ src/
 ## Responsibilities
 
 - `stage_specs/` owns the ordered BAM stage model and stage contract JSON.
+- `alignment.rs` owns the stable artifact boundary exchanged with cross-domain pipeline stages.
 - `params/` owns typed effective params and default parameter shapes.
 - `metrics/` owns typed metric models and deterministic parsers for small fixture formats.
 - `invariants/` owns BAM domain rules and verdict mapping.

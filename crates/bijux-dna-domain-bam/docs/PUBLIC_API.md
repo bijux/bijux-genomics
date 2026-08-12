@@ -12,6 +12,7 @@ Public modules exported from `src/lib.rs`:
 - types
 
 Primary stage-spec helpers:
+- `alignment::AlignmentBoundary`
 - `benchmark_corpus_assignment_for_stage_tool`
 - `governed_benchmark_stage_tool_bindings`
 - `BenchmarkCorpusFamily`
