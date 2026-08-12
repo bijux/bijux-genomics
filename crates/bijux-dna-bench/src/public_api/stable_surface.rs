@@ -2,17 +2,21 @@
 //! Stable public benchmark surface re-exported by the crate root.
 
 pub use crate::workflow::{
-    appraise_matrix_report, current_benchmark_matrix_timestamp, derive_bam_benchmark_campaign,
-    derive_benchmark_matrix, derive_cross_benchmark_campaign, derive_fastq_benchmark_campaign,
-    derive_hardening_benchmark_campaign, derive_vcf_benchmark_campaign,
-    hardening_queue_from_appraisal, load_appraisal_report, load_bam_benchmark_campaign_report,
-    load_benchmark_matrix_report, load_cross_benchmark_campaign_report,
-    load_fastq_benchmark_campaign_report, load_hardening_benchmark_campaign_report,
-    load_hardening_queue_report, load_vcf_benchmark_campaign_report, publish_appraisal_report,
+    appraise_matrix_report, choose_canonical_tool_id, current_benchmark_matrix_timestamp,
+    derive_bam_benchmark_campaign, derive_benchmark_matrix, derive_cross_benchmark_campaign,
+    derive_fastq_benchmark_campaign, derive_hardening_benchmark_campaign,
+    derive_vcf_benchmark_campaign, hardening_queue_from_appraisal,
+    legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases, load_appraisal_report,
+    load_bam_benchmark_campaign_report, load_benchmark_matrix_report,
+    load_cross_benchmark_campaign_report, load_fastq_benchmark_campaign_report,
+    load_hardening_benchmark_campaign_report, load_hardening_queue_report,
+    load_vcf_benchmark_campaign_report, normalize_tool_id, publish_appraisal_report,
     publish_bam_benchmark_campaign_report, publish_benchmark_matrix,
     publish_cross_benchmark_campaign_report, publish_fastq_benchmark_campaign_report,
     publish_hardening_benchmark_campaign_report, publish_hardening_queue_report,
-    publish_vcf_benchmark_campaign_report, BenchmarkMatrixRequest,
+    publish_vcf_benchmark_campaign_report, required_migration_stage_ids,
+    stage_set_contains_canonical_or_migration_alias, BenchmarkMatrixRequest,
+    LegacyBenchmarkStageAlias,
 };
 pub use bijux_dna_bench_model::{
     appraisal_report_schema, benchmark_matrix_report_schema, benchmark_stage_tool_closure_schema,

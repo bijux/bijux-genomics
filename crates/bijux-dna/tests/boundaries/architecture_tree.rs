@@ -103,7 +103,6 @@ fn dna_tree_matches_architecture_contract() {
     let benchmark_entries = dir_entries(&root.join("src/commands/benchmark"));
     let expected_benchmark: BTreeSet<_> = [
         "active_scope.rs",
-        "alias_inventory.rs",
         "benchmark_result_ids.rs",
         "config.rs",
         "corpus_fastq/",

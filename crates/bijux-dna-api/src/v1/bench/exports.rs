@@ -10,12 +10,13 @@ pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
     acquire_fastq_corpus, admit_checked_in_benchmark_campaign, appraise_matrix_report,
-    current_benchmark_matrix_timestamp, derive_bam_benchmark_campaign, derive_benchmark_matrix,
-    derive_cross_benchmark_campaign, derive_fastq_benchmark_campaign,
+    choose_canonical_tool_id, current_benchmark_matrix_timestamp, derive_bam_benchmark_campaign,
+    derive_benchmark_matrix, derive_cross_benchmark_campaign, derive_fastq_benchmark_campaign,
     derive_hardening_benchmark_campaign, derive_vcf_benchmark_campaign,
-    ensure_stage_campaign_attempts, hardening_queue_from_appraisal, load_appraisal_report,
+    ensure_stage_campaign_attempts, hardening_queue_from_appraisal,
+    legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases, load_appraisal_report,
     load_benchmark_matrix_report, load_checked_in_benchmark_campaign_plan,
-    materialize_checked_in_reference_bundle, materialize_fastq_corpus,
+    materialize_checked_in_reference_bundle, materialize_fastq_corpus, normalize_tool_id,
     plan_checked_in_benchmark_campaign, prepare_checked_in_benchmark_campaign,
     publish_appraisal_report, publish_bam_benchmark_campaign_report,
     publish_benchmark_campaign_report_with_presentation_authority, publish_benchmark_data_index,
@@ -23,7 +24,9 @@ pub use bijux_dna_bench::{
     publish_cross_benchmark_campaign_report, publish_fastq_benchmark_campaign_report,
     publish_governed_data_catalog_registry, publish_hardening_benchmark_campaign_report,
     publish_hardening_queue_report, publish_vcf_benchmark_campaign_report,
-    replay_checked_in_benchmark_publication, status_checked_in_benchmark_campaign,
+    replay_checked_in_benchmark_publication, required_migration_stage_ids,
+    stage_set_contains_canonical_or_migration_alias, status_checked_in_benchmark_campaign,
+    LegacyBenchmarkStageAlias,
 };
 use bijux_dna_bench::{
     admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,

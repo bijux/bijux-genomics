@@ -9,9 +9,9 @@ use super::tool_serving_map::{
     render_bam_tool_serving_map, render_fastq_tool_serving_map, DEFAULT_BAM_TOOL_SERVING_MAP_PATH,
     DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH,
 };
-use crate::commands::benchmark::alias_inventory::{choose_canonical_tool_id, normalize_tool_id};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use bijux_dna_api::v1::api::bench::{choose_canonical_tool_id, normalize_tool_id};
 
 pub(crate) const DEFAULT_TOOL_ID_NORMALIZATION_PATH: &str =
     "artifacts/benchmark-smoke/readiness/tool-id-normalization.tsv";
@@ -85,7 +85,9 @@ pub(crate) fn render_tool_id_normalization(
             continue;
         }
         let cluster_tool_ids = cluster.into_iter().collect::<Vec<_>>();
-        let canonical_tool_id = choose_canonical_tool_id(&cluster_tool_ids);
+        let Some(canonical_tool_id) = choose_canonical_tool_id(&cluster_tool_ids) else {
+            continue;
+        };
         let alias_tool_ids = cluster_tool_ids
             .iter()
             .filter(|tool_id| *tool_id != &canonical_tool_id)
@@ -175,7 +177,7 @@ mod tests {
         render_tool_id_normalization, DEFAULT_TOOL_ID_NORMALIZATION_PATH,
         TOOL_ID_NORMALIZATION_SCHEMA_VERSION,
     };
-    use crate::commands::benchmark::alias_inventory::normalize_tool_id;
+    use bijux_dna_api::v1::api::bench::normalize_tool_id;
 
     fn repo_root() -> PathBuf {
         crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
