@@ -96,6 +96,8 @@ pub const BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1: &str = "bijux.bench.local_s
 pub const BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1: &str =
     "bijux.bench.local_all_domain_stage_inventory.v1";
 pub const BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1: &str = "bijux.bench.local_hpc_job_graph.v1";
+pub const BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1: &str =
+    "bijux.bench.local_corpus_skip_report.v1";
 pub const BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1: &str =
     "bijux.bench.local_stage_manifest_completion.v1";
 pub const BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1: &str =

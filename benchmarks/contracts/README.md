@@ -113,6 +113,11 @@ and aggregate local benchmark stage inventories. The benchmark model owns
 domain membership, stage identity, cardinality, and exact domain-count closure;
 the CLI only loads reviewed matrices and publishes admitted records.
 
+`schemas/local-corpus-skip-report.schema.json` defines corpus incompatibility,
+replacement lineage, asset-backed stages, and planner-only dispositions. The
+benchmark model owns corpus references, distinct stage coverage, exact counters,
+and schema generation; the CLI only derives and publishes a validated report.
+
 `schemas/local-hpc-job-graph.schema.json` defines the persisted local HPC
 benchmark topology. The benchmark model owns job-kind identity, reciprocal edge
 closure, root derivation, topological ordering, and exact counters; the CLI only
