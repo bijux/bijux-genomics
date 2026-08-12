@@ -3,19 +3,26 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+
+use bijux_dna_api::v1::api::bench::{
+    derive_benchmark_local_readiness_status, validate_benchmark_local_summary,
+    BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalReadinessStatus as BenchLocalBenchmarkReadinessStatus,
+    BenchmarkLocalSummaryReport as BenchLocalBenchmarkSummaryReport,
+    BenchmarkLocalSummaryStage as BenchLocalBenchmarkSummaryStage,
+};
 
 use crate::commands::benchmark::local_stage_fake_runs::{
     fake_run_local_stage_commands, DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
 };
-use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
 use crate::commands::benchmark::local_stage_manifest_completion::{
     check_local_stage_manifest_completion, BenchLocalStageManifestCompletionEntry,
 };
 use crate::commands::benchmark::local_stage_output_completion::{
     check_local_stage_output_completion, BenchLocalStageOutputCompletionEntry,
 };
-use crate::commands::benchmark::local_stage_result_manifest::BenchStageResultStatus;
 use crate::commands::benchmark::local_stage_runtime_metrics::{
     collect_local_stage_runtime_metrics, BenchLocalStageRuntimeMetricEntry,
 };
@@ -37,64 +44,7 @@ const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/runtime-metrics.json";
 const DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/tool-comparison-template.tsv";
-const LOCAL_BENCHMARK_SUMMARY_SCHEMA_VERSION: &str = "bijux.bench.local_benchmark_summary.v1";
-
-#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum BenchLocalBenchmarkReadinessStatus {
-    Ready,
-    MissingManifest,
-    MissingOutputs,
-    MissingManifestAndOutputs,
-    Failed,
-}
-
-impl BenchLocalBenchmarkReadinessStatus {
-    fn as_str(self) -> &'static str {
-        match self {
-            Self::Ready => "ready",
-            Self::MissingManifest => "missing_manifest",
-            Self::MissingOutputs => "missing_outputs",
-            Self::MissingManifestAndOutputs => "missing_manifest_and_outputs",
-            Self::Failed => "failed",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalBenchmarkSummaryStage {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: LocalStageReadinessKind,
-    pub(crate) tool_id: String,
-    pub(crate) readiness_status: BenchLocalBenchmarkReadinessStatus,
-    pub(crate) manifest_exists: bool,
-    pub(crate) declared_output_count: usize,
-    pub(crate) present_output_count: usize,
-    pub(crate) missing_output_count: usize,
-    pub(crate) runtime_seconds: String,
-    pub(crate) runtime_status: String,
-    pub(crate) memory_mb: String,
-    pub(crate) output_metric: String,
-    pub(crate) failure_reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalBenchmarkSummaryReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) fake_run_root: String,
-    pub(crate) report_output_path: String,
-    pub(crate) markdown_output_path: String,
-    pub(crate) source_stage_command_manifest_path: String,
-    pub(crate) manifest_completion_report_path: String,
-    pub(crate) output_completion_report_path: String,
-    pub(crate) runtime_metrics_report_path: String,
-    pub(crate) tool_comparison_template_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) ready_stage_count: usize,
-    pub(crate) incomplete_stage_count: usize,
-    pub(crate) failed_stage_count: usize,
-    pub(crate) stages: Vec<BenchLocalBenchmarkSummaryStage>,
-}
+const LOCAL_BENCHMARK_SUMMARY_SCHEMA_VERSION: &str = BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1;
 
 pub(crate) fn run_render_benchmark_summary(
     args: &parse::BenchLocalRenderBenchmarkSummaryArgs,
@@ -220,7 +170,7 @@ pub(crate) fn render_local_benchmark_summary(
         .count();
 
     let report = BenchLocalBenchmarkSummaryReport {
-        schema_version: LOCAL_BENCHMARK_SUMMARY_SCHEMA_VERSION,
+        schema_version: LOCAL_BENCHMARK_SUMMARY_SCHEMA_VERSION.to_string(),
         fake_run_root: manifest_completion.fake_run_root,
         report_output_path: path_relative_to_repo(repo_root, &absolute_json_output_path),
         markdown_output_path: path_relative_to_repo(repo_root, &absolute_markdown_output_path),
@@ -236,6 +186,7 @@ pub(crate) fn render_local_benchmark_summary(
         stages,
     };
 
+    validate_benchmark_local_summary(&report)?;
     bijux_dna_infra::atomic_write_json(&absolute_json_output_path, &report)?;
     fs::write(&absolute_markdown_output_path, render_local_benchmark_summary_markdown(&report))
         .with_context(|| format!("write {}", absolute_markdown_output_path.display()))?;
@@ -253,43 +204,20 @@ fn build_summary_stage(
         stage_id: manifest_stage.stage_id.clone(),
         readiness_kind: manifest_stage.readiness_kind,
         tool_id: manifest_stage.tool_id.clone(),
-        readiness_status: summary_status(manifest_stage, output_stage, runtime_stage),
+        readiness_status: derive_benchmark_local_readiness_status(
+            manifest_stage.manifest_exists,
+            output_stage.missing_output_count,
+            runtime_stage.status,
+        ),
         manifest_exists: manifest_stage.manifest_exists,
         declared_output_count: output_stage.declared_output_count,
         present_output_count: output_stage.present_output_count,
         missing_output_count: output_stage.missing_output_count,
         runtime_seconds: comparison_stage.runtime_seconds.clone(),
-        runtime_status: runtime_status_label(&runtime_stage.status).to_string(),
+        runtime_status: runtime_stage.status,
         memory_mb: comparison_stage.memory_mb.clone(),
         output_metric: comparison_stage.output_metric.clone(),
         failure_reason: comparison_stage.failure_reason.clone(),
-    }
-}
-
-fn summary_status(
-    manifest_stage: &BenchLocalStageManifestCompletionEntry,
-    output_stage: &BenchLocalStageOutputCompletionEntry,
-    runtime_stage: &BenchLocalStageRuntimeMetricEntry,
-) -> BenchLocalBenchmarkReadinessStatus {
-    let missing_manifest = !manifest_stage.manifest_exists;
-    let missing_outputs = output_stage.missing_output_count > 0;
-    match (missing_manifest, missing_outputs, &runtime_stage.status) {
-        (true, true, _) => BenchLocalBenchmarkReadinessStatus::MissingManifestAndOutputs,
-        (true, false, _) => BenchLocalBenchmarkReadinessStatus::MissingManifest,
-        (false, true, _) => BenchLocalBenchmarkReadinessStatus::MissingOutputs,
-        (false, false, BenchStageResultStatus::Failed) => {
-            BenchLocalBenchmarkReadinessStatus::Failed
-        }
-        (false, false, BenchStageResultStatus::Succeeded) => {
-            BenchLocalBenchmarkReadinessStatus::Ready
-        }
-    }
-}
-
-fn runtime_status_label(status: &BenchStageResultStatus) -> &'static str {
-    match status {
-        BenchStageResultStatus::Succeeded => "succeeded",
-        BenchStageResultStatus::Failed => "failed",
     }
 }
 
@@ -384,7 +312,7 @@ mod tests {
         assert!(!report.stages.is_empty(), "benchmark summary should contain stage rows");
         assert!(report.stages.iter().all(|stage| {
             stage.readiness_status == BenchLocalBenchmarkReadinessStatus::Ready
-                && stage.runtime_status == "succeeded"
+                && stage.runtime_status.as_str() == "succeeded"
                 && stage.manifest_exists
                 && stage.missing_output_count == 0
         }));

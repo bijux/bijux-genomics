@@ -71,6 +71,20 @@ fn thin_cli_uses_model_owned_local_runtime_metrics_contract() {
     assert!(!contents.contains("bijux.bench.local_runtime_metrics.v1"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_local_benchmark_summary_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_benchmark_summary.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_summary"));
+    assert!(!contents.contains("struct BenchLocalBenchmarkSummaryStage"));
+    assert!(!contents.contains("struct BenchLocalBenchmarkSummaryReport"));
+    assert!(!contents.contains("bijux.bench.local_benchmark_summary.v1"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

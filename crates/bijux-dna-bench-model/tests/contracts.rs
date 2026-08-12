@@ -31,6 +31,8 @@ mod mod_contracts_data_portfolio_audit_rs;
 mod mod_contracts_domain_campaign_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
+#[path = "contracts/local_benchmark_summary.rs"]
+mod mod_contracts_local_benchmark_summary_rs;
 #[path = "contracts/local_runtime_metrics.rs"]
 mod mod_contracts_local_runtime_metrics_rs;
 #[path = "contracts/materialization.rs"]

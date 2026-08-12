@@ -101,6 +101,11 @@ validated local stage-result runtimes. The benchmark model owns readiness and
 runtime field vocabulary, cardinality and identity validation, and schema
 generation; the CLI only collects inputs and publishes the validated record.
 
+`schemas/local-benchmark-summary.schema.json` defines the persisted local
+readiness rollup. The benchmark model owns its stage and status vocabulary,
+source identities, counters, output cardinality validation, and generated
+schema; the CLI only joins validated source reports and renders JSON/Markdown.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and

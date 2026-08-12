@@ -14,6 +14,16 @@ pub enum BenchmarkStageResultStatus {
     Failed,
 }
 
+impl BenchmarkStageResultStatus {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Succeeded => "succeeded",
+            Self::Failed => "failed",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageResultTool {
