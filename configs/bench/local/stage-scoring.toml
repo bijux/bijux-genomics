@@ -3,7 +3,7 @@
 # purpose = Governed scoring policy for active benchmark stage comparisons.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-08-10
+# last_updated = 2026-08-12
 
 schema_version = "bijux.bench.local_stage_scoring.v1"
 active_stage_catalog_path = "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv"
@@ -543,8 +543,8 @@ domain = "bam"
 stage_id = "bam.damage"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 6
-benchmark_ready_tool_count = 6
+active_tool_count = 7
+benchmark_ready_tool_count = 7
 default_tool_id = "mapdamage2"
 benchmark_ready_tool_ids = [
     "addeam",
@@ -3003,6 +3003,7 @@ benchmark_ready_tool_ids = [
     "flash2",
     "leehom",
     "pear",
+    "seqprep",
     "vsearch",
 ]
 report_section_ids = ["read_cleanup"]
@@ -3023,7 +3024,7 @@ source_report_paths = [
 ]
 signal = "output_contract"
 metric_ids = []
-minimum_present_result_rows = 6
+minimum_present_result_rows = 7
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -3845,8 +3846,8 @@ domain = "fastq"
 stage_id = "fastq.trim_reads"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 13
-benchmark_ready_tool_count = 13
+active_tool_count = 14
+benchmark_ready_tool_count = 14
 default_tool_id = "fastp"
 benchmark_ready_tool_ids = [
     "adapterremoval",
@@ -3859,6 +3860,7 @@ benchmark_ready_tool_ids = [
     "leehom",
     "prinseq",
     "seqkit",
+    "seqprep",
     "skewer",
     "trim_galore",
     "trimmomatic",
@@ -3881,7 +3883,7 @@ source_report_paths = [
 ]
 signal = "output_contract"
 metric_ids = []
-minimum_present_result_rows = 13
+minimum_present_result_rows = 14
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]

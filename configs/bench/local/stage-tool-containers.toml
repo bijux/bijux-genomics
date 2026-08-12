@@ -771,6 +771,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "fastq"
 stage_id = "fastq.merge_pairs"
+tool_id = "seqprep"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqprep@sha256:c6ba7d2dc6016316cd112f24f64e275f31f09c4add1d88762ccd162192a5efc4"
+command_entrypoint = "seqprep"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
 tool_id = "vsearch"
 execution_mode = "containerized"
 install_kind = "container"
@@ -1076,6 +1086,16 @@ execution_mode = "containerized"
 install_kind = "container"
 container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
 command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "seqprep"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqprep@sha256:c6ba7d2dc6016316cd112f24f64e275f31f09c4add1d88762ccd162192a5efc4"
+command_entrypoint = "seqprep"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]

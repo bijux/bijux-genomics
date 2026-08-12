@@ -71,6 +71,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `local_index_reference_plan`
 - `local_index_reference_output_contract_plans`
 - `local_merge_pairs_smoke_plans`
+- `local_merge_pairs_output_contract_plans`
 - `local_normalize_abundance_smoke_plans`
 - `local_normalize_primers_smoke_plans`
 - `local_profile_overrepresented_sequences_smoke_plans`

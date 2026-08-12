@@ -350,7 +350,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
 
-    ensure_stage(stages, "fastq", "fastq.trim_reads", 13, 0, "not_declared", &[])?;
+    ensure_stage(stages, "fastq", "fastq.trim_reads", 14, 0, "not_declared", &[])?;
     ensure_stage(
         stages,
         "fastq",
@@ -581,7 +581,7 @@ mod tests {
             .iter()
             .find(|stage| stage.domain == "fastq" && stage.stage_id == "fastq.trim_reads")
             .expect("trim reads stage");
-        assert_eq!(trim_reads.tool_count, 13);
+        assert_eq!(trim_reads.tool_count, 14);
         assert_eq!(trim_reads.blocked_tool_count, 0);
         assert_eq!(trim_reads.comparison_contract_status, "not_declared");
 

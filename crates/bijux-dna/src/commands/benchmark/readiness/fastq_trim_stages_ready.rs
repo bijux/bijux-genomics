@@ -43,7 +43,7 @@ const CHECKED_SURFACE_COUNT: usize = 7;
 const REQUIRED_REPORT_SECTION_ID: &str = "read_cleanup";
 const REQUIRED_SUMMARY_TABLE_ID: &str = "cleanup_retention";
 
-const TRIM_READS_TOOL_IDS: [&str; 13] = [
+const TRIM_READS_TOOL_IDS: [&str; 14] = [
     "adapterremoval",
     "alientrimmer",
     "atropos",
@@ -54,6 +54,7 @@ const TRIM_READS_TOOL_IDS: [&str; 13] = [
     "leehom",
     "prinseq",
     "seqkit",
+    "seqprep",
     "skewer",
     "trim_galore",
     "trimmomatic",
@@ -774,14 +775,14 @@ mod tests {
 
         assert_eq!(report.schema_version, FASTQ_TRIM_STAGES_READY_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_FASTQ_TRIM_STAGES_READY_PATH);
-        assert_eq!(report.active_row_count, 18);
-        assert_eq!(report.complete_row_count, 18);
+        assert_eq!(report.active_row_count, 19);
+        assert_eq!(report.complete_row_count, 19);
         assert_eq!(report.incomplete_row_count, 0);
         assert_eq!(report.checked_surface_count, 7);
         assert_eq!(report.stage_count, 3);
         assert_eq!(report.violation_count, 0);
         assert!(report.ok);
-        assert_eq!(report.coverage_status_counts.get("complete"), Some(&18));
+        assert_eq!(report.coverage_status_counts.get("complete"), Some(&19));
 
         let row = report
             .rows

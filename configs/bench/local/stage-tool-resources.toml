@@ -771,6 +771,16 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "fastq"
 stage_id = "fastq.merge_pairs"
+tool_id = "seqprep"
+threads = 1
+memory_gb = 2
+walltime_minutes = 15
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
 tool_id = "vsearch"
 threads = 2
 memory_gb = 8
@@ -1081,6 +1091,16 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "fastq"
 stage_id = "fastq.trim_reads"
+tool_id = "seqprep"
+threads = 1
+memory_gb = 2
+walltime_minutes = 15
+scratch_gb = 1
+resource_origin = "tool_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
 tool_id = "skewer"
 threads = 1
 memory_gb = 1
@@ -1221,7 +1241,27 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.call_gl"
+tool_id = "angsd"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_gl"
 tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_pseudohaploid"
+tool_id = "angsd"
 threads = 2
 memory_gb = 4
 walltime_minutes = 20
@@ -1310,8 +1350,28 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+tool_id = "impute5"
+threads = 8
+memory_gb = 16
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
 stage_id = "vcf.impute"
 tool_id = "beagle"
+threads = 8
+memory_gb = 16
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+tool_id = "impute5"
 threads = 8
 memory_gb = 16
 walltime_minutes = 60

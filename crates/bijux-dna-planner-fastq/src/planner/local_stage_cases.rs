@@ -767,7 +767,7 @@ struct LocalInferAsvsSmokeCase {
     reads: PathBuf,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalMergePairsSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -1326,47 +1326,73 @@ pub fn local_normalize_abundance_smoke_plans(
 pub fn local_merge_pairs_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalMergePairsSmokeCasePlan>> {
+    build_local_merge_pairs_plans(repo_root, false)
+}
+
+/// Build one governed output-contract plan per supported `fastq.merge_pairs` tool and case.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or any supported tool cannot plan a compatible governed smoke case.
+pub fn local_merge_pairs_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalMergePairsSmokeCasePlan>> {
+    build_local_merge_pairs_plans(repo_root, true)
+}
+
+fn build_local_merge_pairs_plans(
+    repo_root: &Path,
+    include_all_supported_tools: bool,
+) -> Result<Vec<LocalMergePairsSmokeCasePlan>> {
     let config = load_local_merge_pairs_smoke_config(repo_root)?;
     ensure_unique_merge_pairs_sample_ids(&config.cases)?;
 
     let stage_id = StageId::new(STAGE_MERGE_PAIRS.as_str().to_string());
-    let tool_id = ToolId::try_from(config.tool_id.as_str())
-        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
-    let normalized_tools = select_merge_tools(std::slice::from_ref(&config.tool_id))?;
-    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
-        return Err(anyhow!(
-            "local-smoke fastq.merge_pairs tool selection normalized unexpectedly: {normalized_tools:?}"
-        ));
-    }
+    let mut tool_ids = if include_all_supported_tools {
+        allowed_tools_for_stage(&stage_id)
+    } else {
+        let tool_id = ToolId::try_from(config.tool_id.as_str()).map_err(|error| {
+            anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id)
+        })?;
+        let normalized_tools = select_merge_tools(std::slice::from_ref(&config.tool_id))?;
+        if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+            return Err(anyhow!(
+                "local-smoke fastq.merge_pairs tool selection normalized unexpectedly: {normalized_tools:?}"
+            ));
+        }
+        vec![tool_id]
+    };
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
 
-    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_smoke_threads(&mut tool_spec, config.threads);
     let output_root =
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_MERGE_PAIRS_OUTPUT_DIR));
     let merge_overlap = config.merge_overlap.unwrap_or(10).max(1);
     let min_length = config.min_length.unwrap_or(30).max(1);
     let unmerged_read_policy =
         resolve_local_merge_pairs_unmerged_read_policy(config.unmerged_read_policy.as_deref())?;
-    let plan_options = MergePlanOptions {
-        threads: Some(tool_spec.resources.threads.max(1)),
-        merge_overlap: Some(merge_overlap),
-        min_length: Some(min_length),
-        unmerged_read_policy: unmerged_read_policy.clone(),
-    };
-
-    config
-        .cases
-        .into_iter()
-        .map(|case| {
-            build_local_merge_pairs_smoke_case(
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        let tool_id = tool_spec.tool_id.as_str();
+        let plan_options = MergePlanOptions {
+            threads: Some(tool_spec.resources.threads.max(1)),
+            merge_overlap: (!matches!(tool_id, "leehom" | "seqprep")).then_some(merge_overlap),
+            min_length: matches!(tool_id, "adapterremoval" | "pear" | "vsearch" | "bbmerge")
+                .then_some(min_length),
+            unmerged_read_policy: unmerged_read_policy.clone(),
+        };
+        for case in &config.cases {
+            plans.push(build_local_merge_pairs_smoke_case(
                 repo_root,
                 &tool_spec,
                 &plan_options,
                 &output_root,
-                case,
-            )
-        })
-        .collect()
+                case.clone(),
+            )?);
+        }
+    }
+    Ok(plans)
 }
 
 /// # Errors

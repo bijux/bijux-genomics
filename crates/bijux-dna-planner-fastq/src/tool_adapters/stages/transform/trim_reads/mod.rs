@@ -1789,8 +1789,8 @@ mod tests {
         adapterremoval_command_template, alientrimmer_command_template, atropos_command_template,
         fastx_clipper_command_template, leehom_trim_command_template, plan, plan_with_options,
         seqprep_trim_command_template, skewer_trim_command_template, trim_backend_mode,
-        trim_galore_command_template, TrimPlanOptions, FALLBACK_TRIM_ADAPTER_R1,
-        FALLBACK_TRIM_ADAPTER_R2,
+        trim_galore_command_template, trim_plan_outputs, trim_plan_paths, TrimPlanOptions,
+        FALLBACK_TRIM_ADAPTER_R1, FALLBACK_TRIM_ADAPTER_R2,
     };
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
@@ -2026,6 +2026,18 @@ mod tests {
         assert!(script.contains("'-A' 'ACGTACGT' '-B' 'TGCATGCA' '-L' '30'"));
         assert!(!script.contains("'-s'"));
         assert!(script.contains("2> 'out/trim_report.seqprep.log'"));
+    }
+
+    #[test]
+    fn seqprep_trim_plan_declares_the_retained_backend_log() {
+        let paths = trim_plan_paths("seqprep", Path::new("out"), true).expect("SeqPrep paths");
+        let outputs = trim_plan_outputs("seqprep", &paths);
+        let raw = outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "raw_backend_report_txt")
+            .expect("retained SeqPrep backend log");
+        assert_eq!(raw.path, Path::new("out/trim_report.seqprep.log"));
+        assert!(raw.optional);
     }
 
     #[test]

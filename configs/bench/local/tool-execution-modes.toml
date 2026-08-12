@@ -3,7 +3,7 @@
 # purpose = Governed execution-mode classification for local FASTQ, BAM, and VCF benchmark tools.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-08-11
+# last_updated = 2026-08-12
 
 schema_version = "bijux.bench.local_tool_execution_modes.v1"
 classification_scope = "primary_operator_runtime"
@@ -69,6 +69,7 @@ tool_ids = [
   "seqfu",
   "seqkit",
   "seqkit_stats",
+  "seqprep",
   "seqtk",
   "shapeit5",
   "skewer",

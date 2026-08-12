@@ -290,6 +290,17 @@ pub fn local_merge_pairs_smoke_plans(
     crate::planner::local_merge_pairs_smoke_plans(repo_root)
 }
 
+/// Build governed output-contract plans for every supported `fastq.merge_pairs` tool.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or a supported tool cannot plan a compatible governed smoke case.
+pub fn local_merge_pairs_output_contract_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalMergePairsSmokeCasePlan>> {
+    crate::planner::local_merge_pairs_output_contract_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for `fastq.remove_duplicates`.
 ///
 /// # Errors

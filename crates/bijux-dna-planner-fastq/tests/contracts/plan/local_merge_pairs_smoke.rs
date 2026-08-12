@@ -85,7 +85,48 @@ fn local_merge_pairs_smoke_plans_use_governed_overlap_fixture() -> Result<()> {
 }
 
 #[test]
+fn local_merge_pairs_output_contract_plans_cover_every_supported_tool() -> Result<()> {
+    let repo_root = repo_root();
+    let plans =
+        bijux_dna_planner_fastq::stage_api::local_merge_pairs_output_contract_plans(&repo_root)?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from([
+            "adapterremoval",
+            "bbmerge",
+            "flash2",
+            "leehom",
+            "pear",
+            "seqprep",
+            "vsearch",
+        ])
+    );
+    assert_eq!(plans.len(), tool_ids.len());
+
+    let Some(seqprep) =
+        plans.iter().find(|case| case.plan.tool_id.as_str() == "seqprep")
+    else {
+        panic!("missing SeqPrep output-contract plan");
+    };
+    assert_eq!(seqprep.plan.effective_params["merge_overlap"], serde_json::Value::Null);
+    assert_eq!(seqprep.plan.effective_params["min_len"], serde_json::Value::Null);
+    assert!(seqprep
+        .plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "merged_reads"));
+    Ok(())
+}
+
+#[test]
 fn local_merge_pairs_smoke_stage_api_surface_stays_callable() {
     let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalMergePairsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_merge_pairs_smoke_plans;
+    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalMergePairsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_merge_pairs_output_contract_plans;
 }

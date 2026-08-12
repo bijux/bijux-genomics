@@ -21,6 +21,7 @@ pub(super) fn trim_raw_backend_output_path(tool_id: &str, out_dir: &Path) -> Opt
     match tool_id {
         "fastp" | "cutadapt" => Some(raw_backend_report_path(&report_json, tool_id, "json")),
         "bbduk" => Some(raw_backend_report_path(&report_json, tool_id, "stats.txt")),
+        "seqprep" => Some(raw_backend_report_path(&report_json, tool_id, "log")),
         _ => None,
     }
 }
@@ -35,6 +36,11 @@ pub(super) fn trim_raw_backend_output(tool_id: &str, report_json: &Path) -> Opti
         "bbduk" => Some(ArtifactRef::optional(
             ArtifactId::from_static("raw_backend_report_txt"),
             raw_backend_report_path(report_json, tool_id, "stats.txt"),
+            ArtifactRole::Log,
+        )),
+        "seqprep" => Some(ArtifactRef::optional(
+            ArtifactId::from_static("raw_backend_report_txt"),
+            raw_backend_report_path(report_json, tool_id, "log"),
             ArtifactRole::Log,
         )),
         _ => None,
