@@ -113,7 +113,10 @@ pub use local_slurm_dependency::{
     validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
     validate_benchmark_local_slurm_shell_syntax,
 };
-pub use local_slurm_submit::validate_benchmark_local_slurm_submit_manifest;
+pub use local_slurm_submit::{
+    validate_benchmark_local_all_domain_slurm_submit_manifest,
+    validate_benchmark_local_slurm_submit_manifest,
+};
 pub use local_stage_commands::validate_benchmark_local_stage_commands;
 pub use local_stage_completion::{
     validate_benchmark_local_stage_manifest_completion,
@@ -187,6 +190,7 @@ pub use schema_versions::{
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
     BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,

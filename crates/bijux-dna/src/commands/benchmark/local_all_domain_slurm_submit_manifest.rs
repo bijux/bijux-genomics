@@ -3,7 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_all_domain_slurm_submit_manifest,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalAllDomainSlurmSubmitJob as BenchLocalAllDomainSlurmSubmitJob,
+    BenchmarkLocalAllDomainSlurmSubmitManifest as BenchLocalAllDomainSlurmSubmitManifest,
+    BenchmarkLocalSlurmSubmitResources as BenchLocalAllDomainSlurmSubmitResources,
+};
 
 use super::local_all_domain_fake_runs::{declared_output_ids, output_relative_path};
 use super::local_all_domain_result_paths::{
@@ -24,50 +32,8 @@ use crate::commands::benchmark::path_resolution::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_VERSION: &str =
-    "bijux.bench.local_all_domain_slurm_submit_manifest.v1";
-
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH: &str =
     "runs/bench/slurm-dry-run/all-domains/submit-manifest.json";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalAllDomainSlurmSubmitManifest {
-    pub(crate) schema_version: &'static str,
-    pub(crate) root_path: String,
-    pub(crate) manifest_path: String,
-    pub(crate) run_id: String,
-    pub(crate) job_count: usize,
-    pub(crate) dependency_count: usize,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) essential_pipeline_job_count: usize,
-    pub(crate) jobs: Vec<BenchLocalAllDomainSlurmSubmitJob>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalAllDomainSlurmSubmitJob {
-    pub(crate) job_id_local: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) node_id: Option<String>,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) script_path: String,
-    pub(crate) stdout: String,
-    pub(crate) stderr: String,
-    pub(crate) outputs: Vec<String>,
-    pub(crate) dependencies: Vec<String>,
-    pub(crate) resources: BenchLocalAllDomainSlurmSubmitResources,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalAllDomainSlurmSubmitResources {
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-}
 
 struct PipelineNodeContext {
     default_corpus_id: String,
@@ -144,7 +110,7 @@ pub(crate) fn render_all_domain_slurm_submit_manifest(
 
     let dependency_count = jobs.iter().map(|job| job.dependencies.len()).sum::<usize>();
     let manifest = BenchLocalAllDomainSlurmSubmitManifest {
-        schema_version: LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1.to_string(),
         root_path: path_relative_to_repo(repo_root, &absolute_root),
         manifest_path: path_relative_to_repo(repo_root, &absolute_output),
         run_id: LOCAL_ALL_DOMAIN_SLURM_RUN_ID.to_string(),
@@ -155,7 +121,7 @@ pub(crate) fn render_all_domain_slurm_submit_manifest(
         jobs,
     };
 
-    ensure_all_domain_slurm_submit_manifest_contract(&manifest)?;
+    validate_benchmark_local_all_domain_slurm_submit_manifest(&manifest)?;
 
     if let Some(parent) = absolute_output.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -420,40 +386,6 @@ fn parse_dependency_node_ids_comment(repo_root: &Path, script_path: &Path) -> Re
         "all-domain slurm submit manifest requires a dependency header comment in {}",
         script_path.display()
     ))
-}
-
-fn ensure_all_domain_slurm_submit_manifest_contract(
-    manifest: &BenchLocalAllDomainSlurmSubmitManifest,
-) -> Result<()> {
-    if manifest.job_count != manifest.benchmark_job_count + manifest.essential_pipeline_job_count {
-        return Err(anyhow!(
-            "all-domain slurm submit manifest must keep job_count equal to benchmark jobs plus essential pipeline jobs"
-        ));
-    }
-    let unique_job_ids =
-        manifest.jobs.iter().map(|job| job.job_id_local.as_str()).collect::<BTreeSet<_>>();
-    if unique_job_ids.len() != manifest.jobs.len() {
-        return Err(anyhow!(
-            "all-domain slurm submit manifest must keep one unique local job id per job"
-        ));
-    }
-    for job in &manifest.jobs {
-        if job.outputs.is_empty() {
-            return Err(anyhow!(
-                "all-domain slurm submit manifest job `{}` must declare at least one output",
-                job.job_id_local
-            ));
-        }
-        for dependency in &job.dependencies {
-            if !unique_job_ids.contains(dependency.as_str()) {
-                return Err(anyhow!(
-                    "all-domain slurm submit manifest job `{}` references unknown dependency `{dependency}`",
-                    job.job_id_local
-                ));
-            }
-        }
-    }
-    Ok(())
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {

@@ -5,8 +5,44 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     BenchmarkLocalStageArtifactEntry, BenchmarkLocalStageReadinessKind,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
 };
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkLocalAllDomainSlurmSubmitManifest {
+    #[schemars(schema_with = "all_domain_schema_version")]
+    pub schema_version: String,
+    pub root_path: String,
+    pub manifest_path: String,
+    pub run_id: String,
+    pub job_count: usize,
+    pub dependency_count: usize,
+    pub benchmark_job_count: usize,
+    pub essential_pipeline_job_count: usize,
+    pub jobs: Vec<BenchmarkLocalAllDomainSlurmSubmitJob>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkLocalAllDomainSlurmSubmitJob {
+    pub job_id_local: String,
+    pub domain: String,
+    pub stage_id: String,
+    pub pipeline_id: Option<String>,
+    pub node_id: Option<String>,
+    pub tool_id: String,
+    pub corpus_id: String,
+    pub asset_profile_id: String,
+    pub result_id: Option<String>,
+    pub script_path: String,
+    pub stdout: String,
+    pub stderr: String,
+    pub outputs: Vec<String>,
+    pub dependencies: Vec<String>,
+    pub resources: BenchmarkLocalSlurmSubmitResources,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -63,9 +99,21 @@ pub fn benchmark_local_slurm_submit_manifest_schema() -> Schema {
     schemars::schema_for!(BenchmarkLocalSlurmSubmitManifest)
 }
 
+#[must_use]
+pub fn benchmark_local_all_domain_slurm_submit_manifest_schema() -> Schema {
+    schemars::schema_for!(BenchmarkLocalAllDomainSlurmSubmitManifest)
+}
+
 fn schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
+    })
+}
+
+fn all_domain_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
     })
 }

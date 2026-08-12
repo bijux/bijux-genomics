@@ -182,6 +182,11 @@ jobs, resources, logs, artifact outputs, sample scopes, and dependency edges.
 The benchmark model owns these records, their generated schema, and admission
 closure; the CLI only projects admitted plans into one-shot submission inputs.
 
+`schemas/local-all-domain-slurm-submit-manifest.schema.json` extends that
+authority across benchmark-result and essential-pipeline jobs. The model owns
+job-kind identity, resource, output, count, and dependency closure; the CLI
+only resolves governed benchmark and pipeline inputs into the shared record.
+
 `schemas/local-stage-commands.schema.json` defines persisted stage commands,
 argument vectors, resource ceilings, and input/output artifact projections.
 The benchmark model owns these records, their schema, identity uniqueness, and

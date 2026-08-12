@@ -16,8 +16,9 @@ pub use crate::contract::{
     validate_benchmark_corpus_dossier_summary, validate_benchmark_data_index,
     validate_benchmark_data_portfolio_audit, validate_benchmark_data_source_spec,
     validate_benchmark_dossier_index, validate_benchmark_essential_pipeline_readiness,
-    validate_benchmark_evidence_book, validate_benchmark_local_all_domain_stage_inventory,
-    validate_benchmark_local_corpus_run, validate_benchmark_local_corpus_skip_report,
+    validate_benchmark_evidence_book, validate_benchmark_local_all_domain_slurm_submit_manifest,
+    validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_corpus_run,
+    validate_benchmark_local_corpus_skip_report,
     validate_benchmark_local_corpus_stage_compatibility_report,
     validate_benchmark_local_hpc_asset_staging_manifest, validate_benchmark_local_hpc_job_graph,
     validate_benchmark_local_hpc_result_collection_simulation_report,
@@ -72,6 +73,7 @@ pub use crate::contract::{
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
     BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,
@@ -292,7 +294,9 @@ pub use crate::model::local_slurm_dependency::{
     BenchmarkLocalSlurmShellSyntaxReport,
 };
 pub use crate::model::local_slurm_submit::{
-    benchmark_local_slurm_submit_manifest_schema, BenchmarkLocalSlurmSubmitJob,
+    benchmark_local_all_domain_slurm_submit_manifest_schema,
+    benchmark_local_slurm_submit_manifest_schema, BenchmarkLocalAllDomainSlurmSubmitJob,
+    BenchmarkLocalAllDomainSlurmSubmitManifest, BenchmarkLocalSlurmSubmitJob,
     BenchmarkLocalSlurmSubmitLogs, BenchmarkLocalSlurmSubmitManifest,
     BenchmarkLocalSlurmSubmitResources,
 };

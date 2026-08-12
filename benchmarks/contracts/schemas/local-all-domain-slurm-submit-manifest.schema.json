@@ -1,0 +1,164 @@
+{
+  "$defs": {
+    "BenchmarkLocalAllDomainSlurmSubmitJob": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "outputs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resources": {
+          "$ref": "#/$defs/BenchmarkLocalSlurmSubmitResources"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stderr": {
+          "type": "string"
+        },
+        "stdout": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id_local",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "script_path",
+        "stdout",
+        "stderr",
+        "outputs",
+        "dependencies",
+        "resources"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalSlurmSubmitResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus_per_task": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "memory_mb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "time_limit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpus_per_task",
+        "memory_mb",
+        "time_limit"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "essential_pipeline_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "jobs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalAllDomainSlurmSubmitJob"
+      },
+      "type": "array"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "root_path": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_all_domain_slurm_submit_manifest.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "root_path",
+    "manifest_path",
+    "run_id",
+    "job_count",
+    "dependency_count",
+    "benchmark_job_count",
+    "essential_pipeline_job_count",
+    "jobs"
+  ],
+  "title": "BenchmarkLocalAllDomainSlurmSubmitManifest",
+  "type": "object"
+}

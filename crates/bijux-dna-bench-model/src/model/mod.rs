@@ -296,7 +296,9 @@ pub use local_slurm_dependency::{
 };
 #[allow(unused_imports)]
 pub use local_slurm_submit::{
-    benchmark_local_slurm_submit_manifest_schema, BenchmarkLocalSlurmSubmitJob,
+    benchmark_local_all_domain_slurm_submit_manifest_schema,
+    benchmark_local_slurm_submit_manifest_schema, BenchmarkLocalAllDomainSlurmSubmitJob,
+    BenchmarkLocalAllDomainSlurmSubmitManifest, BenchmarkLocalSlurmSubmitJob,
     BenchmarkLocalSlurmSubmitLogs, BenchmarkLocalSlurmSubmitManifest,
     BenchmarkLocalSlurmSubmitResources,
 };
