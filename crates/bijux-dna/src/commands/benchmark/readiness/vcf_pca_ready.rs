@@ -15,7 +15,9 @@ use super::vcf_eigensoft_adapter::{
     collect_vcf_eigensoft_adapter_rows_for_tool, VcfEigensoftAdapterArtifact,
     VcfEigensoftAdapterRow, DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH,
 };
-use super::vcf_expected_benchmark_results::DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH;
+use super::vcf_expected_benchmark_results::{
+    collect_vcf_expected_benchmark_result_rows, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH,
+};
 use super::vcf_parser_fixture_coverage::{
     collect_vcf_parser_fixture_coverage_rows, VcfParserFixtureCoverageRow,
     VcfParserFixtureCoverageStatus, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH,
@@ -26,7 +28,7 @@ use super::vcf_plink_family_adapter::{
 };
 use super::vcf_rendered_command_rows::VcfRenderedCommandRow;
 use super::vcf_rendered_commands::VcfRenderedCommandsReport;
-use super::vcf_report_map::DEFAULT_VCF_REPORT_MAP_PATH;
+use super::vcf_report_map::{collect_vcf_report_map_rows, DEFAULT_VCF_REPORT_MAP_PATH};
 use crate::commands::benchmark::local_slurm_run_paths::LOCAL_SLURM_DRY_RUN_RUN_ID;
 use crate::commands::benchmark::local_vcf_pca_smoke::{
     run_local_vcf_pca_smoke, LocalVcfPcaSmokeReport, LocalVcfPcaSmokeRow,
@@ -743,56 +745,40 @@ fn render_vcf_pca_command_argv_jsonl(rows: &[VcfRenderedCommandRow]) -> Result<S
 fn collect_vcf_pca_expected_result_proofs(
     repo_root: &Path,
 ) -> Result<Vec<VcfPcaExpectedResultProof>> {
-    let path = repo_root.join(DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let mut rows = Vec::new();
-    for (index, line) in raw.lines().enumerate() {
-        if index == 0 || line.trim().is_empty() {
-            continue;
-        }
-        let columns = line.split('\t').collect::<Vec<_>>();
-        if columns.len() != 8 || columns[0] != "vcf" || columns[1] != VCF_PCA_STAGE_ID {
-            continue;
-        }
-        rows.push(VcfPcaExpectedResultProof {
+    Ok(collect_vcf_expected_benchmark_result_rows(repo_root)?
+        .into_iter()
+        .filter(|row| row.domain == "vcf" && row.stage_id == VCF_PCA_STAGE_ID)
+        .map(|row| {
+            VcfPcaExpectedResultProof {
             result_id: crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
                 "vcf",
-                columns[3],
-                columns[1],
-                columns[4],
-                columns[2],
+                &row.corpus_id,
+                &row.stage_id,
+                &row.asset_profile_id,
+                &row.tool_id,
             ),
-            tool_id: columns[2].to_string(),
-            corpus_id: columns[3].to_string(),
-            asset_profile_id: columns[4].to_string(),
-            expected_outputs: split_csv(columns[5]),
-            expected_metrics: split_csv(columns[6]),
-            report_section: columns[7].to_string(),
-        });
-    }
-    Ok(rows)
+            tool_id: row.tool_id,
+            corpus_id: row.corpus_id,
+            asset_profile_id: row.asset_profile_id,
+            expected_outputs: row.expected_outputs,
+            expected_metrics: row.expected_metrics,
+            report_section: row.report_section,
+        }
+        })
+        .collect())
 }
 
 fn collect_vcf_pca_report_map_proofs(repo_root: &Path) -> Result<Vec<VcfPcaReportMapProof>> {
-    let path = repo_root.join(DEFAULT_VCF_REPORT_MAP_PATH);
-    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let mut rows = Vec::new();
-    for (index, line) in raw.lines().enumerate() {
-        if index == 0 || line.trim().is_empty() {
-            continue;
-        }
-        let columns = line.split('\t').collect::<Vec<_>>();
-        if columns.len() != 6 || columns[0] != VCF_PCA_STAGE_ID {
-            continue;
-        }
-        rows.push(VcfPcaReportMapProof {
-            tool_id: columns[1].to_string(),
-            section_id: columns[2].to_string(),
-            summary_table: columns[3].to_string(),
-            metric_columns: split_csv(columns[4]),
-        });
-    }
-    Ok(rows)
+    Ok(collect_vcf_report_map_rows(repo_root)?
+        .into_iter()
+        .filter(|row| row.stage_id == VCF_PCA_STAGE_ID)
+        .map(|row| VcfPcaReportMapProof {
+            tool_id: row.tool_id,
+            section_id: row.section_id,
+            summary_table: row.summary_table,
+            metric_columns: row.metric_columns,
+        })
+        .collect())
 }
 
 fn pca_smoke_matches_governed_contract(report: &LocalVcfPcaSmokeReport) -> bool {
@@ -1002,14 +988,6 @@ fn artifact_id(entry: &str) -> &str {
 
 fn is_index_artifact(path: &str) -> bool {
     path.ends_with(".tbi") || path.ends_with(".csi") || path.ends_with(".fai")
-}
-
-fn split_csv(raw: &str) -> Vec<String> {
-    raw.split(',')
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToString::to_string)
-        .collect()
 }
 
 fn required_metric_names() -> Vec<String> {
