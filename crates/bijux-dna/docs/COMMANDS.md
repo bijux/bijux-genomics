@@ -2111,8 +2111,9 @@ Visible aliases are part of the operator surface:
   selected-job, asset-staging, execution-resolver, and resource-hint surfaces, then selects the
   smallest dependency-free benchmark representative for each admitted `(domain, execution_mode)`
   pair. The manifest proves the first HPC candidate run stays limited to small jobs with known
-  assets, known execution mode, expected outputs, and explicit stop conditions while excluding VCF
-  rows until their execution modes are governed.
+  assets, known execution mode, expected outputs, and explicit stop conditions. Rows whose
+  execution modes remain unknown are excluded; a fully governed domain does not need to retain a
+  synthetic unknown-mode exclusion for this proof to pass.
 - `bijux-dna bench local validate-hpc-candidate-run-manifest`
   `validate-hpc-candidate-run-manifest` reloads
   `artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json` and rebuilds the expected representative
