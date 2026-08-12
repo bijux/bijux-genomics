@@ -3,7 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_asset_staging_manifest, BenchmarkLocalHpcAssetStagingInput,
+    BenchmarkLocalHpcAssetStagingJob, BenchmarkLocalHpcAssetStagingManifest,
+    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1,
+};
+use serde::Deserialize;
 
 use super::local_hpc_input_discovery::{
     collect_local_hpc_job_source_inputs, collect_local_hpc_stage_input_hints, materialize_stage_id,
@@ -15,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_asset_staging_manifest.v1";
+    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH: &str =
     "runs/bench/hpc-dry-run/asset-staging-manifest.json";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
@@ -23,40 +28,9 @@ const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
 const DEFAULT_HPC_RENDERED_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.sh";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcAssetStagingManifest {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) staging_root: String,
-    pub(crate) selected_job_count: usize,
-    pub(crate) staged_input_count: usize,
-    pub(crate) unique_source_path_count: usize,
-    pub(crate) jobs: Vec<LocalHpcAssetStagingJob>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcAssetStagingJob {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) staged_inputs: Vec<LocalHpcAssetStagingInput>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcAssetStagingInput {
-    pub(crate) artifact_id: Option<String>,
-    pub(crate) artifact_role: Option<String>,
-    pub(crate) source_kind: String,
-    pub(crate) source_path: String,
-    pub(crate) staged_path: String,
-    pub(crate) checksum_sha256: String,
-    pub(crate) size_bytes: u64,
-    pub(crate) member_count: usize,
-    pub(crate) consumer_result_id: String,
-}
+pub(crate) type LocalHpcAssetStagingManifest = BenchmarkLocalHpcAssetStagingManifest;
+pub(crate) type LocalHpcAssetStagingJob = BenchmarkLocalHpcAssetStagingJob;
+pub(crate) type LocalHpcAssetStagingInput = BenchmarkLocalHpcAssetStagingInput;
 
 #[derive(Debug, Clone, Deserialize)]
 struct RenderedCommandArgvStepFileRow {
@@ -72,41 +46,6 @@ struct RenderedCommandArgvFileRow {
     corpus_id: String,
     asset_profile_id: String,
     command_steps: Vec<RenderedCommandArgvStepFileRow>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcAssetStagingManifest {
-    schema_version: String,
-    output_path: String,
-    staging_root: String,
-    selected_job_count: usize,
-    staged_input_count: usize,
-    unique_source_path_count: usize,
-    jobs: Vec<LoadedLocalHpcAssetStagingJob>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcAssetStagingJob {
-    result_id: String,
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    corpus_id: String,
-    asset_profile_id: String,
-    staged_inputs: Vec<LoadedLocalHpcAssetStagingInput>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcAssetStagingInput {
-    artifact_id: Option<String>,
-    artifact_role: Option<String>,
-    source_kind: String,
-    source_path: String,
-    staged_path: String,
-    checksum_sha256: String,
-    size_bytes: u64,
-    member_count: usize,
-    consumer_result_id: String,
 }
 
 pub(crate) fn run_render_hpc_asset_staging_manifest(
@@ -174,52 +113,9 @@ pub(crate) fn load_validated_hpc_asset_staging_manifest_path(
     };
     let raw = fs::read_to_string(&absolute_manifest_path)
         .with_context(|| format!("read {}", absolute_manifest_path.display()))?;
-    let loaded = serde_json::from_str::<LoadedLocalHpcAssetStagingManifest>(&raw)
+    let manifest = serde_json::from_str::<LocalHpcAssetStagingManifest>(&raw)
         .with_context(|| format!("parse {}", absolute_manifest_path.display()))?;
-    if loaded.schema_version != LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "HPC asset staging manifest `{}` uses schema `{}` instead of `{}`",
-            absolute_manifest_path.display(),
-            loaded.schema_version,
-            LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION
-        ));
-    }
-    let manifest = LocalHpcAssetStagingManifest {
-        schema_version: LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
-        output_path: loaded.output_path,
-        staging_root: loaded.staging_root,
-        selected_job_count: loaded.selected_job_count,
-        staged_input_count: loaded.staged_input_count,
-        unique_source_path_count: loaded.unique_source_path_count,
-        jobs: loaded
-            .jobs
-            .into_iter()
-            .map(|job| LocalHpcAssetStagingJob {
-                result_id: job.result_id,
-                domain: job.domain,
-                stage_id: job.stage_id,
-                tool_id: job.tool_id,
-                corpus_id: job.corpus_id,
-                asset_profile_id: job.asset_profile_id,
-                staged_inputs: job
-                    .staged_inputs
-                    .into_iter()
-                    .map(|input| LocalHpcAssetStagingInput {
-                        artifact_id: input.artifact_id,
-                        artifact_role: input.artifact_role,
-                        source_kind: input.source_kind,
-                        source_path: input.source_path,
-                        staged_path: input.staged_path,
-                        checksum_sha256: input.checksum_sha256,
-                        size_bytes: input.size_bytes,
-                        member_count: input.member_count,
-                        consumer_result_id: input.consumer_result_id,
-                    })
-                    .collect(),
-            })
-            .collect(),
-    };
-    ensure_manifest_contract(&manifest)?;
+    validate_benchmark_local_hpc_asset_staging_manifest(&manifest)?;
     let expected_output_path = path_relative_to_repo(repo_root, &absolute_manifest_path);
     if manifest.output_path != expected_output_path {
         return Err(anyhow!(
@@ -308,7 +204,7 @@ fn build_hpc_asset_staging_manifest(
     });
 
     let manifest = LocalHpcAssetStagingManifest {
-        schema_version: LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
+        schema_version: LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, absolute_output),
         staging_root: path_relative_to_repo(repo_root, &staging_root),
         selected_job_count: jobs.len(),
@@ -316,7 +212,7 @@ fn build_hpc_asset_staging_manifest(
         unique_source_path_count: unique_source_paths.len(),
         jobs,
     };
-    ensure_manifest_contract(&manifest)?;
+    validate_benchmark_local_hpc_asset_staging_manifest(&manifest)?;
     Ok(manifest)
 }
 
@@ -386,55 +282,6 @@ fn to_staged_input(
         member_count: input.source_asset.member_count,
         consumer_result_id: consumer_result_id.to_string(),
     })
-}
-
-fn ensure_manifest_contract(manifest: &LocalHpcAssetStagingManifest) -> Result<()> {
-    if manifest.selected_job_count != manifest.jobs.len() {
-        return Err(anyhow!(
-            "HPC asset staging manifest must keep selected_job_count aligned with jobs"
-        ));
-    }
-    if manifest.staged_input_count
-        != manifest.jobs.iter().map(|job| job.staged_inputs.len()).sum::<usize>()
-    {
-        return Err(anyhow!(
-            "HPC asset staging manifest must keep staged_input_count aligned with staged inputs"
-        ));
-    }
-
-    let mut unique_sources = BTreeSet::new();
-    for job in &manifest.jobs {
-        if job.staged_inputs.is_empty() {
-            return Err(anyhow!(
-                "HPC asset staging manifest job `{}` must keep at least one staged input",
-                job.result_id
-            ));
-        }
-        for input in &job.staged_inputs {
-            if input.consumer_result_id != job.result_id {
-                return Err(anyhow!(
-                    "HPC asset staging input `{}` drifted from consumer result `{}`",
-                    input.source_path,
-                    job.result_id
-                ));
-            }
-            if input.source_path == input.staged_path {
-                return Err(anyhow!(
-                    "HPC asset staging input `{}` must resolve to a distinct staged path",
-                    input.source_path
-                ));
-            }
-            unique_sources.insert(input.source_path.as_str());
-        }
-    }
-
-    if manifest.unique_source_path_count != unique_sources.len() {
-        return Err(anyhow!(
-            "HPC asset staging manifest must keep unique_source_path_count aligned with source paths"
-        ));
-    }
-
-    Ok(())
 }
 
 fn ensure_manifest_matches_expected(

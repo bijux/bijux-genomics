@@ -129,6 +129,12 @@ benchmark topology. The benchmark model owns job-kind identity, reciprocal edge
 closure, root derivation, topological ordering, and exact counters; the CLI only
 constructs the graph from selected jobs and admits it before use.
 
+`schemas/local-hpc-asset-staging.schema.json` defines persisted source and
+staged asset identity for each selected local HPC job. The benchmark model owns
+source kinds, checksums, shared-source consistency, consumer lineage,
+repository containment, canonical ordering, and exact counters; the CLI only
+discovers repository inputs and assembles the validated manifest.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,

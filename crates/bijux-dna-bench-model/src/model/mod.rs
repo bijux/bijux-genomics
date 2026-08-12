@@ -21,6 +21,7 @@ pub mod lifecycle;
 pub mod local_benchmark_summary;
 pub mod local_corpus_skip;
 pub mod local_corpus_stage_compatibility;
+pub mod local_hpc_asset_staging;
 pub mod local_hpc_result_collection_simulation;
 pub mod local_hpc_scratch_layout;
 pub mod local_runtime_metrics;
@@ -198,6 +199,11 @@ pub use local_corpus_skip::{
 pub use local_corpus_stage_compatibility::{
     benchmark_local_corpus_stage_compatibility_schema, BenchmarkLocalCorpusStageCompatibilityEntry,
     BenchmarkLocalCorpusStageCompatibilityReport, BenchmarkLocalCorpusStageValidatedFixture,
+};
+#[allow(unused_imports)]
+pub use local_hpc_asset_staging::{
+    benchmark_local_hpc_asset_staging_schema, BenchmarkLocalHpcAssetStagingInput,
+    BenchmarkLocalHpcAssetStagingJob, BenchmarkLocalHpcAssetStagingManifest,
 };
 #[allow(unused_imports)]
 pub use local_hpc_result_collection_simulation::{
