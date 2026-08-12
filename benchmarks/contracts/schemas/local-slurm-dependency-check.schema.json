@@ -1,0 +1,122 @@
+{
+  "$defs": {
+    "BenchmarkLocalSlurmDependencyCheckJob": {
+      "additionalProperties": false,
+      "properties": {
+        "dependency_source": {
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "job_name": {
+          "type": "string"
+        },
+        "manifest_dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "script_header_dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "job_name",
+        "script_path",
+        "manifest_dependencies",
+        "script_header_dependencies",
+        "dependency_source",
+        "ok",
+        "findings"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "findings_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "jobs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalSlurmDependencyCheckJob"
+      },
+      "type": "array"
+    },
+    "manifest_dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "report_findings": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "report_path": {
+      "type": "string"
+    },
+    "root_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_slurm_dependency_check.v1",
+      "type": "string"
+    },
+    "script_header_dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "root_path",
+    "manifest_path",
+    "report_path",
+    "job_count",
+    "manifest_dependency_count",
+    "script_header_dependency_count",
+    "findings_count",
+    "ok",
+    "report_findings",
+    "jobs"
+  ],
+  "title": "BenchmarkLocalSlurmDependencyCheckReport",
+  "type": "object"
+}

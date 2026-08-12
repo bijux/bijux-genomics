@@ -160,6 +160,12 @@ model owns its schema identity, deterministic ordering, child admission, and
 aggregate closure; the CLI only discovers declarations and writes the admitted
 set.
 
+`schemas/local-slurm-dependency-check.schema.json` defines persisted scheduler
+dependency-source evidence. The benchmark model owns its record types, schema
+identity, source classification, per-job verdicts, uniqueness, and aggregate
+closure; the CLI only reads rendered scripts and manifests, validates the
+derived record, and writes it.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated

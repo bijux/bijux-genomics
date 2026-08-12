@@ -32,6 +32,7 @@ pub mod local_hpc_result_collection_simulation;
 pub mod local_hpc_scratch_layout;
 pub mod local_pipeline_dag;
 pub mod local_runtime_metrics;
+pub mod local_slurm_dependency;
 pub mod local_stage_completion;
 pub mod local_stage_inventory;
 pub mod local_vcf_smoke;
@@ -282,6 +283,11 @@ pub use local_pipeline_dag::{
 pub use local_runtime_metrics::{
     benchmark_local_runtime_metrics_schema, BenchmarkLocalStageReadinessKind,
     BenchmarkLocalStageRuntimeMetric, BenchmarkLocalStageRuntimeMetricsReport,
+};
+#[allow(unused_imports)]
+pub use local_slurm_dependency::{
+    benchmark_local_slurm_dependency_check_schema, BenchmarkLocalSlurmDependencyCheckJob,
+    BenchmarkLocalSlurmDependencyCheckReport,
 };
 #[allow(unused_imports)]
 pub use local_stage_completion::{

@@ -3,43 +3,21 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_slurm_dependency_check,
+    BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalSlurmDependencyCheckJob as BenchLocalSlurmDependencyCheckJob,
+    BenchmarkLocalSlurmDependencyCheckReport as BenchLocalSlurmDependencyCheckReport,
+};
+use serde::Deserialize;
 
 use crate::commands::benchmark::path_resolution::{
     ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-
-const LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_VERSION: &str =
-    "bijux.bench.local_slurm_dependency_check.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmDependencyCheckReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) root_path: String,
-    pub(crate) manifest_path: String,
-    pub(crate) report_path: String,
-    pub(crate) job_count: usize,
-    pub(crate) manifest_dependency_count: usize,
-    pub(crate) script_header_dependency_count: usize,
-    pub(crate) findings_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) report_findings: Vec<String>,
-    pub(crate) jobs: Vec<BenchLocalSlurmDependencyCheckJob>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmDependencyCheckJob {
-    pub(crate) job_name: String,
-    pub(crate) stage_id: Option<String>,
-    pub(crate) script_path: String,
-    pub(crate) manifest_dependencies: Vec<String>,
-    pub(crate) script_header_dependencies: Vec<String>,
-    pub(crate) dependency_source: String,
-    pub(crate) ok: bool,
-    pub(crate) findings: Vec<String>,
-}
 
 #[derive(Debug, Clone, Deserialize)]
 struct BenchLocalSlurmSubmitManifestRecord {
@@ -128,7 +106,7 @@ pub(crate) fn validate_slurm_dependencies(
     let ok = findings_count == 0;
 
     let report = BenchLocalSlurmDependencyCheckReport {
-        schema_version: LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1.to_string(),
         root_path: path_relative_to_repo(repo_root, &absolute_root),
         manifest_path: path_relative_to_repo(repo_root, &absolute_manifest),
         report_path: path_relative_to_repo(repo_root, &absolute_report),
@@ -140,6 +118,7 @@ pub(crate) fn validate_slurm_dependencies(
         report_findings,
         jobs,
     };
+    validate_benchmark_local_slurm_dependency_check(&report)?;
 
     if let Some(parent) = absolute_report.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;

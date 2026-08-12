@@ -161,6 +161,19 @@ fn thin_cli_uses_model_owned_local_pipeline_dag_validation_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_local_slurm_dependency_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_dependency_check.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+    assert!(contents.contains("validate_benchmark_local_slurm_dependency_check"));
+    assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckReport {"));
+    assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckJob {"));
+    assert!(!contents.contains("bijux.bench.local_slurm_dependency_check.v1"));
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_stage_completion_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     for (file_name, validator, forbidden) in [
