@@ -208,6 +208,7 @@ fn dna_tree_matches_architecture_contract() {
         "repo_checks.rs",
         "schema_paths.rs",
         "schema_validation.rs",
+        "scratch_repository.rs",
         "stage_catalog.rs",
         "suite/",
         "taxonomy_database.rs",
