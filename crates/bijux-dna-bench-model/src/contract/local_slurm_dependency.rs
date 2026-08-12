@@ -4,12 +4,16 @@
 use std::collections::BTreeSet;
 
 use crate::{
-    model::{BenchmarkLocalSlurmDependencyCheckReport, BenchmarkLocalSlurmShellSyntaxReport},
+    model::{
+        BenchmarkLocalSlurmDependencyCheckReport, BenchmarkLocalSlurmDryRunReport,
+        BenchmarkLocalSlurmShellSyntaxReport,
+    },
     BenchError,
 };
 
 use super::{
-    BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1,
 };
 
 /// Validate persisted Slurm dependency-source evidence and its aggregate closure.
@@ -106,6 +110,91 @@ pub fn validate_benchmark_local_slurm_shell_syntax(
         if entry.ok != entry.findings.is_empty() {
             return invalid("local Slurm shell-syntax entry verdict drifted");
         }
+    }
+    Ok(())
+}
+
+/// Validate persisted one-shot Slurm script-rendering evidence.
+///
+/// # Errors
+/// Returns an error when identity, resource, path, or aggregate invariants drift.
+pub fn validate_benchmark_local_slurm_dry_run(
+    report: &BenchmarkLocalSlurmDryRunReport,
+) -> Result<(), BenchError> {
+    if report.schema_version != BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1 {
+        return invalid("unsupported local Slurm dry-run schema");
+    }
+    if !matches!(report.domain.as_str(), "fastq" | "bam") {
+        return invalid("local Slurm dry-run domain must be fastq or bam");
+    }
+    require_text(&report.output_root, "output_root")?;
+    if report.scripts.is_empty() || report.script_count != report.scripts.len() {
+        return invalid("local Slurm dry-run script aggregate does not close");
+    }
+
+    let mut stage_ids = BTreeSet::new();
+    let mut script_paths = BTreeSet::new();
+    let mut result_roots = BTreeSet::new();
+    let mut manifest_paths = BTreeSet::new();
+    let expected_stage_prefix = format!("{}.", report.domain);
+    let expected_script_prefix = format!("{}/", report.output_root.trim_end_matches('/'));
+    for script in &report.scripts {
+        for (field, value) in [
+            ("scripts[].stage_id", script.stage_id.as_str()),
+            ("scripts[].tool_id", script.tool_id.as_str()),
+            ("scripts[].time_limit", script.time_limit.as_str()),
+            ("scripts[].script_path", script.script_path.as_str()),
+            ("scripts[].stdout_path", script.stdout_path.as_str()),
+            ("scripts[].stderr_path", script.stderr_path.as_str()),
+            ("scripts[].result_root", script.result_root.as_str()),
+            ("scripts[].stage_result_manifest_path", script.stage_result_manifest_path.as_str()),
+            ("scripts[].command", script.command.as_str()),
+        ] {
+            require_text(value, field)?;
+        }
+        if !script.stage_id.starts_with(&expected_stage_prefix) {
+            return invalid("local Slurm dry-run stage lies outside its domain");
+        }
+        if script.cpus_per_task == 0 || script.memory_mb == 0 {
+            return invalid("local Slurm dry-run resources must be positive");
+        }
+        validate_slurm_time_limit(&script.time_limit)?;
+        if !script.script_path.starts_with(&expected_script_prefix)
+            || !script.script_path.ends_with(".sbatch")
+        {
+            return invalid("local Slurm dry-run script path lies outside its output root");
+        }
+        if script.stdout_path == script.stderr_path
+            || script.stdout_path
+                != format!("{}/stdout.log", script.result_root.trim_end_matches('/'))
+            || script.stderr_path
+                != format!("{}/stderr.log", script.result_root.trim_end_matches('/'))
+            || script.stage_result_manifest_path
+                != format!("{}/stage-result.json", script.result_root.trim_end_matches('/'))
+        {
+            return invalid("local Slurm dry-run result paths are inconsistent");
+        }
+        if !stage_ids.insert(script.stage_id.as_str())
+            || !script_paths.insert(script.script_path.as_str())
+            || !result_roots.insert(script.result_root.as_str())
+            || !manifest_paths.insert(script.stage_result_manifest_path.as_str())
+        {
+            return invalid("local Slurm dry-run repeats a persisted identity");
+        }
+    }
+    Ok(())
+}
+
+fn validate_slurm_time_limit(value: &str) -> Result<(), BenchError> {
+    let parts = value.split(':').collect::<Vec<_>>();
+    if parts.len() != 3
+        || parts
+            .iter()
+            .any(|part| part.len() != 2 || !part.bytes().all(|byte| byte.is_ascii_digit()))
+        || parts[1].parse::<u8>().map_or(true, |minutes| minutes >= 60)
+        || parts[2].parse::<u8>().map_or(true, |seconds| seconds >= 60)
+    {
+        return invalid("local Slurm dry-run time limit must use HH:MM:SS");
     }
     Ok(())
 }

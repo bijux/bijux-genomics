@@ -286,9 +286,11 @@ pub use local_runtime_metrics::{
 };
 #[allow(unused_imports)]
 pub use local_slurm_dependency::{
-    benchmark_local_slurm_dependency_check_schema, benchmark_local_slurm_shell_syntax_schema,
-    BenchmarkLocalSlurmDependencyCheckJob, BenchmarkLocalSlurmDependencyCheckReport,
-    BenchmarkLocalSlurmShellSyntaxEntry, BenchmarkLocalSlurmShellSyntaxReport,
+    benchmark_local_slurm_dependency_check_schema, benchmark_local_slurm_dry_run_schema,
+    benchmark_local_slurm_shell_syntax_schema, BenchmarkLocalSlurmDependencyCheckJob,
+    BenchmarkLocalSlurmDependencyCheckReport, BenchmarkLocalSlurmDryRunReport,
+    BenchmarkLocalSlurmScriptEntry, BenchmarkLocalSlurmShellSyntaxEntry,
+    BenchmarkLocalSlurmShellSyntaxReport,
 };
 #[allow(unused_imports)]
 pub use local_stage_completion::{

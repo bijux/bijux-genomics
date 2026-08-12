@@ -172,6 +172,11 @@ record types, schema identity, per-script verdicts, uniqueness, and aggregate
 closure; the CLI only discovers scripts, executes the bounded syntax check,
 validates the derived record, and writes it.
 
+`schemas/local-slurm-dry-run.schema.json` defines the persisted one-shot Slurm
+script-rendering record. The benchmark model owns domain identity, readiness
+vocabulary, resource and path invariants, uniqueness, aggregate closure, and
+the generated schema; the CLI only derives run paths and writes script bodies.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated

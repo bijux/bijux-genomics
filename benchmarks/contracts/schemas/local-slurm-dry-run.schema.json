@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "BenchmarkLocalSlurmScriptEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "cpus_per_task": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "memory_mb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "result_root": {
+          "type": "string"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_result_manifest_path": {
+          "type": "string"
+        },
+        "stderr_path": {
+          "type": "string"
+        },
+        "stdout_path": {
+          "type": "string"
+        },
+        "time_limit": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "tool_id",
+        "readiness_kind",
+        "cpus_per_task",
+        "memory_mb",
+        "time_limit",
+        "script_path",
+        "stdout_path",
+        "stderr_path",
+        "result_root",
+        "stage_result_manifest_path",
+        "command"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string"
+    },
+    "output_root": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_slurm_dry_run.v1",
+      "type": "string"
+    },
+    "script_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "scripts": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalSlurmScriptEntry"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "domain",
+    "output_root",
+    "script_count",
+    "scripts"
+  ],
+  "title": "BenchmarkLocalSlurmDryRunReport",
+  "type": "object"
+}
