@@ -11,7 +11,7 @@ pub(super) fn fastq_analysis_tools() -> BTreeMap<StageId, ToolId> {
         ),
         (
             StageId::from_static("fastq.profile_read_lengths"),
-            ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
+            ToolId::from_static(id_catalog::TOOL_SEQKIT),
         ),
         (
             StageId::from_static("fastq.profile_overrepresented_sequences"),
