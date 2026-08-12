@@ -1,4 +1,4 @@
-use crate::cross::angsd_genotyping_params;
+use crate::cross::bam_genotyping_params;
 use crate::cross::bam_to_vcf::merged_defaults::default_base_defaults;
 use crate::cross::bam_to_vcf::required_stages::required_cross_stages;
 use crate::cross::workflow_registry::cross_workflow_templates_for_pipeline;
@@ -29,9 +29,9 @@ pub fn bam_to_vcf_default_profile() -> PipelineProfile {
     );
     defaults.tools.insert(
         StageId::from_static("bam.genotyping"),
-        ToolId::from_static(id_catalog::TOOL_ANGSD),
+        ToolId::from_static(id_catalog::TOOL_BCFTOOLS),
     );
-    defaults.params.insert(StageId::from_static("bam.genotyping"), angsd_genotyping_params());
+    defaults.params.insert(StageId::from_static("bam.genotyping"), bam_genotyping_params());
     defaults.rationales.insert(
         StageId::from_static("bam.genotyping"),
         "cross-domain BAM-to-VCF calling defaults".to_string(),
