@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use bijux_dna_domain_bam::alignment::AlignmentBoundary;
 
 #[test]
-fn alignment_boundary_round_trips_all_governed_fields() -> anyhow::Result<()> {
+fn alignment_contract_round_trips_all_governed_fields() -> anyhow::Result<()> {
     let boundary = AlignmentBoundary {
         bam_path: "results/sample/align.bam".to_string(),
         bai_path: Some("results/sample/align.bam.bai".to_string()),
@@ -23,7 +23,7 @@ fn alignment_boundary_round_trips_all_governed_fields() -> anyhow::Result<()> {
 }
 
 #[test]
-fn alignment_boundary_defaults_optional_fields_and_rejects_unknown_fields() -> anyhow::Result<()> {
+fn alignment_contract_defaults_optional_fields_and_rejects_unknown_fields() -> anyhow::Result<()> {
     let minimal: AlignmentBoundary = serde_json::from_value(serde_json::json!({
         "bam_path": "results/sample/align.bam"
     }))?;

@@ -119,7 +119,8 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
 }
 
 #[test]
-fn licensed_external_vcf_tools_require_admission_identity_instead_of_repository_recipes() {
+fn policy__contracts__vcf_image_smoke_policy__licensed_external_vcf_tools_require_admission_identity_instead_of_repository_recipes(
+) {
     let row: toml::Value = toml::from_str(
         r#"
 artifact_delivery = "external_artifact"
@@ -154,7 +155,8 @@ apptainer_def = "containers/apptainer/forbidden.def"
 }
 
 #[test]
-fn vcf_tools_may_declare_one_supported_runtime_with_its_recipe() {
+fn policy__contracts__vcf_image_smoke_policy__vcf_tools_may_declare_one_supported_runtime_with_its_recipe(
+) {
     let root = support::workspace_root();
     let apptainer_only: toml::Value = toml::from_str(
         r#"
