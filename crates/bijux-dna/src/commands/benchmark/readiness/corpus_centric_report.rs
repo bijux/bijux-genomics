@@ -3,7 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_corpus_centric_report, CORPUS_CENTRIC_REPORT_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    CorpusCentricCorpusReport, CorpusCentricReport, CorpusCentricStageRow,
+};
 
 use super::bam_corpus_assignment::collect_bam_corpus_assignment_rows;
 use super::fastq_corpus_assignment::{
@@ -15,55 +20,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_CENTRIC_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/corpus-centric-report.md";
-const CORPUS_CENTRIC_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.corpus_centric_report.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct CorpusCentricStageRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) canonical_stage_rank: usize,
-    pub(crate) fixture_ids: Vec<String>,
-    pub(crate) report_section_id: String,
-    pub(crate) report_section_title: String,
-    pub(crate) summary_table_id: String,
-    pub(crate) summary_table_title: String,
-    pub(crate) comparison_contract_status: String,
-    pub(crate) shared_metric_field_count: usize,
-    pub(crate) shared_metric_fields: Vec<String>,
-    pub(crate) tool_count: usize,
-    pub(crate) benchmark_ready_tool_count: usize,
-    pub(crate) blocked_tool_count: usize,
-    pub(crate) tool_ids: Vec<String>,
-    pub(crate) blocked_tool_ids: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct CorpusCentricCorpusReport {
-    pub(crate) corpus_family_id: String,
-    pub(crate) domains: Vec<String>,
-    pub(crate) fixture_ids: Vec<String>,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_row_count: usize,
-    pub(crate) benchmark_ready_tool_row_count: usize,
-    pub(crate) blocked_stage_count: usize,
-    pub(crate) blocked_stage_ids: Vec<String>,
-    pub(crate) stages: Vec<CorpusCentricStageRow>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct CorpusCentricReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) corpus_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_row_count: usize,
-    pub(crate) benchmark_ready_tool_row_count: usize,
-    pub(crate) blocked_tool_row_count: usize,
-    pub(crate) blocked_corpus_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) corpus_stage_counts: BTreeMap<String, usize>,
-    pub(crate) corpora: Vec<CorpusCentricCorpusReport>,
-}
 
 pub(crate) fn run_render_corpus_centric_report(
     args: &parse::BenchReadinessRenderCorpusCentricReportArgs,
@@ -104,14 +60,9 @@ pub(crate) fn render_corpus_centric_report(
         }
     }
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_corpus_centric_markdown(&corpora))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(CorpusCentricReport {
-        schema_version: CORPUS_CENTRIC_REPORT_SCHEMA_VERSION,
+    let rendered = render_corpus_centric_markdown(&corpora);
+    let report = CorpusCentricReport {
+        schema_version: CORPUS_CENTRIC_REPORT_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         corpus_count,
         stage_count,
@@ -122,7 +73,14 @@ pub(crate) fn render_corpus_centric_report(
         domain_counts,
         corpus_stage_counts,
         corpora,
-    })
+    };
+    validate_corpus_centric_report(&report).context("validate corpus-centric report")?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, rendered)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 fn collect_corpus_centric_corpora(repo_root: &Path) -> Result<Vec<CorpusCentricCorpusReport>> {
@@ -456,7 +414,7 @@ fn render_corpus_centric_markdown(corpora: &[CorpusCentricCorpusReport]) -> Stri
         rendered.push_str("| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |\n");
         for stage in &corpus.stages {
             let shared_metric_summary = if stage.shared_metric_fields.is_empty() {
-                stage.comparison_contract_status.clone()
+                stage.comparison_contract_status.to_string()
             } else {
                 stage.shared_metric_fields.join(", ")
             };

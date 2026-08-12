@@ -305,6 +305,51 @@ fn thin_cli_uses_model_owned_comparable_metric_contracts() {
     }
 }
 
+#[test]
+fn thin_cli_uses_model_owned_readiness_view_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/readiness");
+    for (file_name, validator, forbidden_types, forbidden_schema) in [
+        (
+            "stage_centric_report.rs",
+            "validate_stage_centric_report",
+            [
+                "struct StageCentricToolRow",
+                "struct StageCentricStageReport",
+                "struct StageCentricReport",
+            ],
+            "bijux.bench.readiness.stage_centric_report.v1",
+        ),
+        (
+            "tool_centric_report.rs",
+            "validate_tool_centric_report",
+            [
+                "struct ToolCentricStageRow",
+                "struct ToolCentricToolReport",
+                "struct ToolCentricReport",
+            ],
+            "bijux.bench.readiness.tool_centric_report.v1",
+        ),
+        (
+            "corpus_centric_report.rs",
+            "validate_corpus_centric_report",
+            [
+                "struct CorpusCentricStageRow",
+                "struct CorpusCentricCorpusReport",
+                "struct CorpusCentricReport",
+            ],
+            "bijux.bench.readiness.corpus_centric_report.v1",
+        ),
+    ] {
+        let source = fs::read_to_string(cli_root.join(file_name)).expect("read readiness command");
+        assert!(source.contains(validator));
+        for forbidden_type in forbidden_types {
+            assert!(!source.contains(forbidden_type));
+        }
+        assert!(!source.contains(forbidden_schema));
+    }
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

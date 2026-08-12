@@ -171,6 +171,13 @@ stage and tool coverage, shared-metric status, aggregate closure, and VCF metric
 direction semantics; the CLI only derives domain rows and writes them after
 validation.
 
+`schemas/stage-centric-report.schema.json`,
+`schemas/tool-centric-report.schema.json`, and
+`schemas/corpus-centric-report.schema.json` define the complementary readiness
+views over the same stage-tool closure. The benchmark model owns nested identity,
+tool and stage rosters, blocker lineage, metric applicability, and every aggregate;
+the CLI derives and renders only reports admitted by those contracts.
+
 `schemas/published-results-status.schema.json` defines the persisted audit of
 published benchmark result mirrors. The benchmark model owns stage identity,
 completion and issue counters, result-root consistency, issue lineage, and the

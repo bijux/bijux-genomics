@@ -70,6 +70,16 @@ Model contracts:
 - `BamComparableMetricsRow`
 - `VcfComparableMetricsReport`
 - `VcfComparableMetricsRow`
+- `StageCentricReport`
+- `StageCentricStageReport`
+- `StageCentricToolRow`
+- `ToolCentricReport`
+- `ToolCentricToolReport`
+- `ToolCentricStageRow`
+- `CorpusCentricReport`
+- `CorpusCentricCorpusReport`
+- `CorpusCentricStageRow`
+- `ReadinessComparisonContractStatus`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -226,6 +236,9 @@ Policy and diagnostics:
 - `FASTQ_COMPARABLE_METRICS_SCHEMA_V1`
 - `BAM_COMPARABLE_METRICS_SCHEMA_V1`
 - `VCF_COMPARABLE_METRICS_SCHEMA_V1`
+- `STAGE_CENTRIC_REPORT_SCHEMA_V1`
+- `TOOL_CENTRIC_REPORT_SCHEMA_V1`
+- `CORPUS_CENTRIC_REPORT_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1`
@@ -268,6 +281,9 @@ Schema derivation:
 - `fastq_comparable_metrics_schema`
 - `bam_comparable_metrics_schema`
 - `vcf_comparable_metrics_schema`
+- `stage_centric_report_schema`
+- `tool_centric_report_schema`
+- `corpus_centric_report_schema`
 - `governed_data_catalog_schema`
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
@@ -285,6 +301,9 @@ Schema derivation:
 - `validate_fastq_comparable_metrics_report`
 - `validate_bam_comparable_metrics_report`
 - `validate_vcf_comparable_metrics_report`
+- `validate_stage_centric_report`
+- `validate_tool_centric_report`
+- `validate_corpus_centric_report`
 - `validate_governed_data_catalog`
 - `validate_governed_data_catalog_registry`
 - `validate_benchmark_data_index`

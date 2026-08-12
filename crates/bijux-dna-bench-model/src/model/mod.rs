@@ -42,6 +42,7 @@ pub mod publication_outcome;
 pub mod publication_registry;
 pub mod publication_status;
 pub mod published_results_status;
+pub mod readiness_views;
 pub mod remediation_queue;
 pub mod replay;
 pub mod report;
@@ -337,6 +338,13 @@ pub use publication_status::{
 pub use published_results_status::{
     benchmark_published_results_status_schema, PublishedResultsStageReport,
     PublishedResultsStatusReport, StageResultIssue, BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use readiness_views::{
+    corpus_centric_report_schema, stage_centric_report_schema, tool_centric_report_schema,
+    CorpusCentricCorpusReport, CorpusCentricReport, CorpusCentricStageRow,
+    ReadinessComparisonContractStatus, StageCentricReport, StageCentricStageReport,
+    StageCentricToolRow, ToolCentricReport, ToolCentricStageRow, ToolCentricToolReport,
 };
 #[allow(unused_imports)]
 pub use remediation_queue::{

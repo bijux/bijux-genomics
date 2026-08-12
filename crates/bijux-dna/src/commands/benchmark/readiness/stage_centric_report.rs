@@ -2,7 +2,13 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_stage_centric_report, STAGE_CENTRIC_REPORT_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    ReadinessComparisonContractStatus, StageCentricReport, StageCentricStageReport,
+    StageCentricToolRow,
+};
 
 use super::bam_comparable_metrics::render_bam_comparable_metrics;
 use super::bam_report_map::collect_bam_report_map_rows;
@@ -14,60 +20,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_CENTRIC_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/stage-centric-report.md";
-const STAGE_CENTRIC_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_centric_report.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct StageCentricToolRow {
-    pub(crate) tool_id: String,
-    pub(crate) benchmark_status: String,
-    pub(crate) readiness_gap: String,
-    pub(crate) support_status: String,
-    pub(crate) adapter_status: String,
-    pub(crate) parser_status: String,
-    pub(crate) corpus_status: String,
-    pub(crate) asset_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct StageCentricStageReport {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) canonical_stage_rank: usize,
-    pub(crate) report_section_id: String,
-    pub(crate) report_section_title: String,
-    pub(crate) summary_table_id: String,
-    pub(crate) summary_table_title: String,
-    pub(crate) anchor_tool_id: String,
-    pub(crate) anchor_support_status: String,
-    pub(crate) comparison_contract_status: String,
-    pub(crate) shared_metric_field_count: usize,
-    pub(crate) shared_metric_fields: Vec<String>,
-    pub(crate) tool_count: usize,
-    pub(crate) benchmark_ready_tool_count: usize,
-    pub(crate) blocked_tool_count: usize,
-    pub(crate) readiness_gap_counts: BTreeMap<String, usize>,
-    pub(crate) blocked_tool_ids: Vec<String>,
-    pub(crate) tools: Vec<StageCentricToolRow>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct StageCentricReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) multi_tool_stage_count: usize,
-    pub(crate) blocked_stage_count: usize,
-    pub(crate) declared_shared_metric_stage_count: usize,
-    pub(crate) not_declared_shared_metric_stage_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) blocked_row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) section_counts: BTreeMap<String, usize>,
-    pub(crate) readiness_gap_counts: BTreeMap<String, usize>,
-    pub(crate) stages: Vec<StageCentricStageReport>,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct StageMetadata {
@@ -109,10 +61,18 @@ pub(crate) fn render_stage_centric_report(
     let stage_count = stages.len();
     let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
-    let declared_shared_metric_stage_count =
-        stages.iter().filter(|stage| stage.comparison_contract_status == "declared").count();
-    let not_declared_shared_metric_stage_count =
-        stages.iter().filter(|stage| stage.comparison_contract_status == "not_declared").count();
+    let declared_shared_metric_stage_count = stages
+        .iter()
+        .filter(|stage| {
+            stage.comparison_contract_status == ReadinessComparisonContractStatus::Declared
+        })
+        .count();
+    let not_declared_shared_metric_stage_count = stages
+        .iter()
+        .filter(|stage| {
+            stage.comparison_contract_status == ReadinessComparisonContractStatus::NotDeclared
+        })
+        .count();
     let mut domain_counts = BTreeMap::<String, usize>::new();
     let mut section_counts = BTreeMap::<String, usize>::new();
     let mut readiness_gap_counts = BTreeMap::<String, usize>::new();
@@ -124,16 +84,9 @@ pub(crate) fn render_stage_centric_report(
         }
     }
 
-    if let Some(parent) = output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
     let rendered = render_stage_centric_markdown(&stages);
-    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(StageCentricReport {
-        schema_version: STAGE_CENTRIC_REPORT_SCHEMA_VERSION,
+    let report = StageCentricReport {
+        schema_version: STAGE_CENTRIC_REPORT_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         stage_count,
         multi_tool_stage_count,
@@ -147,7 +100,15 @@ pub(crate) fn render_stage_centric_report(
         section_counts,
         readiness_gap_counts,
         stages,
-    })
+    };
+    validate_stage_centric_report(&report).context("validate stage-centric report")?;
+    if let Some(parent) = output_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
+    }
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 pub(crate) fn collect_stage_centric_stage_reports(
@@ -212,11 +173,11 @@ pub(crate) fn collect_stage_centric_stage_reports(
                 .cloned()
                 .unwrap_or_default();
             let comparison_contract_status = if !shared_metric_fields.is_empty() {
-                "declared"
+                ReadinessComparisonContractStatus::Declared
             } else if tools.len() > 1 {
-                "not_declared"
+                ReadinessComparisonContractStatus::NotDeclared
             } else {
-                "not_applicable"
+                ReadinessComparisonContractStatus::NotApplicable
             };
 
             Ok(StageCentricStageReport {
@@ -229,7 +190,7 @@ pub(crate) fn collect_stage_centric_stage_reports(
                 summary_table_title: metadata.summary_table_title.clone(),
                 anchor_tool_id: metadata.anchor_tool_id.clone(),
                 anchor_support_status: metadata.anchor_support_status.clone(),
-                comparison_contract_status: comparison_contract_status.to_string(),
+                comparison_contract_status,
                 shared_metric_field_count: shared_metric_fields.len(),
                 shared_metric_fields,
                 tool_count: tools.len(),
@@ -329,10 +290,18 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
             "stage-centric report must retain exactly 0 blocked stages, found {blocked_stage_count}"
         ));
     }
-    let declared_shared_metric_stage_count =
-        stages.iter().filter(|stage| stage.comparison_contract_status == "declared").count();
-    let not_declared_shared_metric_stage_count =
-        stages.iter().filter(|stage| stage.comparison_contract_status == "not_declared").count();
+    let declared_shared_metric_stage_count = stages
+        .iter()
+        .filter(|stage| {
+            stage.comparison_contract_status == ReadinessComparisonContractStatus::Declared
+        })
+        .count();
+    let not_declared_shared_metric_stage_count = stages
+        .iter()
+        .filter(|stage| {
+            stage.comparison_contract_status == ReadinessComparisonContractStatus::NotDeclared
+        })
+        .count();
     let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
     if declared_shared_metric_stage_count + not_declared_shared_metric_stage_count
         != multi_tool_stage_count
@@ -342,8 +311,11 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     if stages.iter().any(|stage| {
-        (stage.tool_count > 1 && stage.comparison_contract_status == "not_applicable")
-            || (stage.tool_count == 1 && stage.comparison_contract_status != "not_applicable")
+        (stage.tool_count > 1
+            && stage.comparison_contract_status == ReadinessComparisonContractStatus::NotApplicable)
+            || (stage.tool_count == 1
+                && stage.comparison_contract_status
+                    != ReadinessComparisonContractStatus::NotApplicable)
     }) {
         return Err(anyhow!(
             "stage-centric report comparison-contract applicability drifted from tool cardinality"
@@ -407,7 +379,7 @@ fn ensure_stage(
         })?;
     if stage.tool_count != expected_tool_count
         || stage.blocked_tool_count != expected_blocked_tool_count
-        || stage.comparison_contract_status != expected_comparison_contract_status
+        || stage.comparison_contract_status.as_str() != expected_comparison_contract_status
         || stage.shared_metric_fields
             != expected_shared_metric_fields
                 .iter()
@@ -449,7 +421,7 @@ fn render_stage_centric_markdown(stages: &[StageCentricStageReport]) -> String {
             stage.blocked_tool_ids.join(", ")
         };
         let shared_metric_summary = if stage.shared_metric_fields.is_empty() {
-            stage.comparison_contract_status.clone()
+            stage.comparison_contract_status.to_string()
         } else {
             stage.shared_metric_fields.join(", ")
         };
@@ -583,7 +555,7 @@ mod tests {
             .expect("trim reads stage");
         assert_eq!(trim_reads.tool_count, 14);
         assert_eq!(trim_reads.blocked_tool_count, 0);
-        assert_eq!(trim_reads.comparison_contract_status, "not_declared");
+        assert_eq!(trim_reads.comparison_contract_status.as_str(), "not_declared");
 
         let damage = report
             .stages

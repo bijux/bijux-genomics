@@ -35,6 +35,8 @@ enter through `bijux_dna_api::v1::api`.
 - The `bench` namespace exposes the model-owned FASTQ, BAM, and VCF comparable-metric
   readiness contracts, typed status and direction vocabularies, schema generators, and
   fail-closed validators used by thin CLI renderers.
+- The `bench` namespace exposes model-owned stage-, tool-, and corpus-centric readiness
+  view contracts, schemas, and fail-closed aggregate validators.
 
 ## Export Policy
 

@@ -73,6 +73,8 @@ mod mod_contracts_publication_rs;
 mod mod_contracts_publication_status_rs;
 #[path = "contracts/published_results_status.rs"]
 mod mod_contracts_published_results_status_rs;
+#[path = "contracts/readiness_views.rs"]
+mod mod_contracts_readiness_views_rs;
 #[path = "contracts/remediation_queue.rs"]
 mod mod_contracts_remediation_queue_rs;
 #[path = "contracts/replay.rs"]
