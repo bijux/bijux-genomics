@@ -499,17 +499,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH),
             )?;
-            if report.row_count != 7
-                || report.triggered_row_count != 7
-                || report.required_class_count != 7
-                || report.triggered_class_count != 7
+            if report.row_count != 8
+                || report.triggered_row_count != 8
+                || report.required_class_count != 8
+                || report.triggered_class_count != 8
                 || report.missing_class_count != 0
                 || !report.passes_behavior_test
             {
                 bail!("all-domain failure classification drifted from the governed class set");
             }
             failure_class_count = report.triggered_class_count;
-            Ok("validated all 7 required all-domain failure classes".to_string())
+            Ok("validated all 8 required all-domain failure classes".to_string())
         },
     );
 

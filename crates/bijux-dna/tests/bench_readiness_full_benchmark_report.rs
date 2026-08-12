@@ -73,7 +73,7 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() -> an
         payload.get("failure_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_result_row_count)
     );
-    assert_eq!(payload.get("failure_class_row_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("failure_class_row_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         payload.get("passes_behavior_test").and_then(serde_json::Value::as_bool),
         Some(true)
@@ -151,7 +151,7 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() -> an
     );
     assert_eq!(
         failures.get("failure_class_row_count").and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(8)
     );
 
     let missing_results = payload

@@ -54,7 +54,7 @@ fn bench_readiness_stage_scoring_reports_governed_stage_decision_contracts() {
         Some(35)
     );
     assert_eq!(payload.get("scientific_stage_count").and_then(serde_json::Value::as_u64), Some(28));
-    assert_eq!(payload.get("failure_class_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("failure_class_count").and_then(serde_json::Value::as_u64), Some(8));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
@@ -114,7 +114,7 @@ fn bench_readiness_stage_scoring_reports_governed_stage_decision_contracts() {
             .and_then(|value| value.get("blocking_class_ids"))
             .and_then(serde_json::Value::as_array)
             .map(Vec::len),
-        Some(6)
+        Some(7)
     );
 
     let correct_errors = rows

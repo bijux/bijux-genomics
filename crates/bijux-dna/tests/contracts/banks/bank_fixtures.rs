@@ -172,6 +172,33 @@ impl RepoSandbox {
         }
         Ok(())
     }
+
+    pub fn materialize_bam_score_evidence(&self, home: &Path) -> Result<()> {
+        const EVIDENCE_COMMANDS: &[&[&str]] = &[
+            &["bench", "local", "run-bam-stage-smoke", "--stage-id", "bam.coverage"],
+            &["bench", "readiness", "render-bam-contamination-complete"],
+            &["bench", "local", "run-bam-stage-smoke", "--stage-id", "bam.gc_bias"],
+        ];
+
+        for args in EVIDENCE_COMMANDS {
+            let output = self
+                .bijux_dna_command()
+                .env("HOME", home)
+                .env("BIJUX_SKIP_QA", "1")
+                .env("BIJUX_ALLOW_SILVER", "1")
+                .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+                .args(*args)
+                .output()?;
+            if !output.status.success() {
+                return Err(anyhow!(
+                    "BAM score evidence command `{}` failed: {}",
+                    args.join(" "),
+                    String::from_utf8_lossy(&output.stderr).trim()
+                ));
+            }
+        }
+        Ok(())
+    }
 }
 
 fn resolve_git_dir(source_root: &Path) -> Result<PathBuf> {

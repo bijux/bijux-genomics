@@ -261,6 +261,17 @@ pub(crate) fn load_external_artifact_tool_contracts(
     Ok(contracts)
 }
 
+pub(crate) fn load_external_artifact_binding_keys(
+    repo_root: &Path,
+) -> Result<BTreeSet<(String, String)>> {
+    Ok(load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .flat_map(|contract| {
+            contract.stage_ids.into_iter().map(move |stage_id| (stage_id, contract.tool_id.clone()))
+        })
+        .collect())
+}
+
 fn load_readiness_container_catalog(repo_root: &Path) -> Result<ReadinessContainerCatalog> {
     let catalog_path = repo_root.join(CONTAINER_CATALOG_PATH);
     let raw = fs::read_to_string(&catalog_path)

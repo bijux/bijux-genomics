@@ -75,13 +75,12 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
         Some(rows.len() as u64)
     );
     assert!(rows.iter().all(|row| {
-        row.get("tool_id").and_then(serde_json::Value::as_str) != Some("fastuniq")
-            && (row.get("stage_id").and_then(serde_json::Value::as_str)
-                != Some("fastq.profile_read_lengths")
-                || matches!(
-                    row.get("tool_id").and_then(serde_json::Value::as_str),
-                    Some("seqfu" | "seqkit")
-                ))
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            != Some("fastq.profile_read_lengths")
+            || matches!(
+                row.get("tool_id").and_then(serde_json::Value::as_str),
+                Some("seqfu" | "seqkit")
+            )
     }));
     let score_status_count = |status: &str| {
         u64::try_from(
@@ -97,8 +96,8 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
     let insufficient_evidence_row_count = score_status_count("insufficient_evidence");
     let blocked_row_count = score_status_count("blocked");
     assert_eq!(scored_row_count, 10);
-    assert_eq!(insufficient_evidence_row_count, 61);
-    assert_eq!(blocked_row_count, 0);
+    assert_eq!(insufficient_evidence_row_count, 60);
+    assert_eq!(blocked_row_count, 1);
     assert_eq!(
         payload.get("scored_row_count").and_then(serde_json::Value::as_u64),
         Some(scored_row_count)
@@ -120,6 +119,23 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
         failure_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
         u64::try_from(rows.len()).expect("row count fits u64")
     );
+    assert_eq!(
+        failure_counts.get("blocked_external_access").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    let fastuniq = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.remove_duplicates")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastuniq")
+        })
+        .expect("fastq.remove_duplicates fastuniq row");
+    assert_eq!(fastuniq.get("score_status").and_then(serde_json::Value::as_str), Some("blocked"));
+    assert_eq!(
+        fastuniq.get("failure_class").and_then(serde_json::Value::as_str),
+        Some("blocked_external_access")
+    );
     let filter_fastp = rows
         .iter()
         .find(|row| {
@@ -139,7 +155,7 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
     assert_eq!(filter_fastp.get("dropped_reads").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         filter_fastp.get("memory_source").and_then(serde_json::Value::as_str),
-        Some("evidence_report")
+        Some("not_available")
     );
     assert_eq!(filter_fastp.get("failure_class").and_then(serde_json::Value::as_str), Some("none"));
 

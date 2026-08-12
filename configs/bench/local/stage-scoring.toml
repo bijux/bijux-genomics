@@ -18,6 +18,11 @@ effect = "block_recommendation"
 detail = "required benchmark inputs are absent, so the tool cannot be compared honestly"
 
 [[failure_classes]]
+class_id = "blocked_external_access"
+effect = "block_recommendation"
+detail = "the supported tool requires a checksum-admitted operator artifact before recommendation"
+
+[[failure_classes]]
 class_id = "tool_not_found"
 effect = "block_recommendation"
 detail = "the executable is unresolved, so the tool must be excluded from recommendation"
@@ -121,6 +126,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -209,6 +215,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -283,6 +290,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -357,6 +365,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -443,6 +452,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -529,6 +539,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -543,8 +554,8 @@ domain = "bam"
 stage_id = "bam.damage"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 7
-benchmark_ready_tool_count = 7
+active_tool_count = 6
+benchmark_ready_tool_count = 6
 default_tool_id = "mapdamage2"
 benchmark_ready_tool_ids = [
     "addeam",
@@ -618,6 +629,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -703,6 +715,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -777,6 +790,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -863,6 +877,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -937,6 +952,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1011,6 +1027,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1085,6 +1102,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1159,6 +1177,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1246,6 +1265,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1331,6 +1351,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1420,6 +1441,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1505,6 +1527,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1588,6 +1611,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1662,6 +1686,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1749,6 +1774,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1823,6 +1849,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -1915,6 +1942,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2001,6 +2029,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2075,6 +2104,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2154,6 +2184,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2228,6 +2259,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2302,6 +2334,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2376,6 +2409,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2450,6 +2484,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2524,6 +2559,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2598,6 +2634,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2672,6 +2709,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2750,6 +2788,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2829,6 +2868,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2906,6 +2946,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2980,6 +3021,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -2994,8 +3036,8 @@ domain = "fastq"
 stage_id = "fastq.merge_pairs"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 6
-benchmark_ready_tool_count = 6
+active_tool_count = 7
+benchmark_ready_tool_count = 7
 default_tool_id = "pear"
 benchmark_ready_tool_ids = [
     "adapterremoval",
@@ -3062,6 +3104,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3136,6 +3179,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3210,6 +3254,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3296,6 +3341,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3373,6 +3419,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3451,6 +3498,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3525,6 +3573,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3602,6 +3651,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3676,6 +3726,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3755,6 +3806,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3832,6 +3884,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3921,6 +3974,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -3999,6 +4053,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4079,6 +4134,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4161,6 +4217,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4235,6 +4292,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4309,6 +4367,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4392,6 +4451,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4475,6 +4535,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4549,6 +4610,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4623,6 +4685,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4697,6 +4760,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4771,6 +4835,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4848,6 +4913,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -4937,6 +5003,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5028,6 +5095,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5111,6 +5179,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5191,6 +5260,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5271,6 +5341,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5345,6 +5416,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5419,6 +5491,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5507,6 +5580,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5581,6 +5655,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -5655,6 +5730,7 @@ required_success_ratio = 1.0
 source_report_paths = ["artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"]
 blocking_class_ids = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
