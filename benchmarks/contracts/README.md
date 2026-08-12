@@ -129,6 +129,12 @@ benchmark topology. The benchmark model owns job-kind identity, reciprocal edge
 closure, root derivation, topological ordering, and exact counters; the CLI only
 constructs the graph from selected jobs and admits it before use.
 
+`schemas/local-hpc-result-collection-simulation.schema.json` defines the
+persisted complete, failed, missing, insufficient, and unavailable collection
+outcomes. The benchmark model owns status distinctions, evidence lineage,
+behavior proofs, exact counters, and schema generation; the CLI only assembles
+the governed simulation inputs and publishes the admitted report.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated
