@@ -6,7 +6,7 @@ Define the governed recent-demography inference boundary that consumes IBD summa
 ## Scope
 This science surface covers:
 - `vcf.ibd` as the required upstream segment summary contract.
-- `vcf.demography` as the planned recent-Ne style inference stage built on those IBD summaries.
+- `vcf.demography` as the supported recent-Ne style inference stage built on those IBD summaries.
 
 ## Non-goals
 - Long-term demographic model fitting beyond current stage contracts.

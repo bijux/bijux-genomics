@@ -6,7 +6,7 @@ Define the governed relatedness-inference boundary for pairwise IBD segments wit
 ## Scope
 This science surface covers:
 - `vcf.phasing` as the upstream haplotype-preparation boundary when an admitted IBD backend requires phased input.
-- `vcf.ibd` as the planned pairwise segment-calling stage with an active normalized pairwise contract.
+- `vcf.ibd` as the supported pairwise segment-calling stage with an active normalized pairwise contract.
 - `vcf.demography` only as a downstream consumer of IBD summaries, not as part of the segment-calling output itself.
 
 ## Non-goals
