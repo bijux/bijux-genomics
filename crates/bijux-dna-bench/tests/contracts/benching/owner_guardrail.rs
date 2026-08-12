@@ -171,6 +171,15 @@ fn thin_cli_uses_model_owned_local_slurm_dependency_contract() {
     assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckReport {"));
     assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckJob {"));
     assert!(!contents.contains("bijux.bench.local_slurm_dependency_check.v1"));
+
+    let shell_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_shell_syntax.rs");
+    let shell_contents = fs::read_to_string(&shell_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", shell_source.display()));
+    assert!(shell_contents.contains("validate_benchmark_local_slurm_shell_syntax"));
+    assert!(!shell_contents.contains("struct BenchLocalSlurmShellSyntaxReport {"));
+    assert!(!shell_contents.contains("struct BenchLocalSlurmShellSyntaxEntry {"));
+    assert!(!shell_contents.contains("bijux.bench.local_slurm_shell_syntax.v1"));
 }
 
 #[test]

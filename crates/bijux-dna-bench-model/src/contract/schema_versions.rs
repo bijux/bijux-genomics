@@ -125,6 +125,8 @@ pub const BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1: &str =
     "bijux.bench.local_pipeline_dag_validation_set.v1";
 pub const BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1: &str =
     "bijux.bench.local_slurm_dependency_check.v1";
+pub const BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1: &str =
+    "bijux.bench.local_slurm_shell_syntax.v1";
 pub const BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_skip_report.v1";
 pub const BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1: &str = "bijux.fastq.corpus_benchmark_run.v1";

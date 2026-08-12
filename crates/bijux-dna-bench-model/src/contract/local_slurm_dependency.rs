@@ -3,9 +3,14 @@
 
 use std::collections::BTreeSet;
 
-use crate::{model::BenchmarkLocalSlurmDependencyCheckReport, BenchError};
+use crate::{
+    model::{BenchmarkLocalSlurmDependencyCheckReport, BenchmarkLocalSlurmShellSyntaxReport},
+    BenchError,
+};
 
-use super::BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1;
+use super::{
+    BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1,
+};
 
 /// Validate persisted Slurm dependency-source evidence and its aggregate closure.
 ///
@@ -64,6 +69,42 @@ pub fn validate_benchmark_local_slurm_dependency_check(
             };
         if job.dependency_source != expected_source || job.ok != job.findings.is_empty() {
             return invalid("local Slurm dependency-check job verdict drifted");
+        }
+    }
+    Ok(())
+}
+
+/// Validate persisted `bash -n` evidence for rendered Slurm scripts.
+///
+/// # Errors
+/// Returns an error when identity, per-script verdicts, uniqueness, or aggregates drift.
+pub fn validate_benchmark_local_slurm_shell_syntax(
+    report: &BenchmarkLocalSlurmShellSyntaxReport,
+) -> Result<(), BenchError> {
+    if report.schema_version != BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1 {
+        return invalid("unsupported local Slurm shell-syntax schema");
+    }
+    require_text(&report.root_path, "root_path")?;
+    require_text(&report.report_path, "report_path")?;
+    if report.script_count != report.scripts.len()
+        || (report.scripts.is_empty() && report.report_findings.is_empty())
+        || report.findings_count
+            != report.report_findings.len()
+                + report.scripts.iter().map(|entry| entry.findings.len()).sum::<usize>()
+        || report.ok != (report.findings_count == 0)
+    {
+        return invalid("local Slurm shell-syntax aggregates do not close");
+    }
+    validate_unique_text(&report.report_findings, "report_findings")?;
+    let mut script_paths = BTreeSet::new();
+    for entry in &report.scripts {
+        require_text(&entry.script_path, "scripts[].script_path")?;
+        if !script_paths.insert(entry.script_path.as_str()) {
+            return invalid("local Slurm shell-syntax report repeats a script path");
+        }
+        validate_unique_text(&entry.findings, "scripts[].findings")?;
+        if entry.ok != entry.findings.is_empty() {
+            return invalid("local Slurm shell-syntax entry verdict drifted");
         }
     }
     Ok(())

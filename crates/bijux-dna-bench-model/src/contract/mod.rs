@@ -107,7 +107,9 @@ pub use local_pipeline_dag::{
     validate_benchmark_local_pipeline_dag_validation_set,
 };
 pub use local_runtime_metrics::validate_benchmark_local_runtime_metrics;
-pub use local_slurm_dependency::validate_benchmark_local_slurm_dependency_check;
+pub use local_slurm_dependency::{
+    validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_shell_syntax,
+};
 pub use local_stage_completion::{
     validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion,
@@ -189,7 +191,8 @@ pub use schema_versions::{
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
     BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
-    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V2,

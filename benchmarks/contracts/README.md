@@ -166,6 +166,12 @@ identity, source classification, per-job verdicts, uniqueness, and aggregate
 closure; the CLI only reads rendered scripts and manifests, validates the
 derived record, and writes it.
 
+`schemas/local-slurm-shell-syntax.schema.json` defines persisted one-shot
+`bash -n` evidence for rendered scheduler scripts. The benchmark model owns its
+record types, schema identity, per-script verdicts, uniqueness, and aggregate
+closure; the CLI only discovers scripts, executes the bounded syntax check,
+validates the derived record, and writes it.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated
