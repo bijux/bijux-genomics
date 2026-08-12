@@ -18,8 +18,8 @@ pub use crate::contract::{
     validate_benchmark_local_corpus_stage_compatibility_report,
     validate_benchmark_local_hpc_job_graph,
     validate_benchmark_local_hpc_result_collection_simulation_report,
-    validate_benchmark_local_runtime_metrics, validate_benchmark_local_stage_inventory,
-    validate_benchmark_local_stage_manifest_completion,
+    validate_benchmark_local_hpc_scratch_layout, validate_benchmark_local_runtime_metrics,
+    validate_benchmark_local_stage_inventory, validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion, validate_benchmark_local_summary,
     validate_benchmark_matrix_report, validate_benchmark_protocol_citation,
     validate_benchmark_publication_receipt, validate_benchmark_publication_registry,
@@ -61,8 +61,8 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
-    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
-    BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1, BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1,
@@ -218,6 +218,11 @@ pub use crate::model::local_hpc_result_collection_simulation::{
     BenchmarkLocalHpcResultCollectionSimulationBehavior,
     BenchmarkLocalHpcResultCollectionSimulationReport,
     BenchmarkLocalHpcResultCollectionSimulationRow,
+};
+pub use crate::model::local_hpc_scratch_layout::{
+    benchmark_local_hpc_scratch_layout_schema, BenchmarkLocalHpcScratchCleanupPolicy,
+    BenchmarkLocalHpcScratchInputLink, BenchmarkLocalHpcScratchJobResources,
+    BenchmarkLocalHpcScratchLayout, BenchmarkLocalHpcScratchLayoutJob,
 };
 pub use crate::model::local_runtime_metrics::{
     benchmark_local_runtime_metrics_schema, BenchmarkLocalStageReadinessKind,

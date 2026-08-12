@@ -135,6 +135,12 @@ outcomes. The benchmark model owns status distinctions, evidence lineage,
 behavior proofs, exact counters, and schema generation; the CLI only assembles
 the governed simulation inputs and publishes the admitted report.
 
+`schemas/local-hpc-scratch-layout.schema.json` defines persisted job-scoped
+scratch isolation, input staging and link lineage, bounded resources, and
+success/failure cleanup behavior. The benchmark model owns job lineage, exact
+counters, containment, resource, and cleanup admission; the CLI only resolves
+selected jobs and source assets into the validated layout.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated

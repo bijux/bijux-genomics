@@ -22,6 +22,7 @@ pub mod local_benchmark_summary;
 pub mod local_corpus_skip;
 pub mod local_corpus_stage_compatibility;
 pub mod local_hpc_result_collection_simulation;
+pub mod local_hpc_scratch_layout;
 pub mod local_runtime_metrics;
 pub mod local_stage_completion;
 pub mod local_stage_inventory;
@@ -204,6 +205,12 @@ pub use local_hpc_result_collection_simulation::{
     BenchmarkLocalHpcResultCollectionSimulationBehavior,
     BenchmarkLocalHpcResultCollectionSimulationReport,
     BenchmarkLocalHpcResultCollectionSimulationRow,
+};
+#[allow(unused_imports)]
+pub use local_hpc_scratch_layout::{
+    benchmark_local_hpc_scratch_layout_schema, BenchmarkLocalHpcScratchCleanupPolicy,
+    BenchmarkLocalHpcScratchInputLink, BenchmarkLocalHpcScratchJobResources,
+    BenchmarkLocalHpcScratchLayout, BenchmarkLocalHpcScratchLayoutJob,
 };
 #[allow(unused_imports)]
 pub use local_runtime_metrics::{

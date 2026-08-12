@@ -39,6 +39,8 @@ mod mod_contracts_local_corpus_skip_rs;
 mod mod_contracts_local_corpus_stage_compatibility_rs;
 #[path = "contracts/local_hpc_result_collection_simulation.rs"]
 mod mod_contracts_local_hpc_result_collection_simulation_rs;
+#[path = "contracts/local_hpc_scratch_layout.rs"]
+mod mod_contracts_local_hpc_scratch_layout_rs;
 #[path = "contracts/local_runtime_metrics.rs"]
 mod mod_contracts_local_runtime_metrics_rs;
 #[path = "contracts/local_stage_completion.rs"]
