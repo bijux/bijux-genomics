@@ -1,0 +1,116 @@
+{
+  "$defs": {
+    "BenchmarkDossierStageEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dossier_path": {
+          "type": "string"
+        },
+        "expected_local_cache_mirror_run_root": {
+          "type": "string"
+        },
+        "expected_local_results_run_root": {
+          "type": "string"
+        },
+        "expected_remote_run_root": {
+          "type": "string"
+        },
+        "generated_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "platform": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run_root_source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sample_scope": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "summary_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "sample_scope",
+        "status",
+        "summary_path",
+        "dossier_path",
+        "expected_remote_run_root",
+        "expected_local_cache_mirror_run_root",
+        "expected_local_results_run_root"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpus_id": {
+      "type": "string"
+    },
+    "missing_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "published_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.dossier_index.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkDossierStageEntry"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "stage_count",
+    "published_stage_count",
+    "missing_stage_count",
+    "stages"
+  ],
+  "title": "BenchmarkDossierIndex",
+  "type": "object"
+}

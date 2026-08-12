@@ -14,6 +14,7 @@ pub mod data_catalog_registry;
 pub mod data_fitness;
 pub mod data_portfolio_audit;
 pub mod domain_campaign;
+pub mod dossier_index;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
@@ -139,6 +140,11 @@ pub use domain_campaign::{
     VcfMatrixRowRef, VcfScenario, BAM_BENCHMARK_CAMPAIGN_SCHEMA_V1,
     FASTQ_BENCHMARK_CAMPAIGN_SCHEMA_V1, HARDENING_BENCHMARK_CAMPAIGN_SCHEMA_V1,
     VCF_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use dossier_index::{
+    benchmark_dossier_index_schema, BenchmarkDossierIndex, BenchmarkDossierStageEntry,
+    BENCHMARK_DOSSIER_INDEX_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use execution::{

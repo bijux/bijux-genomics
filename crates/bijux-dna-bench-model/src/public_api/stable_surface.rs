@@ -12,9 +12,9 @@ pub use crate::contract::{
     validate_bam_benchmark_campaign_report, validate_benchmark_campaign_report_publication,
     validate_benchmark_case_definition, validate_benchmark_citation_record,
     validate_benchmark_data_index, validate_benchmark_data_portfolio_audit,
-    validate_benchmark_data_source_spec, validate_benchmark_evidence_book,
-    validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_corpus_run,
-    validate_benchmark_local_corpus_skip_report,
+    validate_benchmark_data_source_spec, validate_benchmark_dossier_index,
+    validate_benchmark_evidence_book, validate_benchmark_local_all_domain_stage_inventory,
+    validate_benchmark_local_corpus_run, validate_benchmark_local_corpus_skip_report,
     validate_benchmark_local_corpus_stage_compatibility_report,
     validate_benchmark_local_hpc_asset_staging_manifest, validate_benchmark_local_hpc_job_graph,
     validate_benchmark_local_hpc_result_collection_simulation_report,
@@ -154,6 +154,10 @@ pub use crate::model::domain_campaign::{
     VcfMatrixRowRef, VcfScenario, BAM_BENCHMARK_CAMPAIGN_SCHEMA_V1,
     FASTQ_BENCHMARK_CAMPAIGN_SCHEMA_V1, HARDENING_BENCHMARK_CAMPAIGN_SCHEMA_V1,
     VCF_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+};
+pub use crate::model::dossier_index::{
+    benchmark_dossier_index_schema, BenchmarkDossierIndex, BenchmarkDossierStageEntry,
+    BENCHMARK_DOSSIER_INDEX_SCHEMA_V1,
 };
 pub use crate::model::execution::{
     benchmark_effective_parameters_schema, benchmark_execution_spec_schema,

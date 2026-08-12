@@ -66,32 +66,6 @@ pub(super) struct CorpusArtifactSet {
     pub(super) benchmark_markdown: String,
 }
 
-#[derive(Debug, Serialize)]
-pub(super) struct DossierIndex {
-    pub(super) corpus_id: String,
-    pub(super) stage_count: usize,
-    pub(super) published_stage_count: usize,
-    pub(super) missing_stage_count: usize,
-    pub(super) stages: Vec<DossierStageEntry>,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct DossierStageEntry {
-    pub(super) stage_id: String,
-    pub(super) sample_scope: String,
-    pub(super) status: String,
-    pub(super) summary_path: String,
-    pub(super) dossier_path: String,
-    pub(super) expected_remote_run_root: String,
-    pub(super) expected_local_cache_mirror_run_root: String,
-    pub(super) expected_local_results_run_root: String,
-    pub(super) generated_at_utc: Option<String>,
-    pub(super) platform: Option<String>,
-    pub(super) corpus_root: Option<String>,
-    pub(super) run_root: Option<String>,
-    pub(super) run_root_source: Option<String>,
-}
-
 #[derive(Debug, Clone, serde::Deserialize)]
 pub(super) struct PublicationCorpusSpec {
     pub(super) corpus_id: String,

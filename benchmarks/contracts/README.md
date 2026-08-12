@@ -163,6 +163,12 @@ completion and issue counters, result-root consistency, issue lineage, and the
 generated schema; the CLI only discovers result roots and renders the validated
 record.
 
+`schemas/dossier-index.schema.json` defines the persisted index of benchmark
+publication dossiers. The benchmark model owns stage identity, publication
+state, metadata presence, run-root source semantics, path uniqueness, counters,
+and the generated schema; the CLI only discovers dossier inputs and renders the
+validated record.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and
