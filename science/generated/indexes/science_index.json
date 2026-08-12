@@ -23,11 +23,11 @@
   "releases": 1,
   "fastq_container_reference_rows": 46,
   "fastq_download_backlog_rows": 46,
-  "fastq_paper_archive_rows": 47,
+  "fastq_paper_archive_rows": 48,
   "fastq_environment_rows": 92,
   "fastq_closure_gate_rows": 92,
   "fastq_truth_delta_rows": 33,
-  "fastq_missing_closure_prerequisite_rows": 144,
+  "fastq_missing_closure_prerequisite_rows": 140,
   "fastq_default_binding_risk_rows": 27,
   "fastq_closure_summary": {
     "total_rows": 92,
@@ -40,11 +40,9 @@
       "missing_container_ref": 3,
       "missing_environment_qa_stage": 47,
       "missing_paper_archive": 22,
-      "missing_paper_root": 2,
       "missing_runtime_surface": 4,
       "missing_upstream_archive": 22,
       "registry_not_production": 4,
-      "source_backlog_missing_evidence_map": 2,
       "stage_not_marked_closed": 18
     },
     "warning_reason_counts": {
@@ -54,16 +52,15 @@
   },
   "fastq_evidence_summary": {
     "backlog_status_counts": {
-      "missing_evidence_map": 1,
-      "ready": 45
+      "ready": 46
     },
     "paper_status_counts": {
       "mapped": 37,
-      "software_citation_only": 9,
+      "software_citation_only": 10,
       "supporting_context": 1
     },
     "paper_archive_status_counts": {
-      "missing": 1,
+      "missing": 2,
       "present": 46
     },
     "prerequisite_counts": {
@@ -71,11 +68,9 @@
       "missing_container_ref": 3,
       "missing_environment_qa_stage": 47,
       "missing_paper_archive": 22,
-      "missing_paper_root": 2,
       "missing_runtime_surface": 4,
       "missing_upstream_archive": 22,
       "registry_not_production": 4,
-      "source_backlog_missing_evidence_map": 2,
       "stage_not_marked_closed": 18
     },
     "default_risk_counts": {
@@ -88,11 +83,9 @@
       "missing_container_ref": 3,
       "missing_environment_qa_stage": 29,
       "missing_paper_archive": 4,
-      "missing_paper_root": 2,
       "missing_runtime_surface": 4,
       "missing_upstream_archive": 4,
-      "registry_not_production": 4,
-      "source_backlog_missing_evidence_map": 2
+      "registry_not_production": 4
     }
   }
 }
