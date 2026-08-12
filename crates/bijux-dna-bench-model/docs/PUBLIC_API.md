@@ -86,6 +86,9 @@ Model contracts:
 - `AllDomainRetainedToolRow`
 - `StageRegistryExtraPairsReport`
 - `StageRegistryExtraPairRow`
+- `BenchmarkLocalVcfSmokeGoalContract`
+- `BenchmarkLocalVcfSmokeGoalCheck`
+- `BenchmarkLocalVcfSmokeSuiteReport`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -296,6 +299,7 @@ Schema derivation:
 - `all_domain_active_stage_tool_matrix_schema`
 - `all_domain_retained_tools_schema`
 - `stage_registry_extra_pairs_schema`
+- `benchmark_local_vcf_smoke_suite_schema`
 - `governed_data_catalog_schema`
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
@@ -319,6 +323,7 @@ Schema derivation:
 - `validate_all_domain_active_stage_tool_matrix`
 - `validate_all_domain_retained_tools`
 - `validate_stage_registry_extra_pairs`
+- `validate_benchmark_local_vcf_smoke_suite`
 - `validate_governed_data_catalog`
 - `validate_governed_data_catalog_registry`
 - `validate_benchmark_data_index`

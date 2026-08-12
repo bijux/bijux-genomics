@@ -1,7 +1,14 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_vcf_smoke_suite, BENCHMARK_LOCAL_VCF_SMOKE_OUTPUT_PATH,
+    BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalVcfSmokeGoalCheck as LocalVcfSmokeSuiteGoalCheck,
+    BenchmarkLocalVcfSmokeSuiteReport as LocalVcfSmokeSuiteReadyReport,
+};
 
 use super::local_vcf_admixture_smoke::run_local_vcf_admixture_smoke;
 use super::local_vcf_call_diploid_smoke::run_local_vcf_call_diploid_smoke;
@@ -25,10 +32,7 @@ use super::local_vcf_stats_smoke::run_local_vcf_stats_smoke;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_SMOKE_SUITE_READY_PATH: &str =
-    "runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json";
-const LOCAL_VCF_SMOKE_SUITE_READY_SCHEMA_VERSION: &str =
-    "bijux.bench.local_vcf_smoke_suite_ready.v1";
+pub(crate) const DEFAULT_VCF_SMOKE_SUITE_READY_PATH: &str = BENCHMARK_LOCAL_VCF_SMOKE_OUTPUT_PATH;
 
 const GOVERNED_VCF_CALL_TOOL_ID: &str = "bcftools";
 const GOVERNED_VCF_QC_TOOL_ID: &str = "plink2";
@@ -37,27 +41,6 @@ const GOVERNED_VCF_IMPUTE_TOOL_ID: &str = "beagle";
 const GOVERNED_VCF_COHORT_TOOL_ID: &str = "plink2";
 const GOVERNED_VCF_IBD_TOOL_ID: &str = "germline";
 const GOVERNED_VCF_DEMOGRAPHY_TOOL_ID: &str = "ibdne";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalVcfSmokeSuiteGoalCheck {
-    pub(crate) goal_id: u32,
-    pub(crate) surface: String,
-    pub(crate) output_path: Option<String>,
-    pub(crate) ok: bool,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalVcfSmokeSuiteReadyReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) checked_goal_count: usize,
-    pub(crate) passed_goal_count: usize,
-    pub(crate) failed_goal_count: usize,
-    pub(crate) failing_goal_ids: Vec<u32>,
-    pub(crate) ok: bool,
-    pub(crate) checks: Vec<LocalVcfSmokeSuiteGoalCheck>,
-}
 
 pub(crate) fn run_validate_vcf_smoke_suite_ready(
     args: &parse::BenchLocalValidateVcfSmokeSuiteReadyArgs,
@@ -306,6 +289,8 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
     );
 
     let report = build_vcf_smoke_suite_ready_report(repo_root, &absolute_output_path, checks);
+    validate_benchmark_local_vcf_smoke_suite(&report)
+        .context("validate local VCF smoke-suite readiness report")?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     if !report.ok {
         bail!(
@@ -356,7 +341,7 @@ fn build_vcf_smoke_suite_ready_report(
     let passed_goal_count = checked_goal_count.saturating_sub(failed_goal_count);
 
     LocalVcfSmokeSuiteReadyReport {
-        schema_version: LOCAL_VCF_SMOKE_SUITE_READY_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, output_path),
         checked_goal_count,
         passed_goal_count,
@@ -385,7 +370,7 @@ mod tests {
 
     use super::{
         build_vcf_smoke_suite_ready_report, LocalVcfSmokeSuiteGoalCheck,
-        DEFAULT_VCF_SMOKE_SUITE_READY_PATH, LOCAL_VCF_SMOKE_SUITE_READY_SCHEMA_VERSION,
+        BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, DEFAULT_VCF_SMOKE_SUITE_READY_PATH,
     };
 
     fn repo_root() -> PathBuf {
@@ -422,7 +407,7 @@ mod tests {
             checks,
         );
 
-        assert_eq!(report.schema_version, LOCAL_VCF_SMOKE_SUITE_READY_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1);
         assert_eq!(report.output_path, DEFAULT_VCF_SMOKE_SUITE_READY_PATH);
         assert_eq!(report.checked_goal_count, 2);
         assert_eq!(report.passed_goal_count, 1);

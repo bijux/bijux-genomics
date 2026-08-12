@@ -127,6 +127,8 @@ pub const BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1: &str =
 pub const BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1: &str =
     "bijux.bench.local_stage_output_completion.v1";
 pub const BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1: &str = "bijux.bench.local_benchmark_summary.v1";
+pub const BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1: &str =
+    "bijux.bench.local_vcf_smoke_suite_ready.v1";
 pub const BENCHMARK_REPORT_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.report_admission.v1";
 pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.profile_read_lengths.expectations.v1";

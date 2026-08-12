@@ -168,6 +168,9 @@ including:
 - `AllDomainActiveStageToolMatrixReport`
 - `AllDomainRetainedToolsReport`
 - `StageRegistryExtraPairsReport`
+- `BenchmarkLocalVcfSmokeGoalContract`
+- `BenchmarkLocalVcfSmokeGoalCheck`
+- `BenchmarkLocalVcfSmokeSuiteReport`
 - `GatePolicy`
 - `GatePolicyOverrides`
 - `GateDecision`

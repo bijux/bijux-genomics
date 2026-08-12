@@ -186,6 +186,12 @@ model requires all eight supported licensed bindings and validates identity,
 status, exception lineage, and aggregate closure before thin CLI writers persist
 TSV output.
 
+`schemas/local-vcf-smoke-suite-ready.schema.json` defines the complete Goal
+211-229 local VCF smoke-suite readiness record. The benchmark model owns goal
+identity, failure preservation, output evidence, aggregate closure, and the
+generated schema; the CLI only executes each governed smoke and persists the
+validated result.
+
 `schemas/published-results-status.schema.json` defines the persisted audit of
 published benchmark result mirrors. The benchmark model owns stage identity,
 completion and issue counters, result-root consistency, issue lineage, and the
