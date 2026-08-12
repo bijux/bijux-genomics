@@ -231,6 +231,25 @@ fn thin_cli_uses_model_owned_publication_findings_contract() {
     assert!(!command.contains("payload.get(\"findings\")"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_fastq_corpus_source_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let corpus_metadata = fs::read_to_string(
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/corpus_metadata.rs"),
+    )
+    .expect("read corpus metadata command");
+    let publication_models = fs::read_to_string(
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/publication/models.rs"),
+    )
+    .expect("read publication CLI models");
+
+    assert!(corpus_metadata.contains("load_fastq_corpus_source_spec"));
+    assert!(corpus_metadata.contains("FastqCorpusSourceSpec as CorpusSpec"));
+    assert!(!corpus_metadata.contains("struct CorpusSpec"));
+    assert!(!corpus_metadata.contains("struct CorpusSpecSample"));
+    assert!(!publication_models.contains("struct PublicationCorpusSpec"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

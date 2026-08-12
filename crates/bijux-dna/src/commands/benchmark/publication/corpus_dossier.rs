@@ -248,7 +248,7 @@ fn build_corpus_artifact_set(
                 sample_id: sample_id.clone(),
                 accession: metadata.accession.clone(),
                 era: metadata.era.clone(),
-                layout: metadata.layout.clone(),
+                layout: metadata.layout.as_str().to_string(),
                 study_accession: metadata.study_accession.clone(),
                 size_band: metadata.size_band.clone(),
                 tool,
@@ -363,7 +363,7 @@ fn build_corpus_artifact_set(
             row.insert("sample_id".to_string(), sample_id.clone());
             row.insert("accession".to_string(), metadata.accession.clone());
             row.insert("era".to_string(), metadata.era.clone());
-            row.insert("layout".to_string(), metadata.layout.clone());
+            row.insert("layout".to_string(), metadata.layout.as_str().to_string());
             row.insert("size_band".to_string(), metadata.size_band.clone());
             row.insert("total_runtime_s".to_string(), format_f64(total_runtime));
             row.insert("slowest_tool".to_string(), slowest.0.clone());
@@ -381,8 +381,9 @@ fn build_corpus_artifact_set(
     let cohort_counts = count_by_cohort(applicable_samples, metadata_by_sample)?;
     let era_counts =
         count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.era.clone())?;
-    let layout_counts =
-        count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.layout.clone())?;
+    let layout_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| {
+        metadata.layout.as_str().to_string()
+    })?;
     let fastest = tool_summary
         .iter()
         .filter_map(|row| row.median_runtime_s.map(|runtime| (row.tool.clone(), runtime)))

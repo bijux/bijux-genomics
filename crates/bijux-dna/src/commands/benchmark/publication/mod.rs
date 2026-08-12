@@ -13,7 +13,7 @@ mod results_status;
 mod runtime_audit;
 
 use crate::commands::benchmark_workspace::{
-    benchmark_corpus_spec_path, benchmark_publication_contracts, benchmark_publication_exclusions,
+    benchmark_publication_contracts, benchmark_publication_exclusions,
     benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root, load_benchmark_config,
     BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
@@ -144,6 +144,61 @@ mod tests {
             format!("[corpora.\"{corpus_id}\"]\nspec_path = \"{corpus_spec_path}\"\n"),
         )
         .expect("write benchmark config");
+    }
+
+    fn write_publication_corpus_spec(repo_root: &Path, targets: [usize; 4]) {
+        let target_total = targets.into_iter().sum::<usize>();
+        let mut source = format!(
+            concat!(
+                "schema_version = \"bijux.benchmark.fastq_corpus_source.v1\"\n",
+                "corpus_id = \"corpus-01\"\n",
+                "portfolio_id = \"publication-contract-fixture\"\n",
+                "class = \"qualification_real\"\n",
+                "access_classification = \"public\"\n",
+                "redistribution_classification = \"metadata_only\"\n",
+                "access_terms_url = \"https://example.org/access\"\n",
+                "attribution = \"Publication contract fixture\"\n",
+                "projected_storage_bytes = 1\n",
+                "projected_cpu_hours = 1\n",
+                "projection_basis = \"Minimal contract validation fixture\"\n",
+                "truth_roles = [\"contract_validation\"]\n",
+                "truth_strategy = \"observational_only\"\n",
+                "known_limitations = [\"Not publication evidence\"]\n",
+                "species = \"Homo sapiens\"\n",
+                "description = \"Typed publication corpus contract fixture\"\n",
+                "source_authority = \"contract fixture\"\n",
+                "target_total = {}\n",
+                "target_ancient_se = {}\n",
+                "target_ancient_pe = {}\n",
+                "target_modern_se = {}\n",
+                "target_modern_pe = {}\n",
+            ),
+            target_total, targets[0], targets[1], targets[2], targets[3]
+        );
+        for (era, layout, count) in [
+            ("ancient", "se", targets[0]),
+            ("ancient", "pe", targets[1]),
+            ("modern", "se", targets[2]),
+            ("modern", "pe", targets[3]),
+        ] {
+            for index in 0..count {
+                source.push_str(&format!(
+                    concat!(
+                        "\n[[samples]]\n",
+                        "accession = \"RUN-{}-{}-{}\"\n",
+                        "study_accession = \"STUDY-{}\"\n",
+                        "era = \"{}\"\n",
+                        "layout = \"{}\"\n",
+                        "size_band = \"contract_fixture\"\n",
+                        "reason = \"Exercise typed publication cohort accounting\"\n",
+                    ),
+                    era, layout, index, era, era, layout
+                ));
+            }
+        }
+        let path = repo_root.join("benchmarks/corpora/human-short-read-diversity.toml");
+        fs::create_dir_all(path.parent().expect("corpora dir")).expect("corpora dir");
+        fs::write(path, source).expect("write corpus spec");
     }
 
     #[allow(clippy::needless_pass_by_value)]
@@ -869,18 +924,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
-        fs::write(
-            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
-            concat!(
-                "corpus_id = \"corpus-01\"\n",
-                "target_ancient_se = 1\n",
-                "target_ancient_pe = 1\n",
-                "target_modern_se = 1\n",
-                "target_modern_pe = 1\n",
-            ),
-        )
-        .expect("write corpus spec");
+        write_publication_corpus_spec(repo_root, [1, 1, 1, 1]);
         write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         let corpus_root = stage_root.join("corpus-01");
@@ -916,6 +960,30 @@ reason = "Compact validation fixture."
             .issues
             .iter()
             .any(|issue| issue.issue_id == "missing-benchmark-md"));
+    }
+
+    #[test]
+    fn publication_corpus_loader_rejects_incomplete_source_contract() {
+        let temp = tempdir().expect("tempdir");
+        let repo_root = temp.path();
+        let path = repo_root.join("benchmarks/corpora/human-short-read-diversity.toml");
+        fs::create_dir_all(path.parent().expect("corpora dir")).expect("corpora dir");
+        fs::write(
+            path,
+            concat!(
+                "corpus_id = \"corpus-01\"\n",
+                "target_ancient_se = 1\n",
+                "target_ancient_pe = 1\n",
+                "target_modern_se = 1\n",
+                "target_modern_pe = 1\n",
+            ),
+        )
+        .expect("write incomplete corpus spec");
+        write_benchmark_config_for_corpus(repo_root, "corpus-01");
+
+        let error = super::load_publication_corpus_spec(repo_root, None, "corpus-01")
+            .expect_err("incomplete source contract must fail closed");
+        assert!(error.to_string().contains("parse"));
     }
 
     #[test]
@@ -1008,18 +1076,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
-        fs::write(
-            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
-            concat!(
-                "corpus_id = \"corpus-01\"\n",
-                "target_ancient_se = 1\n",
-                "target_ancient_pe = 0\n",
-                "target_modern_se = 1\n",
-                "target_modern_pe = 0\n",
-            ),
-        )
-        .expect("write corpus spec");
+        write_publication_corpus_spec(repo_root, [1, 0, 1, 0]);
         write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         fs::create_dir_all(stage_root.join("corpus-01")).expect("corpus dir");
@@ -1083,18 +1140,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
-        fs::write(
-            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
-            concat!(
-                "corpus_id = \"corpus-01\"\n",
-                "target_ancient_se = 1\n",
-                "target_ancient_pe = 1\n",
-                "target_modern_se = 1\n",
-                "target_modern_pe = 1\n",
-            ),
-        )
-        .expect("write corpus spec");
+        write_publication_corpus_spec(repo_root, [1, 1, 1, 1]);
         write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         let corpus_root = stage_root.join("corpus-01");

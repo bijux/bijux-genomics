@@ -7,12 +7,13 @@ use bijux_dna_api::v1::api::bench::{
     validate_benchmark_publication_findings, validate_benchmark_publication_status,
 };
 
-use super::models::PublicationCorpusSpec;
 use super::{
-    audit_publication_docs, benchmark_corpus_spec_path, benchmark_publication_contracts,
-    benchmark_publication_exclusions, load_json_value, publication_artifact_file_name,
-    render_publication_docs_markdown, BenchmarkPublicationFindings,
-    BenchmarkPublicationStatusReport, StageAuditIssue,
+    audit_publication_docs, benchmark_publication_contracts, benchmark_publication_exclusions,
+    load_json_value, publication_artifact_file_name, render_publication_docs_markdown,
+    BenchmarkPublicationFindings, BenchmarkPublicationStatusReport, StageAuditIssue,
+};
+use crate::commands::benchmark::corpus_metadata::{
+    expected_counts_for_scope as expected_corpus_counts_for_scope, load_corpus_spec, CorpusSpec,
 };
 
 type SupplementalFindingsPayload =
@@ -59,33 +60,16 @@ pub(super) fn load_publication_corpus_spec(
     cwd: &Path,
     explicit_config: Option<&Path>,
     corpus_id: &str,
-) -> Result<PublicationCorpusSpec> {
-    let path = benchmark_corpus_spec_path(cwd, explicit_config, corpus_id)?;
-    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+) -> Result<CorpusSpec> {
+    load_corpus_spec(cwd, explicit_config, corpus_id)
 }
 
 pub(super) fn expected_counts_for_scope(
-    spec: &PublicationCorpusSpec,
+    spec: &CorpusSpec,
     sample_scope: &str,
 ) -> Result<(usize, BTreeMap<String, usize>)> {
-    let full_counts = BTreeMap::from([
-        ("ancient_pe".to_string(), spec.target_ancient_pe),
-        ("ancient_se".to_string(), spec.target_ancient_se),
-        ("modern_pe".to_string(), spec.target_modern_pe),
-        ("modern_se".to_string(), spec.target_modern_se),
-    ]);
-    match sample_scope {
-        "full" => Ok((full_counts.values().sum(), full_counts)),
-        "paired" => {
-            let paired_counts = BTreeMap::from([
-                ("ancient_pe".to_string(), spec.target_ancient_pe),
-                ("modern_pe".to_string(), spec.target_modern_pe),
-            ]);
-            Ok((paired_counts.values().sum(), paired_counts))
-        }
-        other => Err(anyhow!("unsupported corpus publication sample_scope: {other}")),
-    }
+    let counts = expected_corpus_counts_for_scope(spec, sample_scope)?;
+    Ok((counts.values().sum(), counts))
 }
 
 pub(super) fn load_supplemental_findings(

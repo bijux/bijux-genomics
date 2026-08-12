@@ -3,39 +3,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Deserialize;
+use bijux_dna_api::v1::api::bench::load_fastq_corpus_source_spec;
+
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    CorpusAcquisitionLayout, FastqCorpusSourceSample as CorpusSpecSample,
+    FastqCorpusSourceSpec as CorpusSpec,
+};
 
 use crate::commands::benchmark_workspace::benchmark_corpus_spec_path;
 
-#[derive(Debug, Clone, Deserialize)]
-pub(crate) struct CorpusSpec {
-    pub(crate) corpus_id: String,
-    #[serde(default)]
-    pub(crate) target_ancient_se: usize,
-    #[serde(default)]
-    pub(crate) target_ancient_pe: usize,
-    #[serde(default)]
-    pub(crate) target_modern_se: usize,
-    #[serde(default)]
-    pub(crate) target_modern_pe: usize,
-    #[serde(default)]
-    pub(crate) samples: Vec<CorpusSpecSample>,
-}
-
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-pub(crate) struct CorpusSpecSample {
-    pub(crate) accession: String,
-    #[serde(default)]
-    pub(crate) study_accession: String,
-    pub(crate) era: String,
-    pub(crate) layout: String,
-    #[serde(default)]
-    pub(crate) size_band: String,
-    #[serde(default)]
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, serde::Deserialize, Default)]
 struct CorpusManifest {
     #[serde(default)]
     files: BTreeMap<String, String>,
@@ -55,30 +32,54 @@ pub(crate) fn load_corpus_spec(
     corpus_id: &str,
 ) -> Result<CorpusSpec> {
     let path = benchmark_corpus_spec_path(repo_root, config_path, corpus_id)?;
-    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+    let spec = load_fastq_corpus_source_spec(&path)?;
+    if spec.corpus_id != corpus_id {
+        return Err(anyhow!(
+            "FASTQ corpus source `{}` does not match requested corpus `{corpus_id}`",
+            spec.corpus_id
+        ));
+    }
+    Ok(spec)
 }
 
 pub(crate) fn corpus_expected_sample_total(spec: &CorpusSpec) -> usize {
-    spec.target_ancient_se + spec.target_ancient_pe + spec.target_modern_se + spec.target_modern_pe
+    spec.target_total
 }
 
 pub(crate) fn expected_counts_for_scope(
     spec: &CorpusSpec,
     sample_scope: &str,
 ) -> Result<BTreeMap<String, usize>> {
+    let cohort_targets = publication_cohort_targets(spec)?;
     match sample_scope {
         "full" => Ok(BTreeMap::from([
-            ("ancient_pe".to_string(), spec.target_ancient_pe),
-            ("ancient_se".to_string(), spec.target_ancient_se),
-            ("modern_pe".to_string(), spec.target_modern_pe),
-            ("modern_se".to_string(), spec.target_modern_se),
+            ("ancient_pe".to_string(), cohort_targets[1]),
+            ("ancient_se".to_string(), cohort_targets[0]),
+            ("modern_pe".to_string(), cohort_targets[3]),
+            ("modern_se".to_string(), cohort_targets[2]),
         ])),
         "paired" => Ok(BTreeMap::from([
-            ("ancient_pe".to_string(), spec.target_ancient_pe),
-            ("modern_pe".to_string(), spec.target_modern_pe),
+            ("ancient_pe".to_string(), cohort_targets[1]),
+            ("modern_pe".to_string(), cohort_targets[3]),
         ])),
         other => Err(anyhow!("unsupported corpus benchmark sample scope `{other}`")),
+    }
+}
+
+fn publication_cohort_targets(spec: &CorpusSpec) -> Result<[usize; 4]> {
+    let targets = [
+        spec.target_ancient_se,
+        spec.target_ancient_pe,
+        spec.target_modern_se,
+        spec.target_modern_pe,
+    ];
+    if targets.iter().any(Option::is_none) {
+        Err(anyhow!(
+            "FASTQ corpus source `{}` must declare every publication cohort target",
+            spec.corpus_id
+        ))
+    } else {
+        Ok(targets.map(Option::unwrap_or_default))
     }
 }
 
@@ -200,7 +201,9 @@ pub(crate) fn validate_corpus_contract(
         let metadata = metadata_by_sample
             .get(&sample.sample_id)
             .ok_or_else(|| anyhow!("missing accession metadata for {}", sample.sample_id))?;
-        *actual_counts.entry(format!("{}_{}", metadata.era, metadata.layout)).or_default() += 1;
+        *actual_counts
+            .entry(format!("{}_{}", metadata.era, metadata.layout.as_str()))
+            .or_default() += 1;
     }
 
     let expected_counts = expected_counts_for_scope(spec, "full")?;
@@ -223,7 +226,9 @@ pub(crate) fn select_paired_samples(
     let paired = samples
         .iter()
         .filter(|row| {
-            metadata_by_sample.get(&row.sample_id).is_some_and(|meta| meta.layout == "pe")
+            metadata_by_sample
+                .get(&row.sample_id)
+                .is_some_and(|meta| meta.layout == CorpusAcquisitionLayout::Pe)
         })
         .cloned()
         .collect::<Vec<_>>();
@@ -232,7 +237,9 @@ pub(crate) fn select_paired_samples(
         let metadata = metadata_by_sample
             .get(&sample.sample_id)
             .ok_or_else(|| anyhow!("missing paired metadata for {}", sample.sample_id))?;
-        *actual_counts.entry(format!("{}_{}", metadata.era, metadata.layout)).or_default() += 1;
+        *actual_counts
+            .entry(format!("{}_{}", metadata.era, metadata.layout.as_str()))
+            .or_default() += 1;
     }
     let expected_counts = expected_counts_for_scope(spec, "paired")?;
     if actual_counts != expected_counts {

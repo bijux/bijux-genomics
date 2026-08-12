@@ -6,7 +6,6 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use super::models::PublicationCorpusSpec;
 use super::{
     append_stage_audit_issue, audit_cohort_runtime_summary, audit_publication_summary,
     audit_sample_results, audit_sample_runtime_outliers, audit_tool_runtime_summary,
@@ -15,6 +14,7 @@ use super::{
     CorpusBenchmarkContract, CorpusBenchmarkExclusion, ExcludedStageEntry, PublicationStageReport,
     StageAuditIssue, BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1,
 };
+use crate::commands::benchmark::corpus_metadata::CorpusSpec;
 
 pub(super) fn audit_publication_docs(
     repo_root: &Path,
@@ -22,7 +22,7 @@ pub(super) fn audit_publication_docs(
     corpus_id: &str,
     contracts: &[CorpusBenchmarkContract],
     exclusions: &[CorpusBenchmarkExclusion],
-    corpus_spec: &PublicationCorpusSpec,
+    corpus_spec: &CorpusSpec,
     supplemental_findings: &BTreeMap<String, Vec<StageAuditIssue>>,
     results_by_stage: &BTreeMap<String, serde_json::Value>,
     audit_warnings: &[String],
@@ -74,7 +74,7 @@ pub(super) fn audit_publication_stage(
     docs_root: &Path,
     contract: &CorpusBenchmarkContract,
     corpus_id: &str,
-    corpus_spec: &PublicationCorpusSpec,
+    corpus_spec: &CorpusSpec,
     supplemental_issues: Vec<StageAuditIssue>,
     results_stage: Option<&serde_json::Value>,
 ) -> Result<PublicationStageReport> {

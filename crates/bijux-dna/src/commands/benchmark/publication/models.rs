@@ -66,19 +66,6 @@ pub(super) struct CorpusArtifactSet {
     pub(super) benchmark_markdown: String,
 }
 
-#[derive(Debug, Clone, serde::Deserialize)]
-pub(super) struct PublicationCorpusSpec {
-    pub(super) corpus_id: String,
-    #[serde(default)]
-    pub(super) target_ancient_se: usize,
-    #[serde(default)]
-    pub(super) target_ancient_pe: usize,
-    #[serde(default)]
-    pub(super) target_modern_se: usize,
-    #[serde(default)]
-    pub(super) target_modern_pe: usize,
-}
-
 #[derive(Debug, Clone)]
 pub(super) struct StageRunRootCandidate {
     pub(super) path: PathBuf,
