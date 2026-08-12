@@ -147,6 +147,13 @@ success/failure cleanup behavior. The benchmark model owns job lineage, exact
 counters, containment, resource, and cleanup admission; the CLI only resolves
 selected jobs and source assets into the validated layout.
 
+`schemas/local-pipeline-dag-validation.schema.json` defines persisted local
+pipeline identity, execution and reference context, project and asset lineage,
+node topology, and validation-profile evidence. The benchmark model owns the
+record types, schema identity, aggregate closure, and topological admission;
+the CLI only loads declarations, derives the report, validates it, and writes
+the admitted record.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated

@@ -30,6 +30,7 @@ pub mod local_corpus_stage_compatibility;
 pub mod local_hpc_asset_staging;
 pub mod local_hpc_result_collection_simulation;
 pub mod local_hpc_scratch_layout;
+pub mod local_pipeline_dag;
 pub mod local_runtime_metrics;
 pub mod local_stage_completion;
 pub mod local_stage_inventory;
@@ -266,6 +267,15 @@ pub use local_hpc_scratch_layout::{
     benchmark_local_hpc_scratch_layout_schema, BenchmarkLocalHpcScratchCleanupPolicy,
     BenchmarkLocalHpcScratchInputLink, BenchmarkLocalHpcScratchJobResources,
     BenchmarkLocalHpcScratchLayout, BenchmarkLocalHpcScratchLayoutJob,
+};
+#[allow(unused_imports)]
+pub use local_pipeline_dag::{
+    benchmark_local_pipeline_dag_validation_schema, BenchmarkLocalPipelineAncientDnaPolicy,
+    BenchmarkLocalPipelineDagValidationNode, BenchmarkLocalPipelineDagValidationProfile,
+    BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineExecutionContext,
+    BenchmarkLocalPipelineProjectSource, BenchmarkLocalPipelineReferenceAssets,
+    BenchmarkLocalPipelineReferenceContext, BenchmarkLocalPipelineSnpEffAssets,
+    BenchmarkLocalPipelineVariantAssets,
 };
 #[allow(unused_imports)]
 pub use local_runtime_metrics::{

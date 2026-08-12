@@ -119,6 +119,8 @@ pub const BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_result_collection_simulation.v1";
 pub const BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_scratch_layout.v1";
+pub const BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1: &str =
+    "bijux.bench.local_pipeline_dag_validation.v1";
 pub const BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_skip_report.v1";
 pub const BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1: &str = "bijux.fastq.corpus_benchmark_run.v1";
