@@ -387,6 +387,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::QualificationSlurm,
         ),
         native(
+            "repository-archive",
+            "Archive, verify, retire, or restore governed immutable repository snapshots.",
+            NativeContainerCommandKey::RepositoryArchive,
+        ),
+        native(
             "repository-freeze",
             "Materialize immutable repository snapshots under the governed site policy.",
             NativeContainerCommandKey::RepositoryFreeze,
