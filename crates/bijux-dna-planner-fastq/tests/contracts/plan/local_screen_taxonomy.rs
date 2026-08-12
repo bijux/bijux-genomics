@@ -41,8 +41,8 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 16);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy")
+        plan.out_dir.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy")
     );
     for (name, expected) in [
         ("reads_r1", "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq"),

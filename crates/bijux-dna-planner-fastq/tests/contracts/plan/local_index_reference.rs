@@ -1,5 +1,5 @@
 use anyhow::Result;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -19,8 +19,8 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference")
+        plan.out_dir.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference")
     );
 
     let input = plan
@@ -38,8 +38,8 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
         .find(|artifact| artifact.name.as_str() == "reference_index")
         .unwrap_or_else(|| panic!("reference_index output missing from local-ready plan"));
     assert_eq!(
-        reference_index.path,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference")
+        reference_index.path.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference")
     );
 
     let report_json = plan
@@ -49,8 +49,8 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
         .find(|artifact| artifact.name.as_str() == "report_json")
         .unwrap_or_else(|| panic!("report_json output missing from local-ready plan"));
     assert_eq!(
-        report_json.path,
-        PathBuf::from(
+        report_json.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/index_reference_report.json"
         )
     );

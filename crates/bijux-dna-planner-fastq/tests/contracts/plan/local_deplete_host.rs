@@ -41,8 +41,8 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host")
+        plan.out_dir.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host")
     );
     for (name, expected) in [
         ("reads_r1", "assets/toy/core-v1/fastq/reads_1.fastq"),

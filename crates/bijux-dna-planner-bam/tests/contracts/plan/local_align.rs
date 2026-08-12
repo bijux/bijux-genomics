@@ -1,5 +1,5 @@
 use anyhow::Result;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -19,8 +19,8 @@ fn local_align_plan_uses_governed_repo_inputs() -> Result<()> {
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/bam.align")
+        plan.out_dir.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/bam.align")
     );
 
     let input_r1 = plan
@@ -68,8 +68,8 @@ fn local_align_plan_uses_governed_repo_inputs() -> Result<()> {
         .find(|artifact| artifact.name.as_str() == "align_bam")
         .unwrap_or_else(|| panic!("align_bam output missing from local-ready plan"));
     assert_eq!(
-        aligned_bam.path,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/bam.align/align.bam")
+        aligned_bam.path.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/bam.align/align.bam")
     );
 
     let aligned_bai = plan
@@ -79,8 +79,8 @@ fn local_align_plan_uses_governed_repo_inputs() -> Result<()> {
         .find(|artifact| artifact.name.as_str() == "align_bai")
         .unwrap_or_else(|| panic!("align_bai output missing from local-ready plan"));
     assert_eq!(
-        aligned_bai.path,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/bam.align/align.bam.bai")
+        aligned_bai.path.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/bam.align/align.bam.bai")
     );
 
     assert_eq!(
