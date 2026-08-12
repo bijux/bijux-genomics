@@ -4,11 +4,11 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use super::models::StageAuditIssue;
 use super::publication_io::{
     csv_report_value, csv_required_value, csv_value, load_csv_rows, relative_to_docs_root,
 };
 use super::report_audit::append_stage_audit_issue;
+use super::StageAuditIssue;
 use crate::commands::benchmark_workspace::CorpusBenchmarkContract;
 
 pub(super) fn audit_tool_runtime_summary(

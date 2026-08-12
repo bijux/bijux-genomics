@@ -33,11 +33,7 @@ pub(crate) use self::entrypoint::{
     run_corpus_fastq_published_dossiers, run_corpus_fastq_report,
 };
 #[cfg(test)]
-use self::models::StageAuditIssue;
-#[cfg(test)]
 use self::models::StageRunRootCandidate;
-#[cfg(test)]
-use self::models::{BenchmarkPublicationStatusReport, ExcludedStageEntry, PublicationStageReport};
 #[cfg(test)]
 use self::models::{
     RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
@@ -64,6 +60,12 @@ use self::results_status::{
 };
 use self::runtime_audit::{
     audit_cohort_runtime_summary, audit_sample_runtime_outliers, audit_tool_runtime_summary,
+};
+use bijux_dna_api::v1::api::bench::{
+    BenchmarkPublicationAuditIssue as StageAuditIssue,
+    BenchmarkPublicationExcludedStage as ExcludedStageEntry,
+    BenchmarkPublicationStageStatus as PublicationStageReport, BenchmarkPublicationStatusReport,
+    BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1,
 };
 #[cfg(test)]
 use bijux_dna_api::v1::api::bench::{
@@ -920,6 +922,7 @@ reason = "Compact validation fixture."
     fn publication_docs_markdown_summarizes_completion_and_issue_count() {
         let markdown =
             super::render_publication_docs_markdown(&super::BenchmarkPublicationStatusReport {
+                schema_version: super::BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1.to_string(),
                 corpus_id: "corpus-01".to_string(),
                 docs_root: "/bench/docs/30-operations/benchmark".to_string(),
                 benchmarkable_stage_count: 3,

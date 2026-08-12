@@ -1,4 +1,5 @@
 {
+  "schema_version": "bijux.bench.publication_status.v1",
   "corpus_id": "corpus-01",
   "docs_root": "docs/30-operations/benchmark",
   "benchmarkable_stage_count": 23,

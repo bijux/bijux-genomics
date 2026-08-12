@@ -80,56 +80,6 @@ pub(super) struct PublicationCorpusSpec {
 }
 
 #[derive(Debug, Serialize)]
-pub(super) struct BenchmarkPublicationStatusReport {
-    pub(super) corpus_id: String,
-    pub(super) docs_root: String,
-    pub(super) benchmarkable_stage_count: usize,
-    pub(super) applicable_stage_count: usize,
-    pub(super) completed_stage_count: usize,
-    pub(super) incomplete_stage_count: usize,
-    pub(super) excluded_stage_count: usize,
-    pub(super) issue_count: usize,
-    pub(super) audit_warning_count: usize,
-    pub(super) audit_warnings: Vec<String>,
-    pub(super) supplemental_findings_generated_at_utc: Option<String>,
-    pub(super) excluded_stages: Vec<ExcludedStageEntry>,
-    pub(super) stages: Vec<PublicationStageReport>,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct ExcludedStageEntry {
-    pub(super) stage_id: String,
-    pub(super) reason: String,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct PublicationStageReport {
-    pub(super) stage_id: String,
-    pub(super) scenario_id: String,
-    pub(super) sample_scope: String,
-    pub(super) contract_tool_roster: Vec<String>,
-    pub(super) expected_tool_roster: Vec<String>,
-    pub(super) method_path: String,
-    pub(super) corpus_path: String,
-    pub(super) status: String,
-    pub(super) issue_count: usize,
-    pub(super) results_status: String,
-    pub(super) results_issue_count: usize,
-    pub(super) results_selected_run_root: String,
-    pub(super) results_newest_available_run_root: String,
-    pub(super) results_selected_run_root_is_newest: bool,
-    pub(super) issues: Vec<StageAuditIssue>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(super) struct StageAuditIssue {
-    pub(super) stage_id: String,
-    pub(super) issue_id: String,
-    pub(super) severity: String,
-    pub(super) detail: String,
-}
-
-#[derive(Debug, Serialize)]
 pub(super) struct RemediationQueue {
     pub(super) corpus_id: String,
     pub(super) stage_count: usize,

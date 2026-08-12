@@ -6,16 +6,14 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use super::models::{
-    BenchmarkPublicationStatusReport, ExcludedStageEntry, PublicationCorpusSpec,
-    PublicationStageReport, StageAuditIssue,
-};
+use super::models::PublicationCorpusSpec;
 use super::{
     append_stage_audit_issue, audit_cohort_runtime_summary, audit_publication_summary,
     audit_sample_results, audit_sample_runtime_outliers, audit_tool_runtime_summary,
     expected_counts_for_scope, publication_method_file_name, relative_to_docs_root,
-    relative_to_repo_root, sorted_strings, value_string, CorpusBenchmarkContract,
-    CorpusBenchmarkExclusion,
+    relative_to_repo_root, sorted_strings, value_string, BenchmarkPublicationStatusReport,
+    CorpusBenchmarkContract, CorpusBenchmarkExclusion, ExcludedStageEntry, PublicationStageReport,
+    StageAuditIssue, BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1,
 };
 
 pub(super) fn audit_publication_docs(
@@ -49,6 +47,7 @@ pub(super) fn audit_publication_docs(
         })
         .collect::<Result<Vec<_>>>()?;
     Ok(BenchmarkPublicationStatusReport {
+        schema_version: BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1.to_string(),
         corpus_id: corpus_id.to_string(),
         docs_root: relative_to_repo_root(docs_root, repo_root),
         benchmarkable_stage_count: contracts.len() + exclusions.len(),

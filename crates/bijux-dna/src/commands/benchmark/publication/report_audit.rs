@@ -4,11 +4,11 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use super::models::StageAuditIssue;
 use super::publication_io::{
     csv_report_value, csv_required_value, json_string_array, load_csv_rows, load_json_value,
     relative_to_docs_root, sort_count_map, sorted_json_string_array, value_string,
 };
+use super::StageAuditIssue;
 use crate::commands::benchmark_workspace::CorpusBenchmarkContract;
 
 pub(super) fn audit_publication_summary(

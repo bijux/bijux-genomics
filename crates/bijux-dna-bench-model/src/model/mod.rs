@@ -37,6 +37,7 @@ pub mod protocol;
 pub mod publication;
 pub mod publication_outcome;
 pub mod publication_registry;
+pub mod publication_status;
 pub mod published_results_status;
 pub mod replay;
 pub mod report;
@@ -303,6 +304,12 @@ pub use publication_registry::{
     BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
     BenchmarkQuarantinedPublicationSurface, BenchmarkStagePublication,
     BenchmarkStagePublicationDisposition,
+};
+#[allow(unused_imports)]
+pub use publication_status::{
+    benchmark_publication_status_schema, BenchmarkPublicationAuditIssue,
+    BenchmarkPublicationExcludedStage, BenchmarkPublicationStageStatus,
+    BenchmarkPublicationStatusReport, BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use published_results_status::{

@@ -63,6 +63,8 @@ mod mod_contracts_protocol_rs;
 mod mod_contracts_publication_outcome_rs;
 #[path = "contracts/publication.rs"]
 mod mod_contracts_publication_rs;
+#[path = "contracts/publication_status.rs"]
+mod mod_contracts_publication_status_rs;
 #[path = "contracts/published_results_status.rs"]
 mod mod_contracts_published_results_status_rs;
 #[path = "contracts/replay.rs"]

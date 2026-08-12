@@ -3,12 +3,13 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::validate_benchmark_publication_status;
 
-use super::models::{BenchmarkPublicationStatusReport, PublicationCorpusSpec, StageAuditIssue};
+use super::models::PublicationCorpusSpec;
 use super::{
     audit_publication_docs, benchmark_corpus_spec_path, benchmark_publication_contracts,
     benchmark_publication_exclusions, load_json_value, publication_artifact_file_name,
-    render_publication_docs_markdown,
+    render_publication_docs_markdown, BenchmarkPublicationStatusReport, StageAuditIssue,
 };
 
 type SupplementalFindingsPayload =
@@ -46,6 +47,7 @@ pub(super) fn write_corpus_fastq_docs_status(
         &audit_warnings,
         findings_generated_at_utc,
     )?;
+    validate_benchmark_publication_status(&report)?;
     write_publication_docs_status(docs_root, corpus_id, &report)
 }
 

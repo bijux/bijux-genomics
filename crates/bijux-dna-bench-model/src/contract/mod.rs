@@ -36,6 +36,7 @@ mod protocol;
 mod publication;
 mod publication_outcome;
 mod publication_registry;
+mod publication_status;
 mod published_results_status;
 mod records;
 mod replay;
@@ -116,6 +117,7 @@ pub use publication_outcome::{
     validate_governed_data_catalog_snapshot_publication,
 };
 pub use publication_registry::validate_benchmark_publication_registry;
+pub use publication_status::validate_benchmark_publication_status;
 pub use published_results_status::validate_benchmark_published_results_status;
 pub use records::{
     validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_observation,

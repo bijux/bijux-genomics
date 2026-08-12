@@ -169,6 +169,11 @@ state, metadata presence, run-root source semantics, path uniqueness, counters,
 and the generated schema; the CLI only discovers dossier inputs and renders the
 validated record.
 
+`schemas/publication-status.schema.json` defines the persisted benchmark
+publication audit. The benchmark model owns coverage, exclusions, stage and
+tool identity, issue lineage, result-root consistency, and generated schema;
+the CLI only inspects publication inputs and renders the validated audit.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and
