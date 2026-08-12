@@ -2,6 +2,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_stage_commands, BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalStageArtifactEntry as BenchLocalStageArtifactEntry,
+    BenchmarkLocalStageCommandArgvEntry as BenchLocalStageCommandArgvEntry,
+    BenchmarkLocalStageCommandEntry as BenchLocalStageCommandEntry,
+    BenchmarkLocalStageCommandManifest as BenchLocalStageCommandManifest,
+};
 use bijux_dna_core::contract::ArtifactRef;
 use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
 use bijux_dna_domain_fastq::{
@@ -18,57 +27,17 @@ use crate::commands::benchmark::local_stage_inventory::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v3";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
 const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.report_qc";
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-pub(crate) struct BenchLocalStageArtifactEntry {
-    pub(crate) artifact_id: String,
-    pub(crate) path: String,
-    pub(crate) role: String,
-    pub(crate) optional: bool,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageCommandEntry {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: LocalStageReadinessKind,
-    pub(crate) tool_id: String,
-    pub(crate) inputs: Vec<BenchLocalStageArtifactEntry>,
-    pub(crate) outputs: Vec<BenchLocalStageArtifactEntry>,
-    pub(crate) threads: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) argv: Vec<String>,
-    pub(crate) command: String,
-}
-
 #[derive(Debug, Clone)]
 pub(crate) struct BenchLocalStagePlanBundle {
     pub(crate) stage_id: String,
     pub(crate) readiness_kind: LocalStageReadinessKind,
     pub(crate) plans: Vec<StagePlanV1>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageCommandManifest {
-    pub(crate) schema_version: &'static str,
-    pub(crate) script_output_path: String,
-    pub(crate) manifest_output_path: String,
-    pub(crate) argv_output_path: String,
-    pub(crate) command_count: usize,
-    pub(crate) commands: Vec<BenchLocalStageCommandEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageCommandArgvEntry {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) readiness_kind: LocalStageReadinessKind,
-    pub(crate) argv: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -381,13 +350,14 @@ pub(crate) fn render_local_stage_commands(
         render_stage_command_argv_jsonl(&argv_rows).context("render stage command argv jsonl")?;
     bijux_dna_infra::atomic_write_bytes(&argv_output_path, rendered_argv.as_bytes())?;
     let manifest = BenchLocalStageCommandManifest {
-        schema_version: LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3.to_string(),
         script_output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         manifest_output_path: path_relative_to_repo(repo_root, &manifest_output_path),
         argv_output_path: path_relative_to_repo(repo_root, &argv_output_path),
         command_count: commands.len(),
         commands,
     };
+    validate_benchmark_local_stage_commands(&manifest)?;
     bijux_dna_infra::atomic_write_json(&manifest_output_path, &manifest)?;
 
     Ok(manifest)
@@ -1046,8 +1016,8 @@ mod tests {
     };
     #[cfg(feature = "bam_downstream")]
     use super::{
-        BenchLocalDomain, DEFAULT_RENDERED_STAGE_COMMANDS_PATH,
-        LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION,
+        BenchLocalDomain, BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3,
+        DEFAULT_RENDERED_STAGE_COMMANDS_PATH,
     };
     #[cfg(feature = "bam_downstream")]
     use crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory;
@@ -1073,7 +1043,7 @@ mod tests {
 
         assert_eq!(rendered.command_count, fastq.stage_count + bam.stage_count);
         assert_eq!(rendered.commands.len(), 51);
-        assert_eq!(rendered.schema_version, LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION);
+        assert_eq!(rendered.schema_version, BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3);
         assert_eq!(
             rendered.manifest_output_path,
             "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.json"

@@ -177,6 +177,12 @@ script-rendering record. The benchmark model owns domain identity, readiness
 vocabulary, resource and path invariants, uniqueness, aggregate closure, and
 the generated schema; the CLI only derives run paths and writes script bodies.
 
+`schemas/local-stage-commands.schema.json` defines persisted stage commands,
+argument vectors, resource ceilings, and input/output artifact projections.
+The benchmark model owns these records, their schema, identity uniqueness, and
+aggregate admission; the CLI only derives commands from governed stage plans
+and writes the shell, JSON, and JSONL projections.
+
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated
