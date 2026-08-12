@@ -9,6 +9,7 @@ mod appraisal;
 mod benchmark_matrix;
 mod compatibility;
 mod container_report_portfolio;
+mod corpus_dossier;
 mod corpus_expectations;
 mod cross_campaign;
 mod data_catalog_registry;
@@ -57,6 +58,7 @@ pub use compatibility::{
     validate_attempt_record_v1, validate_cycle_status_v1,
 };
 pub use container_report_portfolio::validate_container_report_portfolio_index;
+pub use corpus_dossier::validate_benchmark_corpus_dossier_summary;
 pub use corpus_expectations::validate_fastq_read_length_expectations;
 pub use cross_campaign::validate_cross_benchmark_campaign_report;
 pub use data_catalog_registry::validate_governed_data_catalog_registry;

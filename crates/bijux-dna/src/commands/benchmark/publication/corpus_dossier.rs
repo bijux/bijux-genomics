@@ -5,10 +5,15 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-
-use super::models::{
-    CorpusArtifactSet, CorpusHeadline, CorpusSampleResultRow, CorpusSummary, CorpusToolSummary,
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_corpus_dossier_summary, BenchmarkCorpusDossierHeadline as CorpusHeadline,
+    BenchmarkCorpusDossierSampleResultRow as CorpusSampleResultRow,
+    BenchmarkCorpusDossierSummary as CorpusSummary,
+    BenchmarkCorpusDossierToolSummary as CorpusToolSummary,
+    BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
 };
+
+use super::models::CorpusArtifactSet;
 use super::{
     absolutize, configured_stage_run_roots, csv_report_value, load_json_value,
     localize_results_path, select_stage_run_root, sorted_json_string_array, sorted_strings,
@@ -397,7 +402,7 @@ fn build_corpus_artifact_set(
         .and_then(serde_json::Value::as_u64)
         .map_or(Ok(0_usize), usize::try_from)?;
     let summary = CorpusSummary {
-        schema_version: "bijux.corpus_benchmark.summary.v1".to_string(),
+        schema_version: BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1.to_string(),
         corpus_id: corpus_spec.corpus_id.clone(),
         stage_id: contract.stage_id.clone(),
         scenario_id: contract.scenario_id.clone(),
@@ -420,6 +425,7 @@ fn build_corpus_artifact_set(
             highest_pass_rate: highest_pass_rate.map(|row| row.1),
         },
     };
+    validate_benchmark_corpus_dossier_summary(&summary)?;
     let benchmark_markdown =
         render_corpus_benchmark_markdown(&summary, &tool_runtime_rows, &outlier_rows);
 

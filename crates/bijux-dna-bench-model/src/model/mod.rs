@@ -9,6 +9,7 @@ pub mod benchmark_matrix;
 pub mod campaign_engine;
 pub mod container_report_portfolio;
 pub mod corpus;
+pub mod corpus_dossier;
 pub mod cross_campaign;
 pub mod data_catalog_registry;
 pub mod data_fitness;
@@ -104,6 +105,12 @@ pub use corpus::{
     CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
     FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+};
+#[allow(unused_imports)]
+pub use corpus_dossier::{
+    benchmark_corpus_dossier_summary_schema, BenchmarkCorpusDossierHeadline,
+    BenchmarkCorpusDossierSampleResultRow, BenchmarkCorpusDossierSummary,
+    BenchmarkCorpusDossierToolSummary, BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use cross_campaign::{

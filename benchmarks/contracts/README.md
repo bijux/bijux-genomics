@@ -157,6 +157,12 @@ benchmark run manifest. The benchmark model owns its identity, sample records,
 counter invariants, status semantics, and generated schema; the CLI only
 executes samples and writes the validated record.
 
+`schemas/corpus-dossier-summary.schema.json` defines the persisted per-stage
+corpus benchmark dossier summary. The benchmark model owns corpus, stage, tool,
+sample and cohort coverage, metric validity, headline consistency, CSV sample
+row types, and the generated schema; the CLI only assembles observed evidence
+and renders the validated dossier.
+
 `schemas/published-results-status.schema.json` defines the persisted audit of
 published benchmark result mirrors. The benchmark model owns stage identity,
 completion and issue counters, result-root consistency, issue lineage, and the

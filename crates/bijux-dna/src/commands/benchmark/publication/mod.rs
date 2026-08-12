@@ -325,8 +325,24 @@ tools = ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"]
         .expect("write benchmark config");
         fs::write(
             &corpus_spec_path,
-            r#"schema_version = "bijux.corpus_spec.v1"
+            r#"schema_version = "bijux.benchmark.fastq_corpus_source.v1"
 corpus_id = "corpus-01"
+portfolio_id = "report-rendering-fixture"
+class = "qualification_real"
+access_classification = "public"
+redistribution_classification = "metadata_only"
+access_terms_url = "https://example.org/access"
+attribution = "Report rendering contract fixture"
+projected_storage_bytes = 1
+projected_cpu_hours = 1
+projection_basis = "Minimal report rendering fixture"
+truth_roles = ["contract_validation"]
+truth_strategy = "observational_only"
+known_limitations = ["Not publication evidence"]
+species = "Homo sapiens"
+description = "Typed report rendering corpus fixture"
+source_authority = "contract fixture"
+target_total = 1
 target_ancient_se = 0
 target_ancient_pe = 0
 target_modern_se = 1

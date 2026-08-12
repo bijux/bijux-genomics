@@ -250,6 +250,28 @@ fn thin_cli_uses_model_owned_fastq_corpus_source_contract() {
     assert!(!publication_models.contains("struct PublicationCorpusSpec"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_corpus_dossier_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/publication");
+    let dossier =
+        fs::read_to_string(cli_root.join("corpus_dossier.rs")).expect("read corpus dossier");
+    let local_models =
+        fs::read_to_string(cli_root.join("models.rs")).expect("read publication CLI models");
+
+    assert!(dossier.contains("validate_benchmark_corpus_dossier_summary"));
+    assert!(dossier.contains("BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1"));
+    for forbidden in [
+        "struct CorpusSummary",
+        "struct CorpusToolSummary",
+        "struct CorpusHeadline",
+        "struct CorpusSampleResultRow",
+    ] {
+        assert!(!local_models.contains(forbidden));
+    }
+    assert!(!dossier.contains("bijux.corpus_benchmark.summary.v1"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

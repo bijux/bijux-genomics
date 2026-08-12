@@ -17,6 +17,8 @@ mod mod_contracts_benchmark_planning_rs;
 mod mod_contracts_campaign_engine_rs;
 #[path = "contracts/compatibility.rs"]
 mod mod_contracts_compatibility_rs;
+#[path = "contracts/corpus_dossier.rs"]
+mod mod_contracts_corpus_dossier_rs;
 #[path = "contracts/cross_campaign.rs"]
 mod mod_contracts_cross_campaign_rs;
 #[path = "contracts/data_catalog_registry.rs"]
