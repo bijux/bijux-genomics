@@ -118,6 +118,12 @@ replacement lineage, asset-backed stages, and planner-only dispositions. The
 benchmark model owns corpus references, distinct stage coverage, exact counters,
 and schema generation; the CLI only derives and publishes a validated report.
 
+`schemas/local-corpus-stage-compatibility.schema.json` defines validated fixture
+lineage and the fixture-backed, asset-backed, and planner-only disposition of
+each local stage. The benchmark model owns the persisted rows, counters,
+lineage validation, and schema generation; the CLI only loads the reviewed
+matrix and publishes an admitted report.
+
 `schemas/local-hpc-job-graph.schema.json` defines the persisted local HPC
 benchmark topology. The benchmark model owns job-kind identity, reciprocal edge
 closure, root derivation, topological ordering, and exact counters; the CLI only

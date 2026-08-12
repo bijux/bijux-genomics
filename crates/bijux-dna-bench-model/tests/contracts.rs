@@ -35,6 +35,8 @@ mod mod_contracts_fastq_expectations_rs;
 mod mod_contracts_local_benchmark_summary_rs;
 #[path = "contracts/local_corpus_skip.rs"]
 mod mod_contracts_local_corpus_skip_rs;
+#[path = "contracts/local_corpus_stage_compatibility.rs"]
+mod mod_contracts_local_corpus_stage_compatibility_rs;
 #[path = "contracts/local_runtime_metrics.rs"]
 mod mod_contracts_local_runtime_metrics_rs;
 #[path = "contracts/local_stage_completion.rs"]
