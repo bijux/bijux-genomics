@@ -92,37 +92,6 @@ pub(super) struct DossierStageEntry {
     pub(super) run_root_source: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-pub(super) struct PublishedResultsStatusReport {
-    pub(super) corpus_id: String,
-    pub(super) applicable_stage_count: usize,
-    pub(super) published_stage_count: usize,
-    pub(super) complete_stage_count: usize,
-    pub(super) incomplete_stage_count: usize,
-    pub(super) issue_count: usize,
-    pub(super) stages: Vec<PublishedResultsStageReport>,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct PublishedResultsStageReport {
-    pub(super) stage_id: String,
-    pub(super) status: String,
-    pub(super) issue_count: usize,
-    pub(super) reported_run_root: String,
-    pub(super) selected_run_root: String,
-    pub(super) newest_available_run_root: String,
-    pub(super) selected_run_root_is_newest: bool,
-    pub(super) available_run_roots: Vec<String>,
-    pub(super) issues: Vec<StageResultIssue>,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct StageResultIssue {
-    pub(super) stage_id: String,
-    pub(super) issue_id: String,
-    pub(super) detail: String,
-}
-
 #[derive(Debug, Clone, serde::Deserialize)]
 pub(super) struct PublicationCorpusSpec {
     pub(super) corpus_id: String,

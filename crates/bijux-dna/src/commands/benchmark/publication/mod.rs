@@ -39,8 +39,6 @@ use self::models::StageRunRootCandidate;
 #[cfg(test)]
 use self::models::{BenchmarkPublicationStatusReport, ExcludedStageEntry, PublicationStageReport};
 #[cfg(test)]
-use self::models::{PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue};
-#[cfg(test)]
 use self::models::{
     RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
 };
@@ -66,6 +64,11 @@ use self::results_status::{
 };
 use self::runtime_audit::{
     audit_cohort_runtime_summary, audit_sample_runtime_outliers, audit_tool_runtime_summary,
+};
+#[cfg(test)]
+use bijux_dna_api::v1::api::bench::{
+    PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue,
+    BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
 };
 
 #[cfg(test)]
@@ -799,6 +802,7 @@ reason = "Compact validation fixture."
     fn results_audit_markdown_lists_selected_and_available_run_roots() {
         let rendered =
             super::render_published_results_markdown(&super::PublishedResultsStatusReport {
+                schema_version: super::BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1.to_string(),
                 corpus_id: "corpus-01".to_string(),
                 applicable_stage_count: 1,
                 published_stage_count: 1,

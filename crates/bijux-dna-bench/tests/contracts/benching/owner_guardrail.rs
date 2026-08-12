@@ -155,6 +155,22 @@ fn thin_cli_uses_model_owned_fastq_corpus_run_contract() {
     assert!(!local_models.contains("bijux.fastq.corpus_benchmark_run.v1"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_published_results_status_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/publication");
+    let command = fs::read_to_string(cli_root.join("results_status.rs"))
+        .expect("read published-results status command");
+    let local_models =
+        fs::read_to_string(cli_root.join("models.rs")).expect("read publication CLI models");
+
+    assert!(command.contains("validate_benchmark_published_results_status"));
+    assert!(command.contains("PublishedResultsStatusReport"));
+    assert!(!local_models.contains("struct PublishedResultsStatusReport"));
+    assert!(!local_models.contains("struct PublishedResultsStageReport"));
+    assert!(!local_models.contains("struct StageResultIssue"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

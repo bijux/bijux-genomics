@@ -2,8 +2,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_published_results_status, PublishedResultsStageReport,
+    PublishedResultsStatusReport, StageResultIssue, BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
+};
 
-use super::models::{PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue};
 use super::{
     benchmark_publication_contracts, configured_stage_run_roots, json_string_array,
     load_benchmark_config, load_json_value, localize_results_path, observed_tools_from_report,
@@ -47,7 +50,8 @@ pub(super) fn audit_published_results(
             audit_published_results_stage(repo_root, workspace, docs_root, corpus_id, contract)
         })
         .collect::<Result<Vec<_>>>()?;
-    Ok(PublishedResultsStatusReport {
+    let report = PublishedResultsStatusReport {
+        schema_version: BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1.to_string(),
         corpus_id: corpus_id.to_string(),
         applicable_stage_count: contracts.len(),
         published_stage_count: contracts
@@ -62,7 +66,9 @@ pub(super) fn audit_published_results(
         incomplete_stage_count: stages.iter().filter(|stage| stage.status != "complete").count(),
         issue_count: stages.iter().map(|stage| stage.issue_count).sum(),
         stages,
-    })
+    };
+    validate_benchmark_published_results_status(&report)?;
+    Ok(report)
 }
 
 pub(super) fn audit_published_results_stage(

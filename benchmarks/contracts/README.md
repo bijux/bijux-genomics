@@ -157,6 +157,12 @@ benchmark run manifest. The benchmark model owns its identity, sample records,
 counter invariants, status semantics, and generated schema; the CLI only
 executes samples and writes the validated record.
 
+`schemas/published-results-status.schema.json` defines the persisted audit of
+published benchmark result mirrors. The benchmark model owns stage identity,
+completion and issue counters, result-root consistency, issue lineage, and the
+generated schema; the CLI only discovers result roots and renders the validated
+record.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and

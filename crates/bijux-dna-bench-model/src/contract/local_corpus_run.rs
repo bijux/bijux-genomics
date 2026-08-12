@@ -13,6 +13,11 @@ use super::validate_utc_timestamp;
 pub fn validate_benchmark_local_corpus_run(
     manifest: &BenchmarkCorpusRunManifest,
 ) -> Result<(), BenchError> {
+    validate_manifest_contract(manifest)?;
+    validate_sample_runs(manifest)
+}
+
+fn validate_manifest_contract(manifest: &BenchmarkCorpusRunManifest) -> Result<(), BenchError> {
     if manifest.schema_version != BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1 {
         return invalid("unsupported FASTQ corpus benchmark run schema");
     }
@@ -81,7 +86,10 @@ pub fn validate_benchmark_local_corpus_run(
     if manifest.samples_failed != failures {
         return invalid("FASTQ corpus benchmark samples_failed does not match exit codes");
     }
+    Ok(())
+}
 
+fn validate_sample_runs(manifest: &BenchmarkCorpusRunManifest) -> Result<(), BenchError> {
     let mut samples = BTreeSet::new();
     for run in &manifest.runs {
         for (value, field) in [
