@@ -745,6 +745,7 @@ fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
     if metadata.file_type().is_symlink() {
         anyhow::bail!("full shard ephemeral path is a symlink: {}", path.display());
     }
+    make_full_shard_ephemera_removable(path)?;
     if metadata.is_dir() {
         std::fs::remove_dir_all(path)
             .with_context(|| format!("remove full shard ephemeral directory {}", path.display()))
@@ -752,6 +753,37 @@ fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
         std::fs::remove_file(path)
             .with_context(|| format!("remove full shard ephemeral file {}", path.display()))
     }
+}
+
+fn make_full_shard_ephemera_removable(path: &Path) -> Result<()> {
+    for entry in walkdir::WalkDir::new(path).follow_links(false) {
+        let entry = entry.with_context(|| {
+            format!("inspect full shard ephemeral path below {}", path.display())
+        })?;
+        let metadata = entry.path().symlink_metadata().with_context(|| {
+            format!("read full shard ephemeral metadata {}", entry.path().display())
+        })?;
+        if metadata.file_type().is_symlink() {
+            anyhow::bail!(
+                "full shard ephemeral tree contains a symlink: {}",
+                entry.path().display()
+            );
+        }
+        let mut permissions = metadata.permissions();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            let owner_access = if metadata.is_dir() { 0o700 } else { 0o600 };
+            permissions.set_mode(permissions.mode() | owner_access);
+        }
+        #[cfg(not(unix))]
+        permissions.set_readonly(false);
+        std::fs::set_permissions(entry.path(), permissions).with_context(|| {
+            format!("restore owner access to full shard ephemera {}", entry.path().display())
+        })?;
+    }
+    Ok(())
 }
 
 fn read_ci_build_authority(path: &Path) -> Result<CiBuildAuthority> {
@@ -1436,11 +1468,12 @@ mod tests {
         artifact_root_path, ci_output_path, ci_output_path_under, full_archive_args,
         full_archive_roots, full_shard_args, full_shard_env, full_shard_root_receipt,
         full_shard_roots, materialize_full_shard_workspace, percentile, read_ci_build_authority,
-        reference_timing_samples, set_full_archive_readonly, validate_ci_test_executor_observation,
-        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
-        validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
-        FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract,
-        FullShardCoverage, FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
+        reference_timing_samples, remove_full_shard_ephemera, set_full_archive_readonly,
+        validate_ci_test_executor_observation, validate_fast_group_contract,
+        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
+        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
+        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -1697,6 +1730,27 @@ mod tests {
         std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
         std::fs::write(archive_root.join("target/cargo/output"), b"cargo output\n")?;
         std::fs::write(shard_root.join("output"), b"shard output\n")?;
+        let extracted = shard_root.join("nextest/archive/read-only");
+        std::fs::create_dir_all(&extracted)?;
+        let extracted_file = extracted.join("test-binary");
+        std::fs::write(&extracted_file, b"nextest archive member\n")?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            std::fs::set_permissions(&extracted_file, std::fs::Permissions::from_mode(0o400))?;
+            std::fs::set_permissions(&extracted, std::fs::Permissions::from_mode(0o500))?;
+            std::fs::set_permissions(
+                shard_root.join("nextest/archive"),
+                std::fs::Permissions::from_mode(0o500),
+            )?;
+            std::fs::set_permissions(
+                shard_root.join("nextest"),
+                std::fs::Permissions::from_mode(0o500),
+            )?;
+            std::fs::set_permissions(&shard_root, std::fs::Permissions::from_mode(0o500))?;
+        }
 
         let archive_roots = FullArchiveRoots {
             artifact_root: archive_root.clone(),
@@ -1725,6 +1779,29 @@ mod tests {
         assert!(archive_root.join("build.log").is_file());
         assert!(report_root.join("hash-1-of-4.log").is_file());
         assert!(report_root.join("full-gate-timing.json").is_file());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn full_shard_ephemera_refuses_nested_symlinks() -> anyhow::Result<()> {
+        use std::os::unix::fs::symlink;
+
+        let root = tempfile::tempdir()?;
+        let ephemeral = root.path().join("ephemeral");
+        let retained = root.path().join("retained");
+        std::fs::create_dir_all(&ephemeral)?;
+        std::fs::write(&retained, b"retained evidence\n")?;
+        symlink(&retained, ephemeral.join("escape"))?;
+
+        let error = match remove_full_shard_ephemera(&ephemeral) {
+            Ok(()) => anyhow::bail!("nested symlink was accepted as full shard ephemera"),
+            Err(error) => error.to_string(),
+        };
+
+        assert!(error.contains("contains a symlink"), "{error}");
+        assert_eq!(std::fs::read(&retained)?, b"retained evidence\n");
+        assert!(ephemeral.is_dir());
         Ok(())
     }
 
