@@ -3,6 +3,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use bijux_dna_core::id_catalog::{BAM_DAMAGE, BAM_KINSHIP, BAM_SEX, FASTQ_DEDUPLICATE};
+
 use crate::{
     model::{
         AllDomainActiveStageToolMatrixReport, AllDomainActiveStageToolMatrixRow,
@@ -19,10 +21,10 @@ use super::{
 const BENCHMARK_READY: &str = "benchmark_ready";
 const NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
 const LICENSED_BINDINGS: [(&str, &str, &str); 8] = [
-    ("bam", "bam.damage", "ngsbriggs"),
-    ("bam", "bam.kinship", "angsd"),
-    ("bam", "bam.sex", "angsd"),
-    ("fastq", "fastq.remove_duplicates", "fastuniq"),
+    ("bam", BAM_DAMAGE, "ngsbriggs"),
+    ("bam", BAM_KINSHIP, "angsd"),
+    ("bam", BAM_SEX, "angsd"),
+    ("fastq", FASTQ_DEDUPLICATE, "fastuniq"),
     ("vcf", "vcf.call_gl", "angsd"),
     ("vcf", "vcf.call_pseudohaploid", "angsd"),
     ("vcf", "vcf.imputation_metrics", "impute5"),

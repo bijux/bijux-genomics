@@ -3,6 +3,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use bijux_dna_core::id_catalog::{BAM_VALIDATE, FASTQ_VALIDATE_READS};
+
 use crate::{
     model::{
         AllDomainParserCollectorReport, AllDomainParserCollectorRow,
@@ -15,8 +17,8 @@ use crate::{
 use super::ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1;
 
 const REQUIRED_REAL_SMOKES: [(&str, &str, &str, &str); 4] = [
-    ("real-smoke:bam.validate", "bam", "bam.validate", "samtools"),
-    ("real-smoke:fastq.validate_reads", "fastq", "fastq.validate_reads", "fastqc"),
+    ("real-smoke:bam.validate", "bam", BAM_VALIDATE, "samtools"),
+    ("real-smoke:fastq.validate_reads", "fastq", FASTQ_VALIDATE_READS, "fastqc"),
     ("real-smoke:vcf.prepare_reference_panel", "vcf", "vcf.prepare_reference_panel", "bcftools"),
     ("real-smoke:vcf.stats", "vcf", "vcf.stats", "bcftools"),
 ];
