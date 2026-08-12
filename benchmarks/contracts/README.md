@@ -163,6 +163,14 @@ sample and cohort coverage, metric validity, headline consistency, CSV sample
 row types, and the generated schema; the CLI only assembles observed evidence
 and renders the validated dossier.
 
+`schemas/fastq-comparable-metrics.schema.json`,
+`schemas/bam-comparable-metrics.schema.json`, and
+`schemas/vcf-comparable-metrics.schema.json` define the domain-specific
+comparable-metric readiness reports. The benchmark model owns schema identity,
+stage and tool coverage, shared-metric status, aggregate closure, and VCF metric
+direction semantics; the CLI only derives domain rows and writes them after
+validation.
+
 `schemas/published-results-status.schema.json` defines the persisted audit of
 published benchmark result mirrors. The benchmark model owns stage identity,
 completion and issue counters, result-root consistency, issue lineage, and the

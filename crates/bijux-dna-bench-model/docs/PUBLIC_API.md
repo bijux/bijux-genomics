@@ -62,6 +62,14 @@ Model contracts:
 - `BenchmarkCorpusClass`
 - `FastqCorpusSourceSpec`
 - `FastqCorpusSourceSample`
+- `ComparableMetricContractStatus`
+- `ComparableMetricDirection`
+- `FastqComparableMetricsReport`
+- `FastqComparableMetricsRow`
+- `BamComparableMetricsReport`
+- `BamComparableMetricsRow`
+- `VcfComparableMetricsReport`
+- `VcfComparableMetricsRow`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -215,6 +223,9 @@ Policy and diagnostics:
 - `CORPUS_ACQUISITION_SCHEMA_V1`
 - `CORPUS_ACQUISITION_SCHEMA_V2`
 - `FASTQ_CORPUS_SOURCE_SCHEMA_V1`
+- `FASTQ_COMPARABLE_METRICS_SCHEMA_V1`
+- `BAM_COMPARABLE_METRICS_SCHEMA_V1`
+- `VCF_COMPARABLE_METRICS_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1`
@@ -254,6 +265,9 @@ Schema derivation:
 - `benchmark_matrix_report_schema`
 - `corpus_acquisition_plan_schema`
 - `fastq_corpus_source_spec_schema`
+- `fastq_comparable_metrics_schema`
+- `bam_comparable_metrics_schema`
+- `vcf_comparable_metrics_schema`
 - `governed_data_catalog_schema`
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
@@ -268,6 +282,9 @@ Schema derivation:
 - `validate_execution_spec`
 - `validate_corpus_acquisition_plan`
 - `validate_fastq_corpus_source_spec`
+- `validate_fastq_comparable_metrics_report`
+- `validate_bam_comparable_metrics_report`
+- `validate_vcf_comparable_metrics_report`
 - `validate_governed_data_catalog`
 - `validate_governed_data_catalog_registry`
 - `validate_benchmark_data_index`

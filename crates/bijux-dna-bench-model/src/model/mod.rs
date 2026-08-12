@@ -7,6 +7,7 @@ pub mod admission;
 pub mod appraisal;
 pub mod benchmark_matrix;
 pub mod campaign_engine;
+pub mod comparable_metrics;
 pub mod container_report_portfolio;
 pub mod corpus;
 pub mod corpus_dossier;
@@ -85,6 +86,13 @@ pub use campaign_engine::{
     BenchmarkCaseMatrixV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
     BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+};
+#[allow(unused_imports)]
+pub use comparable_metrics::{
+    bam_comparable_metrics_schema, fastq_comparable_metrics_schema, vcf_comparable_metrics_schema,
+    BamComparableMetricsReport, BamComparableMetricsRow, ComparableMetricContractStatus,
+    ComparableMetricDirection, FastqComparableMetricsReport, FastqComparableMetricsRow,
+    VcfComparableMetricsReport, VcfComparableMetricsRow,
 };
 #[allow(unused_imports)]
 pub use container_report_portfolio::{

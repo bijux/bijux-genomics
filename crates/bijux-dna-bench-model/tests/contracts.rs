@@ -15,6 +15,8 @@ mod mod_contracts_benchmark_matrix_rs;
 mod mod_contracts_benchmark_planning_rs;
 #[path = "contracts/campaign_engine.rs"]
 mod mod_contracts_campaign_engine_rs;
+#[path = "contracts/comparable_metrics.rs"]
+mod mod_contracts_comparable_metrics_rs;
 #[path = "contracts/compatibility.rs"]
 mod mod_contracts_compatibility_rs;
 #[path = "contracts/corpus_dossier.rs"]

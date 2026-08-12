@@ -272,6 +272,39 @@ fn thin_cli_uses_model_owned_corpus_dossier_contracts() {
     assert!(!dossier.contains("bijux.corpus_benchmark.summary.v1"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_comparable_metric_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/readiness");
+    for (file_name, validator, forbidden_types, forbidden_schema) in [
+        (
+            "fastq_comparable_metrics.rs",
+            "validate_fastq_comparable_metrics_report",
+            ["struct FastqComparableMetricsRow", "struct FastqComparableMetricsReport"],
+            "bijux.bench.readiness.fastq_comparable_metrics.v1",
+        ),
+        (
+            "bam_comparable_metrics.rs",
+            "validate_bam_comparable_metrics_report",
+            ["struct BamComparableMetricsRow", "struct BamComparableMetricsReport"],
+            "bijux.bench.readiness.bam_comparable_metrics.v1",
+        ),
+        (
+            "vcf_comparable_metrics.rs",
+            "validate_vcf_comparable_metrics_report",
+            ["struct VcfComparableMetricsRow", "struct VcfComparableMetricsReport"],
+            "bijux.bench.readiness.vcf_comparable_metrics.v1",
+        ),
+    ] {
+        let source = fs::read_to_string(cli_root.join(file_name)).expect("read readiness command");
+        assert!(source.contains(validator));
+        for forbidden_type in forbidden_types {
+            assert!(!source.contains(forbidden_type));
+        }
+        assert!(!source.contains(forbidden_schema));
+    }
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;
