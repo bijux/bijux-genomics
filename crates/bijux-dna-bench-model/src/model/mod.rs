@@ -19,6 +19,7 @@ pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
 pub mod local_benchmark_summary;
+pub mod local_corpus_run;
 pub mod local_corpus_skip;
 pub mod local_corpus_stage_compatibility;
 pub mod local_hpc_asset_staging;
@@ -188,6 +189,10 @@ pub use lifecycle::{
 pub use local_benchmark_summary::{
     benchmark_local_summary_schema, derive_benchmark_local_readiness_status,
     BenchmarkLocalReadinessStatus, BenchmarkLocalSummaryReport, BenchmarkLocalSummaryStage,
+};
+#[allow(unused_imports)]
+pub use local_corpus_run::{
+    benchmark_local_corpus_run_schema, BenchmarkCorpusRunManifest, BenchmarkCorpusSampleRun,
 };
 #[allow(unused_imports)]
 pub use local_corpus_skip::{

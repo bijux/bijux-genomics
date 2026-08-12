@@ -16,6 +16,10 @@ use crate::commands::benchmark_workspace::{
 };
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_corpus_run, BenchmarkCorpusRunManifest, BenchmarkCorpusSampleRun,
+    BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
+};
 
 mod artifact_bundle;
 mod models;
@@ -29,7 +33,7 @@ use self::artifact_bundle::artifact_bundle_manifest_fields;
 pub(crate) use self::artifact_bundle::{
     artifact_bundle_size_bytes, sha256_artifact_bundle, sha256_file_hex,
 };
-use self::models::{CorpusRunManifest, PendingSampleRun, PostSuccessAction, SampleRunRecord};
+use self::models::{PendingSampleRun, PostSuccessAction};
 use self::report_qc_support::{
     prepare_report_qc_sample, report_qc_contributor_tool_ids, report_qc_upstream_stage_ids,
 };
@@ -185,7 +189,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                                 );
                             }
                         }
-                        runs.push(SampleRunRecord {
+                        runs.push(BenchmarkCorpusSampleRun {
                             sample_id: sample.sample_id.clone(),
                             r1: sample.r1.display().to_string(),
                             r2: sample.r2.as_ref().map(|path| path.display().to_string()),
@@ -201,7 +205,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                     reset_sample_payload(&sample_root)?;
                 }
             } else if report_json.is_file() {
-                runs.push(SampleRunRecord {
+                runs.push(BenchmarkCorpusSampleRun {
                     sample_id: sample.sample_id.clone(),
                     r1: sample.r1.display().to_string(),
                     r2: sample.r2.as_ref().map(|path| path.display().to_string()),
@@ -231,7 +235,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             .chain(command_args.iter().cloned())
             .collect::<Vec<_>>();
         if args.dry_run {
-            runs.push(SampleRunRecord {
+            runs.push(BenchmarkCorpusSampleRun {
                 sample_id: sample.sample_id.clone(),
                 r1: sample.r1.display().to_string(),
                 r2: sample.r2.as_ref().map(|path| path.display().to_string()),
@@ -310,8 +314,8 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
 
     runs.sort_by(|left, right| left.sample_id.cmp(&right.sample_id));
     let failures = runs.iter().filter(|row| row.exit_code != 0).count();
-    let manifest = CorpusRunManifest {
-        schema_version: "bijux.fastq.corpus_benchmark_run.v1".to_string(),
+    let manifest = BenchmarkCorpusRunManifest {
+        schema_version: BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1.to_string(),
         generated_at_utc: current_timestamp_utc()?,
         corpus_id: corpus_spec.corpus_id.clone(),
         stage_id: contract.stage_id.clone(),
@@ -336,6 +340,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
         runs,
         extra_fields: extra_manifest_fields,
     };
+    validate_benchmark_local_corpus_run(&manifest)?;
     let manifest_path = out_root.join("run_manifest.json");
     fs::write(&manifest_path, format!("{}\n", serde_json::to_string_pretty(&manifest)?))
         .with_context(|| format!("write {}", manifest_path.display()))?;
@@ -437,13 +442,13 @@ fn execute_pending_samples(
     repo_root: &Path,
     pending: Vec<PendingSampleRun>,
     sample_jobs: usize,
-) -> Result<Vec<SampleRunRecord>> {
+) -> Result<Vec<BenchmarkCorpusSampleRun>> {
     if sample_jobs <= 1 || pending.len() <= 1 {
         return pending.into_iter().map(|row| execute_sample(program, repo_root, row)).collect();
     }
 
     let queue = Arc::new(Mutex::new(VecDeque::from(pending)));
-    let results = Arc::new(Mutex::new(Vec::<SampleRunRecord>::new()));
+    let results = Arc::new(Mutex::new(Vec::<BenchmarkCorpusSampleRun>::new()));
     let worker_count = sample_jobs.max(1);
 
     std::thread::scope(|scope| -> Result<()> {
@@ -485,7 +490,7 @@ fn execute_sample(
     program: &Path,
     repo_root: &Path,
     row: PendingSampleRun,
-) -> Result<SampleRunRecord> {
+) -> Result<BenchmarkCorpusSampleRun> {
     let command_name =
         program.to_str().ok_or_else(|| anyhow!("benchmark executable path is not valid UTF-8"))?;
     let output = bijux_dna_api::v1::api::run::run_command_with_context(
@@ -510,7 +515,7 @@ fn execute_sample(
             }
         }
     }
-    Ok(SampleRunRecord {
+    Ok(BenchmarkCorpusSampleRun {
         sample_id: row.sample.sample_id,
         r1: row.sample.r1.display().to_string(),
         r2: row.sample.r2.map(|path| path.display().to_string()),

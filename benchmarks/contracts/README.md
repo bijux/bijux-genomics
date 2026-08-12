@@ -152,6 +152,11 @@ readiness rollup. The benchmark model owns its stage and status vocabulary,
 source identities, counters, output cardinality validation, and generated
 schema; the CLI only joins validated source reports and renders JSON/Markdown.
 
+`schemas/local-corpus-run.schema.json` defines the persisted FASTQ corpus
+benchmark run manifest. The benchmark model owns its identity, sample records,
+counter invariants, status semantics, and generated schema; the CLI only
+executes samples and writes the validated record.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and

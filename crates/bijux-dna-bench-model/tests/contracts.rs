@@ -33,6 +33,8 @@ mod mod_contracts_domain_campaign_rs;
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/local_benchmark_summary.rs"]
 mod mod_contracts_local_benchmark_summary_rs;
+#[path = "contracts/local_corpus_run.rs"]
+mod mod_contracts_local_corpus_run_rs;
 #[path = "contracts/local_corpus_skip.rs"]
 mod mod_contracts_local_corpus_skip_rs;
 #[path = "contracts/local_corpus_stage_compatibility.rs"]

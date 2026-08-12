@@ -104,6 +104,7 @@ pub const BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_scratch_layout.v1";
 pub const BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_skip_report.v1";
+pub const BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1: &str = "bijux.fastq.corpus_benchmark_run.v1";
 pub const BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_stage_compatibility_validation.v1";
 pub const BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1: &str =
