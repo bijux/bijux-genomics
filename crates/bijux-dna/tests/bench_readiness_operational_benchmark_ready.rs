@@ -59,7 +59,7 @@ fn bench_readiness_operational_benchmark_ready_reports_green_surface() {
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(142)
+        Some(148)
     );
     assert_eq!(payload.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(

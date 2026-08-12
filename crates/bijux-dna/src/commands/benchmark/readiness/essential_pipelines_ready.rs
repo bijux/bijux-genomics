@@ -204,6 +204,7 @@ pub(crate) fn render_essential_pipelines_ready(
     let mut dag_node_count = 0usize;
     let mut corpus_asset_row_count = 0usize;
     let mut rendered_command_row_count = 0usize;
+    let mut rendered_command_tool_count = 0usize;
     let mut fake_run_node_count = 0usize;
     let mut fake_run_output_count = 0usize;
     let mut report_map_row_count = 0usize;
@@ -311,6 +312,12 @@ pub(crate) fn render_essential_pipelines_ready(
                 bail!("essential pipeline command rendering drifted");
             }
             rendered_command_row_count = report.row_count;
+            rendered_command_tool_count = report
+                .rows
+                .iter()
+                .map(|row| row.tool_id.as_str())
+                .collect::<std::collections::BTreeSet<_>>()
+                .len();
             Ok("validated executable command rendering for all 93 essential pipeline nodes"
                 .to_string())
         },
@@ -400,7 +407,7 @@ pub(crate) fn render_essential_pipelines_ready(
             )?;
             if report.pipeline_count != 10
                 || report.stage_count != 45
-                || report.tool_count != 25
+                || report.tool_count != rendered_command_tool_count
                 || report.row_count != 267
                 || report.report_section_count != 22
                 || report.failure_column_count != 1

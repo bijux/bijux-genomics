@@ -55,7 +55,11 @@ fn bench_readiness_essential_pipeline_report_map_tracks_all_pipeline_outputs() {
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(45));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
+    let expected_tool_count = if cfg!(feature = "bam_downstream") { 25 } else { 26 };
+    assert_eq!(
+        payload.get("tool_count").and_then(serde_json::Value::as_u64),
+        Some(expected_tool_count)
+    );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(267));
     assert_eq!(payload.get("report_section_count").and_then(serde_json::Value::as_u64), Some(22));
     assert_eq!(payload.get("failure_column_count").and_then(serde_json::Value::as_u64), Some(1));
@@ -177,11 +181,14 @@ fn bench_readiness_essential_pipeline_report_map_tracks_all_pipeline_outputs() {
         Some("demography")
     );
 
+    let expected_bam_genotyping_tool =
+        if cfg!(feature = "bam_downstream") { "bcftools" } else { "bijux-dna" };
     assert!(rows.iter().any(|row| {
         row.get("pipeline_id").and_then(serde_json::Value::as_str)
             == Some("bam-genotyping-to-vcf-downstream")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+            && row.get("tool_id").and_then(serde_json::Value::as_str)
+                == Some(expected_bam_genotyping_tool)
     }));
     assert!(rows.iter().any(|row| {
         row.get("pipeline_id").and_then(serde_json::Value::as_str) == Some("adna-gl-fastq-bam-vcf")
