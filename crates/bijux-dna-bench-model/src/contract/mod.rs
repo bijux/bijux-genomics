@@ -20,6 +20,7 @@ mod data_index;
 mod data_portfolio_audit;
 mod domain_campaign;
 mod dossier_index;
+mod essential_pipeline_readiness;
 mod execution;
 mod interfaces;
 mod lifecycle;
@@ -80,6 +81,7 @@ pub use domain_campaign::{
     validate_hardening_benchmark_campaign_report, validate_vcf_benchmark_campaign_report,
 };
 pub use dossier_index::validate_benchmark_dossier_index;
+pub use essential_pipeline_readiness::validate_benchmark_essential_pipeline_readiness;
 pub use execution::validate_execution_spec;
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
@@ -169,9 +171,10 @@ pub use schema_versions::{
     BENCHMARK_DATA_INDEX_SCHEMA_V1, BENCHMARK_DATA_INDEX_SCHEMA_V2,
     BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1, BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
-    BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1, BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1,
-    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1,
-    BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
+    BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
+    BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
+    BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,

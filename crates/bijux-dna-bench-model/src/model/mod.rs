@@ -18,6 +18,7 @@ pub mod data_fitness;
 pub mod data_portfolio_audit;
 pub mod domain_campaign;
 pub mod dossier_index;
+pub mod essential_pipeline_readiness;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
@@ -174,6 +175,13 @@ pub use domain_campaign::{
 pub use dossier_index::{
     benchmark_dossier_index_schema, BenchmarkDossierIndex, BenchmarkDossierStageEntry,
     BENCHMARK_DOSSIER_INDEX_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use essential_pipeline_readiness::{
+    benchmark_essential_pipeline_readiness_schema, BenchmarkEssentialPipelineReadinessGoalCheck,
+    BenchmarkEssentialPipelineReadinessGoalContract, BenchmarkEssentialPipelineReadinessReport,
+    BENCHMARK_ESSENTIAL_PIPELINE_READINESS_GOALS,
+    BENCHMARK_ESSENTIAL_PIPELINE_READINESS_OUTPUT_PATH,
 };
 #[allow(unused_imports)]
 pub use execution::{

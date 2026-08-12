@@ -37,6 +37,8 @@ mod mod_contracts_data_portfolio_audit_rs;
 mod mod_contracts_domain_campaign_rs;
 #[path = "contracts/dossier_index.rs"]
 mod mod_contracts_dossier_index_rs;
+#[path = "contracts/essential_pipeline_readiness.rs"]
+mod mod_contracts_essential_pipeline_readiness_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/local_benchmark_summary.rs"]
