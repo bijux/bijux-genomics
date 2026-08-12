@@ -1,0 +1,186 @@
+{
+  "$defs": {
+    "BenchmarkRemediationIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "issue_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "issue_id",
+        "detail",
+        "severity",
+        "source"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRemediationIssueGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "additional_detail_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "example_details": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "issue_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "issue_id",
+        "count",
+        "sources",
+        "severity",
+        "example_details",
+        "additional_detail_count"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRemediationStageEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "issue_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "issue_group_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "issue_groups": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkRemediationIssueGroup"
+          },
+          "type": "array"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkRemediationIssue"
+          },
+          "type": "array"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "publication_status": {
+          "type": "string"
+        },
+        "published_generated_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recommended_action": {
+          "type": "string"
+        },
+        "results_status": {
+          "type": "string"
+        },
+        "run_root_source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sample_scope": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "owner",
+        "status",
+        "issue_count",
+        "issue_group_count",
+        "recommended_action",
+        "publication_status",
+        "results_status",
+        "sample_scope",
+        "issue_groups",
+        "issues"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "clear_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "open_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.remediation_queue.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkRemediationStageEntry"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "stage_count",
+    "open_stage_count",
+    "clear_stage_count",
+    "stages"
+  ],
+  "title": "BenchmarkRemediationQueue",
+  "type": "object"
+}

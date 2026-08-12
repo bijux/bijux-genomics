@@ -34,10 +34,6 @@ pub(crate) use self::entrypoint::{
 };
 #[cfg(test)]
 use self::models::StageRunRootCandidate;
-#[cfg(test)]
-use self::models::{
-    RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
-};
 use self::publication_io::{
     absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
     json_string_array, load_json_value, localize_results_path, observed_tools_from_report,
@@ -65,7 +61,11 @@ use bijux_dna_api::v1::api::bench::{
     BenchmarkPublicationAuditIssue as StageAuditIssue,
     BenchmarkPublicationExcludedStage as ExcludedStageEntry,
     BenchmarkPublicationStageStatus as PublicationStageReport, BenchmarkPublicationStatusReport,
-    BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1,
+    BenchmarkRemediationIssue as RemediationIssue,
+    BenchmarkRemediationIssueGroup as RemediationIssueGroup,
+    BenchmarkRemediationQueue as RemediationQueue,
+    BenchmarkRemediationStageEntry as RemediationStageEntry,
+    BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1, BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1,
 };
 #[cfg(test)]
 use bijux_dna_api::v1::api::bench::{
@@ -1235,6 +1235,7 @@ reason = "Compact validation fixture."
     #[test]
     fn remediation_queue_markdown_uses_issue_groups() {
         let rendered = super::render_remediation_queue_markdown(&super::RemediationQueue {
+            schema_version: super::BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1.to_string(),
             corpus_id: "corpus-01".to_string(),
             stage_count: 1,
             open_stage_count: 1,

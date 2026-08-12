@@ -174,6 +174,11 @@ publication audit. The benchmark model owns coverage, exclusions, stage and
 tool identity, issue lineage, result-root consistency, and generated schema;
 the CLI only inspects publication inputs and renders the validated audit.
 
+`schemas/remediation-queue.schema.json` defines the persisted benchmark
+remediation queue. The benchmark model owns stage ownership, open/clear state,
+issue grouping, publication lineage, recommended actions, counters, and the
+generated schema; the CLI only gathers evidence and renders the validated queue.
+
 `schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
 matrix consumed by campaign planning and appraisal. The model crate owns its
 version, row and summary invariants; command surfaces only adapt inputs and

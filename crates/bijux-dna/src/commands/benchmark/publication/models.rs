@@ -79,50 +79,6 @@ pub(super) struct PublicationCorpusSpec {
     pub(super) target_modern_pe: usize,
 }
 
-#[derive(Debug, Serialize)]
-pub(super) struct RemediationQueue {
-    pub(super) corpus_id: String,
-    pub(super) stage_count: usize,
-    pub(super) open_stage_count: usize,
-    pub(super) clear_stage_count: usize,
-    pub(super) stages: Vec<RemediationStageEntry>,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct RemediationStageEntry {
-    pub(super) stage_id: String,
-    pub(super) owner: String,
-    pub(super) status: String,
-    pub(super) issue_count: usize,
-    pub(super) issue_group_count: usize,
-    pub(super) recommended_action: String,
-    pub(super) publication_status: String,
-    pub(super) results_status: String,
-    pub(super) sample_scope: String,
-    pub(super) published_generated_at_utc: Option<String>,
-    pub(super) run_root_source: Option<String>,
-    pub(super) issue_groups: Vec<RemediationIssueGroup>,
-    pub(super) issues: Vec<RemediationIssue>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(super) struct RemediationIssue {
-    pub(super) issue_id: String,
-    pub(super) detail: String,
-    pub(super) severity: String,
-    pub(super) source: String,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct RemediationIssueGroup {
-    pub(super) issue_id: String,
-    pub(super) count: usize,
-    pub(super) sources: Vec<String>,
-    pub(super) severity: String,
-    pub(super) example_details: Vec<String>,
-    pub(super) additional_detail_count: usize,
-}
-
 #[derive(Debug, Clone)]
 pub(super) struct StageRunRootCandidate {
     pub(super) path: PathBuf,

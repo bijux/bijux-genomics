@@ -3,13 +3,12 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::validate_benchmark_remediation_queue;
 
-use super::models::{
-    RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
-};
 use super::{
     benchmark_publication_contracts, load_json_value, publication_artifact_file_name,
-    CorpusBenchmarkContract,
+    CorpusBenchmarkContract, RemediationIssue, RemediationIssueGroup, RemediationQueue,
+    RemediationStageEntry, BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1,
 };
 
 pub(super) fn write_corpus_fastq_remediation_queue(
@@ -40,6 +39,7 @@ pub(super) fn write_corpus_fastq_remediation_queue(
     )?;
     let json_path =
         docs_root.join(publication_artifact_file_name(corpus_id, "remediation-queue.json"));
+    validate_benchmark_remediation_queue(&queue)?;
     fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(&queue)?))
         .with_context(|| format!("write {}", json_path.display()))?;
     let markdown_path =
@@ -103,6 +103,7 @@ pub(super) fn build_remediation_queue(
         .collect::<Result<Vec<_>>>()?;
 
     Ok(RemediationQueue {
+        schema_version: BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1.to_string(),
         corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
         open_stage_count: stages.iter().filter(|stage| stage.status == "open").count(),

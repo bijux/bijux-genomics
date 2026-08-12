@@ -202,6 +202,23 @@ fn thin_cli_uses_model_owned_publication_status_contract() {
     assert!(!local_models.contains("struct StageAuditIssue"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_remediation_queue_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/publication");
+    let command =
+        fs::read_to_string(cli_root.join("remediation.rs")).expect("read remediation command");
+    let local_models =
+        fs::read_to_string(cli_root.join("models.rs")).expect("read publication CLI models");
+
+    assert!(command.contains("RemediationQueue"));
+    assert!(command.contains("validate_benchmark_remediation_queue"));
+    assert!(!local_models.contains("struct RemediationQueue"));
+    assert!(!local_models.contains("struct RemediationStageEntry"));
+    assert!(!local_models.contains("struct RemediationIssueGroup"));
+    assert!(!local_models.contains("struct RemediationIssue"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

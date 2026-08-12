@@ -39,6 +39,7 @@ mod publication_registry;
 mod publication_status;
 mod published_results_status;
 mod records;
+mod remediation_queue;
 mod replay;
 mod report;
 mod run_index;
@@ -123,6 +124,7 @@ pub use records::{
     validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_observation,
     validate_summary,
 };
+pub use remediation_queue::validate_benchmark_remediation_queue;
 pub use replay::validate_benchmark_replay_receipt;
 pub use report::{
     validate_report_admission, validate_stage_report, validate_stage_report_alignment,
