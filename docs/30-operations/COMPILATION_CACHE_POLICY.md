@@ -31,6 +31,9 @@ targets, and isolated concurrent target roots.
   `artifacts/ci/ci-fast-targets/<group>` target root. Groups share the pinned toolchain, workspace
   lockfile, and sccache authority, and execute Cargo offline after the launcher has resolved its
   own locked dependencies.
+- A warm `ci-fast` timing observation is reference-eligible only when the configured compiler
+  wrapper executes successfully and identifies itself as `sccache`. Runs with a missing, disabled,
+  or invalid wrapper remain diagnostic evidence and cannot contribute to the published p95 claim.
 - Complete-workspace hash shards each use a tracked-source clone and a distinct absolute artifact
   root. Cargo targets, test and coverage targets, temporary directories, and profraw directories
   are disjoint between shards; all shards retain the single toolchain and sccache authority from

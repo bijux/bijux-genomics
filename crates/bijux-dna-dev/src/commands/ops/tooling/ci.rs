@@ -143,6 +143,7 @@ struct FastReferenceRunner {
     os: String,
     architecture: String,
     rust_toolchain: String,
+    compiler_wrapper: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -170,6 +171,8 @@ struct FastTimingObservation {
     architecture: String,
     #[serde(default)]
     rust_toolchain: String,
+    #[serde(default)]
+    compiler_wrapper: String,
     cache_state: String,
     wall_time_milliseconds: u64,
 }
@@ -436,12 +439,15 @@ pub(in super::super) fn tooling_ci_fast(
     let actual_os = std::env::consts::OS.to_string();
     let actual_architecture = std::env::consts::ARCH.to_string();
     let actual_rust_toolchain = rust_toolchain_version(workspace)?;
+    let actual_compiler_wrapper = compiler_wrapper_identity(workspace)?;
     let eligible_reference_observation = all_passed
         && source_worktree_clean
         && cache_state == "warm"
         && actual_os == contract.reference_runner.os
         && actual_architecture == contract.reference_runner.architecture
-        && actual_rust_toolchain == contract.reference_runner.rust_toolchain;
+        && actual_rust_toolchain == contract.reference_runner.rust_toolchain
+        && actual_compiler_wrapper.as_deref()
+            == Some(contract.reference_runner.compiler_wrapper.as_str());
     let history_path = ci_output_path(workspace, &contract.timing_history)?;
     let mut history = load_fast_timing_history(&history_path)?;
     if eligible_reference_observation {
@@ -451,6 +457,7 @@ pub(in super::super) fn tooling_ci_fast(
             os: actual_os.clone(),
             architecture: actual_architecture.clone(),
             rust_toolchain: actual_rust_toolchain.clone(),
+            compiler_wrapper: actual_compiler_wrapper.clone().unwrap_or_default(),
             cache_state: cache_state.clone(),
             wall_time_milliseconds,
         });
@@ -485,6 +492,7 @@ pub(in super::super) fn tooling_ci_fast(
                 "os": actual_os,
                 "architecture": actual_architecture,
                 "rust_toolchain": actual_rust_toolchain,
+                "compiler_wrapper": actual_compiler_wrapper,
                 "cache_state": cache_state,
                 "source_worktree_clean": source_worktree_clean,
             },
@@ -492,6 +500,7 @@ pub(in super::super) fn tooling_ci_fast(
                 "os": contract.reference_runner.os,
                 "architecture": contract.reference_runner.architecture,
                 "rust_toolchain": contract.reference_runner.rust_toolchain,
+                "compiler_wrapper": contract.reference_runner.compiler_wrapper,
             },
             "warm_cache_target_milliseconds": contract.warm_cache_target_milliseconds,
             "eligible_reference_observation": eligible_reference_observation,
@@ -1211,6 +1220,7 @@ fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
         || contract.reference_runner.os.is_empty()
         || contract.reference_runner.architecture.is_empty()
         || contract.reference_runner.rust_toolchain.is_empty()
+        || contract.reference_runner.compiler_wrapper != "sccache"
     {
         anyhow::bail!("ci-fast group contract is incomplete");
     }
@@ -1313,6 +1323,27 @@ fn rust_toolchain_version(workspace: &Workspace) -> Result<String> {
         .context("parse ci-fast Rust toolchain")
 }
 
+fn compiler_wrapper_identity(workspace: &Workspace) -> Result<Option<String>> {
+    let wrapper = artifact_env_with_common_test_env(workspace)?
+        .into_iter()
+        .rev()
+        .find_map(|(key, value)| (key == "RUSTC_WRAPPER").then_some(value))
+        .filter(|value| !value.trim().is_empty());
+    let Some(wrapper) = wrapper else {
+        return Ok(None);
+    };
+    let output = ProcessRunner::new(workspace).run(&[wrapper.as_str(), "--version"])?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    let version = String::from_utf8(output.stdout)?;
+    Ok(parse_compiler_wrapper_identity(&version))
+}
+
+fn parse_compiler_wrapper_identity(version: &str) -> Option<String> {
+    version.split_whitespace().next().filter(|name| *name == "sccache").map(ToOwned::to_owned)
+}
+
 fn duration_milliseconds(duration: Duration) -> u64 {
     u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }
@@ -1338,6 +1369,7 @@ fn reference_timing_samples(
             observation.os == reference.os
                 && observation.architecture == reference.architecture
                 && observation.rust_toolchain == reference.rust_toolchain
+                && observation.compiler_wrapper == reference.compiler_wrapper
                 && observation.cache_state == "warm"
         })
         .map(|observation| observation.wall_time_milliseconds)
@@ -1484,13 +1516,13 @@ mod tests {
         artifact_root_path, ci_fast_group_env, ci_output_path, ci_output_path_under,
         full_archive_args, full_archive_roots, full_shard_args, full_shard_env,
         full_shard_root_receipt, full_shard_roots, isolated_build_tree,
-        materialize_full_shard_workspace, percentile, read_ci_build_authority,
-        reference_timing_samples, remove_full_shard_ephemera, set_full_archive_readonly,
-        validate_ci_test_executor_observation, validate_fast_group_contract,
-        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
-        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
+        materialize_full_shard_workspace, parse_compiler_wrapper_identity, percentile,
+        read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
+        set_full_archive_readonly, validate_ci_test_executor_observation,
+        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
+        validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
+        FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract,
+        FullShardCoverage, FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -1533,6 +1565,7 @@ mod tests {
                 os: "linux".to_string(),
                 architecture: "x86_64".to_string(),
                 rust_toolchain: "1.95.0".to_string(),
+                compiler_wrapper: "sccache".to_string(),
             },
             groups: ["metadata", "unit"]
                 .into_iter()
@@ -1896,27 +1929,42 @@ mod tests {
     }
 
     #[test]
+    fn reference_wrapper_identity_requires_sccache_version_output() {
+        assert_eq!(
+            parse_compiler_wrapper_identity("sccache 0.10.0\n"),
+            Some("sccache".to_string())
+        );
+        assert_eq!(parse_compiler_wrapper_identity("mock wrapper\n"), None);
+        assert_eq!(parse_compiler_wrapper_identity(""), None);
+    }
+
+    #[test]
     fn timing_samples_require_exact_warm_reference_runner() {
         let reference = fast_contract().reference_runner;
-        let observation =
-            |os: &str, architecture: &str, rust_toolchain: &str, cache_state: &str| {
-                FastTimingObservation {
-                    observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
-                    source_commit: "0123456789abcdef".to_string(),
-                    os: os.to_string(),
-                    architecture: architecture.to_string(),
-                    rust_toolchain: rust_toolchain.to_string(),
-                    cache_state: cache_state.to_string(),
-                    wall_time_milliseconds: 42,
-                }
-            };
+        let observation = |os: &str,
+                           architecture: &str,
+                           rust_toolchain: &str,
+                           compiler_wrapper: &str,
+                           cache_state: &str| {
+            FastTimingObservation {
+                observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
+                source_commit: "0123456789abcdef".to_string(),
+                os: os.to_string(),
+                architecture: architecture.to_string(),
+                rust_toolchain: rust_toolchain.to_string(),
+                compiler_wrapper: compiler_wrapper.to_string(),
+                cache_state: cache_state.to_string(),
+                wall_time_milliseconds: 42,
+            }
+        };
         let history = FastTimingHistory {
             schema_version: FAST_TIMING_HISTORY_SCHEMA_V1.to_string(),
             observations: vec![
-                observation("linux", "x86_64", "1.95.0", "warm"),
-                observation("macos", "aarch64", "1.95.0", "warm"),
-                observation("linux", "x86_64", "1.94.0", "warm"),
-                observation("linux", "x86_64", "1.95.0", "cold"),
+                observation("linux", "x86_64", "1.95.0", "sccache", "warm"),
+                observation("macos", "aarch64", "1.95.0", "sccache", "warm"),
+                observation("linux", "x86_64", "1.94.0", "sccache", "warm"),
+                observation("linux", "x86_64", "1.95.0", "sccache", "cold"),
+                observation("linux", "x86_64", "1.95.0", "", "warm"),
             ],
         };
 

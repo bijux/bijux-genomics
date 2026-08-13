@@ -9,7 +9,8 @@
   "reference_runner": {
     "os": "linux",
     "architecture": "x86_64",
-    "rust_toolchain": "1.95.0"
+    "rust_toolchain": "1.95.0",
+    "compiler_wrapper": "sccache"
   },
   "groups": [
     {
