@@ -959,7 +959,7 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 66);
+        assert_eq!(coverage.summary.binding_ready_count, 71);
         for tool_id in [
             "addeam",
             "angsd",
@@ -972,8 +972,11 @@ mod tests {
             "bbmerge",
             "bcftools",
             "beagle",
+            "bijux_dna",
             "bowtie2_build",
             "centrifuge",
+            "clumpify",
+            "cutadapt",
             "dada2",
             "damageprofiler",
             "eagle",
@@ -981,6 +984,7 @@ mod tests {
             "fastp",
             "fastqc",
             "fastqvalidator",
+            "fastq_scan",
             "fastuniq",
             "fastx_clipper",
             "flash2",
@@ -1015,6 +1019,7 @@ mod tests {
             "shapeit5",
             "skewer",
             "star",
+            "sortmerna",
             "trim_galore",
             "trimmomatic",
             "vsearch",

@@ -46,7 +46,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 96);
+    assert_eq!(retained.bindings().len(), 127);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -70,8 +70,137 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 104);
+    assert_eq!(all.bindings().len(), 135);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_registry_owns_complete_supported_fastq_closure() -> Result<()> {
+    let registry = canonical_tool_bindings()?;
+    let expected = [
+        ("fastq.deplete_host", "bowtie2"),
+        ("fastq.deplete_reference_contaminants", "bowtie2"),
+        ("fastq.deplete_rrna", "sortmerna"),
+        ("fastq.detect_duplicates_premerge", "bijux_dna"),
+        ("fastq.estimate_library_complexity_prealign", "bijux_dna"),
+        ("fastq.filter_reads", "bbduk"),
+        ("fastq.filter_reads", "fastp"),
+        ("fastq.filter_reads", "prinseq"),
+        ("fastq.normalize_abundance", "seqkit"),
+        ("fastq.normalize_primers", "cutadapt"),
+        ("fastq.profile_overrepresented_sequences", "fastq_scan"),
+        ("fastq.profile_overrepresented_sequences", "fastqc"),
+        ("fastq.profile_overrepresented_sequences", "seqkit"),
+        ("fastq.remove_chimeras", "vsearch"),
+        ("fastq.remove_duplicates", "clumpify"),
+        ("fastq.report_qc", "multiqc"),
+        ("fastq.trim_polyg_tails", "bbduk"),
+        ("fastq.trim_polyg_tails", "fastp"),
+        ("fastq.trim_reads", "adapterremoval"),
+        ("fastq.trim_reads", "bbduk"),
+        ("fastq.trim_reads", "cutadapt"),
+        ("fastq.trim_reads", "fastp"),
+        ("fastq.trim_reads", "leehom"),
+        ("fastq.trim_reads", "prinseq"),
+        ("fastq.trim_reads", "seqkit"),
+        ("fastq.trim_reads", "seqprep"),
+        ("fastq.trim_terminal_damage", "adapterremoval"),
+        ("fastq.trim_terminal_damage", "cutadapt"),
+        ("fastq.trim_terminal_damage", "seqkit"),
+        ("fastq.validate_reads", "fastq_scan"),
+        ("fastq.validate_reads", "fastqc"),
+    ];
+    assert_eq!(expected.len(), 31);
+    for (stage_id, tool_id) in expected {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            format!("bijux.benchmark.{stage_id}.bundle.v1")
+        );
+        assert!(binding.normalizer_id.contains(stage_id.trim_start_matches("fastq.")));
+    }
+    assert_eq!(
+        registry
+            .bindings()
+            .filter(|binding| binding.stage_id.as_str().starts_with("fastq."))
+            .count(),
+        71
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_fastq_portfolio_bindings_render_native_commands() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let cases = [
+        (
+            "fastq.deplete_host",
+            "bowtie2",
+            BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/reads.fastq.gz".to_owned()),
+                ("reference_index".to_owned(), "/input/host-index".to_owned()),
+            ]),
+            BTreeMap::from([
+                ("host_depleted_reads_r1".to_owned(), "/result/depleted.fastq.gz".to_owned()),
+                ("removed_host_reads_r1".to_owned(), "/result/host.fastq.gz".to_owned()),
+                ("host_mapping_metrics".to_owned(), "/result/host.metrics".to_owned()),
+            ]),
+            ["--un-gz", "--al-gz", "--met-file"],
+        ),
+        (
+            "fastq.remove_chimeras",
+            "vsearch",
+            BTreeMap::from([(
+                "representative_sequences".to_owned(),
+                "/input/representatives.fasta".to_owned(),
+            )]),
+            BTreeMap::from([
+                ("nonchimeric_sequences".to_owned(), "/result/nonchimeras.fasta".to_owned()),
+                ("chimeric_sequences".to_owned(), "/result/chimeras.fasta".to_owned()),
+                ("chimera_report".to_owned(), "/result/chimeras.tsv".to_owned()),
+            ]),
+            ["--uchime_denovo", "--nonchimeras", "--uchimeout"],
+        ),
+        (
+            "fastq.trim_terminal_damage",
+            "cutadapt",
+            BTreeMap::from([("reads_r1".to_owned(), "/input/reads.fastq.gz".to_owned())]),
+            BTreeMap::from([(
+                "damage_trimmed_reads_r1".to_owned(),
+                "/result/trimmed.fastq.gz".to_owned(),
+            )]),
+            ["--cores", "--cut", "--output"],
+        ),
+        (
+            "fastq.report_qc",
+            "multiqc",
+            BTreeMap::from([("qc_inputs".to_owned(), "/input/qc".to_owned())]),
+            BTreeMap::from([("multiqc_data".to_owned(), "/result/multiqc".to_owned())]),
+            ["--outdir", "--filename", "multiqc_report.html"],
+        ),
+    ];
+
+    for (stage_id, tool_id, inputs, outputs, fragments) in cases {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        let rendered = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool_id.to_owned(),
+                inputs,
+                outputs,
+                ..ToolBindingRenderContext::default()
+            },
+        )?
+        .join(" ");
+        for fragment in fragments {
+            assert!(rendered.contains(fragment), "{stage_id}/{tool_id} misses {fragment}");
+        }
+    }
     Ok(())
 }
 
@@ -425,7 +554,22 @@ fn canonical_trim_read_bindings_preserve_representative_native_shapes() -> Resul
             .iter()
             .map(|binding| binding.tool_id.to_string())
             .collect::<Vec<_>>(),
-        ["alientrimmer", "atropos", "fastx_clipper", "skewer", "trim_galore", "trimmomatic"]
+        [
+            "adapterremoval",
+            "alientrimmer",
+            "atropos",
+            "bbduk",
+            "cutadapt",
+            "fastp",
+            "fastx_clipper",
+            "leehom",
+            "prinseq",
+            "seqkit",
+            "seqprep",
+            "skewer",
+            "trim_galore",
+            "trimmomatic",
+        ]
     );
     Ok(())
 }
@@ -1181,8 +1325,13 @@ fn low_complexity_expected_commands() -> BTreeMap<&'static str, Vec<&'static str
 fn canonical_seqkit_filter_binding_projects_one_shot_qualification_io() -> Result<()> {
     let registry = canonical_retained_tool_bindings()?;
     let bindings = registry.bindings_for_stage(&StageId::new(FILTER_READS_STAGE));
-    assert_eq!(bindings.len(), 1);
-    let binding = bindings[0];
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bbduk", "fastp", "prinseq", "seqkit"]
+    );
+    let binding = registry
+        .binding(&StageId::new(FILTER_READS_STAGE), &ToolId::new("seqkit"))
+        .ok_or_else(|| anyhow::anyhow!("canonical seqkit filter binding is missing"))?;
 
     assert_eq!(binding.tool_id.as_str(), "seqkit");
     assert_eq!(binding.inputs[0].name, "reads_r1");
@@ -1376,9 +1525,11 @@ fn canonical_validate_reads_bindings_close_governed_single_stream_qualification(
 
     assert_eq!(
         bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
-        ["fastqvalidator", "fqtools", "seqtk"]
+        ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
     );
-    for binding in bindings {
+    for binding in bindings.iter().copied().filter(|binding| {
+        matches!(binding.tool_id.as_str(), "fastqvalidator" | "fqtools" | "seqtk")
+    }) {
         assert_eq!(binding.resources.runtime, "apptainer");
         assert_eq!(binding.resources.threads, 4);
         assert_eq!(binding.inputs.len(), 1);
