@@ -304,6 +304,12 @@ fn validate_request(request: &QualificationSourceMaterializationRequest) -> Resu
     if !request.governed_study_root.is_absolute() || !request.repository_root.is_absolute() {
         bail!("qualification materialization roots must be absolute");
     }
+    let repository_head =
+        bijux_dna_containers::api::repository_head_commit(&request.repository_root)
+            .context("resolve qualification materialization repository HEAD")?;
+    if repository_head != request.repository_commit {
+        bail!("qualification materialization commit differs from repository HEAD");
+    }
     Ok(())
 }
 
@@ -647,7 +653,7 @@ mod tests {
         let data_index_path = temporary.path().join("data-index.json");
         write_test_data_index(&data_index_path, &input_path, input_uri)?;
 
-        let commit = "1".repeat(40);
+        let commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
         let inventory_path = temporary.path().join("inventory.json");
         write_test_inventory(&repository_root, &study_root, &inventory_path, &commit)?;
 
@@ -699,6 +705,35 @@ mod tests {
             &source,
         )?;
         assert_eq!(pipeline.run.tool, "bbduk");
+        Ok(())
+    }
+
+    #[test]
+    fn materialization_request_rejects_a_commit_other_than_repository_head() -> Result<()> {
+        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let temporary = bijux_dna_infra::temp_dir("qualification-source-repository-identity")?;
+        let request = QualificationSourceMaterializationRequest {
+            repository_root,
+            registry_path: PathBuf::from("registry.toml"),
+            inventory_path: PathBuf::from("inventory.json"),
+            data_index_path: PathBuf::from("data-index.json"),
+            governed_study_root: temporary.path().to_path_buf(),
+            repository_commit: "1".repeat(40),
+            operator: "bijux-dna-dev".to_string(),
+            submitted_at_utc: "2026-08-13T18:10:00Z".to_string(),
+            account: "account".to_string(),
+            partition: "partition".to_string(),
+            walltime: "00:30:00".to_string(),
+        };
+
+        let error = match validate_request(&request) {
+            Ok(()) => bail!("mismatched repository commit was accepted"),
+            Err(error) => error,
+        };
+        assert!(
+            error.to_string().contains("differs from repository HEAD"),
+            "unexpected error: {error:#}"
+        );
         Ok(())
     }
 
