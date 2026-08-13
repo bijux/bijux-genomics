@@ -1,7 +1,8 @@
 {
-  "schema_version": "bijux.ci.fast_groups.v1",
+  "schema_version": "bijux.ci.fast_groups.v2",
   "max_parallelism": 6,
   "warm_cache_target_milliseconds": 300000,
+  "minimum_cache_hit_ratio_basis_points": 8000,
   "history_limit": 40,
   "report_root": "artifacts/ci/ci-fast-groups",
   "timing_report": "artifacts/ci/ci-fast-timing.json",

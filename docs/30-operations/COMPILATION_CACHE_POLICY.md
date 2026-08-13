@@ -27,13 +27,16 @@ targets, and isolated concurrent target roots.
   then gives each concurrent gate its own `artifacts/github-all/targets/<gate>` target root so no
   useful concurrency is serialized by one Cargo target lock. Gates reuse compiler output through
   sccache and reuse only the immutable path to the prebuilt developer binary.
-- The `ci-fast` DAG gives each concurrently ready group its own stable
-  `artifacts/ci/ci-fast-targets/<group>` target root. Groups share the pinned toolchain, workspace
-  lockfile, and sccache authority, and execute Cargo offline after the launcher has resolved its
-  own locked dependencies.
-- A warm `ci-fast` timing observation is reference-eligible only when the configured compiler
-  wrapper executes successfully and identifies itself as `sccache`. Runs with a missing, disabled,
-  or invalid wrapper remain diagnostic evidence and cannot contribute to the published p95 claim.
+- The `ci-fast` DAG gives its concurrently ready groups one gate-scoped
+  `artifacts/ci/ci-fast-target` root. Cargo coordinates concurrent access to that root, so groups
+  can reuse the same materialized dependency graph while retaining DAG concurrency. Groups also
+  share the pinned toolchain, workspace lockfile, and sccache authority, and execute Cargo offline
+  after the launcher has resolved its own locked dependencies.
+- A warm `ci-fast` timing observation is reference-eligible only when pre-run and post-run sccache
+  receipts name the same cache authority, that authority is not scoped to the source commit, and
+  the measured run reaches the contract's minimum cache-hit ratio without cache errors. A caller's
+  `warm` label is only a request; it is never evidence. Missing, disabled, commit-scoped, cold, or
+  invalid cache observations remain diagnostic evidence and cannot contribute to the p95 claim.
 - Complete-workspace hash shards each use a tracked-source clone and a distinct absolute artifact
   root. Cargo targets, test and coverage targets, temporary directories, and profraw directories
   are disjoint between shards; all shards retain the single toolchain and sccache authority from
@@ -57,5 +60,5 @@ targets, and isolated concurrent target roots.
 - Treating cache presence as required CI behavior hides correctness regressions.
 - Reusing shared target roots outside the governed artifact environment causes cross-run
   interference.
-- Reusing one target root across concurrent Cargo gates serializes on Cargo's target lock and
-  defeats the declared DAG.
+- Reusing one target root across independent workflow gates can serialize unrelated products;
+  target sharing is restricted to groups inside the single `ci-fast` gate.
