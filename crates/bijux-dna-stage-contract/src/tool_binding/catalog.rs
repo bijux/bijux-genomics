@@ -7,6 +7,8 @@ use super::{
     ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };
 
+mod vcf;
+
 const BAM: &str = "bijux.bam.artifact.coordinate_sorted_indexed.v1";
 const DIRECTORY: &str = "bijux.auxiliary.artifact.directory.v1";
 const FILE: &str = "bijux.auxiliary.artifact.file.v1";
@@ -118,6 +120,9 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     ]
     .into_boxed_slice()
     {
+        registry.insert(binding)?;
+    }
+    for binding in vcf::canonical_distributable_vcf_bindings() {
         registry.insert(binding)?;
     }
     Ok(registry)
@@ -2172,9 +2177,7 @@ fn external_binding(
         inputs: inputs.to_vec(),
         parameters: vec![],
         outputs: outputs.to_vec(),
-        normalized_output_contract_id: outputs
-            .first()
-            .map_or_else(String::new, |output| output.artifact_contract_id.clone()),
+        normalized_output_contract_id: format!("bijux.benchmark.{stage_id}.bundle.v1"),
         command_template: command_template.iter().map(ToString::to_string).collect(),
         resources,
         normalizer_id: normalizer_id.to_string(),

@@ -46,7 +46,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 61);
+    assert_eq!(retained.bindings().len(), 96);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -70,8 +70,152 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 69);
+    assert_eq!(all.bindings().len(), 104);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_registry_owns_every_supported_vcf_pair() -> Result<()> {
+    let registry = canonical_tool_bindings()?;
+    for binding in
+        registry.bindings().filter(|binding| binding.stage_id.as_str().starts_with("vcf."))
+    {
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            format!("bijux.benchmark.{}.bundle.v1", binding.stage_id)
+        );
+        assert!(
+            binding.normalizer_id.starts_with("parse_")
+                && binding.normalizer_id.ends_with("metrics"),
+            "{}/{} names a non-canonical VCF normalizer: {}",
+            binding.stage_id,
+            binding.tool_id,
+            binding.normalizer_id
+        );
+    }
+    let observed = registry
+        .bindings()
+        .filter(|binding| binding.stage_id.as_str().starts_with("vcf."))
+        .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
+        .collect::<BTreeSet<_>>();
+    let expected = [
+        ("vcf.admixture", "plink"),
+        ("vcf.admixture", "plink2"),
+        ("vcf.call", "bcftools"),
+        ("vcf.call_diploid", "bcftools"),
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_gl", "bcftools"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.call_pseudohaploid", "bcftools"),
+        ("vcf.damage_filter", "bcftools"),
+        ("vcf.demography", "ibdne"),
+        ("vcf.filter", "bcftools"),
+        ("vcf.gl_propagation", "bcftools"),
+        ("vcf.ibd", "germline"),
+        ("vcf.ibd", "ibdhap"),
+        ("vcf.ibd", "ibdseq"),
+        ("vcf.imputation_metrics", "beagle"),
+        ("vcf.imputation_metrics", "glimpse"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.imputation_metrics", "minimac4"),
+        ("vcf.impute", "beagle"),
+        ("vcf.impute", "glimpse"),
+        ("vcf.impute", "impute5"),
+        ("vcf.impute", "minimac4"),
+        ("vcf.pca", "eigensoft"),
+        ("vcf.pca", "plink2"),
+        ("vcf.phasing", "beagle"),
+        ("vcf.phasing", "eagle"),
+        ("vcf.phasing", "shapeit"),
+        ("vcf.phasing", "shapeit5"),
+        ("vcf.population_structure", "eigensoft"),
+        ("vcf.population_structure", "plink"),
+        ("vcf.population_structure", "plink2"),
+        ("vcf.postprocess", "bcftools"),
+        ("vcf.prepare_reference_panel", "bcftools"),
+        ("vcf.qc", "bcftools"),
+        ("vcf.qc", "plink"),
+        ("vcf.qc", "plink2"),
+        ("vcf.roh", "plink2"),
+        ("vcf.stats", "bcftools"),
+    ]
+    .into_iter()
+    .map(|(stage_id, tool_id)| (stage_id.to_string(), tool_id.to_string()))
+    .collect::<BTreeSet<_>>();
+
+    assert_eq!(observed, expected);
+    Ok(())
+}
+
+#[test]
+fn canonical_vcf_bindings_render_native_command_profiles() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let cases = [
+        (
+            "vcf.call",
+            "bcftools",
+            BTreeMap::from([
+                ("bam".to_owned(), "/input/sample.bam".to_owned()),
+                ("reference".to_owned(), "/input/reference.fa".to_owned()),
+            ]),
+            BTreeMap::from([("called_vcf".to_owned(), "/result/called.vcf.gz".to_owned())]),
+            ["mpileup", " call ", "index -f"],
+        ),
+        (
+            "vcf.phasing",
+            "shapeit",
+            BTreeMap::from([
+                ("cohort_vcf".to_owned(), "/input/cohort.vcf.gz".to_owned()),
+                ("reference_panel_vcf".to_owned(), "/input/panel.vcf.gz".to_owned()),
+                ("genetic_map".to_owned(), "/input/map.txt".to_owned()),
+            ]),
+            BTreeMap::from([("phased_vcf".to_owned(), "/result/phased.vcf.gz".to_owned())]),
+            ["--input", "--reference", "--output"],
+        ),
+        (
+            "vcf.ibd",
+            "ibdhap",
+            BTreeMap::from([
+                ("cohort_vcf".to_owned(), "/input/cohort.vcf.gz".to_owned()),
+                ("genetic_map".to_owned(), "/input/map.txt".to_owned()),
+            ]),
+            BTreeMap::from([("ibd_segments".to_owned(), "/result/segments.tsv".to_owned())]),
+            ["--vcf", "--genetic-map", "--out"],
+        ),
+        (
+            "vcf.pca",
+            "eigensoft",
+            BTreeMap::from([
+                ("cohort_vcf".to_owned(), "/input/cohort.vcf.gz".to_owned()),
+                ("sample_metadata".to_owned(), "/input/populations.txt".to_owned()),
+            ]),
+            BTreeMap::from([("pca_report".to_owned(), "/result/pca.evec".to_owned())]),
+            ["convertf", "smartpca", "poplistname"],
+        ),
+    ];
+
+    for (stage_id, tool_id, inputs, outputs, fragments) in cases {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool_id.to_owned(),
+                inputs,
+                outputs,
+                ..ToolBindingRenderContext::default()
+            },
+        )?
+        .join(" ");
+        for fragment in fragments {
+            assert!(
+                command.contains(fragment),
+                "{stage_id}/{tool_id} command is missing native fragment {fragment}: {command}"
+            );
+        }
+    }
     Ok(())
 }
 
@@ -1343,6 +1487,10 @@ fn canonical_external_bindings_preserve_external_runtime_identity() -> Result<()
     let registry = canonical_external_artifact_tool_bindings()?;
     assert_eq!(registry.bindings().len(), 8);
     assert!(registry.bindings().all(|binding| binding.resources.runtime == "external_artifact"));
+    assert!(registry.bindings().all(|binding| {
+        binding.normalized_output_contract_id
+            == format!("bijux.benchmark.{}.bundle.v1", binding.stage_id)
+    }));
     Ok(())
 }
 

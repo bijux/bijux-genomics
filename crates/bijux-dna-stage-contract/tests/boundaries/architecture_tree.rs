@@ -89,6 +89,7 @@ fn assert_source_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/tool_binding")),
         entries([
+            "catalog/",
             "catalog.rs",
             "mod.rs",
             "model.rs",
@@ -98,6 +99,11 @@ fn assert_source_layout(root: &Path) {
             "validation.rs",
         ]),
         "tool_binding must separate catalog, model, projection, registry, rendering, and validation"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/tool_binding/catalog")),
+        entries(["vcf.rs"]),
+        "tool binding catalog families must remain explicitly owned"
     );
 }
 
