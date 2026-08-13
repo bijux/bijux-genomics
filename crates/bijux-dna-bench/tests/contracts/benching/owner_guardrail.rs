@@ -302,6 +302,23 @@ fn thin_cli_uses_model_owned_local_hpc_candidate_run_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_local_hpc_execution_resolver_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_execution_resolver.rs");
+    let contents = fs::read_to_string(&source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", source.display()));
+    assert!(contents.contains("validate_benchmark_local_hpc_execution_resolver"));
+    for forbidden in [
+        "struct LocalHpcExecutionResolverRow {",
+        "struct LocalHpcExecutionResolverReport {",
+        "bijux.bench.local_hpc_execution_resolver.v1",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =

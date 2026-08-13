@@ -53,6 +53,8 @@ mod mod_contracts_local_corpus_stage_compatibility_rs;
 mod mod_contracts_local_hpc_asset_staging_rs;
 #[path = "contracts/local_hpc_candidate_run.rs"]
 mod mod_contracts_local_hpc_candidate_run_rs;
+#[path = "contracts/local_hpc_execution_resolver.rs"]
+mod mod_contracts_local_hpc_execution_resolver_rs;
 #[path = "contracts/local_hpc_result_collection_simulation.rs"]
 mod mod_contracts_local_hpc_result_collection_simulation_rs;
 #[path = "contracts/local_hpc_scratch_layout.rs"]

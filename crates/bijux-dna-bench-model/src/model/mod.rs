@@ -29,6 +29,7 @@ pub mod local_corpus_skip;
 pub mod local_corpus_stage_compatibility;
 pub mod local_hpc_asset_staging;
 pub mod local_hpc_candidate_run;
+pub mod local_hpc_execution_resolver;
 pub mod local_hpc_result_collection_simulation;
 pub mod local_hpc_scratch_layout;
 pub mod local_pipeline_dag;
@@ -269,6 +270,11 @@ pub use local_hpc_candidate_run::{
     BENCHMARK_LOCAL_HPC_CANDIDATE_SCRATCH_GB_MAX,
     BENCHMARK_LOCAL_HPC_CANDIDATE_STAGED_INPUT_BYTES_MAX,
     BENCHMARK_LOCAL_HPC_CANDIDATE_WALLTIME_MINUTES_MAX,
+};
+#[allow(unused_imports)]
+pub use local_hpc_execution_resolver::{
+    benchmark_local_hpc_execution_resolver_schema, BenchmarkLocalHpcExecutionResolverReport,
+    BenchmarkLocalHpcExecutionResolverRow,
 };
 #[allow(unused_imports)]
 pub use local_hpc_result_collection_simulation::{

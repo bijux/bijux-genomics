@@ -118,6 +118,8 @@ pub const BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_asset_staging_manifest.v1";
 pub const BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_candidate_run_manifest.v1";
+pub const BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_execution_resolver.v1";
 pub const BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_result_collection_simulation.v1";
 pub const BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1: &str =

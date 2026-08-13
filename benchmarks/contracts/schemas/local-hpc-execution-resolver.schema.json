@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcExecutionResolverRow": {
+      "additionalProperties": false,
+      "properties": {
+        "command_entrypoint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "execution_mode": {
+          "type": "string"
+        },
+        "execution_mode_summary": {
+          "type": "string"
+        },
+        "install_kind": {
+          "type": "string"
+        },
+        "lookup_tool_id": {
+          "type": "string"
+        },
+        "registry_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "resolution_kind": {
+          "type": "string"
+        },
+        "resolution_target": {
+          "type": "string"
+        },
+        "runtime_probe_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "selected_job_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "selected_job_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "selected_node_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "selected_pipeline_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "selected_result_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "selected_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "unavailable_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "tool_id",
+        "lookup_tool_id",
+        "execution_mode",
+        "execution_mode_summary",
+        "domains",
+        "selected_stage_ids",
+        "selected_job_count",
+        "selected_job_ids",
+        "selected_result_ids",
+        "selected_pipeline_ids",
+        "selected_node_ids",
+        "install_kind",
+        "resolution_kind",
+        "resolution_target",
+        "runtime_probe_paths",
+        "registry_paths"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "output_path": {
+      "type": "string"
+    },
+    "resolution_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcExecutionResolverRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_execution_resolver.v1",
+      "type": "string"
+    },
+    "unclassified_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "resolution_counts",
+    "unclassified_tool_count",
+    "rows"
+  ],
+  "title": "BenchmarkLocalHpcExecutionResolverReport",
+  "type": "object"
+}

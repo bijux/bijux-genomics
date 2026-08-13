@@ -142,6 +142,12 @@ conditions, behavior proofs, canonical ordering, exact counters, and schema
 generation; the CLI only derives candidates from admitted planning inputs and
 publishes the validated manifest.
 
+`schemas/local-hpc-execution-resolver.schema.json` defines persisted selected
+tool scope and its admitted host, Apptainer, or unavailable execution
+resolution. The benchmark model owns ordering, scope closure, availability
+reasoning, exact counters, and schema generation; the CLI only observes runtime
+probes and assembles the admitted report.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,
