@@ -15,6 +15,8 @@ use bijux_dna_containers::api::{
     resolve_catalog_locked_apptainer_image, validate_container_inventory_catalog, ContainerCatalog,
     ContainerImageInventoryPublication, CurrentApptainerImage,
 };
+use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_stage_contract::{canonical_tool_bindings, ToolBinding};
 
 use super::verify_campaign_plan_source;
 use crate::workflow::{load_stage_campaign_registry, load_stage_interface_catalog_from_repo};
@@ -99,8 +101,9 @@ impl BenchmarkExecutionAuthorities {
 /// Load and cross-validate every repository and image authority for one campaign plan.
 ///
 /// # Errors
-/// Returns an error when a source file is missing or malformed, source hashes drift, the plan and
-/// inventory name another repository commit, or catalog and inventory closure differs.
+/// Returns an error when a source file is missing or malformed, campaign resources differ from
+/// canonical bindings, source hashes drift, the plan and inventory name another repository commit,
+/// or catalog and inventory closure differs.
 pub fn load_execution_authorities(
     repository_root: &Path,
     inventory_path: &Path,
@@ -122,6 +125,7 @@ pub fn load_execution_authorities(
     let interfaces = load_stage_interface_catalog_from_repo(&interface_path, &repository_path)?;
     validate_defined_interface_campaign_alignment(&interfaces, &registry)
         .context("align stage interfaces with campaign declarations")?;
+    validate_campaign_binding_resources(&registry)?;
     let catalog = load_container_catalog(&repository_path)?;
     let image_inventory = load_image_inventory_publication(inventory_path)?;
 
@@ -175,6 +179,40 @@ pub fn load_execution_authorities(
     })
 }
 
+fn validate_campaign_binding_resources(registry: &BenchmarkStageCampaignRegistry) -> Result<()> {
+    let bindings = canonical_tool_bindings().context("load canonical campaign tool bindings")?;
+    for campaign in &registry.campaigns {
+        let stage_id = StageId::new(&campaign.stage_id);
+        for tool_id in &campaign.tool_ids {
+            let binding =
+                bindings.binding(&stage_id, &ToolId::new(tool_id)).with_context(|| {
+                    format!(
+                        "campaign {} has no canonical binding for {}/{}",
+                        campaign.run_id, campaign.stage_id, tool_id
+                    )
+                })?;
+            let allocated = campaign
+                .threads_by_tool
+                .get(tool_id)
+                .copied()
+                .or(campaign.threads)
+                .with_context(|| {
+                    format!("campaign {} does not allocate threads for {tool_id}", campaign.run_id)
+                })?;
+            if binding.resources().threads != allocated {
+                bail!(
+                    "campaign {} allocates {allocated} threads for {}/{} but its canonical binding requires {}",
+                    campaign.run_id,
+                    campaign.stage_id,
+                    tool_id,
+                    binding.resources().threads
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
 fn require_source_file(path: &Path) -> Result<()> {
     let metadata = std::fs::symlink_metadata(path)
         .with_context(|| format!("inspect benchmark execution authority {}", path.display()))?;
@@ -187,4 +225,34 @@ fn require_source_file(path: &Path) -> Result<()> {
 fn source_digest(path: &Path) -> Result<String> {
     bijux_dna_infra::hash_file_sha256(path)
         .with_context(|| format!("hash benchmark execution authority {}", path.display()))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use anyhow::Context;
+
+    use super::{validate_campaign_binding_resources, CAMPAIGN_REGISTRY_PATH};
+    use crate::workflow::load_stage_campaign_registry;
+
+    #[test]
+    fn checked_in_campaign_resources_close_canonical_bindings() -> anyhow::Result<()> {
+        let repository_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let mut registry =
+            load_stage_campaign_registry(&repository_root.join(CAMPAIGN_REGISTRY_PATH))?;
+        validate_campaign_binding_resources(&registry)?;
+
+        let campaign = registry
+            .campaigns
+            .iter_mut()
+            .find(|campaign| campaign.run_id == "run-2042")
+            .context("checked-in campaign registry omits run-2042")?;
+        campaign.threads_by_tool.insert("seqkit".to_owned(), 3);
+        let error = validate_campaign_binding_resources(&registry)
+            .err()
+            .context("campaign/binding resource drift was accepted")?;
+        assert!(error.to_string().contains("run-2042 allocates 3 threads"));
+        Ok(())
+    }
 }

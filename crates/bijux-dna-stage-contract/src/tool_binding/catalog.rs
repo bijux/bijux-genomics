@@ -1170,7 +1170,7 @@ fn seqfu_profile_read_lengths() -> ToolBindingV1 {
         "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
         "benchmark.fastq.profile_read_lengths.compare",
-        resources(2, 4, 4),
+        resources(1, 4, 4),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
             "histogram_bins_are_applied_by_the_shared_result_normalizer",
@@ -1195,7 +1195,7 @@ fn seqfu_profile_reads() -> ToolBindingV1 {
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
         "benchmark.fastq.profile_reads.compare",
-        resources(2, 4, 4),
+        resources(4, 4, 4),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
             "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
@@ -1219,7 +1219,7 @@ fn seqkit_profile_read_lengths() -> ToolBindingV1 {
         "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
         "benchmark.fastq.profile_read_lengths.compare",
-        resources(2, 4, 4),
+        resources(4, 4, 4),
         &[
             "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
             "histogram_bins_are_applied_by_the_shared_result_normalizer",
@@ -1244,7 +1244,7 @@ fn seqkit_profile_reads() -> ToolBindingV1 {
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
         "benchmark.fastq.profile_reads.compare",
-        resources(2, 4, 4),
+        resources(4, 4, 4),
         &[
             "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
             "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
@@ -1268,7 +1268,7 @@ fn seqkit_stats_profile_reads() -> ToolBindingV1 {
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
         "benchmark.fastq.profile_reads.compare",
-        resources(2, 2, 2),
+        resources(4, 2, 2),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
             "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",

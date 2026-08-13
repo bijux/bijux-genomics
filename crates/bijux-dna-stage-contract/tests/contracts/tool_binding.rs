@@ -1537,7 +1537,8 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
         );
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_read_lengths.compare");
         assert_eq!(binding.outputs[0].name, "length_distribution_tsv");
-        assert_eq!(binding.resources.threads, 2);
+        let expected_threads = if binding.tool_id.as_str() == "seqfu" { 1 } else { 4 };
+        assert_eq!(binding.resources.threads, expected_threads);
 
         let length_command = render_tool_command(
             binding,
@@ -1590,7 +1591,7 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_reads.compare");
         assert_eq!(binding.outputs.len(), 1);
         assert_eq!(binding.outputs[0].name, "qc_tsv");
-        assert_eq!(binding.resources.threads, 2);
+        assert_eq!(binding.resources.threads, 4);
 
         let command = render_tool_command(
             binding,
@@ -1601,14 +1602,14 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
                     "/input/sample.fastq.gz".to_owned(),
                 )]),
                 input_sets: BTreeMap::new(),
-                parameters: BTreeMap::from([("threads".to_owned(), "2".to_owned())]),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
                 outputs: BTreeMap::from([("qc_tsv".to_owned(), "/result/profile.tsv".to_owned())]),
             },
         )?;
         assert_eq!(command[0..2], ["/bin/sh", "-c"]);
         assert!(command[2].contains("'/input/sample.fastq.gz'"));
         assert!(command[2].contains("'/result/profile.tsv'"));
-        assert!(command[2].contains("'2'"));
+        assert!(command[2].contains("'4'"));
     }
     Ok(())
 }

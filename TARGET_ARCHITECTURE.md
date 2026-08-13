@@ -76,8 +76,8 @@ One lifecycle handles every admitted stage/tool pair:
 3. `bijux-dna-bench` derives every dependency-ready case and execution unit without waiting for
    unrelated tools, stages, images, or campaigns. Preparation projects each unit's admitted paths
    and parameter provenance through the canonical binding to build the full measured-repetition
-   plan matrix; catalog executable/version identity and binding resource identity must match the
-   immutable execution specification before the attempt can become ready.
+   plan matrix; catalog executable/version identity and the binding's thread allocation must match
+   the immutable execution specification before the attempt can become ready.
 4. `bijux-dna-runner` submits the declared execution once and returns its durable backend identity.
 5. `bijux-dna-runtime` appends the attempt transition and retry or supersession lineage.
 6. A later cycle observes scheduler state once, collects terminal/accounting-ready attempts once,
