@@ -59,11 +59,7 @@ fn validate_row(row: &AllDomainExpectedBenchmarkResultRow) -> Result<(), BenchEr
     .iter()
     .any(|value| value.trim().is_empty())
         || !matches!(row.domain.as_str(), "bam" | "fastq" | "vcf")
-        || row.result_id
-            != format!(
-                "{}:{}:{}:{}:{}",
-                row.domain, row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id
-            )
+        || !result_id_matches_protocol_identity(row)
         || row.expected_outputs.is_empty()
         || row.expected_metrics.is_empty()
         || has_blank_or_duplicate(&row.expected_outputs)
@@ -72,6 +68,16 @@ fn validate_row(row: &AllDomainExpectedBenchmarkResultRow) -> Result<(), BenchEr
         return invalid("all-domain expected benchmark result row has invalid semantics");
     }
     Ok(())
+}
+
+fn result_id_matches_protocol_identity(row: &AllDomainExpectedBenchmarkResultRow) -> bool {
+    let mut parts = row.result_id.split(':');
+    parts.next() == Some(row.domain.as_str())
+        && parts.next() == Some(row.corpus_id.as_str())
+        && parts.next() == Some(row.stage_id.as_str())
+        && parts.next().is_some_and(|profile| !profile.trim().is_empty())
+        && parts.next() == Some(row.tool_id.as_str())
+        && parts.next().is_none()
 }
 
 fn row_key(row: &AllDomainExpectedBenchmarkResultRow) -> (&str, &str, &str, &str, &str) {

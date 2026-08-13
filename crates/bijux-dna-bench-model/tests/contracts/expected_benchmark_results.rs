@@ -27,6 +27,10 @@ fn expected_benchmark_results_schema_matches_checked_in_contract() -> anyhow::Re
 #[test]
 fn expected_benchmark_results_admit_exact_aggregate_closure() -> anyhow::Result<()> {
     validate_all_domain_expected_benchmark_results(&valid_report())?;
+
+    let mut legacy_protocol = valid_report();
+    legacy_protocol.rows[0].asset_profile_id = "reference_fasta+reference_panel".to_string();
+    validate_all_domain_expected_benchmark_results(&legacy_protocol)?;
     Ok(())
 }
 
