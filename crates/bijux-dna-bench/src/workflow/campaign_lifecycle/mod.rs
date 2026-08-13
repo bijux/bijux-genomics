@@ -13,7 +13,11 @@ pub use bijux_dna_bench_model::{
     BenchmarkCycleAdmission, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
     BenchmarkCyclePreparation, BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit,
 };
-pub use execution::{build_execution_spec, BenchmarkExecutionMaterial};
+pub use execution::{
+    build_benchmark_stage_plans, build_execution_spec, BenchmarkExecutionMaterial,
+    BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
+};
 pub use operator::{
     admit_checked_in_benchmark_campaign, load_checked_in_benchmark_campaign_plan,
     plan_checked_in_benchmark_campaign, status_checked_in_benchmark_campaign,

@@ -142,8 +142,8 @@ pub use campaign_engine::{
     BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };
 pub use campaign_lifecycle::{
-    admit_checked_in_benchmark_campaign, build_execution_spec, ensure_execution_spec,
-    ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
+    admit_checked_in_benchmark_campaign, build_benchmark_stage_plans, build_execution_spec,
+    ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
     load_checked_in_benchmark_campaign_plan, load_execution_authorities, load_execution_spec,
     load_stage_plan_manifest, plan_checked_in_benchmark_campaign, plan_stage_campaign_attempts,
     plan_stage_campaign_retry_attempts, prepare_checked_in_benchmark_campaign,
@@ -152,7 +152,8 @@ pub use campaign_lifecycle::{
     BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit, BenchmarkCyclePlanRequest,
     BenchmarkCyclePreparation, BenchmarkCyclePreparationRequest, BenchmarkCyclePreparationState,
     BenchmarkCyclePreparationUnit, BenchmarkCycleStatusRequest, BenchmarkExecutionAuthorities,
-    BenchmarkExecutionMaterial,
+    BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
 };
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,

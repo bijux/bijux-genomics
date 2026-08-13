@@ -82,6 +82,9 @@ The `public_api` module itself is private. Stable exports are owned by
 - `BenchmarkStageNormalization` returns the normalized plugin output together
   with its stage-owned downstream evaluation without converting scientific
   failure into control-flow failure.
+- `build_benchmark_stage_plans(spec, binding, catalog_tool, units)` constructs the complete
+  immutable measured-repetition by execution-unit plan matrix while rejecting identity, path,
+  parameter, and resource drift.
 - `admit_benchmark_cases(request)` validates normalized observations against their exact case matrix and publishes an immutable admitted set.
 - `aggregate_benchmark_cases(request)` validates an admitted observation set and publishes deterministic case aggregations.
 - `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.
@@ -202,6 +205,9 @@ including:
 - `validate_stage_plan_manifest`
 - `build_execution_spec`
 - `BenchmarkExecutionMaterial`
+- `BenchmarkStagePlanInputMaterial`
+- `BenchmarkStagePlanOutputMaterial`
+- `BenchmarkStagePlanUnitMaterial`
 - `load_execution_authorities`
 - `BenchmarkExecutionAuthorities`
 - `ensure_execution_spec`
