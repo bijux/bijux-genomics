@@ -89,6 +89,20 @@ fn seqpurge_wrapper_rejects_an_unusable_inherited_tmpdir() -> anyhow::Result<()>
 }
 
 #[test]
+fn alientrimmer_source_download_retries_transient_resets_within_a_bounded_build(
+) -> anyhow::Result<()> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let recipe = std::fs::read_to_string(workspace.join("containers/apptainer/alientrimmer.def"))?;
+
+    assert!(recipe.contains("--retry 5 --retry-delay 3 --retry-all-errors"));
+    assert!(recipe.contains("--connect-timeout 20 --max-time 300 --retry-max-time 300"));
+    assert!(recipe.contains(
+        "echo \"${ALIENTRIMMER_SHA256}  /tmp/alientrimmer.tar.gz\" | sha256sum --check --strict"
+    ));
+    Ok(())
+}
+
+#[test]
 fn bowtie2_wrapper_derives_and_removes_a_scratch_reference_index() -> anyhow::Result<()> {
     let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let wrapper = std::fs::read_to_string(workspace.join("containers/tools/bowtie2/bowtie2"))?;
@@ -202,6 +216,7 @@ fn transport_classifier_is_explicit_and_fail_closed() {
         "unexpected end of JSON input",
         "TOOMANYREQUESTS: You have reached your unauthenticated pull rate limit",
         "curl: (18) transfer closed with 4096 bytes remaining to read",
+        "curl: (56) Recv failure: Connection reset by peer",
         "HTTP 429 Too Many Requests",
         "HTTP status 500",
         "upstream returned status code 502",
