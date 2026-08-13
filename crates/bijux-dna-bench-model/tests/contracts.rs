@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/active_scope.rs"]
 mod mod_contracts_active_scope_rs;
+#[path = "contracts/all_domain_failure_classification.rs"]
+mod mod_contracts_all_domain_failure_classification_rs;
 #[path = "contracts/all_domain_parser_collector.rs"]
 mod mod_contracts_all_domain_parser_collector_rs;
 #[path = "contracts/appraisal.rs"]

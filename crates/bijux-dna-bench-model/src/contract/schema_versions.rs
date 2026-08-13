@@ -30,6 +30,8 @@ pub const ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1: &str =
     "bijux.bench.readiness.retained_tool_inventory.v1";
 pub const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1: &str =
     "bijux.bench.readiness.all_domain_parser_collector.v1";
+pub const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1: &str =
+    "bijux.bench.readiness.all_domain_failure_classification.v1";
 pub const STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1: &str =
     "bijux.bench.readiness.stage_registry_extra_pairs.v1";
 pub const BENCHMARK_DATA_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.data_source.v1";

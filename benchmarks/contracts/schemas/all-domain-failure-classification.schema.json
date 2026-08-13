@@ -1,0 +1,136 @@
+{
+  "$defs": {
+    "AllDomainFailureClassificationRow": {
+      "additionalProperties": false,
+      "properties": {
+        "class_id": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "observed_error": {
+          "type": "string"
+        },
+        "observed_status": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_surface": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "triggered": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "class_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "source_surface",
+        "evidence_path",
+        "observed_status",
+        "observed_error",
+        "detail",
+        "triggered"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "class_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "fixture_root": {
+      "type": "string"
+    },
+    "missing_class_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_class_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "required_class_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainFailureClassificationRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_failure_classification.v1",
+      "type": "string"
+    },
+    "triggered_class_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "triggered_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "fixture_root",
+    "row_count",
+    "triggered_row_count",
+    "required_class_count",
+    "triggered_class_count",
+    "missing_class_count",
+    "class_counts",
+    "missing_class_ids",
+    "passes_behavior_test",
+    "rows"
+  ],
+  "title": "AllDomainFailureClassificationReport",
+  "type": "object"
+}

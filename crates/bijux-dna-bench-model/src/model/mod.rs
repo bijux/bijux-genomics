@@ -4,6 +4,7 @@
 
 pub mod active_scope;
 pub mod admission;
+pub mod all_domain_failure_classification;
 pub mod all_domain_parser_collector;
 pub mod appraisal;
 pub mod benchmark_matrix;
@@ -81,6 +82,11 @@ pub use active_scope::{
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+#[allow(unused_imports)]
+pub use all_domain_failure_classification::{
+    all_domain_failure_classification_schema, AllDomainFailureClassificationReport,
+    AllDomainFailureClassificationRow,
 };
 #[allow(unused_imports)]
 pub use all_domain_parser_collector::{

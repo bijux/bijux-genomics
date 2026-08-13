@@ -124,6 +124,12 @@ their portfolio, topology, node, binding-lineage, counter, timing, output, and
 governed-path invariants; the CLI only resolves declared pipeline commands and
 materializes admitted simulation evidence.
 
+`schemas/all-domain-failure-classification.schema.json` defines the exhaustive
+failure taxonomy consumed by aggregate benchmark reports. The benchmark model
+owns the eight required classes, exact class and trigger counts, missing-class
+closure, schema identity, and admission verdict; the CLI only executes the
+governed probes and supplies their evidence paths and observations.
+
 `schemas/local-stage-inventory.schema.json` and
 `schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
 and aggregate local benchmark stage inventories. The benchmark model owns
