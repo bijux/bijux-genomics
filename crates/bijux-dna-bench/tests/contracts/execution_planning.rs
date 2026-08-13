@@ -5,7 +5,8 @@ use std::process::Command;
 use anyhow::Context;
 use bijux_dna_bench::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
-    load_checked_in_benchmark_planning_contracts, load_execution_authorities, load_execution_spec,
+    ensure_stage_plan_manifest, load_checked_in_benchmark_planning_contracts,
+    load_execution_authorities, load_execution_spec, load_stage_plan_manifest,
     plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
     BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism,
     BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkExecutionMaterial,
@@ -15,7 +16,16 @@ use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication, ContainerCatalog,
     CurrentApptainerImage,
 };
+use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
+use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
+use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
+use bijux_dna_stage_contract::{
+    build_binding_stage_plan, BindingInputV1, BindingOutputV1, BindingStagePlanRequest,
+    EffectiveToolParameterSourceV1, EffectiveToolParameterV1, EffectiveToolParametersV1,
+    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingV1, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
+    TOOL_BINDING_SCHEMA_V1,
+};
 
 fn plan() -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
@@ -349,6 +359,128 @@ fn execution_spec_storage_is_restart_safe_and_refuses_conflicts() -> anyhow::Res
     conflicting.operator = "different-operator".to_string();
     assert!(ensure_execution_spec(temporary.path(), &conflicting).is_err());
     Ok(())
+}
+
+#[test]
+fn stage_plan_storage_is_restart_safe_and_checksum_bound() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-stage-plan-storage");
+    let campaign = plan()?;
+    ensure_stage_campaign_attempts(temporary.path(), &campaign)?;
+    let (_, _, catalog) = authorities()?;
+    let spec = build_at(&catalog, &image(), temporary.path())?;
+    ensure_execution_spec(temporary.path(), &spec)?;
+    let plans = (1..=spec.measurement.measured_repetitions)
+        .map(|repetition| stage_plan(&spec, repetition))
+        .collect::<anyhow::Result<Vec<_>>>()?;
+
+    let first = ensure_stage_plan_manifest(temporary.path(), &spec, &plans)?;
+    let recovered = ensure_stage_plan_manifest(temporary.path(), &spec, &plans)?;
+    assert_eq!(recovered, first);
+    let (loaded, loaded_plans) = load_stage_plan_manifest(temporary.path(), &spec.identity)?;
+    assert_eq!(loaded, first);
+    assert_eq!(loaded_plans.len(), 3);
+    assert_eq!(
+        loaded_plans[2].stage_instance_id.as_ref().map(StepId::as_str),
+        Some("measured-repetition-3--sample-a")
+    );
+
+    let plan_path =
+        Path::new(&spec.outputs.result_root).join("stage-plans/repetition-2/sample-a.json");
+    std::fs::write(&plan_path, b"{}")?;
+    assert!(load_stage_plan_manifest(temporary.path(), &spec.identity)
+        .is_err_and(|error| error.to_string().contains("bytes differ")));
+    Ok(())
+}
+
+fn stage_plan(
+    spec: &BenchmarkExecutionSpec,
+    repetition: u32,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    let binding = ToolBindingV1 {
+        schema_version: TOOL_BINDING_SCHEMA_V1.to_owned(),
+        binding_id: "fastq.profile_read_lengths__seqkit".to_owned(),
+        stage_id: StageId::new("fastq.profile_read_lengths"),
+        tool_id: ToolId::new("seqkit"),
+        artifact_source: ToolArtifactSourceV1::CatalogImage {
+            catalog_tool_id: ToolId::new("seqkit"),
+        },
+        capabilities: vec!["single_end_reads".to_owned()],
+        inputs: vec![BindingInputV1 {
+            name: "reads_r1".to_owned(),
+            artifact_contract_id: "bijux.fastq.artifact.paired_end.v1".to_owned(),
+            required: true,
+        }],
+        parameters: vec![bijux_dna_stage_contract::BindingParameterV1 {
+            name: "threads".to_owned(),
+            required: true,
+        }],
+        outputs: vec![BindingOutputV1 {
+            name: "length_distribution_tsv".to_owned(),
+            artifact_contract_id: "bijux.auxiliary.artifact.table.v1".to_owned(),
+            discovery: OutputDiscoveryV1::ExactPath,
+        }],
+        normalized_output_contract_id: "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+            .to_owned(),
+        command_template: vec![
+            "${executable}".to_owned(),
+            "${input:reads_r1}".to_owned(),
+            "${output:length_distribution_tsv}".to_owned(),
+            "${parameter:threads}".to_owned(),
+        ],
+        resources: ToolConstraints {
+            runtime: "apptainer".to_owned(),
+            mem_gb: 4,
+            tmp_gb: 4,
+            threads: spec.resources.cpus,
+        },
+        normalizer_id: "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths"
+            .to_owned(),
+        downstream_probe_id: "benchmark.fastq.profile_read_lengths.compare".to_owned(),
+        limitations: Vec::new(),
+    };
+    let effective = EffectiveToolParametersV1 {
+        schema_version: EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1.to_owned(),
+        binding_id: binding.binding_id.clone(),
+        stage_id: binding.stage_id.clone(),
+        tool_id: binding.tool_id.clone(),
+        allocated_cpus: spec.resources.cpus,
+        resources: binding.resources.clone(),
+        parameters: BTreeMap::from([(
+            "threads".to_owned(),
+            EffectiveToolParameterV1 {
+                value: spec.resources.cpus.to_string(),
+                source: EffectiveToolParameterSourceV1::ScientificDefault,
+            },
+        )]),
+    };
+    let instance = format!("measured-repetition-{repetition}--sample-a");
+    let out_dir = Path::new(&spec.outputs.result_root).join("repetitions").join(&instance);
+    build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 {
+            image: spec.image.path.clone(),
+            digest: Some(format!("sha256:{}", spec.image.sha256)),
+        },
+        executable: "seqkit".to_owned(),
+        tool_version: "2.10.1".to_owned(),
+        stage_instance_id: Some(StepId::new(instance)),
+        inputs: vec![ArtifactRef {
+            name: ArtifactId::new("reads_r1"),
+            path: PathBuf::from(&spec.inputs[0].mount_path),
+            role: ArtifactRole::Reads,
+            artifact_contract_id: Some("bijux.fastq.artifact.paired_end.v1".to_owned()),
+            optional: false,
+        }],
+        outputs: vec![ArtifactRef {
+            name: ArtifactId::new("length_distribution_tsv"),
+            path: out_dir.join("length-distribution.tsv"),
+            role: ArtifactRole::SummaryTsv,
+            artifact_contract_id: Some("bijux.auxiliary.artifact.table.v1".to_owned()),
+            optional: false,
+        }],
+        out_dir,
+    })
 }
 
 #[cfg(unix)]

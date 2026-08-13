@@ -153,6 +153,8 @@ including:
 - `BenchmarkCycleStatusV2`
 - `BenchmarkCampaignPlan`
 - `BenchmarkExecutionSpec`
+- `BenchmarkStagePlanManifest`
+- `BenchmarkStagePlanReference`
 - `CorpusMaterializationRequest`
 - `CorpusMaterializationPublication`
 - `CorpusAcquisitionPlan`
@@ -188,6 +190,7 @@ including:
 - `BenchError`
 - `BenchRunOptions`
 - `benchmark_execution_spec_schema`
+- `benchmark_stage_plan_manifest_schema`
 - `benchmark_suite_spec_schema`
 - `benchmark_corpus_manifest_schema`
 - `benchmark_bundle_manifest_schema`
@@ -196,11 +199,14 @@ including:
 - `benchmark_summary_schema`
 - `gate_decision_schema`
 - `validate_execution_spec`
+- `validate_stage_plan_manifest`
 - `build_execution_spec`
 - `BenchmarkExecutionMaterial`
 - `load_execution_authorities`
 - `BenchmarkExecutionAuthorities`
 - `ensure_execution_spec`
+- `ensure_stage_plan_manifest`
+- `load_stage_plan_manifest`
 
 ## Export Policy
 

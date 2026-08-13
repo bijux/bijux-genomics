@@ -1,7 +1,8 @@
 use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::{
-    benchmark_execution_admission_schema, benchmark_execution_spec_schema, validate_execution_spec,
+    benchmark_execution_admission_schema, benchmark_execution_spec_schema,
+    benchmark_stage_plan_manifest_schema, validate_execution_spec, validate_stage_plan_manifest,
     BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
     BenchmarkAttemptIdentity, BenchmarkEffectiveParameters, BenchmarkExecutionAcceptance,
     BenchmarkExecutionAdmission, BenchmarkExecutionCachePolicy, BenchmarkExecutionCommands,
@@ -10,8 +11,10 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence,
     BenchmarkExecutionResources, BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy,
     BenchmarkExecutionSourceLock, BenchmarkExecutionSpec, BenchmarkOutputFileEvidence,
-    BenchmarkParameterValue, BenchmarkRunIdentity, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
+    BenchmarkParameterValue, BenchmarkRunIdentity, BenchmarkStagePlanManifest,
+    BenchmarkStagePlanReference, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1,
 };
 use bijux_dna_domain_fastq::params::{
     stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, validate::VALIDATE_SCHEMA_VERSION,
@@ -176,6 +179,36 @@ fn execution_spec_schema_freezes_version_and_source_identities() -> anyhow::Resu
 }
 
 #[test]
+fn stage_plan_manifest_requires_contiguous_checksum_bound_repetitions() -> anyhow::Result<()> {
+    let identity = specification().identity;
+    let mut manifest = BenchmarkStagePlanManifest {
+        schema_version: BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1.to_owned(),
+        identity,
+        execution_spec_sha256: "a".repeat(64),
+        plans: (1..=3)
+            .map(|repetition| BenchmarkStagePlanReference {
+                repetition,
+                execution_unit_id: "sample-a".to_owned(),
+                stage_instance_id: format!("measured-repetition-{repetition}--sample-a"),
+                path: format!("stage-plans/repetition-{repetition}/sample-a.json"),
+                sha256: format!("{repetition:x}").repeat(64),
+            })
+            .collect(),
+    };
+    validate_stage_plan_manifest(&manifest)?;
+    let schema = serde_json::to_value(benchmark_stage_plan_manifest_schema())?;
+    assert_eq!(
+        schema.pointer("/properties/schema_version/const").and_then(serde_json::Value::as_str),
+        Some(BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1)
+    );
+
+    manifest.plans[1].stage_instance_id = "measured-repetition-3--sample-a".to_owned();
+    assert!(validate_stage_plan_manifest(&manifest)
+        .is_err_and(|error| error.to_string().contains("canonical order")));
+    Ok(())
+}
+
+#[test]
 fn checked_execution_schemas_match_model() -> anyhow::Result<()> {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -183,6 +216,10 @@ fn checked_execution_schemas_match_model() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
     let schemas = [
         ("execution-spec.schema.json", serde_json::to_value(benchmark_execution_spec_schema())?),
+        (
+            "stage-plan-manifest.schema.json",
+            serde_json::to_value(benchmark_stage_plan_manifest_schema())?,
+        ),
         (
             "effective-parameters.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_effective_parameters_schema())?,

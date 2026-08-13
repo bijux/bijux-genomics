@@ -109,6 +109,9 @@ attempt blocks only its own execution unit.
 
 - A run ID is a permanent semantic protocol identity.
 - An attempt is one immutable execution of a run case.
+- Every measured execution unit has a pre-execution `StagePlanV1`; the attempt stores the complete
+  repetition-by-unit plan matrix and a checksum-bound manifest beside its immutable execution
+  specification.
 - Retry and supersession create new attempts and explicit lineage; they never rewrite history.
 - A publication selects admitted attempts without changing their evidence.
 - A citation is the stable paper-facing record for a run protocol and its selected publication.

@@ -1,0 +1,108 @@
+{
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStagePlanReference": {
+      "additionalProperties": false,
+      "properties": {
+        "execution_unit_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "repetition": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "stage_instance_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "repetition",
+        "execution_unit_id",
+        "stage_instance_id",
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "execution_spec_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/BenchmarkAttemptIdentity"
+    },
+    "plans": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStagePlanReference"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.stage_plan_manifest.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "identity",
+    "execution_spec_sha256",
+    "plans"
+  ],
+  "title": "BenchmarkStagePlanManifest",
+  "type": "object"
+}

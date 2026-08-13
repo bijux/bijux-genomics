@@ -24,6 +24,6 @@ pub use planning::{
 };
 pub use preparation::{prepare_checked_in_benchmark_campaign, BenchmarkCyclePreparationRequest};
 pub use storage::{
-    ensure_execution_spec, ensure_stage_campaign_attempts, load_execution_spec,
-    recover_stage_campaign_retry_lineage,
+    ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
+    load_execution_spec, load_stage_plan_manifest, recover_stage_campaign_retry_lineage,
 };

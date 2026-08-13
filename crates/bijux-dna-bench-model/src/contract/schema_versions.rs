@@ -102,6 +102,7 @@ pub const BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1: &str = "bijux.benchmark.evidence_bo
 pub const BENCHMARK_CITATION_RECORD_SCHEMA_V1: &str = "bijux.benchmark.citation_record.v1";
 pub const BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.replay_receipt.v1";
 pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
+pub const BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1: &str = "bijux.benchmark.stage_plan_manifest.v1";
 pub const BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.execution_admission.v1";
 pub const BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1: &str =
     "bijux.benchmark.effective_parameters.v1";

@@ -8,10 +8,13 @@ use chrono::{DateTime, FixedOffset};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkExecutionCommands,
-    BenchmarkExecutionSpec,
+    BenchmarkExecutionSpec, BenchmarkStagePlanManifest,
 };
 
-use super::{validate_attempt_identity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1};
+use super::{
+    validate_attempt_identity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1,
+};
 
 const REQUIRED_SOURCE_LOCKS: &[&str] =
     &["campaign_registry", "container_catalog", "image_inventory", "stage_interface_registry"];
@@ -47,6 +50,65 @@ pub fn validate_execution_spec(spec: &BenchmarkExecutionSpec) -> Result<(), Benc
     validate_resources(spec)?;
     validate_runtime(spec)?;
     validate_acceptance(spec)
+}
+
+/// Validate immutable repetition-level stage-plan references for one benchmark attempt.
+///
+/// # Errors
+/// Returns an error when identity, execution-spec digest, repetition closure, path policy, or plan
+/// digests are malformed.
+pub fn validate_stage_plan_manifest(
+    manifest: &BenchmarkStagePlanManifest,
+) -> Result<(), BenchError> {
+    if manifest.schema_version != BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1 {
+        return Err(invalid("benchmark stage-plan manifest schema mismatch"));
+    }
+    validate_attempt_identity(&manifest.identity)?;
+    validate_digest(&manifest.execution_spec_sha256, "execution specification digest")?;
+    if manifest.plans.is_empty() {
+        return Err(invalid("benchmark stage-plan manifest has no execution units"));
+    }
+    let mut units_by_repetition = std::collections::BTreeMap::<u32, BTreeSet<&str>>::new();
+    let mut prior_key = None;
+    for plan in &manifest.plans {
+        if plan.repetition == 0 {
+            return Err(invalid("benchmark stage-plan repetition identity is zero"));
+        }
+        validate_component(&plan.execution_unit_id, "stage-plan execution unit")?;
+        let instance =
+            format!("measured-repetition-{}--{}", plan.repetition, plan.execution_unit_id);
+        let path =
+            format!("stage-plans/repetition-{}/{}.json", plan.repetition, plan.execution_unit_id);
+        let key = (plan.repetition, plan.execution_unit_id.as_str());
+        if prior_key.is_some_and(|prior| prior >= key)
+            || plan.stage_instance_id != instance
+            || plan.path != path
+            || !units_by_repetition
+                .entry(plan.repetition)
+                .or_default()
+                .insert(&plan.execution_unit_id)
+        {
+            return Err(invalid("benchmark stage-plan references are not in canonical order"));
+        }
+        prior_key = Some(key);
+        validate_digest(&plan.sha256, "stage-plan digest")?;
+    }
+    let repetition_count = u32::try_from(units_by_repetition.len())
+        .map_err(|_| invalid("benchmark stage-plan repetition count overflow"))?;
+    let expected_units = units_by_repetition
+        .values()
+        .next()
+        .cloned()
+        .ok_or_else(|| invalid("benchmark stage-plan manifest has no execution units"))?;
+    if repetition_count < 3
+        || units_by_repetition.keys().copied().ne(1..=repetition_count)
+        || units_by_repetition.values().any(|units| units != &expected_units)
+    {
+        return Err(invalid(
+            "benchmark stage-plan repetitions do not preserve one contiguous execution-unit set",
+        ));
+    }
+    Ok(())
 }
 
 fn validate_source(spec: &BenchmarkExecutionSpec) -> Result<(), BenchError> {

@@ -215,14 +215,15 @@ pub use essential_pipeline_readiness::{
 #[allow(unused_imports)]
 pub use execution::{
     benchmark_effective_parameters_schema, benchmark_execution_spec_schema,
-    BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
-    BenchmarkEffectiveParameterValue, BenchmarkEffectiveParameters, BenchmarkExecutionAcceptance,
-    BenchmarkExecutionCachePolicy, BenchmarkExecutionCommands, BenchmarkExecutionDeterminism,
-    BenchmarkExecutionDownstreamProbe, BenchmarkExecutionImage, BenchmarkExecutionInput,
-    BenchmarkExecutionInputKind, BenchmarkExecutionInterface, BenchmarkExecutionMeasurement,
-    BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
+    benchmark_stage_plan_manifest_schema, BenchmarkAcceptanceExpectedValue,
+    BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator, BenchmarkEffectiveParameterValue,
+    BenchmarkEffectiveParameters, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
+    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
+    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
+    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
+    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
-    BenchmarkExecutionSpec,
+    BenchmarkExecutionSpec, BenchmarkStagePlanManifest, BenchmarkStagePlanReference,
 };
 #[allow(unused_imports)]
 pub use expected_benchmark_results::{
