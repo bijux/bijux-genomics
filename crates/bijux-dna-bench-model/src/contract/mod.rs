@@ -45,6 +45,7 @@ mod local_slurm_dependency;
 mod local_slurm_submit;
 mod local_stage_commands;
 mod local_stage_completion;
+mod local_stage_fake_run;
 mod local_stage_inventory;
 mod local_vcf_smoke;
 mod materialization;
@@ -138,6 +139,12 @@ pub use local_stage_completion::{
     validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion,
 };
+pub use local_stage_fake_run::{
+    validate_benchmark_local_stage_fake_failure_manifest,
+    validate_benchmark_local_stage_fake_failure_record,
+    validate_benchmark_local_stage_fake_run_manifest,
+    validate_benchmark_local_stage_fake_run_result,
+};
 pub use local_stage_inventory::{
     validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
 };
@@ -225,7 +232,10 @@ pub use schema_versions::{
     BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
     BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1,
     BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3,
-    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V2,

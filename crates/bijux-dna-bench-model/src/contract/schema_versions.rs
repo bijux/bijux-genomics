@@ -158,6 +158,12 @@ pub const BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1: &str =
     "bijux.bench.local_stage_manifest_completion.v1";
 pub const BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1: &str =
     "bijux.bench.local_stage_output_completion.v1";
+pub const BENCHMARK_LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_fake_runs.v1";
+pub const BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_fake_failures.v1";
+pub const BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_fake_failure_record.v1";
 pub const BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1: &str = "bijux.bench.local_benchmark_summary.v1";
 pub const BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1: &str =
     "bijux.bench.local_vcf_smoke_suite_ready.v1";

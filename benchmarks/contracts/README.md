@@ -107,6 +107,15 @@ manifest-presence and declared-output completeness records. The benchmark model
 owns their identities, rows, counters, completion invariants, and schema
 generation; the CLI only observes the filesystem and publishes admitted records.
 
+`schemas/local-stage-fake-runs.schema.json`,
+`schemas/local-stage-fake-failures.schema.json`, and
+`schemas/local-stage-fake-failure-record.schema.json` define disposable local
+stage execution simulations and their persisted failure evidence. The
+benchmark model owns record and schema identities, stage and artifact
+cardinality, successful-output closure, non-zero failure semantics, governed
+root containment, and semantic admission; the CLI only materializes simulated
+outputs and writes admitted records below the disposable run root.
+
 `schemas/local-stage-inventory.schema.json` and
 `schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
 and aggregate local benchmark stage inventories. The benchmark model owns

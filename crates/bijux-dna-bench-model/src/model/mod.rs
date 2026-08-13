@@ -45,6 +45,7 @@ pub mod local_slurm_dependency;
 pub mod local_slurm_submit;
 pub mod local_stage_commands;
 pub mod local_stage_completion;
+pub mod local_stage_fake_run;
 pub mod local_stage_inventory;
 pub mod local_vcf_smoke;
 pub mod materialization;
@@ -381,6 +382,15 @@ pub use local_stage_completion::{
     benchmark_local_stage_output_completion_schema, BenchmarkLocalStageManifestCompletionEntry,
     BenchmarkLocalStageManifestCompletionReport, BenchmarkLocalStageMissingOutputEntry,
     BenchmarkLocalStageOutputCompletionEntry, BenchmarkLocalStageOutputCompletionReport,
+};
+#[allow(unused_imports)]
+pub use local_stage_fake_run::{
+    benchmark_local_stage_fake_failure_manifest_schema,
+    benchmark_local_stage_fake_failure_record_schema,
+    benchmark_local_stage_fake_run_manifest_schema, BenchmarkLocalStageFakeFailureManifest,
+    BenchmarkLocalStageFakeFailureOutputEntry, BenchmarkLocalStageFakeFailureRecord,
+    BenchmarkLocalStageFakeRunManifest, BenchmarkLocalStageFakeRunOutputEntry,
+    BenchmarkLocalStageFakeRunResult,
 };
 #[allow(unused_imports)]
 pub use local_stage_inventory::{

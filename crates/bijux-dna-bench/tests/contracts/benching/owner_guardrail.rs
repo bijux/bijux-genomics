@@ -694,6 +694,37 @@ fn thin_cli_uses_model_owned_local_hpc_submission_readiness_contract() {
     assert!(!contents.contains("\"bijux.bench.local_hpc_submission_ready.v1\""));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_local_stage_fake_run_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_fake_runs.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    for validator in [
+        "validate_benchmark_local_stage_fake_run_manifest",
+        "validate_benchmark_local_stage_fake_run_result",
+        "validate_benchmark_local_stage_fake_failure_manifest",
+        "validate_benchmark_local_stage_fake_failure_record",
+    ] {
+        assert!(contents.contains(validator), "thin CLI must invoke {validator}");
+    }
+    for forbidden in [
+        "struct BenchLocalStageFakeRunOutputEntry {",
+        "struct BenchLocalStageFakeRunResult {",
+        "struct BenchLocalStageFakeRunManifest {",
+        "struct BenchLocalStageFakeFailureOutputEntry {",
+        "struct BenchLocalStageFakeFailureRecord {",
+        "struct BenchLocalStageFakeFailureManifest {",
+        "\"bijux.bench.local_stage_fake_runs.v1\"",
+        "\"bijux.bench.local_stage_fake_failures.v1\"",
+        "\"bijux.bench.local_stage_fake_failure_record.v1\"",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

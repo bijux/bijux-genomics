@@ -34,7 +34,10 @@ pub use crate::contract::{
     validate_benchmark_local_pipeline_dag_validation_set, validate_benchmark_local_runtime_metrics,
     validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
     validate_benchmark_local_slurm_shell_syntax, validate_benchmark_local_slurm_submit_manifest,
-    validate_benchmark_local_stage_commands, validate_benchmark_local_stage_inventory,
+    validate_benchmark_local_stage_commands, validate_benchmark_local_stage_fake_failure_manifest,
+    validate_benchmark_local_stage_fake_failure_record,
+    validate_benchmark_local_stage_fake_run_manifest,
+    validate_benchmark_local_stage_fake_run_result, validate_benchmark_local_stage_inventory,
     validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion, validate_benchmark_local_summary,
     validate_benchmark_local_vcf_smoke_suite, validate_benchmark_matrix_report,
@@ -100,7 +103,10 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
     BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1,
     BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3,
-    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V2,
@@ -374,6 +380,14 @@ pub use crate::model::local_stage_completion::{
     benchmark_local_stage_output_completion_schema, BenchmarkLocalStageManifestCompletionEntry,
     BenchmarkLocalStageManifestCompletionReport, BenchmarkLocalStageMissingOutputEntry,
     BenchmarkLocalStageOutputCompletionEntry, BenchmarkLocalStageOutputCompletionReport,
+};
+pub use crate::model::local_stage_fake_run::{
+    benchmark_local_stage_fake_failure_manifest_schema,
+    benchmark_local_stage_fake_failure_record_schema,
+    benchmark_local_stage_fake_run_manifest_schema, BenchmarkLocalStageFakeFailureManifest,
+    BenchmarkLocalStageFakeFailureOutputEntry, BenchmarkLocalStageFakeFailureRecord,
+    BenchmarkLocalStageFakeRunManifest, BenchmarkLocalStageFakeRunOutputEntry,
+    BenchmarkLocalStageFakeRunResult,
 };
 pub use crate::model::local_stage_inventory::{
     benchmark_local_all_domain_stage_inventory_schema, benchmark_local_stage_inventory_schema,

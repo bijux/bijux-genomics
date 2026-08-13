@@ -83,6 +83,8 @@ mod mod_contracts_local_slurm_submit_rs;
 mod mod_contracts_local_stage_commands_rs;
 #[path = "contracts/local_stage_completion.rs"]
 mod mod_contracts_local_stage_completion_rs;
+#[path = "contracts/local_stage_fake_run.rs"]
+mod mod_contracts_local_stage_fake_run_rs;
 #[path = "contracts/local_stage_inventory.rs"]
 mod mod_contracts_local_stage_inventory_rs;
 #[path = "contracts/local_vcf_smoke.rs"]
