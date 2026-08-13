@@ -34,6 +34,7 @@ fn public_api_doc_matches_runtime_root_surface() {
 
     for required_export in [
         "reserve_attempt_sequence",
+        "supersede_attempt_sequence",
         "AttemptSequenceIdentity",
         "AttemptSequenceReservation",
         "ATTEMPT_SEQUENCE_RESERVATION_SCHEMA_V1",

@@ -113,6 +113,47 @@ pub fn reserve_attempt_sequence(
     Ok(reservation)
 }
 
+/// Archive an active reserved attempt as superseded without reusing its sequence number.
+///
+/// # Errors
+/// Returns an error when a retained reservation conflicts with the requested owner/identity or
+/// when the owner-scoped archive transaction cannot be completed. Owner-scoped attempts created
+/// before reservation receipts existed remain supersedable through their layout identity.
+pub fn supersede_attempt_sequence(
+    owner_root: &Path,
+    owner: bijux_dna_infra::AttemptEvidenceOwner,
+    identity: &bijux_dna_infra::AttemptLayoutIdentity,
+    superseded_at_utc: &str,
+) -> Result<bijux_dna_infra::AttemptArchivePaths> {
+    let sequence = AttemptSequenceIdentity {
+        run_directory: identity.run_directory.clone(),
+        tool_id: identity.tool_id.clone(),
+        campaign_id: identity.campaign_id.clone(),
+    };
+    let reservation_path = series_root(owner_root, &sequence, false)
+        .join(&identity.attempt_id)
+        .join("manifests")
+        .join(RESERVATION_FILE);
+    if regular_file_exists(&reservation_path)? {
+        let reservation: AttemptSequenceReservation = serde_json::from_slice(
+            &bijux_dna_infra::read_to_end_bounded(&reservation_path, 1024 * 1024)?,
+        )
+        .with_context(|| format!("parse {}", reservation_path.display()))?;
+        validate_reservation(&reservation, owner, &sequence)?;
+        if reservation.identity != *identity {
+            bail!("superseded attempt identity conflicts with its reservation");
+        }
+    }
+    bijux_dna_infra::archive_attempt_layout(
+        owner_root,
+        owner,
+        identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Superseded,
+        superseded_at_utc,
+    )
+    .context("archive superseded attempt sequence")
+}
+
 fn series_root(owner_root: &Path, sequence: &AttemptSequenceIdentity, archived: bool) -> PathBuf {
     if archived {
         owner_root
@@ -310,5 +351,55 @@ mod tests {
             "2026-08-13T22:00:00+02:00",
         )
         .is_err());
+    }
+
+    #[test]
+    fn supersession_archives_the_exact_reserved_identity() -> Result<()> {
+        let root = bijux_dna_infra::temp_dir("attempt-sequence-superseded")?;
+        let owner = bijux_dna_infra::AttemptEvidenceOwner::Containers;
+        let reservation = reserve_attempt_sequence(
+            root.path(),
+            owner,
+            &sequence(),
+            &"3".repeat(64),
+            "2026-08-13T20:00:00Z",
+        )?;
+
+        let archived = supersede_attempt_sequence(
+            root.path(),
+            owner,
+            &reservation.identity,
+            "2026-08-13T20:01:00Z",
+        )?;
+
+        assert!(!archived.source.attempt_dir.exists());
+        assert!(archived.archive_dir.is_dir());
+        assert!(supersede_attempt_sequence(
+            root.path(),
+            owner,
+            &reservation.identity,
+            "2026-08-13T20:02:00Z",
+        )
+        .is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn supersession_preserves_owner_scoped_attempts_from_before_reservations() -> Result<()> {
+        let root = bijux_dna_infra::temp_dir("attempt-sequence-legacy-superseded")?;
+        let owner = bijux_dna_infra::AttemptEvidenceOwner::Containers;
+        let identity = bijux_dna_infra::AttemptLayoutIdentity {
+            run_directory: "run-1150".to_string(),
+            tool_id: "rcorrector".to_string(),
+            campaign_id: "qualification".to_string(),
+            attempt_id: "attempt-004".to_string(),
+        };
+        bijux_dna_infra::ensure_attempt_layout(root.path(), owner, &identity)?;
+
+        let archived =
+            supersede_attempt_sequence(root.path(), owner, &identity, "2026-08-13T20:01:00Z")?;
+
+        assert!(archived.archive_dir.is_dir());
+        Ok(())
     }
 }

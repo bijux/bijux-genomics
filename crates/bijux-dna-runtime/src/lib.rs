@@ -22,8 +22,8 @@ pub mod runner;
 pub mod telemetry;
 
 pub use attempt_sequence::{
-    reserve_attempt_sequence, AttemptSequenceIdentity, AttemptSequenceReservation,
-    ATTEMPT_SEQUENCE_RESERVATION_SCHEMA_V1,
+    reserve_attempt_sequence, supersede_attempt_sequence, AttemptSequenceIdentity,
+    AttemptSequenceReservation, ATTEMPT_SEQUENCE_RESERVATION_SCHEMA_V1,
 };
 
 // Observability contracts
