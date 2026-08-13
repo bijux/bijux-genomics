@@ -111,13 +111,12 @@ pub(in crate::workflow) fn campaign_execution_inputs(
     Ok((inputs, samples))
 }
 
-pub(super) fn profile_execution_inputs(
-    publication: &FastqProfileReadsExpectationPublication,
-) -> Result<(Vec<BenchmarkExecutionInput>, Vec<String>)> {
-    let (inputs, samples) = campaign_execution_inputs(publication)?;
-    let mounted_fastq =
-        samples.into_iter().flat_map(|sample| sample.mounted_fastq).collect::<Vec<_>>();
-    Ok((inputs, mounted_fastq))
+pub(in crate::workflow) fn canonical_fastq_unit_component(value: &str) -> String {
+    value
+        .to_ascii_lowercase()
+        .chars()
+        .map(|character| if character.is_ascii_alphanumeric() { character } else { '-' })
+        .collect()
 }
 
 #[allow(clippy::too_many_arguments)]

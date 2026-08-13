@@ -6,7 +6,7 @@ mod inputs;
 mod parameters;
 mod report;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
@@ -15,14 +15,18 @@ use bijux_dna_bench_model::{
     BenchmarkAcceptanceOperator, BenchmarkAttemptIdentity, BenchmarkExecutionAcceptance,
     BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
-use self::inputs::profile_execution_inputs;
-pub(in crate::workflow) use self::inputs::{campaign_execution_inputs, FastqCampaignSample};
+pub(in crate::workflow) use self::inputs::{
+    campaign_execution_inputs, canonical_fastq_unit_component, FastqCampaignSample,
+};
 use self::parameters::ensure_parameter_evidence;
 use super::{
     ensure_fastq_profile_reads_expectations, ensure_fastq_read_length_expectations,
-    load_attempt_lifecycle, BenchmarkExecutionMaterial, FastqProfileReadsExpectationPublication,
+    load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial,
+    BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
+    FastqProfileReadsExpectationPublication,
 };
 
 pub(crate) use report::publish_fastq_profile_reads_stage_report_with_presentation_authority;
@@ -122,7 +126,10 @@ pub fn prepare_fastq_profile_reads_material_from_expectations(
         &attempt_directory,
         &expectations.admitted_corpus,
     )?;
-    let (inputs, mounted_fastq) = profile_execution_inputs(expectations)?;
+    let (inputs, samples) = campaign_execution_inputs(expectations)?;
+    let mounted_fastq =
+        samples.iter().flat_map(|sample| sample.mounted_fastq.iter().cloned()).collect::<Vec<_>>();
+    let stage_plan_units = stage_plan_units(&samples);
     let measured_repetitions = 3;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
@@ -148,9 +155,40 @@ pub fn prepare_fastq_profile_reads_material_from_expectations(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
-        stage_plan_units: None,
+        stage_plan_units: Some(stage_plan_units),
     };
     Ok(FastqProfileReadsMaterial { execution, expectations: expectations.clone() })
+}
+
+fn stage_plan_units(samples: &[FastqCampaignSample]) -> Vec<BenchmarkStagePlanUnitMaterial> {
+    samples
+        .iter()
+        .flat_map(|sample| {
+            sample.mounted_fastq.iter().enumerate().map(move |(index, mounted_fastq)| {
+                BenchmarkStagePlanUnitMaterial {
+                    execution_unit_id: format!(
+                        "{}-read-{}",
+                        canonical_fastq_unit_component(&sample.sample_id),
+                        index + 1
+                    ),
+                    inputs: vec![BenchmarkStagePlanInputMaterial {
+                        binding_name: "reads_r1".to_owned(),
+                        path: PathBuf::from(mounted_fastq),
+                        role: ArtifactRole::Reads,
+                    }],
+                    outputs: vec![BenchmarkStagePlanOutputMaterial {
+                        binding_name: "qc_tsv".to_owned(),
+                        relative_path: "qc.tsv".into(),
+                        role: ArtifactRole::SummaryTsv,
+                    }],
+                    scientific_defaults: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+                    input_derived: BTreeMap::new(),
+                    operator_overrides: BTreeMap::new(),
+                    immutable_parameters: BTreeSet::from(["threads".to_owned()]),
+                }
+            })
+        })
+        .collect()
 }
 
 fn acceptance() -> BenchmarkExecutionAcceptance {
@@ -191,10 +229,12 @@ mod tests {
         AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
         BenchmarkFastqLayout,
     };
+    use bijux_dna_core::ids::{StageId, ToolId};
+    use bijux_dna_stage_contract::canonical_tool_bindings;
 
     use super::{
-        prepare_fastq_profile_reads_material_from_expectations,
-        FastqProfileReadsExpectationPublication,
+        prepare_fastq_profile_reads_material_from_expectations, stage_plan_units,
+        FastqCampaignSample, FastqProfileReadsExpectationPublication, STAGE_ID,
     };
     use crate::FastqProfileReadsExpectationSample;
 
@@ -237,6 +277,60 @@ mod tests {
             assert!(material.execution.measured_command[2].contains("fastq_profile_reads.awk"));
             assert_eq!(material.execution.required_files.len(), 21);
             assert_eq!(material.execution.acceptance.metrics.len(), 5);
+            assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(30));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn stage_plan_units_close_each_admitted_fastq_file() {
+        let samples = [FastqCampaignSample {
+            sample_id: "ERR-ONE".to_owned(),
+            input_layout: "paired_end",
+            mounted_fastq: vec![
+                "/input/one-r1.fastq.gz".to_owned(),
+                "/input/one-r2.fastq.gz".to_owned(),
+            ],
+            expected_read_count: 10,
+        }];
+        let units = stage_plan_units(&samples);
+        assert_eq!(units.len(), 2);
+        assert_eq!(units[0].execution_unit_id, "err-one-read-1");
+        assert_eq!(units[0].outputs[0].binding_name, "qc_tsv");
+        assert_eq!(units[0].scientific_defaults["threads"], "4");
+        assert!(units[0].immutable_parameters.contains("threads"));
+    }
+
+    #[test]
+    fn stage_plan_units_match_each_canonical_profile_binding() -> anyhow::Result<()> {
+        let bindings = canonical_tool_bindings()?;
+        let samples = [FastqCampaignSample {
+            sample_id: "ERR-ONE".to_owned(),
+            input_layout: "single_end",
+            mounted_fastq: vec!["/input/one.fastq.gz".to_owned()],
+            expected_read_count: 10,
+        }];
+        let units = stage_plan_units(&samples);
+        for tool_id in ["seqfu", "seqkit", "seqkit_stats"] {
+            let binding = bindings
+                .binding(&StageId::new(STAGE_ID), &ToolId::new(tool_id))
+                .expect("canonical profile binding");
+            assert_eq!(
+                units[0]
+                    .outputs
+                    .iter()
+                    .map(|output| output.binding_name.as_str())
+                    .collect::<Vec<_>>(),
+                binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+            );
+            assert_eq!(
+                units[0].scientific_defaults.keys().map(String::as_str).collect::<Vec<_>>(),
+                binding
+                    .parameters
+                    .iter()
+                    .map(|parameter| parameter.name.as_str())
+                    .collect::<Vec<_>>()
+            );
         }
         Ok(())
     }
