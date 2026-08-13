@@ -19,6 +19,8 @@ const FULL_SHARDS_SCHEMA_V3: &str = "bijux.ci.full_shards.v3";
 const FAST_GROUPS_SCHEMA_V2: &str = "bijux.ci.fast_groups.v2";
 const FAST_TIMING_SCHEMA_V3: &str = "bijux.ci.fast_timing.v3";
 const FAST_TIMING_HISTORY_SCHEMA_V3: &str = "bijux.ci.fast_timing_history.v3";
+#[cfg(unix)]
+const SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES: usize = 107;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -367,9 +369,13 @@ pub(in super::super) fn tooling_ci_fast(
     bijux_dna_infra::ensure_dir(&report_root)?;
     let build_authority = ci_fast_build_authority(workspace)?;
     let compiler_wrapper = compiler_wrapper_program(workspace)?;
-    let cache_before = compiler_wrapper
-        .as_deref()
-        .and_then(|wrapper| read_sccache_stats(workspace, wrapper).ok().flatten());
+    let sccache_runtime_env = resolve_ci_fast_sccache_runtime_env(
+        compiler_wrapper.as_deref(),
+        std::env::var_os("SCCACHE_SERVER_UDS").map(PathBuf::from),
+    )?;
+    let cache_before = compiler_wrapper.as_deref().and_then(|wrapper| {
+        read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
+    });
     let started = Instant::now();
     let mut pending =
         contract.groups.iter().map(|group| group.id.as_str()).collect::<BTreeSet<_>>();
@@ -431,7 +437,7 @@ pub(in super::super) fn tooling_ci_fast(
                     label: group.id.clone(),
                     program: group.program.clone(),
                     args: group.args.clone(),
-                    envs: ci_fast_group_env(workspace, &build_authority)?,
+                    envs: ci_fast_group_env(workspace, &build_authority, &sccache_runtime_env)?,
                     current_dir: None,
                 })
             })
@@ -488,9 +494,9 @@ pub(in super::super) fn tooling_ci_fast(
     let actual_architecture = std::env::consts::ARCH.to_string();
     let actual_rust_toolchain = rust_toolchain_version(workspace)?;
     let actual_compiler_wrapper = compiler_wrapper_identity(workspace)?;
-    let cache_after = compiler_wrapper
-        .as_deref()
-        .and_then(|wrapper| read_sccache_stats(workspace, wrapper).ok().flatten());
+    let cache_after = compiler_wrapper.as_deref().and_then(|wrapper| {
+        read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
+    });
     let cache_delta = cache_stats_delta(cache_before.as_ref(), cache_after.as_ref());
     let shared_cache_authority =
         cache_delta.as_ref().is_some_and(|delta| !delta.cache_location.contains(&source_commit));
@@ -569,6 +575,8 @@ pub(in super::super) fn tooling_ci_fast(
                 "architecture": actual_architecture,
                 "rust_toolchain": actual_rust_toolchain,
                 "compiler_wrapper": actual_compiler_wrapper,
+                "sccache_server_uds": sccache_runtime_env.iter().find_map(|(key, value)|
+                    (key == "SCCACHE_SERVER_UDS").then_some(value)),
                 "cache_state": cache_state,
                 "requested_cache_state": requested_cache_state,
                 "shared_cache_authority": shared_cache_authority,
@@ -607,11 +615,53 @@ pub(in super::super) fn tooling_ci_fast(
 fn ci_fast_group_env(
     workspace: &Workspace,
     authority: &FastBuildAuthority,
+    sccache_runtime_env: &[(String, String)],
 ) -> Result<Vec<(String, String)>> {
     let mut envs = artifact_env_with_common_test_env(workspace)?;
     envs.push(("CARGO_TARGET_DIR".to_string(), authority.target.display().to_string()));
     envs.push(("CARGO_NET_OFFLINE".to_string(), "true".to_string()));
+    envs.extend_from_slice(sccache_runtime_env);
     Ok(envs)
+}
+
+fn resolve_ci_fast_sccache_runtime_env(
+    compiler_wrapper: Option<&str>,
+    configured_socket: Option<PathBuf>,
+) -> Result<Vec<(String, String)>> {
+    let uses_sccache = compiler_wrapper
+        .and_then(|wrapper| Path::new(wrapper).file_name())
+        .and_then(|name| name.to_str())
+        == Some("sccache");
+    if !uses_sccache {
+        return Ok(Vec::new());
+    }
+
+    #[cfg(unix)]
+    {
+        let socket = configured_socket.unwrap_or_else(|| {
+            PathBuf::from(format!("/tmp/bijux-sccache-{}.sock", std::process::id()))
+        });
+        if !socket.is_absolute()
+            || socket
+                .components()
+                .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
+        {
+            anyhow::bail!("SCCACHE_SERVER_UDS must be absolute and normalized");
+        }
+        if socket.as_os_str().as_encoded_bytes().len() > SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES {
+            anyhow::bail!(
+                "SCCACHE_SERVER_UDS exceeds the Unix socket path limit of \
+                {SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES} bytes"
+            );
+        }
+        Ok(vec![("SCCACHE_SERVER_UDS".to_string(), socket.display().to_string())])
+    }
+
+    #[cfg(not(unix))]
+    {
+        let _ = configured_socket;
+        Ok(Vec::new())
+    }
 }
 
 fn ci_fast_build_authority(workspace: &Workspace) -> Result<FastBuildAuthority> {
@@ -1472,9 +1522,16 @@ fn parse_compiler_wrapper_identity(version: &str) -> Option<String> {
     version.split_whitespace().next().filter(|name| *name == "sccache").map(ToOwned::to_owned)
 }
 
-fn read_sccache_stats(workspace: &Workspace, wrapper: &str) -> Result<Option<FastCacheStats>> {
-    let output =
-        ProcessRunner::new(workspace).run(&[wrapper, "--show-stats", "--stats-format=json"])?;
+fn read_sccache_stats(
+    workspace: &Workspace,
+    wrapper: &str,
+    runtime_env: &[(String, String)],
+) -> Result<Option<FastCacheStats>> {
+    let output = ProcessRunner::new(workspace).run_owned_with_env(
+        wrapper,
+        &["--show-stats".to_string(), "--stats-format=json".to_string()],
+        runtime_env,
+    )?;
     if !output.status.success() {
         return Ok(None);
     }
@@ -1725,12 +1782,13 @@ mod tests {
         full_shard_env, full_shard_root_receipt, full_shard_roots, isolated_build_tree,
         materialize_full_shard_workspace, parse_compiler_wrapper_identity, parse_sccache_stats,
         percentile, read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
-        resolve_ci_fast_build_authority, set_full_archive_readonly,
-        validate_ci_test_executor_observation, validate_fast_group_contract,
-        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        FastCacheStats, FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
-        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V3,
+        resolve_ci_fast_build_authority, resolve_ci_fast_sccache_runtime_env,
+        set_full_archive_readonly, validate_ci_test_executor_observation,
+        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
+        validate_full_shard_root_set, FastCacheStats, FastGroup, FastGroupContract,
+        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
+        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
+        FAST_TIMING_HISTORY_SCHEMA_V3,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -2109,8 +2167,9 @@ mod tests {
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
         let authority = resolve_ci_fast_build_authority(&workspace, None)?;
-        let first = ci_fast_group_env(&workspace, &authority)?;
-        let second = ci_fast_group_env(&workspace, &authority)?;
+        let runtime_env = resolve_ci_fast_sccache_runtime_env(Some("sccache"), None)?;
+        let first = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
+        let second = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
 
         assert!(first.iter().any(|(key, value)| key == "CARGO_NET_OFFLINE" && value == "true"));
         assert!(first.iter().any(|(key, value)| key == "TZ" && value == "UTC"));
@@ -2127,7 +2186,24 @@ mod tests {
             .map(|(_, value)| value.as_str());
         assert_eq!(first_target, second_target);
         assert!(first_target.is_some_and(|value| value.ends_with("ci/ci-fast-target")));
+        assert!(first.iter().any(|(key, value)| {
+            key == "SCCACHE_SERVER_UDS" && value.starts_with("/tmp/bijux-sccache-")
+        }));
         Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sccache_transport_rejects_unix_socket_paths_that_cannot_bind() {
+        let too_long = std::path::PathBuf::from(format!("/tmp/{}.sock", "x".repeat(108)));
+        assert!(
+            resolve_ci_fast_sccache_runtime_env(Some("/usr/bin/sccache"), Some(too_long)).is_err()
+        );
+        assert!(resolve_ci_fast_sccache_runtime_env(
+            Some("/usr/bin/sccache"),
+            Some(std::path::PathBuf::from("relative.sock"))
+        )
+        .is_err());
     }
 
     #[test]
