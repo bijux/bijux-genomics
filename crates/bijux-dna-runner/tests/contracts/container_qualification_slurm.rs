@@ -539,6 +539,14 @@ fn lifecycle_is_duplicate_safe_non_waiting_collectable_and_cancellable() -> Resu
     assert_eq!(first, recovered);
     assert_eq!(fs::read_to_string(&calls)?, "x");
 
+    fs::remove_file(&spec.executor_program_path)?;
+    assert!(load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json")
+    )
+    .is_err_and(|error| error.to_string().contains("executor program")));
+    assert!(submit_prepared_container_qualification_job(&scheduler, &prepared)
+        .is_err_and(|error| error.to_string().contains("executor program")));
+
     write_executable(&scheduler.squeue, "#!/bin/sh\nprintf 'RUNNING\n'\n")?;
     let active =
         collect_container_qualification_slurm_job(&scheduler, &spec, "2026-08-07T09:51:00Z")?;

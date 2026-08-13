@@ -13,7 +13,7 @@ use super::contracts::{
 };
 use super::lifecycle::{load_container_qualification_slurm_job_handle, validate_retained_evidence};
 use super::validation::{
-    canonical_directory, read_json, require_utc_timestamp, validate_specification,
+    canonical_directory, read_json, require_utc_timestamp, validate_recorded_specification,
 };
 
 /// Move one terminal failed qualification attempt through the shared container archive contract.
@@ -26,7 +26,7 @@ pub fn archive_failed_container_qualification_attempt(
     archived_at_utc: &str,
 ) -> Result<bijux_dna_infra::AttemptArchivePaths> {
     require_utc_timestamp(archived_at_utc, "qualification archival timestamp")?;
-    validate_specification(spec)?;
+    validate_recorded_specification(spec)?;
     require_current_owned_layout(spec)?;
     let handle = load_container_qualification_slurm_job_handle(spec)?;
     let evidence_path = spec.evidence_root.join("scheduler-evidence.json");

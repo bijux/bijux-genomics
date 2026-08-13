@@ -11,6 +11,7 @@ use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
+use super::validation::load_recorded_container_qualification_slurm_spec;
 use super::{
     collect_container_qualification_slurm_job, load_container_qualification_scheduler_evidence,
     load_container_qualification_slurm_job_handle, load_container_qualification_slurm_spec,
@@ -425,7 +426,7 @@ fn archive_failure_frontier(request: &ContainerQualificationCycleRequest) -> Res
                 .specification_path
                 .as_ref()
                 .context("failed cycle unit lacks a specification")?;
-            let spec = load_container_qualification_slurm_spec(path)?;
+            let spec = load_recorded_container_qualification_slurm_spec(path)?;
             super::archive_failed_container_qualification_attempt(&spec, &request.observed_at_utc)?;
             Ok(())
         })();
@@ -450,7 +451,7 @@ fn archive_superseded_frontier(
                 .specification_path
                 .as_ref()
                 .context("superseded cycle unit lacks a specification")?;
-            let spec = load_container_qualification_slurm_spec(path)?;
+            let spec = load_recorded_container_qualification_slurm_spec(path)?;
             let identity = bijux_dna_infra::AttemptLayoutIdentity {
                 run_directory: spec.run_id.clone(),
                 tool_id: spec.tool_id.clone(),
@@ -543,7 +544,7 @@ fn collect_frontier(
         let result = (|| -> Result<()> {
             let path =
                 unit.specification_path.as_ref().context("active cycle unit lacks a spec")?;
-            let spec = load_container_qualification_slurm_spec(path)?;
+            let spec = load_recorded_container_qualification_slurm_spec(path)?;
             collect_container_qualification_slurm_job(paths, &spec, &request.observed_at_utc)?;
             Ok(())
         })();
@@ -577,7 +578,7 @@ fn admit_frontier(request: &ContainerQualificationCycleRequest) -> Result<Vec<St
         let result = (|| -> Result<()> {
             let path =
                 unit.specification_path.as_ref().context("passed cycle unit lacks a spec")?;
-            let spec = load_container_qualification_slurm_spec(path)?;
+            let spec = load_recorded_container_qualification_slurm_spec(path)?;
             super::admit_container_qualification_collection(&spec, &request.observed_at_utc)?;
             Ok(())
         })();
@@ -721,7 +722,7 @@ fn derive_run_unit(
     let [path] = paths.as_slice() else {
         bail!("multiple live qualification specifications exist for {}:{}", key.0, key.1);
     };
-    let spec = load_container_qualification_slurm_spec(path)?;
+    let spec = load_recorded_container_qualification_slurm_spec(path)?;
     classify_spec(
         path,
         &spec,
@@ -1033,19 +1034,6 @@ fn classify_spec(
         preparation,
     )?;
     if let Some(evidence) = load_container_qualification_scheduler_evidence(spec)? {
-        if evidence.status == ContainerQualificationSchedulerStatus::Passed {
-            if let Some(detail) = staleness.as_deref() {
-                return Ok(unit(
-                    &spec.run_id,
-                    &spec.tool_id,
-                    ContainerQualificationCycleState::Blocked,
-                    ContainerQualificationCycleAction::ArchiveSuperseded,
-                    Some(path),
-                    Some(evidence.job_id),
-                    Some(detail),
-                ));
-            }
-        }
         let (state, action) = match evidence.status {
             ContainerQualificationSchedulerStatus::Passed => {
                 if super::load_container_qualification_admission(spec)?.is_some() {
@@ -1072,7 +1060,7 @@ fn classify_spec(
             action,
             Some(path),
             Some(evidence.job_id),
-            evidence.failure.as_deref(),
+            evidence.failure.as_deref().or(staleness.as_deref()),
         ));
     }
     let handle_path = spec.evidence_root.join("scheduler/job-handle.json");
