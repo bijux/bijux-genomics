@@ -4,19 +4,19 @@ stage_ids: ["vcf.imputation_metrics", "vcf.impute"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
-upstream: "https://genome.sph.umich.edu/wiki/Minimac4"
-pin_strategy: "external_tool"
-license: "MIT"
-citation: "planned"
+default_version: "4.1.6"
+upstream: "https://github.com/statgen/Minimac4"
+pin_strategy: "source_sha256"
+license: "GPL-3.0-only"
+citation: "upstream:https://github.com/statgen/Minimac4"
 version_cmd: "minimac4 --version"
 help_cmd: "minimac4 --help"
 expected_artifacts: ["imputed_vcf"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.imputation_metrics.v1"
-comparability_notes: "External planned tool for imputation; containerization pending."
+comparability_notes: "Comparable only when target phasing, compressed panel build, variant normalization, and pinned Minimac4 profile stay identical."
 container:
-  image: "external"
-  digest: "external"
+  image: "containers/apptainer/minimac4.def"
+  digest: "sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"

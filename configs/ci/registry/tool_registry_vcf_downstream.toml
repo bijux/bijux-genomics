@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: 507d779d40ebb61f7bbc556a5900cea6e77afb76
+# source_commit: 111280b27029e7c30195c2d8594fb36e4e5f5108
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -83,7 +83,7 @@ require_labels = true
 id = "eagle"
 tool_id = "eagle"
 domain = "vcf"
-status = "planned"
+status = "production"
 product_support = "supported"
 artifact_delivery = "redistributable_image"
 redistribution_permitted = true
@@ -109,12 +109,10 @@ healthcheck_cmd = "eagle --help"
 expected_bin = "eagle"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
-comparability_notes = "External planned tool for phasing; containerization pending."
+comparability_notes = "Comparable only when cohort, reference panel, genetic map, and pinned Eagle profile stay identical."
 dockerfile = "containers/docker/Dockerfile.arm64.eagle"
 apptainer_def = "containers/apptainer/eagle.def"
 require_labels = true
-
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
 
 [[tools]]
 id = "eigensoft"
@@ -190,7 +188,7 @@ require_labels = true
 id = "glimpse"
 tool_id = "glimpse"
 domain = "vcf"
-status = "planned"
+status = "production"
 product_support = "supported"
 artifact_delivery = "redistributable_image"
 redistribution_permitted = true
@@ -201,7 +199,7 @@ default_version = "1.1.1"
 upstream = "https://github.com/odelaneau/GLIMPSE"
 version_rule = "pinned"
 license = "MIT"
-citation = "planned"
+citation = "upstream:https://github.com/odelaneau/GLIMPSE"
 pinned_commit = "sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/glimpse:1.1.1"
@@ -216,12 +214,10 @@ healthcheck_cmd = "glimpse --help"
 expected_bin = "glimpse"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
-comparability_notes = "External planned tool for low-coverage/aDNA-oriented imputation workflows."
+comparability_notes = "Compare low-coverage imputation only under the same panel build, chunk map, genotype-likelihood model, and pinned GLIMPSE profile."
 dockerfile = "containers/docker/Dockerfile.arm64.glimpse"
 apptainer_def = "containers/apptainer/glimpse.def"
 require_labels = true
-
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
 
 [[tools]]
 id = "ibdhap"
@@ -367,7 +363,7 @@ require_labels = false
 id = "minimac4"
 tool_id = "minimac4"
 domain = "vcf"
-status = "planned"
+status = "production"
 product_support = "supported"
 artifact_delivery = "redistributable_image"
 redistribution_permitted = true
@@ -378,7 +374,7 @@ default_version = "4.1.6"
 upstream = "https://github.com/statgen/Minimac4"
 version_rule = "pinned"
 license = "GPL-3.0-only"
-citation = "planned"
+citation = "upstream:https://github.com/statgen/Minimac4"
 pinned_commit = "sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/minimac4:4.1.6"
@@ -393,12 +389,10 @@ healthcheck_cmd = "minimac4 --help"
 expected_bin = "minimac4"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
-comparability_notes = "External planned tool for imputation; containerization pending."
+comparability_notes = "Comparable only when target phasing, compressed panel build, variant normalization, and pinned Minimac4 profile stay identical."
 dockerfile = "containers/docker/Dockerfile.arm64.minimac4"
 apptainer_def = "containers/apptainer/minimac4.def"
 require_labels = true
-
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
 
 [[tools]]
 id = "plink"
@@ -474,7 +468,7 @@ require_labels = true
 id = "shapeit"
 tool_id = "shapeit"
 domain = "vcf"
-status = "planned"
+status = "production"
 product_support = "supported"
 artifact_delivery = "redistributable_image"
 redistribution_permitted = true
@@ -504,8 +498,6 @@ comparability_notes = "Legacy SHAPEIT4 comparison requires the same panel build,
 dockerfile = ""
 apptainer_def = "containers/apptainer/shapeit.def"
 require_labels = true
-
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
 
 [[tools]]
 id = "shapeit5"

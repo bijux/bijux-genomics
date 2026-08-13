@@ -4,10 +4,10 @@
 Governed reference and citation ledger for VCF-stage tools and method families.
 
 ## Why
-The VCF domain mixes currently supported calling stages with many planned downstream analysis families. This file makes tool-to-stage applicability explicit while keeping incomplete citation closure visible instead of hidden behind prose.
+The VCF domain spans supported calling and downstream analysis families at different citation and execution-evidence closure states. This file makes tool-to-stage applicability explicit while keeping incomplete citation closure visible instead of hidden behind prose.
 
 ## Non-goals
-- Claiming complete citation closure for every planned downstream tool.
+- Claiming complete citation closure or execution evidence for every supported downstream tool.
 - Replacing tool manifests or generated evidence reports.
 
 ## Contracts
@@ -15,7 +15,7 @@ The VCF domain mixes currently supported calling stages with many planned downst
 - `Applies to` must mirror the tool manifest `stage_ids`.
 - Conservative release-review blocker status for VCF tools now lives in
   [../../../science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv](../../../science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv).
-- Planned tools may use honest `planned` citation status rather than fake-closed claims.
+- Incomplete citations must retain an honest `planned` status rather than fake-closed claims.
 
 ## Supported Calling and Filtering
 | Tool | Applies to | Reference status | Primary locator |
@@ -27,18 +27,18 @@ The VCF domain mixes currently supported calling stages with many planned downst
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
 | beagle | `vcf.imputation_metrics`, `vcf.impute`, `vcf.phasing` | governed paper locator present | https://faculty.washington.edu/browning/beagle/beagle.html |
-| eagle | `vcf.phasing` | planned citation closure | https://alkesgroup.broadinstitute.org/Eagle/ |
+| eagle | `vcf.phasing` | governed method locator present | https://www.nature.com/articles/ng.3679 |
 | eigensoft | `vcf.pca`, `vcf.population_structure` | planned citation closure | https://github.com/DReichLab/EIG |
 | germline | `vcf.ibd` | governed paper locator present; promotion and runtime evidence still pending | https://github.com/gusevlab/germline/tree/f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d |
-| glimpse | `vcf.imputation_metrics`, `vcf.impute` | planned citation closure | https://odelaneau.github.io/GLIMPSE/ |
+| glimpse | `vcf.imputation_metrics`, `vcf.impute` | governed upstream source locator present | https://github.com/odelaneau/GLIMPSE |
 | ibdhap | `vcf.ibd` | MORGAN 3.4 release and IBDHap user manual pinned in the governed tool contract | https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml |
 | ibdne | `vcf.demography` | planned citation closure | https://faculty.washington.edu/browning/ibdne.shtml |
 | impute5 | `vcf.imputation_metrics`, `vcf.impute` | Rubinacci, Delaneau, and Marchini (2020), DOI `10.1371/journal.pgen.1009049`; external academic-use license required | https://jmarchini.org/software/#impute-5 |
-| minimac4 | `vcf.imputation_metrics`, `vcf.impute` | planned citation closure | https://genome.sph.umich.edu/wiki/Minimac4 |
-| plink | `vcf.qc`, `vcf.admixture`, `vcf.population_structure` | planned citation closure | https://www.cog-genomics.org/plink/ |
+| minimac4 | `vcf.imputation_metrics`, `vcf.impute` | governed upstream source locator present | https://github.com/statgen/Minimac4 |
+| plink | `vcf.qc`, `vcf.admixture`, `vcf.population_structure` | governed upstream locator present | https://www.cog-genomics.org/plink/ |
 | plink2 | `vcf.qc`, `vcf.pca`, `vcf.admixture`, `vcf.population_structure`, `vcf.roh` | planned citation closure | https://www.cog-genomics.org/plink/2.0/ |
 | shapeit | `vcf.phasing` | governed SHAPEIT4 method locator present | https://odelaneau.github.io/shapeit4/ |
-| shapeit5 | `vcf.phasing` | planned citation closure | https://odelaneau.github.io/shapeit5/ |
+| shapeit5 | `vcf.phasing` | governed method locator present | https://www.nature.com/articles/s41588-023-01415-w |
 
 ## Failure modes
 - A stage listed against the wrong tool creates fake scientific support for a workflow we do not actually admit.

@@ -374,6 +374,12 @@ fn ensure_vcf_active_stage_tool_matrix_contract(
         ));
     }
 
+    if rows.iter().any(|row| !matches!(row.tool_status.as_str(), "production" | "supported")) {
+        return Err(anyhow!(
+            "VCF active-stage-tool matrix requires a production or supported domain identity for every retained binding"
+        ));
+    }
+
     let active_row_count = count_scope_state(rows, ACTIVE_SCOPE_STATE);
     let complete_row_count = count_scope_state(rows, COMPLETE_SCOPE_STATE);
     let removed_row_count = count_scope_state(rows, REMOVED_FROM_SCOPE_STATE);
@@ -414,7 +420,7 @@ fn ensure_vcf_active_stage_tool_matrix_contract(
         (
             "vcf.phasing",
             "eagle",
-            "planned",
+            "production",
             "supported",
             REMOVED_FROM_SCOPE_STATE,
             BENCHMARK_NOT_READY_SCOPE_DETAIL,

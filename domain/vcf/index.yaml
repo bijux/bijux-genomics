@@ -66,13 +66,18 @@ governed_tool_ids:
   - angsd
   - bcftools
   - beagle
+  - eagle
   - eigensoft
   - germline
+  - glimpse
   - ibdhap
   - ibdne
   - ibdseq
   - impute5
+  - minimac4
+  - plink
   - plink2
+  - shapeit
   - shapeit5
 stage_tool_compatibility:
   vcf.admixture:

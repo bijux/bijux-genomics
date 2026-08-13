@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "507d779d40ebb61f7bbc556a5900cea6e77afb76",
-  "bundle_checksum_sha256": "dcb337b69c3f867bf9fe4af0462f735cf7283ed3a5ca46db9abbb58f2d2b8f21",
+  "source_commit": "111280b27029e7c30195c2d8594fb36e4e5f5108",
+  "bundle_checksum_sha256": "95eebc060bf3de3850ec3ee76f96abdaef7996ebce1d762f7ae5efec0d0db939",
   "domains": [
     {
       "domain_id": "bam",
@@ -4444,7 +4444,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "3b249775394986764149295e4ac503de367b34341a2449fa402868c703594166"
+      "checksum_sha256": "1111bccd9c460b7e5c4026b2288629b216ec407b77c7e5a701a347935f7e8543"
     },
     {
       "domain_id": "fastq",
@@ -13619,7 +13619,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "f9c29dae853a998135eff876f73d1b6772b2ad64b04b006604b7653385946039"
+      "checksum_sha256": "26c78523805811167daa3c86d558aebad66ddcf9deb2eead48f8fc33ce1b8526"
     },
     {
       "domain_id": "vcf",
@@ -15365,13 +15365,13 @@
         },
         {
           "tool_id": "eagle",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
-          "upstream": "https://alkesgroup.broadinstitute.org/Eagle/",
-          "pin_strategy": "external_tool",
-          "license": "GPL-3.0",
+          "default_version": "2.4.1",
+          "upstream": "https://github.com/poruloh/Eagle",
+          "pin_strategy": "source_sha256",
+          "license": "GPL-3.0-or-later",
           "citation": "paper:https://www.nature.com/articles/ng.3679",
           "version_cmd": "eagle --version",
           "help_cmd": "eagle --help",
@@ -15387,10 +15387,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.phasing.v1",
-          "comparability_notes": "External planned tool for phasing; containerization pending.",
+          "comparability_notes": "Comparable only when cohort, reference panel, genetic map, and pinned Eagle profile stay identical.",
           "container": {
-            "image": "external",
-            "digest": "external"
+            "image": "containers/apptainer/eagle.def",
+            "digest": "sha256:6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255"
           }
         },
         {
@@ -15459,14 +15459,14 @@
         },
         {
           "tool_id": "glimpse",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
-          "upstream": "https://odelaneau.github.io/GLIMPSE/",
-          "pin_strategy": "external_tool",
+          "default_version": "1.1.1",
+          "upstream": "https://github.com/odelaneau/GLIMPSE",
+          "pin_strategy": "source_sha256",
           "license": "MIT",
-          "citation": "planned",
+          "citation": "upstream:https://github.com/odelaneau/GLIMPSE",
           "version_cmd": "glimpse --version",
           "help_cmd": "glimpse --help",
           "stage_ids": [
@@ -15482,10 +15482,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.imputation_metrics.v1",
-          "comparability_notes": "External planned tool for low-coverage/aDNA-oriented imputation workflows.",
+          "comparability_notes": "Compare low-coverage imputation only under the same panel build, chunk map, genotype-likelihood model, and pinned GLIMPSE profile.",
           "container": {
-            "image": "external",
-            "digest": "external"
+            "image": "containers/apptainer/glimpse.def",
+            "digest": "sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"
           }
         },
         {
@@ -15615,14 +15615,14 @@
         },
         {
           "tool_id": "minimac4",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
-          "upstream": "https://genome.sph.umich.edu/wiki/Minimac4",
-          "pin_strategy": "external_tool",
-          "license": "MIT",
-          "citation": "planned",
+          "default_version": "4.1.6",
+          "upstream": "https://github.com/statgen/Minimac4",
+          "pin_strategy": "source_sha256",
+          "license": "GPL-3.0-only",
+          "citation": "upstream:https://github.com/statgen/Minimac4",
           "version_cmd": "minimac4 --version",
           "help_cmd": "minimac4 --help",
           "stage_ids": [
@@ -15638,10 +15638,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.imputation_metrics.v1",
-          "comparability_notes": "External planned tool for imputation; containerization pending.",
+          "comparability_notes": "Comparable only when target phasing, compressed panel build, variant normalization, and pinned Minimac4 profile stay identical.",
           "container": {
-            "image": "external",
-            "digest": "external"
+            "image": "containers/apptainer/minimac4.def",
+            "digest": "sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"
           }
         },
         {
@@ -15720,12 +15720,12 @@
         },
         {
           "tool_id": "shapeit",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
           "default_version": "4.2.2",
           "upstream": "https://github.com/odelaneau/shapeit4",
-          "pin_strategy": "container_digest",
+          "pin_strategy": "source_sha256",
           "license": "MIT",
           "citation": "paper:https://doi.org/10.1038/s41467-018-07713-4",
           "version_cmd": "shapeit --version",
@@ -15745,7 +15745,7 @@
           "comparability_notes": "Legacy SHAPEIT4 comparison requires the same panel build, genetic map, and pinned execution profile.",
           "container": {
             "image": "containers/apptainer/shapeit.def",
-            "digest": "registry_lock"
+            "digest": "sha256:2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9"
           }
         },
         {
@@ -16859,7 +16859,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "b3653c01870d89e4ffcc8ab1adae8f52a6aa4708e40abac2f11604c0ed1cc270"
+      "checksum_sha256": "098377c9e7435f7b88318fa0a1d3bd54878870210d6bb257b02d200995c89417"
     }
   ]
 }
