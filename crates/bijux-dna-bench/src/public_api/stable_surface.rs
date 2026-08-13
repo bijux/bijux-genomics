@@ -2,13 +2,14 @@
 //! Stable public benchmark surface re-exported by the crate root.
 
 pub use crate::workflow::{
-    appraise_matrix_report, build_full_benchmark_corpus_rows,
-    build_full_benchmark_failures_section, build_full_benchmark_memory_rows,
-    build_full_benchmark_missing_result_rows, build_full_benchmark_pipeline_rows,
-    build_full_benchmark_runtime_rows, build_full_benchmark_stage_rows,
-    build_full_benchmark_tool_rows, build_full_benchmark_unsupported_pair_rows,
-    choose_canonical_tool_id, current_benchmark_matrix_timestamp, derive_bam_benchmark_campaign,
-    derive_benchmark_matrix, derive_cross_benchmark_campaign, derive_fastq_benchmark_campaign,
+    appraise_matrix_report, build_full_benchmark_comparable_metric_rows,
+    build_full_benchmark_corpus_rows, build_full_benchmark_failures_section,
+    build_full_benchmark_memory_rows, build_full_benchmark_missing_result_rows,
+    build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
+    build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
+    build_full_benchmark_unsupported_pair_rows, choose_canonical_tool_id,
+    current_benchmark_matrix_timestamp, derive_bam_benchmark_campaign, derive_benchmark_matrix,
+    derive_cross_benchmark_campaign, derive_fastq_benchmark_campaign,
     derive_hardening_benchmark_campaign, derive_vcf_benchmark_campaign,
     hardening_queue_from_appraisal, legacy_benchmark_stage_alias_target,
     legacy_benchmark_stage_aliases, load_appraisal_report, load_bam_benchmark_campaign_report,

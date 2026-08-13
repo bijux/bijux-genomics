@@ -80,6 +80,11 @@ fn vcf_report() -> VcfComparableMetricsReport {
 
 #[test]
 fn comparable_metric_reports_round_trip_and_validate() -> anyhow::Result<()> {
+    assert_eq!(ComparableMetricContractStatus::Declared.as_str(), "declared");
+    assert_eq!(
+        ComparableMetricContractStatus::MissingSharedMetrics.as_str(),
+        "missing_shared_metrics"
+    );
     let fastq = fastq_report();
     validate_fastq_comparable_metrics_report(&fastq)?;
     assert_eq!(

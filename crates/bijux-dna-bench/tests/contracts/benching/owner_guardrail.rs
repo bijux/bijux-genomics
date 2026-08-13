@@ -152,6 +152,7 @@ fn thin_cli_uses_model_owned_full_benchmark_report_contract() {
         "fn build_failures_section",
         "fn build_missing_result_rows",
         "fn build_unsupported_pair_rows",
+        "fn collect_full_benchmark_comparable_metrics",
     ] {
         assert!(!contents.contains(projection), "thin CLI reintroduced {projection}");
     }
@@ -171,6 +172,7 @@ fn thin_cli_uses_model_owned_full_benchmark_report_contract() {
         "build_full_benchmark_failures_section",
         "build_full_benchmark_missing_result_rows",
         "build_full_benchmark_unsupported_pair_rows",
+        "build_full_benchmark_comparable_metric_rows",
     ] {
         assert!(workflow.contains(projection), "benchmark owner is missing {projection}");
     }

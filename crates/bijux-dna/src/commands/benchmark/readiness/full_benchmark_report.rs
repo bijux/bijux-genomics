@@ -5,17 +5,16 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    build_full_benchmark_corpus_rows, build_full_benchmark_failures_section,
-    build_full_benchmark_memory_rows, build_full_benchmark_missing_result_rows,
-    build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
-    build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
-    build_full_benchmark_unsupported_pair_rows, render_full_benchmark_report_markdown,
-    validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
-    FULL_BENCHMARK_REPORT_SCHEMA_V1,
+    build_full_benchmark_comparable_metric_rows, build_full_benchmark_corpus_rows,
+    build_full_benchmark_failures_section, build_full_benchmark_memory_rows,
+    build_full_benchmark_missing_result_rows, build_full_benchmark_pipeline_rows,
+    build_full_benchmark_runtime_rows, build_full_benchmark_stage_rows,
+    build_full_benchmark_tool_rows, build_full_benchmark_unsupported_pair_rows,
+    render_full_benchmark_report_markdown, validate_full_benchmark_report,
+    FullBenchmarkReportAdmissionContext, FULL_BENCHMARK_REPORT_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    FullBenchmarkComparableMetricRow, FullBenchmarkReport, FullBenchmarkReportRow,
-    FullBenchmarkReportRowStatus,
+    FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
 };
 use serde_json::Value;
 
@@ -27,12 +26,11 @@ use super::all_domain_failure_classification::{
     render_all_domain_failure_classification, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
 use super::bam_comparable_metrics::{
-    render_bam_comparable_metrics, BamComparableMetricsReport, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
+    render_bam_comparable_metrics, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
 };
 use super::essential_pipeline_rendered_commands::collect_essential_pipeline_rendered_command_rows;
 use super::fastq_comparable_metrics::{
-    render_fastq_comparable_metrics, FastqComparableMetricsReport,
-    DEFAULT_FASTQ_COMPARABLE_METRICS_PATH,
+    render_fastq_comparable_metrics, DEFAULT_FASTQ_COMPARABLE_METRICS_PATH,
 };
 use super::full_benchmark_result_collector::{
     render_full_benchmark_result_collector, FullBenchmarkResultCollectorReport,
@@ -40,14 +38,12 @@ use super::full_benchmark_result_collector::{
     DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH,
 };
 use super::scientific_acceptance_thresholds::{
-    render_scientific_acceptance_thresholds_from_reports, scientific_acceptance_direction_label,
-    scientific_acceptance_insufficiency_behavior_label, scientific_acceptance_pass_rule_label,
-    scientific_acceptance_tolerance_kind_label, ScientificAcceptanceThresholdRow,
+    render_scientific_acceptance_thresholds_from_reports,
     DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH,
 };
 use super::stage_tool_resources::{render_stage_tool_resources, DEFAULT_STAGE_TOOL_RESOURCES_PATH};
 use super::vcf_comparable_metrics::{
-    render_vcf_comparable_metrics, VcfComparableMetricsReport, DEFAULT_VCF_COMPARABLE_METRICS_PATH,
+    render_vcf_comparable_metrics, DEFAULT_VCF_COMPARABLE_METRICS_PATH,
 };
 use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
 use crate::commands::cli::parse;
@@ -164,7 +160,7 @@ pub(crate) fn render_full_benchmark_report(
         .map(|row| (binding_key(&row.domain, &row.stage_id, &row.tool_id), row.clone()))
         .collect::<BTreeMap<_, _>>();
     let pipeline_ids_by_binding = collect_pipeline_ids_by_binding(repo_root)?;
-    let comparable_metrics = collect_full_benchmark_comparable_metrics(
+    let comparable_metrics = build_full_benchmark_comparable_metric_rows(
         &fastq_comparable_report,
         &bam_comparable_report,
         &vcf_comparable_report,
@@ -444,144 +440,6 @@ fn collect_real_smoke_runtime_by_binding(
     Ok(rows)
 }
 
-fn collect_full_benchmark_comparable_metrics(
-    fastq_report: &FastqComparableMetricsReport,
-    bam_report: &BamComparableMetricsReport,
-    vcf_report: &VcfComparableMetricsReport,
-    acceptance_rows: &[ScientificAcceptanceThresholdRow],
-) -> Result<Vec<FullBenchmarkComparableMetricRow>> {
-    let acceptance_by_metric = acceptance_rows_by_metric(acceptance_rows)?;
-    let mut rows = Vec::new();
-
-    for row in &fastq_report.rows {
-        for metric in &row.shared_metric_fields {
-            let acceptance = acceptance_row(&acceptance_by_metric, "fastq", &row.stage_id, metric)?;
-            rows.push(FullBenchmarkComparableMetricRow {
-                domain: "fastq".to_string(),
-                stage_id: row.stage_id.clone(),
-                metric_id: metric.clone(),
-                metric_name: metric.clone(),
-                unit: acceptance.unit.clone(),
-                direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
-                tolerance_kind: scientific_acceptance_tolerance_kind_label(
-                    acceptance.tolerance_kind,
-                )
-                .to_string(),
-                tolerance_value: acceptance.tolerance_value,
-                pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
-                insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
-                    acceptance.insufficiency_behavior,
-                )
-                .to_string(),
-                required: acceptance.required,
-                tool_ids: row.tool_ids.clone(),
-                contract_status: fastq_contract_status_label(row.comparison_contract_status)
-                    .to_string(),
-                reason: row.reason.clone(),
-            });
-        }
-    }
-
-    for row in &bam_report.rows {
-        for metric in &row.shared_metric_fields {
-            let acceptance = acceptance_row(&acceptance_by_metric, "bam", &row.stage_id, metric)?;
-            rows.push(FullBenchmarkComparableMetricRow {
-                domain: "bam".to_string(),
-                stage_id: row.stage_id.clone(),
-                metric_id: metric.clone(),
-                metric_name: metric.clone(),
-                unit: acceptance.unit.clone(),
-                direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
-                tolerance_kind: scientific_acceptance_tolerance_kind_label(
-                    acceptance.tolerance_kind,
-                )
-                .to_string(),
-                tolerance_value: acceptance.tolerance_value,
-                pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
-                insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
-                    acceptance.insufficiency_behavior,
-                )
-                .to_string(),
-                required: acceptance.required,
-                tool_ids: row.tool_ids.clone(),
-                contract_status: bam_contract_status_label(row.comparison_contract_status)
-                    .to_string(),
-                reason: row.reason.clone(),
-            });
-        }
-    }
-
-    for row in &vcf_report.rows {
-        let acceptance =
-            acceptance_row(&acceptance_by_metric, "vcf", &row.stage_id, &row.metric_id)?;
-        rows.push(FullBenchmarkComparableMetricRow {
-            domain: "vcf".to_string(),
-            stage_id: row.stage_id.clone(),
-            metric_id: row.metric_id.clone(),
-            metric_name: row.metric_name.clone(),
-            unit: acceptance.unit.clone(),
-            direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
-            tolerance_kind: scientific_acceptance_tolerance_kind_label(acceptance.tolerance_kind)
-                .to_string(),
-            tolerance_value: acceptance.tolerance_value,
-            pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
-            insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
-                acceptance.insufficiency_behavior,
-            )
-            .to_string(),
-            required: acceptance.required,
-            tool_ids: row.tools_covered.clone(),
-            contract_status: "declared".to_string(),
-            reason: format!(
-                "governed VCF comparable metric published for `{}` across {} retained tools",
-                row.stage_id,
-                row.tools_covered.len()
-            ),
-        });
-    }
-
-    rows.sort_by(|left, right| {
-        left.domain
-            .cmp(&right.domain)
-            .then_with(|| left.stage_id.cmp(&right.stage_id))
-            .then_with(|| left.metric_id.cmp(&right.metric_id))
-    });
-    Ok(rows)
-}
-
-fn acceptance_rows_by_metric(
-    rows: &[ScientificAcceptanceThresholdRow],
-) -> Result<BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>> {
-    let mut by_metric = BTreeMap::new();
-    for row in rows {
-        let key = (row.domain.clone(), row.stage_id.clone(), row.metric_id.clone());
-        if by_metric.insert(key.clone(), row.clone()).is_some() {
-            return Err(anyhow!(
-                "full benchmark report found duplicate scientific acceptance threshold row for `{}:{}/{}`",
-                key.0,
-                key.1,
-                key.2
-            ));
-        }
-    }
-    Ok(by_metric)
-}
-
-fn acceptance_row<'a>(
-    by_metric: &'a BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>,
-    domain: &str,
-    stage_id: &str,
-    metric_id: &str,
-) -> Result<&'a ScientificAcceptanceThresholdRow> {
-    by_metric
-        .get(&(domain.to_string(), stage_id.to_string(), metric_id.to_string()))
-        .ok_or_else(|| {
-            anyhow!(
-                "full benchmark report is missing scientific acceptance semantics for `{domain}` / `{stage_id}` / `{metric_id}`"
-            )
-        })
-}
-
 fn full_benchmark_result_status_label(status: FullBenchmarkResultStatus) -> &'static str {
     match status {
         FullBenchmarkResultStatus::Expected => "expected",
@@ -599,30 +457,6 @@ fn report_row_status_label(status: FullBenchmarkReportRowStatus) -> &'static str
         FullBenchmarkReportRowStatus::Present => "present",
         FullBenchmarkReportRowStatus::MissingResult => "missing_result",
         FullBenchmarkReportRowStatus::UnsupportedPair => "unsupported_pair",
-    }
-}
-
-fn fastq_contract_status_label(
-    status: super::fastq_comparable_metrics::FastqComparableMetricContractStatus,
-) -> &'static str {
-    match status {
-        super::fastq_comparable_metrics::FastqComparableMetricContractStatus::Declared => {
-            "declared"
-        }
-        super::fastq_comparable_metrics::FastqComparableMetricContractStatus::MissingSharedMetrics => {
-            "missing_shared_metrics"
-        }
-    }
-}
-
-fn bam_contract_status_label(
-    status: super::bam_comparable_metrics::BamComparableMetricContractStatus,
-) -> &'static str {
-    match status {
-        super::bam_comparable_metrics::BamComparableMetricContractStatus::Declared => "declared",
-        super::bam_comparable_metrics::BamComparableMetricContractStatus::MissingSharedMetrics => {
-            "missing_shared_metrics"
-        }
     }
 }
 

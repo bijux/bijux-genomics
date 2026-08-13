@@ -4,13 +4,140 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use bijux_dna_bench_model::{
-    AllDomainFailureClassificationReport, BenchError, FullBenchmarkCorpusSectionRow,
+    AllDomainFailureClassificationReport, BamComparableMetricsReport, BenchError,
+    FastqComparableMetricsReport, FullBenchmarkComparableMetricRow, FullBenchmarkCorpusSectionRow,
     FullBenchmarkFailureRow, FullBenchmarkFailuresSection, FullBenchmarkMemoryRow,
     FullBenchmarkMissingResultRow, FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow,
     FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
     FullBenchmarkResultCollectorReport, FullBenchmarkResultSurfaceKind, FullBenchmarkRuntimeRow,
     FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow, FullBenchmarkUnsupportedPairRow,
+    ScientificAcceptanceThresholdRow, VcfComparableMetricsReport,
 };
+
+/// Builds the domain-spanning comparable-metric section from admitted readiness reports.
+///
+/// # Errors
+/// Returns [`BenchError::InvalidObservation`] when acceptance rows are duplicated or do not
+/// cover every comparable metric emitted by the domain reports.
+pub fn build_full_benchmark_comparable_metric_rows(
+    fastq_report: &FastqComparableMetricsReport,
+    bam_report: &BamComparableMetricsReport,
+    vcf_report: &VcfComparableMetricsReport,
+    acceptance_rows: &[ScientificAcceptanceThresholdRow],
+) -> Result<Vec<FullBenchmarkComparableMetricRow>, BenchError> {
+    let acceptance_by_metric = acceptance_rows_by_metric(acceptance_rows)?;
+    let mut rows = Vec::new();
+
+    for row in &fastq_report.rows {
+        for metric in &row.shared_metric_fields {
+            let acceptance = acceptance_row(&acceptance_by_metric, "fastq", &row.stage_id, metric)?;
+            rows.push(FullBenchmarkComparableMetricRow {
+                domain: "fastq".to_string(),
+                stage_id: row.stage_id.clone(),
+                metric_id: metric.clone(),
+                metric_name: metric.clone(),
+                unit: acceptance.unit.clone(),
+                direction: acceptance.direction.as_str().to_string(),
+                tolerance_kind: acceptance.tolerance_kind.as_str().to_string(),
+                tolerance_value: acceptance.tolerance_value,
+                pass_rule: acceptance.pass_rule.as_str().to_string(),
+                insufficiency_behavior: acceptance.insufficiency_behavior.as_str().to_string(),
+                required: acceptance.required,
+                tool_ids: row.tool_ids.clone(),
+                contract_status: row.comparison_contract_status.as_str().to_string(),
+                reason: row.reason.clone(),
+            });
+        }
+    }
+
+    for row in &bam_report.rows {
+        for metric in &row.shared_metric_fields {
+            let acceptance = acceptance_row(&acceptance_by_metric, "bam", &row.stage_id, metric)?;
+            rows.push(FullBenchmarkComparableMetricRow {
+                domain: "bam".to_string(),
+                stage_id: row.stage_id.clone(),
+                metric_id: metric.clone(),
+                metric_name: metric.clone(),
+                unit: acceptance.unit.clone(),
+                direction: acceptance.direction.as_str().to_string(),
+                tolerance_kind: acceptance.tolerance_kind.as_str().to_string(),
+                tolerance_value: acceptance.tolerance_value,
+                pass_rule: acceptance.pass_rule.as_str().to_string(),
+                insufficiency_behavior: acceptance.insufficiency_behavior.as_str().to_string(),
+                required: acceptance.required,
+                tool_ids: row.tool_ids.clone(),
+                contract_status: row.comparison_contract_status.as_str().to_string(),
+                reason: row.reason.clone(),
+            });
+        }
+    }
+
+    for row in &vcf_report.rows {
+        let acceptance =
+            acceptance_row(&acceptance_by_metric, "vcf", &row.stage_id, &row.metric_id)?;
+        rows.push(FullBenchmarkComparableMetricRow {
+            domain: "vcf".to_string(),
+            stage_id: row.stage_id.clone(),
+            metric_id: row.metric_id.clone(),
+            metric_name: row.metric_name.clone(),
+            unit: acceptance.unit.clone(),
+            direction: acceptance.direction.as_str().to_string(),
+            tolerance_kind: acceptance.tolerance_kind.as_str().to_string(),
+            tolerance_value: acceptance.tolerance_value,
+            pass_rule: acceptance.pass_rule.as_str().to_string(),
+            insufficiency_behavior: acceptance.insufficiency_behavior.as_str().to_string(),
+            required: acceptance.required,
+            tool_ids: row.tools_covered.clone(),
+            contract_status: "declared".to_string(),
+            reason: format!(
+                "governed VCF comparable metric published for `{}` across {} retained tools",
+                row.stage_id,
+                row.tools_covered.len()
+            ),
+        });
+    }
+
+    rows.sort_by(|left, right| {
+        left.domain
+            .cmp(&right.domain)
+            .then_with(|| left.stage_id.cmp(&right.stage_id))
+            .then_with(|| left.metric_id.cmp(&right.metric_id))
+    });
+    Ok(rows)
+}
+
+fn acceptance_rows_by_metric(
+    rows: &[ScientificAcceptanceThresholdRow],
+) -> Result<BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>, BenchError> {
+    let mut by_metric = BTreeMap::new();
+    for row in rows {
+        let key = (row.domain.clone(), row.stage_id.clone(), row.metric_id.clone());
+        if by_metric.insert(key.clone(), row.clone()).is_some() {
+            return Err(BenchError::InvalidObservation {
+                reason: format!(
+                    "full benchmark report found duplicate scientific acceptance threshold row for `{}:{}/{}`",
+                    key.0, key.1, key.2
+                ),
+            });
+        }
+    }
+    Ok(by_metric)
+}
+
+fn acceptance_row<'a>(
+    by_metric: &'a BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>,
+    domain: &str,
+    stage_id: &str,
+    metric_id: &str,
+) -> Result<&'a ScientificAcceptanceThresholdRow, BenchError> {
+    by_metric
+        .get(&(domain.to_string(), stage_id.to_string(), metric_id.to_string()))
+        .ok_or_else(|| BenchError::InvalidObservation {
+            reason: format!(
+                "full benchmark report is missing scientific acceptance semantics for `{domain}` / `{stage_id}` / `{metric_id}`"
+            ),
+        })
+}
 
 #[must_use]
 pub fn build_full_benchmark_stage_rows(
