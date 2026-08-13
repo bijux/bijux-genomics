@@ -54,6 +54,7 @@ mod local_stage_fake_run;
 mod local_stage_inventory;
 mod local_vcf_smoke;
 mod materialization;
+mod output_declarations;
 mod planning;
 mod protocol;
 mod publication;
@@ -180,6 +181,9 @@ pub use materialization::{
     validate_governed_data_catalog, validate_governed_data_catalog_document,
     validate_governed_preserved_data_catalog, validate_utc_timestamp,
 };
+pub use output_declarations::{
+    validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
+};
 pub use planning::{
     validate_benchmark_local_hpc_job_graph, validate_benchmark_portfolio,
     validate_benchmark_run_registry, validate_defined_campaign_portfolio_alignment,
@@ -221,9 +225,10 @@ pub use run_index::{
 };
 pub use schema_versions::{
     ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
-    ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
-    ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1, BAM_COMPARABLE_METRICS_SCHEMA_V1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
+    ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
+    BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,

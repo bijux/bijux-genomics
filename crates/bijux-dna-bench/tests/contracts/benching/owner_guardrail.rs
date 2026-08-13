@@ -921,6 +921,23 @@ fn thin_cli_uses_model_owned_stage_tool_container_contracts() {
     assert!(!contents.contains("bijux.bench.local_stage_tool_containers.v1"));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_all_domain_output_declaration_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root.join(
+        "crates/bijux-dna/src/commands/benchmark/readiness/all_domain_output_declarations.rs",
+    );
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_all_domain_output_declaration_rows"));
+    assert!(contents.contains("validate_all_domain_output_declarations_report"));
+    assert!(!contents.contains("enum AllDomainOutputDeclarationStatus {"));
+    assert!(!contents.contains("struct AllDomainOutputDeclarationRow {"));
+    assert!(!contents.contains("struct AllDomainOutputDeclarationsReport {"));
+    assert!(!contents.contains("bijux.bench.readiness.all_domain_output_declarations.v1"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

@@ -56,6 +56,7 @@ pub mod local_vcf_smoke;
 pub mod materialization;
 pub mod normalized_result;
 pub mod observation;
+pub mod output_declarations;
 pub mod planning;
 pub mod protocol;
 pub mod publication;
@@ -460,6 +461,11 @@ pub use materialization::{
     GovernedPreservedDataCatalog,
 };
 pub use observation::BenchmarkObservation;
+#[allow(unused_imports)]
+pub use output_declarations::{
+    all_domain_output_declarations_schema, AllDomainOutputDeclarationRow,
+    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
+};
 #[allow(unused_imports)]
 pub use planning::{
     benchmark_run_registry_schema, benchmark_stage_coverage_schema,

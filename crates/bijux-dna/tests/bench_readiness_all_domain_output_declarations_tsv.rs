@@ -111,3 +111,33 @@ fn bench_readiness_all_domain_output_declarations_writes_governed_tsv_file() {
         "VCF imputation metrics row must keep raw outputs, normalized metrics, logs, and manifest explicit"
     );
 }
+
+#[test]
+fn bench_readiness_all_domain_output_declarations_rejects_outside_path_before_write() {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+    let outside = tempfile::tempdir().expect("outside tempdir");
+    let output_path = outside.path().join("must-not-exist.tsv");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args([
+            "bench",
+            "readiness",
+            "render-all-domain-output-declarations",
+            "--output",
+        ])
+        .arg(&output_path)
+        .output()
+        .expect("run cli");
+
+    assert!(!output.status.success(), "outside output path must be rejected");
+    assert!(!output_path.exists(), "invalid output path must not be created");
+}

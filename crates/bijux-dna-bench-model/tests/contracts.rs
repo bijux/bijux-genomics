@@ -103,6 +103,8 @@ mod mod_contracts_local_vcf_smoke_rs;
 mod mod_contracts_materialization_rs;
 #[path = "contracts/normalized_result.rs"]
 mod mod_contracts_normalized_result_rs;
+#[path = "contracts/output_declarations.rs"]
+mod mod_contracts_output_declarations_rs;
 #[path = "contracts/protocol.rs"]
 mod mod_contracts_protocol_rs;
 #[path = "contracts/publication_findings.rs"]

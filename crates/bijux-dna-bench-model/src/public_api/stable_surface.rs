@@ -2,12 +2,18 @@
 //! Stable crate-root re-exports.
 
 pub use crate::contract::{
+    validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
     validate_stage_tool_assets_config, validate_stage_tool_assets_report,
     validate_stage_tool_containers_config, validate_stage_tool_containers_report,
     validate_stage_tool_resources_config, validate_stage_tool_resources_report,
-    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
-    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
+    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+};
+pub use crate::model::output_declarations::{
+    all_domain_output_declarations_schema, AllDomainOutputDeclarationRow,
+    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
 };
 pub use crate::model::stage_tool_assets::{
     stage_tool_assets_config_schema, stage_tool_assets_report_schema, StageToolAssetRow,

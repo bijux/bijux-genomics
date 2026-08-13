@@ -137,6 +137,12 @@ owns row identity, aggregate closure, schema generation, and admission; the
 CLI derives the inventory from governed stage, tool, corpus, output, metric,
 and report-section authorities.
 
+`schemas/all-domain-output-declarations.schema.json` defines the canonical
+FASTQ, BAM, and VCF raw-output, normalized-metric, log, manifest, and index
+declarations consumed by execution and collection. The benchmark model owns
+row identity, output-shape and path admission, required proof rows, canonical
+ordering, aggregate closure, and schema generation.
+
 `schemas/stage-tool-resources.schema.json` and
 `schemas/stage-tool-resources-report.schema.json` define the canonical
 resource configuration and its readiness projection. The benchmark model owns
