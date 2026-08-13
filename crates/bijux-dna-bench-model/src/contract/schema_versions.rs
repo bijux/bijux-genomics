@@ -39,6 +39,10 @@ pub const STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1: &str =
     "bijux.bench.readiness.stage_tool_resources.v1";
 pub const LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1: &str = "bijux.bench.local_stage_tool_assets.v1";
 pub const STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.stage_tool_assets.v1";
+pub const LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_tool_containers.v1";
+pub const STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1: &str =
+    "bijux.bench.readiness.stage_tool_containers.v1";
 pub const FULL_BENCHMARK_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.full_benchmark_report.v1";
 pub const FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1: &str =
     "bijux.bench.readiness.full_benchmark_result_collector.v1";

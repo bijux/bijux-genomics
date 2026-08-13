@@ -3,14 +3,21 @@
 
 pub use crate::contract::{
     validate_stage_tool_assets_config, validate_stage_tool_assets_report,
+    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
     validate_stage_tool_resources_config, validate_stage_tool_resources_report,
-    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
-    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
 };
 pub use crate::model::stage_tool_assets::{
     stage_tool_assets_config_schema, stage_tool_assets_report_schema, StageToolAssetRow,
     StageToolAssetsConfig, StageToolAssetsReport, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,
     STAGE_TOOL_ASSETS_SCOPE,
+};
+pub use crate::model::stage_tool_containers::{
+    stage_tool_containers_config_schema, stage_tool_containers_report_schema,
+    StageToolContainerRow, StageToolContainersConfig, StageToolContainersReport,
+    STAGE_TOOL_CONTAINERS_DECLARATION_ORIGIN, STAGE_TOOL_CONTAINERS_SCOPE,
 };
 pub use crate::model::stage_tool_resources::{
     stage_tool_resources_config_schema, stage_tool_resources_report_schema, StageToolResourceRow,

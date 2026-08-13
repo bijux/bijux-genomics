@@ -75,6 +75,7 @@ mod source_authority;
 mod stage_result;
 mod stage_tool_assets;
 mod stage_tool_closure;
+mod stage_tool_containers;
 mod stage_tool_resources;
 mod suite;
 pub use active_scope::validate_active_scope_fast_validation_report;
@@ -287,10 +288,11 @@ pub use schema_versions::{
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
-    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
-    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
-    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, SUITE_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
+    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, SUITE_SCHEMA_V1,
     SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
 };
 pub use scientific_acceptance::{
@@ -307,6 +309,9 @@ pub use stage_result::{
 };
 pub use stage_tool_assets::{validate_stage_tool_assets_config, validate_stage_tool_assets_report};
 pub use stage_tool_closure::validate_benchmark_stage_tool_closure;
+pub use stage_tool_containers::{
+    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
+};
 pub use stage_tool_resources::{
     validate_stage_tool_resources_config, validate_stage_tool_resources_report,
 };
