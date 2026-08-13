@@ -7,11 +7,11 @@ use bijux_dna_policies::{validate_ci_build_authority, CiBuildAuthority};
 use serde::{Deserialize, Serialize};
 
 use super::{
-    artifact_env, artifact_root_path, ci_test_env, ensure_help_only, env_or_default, fs,
-    merge_outcomes, read_coverage_runner_flag, resolved_nextest_expression,
-    resolved_nextest_profile, resolved_nextest_threads, resolved_run_ignored, run_check_ids,
-    run_make_target, run_program_with_env, set_assets_readonly, write_json_pretty, Context,
-    OpsCommandOutcome, Result, Workspace,
+    artifact_env, artifact_env_with_common_test_env, artifact_root_path, ci_test_env,
+    ensure_help_only, env_or_default, fs, merge_outcomes, read_coverage_runner_flag,
+    resolved_nextest_expression, resolved_nextest_profile, resolved_nextest_threads,
+    resolved_run_ignored, run_check_ids, run_make_target, run_program_with_env,
+    set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
@@ -319,7 +319,6 @@ pub(in super::super) fn tooling_ci_fast(
 
     let report_root = ci_output_path(workspace, &contract.report_root)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
-    let envs = artifact_env(workspace)?;
     let started = Instant::now();
     let mut pending =
         contract.groups.iter().map(|group| group.id.as_str()).collect::<BTreeSet<_>>();
@@ -376,14 +375,16 @@ pub(in super::super) fn tooling_ci_fast(
         }
         let specs = ready
             .iter()
-            .map(|group| ParallelProcessSpec {
-                label: group.id.clone(),
-                program: group.program.clone(),
-                args: group.args.clone(),
-                envs: envs.clone(),
-                current_dir: None,
+            .map(|group| {
+                Ok(ParallelProcessSpec {
+                    label: group.id.clone(),
+                    program: group.program.clone(),
+                    args: group.args.clone(),
+                    envs: ci_fast_group_env(workspace, &group.id)?,
+                    current_dir: None,
+                })
             })
-            .collect();
+            .collect::<Result<Vec<_>>>()?;
         let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
         for (group, completed) in ready.into_iter().zip(outputs) {
             let log_path = report_root.join(format!("{}.log", group.id));
@@ -508,6 +509,15 @@ pub(in super::super) fn tooling_ci_fast(
         }),
     )?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn ci_fast_group_env(workspace: &Workspace, group_id: &str) -> Result<Vec<(String, String)>> {
+    let mut envs = artifact_env_with_common_test_env(workspace)?;
+    let target = artifact_root_path(workspace)?.join("ci/ci-fast-targets").join(group_id);
+    bijux_dna_infra::ensure_dir(&target)?;
+    envs.push(("CARGO_TARGET_DIR".to_string(), target.display().to_string()));
+    envs.push(("CARGO_NET_OFFLINE".to_string(), "true".to_string()));
+    Ok(envs)
 }
 
 pub(in super::super) fn tooling_ci_slow(
@@ -1471,15 +1481,16 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
-        artifact_root_path, ci_output_path, ci_output_path_under, full_archive_args,
-        full_archive_roots, full_shard_args, full_shard_env, full_shard_root_receipt,
-        full_shard_roots, isolated_build_tree, materialize_full_shard_workspace, percentile,
-        read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
-        set_full_archive_readonly, validate_ci_test_executor_observation,
-        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
-        validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
-        FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract,
-        FullShardCoverage, FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
+        artifact_root_path, ci_fast_group_env, ci_output_path, ci_output_path_under,
+        full_archive_args, full_archive_roots, full_shard_args, full_shard_env,
+        full_shard_root_receipt, full_shard_roots, isolated_build_tree,
+        materialize_full_shard_workspace, percentile, read_ci_build_authority,
+        reference_timing_samples, remove_full_shard_ephemera, set_full_archive_readonly,
+        validate_ci_test_executor_observation, validate_fast_group_contract,
+        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
+        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
+        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -1848,6 +1859,33 @@ mod tests {
         let mut escaping = fast_contract();
         escaping.timing_report = "../ci-fast.json".to_string();
         assert!(validate_fast_group_contract(&escaping).is_err());
+    }
+
+    #[test]
+    fn fast_groups_use_isolated_targets_and_shared_offline_authority() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let first = ci_fast_group_env(&workspace, "first")?;
+        let second = ci_fast_group_env(&workspace, "second")?;
+
+        assert!(first.iter().any(|(key, value)| key == "CARGO_NET_OFFLINE" && value == "true"));
+        assert!(first.iter().any(|(key, value)| key == "TZ" && value == "UTC"));
+        assert!(first.iter().any(|(key, value)| key == "LC_ALL" && value == "C"));
+        let first_target = first
+            .iter()
+            .rev()
+            .find(|(key, _)| key == "CARGO_TARGET_DIR")
+            .map(|(_, value)| value.as_str());
+        let second_target = second
+            .iter()
+            .rev()
+            .find(|(key, _)| key == "CARGO_TARGET_DIR")
+            .map(|(_, value)| value.as_str());
+        assert_ne!(first_target, second_target);
+        assert!(first_target.is_some_and(|value| value.ends_with("ci/ci-fast-targets/first")));
+        assert!(second_target.is_some_and(|value| value.ends_with("ci/ci-fast-targets/second")));
+        Ok(())
     }
 
     #[test]
