@@ -31,6 +31,7 @@ pub mod local_hpc_array;
 pub mod local_hpc_asset_staging;
 pub mod local_hpc_candidate_run;
 pub mod local_hpc_dependency_simulation;
+pub mod local_hpc_dry_run_readiness;
 pub mod local_hpc_execution_resolver;
 pub mod local_hpc_pipeline_node_array;
 pub mod local_hpc_result_collection_simulation;
@@ -286,6 +287,12 @@ pub use local_hpc_dependency_simulation::{
     BENCHMARK_LOCAL_HPC_REFERENCE_FAILURE_JOB_ID, BENCHMARK_LOCAL_HPC_RELATEDNESS_BLOCKED_JOB_ID,
     BENCHMARK_LOCAL_HPC_RELATEDNESS_CONTINUED_JOB_ID,
     BENCHMARK_LOCAL_HPC_RELATEDNESS_FAILURE_JOB_ID,
+};
+#[allow(unused_imports)]
+pub use local_hpc_dry_run_readiness::{
+    benchmark_local_hpc_dry_run_readiness_schema, BenchmarkLocalHpcDryRunReadinessBehavior,
+    BenchmarkLocalHpcDryRunReadinessGoalCheck, BenchmarkLocalHpcDryRunReadinessReport,
+    BenchmarkLocalHpcDryRunReadinessSummary,
 };
 #[allow(unused_imports)]
 pub use local_hpc_execution_resolver::{

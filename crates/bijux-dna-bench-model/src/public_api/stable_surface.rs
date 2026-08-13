@@ -23,6 +23,7 @@ pub use crate::contract::{
     validate_benchmark_local_hpc_asset_staging_manifest,
     validate_benchmark_local_hpc_candidate_run_manifest,
     validate_benchmark_local_hpc_dependency_simulation,
+    validate_benchmark_local_hpc_dry_run_readiness,
     validate_benchmark_local_hpc_execution_resolver, validate_benchmark_local_hpc_job_graph,
     validate_benchmark_local_hpc_pipeline_node_array,
     validate_benchmark_local_hpc_result_collection_simulation_report,
@@ -86,6 +87,7 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_DRY_RUN_READINESS_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
@@ -291,6 +293,11 @@ pub use crate::model::local_hpc_dependency_simulation::{
     BENCHMARK_LOCAL_HPC_REFERENCE_FAILURE_JOB_ID, BENCHMARK_LOCAL_HPC_RELATEDNESS_BLOCKED_JOB_ID,
     BENCHMARK_LOCAL_HPC_RELATEDNESS_CONTINUED_JOB_ID,
     BENCHMARK_LOCAL_HPC_RELATEDNESS_FAILURE_JOB_ID,
+};
+pub use crate::model::local_hpc_dry_run_readiness::{
+    benchmark_local_hpc_dry_run_readiness_schema, BenchmarkLocalHpcDryRunReadinessBehavior,
+    BenchmarkLocalHpcDryRunReadinessGoalCheck, BenchmarkLocalHpcDryRunReadinessReport,
+    BenchmarkLocalHpcDryRunReadinessSummary,
 };
 pub use crate::model::local_hpc_execution_resolver::{
     benchmark_local_hpc_execution_resolver_schema, BenchmarkLocalHpcExecutionResolverReport,

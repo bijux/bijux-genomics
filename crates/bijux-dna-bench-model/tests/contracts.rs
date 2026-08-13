@@ -55,6 +55,8 @@ mod mod_contracts_local_hpc_asset_staging_rs;
 mod mod_contracts_local_hpc_candidate_run_rs;
 #[path = "contracts/local_hpc_dependency_simulation.rs"]
 mod mod_contracts_local_hpc_dependency_simulation_rs;
+#[path = "contracts/local_hpc_dry_run_readiness.rs"]
+mod mod_contracts_local_hpc_dry_run_readiness_rs;
 #[path = "contracts/local_hpc_execution_resolver.rs"]
 mod mod_contracts_local_hpc_execution_resolver_rs;
 #[path = "contracts/local_hpc_pipeline_node_array.rs"]

@@ -173,6 +173,12 @@ projected upstream results, expected outputs, paths, commands, exact counters,
 resource-envelope closure, and schema generation; the CLI only joins admitted
 planning inputs and renders the script plus manifest.
 
+`schemas/local-hpc-dry-run-readiness.schema.json` defines the persisted closure
+of the governed local HPC dry-run surfaces. The benchmark model owns the exact
+goal inventory, pass/fail counters, behavior proof, readiness verdict, summary
+cardinality, safe evidence paths, and schema generation; the CLI only joins the
+admitted component reports and publishes the validated closure.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,
