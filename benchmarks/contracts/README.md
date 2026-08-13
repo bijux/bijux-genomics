@@ -155,6 +155,12 @@ propagation, seeded behavior proofs, exact counters, and schema generation; the
 CLI only constructs the isolated simulation tree and publishes the admitted
 report.
 
+`schemas/local-hpc-dependency-simulation.schema.json` defines persisted
+failure-isolation cases over the governed HPC job graph. The benchmark model
+owns reciprocal topology, simulated status and timing, descendant scope,
+continued independent work, seeded behavior proofs, exact counters, and schema
+generation; the CLI only simulates the graph and publishes the admitted report.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,
