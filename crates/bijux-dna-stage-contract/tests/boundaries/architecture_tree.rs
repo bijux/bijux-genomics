@@ -102,7 +102,7 @@ fn assert_source_layout(root: &Path) {
     );
     assert_eq!(
         dir_entries(&root.join("src/tool_binding/catalog")),
-        entries(["fastq.rs", "vcf.rs"]),
+        entries(["bam.rs", "fastq.rs", "vcf.rs"]),
         "tool binding catalog families must remain explicitly owned"
     );
 }

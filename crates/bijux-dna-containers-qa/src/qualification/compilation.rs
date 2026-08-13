@@ -959,7 +959,8 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 71);
+        assert_runtime_contract_tools(&coverage);
+        assert_eq!(coverage.summary.binding_ready_count, 81);
         for tool_id in [
             "addeam",
             "angsd",
@@ -1032,6 +1033,29 @@ mod tests {
             assert!(unit.binding_ready);
         }
         Ok(())
+    }
+
+    fn assert_runtime_contract_tools(coverage: &QualificationSpecificationCoverage) {
+        let observed = coverage
+            .units
+            .iter()
+            .filter(|unit| !unit.binding_ready)
+            .map(|unit| format!("{}/{}", unit.stage_id, unit.tool_id))
+            .collect::<BTreeSet<_>>();
+        let expected = [
+            "container.runtime/bracken",
+            "container.runtime/diamond",
+            "container.runtime/dustmasker",
+            "container.runtime/fastq_screen",
+            "container.runtime/metaphlan",
+            "container.runtime/qualimap",
+            "container.runtime/seqpurge",
+            "container.runtime/spades",
+        ]
+        .into_iter()
+        .map(ToString::to_string)
+        .collect();
+        assert_eq!(observed, expected);
     }
 
     fn assert_negative_refusals(

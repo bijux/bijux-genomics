@@ -46,7 +46,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 127);
+    assert_eq!(retained.bindings().len(), 151);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -70,8 +70,102 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 135);
+    assert_eq!(all.bindings().len(), 159);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_registry_owns_complete_supported_bam_closure() -> Result<()> {
+    let registry = canonical_tool_bindings()?;
+    let expected = [
+        ("bam.bias_mitigation", "mapdamage2"),
+        ("bam.complexity", "preseq"),
+        ("bam.contamination", "contammix"),
+        ("bam.contamination", "schmutzi"),
+        ("bam.contamination", "verifybamid2"),
+        ("bam.filter", "bamtools"),
+        ("bam.filter", "bedtools"),
+        ("bam.filter", "samtools"),
+        ("bam.haplogroups", "yleaf"),
+        ("bam.kinship", "king"),
+        ("bam.length_filter", "picard"),
+        ("bam.length_filter", "samtools"),
+        ("bam.mapq_filter", "bamtools"),
+        ("bam.mapq_filter", "samtools"),
+        ("bam.markdup", "picard"),
+        ("bam.markdup", "samtools"),
+        ("bam.overlap_correction", "bamutil"),
+        ("bam.qc_pre", "multiqc"),
+        ("bam.qc_pre", "samtools"),
+        ("bam.recalibration", "gatk"),
+        ("bam.sex", "yleaf"),
+        ("bam.validate", "bamtools"),
+        ("bam.validate", "bedtools"),
+        ("bam.validate", "samtools"),
+    ];
+    assert_eq!(expected.len(), 24);
+    for (stage_id, tool_id) in expected {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            format!("bijux.benchmark.{stage_id}.bundle.v1")
+        );
+        assert!(binding.normalizer_id.contains(stage_id.trim_start_matches("bam.")));
+    }
+    assert_eq!(
+        registry.bindings().filter(|binding| binding.stage_id.as_str().starts_with("bam.")).count(),
+        49
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_bam_portfolio_bindings_render_native_commands() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let cases = [
+        ("bam.complexity", "preseq", ["lc_extrap", "complexity_curve"]),
+        ("bam.contamination", "verifybamid2", ["--BamFile", "--SVDPrefix"]),
+        ("bam.filter", "samtools", ["view -b -q 20", "flagstat_before"]),
+        ("bam.length_filter", "picard", ["FilterSamReads", "getReadLength() >= 30"]),
+        ("bam.markdup", "samtools", ["markdup", "markdup_bam"]),
+        ("bam.overlap_correction", "bamutil", ["clipOverlap", "--stats"]),
+        ("bam.recalibration", "gatk", ["BaseRecalibrator", "ApplyBQSR"]),
+        ("bam.sex", "yleaf", ["-bam", "--reference_genome"]),
+        ("bam.validate", "bedtools", ["bamtobed", "validation_report"]),
+    ];
+
+    for (stage_id, tool_id, fragments) in cases {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        let inputs = binding
+            .inputs
+            .iter()
+            .map(|value| (value.name.clone(), format!("/input/{}", value.name)))
+            .collect();
+        let outputs = binding
+            .outputs
+            .iter()
+            .map(|value| (value.name.clone(), format!("/output/{}", value.name)))
+            .collect();
+        let rendered = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: format!("/images/{tool_id}"),
+                inputs,
+                outputs,
+                ..ToolBindingRenderContext::default()
+            },
+        )?
+        .join(" ");
+        assert!(!rendered.contains("${"), "{stage_id}/{tool_id} retains a projection");
+        for fragment in fragments {
+            assert!(rendered.contains(fragment), "{stage_id}/{tool_id} misses {fragment}");
+        }
+    }
     Ok(())
 }
 

@@ -7,6 +7,7 @@ use super::{
     ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };
 
+mod bam;
 mod fastq;
 mod vcf;
 
@@ -124,6 +125,9 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         registry.insert(binding)?;
     }
     for binding in fastq::canonical_fastq_portfolio_bindings() {
+        registry.insert(binding)?;
+    }
+    for binding in bam::canonical_bam_portfolio_bindings() {
         registry.insert(binding)?;
     }
     for binding in vcf::canonical_distributable_vcf_bindings() {
