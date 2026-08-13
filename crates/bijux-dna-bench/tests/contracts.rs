@@ -17,6 +17,8 @@ mod mod_contracts_benchmark_contracts_rs;
 mod mod_contracts_campaign_engine_rs;
 #[path = "contracts/campaign_lifecycle.rs"]
 mod mod_contracts_campaign_lifecycle_rs;
+#[path = "contracts/campaign_plugins.rs"]
+mod mod_contracts_campaign_plugins_rs;
 #[path = "contracts/container_report_portfolio.rs"]
 mod mod_contracts_container_report_portfolio_rs;
 #[path = "contracts/benching/contract_handshake.rs"]

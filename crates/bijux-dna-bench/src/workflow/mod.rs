@@ -136,7 +136,8 @@ pub use campaign_engine::{
     BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
     BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
     BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataSnapshotRoleV1,
-    BenchmarkDataSnapshotV1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    BenchmarkDataSnapshotV1, BenchmarkStageNormalization, BenchmarkStagePluginRegistry,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
     BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };

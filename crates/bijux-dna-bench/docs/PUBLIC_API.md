@@ -77,6 +77,11 @@ The `public_api` module itself is private. Stable exports are owned by
 - `ensure_stage_campaign_attempts(root, plan)` validates source locks, then preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
 - `resolve_benchmark_runtime(platform, runtime_override)` applies the benchmark-owned container-runtime policy before execution is allocated.
 - `plan_benchmark_cases(request)` selects one permanent run, closes its governed data and tool bindings, and immutably publishes its generic case matrix.
+- `BenchmarkStagePluginRegistry` validates complete, non-ambiguous plugin
+  coverage and generically materializes or normalizes a binding-backed stage.
+- `BenchmarkStageNormalization` returns the normalized plugin output together
+  with its stage-owned downstream evaluation without converting scientific
+  failure into control-flow failure.
 - `admit_benchmark_cases(request)` validates normalized observations against their exact case matrix and publishes an immutable admitted set.
 - `aggregate_benchmark_cases(request)` validates an admitted observation set and publishes deterministic case aggregations.
 - `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.
