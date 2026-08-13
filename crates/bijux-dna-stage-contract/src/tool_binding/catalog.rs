@@ -372,7 +372,7 @@ fn alientrimmer_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(1, 2, 1),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -414,7 +414,7 @@ fn atropos_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(4, 8, 4),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -448,7 +448,7 @@ fn fastx_clipper_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(1, 2, 1),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
@@ -473,7 +473,7 @@ fn skewer_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(2, 2, 1),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
@@ -501,7 +501,7 @@ fn trim_galore_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(2, 4, 2),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -536,7 +536,7 @@ fn trimmomatic_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(2, 4, 2),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -1642,7 +1642,7 @@ fn rxy_sex() -> ToolBindingV1 {
         ],
         "bijux.benchmark.bam.sex.bundle.v1",
         "parse_sex_json",
-        "bijux.stage_probe.bam.sex.v1",
+        "benchmark.bam.sex.compare",
         resources(1, 8, 8),
         &[
             "classification_profile_must_match_the_governed_reference_and_interpretation_scope",
@@ -1813,6 +1813,7 @@ pub fn canonical_tool_bindings() -> Result<ToolBindingRegistry> {
     for binding in canonical_retained_tool_bindings()?.bindings() {
         registry.insert(binding.clone())?;
     }
+    crate::downstream_probes_for_bindings(&registry)?;
     Ok(registry)
 }
 
@@ -2189,8 +2190,18 @@ fn external_binding(
         command_template: command_template.iter().map(ToString::to_string).collect(),
         resources,
         normalizer_id: normalizer_id.to_string(),
-        downstream_probe_id: format!("bijux.stage_probe.{stage_id}.v1"),
+        downstream_probe_id: external_downstream_probe_id(stage_id),
         limitations: binding_limitations,
+    }
+}
+
+fn external_downstream_probe_id(stage_id: &str) -> String {
+    match stage_id {
+        "bam.damage" => "benchmark.bam.damage.consume".to_string(),
+        "bam.kinship" | "bam.sex" | "fastq.remove_duplicates" => {
+            format!("benchmark.{stage_id}.compare")
+        }
+        _ => format!("bijux.stage_probe.{stage_id}.v1"),
     }
 }
 

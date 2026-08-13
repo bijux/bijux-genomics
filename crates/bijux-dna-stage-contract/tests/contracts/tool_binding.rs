@@ -1860,7 +1860,7 @@ fn canonical_rxy_binding_requires_explicit_interpretation_context() -> Result<()
     assert_eq!(binding.resources.threads, 1);
     assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.bam.sex.bundle.v1");
     assert_eq!(binding.normalizer_id, "parse_sex_json");
-    assert_eq!(binding.downstream_probe_id, "bijux.stage_probe.bam.sex.v1");
+    assert_eq!(binding.downstream_probe_id, "benchmark.bam.sex.compare");
     assert_eq!(
         binding.parameters.iter().map(|parameter| parameter.name.as_str()).collect::<Vec<_>>(),
         ["classification_profile", "minimum_sex_reads"]

@@ -530,7 +530,18 @@ fn campaign_binding_normalized_output_drift_is_refused() -> Result<()> {
     fixture.bindings = replacement;
 
     let error = plan(&fixture).expect_err("normalized stage output drift must fail planning");
-    assert!(error.to_string().contains("emits no declared stage output"));
+    assert!(format!("{error:#}").contains("downstream consumer semantics"));
+    Ok(())
+}
+
+#[test]
+fn campaign_downstream_probe_drift_is_refused() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    let interface = fixture.interfaces.interfaces.first_mut().expect("checked-in interface");
+    interface.downstream_probe.consumer_stage_id = "benchmark.invalid.consumer.probe".to_string();
+
+    let error = plan(&fixture).expect_err("downstream probe drift must fail planning");
+    assert!(error.to_string().contains("canonical downstream probe"));
     Ok(())
 }
 

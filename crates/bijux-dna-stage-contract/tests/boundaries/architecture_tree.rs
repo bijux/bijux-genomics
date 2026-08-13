@@ -51,6 +51,7 @@ fn assert_source_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src")),
         entries([
+            "downstream_probe/",
             "execution_plan/",
             "executor_registry/",
             "lib.rs",
@@ -60,6 +61,11 @@ fn assert_source_layout(root: &Path) {
             "tool_binding/",
         ]),
         "src must stay grouped by stage-contract concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/downstream_probe")),
+        entries(["evaluation.rs", "mod.rs", "model.rs", "registry.rs"]),
+        "downstream_probe must separate evaluation, model, and registry ownership"
     );
     assert_eq!(
         dir_entries(&root.join("src/execution_plan")),
