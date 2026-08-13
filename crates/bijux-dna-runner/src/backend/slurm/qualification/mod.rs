@@ -48,4 +48,6 @@ pub use lifecycle::{
 pub use preparation::{
     prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
 };
-pub use validation::load_container_qualification_slurm_spec;
+pub use validation::{
+    load_container_qualification_slurm_spec, load_recorded_container_qualification_slurm_spec,
+};

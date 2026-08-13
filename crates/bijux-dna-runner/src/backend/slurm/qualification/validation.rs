@@ -49,7 +49,15 @@ pub fn load_container_qualification_slurm_spec(
     Ok(spec)
 }
 
-pub(super) fn load_recorded_container_qualification_slurm_spec(
+/// Load a persisted qualification specification for post-submission lifecycle operations.
+///
+/// The immutable executor identity remains validated, but the executor bytes need not remain at
+/// their original path after the prepared script has passed its pre-execution digest gate.
+///
+/// # Errors
+/// Returns an error when the recorded authority is malformed, changed, or conflicts with its
+/// admitted governance, pipeline, credential, repository, or evidence-root identities.
+pub fn load_recorded_container_qualification_slurm_spec(
     path: &Path,
 ) -> Result<ContainerQualificationSlurmSpec> {
     let spec = read_json(path)?;

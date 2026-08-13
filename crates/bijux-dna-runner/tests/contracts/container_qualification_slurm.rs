@@ -15,7 +15,8 @@ use bijux_dna_runner::api::{
     cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
     execute_container_qualification, load_container_qualification_admission,
     load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
-    prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
+    load_recorded_container_qualification_slurm_spec, prepare_container_qualification_slurm_job,
+    prepare_historical_container_qualification_replay,
     rollback_failed_container_qualification_attempt_archive,
     submit_prepared_container_qualification_job, ContainerQualificationExecution,
     ContainerQualificationPreparationRequest, ContainerQualificationSchedulerStatus,
@@ -544,6 +545,12 @@ fn lifecycle_is_duplicate_safe_non_waiting_collectable_and_cancellable() -> Resu
         &fixture.evidence_root.join("qualification-spec.json")
     )
     .is_err_and(|error| error.to_string().contains("executor program")));
+    assert_eq!(
+        load_recorded_container_qualification_slurm_spec(
+            &fixture.evidence_root.join("qualification-spec.json")
+        )?,
+        spec
+    );
     assert!(submit_prepared_container_qualification_job(&scheduler, &prepared)
         .is_err_and(|error| error.to_string().contains("executor program")));
 

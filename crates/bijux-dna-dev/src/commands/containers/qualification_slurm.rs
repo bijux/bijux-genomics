@@ -2,7 +2,7 @@ use super::{
     command_hostname, path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace,
 };
 
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <attempt-id> <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- replay-prepare <attempt-id> <governance> <source-pipeline> <replay-pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- execute <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- archive-failure <qualification-spec> <archived-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-slurm -- prepare <attempt-id> <governance> <pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- replay-prepare <attempt-id> <governance> <source-pipeline> <replay-pipeline> <credential-reference> <executor-program> <submitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- execute <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- submit <qualification-spec>\n  bijux-dna-dev containers run qualification-slurm -- observe <qualification-spec> <observed-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- collect <qualification-spec> <collected-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- admit <qualification-spec> <admitted-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- archive-failure <qualification-spec> <archived-at-utc>\n  bijux-dna-dev containers run qualification-slurm -- cancel <qualification-spec>";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -18,6 +18,7 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
         "submit" => submit(workspace, options),
         "observe" => observe(workspace, options),
         "collect" => collect(workspace, options),
+        "admit" => admit(workspace, options),
         "archive-failure" => archive_failure(workspace, options),
         "cancel" => cancel(workspace, options),
         _ => anyhow::bail!(USAGE),
@@ -116,7 +117,7 @@ fn observe(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
     };
     let observation = bijux_dna_runner::api::observe_container_qualification_slurm_job(
         &bijux_dna_runner::api::SlurmClientPaths::default(),
-        &load_spec(workspace, specification)?,
+        &load_recorded_spec(workspace, specification)?,
         observed_at_utc,
     )?;
     json_out(&serde_json::to_value(observation)?)
@@ -128,17 +129,28 @@ fn collect(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
     };
     let collection = bijux_dna_runner::api::collect_container_qualification_slurm_job(
         &bijux_dna_runner::api::SlurmClientPaths::default(),
-        &load_spec(workspace, specification)?,
+        &load_recorded_spec(workspace, specification)?,
         collected_at_utc,
     )?;
     json_out(&serde_json::to_value(collection)?)
+}
+
+fn admit(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let [specification, admitted_at_utc] = args else {
+        anyhow::bail!(USAGE);
+    };
+    let admission = bijux_dna_runner::api::admit_container_qualification_collection(
+        &load_recorded_spec(workspace, specification)?,
+        admitted_at_utc,
+    )?;
+    json_out(&serde_json::to_value(admission)?)
 }
 
 fn cancel(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let [specification] = args else {
         anyhow::bail!(USAGE);
     };
-    let spec = load_spec(workspace, specification)?;
+    let spec = load_recorded_spec(workspace, specification)?;
     bijux_dna_runner::api::cancel_container_qualification_slurm_job(
         &bijux_dna_runner::api::SlurmClientPaths::default(),
         &spec,
@@ -151,7 +163,7 @@ fn archive_failure(workspace: &Workspace, args: &[String]) -> Result<ContainerCo
         anyhow::bail!(USAGE);
     };
     let archived = bijux_dna_runner::api::archive_failed_container_qualification_attempt(
-        &load_spec(workspace, specification)?,
+        &load_recorded_spec(workspace, specification)?,
         archived_at_utc,
     )?;
     json_out(&serde_json::to_value(archived)?)
@@ -162,6 +174,15 @@ fn load_spec(
     value: &str,
 ) -> Result<bijux_dna_runner::api::ContainerQualificationSlurmSpec> {
     bijux_dna_runner::api::load_container_qualification_slurm_spec(&path_from_arg(workspace, value))
+}
+
+fn load_recorded_spec(
+    workspace: &Workspace,
+    value: &str,
+) -> Result<bijux_dna_runner::api::ContainerQualificationSlurmSpec> {
+    bijux_dna_runner::api::load_recorded_container_qualification_slurm_spec(&path_from_arg(
+        workspace, value,
+    ))
 }
 
 fn json_out(value: &serde_json::Value) -> Result<ContainerCommandOutcome> {
@@ -183,6 +204,7 @@ mod tests {
             "submit",
             "observe",
             "collect",
+            "admit",
             "archive-failure",
             "cancel",
         ] {
