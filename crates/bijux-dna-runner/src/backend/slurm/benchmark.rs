@@ -6,7 +6,10 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::{validate_execution_spec, BenchmarkExecutionSpec};
+use bijux_dna_bench_model::{
+    validate_execution_spec, validate_stage_plan_manifest, BenchmarkExecutionSpec,
+    BenchmarkStagePlanManifest,
+};
 
 use super::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -17,6 +20,7 @@ const MAX_SPEC_BYTES: usize = 16 * 1024 * 1024;
 pub struct PreparedBenchmarkSlurmJob {
     pub request: SlurmSubmitRequest,
     pub execution_spec_sha256: String,
+    pub stage_plan_manifest_sha256: String,
     pub script_sha256: String,
 }
 
@@ -64,11 +68,13 @@ pub fn prepare_benchmark_slurm_job(
 
     let execution_spec_path = result_root.join("execution-spec.json");
     let execution_spec_sha256 = require_persisted_spec(&execution_spec_path, spec)?;
+    let stage_plan_manifest_sha256 =
+        require_stage_plan_manifest(&result_root, spec, &execution_spec_sha256)?;
     let scheduler_directory = ensure_owned_directory(&result_root.join("scheduler"))?;
     let script_path = scheduler_directory.join("job.sbatch");
     let stdout_path = scheduler_directory.join("stdout.log");
     let stderr_path = scheduler_directory.join("stderr.log");
-    let script = render_script(spec, &execution_spec_sha256);
+    let script = render_script(spec, &execution_spec_sha256, &stage_plan_manifest_sha256);
     ensure_file_identity(&script_path, script.as_bytes())?;
     let script_sha256 = bijux_dna_infra::hash_file_sha256(&script_path)
         .context("hash prepared benchmark Slurm script")?;
@@ -89,12 +95,17 @@ pub fn prepare_benchmark_slurm_job(
             submitted_at_utc: submitted_at_utc.to_string(),
         },
         execution_spec_sha256,
+        stage_plan_manifest_sha256,
         script_sha256,
     })
 }
 
-fn render_script(spec: &BenchmarkExecutionSpec, execution_spec_sha256: &str) -> String {
-    let mut lines = script_preflight(spec, execution_spec_sha256);
+fn render_script(
+    spec: &BenchmarkExecutionSpec,
+    execution_spec_sha256: &str,
+    stage_plan_manifest_sha256: &str,
+) -> String {
+    let mut lines = script_preflight(spec, execution_spec_sha256, stage_plan_manifest_sha256);
     append_validation_commands(&mut lines, spec);
     append_measurement_commands(&mut lines, spec);
     append_completion_commands(&mut lines, spec, execution_spec_sha256);
@@ -102,7 +113,11 @@ fn render_script(spec: &BenchmarkExecutionSpec, execution_spec_sha256: &str) -> 
     lines.join("\n")
 }
 
-fn script_preflight(spec: &BenchmarkExecutionSpec, execution_spec_sha256: &str) -> Vec<String> {
+fn script_preflight(
+    spec: &BenchmarkExecutionSpec,
+    execution_spec_sha256: &str,
+    stage_plan_manifest_sha256: &str,
+) -> Vec<String> {
     let result_root = shell_quote(&spec.outputs.result_root);
     let repository_path = shell_quote(&spec.source.repository_path);
     let image_path = shell_quote(&spec.image.path);
@@ -143,6 +158,10 @@ fn script_preflight(spec: &BenchmarkExecutionSpec, execution_spec_sha256: &str) 
             shell_quote(execution_spec_sha256)
         ),
         format!(
+            "test \"$(sha256sum \"${{RESULT_ROOT}}/stage-plan-manifest.json\" | awk '{{print $1}}')\" = {}",
+            shell_quote(stage_plan_manifest_sha256)
+        ),
+        format!(
             "test \"$(sha256sum \"${{IMAGE_PATH}}\" | awk '{{print $1}}')\" = {}",
             shell_quote(&spec.image.sha256)
         ),
@@ -159,6 +178,25 @@ fn script_preflight(spec: &BenchmarkExecutionSpec, execution_spec_sha256: &str) 
         lines.push(format!("test ! -e {path} && test ! -L {path}"));
     }
     lines
+}
+
+fn require_stage_plan_manifest(
+    result_root: &Path,
+    spec: &BenchmarkExecutionSpec,
+    execution_spec_sha256: &str,
+) -> Result<String> {
+    let manifest_path = result_root.join("stage-plan-manifest.json");
+    let manifest: BenchmarkStagePlanManifest = read_json_bounded(&manifest_path)?;
+    validate_stage_plan_manifest(&manifest).context("validate benchmark stage-plan manifest")?;
+    if manifest.identity != spec.identity || manifest.execution_spec_sha256 != execution_spec_sha256
+    {
+        bail!("benchmark stage-plan manifest differs from execution specification");
+    }
+    for reference in &manifest.plans {
+        let path = result_root.join(&reference.path);
+        require_exact_file(&path, &reference.sha256, "benchmark stage plan")?;
+    }
+    bijux_dna_infra::hash_file_sha256(&manifest_path).context("hash benchmark stage-plan manifest")
 }
 
 fn append_validation_commands(lines: &mut Vec<String>, spec: &BenchmarkExecutionSpec) {
@@ -323,6 +361,18 @@ fn require_persisted_spec(path: &Path, expected: &BenchmarkExecutionSpec) -> Res
         bail!("persisted execution specification differs from requested benchmark execution");
     }
     bijux_dna_infra::hash_file_sha256(path).context("hash persisted execution specification")
+}
+
+fn read_json_bounded<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T> {
+    let metadata = fs::symlink_metadata(path)
+        .with_context(|| format!("inspect immutable JSON {}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("immutable JSON is not a regular file: {}", path.display());
+    }
+    let bytes = bijux_dna_infra::read_to_end_bounded(path, MAX_SPEC_BYTES)
+        .with_context(|| format!("read immutable JSON {}", path.display()))?;
+    serde_json::from_slice(&bytes)
+        .with_context(|| format!("parse immutable JSON {}", path.display()))
 }
 
 fn require_exact_file(path: &Path, expected_sha256: &str, label: &str) -> Result<PathBuf> {
