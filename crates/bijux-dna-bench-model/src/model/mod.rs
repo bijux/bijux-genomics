@@ -31,6 +31,7 @@ pub mod local_hpc_asset_staging;
 pub mod local_hpc_candidate_run;
 pub mod local_hpc_execution_resolver;
 pub mod local_hpc_result_collection_simulation;
+pub mod local_hpc_resume_simulation;
 pub mod local_hpc_scratch_layout;
 pub mod local_pipeline_dag;
 pub mod local_runtime_metrics;
@@ -282,6 +283,15 @@ pub use local_hpc_result_collection_simulation::{
     BenchmarkLocalHpcResultCollectionSimulationBehavior,
     BenchmarkLocalHpcResultCollectionSimulationReport,
     BenchmarkLocalHpcResultCollectionSimulationRow,
+};
+#[allow(unused_imports)]
+pub use local_hpc_resume_simulation::{
+    benchmark_local_hpc_resume_simulation_schema, BenchmarkLocalHpcResumeSimulationBehavior,
+    BenchmarkLocalHpcResumeSimulationJob, BenchmarkLocalHpcResumeSimulationReport,
+    BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_MISSING_MANIFEST_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_STALE_OUTPUT_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_UNRELATED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_VALID_JOB_ID,
 };
 #[allow(unused_imports)]
 pub use local_hpc_scratch_layout::{

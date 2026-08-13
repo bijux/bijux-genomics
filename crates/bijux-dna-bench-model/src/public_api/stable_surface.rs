@@ -24,7 +24,8 @@ pub use crate::contract::{
     validate_benchmark_local_hpc_candidate_run_manifest,
     validate_benchmark_local_hpc_execution_resolver, validate_benchmark_local_hpc_job_graph,
     validate_benchmark_local_hpc_result_collection_simulation_report,
-    validate_benchmark_local_hpc_scratch_layout, validate_benchmark_local_pipeline_dag_validation,
+    validate_benchmark_local_hpc_resume_simulation, validate_benchmark_local_hpc_scratch_layout,
+    validate_benchmark_local_pipeline_dag_validation,
     validate_benchmark_local_pipeline_dag_validation_set, validate_benchmark_local_runtime_metrics,
     validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
     validate_benchmark_local_slurm_shell_syntax, validate_benchmark_local_slurm_submit_manifest,
@@ -83,7 +84,7 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
-    BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1, BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
     BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
@@ -285,6 +286,14 @@ pub use crate::model::local_hpc_result_collection_simulation::{
     BenchmarkLocalHpcResultCollectionSimulationBehavior,
     BenchmarkLocalHpcResultCollectionSimulationReport,
     BenchmarkLocalHpcResultCollectionSimulationRow,
+};
+pub use crate::model::local_hpc_resume_simulation::{
+    benchmark_local_hpc_resume_simulation_schema, BenchmarkLocalHpcResumeSimulationBehavior,
+    BenchmarkLocalHpcResumeSimulationJob, BenchmarkLocalHpcResumeSimulationReport,
+    BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_MISSING_MANIFEST_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_STALE_OUTPUT_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_UNRELATED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_VALID_JOB_ID,
 };
 pub use crate::model::local_hpc_scratch_layout::{
     benchmark_local_hpc_scratch_layout_schema, BenchmarkLocalHpcScratchCleanupPolicy,

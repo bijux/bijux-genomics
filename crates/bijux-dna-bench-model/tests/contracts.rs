@@ -57,6 +57,8 @@ mod mod_contracts_local_hpc_candidate_run_rs;
 mod mod_contracts_local_hpc_execution_resolver_rs;
 #[path = "contracts/local_hpc_result_collection_simulation.rs"]
 mod mod_contracts_local_hpc_result_collection_simulation_rs;
+#[path = "contracts/local_hpc_resume_simulation.rs"]
+mod mod_contracts_local_hpc_resume_simulation_rs;
 #[path = "contracts/local_hpc_scratch_layout.rs"]
 mod mod_contracts_local_hpc_scratch_layout_rs;
 #[path = "contracts/local_pipeline_dag.rs"]

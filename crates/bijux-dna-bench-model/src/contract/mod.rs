@@ -32,6 +32,7 @@ mod local_hpc_asset_staging;
 mod local_hpc_candidate_run;
 mod local_hpc_execution_resolver;
 mod local_hpc_result_collection_simulation;
+mod local_hpc_resume_simulation;
 mod local_hpc_scratch_layout;
 mod local_pipeline_dag;
 mod local_runtime_metrics;
@@ -107,6 +108,7 @@ pub use local_hpc_asset_staging::validate_benchmark_local_hpc_asset_staging_mani
 pub use local_hpc_candidate_run::validate_benchmark_local_hpc_candidate_run_manifest;
 pub use local_hpc_execution_resolver::validate_benchmark_local_hpc_execution_resolver;
 pub use local_hpc_result_collection_simulation::validate_benchmark_local_hpc_result_collection_simulation_report;
+pub use local_hpc_resume_simulation::validate_benchmark_local_hpc_resume_simulation;
 pub use local_hpc_scratch_layout::validate_benchmark_local_hpc_scratch_layout;
 pub use local_pipeline_dag::{
     validate_benchmark_local_pipeline_dag_validation,
@@ -202,7 +204,7 @@ pub use schema_versions::{
     BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
-    BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1, BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
     BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,

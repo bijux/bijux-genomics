@@ -3,7 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_resume_simulation, BenchmarkLocalHpcResumeSimulationBehavior,
+    BenchmarkLocalHpcResumeSimulationJob, BenchmarkLocalHpcResumeSimulationReport,
+    BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_MISSING_MANIFEST_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_RESUME_STALE_OUTPUT_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_UNRELATED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_VALID_JOB_ID,
+};
 
 use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::local_hpc_job_completion::{
@@ -22,19 +30,16 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_HPC_RESUME_SIMULATION_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_resume_simulation.v1";
+    BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_RESUME_SIMULATION_PATH: &str =
     "runs/bench/hpc-dry-run/resume-simulation.json";
 const DEFAULT_HPC_RESUME_SIMULATION_TREE_NAME: &str = "resume-simulation-tree";
-const FAILED_STAGE_RESULT_JOB_ID: &str = "pipeline:relatedness-segments-vcf:vcf.ibd";
-const DEPENDENCY_RERUN_JOB_ID: &str = "pipeline:relatedness-segments-vcf:vcf.demography";
-const UNRELATED_VALID_JOB_ID: &str = "pipeline:relatedness-segments-vcf:vcf.roh";
-const MISSING_MANIFEST_JOB_ID: &str =
-    "benchmark:vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools";
-const STALE_PARTIAL_OUTPUT_JOB_ID: &str =
-    "benchmark:bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:contammix";
-const VALID_COMPLETED_JOB_ID: &str =
-    "benchmark:vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools";
+const FAILED_STAGE_RESULT_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID;
+const DEPENDENCY_RERUN_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID;
+const UNRELATED_VALID_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_UNRELATED_JOB_ID;
+const MISSING_MANIFEST_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_MISSING_MANIFEST_JOB_ID;
+const STALE_PARTIAL_OUTPUT_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_STALE_OUTPUT_JOB_ID;
+const VALID_COMPLETED_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_VALID_JOB_ID;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LocalHpcResumeAction {
@@ -51,69 +56,9 @@ impl LocalHpcResumeAction {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcResumeSimulationBehavior {
-    pub(crate) failed_stage_result_job_id: String,
-    pub(crate) dependency_rerun_job_id: String,
-    pub(crate) unrelated_valid_job_id: String,
-    pub(crate) missing_manifest_job_id: String,
-    pub(crate) stale_partial_output_job_id: String,
-    pub(crate) valid_completed_job_id: String,
-    pub(crate) failed_stage_result_reruns: bool,
-    pub(crate) dependency_rerun_propagates: bool,
-    pub(crate) unrelated_valid_job_skips: bool,
-    pub(crate) missing_manifest_reruns: bool,
-    pub(crate) stale_partial_output_reruns: bool,
-    pub(crate) valid_completed_job_skips: bool,
-    pub(crate) proven: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcResumeSimulationJob {
-    pub(crate) job_id_local: String,
-    pub(crate) job_kind: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) node_id: Option<String>,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) dependency_count: usize,
-    pub(crate) dependencies: Vec<String>,
-    pub(crate) completion_state: String,
-    pub(crate) completion_detail: String,
-    pub(crate) manifest_valid: bool,
-    pub(crate) runtime_status: Option<String>,
-    pub(crate) declared_output_count: usize,
-    pub(crate) present_output_count: usize,
-    pub(crate) missing_output_paths: Vec<String>,
-    pub(crate) resume_action: String,
-    pub(crate) reason: String,
-    pub(crate) rerun_dependencies: Vec<String>,
-    pub(crate) result_root: String,
-    pub(crate) stage_result_manifest_path: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcResumeSimulationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) manifest_path: String,
-    pub(crate) output_path: String,
-    pub(crate) simulation_root: String,
-    pub(crate) job_count: usize,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) essential_pipeline_job_count: usize,
-    pub(crate) dependency_count: usize,
-    pub(crate) valid_completed_job_count: usize,
-    pub(crate) failed_stage_result_job_count: usize,
-    pub(crate) invalid_stage_result_job_count: usize,
-    pub(crate) missing_stage_result_job_count: usize,
-    pub(crate) stale_partial_output_job_count: usize,
-    pub(crate) skip_job_count: usize,
-    pub(crate) rerun_job_count: usize,
-    pub(crate) dependency_rerun_job_count: usize,
-    pub(crate) behavior: LocalHpcResumeSimulationBehavior,
-    pub(crate) jobs: Vec<LocalHpcResumeSimulationJob>,
-}
+pub(crate) type LocalHpcResumeSimulationBehavior = BenchmarkLocalHpcResumeSimulationBehavior;
+pub(crate) type LocalHpcResumeSimulationJob = BenchmarkLocalHpcResumeSimulationJob;
+pub(crate) type LocalHpcResumeSimulationReport = BenchmarkLocalHpcResumeSimulationReport;
 
 pub(crate) fn run_render_hpc_resume_simulation(
     args: &parse::BenchLocalRenderHpcResumeSimulationArgs,
@@ -352,7 +297,7 @@ fn build_hpc_resume_simulation(
 
     let behavior = build_behavior(&jobs)?;
     let report = LocalHpcResumeSimulationReport {
-        schema_version: LOCAL_HPC_RESUME_SIMULATION_SCHEMA_VERSION,
+        schema_version: LOCAL_HPC_RESUME_SIMULATION_SCHEMA_VERSION.to_string(),
         manifest_path: graph.manifest_path,
         output_path: path_relative_to_repo(repo_root, absolute_output_path),
         simulation_root: path_relative_to_repo(repo_root, &simulation_root),
@@ -371,7 +316,7 @@ fn build_hpc_resume_simulation(
         behavior,
         jobs,
     };
-    ensure_hpc_resume_simulation_contract(&report)?;
+    validate_benchmark_local_hpc_resume_simulation(&report)?;
     Ok(report)
 }
 
@@ -468,43 +413,4 @@ fn build_behavior(
             && behavior.valid_completed_job_skips,
         ..behavior
     })
-}
-
-fn ensure_hpc_resume_simulation_contract(report: &LocalHpcResumeSimulationReport) -> Result<()> {
-    if report.job_count != report.benchmark_job_count + report.essential_pipeline_job_count {
-        return Err(anyhow!(
-            "HPC resume simulation job count must equal benchmark jobs plus essential pipeline jobs"
-        ));
-    }
-    if report.jobs.len() != report.job_count {
-        return Err(anyhow!(
-            "HPC resume simulation must keep one governed row per selected HPC job"
-        ));
-    }
-    if report.skip_job_count + report.rerun_job_count != report.job_count {
-        return Err(anyhow!(
-            "HPC resume simulation skip and rerun counts must partition the governed job set"
-        ));
-    }
-    let classified_job_count = report.valid_completed_job_count
-        + report.failed_stage_result_job_count
-        + report.invalid_stage_result_job_count
-        + report.missing_stage_result_job_count
-        + report.stale_partial_output_job_count;
-    if classified_job_count != report.job_count {
-        return Err(anyhow!(
-            "HPC resume simulation completion-state counts must partition the governed job set"
-        ));
-    }
-    if report.dependency_rerun_job_count >= report.rerun_job_count {
-        return Err(anyhow!(
-            "HPC resume simulation must keep at least one direct rerun cause besides dependency propagation"
-        ));
-    }
-    if !report.behavior.proven {
-        return Err(anyhow!(
-            "HPC resume simulation must prove valid skips, failed reruns, missing-manifest reruns, stale-output reruns, and dependency propagation"
-        ));
-    }
-    Ok(())
 }

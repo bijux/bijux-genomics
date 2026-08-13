@@ -148,6 +148,13 @@ resolution. The benchmark model owns ordering, scope closure, availability
 reasoning, exact counters, and schema generation; the CLI only observes runtime
 probes and assembles the admitted report.
 
+`schemas/local-hpc-resume-simulation.schema.json` defines the persisted decision
+to skip a valid completed job or rerun an incomplete job and its dependent
+closure. The benchmark model owns completion evidence, topological dependency
+propagation, seeded behavior proofs, exact counters, and schema generation; the
+CLI only constructs the isolated simulation tree and publishes the admitted
+report.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,
