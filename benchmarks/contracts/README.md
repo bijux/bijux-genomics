@@ -143,6 +143,12 @@ resource configuration and its readiness projection. The benchmark model owns
 stage-tool identity, positive resource bounds, deterministic ordering,
 aggregate closure, schema generation, and admission.
 
+`schemas/stage-tool-assets.schema.json` and
+`schemas/stage-tool-assets-report.schema.json` define benchmark asset bindings
+and their readiness projection. The benchmark model owns binding identity,
+safe persisted paths, canonical ordering, declaration provenance, aggregate
+closure, schema generation, and admission.
+
 `schemas/full-benchmark-report.schema.json` defines the persisted aggregate
 FASTQ, BAM, and VCF report, including stage, tool, corpus, pipeline, runtime,
 memory, failure, missing-result, comparable-metric, and unsupported-pair

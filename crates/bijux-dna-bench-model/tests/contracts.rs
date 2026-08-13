@@ -131,6 +131,8 @@ mod mod_contracts_scope_views_rs;
 mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]
 mod mod_contracts_stage_result_rs;
+#[path = "contracts/stage_tool_assets.rs"]
+mod mod_contracts_stage_tool_assets_rs;
 #[path = "contracts/stage_tool_closure.rs"]
 mod mod_contracts_stage_tool_closure_rs;
 #[path = "contracts/stage_tool_resources.rs"]

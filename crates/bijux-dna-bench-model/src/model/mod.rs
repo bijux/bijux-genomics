@@ -73,6 +73,7 @@ pub mod scientific_acceptance;
 pub mod scope_views;
 pub mod source_authority;
 pub mod stage_result;
+pub mod stage_tool_assets;
 pub mod stage_tool_closure;
 pub mod stage_tool_resources;
 pub mod suite;
@@ -581,6 +582,12 @@ pub use stage_result::{
     BenchmarkStageResultResourceMetricSource, BenchmarkStageResultResourceMetrics,
     BenchmarkStageResultRuntime, BenchmarkStageResultStatus, BenchmarkStageResultTool,
     BenchmarkStageResultValidationReport,
+};
+#[allow(unused_imports)]
+pub use stage_tool_assets::{
+    stage_tool_assets_config_schema, stage_tool_assets_report_schema, StageToolAssetRow,
+    StageToolAssetsConfig, StageToolAssetsReport, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,
+    STAGE_TOOL_ASSETS_SCOPE,
 };
 #[allow(unused_imports)]
 pub use stage_tool_closure::{

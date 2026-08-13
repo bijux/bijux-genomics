@@ -17,8 +17,8 @@ use super::bam_report_map::collect_bam_report_map_rows;
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
 use super::fastq_report_map::collect_fastq_report_stage_metadata;
 use super::stage_tool_assets::{
-    StageToolAssetRow, StageToolAssetsConfig, DEFAULT_STAGE_TOOL_ASSETS_PATH,
-    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION,
+    validate_stage_tool_assets_config, StageToolAssetRow, StageToolAssetsConfig,
+    DEFAULT_STAGE_TOOL_ASSETS_PATH,
 };
 use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows;
 use crate::commands::cli::parse;
@@ -392,14 +392,7 @@ fn load_committed_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToo
         .with_context(|| format!("read {}", asset_path.display()))?;
     let report: StageToolAssetsConfig =
         toml::from_str(&rendered).with_context(|| format!("parse {}", asset_path.display()))?;
-    if report.schema_version != LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "stage-tool-assets config at `{}` changed schema version from `{}` to `{}`",
-            asset_path.display(),
-            LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION,
-            report.schema_version
-        ));
-    }
+    validate_stage_tool_assets_config(&report)?;
     Ok(report.rows)
 }
 

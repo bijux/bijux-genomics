@@ -14,8 +14,8 @@ use super::fastq_command_adapter_coverage::{
 };
 use super::fastq_corpus_assignment::collect_fastq_corpus_assignment_rows;
 use super::stage_tool_assets::{
-    StageToolAssetRow, StageToolAssetsConfig, DEFAULT_STAGE_TOOL_ASSETS_PATH,
-    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION,
+    validate_stage_tool_assets_config, StageToolAssetRow, StageToolAssetsConfig,
+    DEFAULT_STAGE_TOOL_ASSETS_PATH,
 };
 use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
@@ -329,12 +329,7 @@ fn load_committed_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToo
         .with_context(|| format!("read {}", config_path.display()))?;
     let config: StageToolAssetsConfig =
         toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))?;
-    if config.schema_version != LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "committed stage-tool assets config drifted from governed schema `{}`",
-            config.schema_version
-        ));
-    }
+    validate_stage_tool_assets_config(&config)?;
     Ok(config.rows)
 }
 
