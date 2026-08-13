@@ -437,11 +437,13 @@ Visible aliases are part of the operator surface:
   remain bound to their owned BAM corpora.
 - `bijux-dna bench readiness render-benchmark-readiness-dashboard`
   `render-benchmark-readiness-dashboard` writes
-  `artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md` and
-  `artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json`, aggregating the governed matrix,
-  adapter, parser, corpus, asset, and report surfaces into one local dashboard. The summary keeps
-  total expected pairs, ready pairs, blocked pairs, exact blocker counts, and every blocked
-  `stage_id × tool_id` row reviewer-visible in one place.
+  `artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.md` and
+  `artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.json`, aggregating the
+  FASTQ/BAM fixture matrix, adapter, parser, corpus, asset, and report surfaces into one local
+  harness dashboard. It explicitly reports `production_ready = false`, the complete 71-stage and
+  159-pair product counts, the active-versus-reserved protocol counts, and the product pairs that
+  the fixture harness excludes. Fixture readiness validates code paths only; it is not benchmark
+  publication evidence and does not cover VCF.
 - `bijux-dna bench readiness render-stage-tool-benchmark-ready`
   `render-stage-tool-benchmark-ready` writes
   `artifacts/benchmark-smoke/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json`, proving that the
