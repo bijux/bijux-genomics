@@ -69,6 +69,8 @@ mod mod_contracts_local_hpc_resume_simulation_rs;
 mod mod_contracts_local_hpc_scratch_layout_rs;
 #[path = "contracts/local_hpc_stage_benchmark_array.rs"]
 mod mod_contracts_local_hpc_stage_benchmark_array_rs;
+#[path = "contracts/local_hpc_submission_readiness.rs"]
+mod mod_contracts_local_hpc_submission_readiness_rs;
 #[path = "contracts/local_pipeline_dag.rs"]
 mod mod_contracts_local_pipeline_dag_rs;
 #[path = "contracts/local_runtime_metrics.rs"]

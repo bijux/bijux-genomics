@@ -38,6 +38,7 @@ pub mod local_hpc_result_collection_simulation;
 pub mod local_hpc_resume_simulation;
 pub mod local_hpc_scratch_layout;
 pub mod local_hpc_stage_benchmark_array;
+pub mod local_hpc_submission_readiness;
 pub mod local_pipeline_dag;
 pub mod local_runtime_metrics;
 pub mod local_slurm_dependency;
@@ -331,6 +332,11 @@ pub use local_hpc_scratch_layout::{
 pub use local_hpc_stage_benchmark_array::{
     benchmark_local_hpc_stage_benchmark_array_schema, BenchmarkLocalHpcStageBenchmarkArrayReport,
     BenchmarkLocalHpcStageBenchmarkArrayRow,
+};
+#[allow(unused_imports)]
+pub use local_hpc_submission_readiness::{
+    benchmark_local_hpc_submission_readiness_schema, BenchmarkLocalHpcSubmissionReadinessGoalCheck,
+    BenchmarkLocalHpcSubmissionReadinessReport,
 };
 #[allow(unused_imports)]
 pub use local_pipeline_dag::{

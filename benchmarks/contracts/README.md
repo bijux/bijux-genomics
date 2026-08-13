@@ -179,6 +179,12 @@ goal inventory, pass/fail counters, behavior proof, readiness verdict, summary
 cardinality, safe evidence paths, and schema generation; the CLI only joins the
 admitted component reports and publishes the validated closure.
 
+`schemas/local-hpc-submission-readiness.schema.json` defines the persisted
+closure of all 99 local HPC submission-readiness goals. The benchmark model
+owns goal and category inventory, pass/fail counters, verdict closure, safe
+evidence paths, and schema generation; the CLI only evaluates the governed
+surfaces and publishes the admitted report.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,

@@ -3,7 +3,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_submission_readiness,
+    BenchmarkLocalHpcSubmissionReadinessGoalCheck, BenchmarkLocalHpcSubmissionReadinessReport,
+    BENCHMARK_LOCAL_HPC_SUBMISSION_READINESS_SCHEMA_V1,
+};
 
 use crate::commands::benchmark::local_benchmark_summary::{
     render_local_benchmark_summary, BenchLocalBenchmarkSummaryReport,
@@ -74,7 +78,6 @@ use crate::commands::hpc::{campaign_dry_run, prepare_foundation, submit_campaign
 
 pub(crate) const DEFAULT_HPC_SUBMISSION_READY_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json";
-const LOCAL_HPC_SUBMISSION_READY_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_submission_ready.v1";
 const DEFAULT_STAGE_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 const DEFAULT_STAGE_OUTPUT_COMPLETION_REPORT_PATH: &str =
@@ -242,27 +245,9 @@ const PIPELINE_DAG_GOALS: &[(u32, &str, &str)] = &[
     ),
 ];
 
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalHpcSubmissionReadyGoalCheck {
-    pub(crate) goal_id: u32,
-    pub(crate) category: String,
-    pub(crate) surface: String,
-    pub(crate) output_path: Option<String>,
-    pub(crate) ok: bool,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalHpcSubmissionReadyReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) checked_goal_count: usize,
-    pub(crate) passed_goal_count: usize,
-    pub(crate) failed_goal_count: usize,
-    pub(crate) failing_goal_ids: Vec<u32>,
-    pub(crate) ok: bool,
-    pub(crate) checks: Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-}
+pub(crate) type BenchLocalHpcSubmissionReadyGoalCheck =
+    BenchmarkLocalHpcSubmissionReadinessGoalCheck;
+pub(crate) type BenchLocalHpcSubmissionReadyReport = BenchmarkLocalHpcSubmissionReadinessReport;
 
 pub(crate) fn run_validate_hpc_submission_ready(output: Option<PathBuf>, json: bool) -> Result<()> {
     validate_hpc_submission_ready_feature_gate()?;
@@ -311,7 +296,7 @@ pub(crate) fn validate_hpc_submission_ready(
         .into_iter()
         .collect::<Vec<_>>();
     let report = BenchLocalHpcSubmissionReadyReport {
-        schema_version: LOCAL_HPC_SUBMISSION_READY_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_HPC_SUBMISSION_READINESS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         checked_goal_count: checks.len(),
         passed_goal_count: checks.iter().filter(|check| check.ok).count(),
@@ -320,6 +305,7 @@ pub(crate) fn validate_hpc_submission_ready(
         failing_goal_ids,
         checks,
     };
+    validate_benchmark_local_hpc_submission_readiness(&report)?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
 
