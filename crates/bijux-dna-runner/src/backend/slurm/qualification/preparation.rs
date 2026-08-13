@@ -17,8 +17,8 @@ use super::contracts::{
 };
 use super::validation::{
     canonical_directory, canonical_governed_directory, derive_historical_replay_identity,
-    derive_identity, ensure_json_identity, require_exact_file, require_utc_timestamp,
-    validate_specification, QualificationIdentity,
+    derive_identity, ensure_json_identity, require_exact_file, require_executable,
+    require_utc_timestamp, validate_specification, QualificationIdentity,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -75,9 +75,15 @@ fn prepare(
     if executor_program_path.file_name() != Some(OsStr::new("bijux-dna-dev")) {
         bail!("native qualification executor must be the pinned bijux-dna-dev program");
     }
+    let governance = load_container_governance(&request.governance_path)?;
     let executor_program_sha256 = bijux_dna_infra::hash_file_sha256(&executor_program_path)?;
     require_exact_file(&executor_program_path, &executor_program_sha256, "executor program")?;
-    let governance = load_container_governance(&request.governance_path)?;
+    require_executable(&executor_program_path, "executor program")?;
+    let executor_program_path = freeze_executor_program(
+        &executor_program_path,
+        &governance.paths.containers_root,
+        &executor_program_sha256,
+    )?;
     let evidence_root = ensure_current_attempt_layout(&governance, &identity, &request.attempt_id)?;
     let governance_path = archive_contract(
         &request.governance_path,
@@ -340,6 +346,41 @@ fn archive_contract(source: &Path, target: &Path, label: &str) -> Result<PathBuf
     target.canonicalize().with_context(|| format!("canonicalize archived {label}"))
 }
 
+fn freeze_executor_program(source: &Path, containers_root: &Path, sha256: &str) -> Result<PathBuf> {
+    let containers_root =
+        canonical_governed_directory(containers_root, "governed containers root")?;
+    let mut directory = containers_root.clone();
+    for component in ["evidence", "executables", sha256] {
+        directory = ensure_directory(&directory.join(component))?;
+    }
+    let target = directory.join("bijux-dna-dev");
+    match fs::symlink_metadata(&target) {
+        Ok(_) => {}
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            let mut input =
+                fs::File::open(source).context("open qualification executor program")?;
+            match bijux_dna_infra::atomic_create_with(&target, |output| {
+                std::io::copy(&mut input, output)?;
+                Ok(())
+            }) {
+                Ok(()) => {}
+                Err(_error) if target.exists() => {
+                    require_exact_file(&target, sha256, "frozen executor program")?;
+                }
+                Err(error) => return Err(error).context("freeze qualification executor program"),
+            }
+        }
+        Err(error) => return Err(error).with_context(|| format!("inspect {}", target.display())),
+    }
+    let target = require_exact_file(&target, sha256, "frozen executor program")?;
+    make_immutable_executable(&target)?;
+    require_executable(&target, "frozen executor program")?;
+    if !target.starts_with(&containers_root) {
+        bail!("frozen executor program escapes governed containers root");
+    }
+    Ok(target)
+}
+
 fn ensure_bytes_identity(path: &Path, expected: &[u8]) -> Result<()> {
     match fs::symlink_metadata(path) {
         Ok(metadata) => {
@@ -366,6 +407,19 @@ fn make_executable(path: &Path) -> Result<()> {
         permissions.set_mode(0o750);
         fs::set_permissions(path, permissions)?;
     }
+    Ok(())
+}
+
+fn make_immutable_executable(path: &Path) -> Result<()> {
+    let mut permissions = fs::metadata(path)?.permissions();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt as _;
+        permissions.set_mode(0o550);
+    }
+    #[cfg(not(unix))]
+    permissions.set_readonly(true);
+    fs::set_permissions(path, permissions)?;
     Ok(())
 }
 

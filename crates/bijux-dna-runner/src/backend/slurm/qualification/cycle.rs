@@ -1153,7 +1153,6 @@ fn specification_staleness_detail(
                 &spec.credential_reference_sha256,
                 "credential reference",
             ),
-            (&preparation.executor_program_path, &spec.executor_program_sha256, "executor program"),
         ] {
             let current_sha256 = bijux_dna_infra::hash_file_sha256(expected_path)?;
             if current_sha256 != *retained_sha256 {

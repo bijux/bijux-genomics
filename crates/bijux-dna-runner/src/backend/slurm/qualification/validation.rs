@@ -438,7 +438,7 @@ fn require_sha256(value: &str, label: &str) -> Result<()> {
     Ok(())
 }
 
-fn require_executable(path: &Path, label: &str) -> Result<()> {
+pub(super) fn require_executable(path: &Path, label: &str) -> Result<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt as _;
