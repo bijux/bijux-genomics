@@ -17,7 +17,6 @@ renders human/JSON output, and exits with categorized operator failures.
 - Terminal/JSON rendering at the CLI boundary.
 - Help text, command snapshots, and operator-facing error categorization.
 - Thin adapters for environment, registry, corpus, benchmark, status, BAM, FASTQ, and VCF commands.
-- Benchmark-readiness validation, governed fixture regeneration, and local smoke orchestration that this crate publishes as operator-facing benchmark surfaces.
 
 ## What this crate must not own
 - Scientific domain truth, stage catalogs, or tool semantics.
@@ -25,22 +24,19 @@ renders human/JSON output, and exits with categorized operator failures.
 - Stage execution or runner backend behavior.
 - Hidden network access or shell/container spawning.
 - Workspace dependency decisions that belong to architecture policy.
+- Benchmark planning, readiness validation, fixture truth generation, lifecycle state, evidence
+  admission, aggregation, publication, or replay semantics.
 
 ## Allowed dependencies
 - `bijux-dna-api` for stable planning, runtime, report, environment, and domain-facing contracts.
 - `bijux-dna-infra` for declared filesystem helpers.
-- `bijux-dna-core`, domain, planner, stage-contract, and selected stage crates when the CLI owns benchmark-readiness validation, fixture truth generation, or local smoke evidence for governed outputs.
-- Explicit data access adapters when the CLI command owns that operator workflow, such as ENA corpus
-  materialization.
 - CLI support libraries for parsing, serialization, rendering, and deterministic archives.
-- Debug/operator helper crates only when explicitly justified by command ownership.
 
 ## Forbidden dependency shape
-The CLI must not directly depend on engine crates, runner crates, runtime internals, or unrelated
-internal crates to run science logic. Direct domain, planner, stage-contract, and selected stage
-crate edges are allowed only for benchmark-owned validation, fixture, and local smoke commands
-whose durable outputs are governed by this crate; broader runtime execution paths must still move
-behind `bijux-dna-api` or a smaller owning crate before the CLI calls them.
+The CLI must not directly depend on benchmark, engine, runner, runtime, domain, planner,
+stage-contract, or stage implementation crates to run product logic. Existing direct product edges
+are migration debt: they may only be removed or routed behind `bijux-dna-api`, never expanded, and
+they do not grant the CLI ownership of the behavior they expose.
 
 ## Allowed effects
 - Read repository configs and governed domain/assets files through declared paths.

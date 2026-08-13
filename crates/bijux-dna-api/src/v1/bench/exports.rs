@@ -321,6 +321,10 @@ pub use bijux_dna_bench::{
     STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
     TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1, VCF_STAGE_FAMILIES,
 };
+pub use bijux_dna_bench::{
+    derive_supported_domain_stage_tool_pairs, publish_checked_in_benchmark_run_registry,
+    BenchmarkRunRegistryWriteMode, BenchmarkStageToolClosureRow,
+};
 pub use bijux_dna_runner::api::{
     cancel_slurm_jobs, collect_benchmark_campaign_cycle, collect_corpus_materialization_slurm_job,
     load_corpus_materialization_slurm_job_handle, load_corpus_materialization_slurm_spec,

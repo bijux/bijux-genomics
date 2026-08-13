@@ -198,9 +198,9 @@ pub(crate) fn render_benchmark_readiness_dashboard(
     let json_output_path = derive_json_output_path(&markdown_output_path);
 
     let pair_rows = collect_pair_readiness_rows(repo_root)?;
-    let run_registry = bijux_dna_bench::publish_checked_in_benchmark_run_registry(
+    let run_registry = bijux_dna_api::v1::api::bench::publish_checked_in_benchmark_run_registry(
         repo_root,
-        bijux_dna_bench::BenchmarkRunRegistryWriteMode::Check,
+        bijux_dna_api::v1::api::bench::BenchmarkRunRegistryWriteMode::Check,
     )?;
     let product_pair_count = run_registry.runs.iter().map(|run| run.tool_ids.len()).sum::<usize>();
     let stage_reports = collect_stage_centric_stage_reports(repo_root)?;

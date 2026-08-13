@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::{anyhow, Result};
-use bijux_dna_bench::derive_supported_domain_stage_tool_pairs;
+use bijux_dna_api::v1::api::bench::derive_supported_domain_stage_tool_pairs;
 use bijux_dna_domain_vcf::VcfDomainStage;
 
 use super::local_vcf_stage_matrix::{build_vcf_stage_matrix_rows, VcfStageMatrixRow};

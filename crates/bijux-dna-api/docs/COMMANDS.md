@@ -43,6 +43,9 @@ The public front door also exposes curated v1 namespaces:
   Benchmark planning schema operations include `render_benchmark_stage_interfaces_schema`,
   `write_benchmark_stage_interfaces_schema`, `render_benchmark_pipeline_parameters_schema`,
   and `write_benchmark_pipeline_parameters_schema`.
+  Registry operations include `derive_supported_domain_stage_tool_pairs` and
+  `publish_checked_in_benchmark_run_registry` with the typed
+  `BenchmarkRunRegistryWriteMode` and `BenchmarkStageToolClosureRow` contracts.
   Benchmark report schema operations include `render_benchmark_stage_report_schema`,
   `write_benchmark_stage_report_schema`, `render_benchmark_report_admission_schema`, and
   `write_benchmark_report_admission_schema`.

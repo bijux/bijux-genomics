@@ -6,7 +6,9 @@ This document defines the governed benchmark workspace layout for corpus publica
 
 `configs/bench/benchmark.toml` is the authority. Benchmark runners, dossier renderers, sync helpers, and audit scripts must read workspace paths from that config instead of hardcoding user paths in code.
 
-`bijux-dna` owns benchmark orchestration and dossier generation against this contract. Make may wrap those Rust commands, but it must not introduce an independent path model or a second execution surface.
+`bijux-dna-bench` owns benchmark orchestration and dossier generation against this contract;
+`bijux-dna-api` composes those services for the thin `bijux-dna` CLI. Make may wrap those Rust
+commands, but it must not introduce an independent path model or a second execution surface.
 
 Read this together with `docs/30-operations/benchmark/workspace-model.md` for the durable role names used across the benchmark surface.
 
