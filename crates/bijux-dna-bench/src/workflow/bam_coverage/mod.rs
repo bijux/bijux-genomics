@@ -15,11 +15,17 @@ use bijux_dna_bench_model::{
     BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkExecutionAcceptance,
     BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
 use self::reference_span::ensure_reference_span_input;
-use super::bam_observation::{ensure_parameter_evidence, execution_inputs, BamParameterPolicy};
-use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+use super::bam_observation::{
+    ensure_parameter_evidence, execution_inputs, single_bam_stage_plan_unit, BamParameterPolicy,
+};
+use super::{
+    load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
+};
 
 pub(crate) use report::publish_bam_coverage_stage_report_with_presentation_authority;
 pub use report::{
@@ -111,6 +117,7 @@ pub fn prepare_bam_coverage_material_from_corpus(
     )?;
     let mut inputs = execution_inputs(corpus);
     inputs.push(ensure_reference_span_input(&attempt_directory, corpus)?);
+    let stage_plan_units = stage_plan_units(&identity.tool_id)?;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
         prepared_at_utc: prepared_at_utc.to_string(),
@@ -137,9 +144,32 @@ pub fn prepare_bam_coverage_material_from_corpus(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
-        stage_plan_units: None,
+        stage_plan_units: Some(stage_plan_units),
     };
     Ok(BamCoverageMaterial { execution, admitted_corpus: corpus.clone() })
+}
+
+fn stage_plan_units(tool_id: &str) -> Result<Vec<BenchmarkStagePlanUnitMaterial>> {
+    let outputs = match tool_id {
+        "bedtools" => vec![output("coverage_bedgraph", "coverage.bedgraph")],
+        "mosdepth" => vec![
+            output("coverage_summary", "coverage-summary.tsv"),
+            output("coverage_distribution", "coverage-distribution.tsv"),
+        ],
+        "samtools" => {
+            vec![output("depth_table", "depth.tsv"), output("reference_span", "reference-span.tsv")]
+        }
+        _ => bail!("unsupported BAM coverage stage-plan tool"),
+    };
+    Ok(vec![single_bam_stage_plan_unit(SAMPLE_ID, "/input/ERR2112767.sorted.bam", outputs)])
+}
+
+fn output(binding_name: &str, relative_path: &str) -> BenchmarkStagePlanOutputMaterial {
+    BenchmarkStagePlanOutputMaterial {
+        binding_name: binding_name.to_owned(),
+        relative_path: relative_path.into(),
+        role: ArtifactRole::SummaryTsv,
+    }
 }
 
 fn require_planned_attempt(root: &Path, identity: &BenchmarkAttemptIdentity) -> Result<()> {
@@ -197,7 +227,7 @@ mod tests {
 
     use bijux_dna_bench_model::{AdmittedBamCorpus, AdmittedBamCorpusFile};
 
-    use super::prepare_bam_coverage_material_from_corpus;
+    use super::{prepare_bam_coverage_material_from_corpus, stage_plan_units};
 
     #[test]
     fn material_closes_all_run_2002_tools() -> anyhow::Result<()> {
@@ -236,6 +266,7 @@ mod tests {
             assert!(material.execution.measured_command[2].contains("bam_coverage.awk"));
             assert_eq!(material.execution.parameters.effective_path, "effective-parameters.json");
             assert_eq!(material.execution.acceptance.metrics.len(), 4);
+            assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(1));
             let reference_span = material
                 .execution
                 .inputs
@@ -252,6 +283,33 @@ mod tests {
             assert_eq!(material.execution.required_files.len(), expected_files);
         }
         assert_eq!(reference_span_digests.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn stage_plan_units_match_each_canonical_coverage_binding() -> anyhow::Result<()> {
+        assert_canonical_outputs("bedtools", &stage_plan_units("bedtools")?[0])?;
+        assert_canonical_outputs("mosdepth", &stage_plan_units("mosdepth")?[0])?;
+        assert_canonical_outputs("samtools", &stage_plan_units("samtools")?[0])?;
+        assert!(stage_plan_units("unknown").is_err());
+        Ok(())
+    }
+
+    fn assert_canonical_outputs(
+        tool_id: &str,
+        unit: &crate::BenchmarkStagePlanUnitMaterial,
+    ) -> anyhow::Result<()> {
+        let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+        let binding = bindings
+            .binding(
+                &bijux_dna_core::ids::StageId::new(super::STAGE_ID),
+                &bijux_dna_core::ids::ToolId::new(tool_id),
+            )
+            .expect("canonical coverage binding");
+        assert_eq!(
+            unit.outputs.iter().map(|output| output.binding_name.as_str()).collect::<Vec<_>>(),
+            binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+        );
         Ok(())
     }
 

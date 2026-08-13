@@ -14,10 +14,16 @@ use bijux_dna_bench_model::{
     BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkExecutionAcceptance,
     BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
-use super::bam_observation::{ensure_parameter_evidence, execution_inputs, BamParameterPolicy};
-use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+use super::bam_observation::{
+    ensure_parameter_evidence, execution_inputs, single_bam_stage_plan_unit, BamParameterPolicy,
+};
+use super::{
+    load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
+};
 
 pub(crate) use report::publish_bam_duplication_metrics_stage_report_with_presentation_authority;
 pub use report::{
@@ -143,9 +149,33 @@ pub fn prepare_bam_duplication_metrics_material_from_corpus(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
-        stage_plan_units: None,
+        stage_plan_units: Some(stage_plan_units(&identity.tool_id)?),
     };
     Ok(BamDuplicationMetricsMaterial { execution, admitted_corpus: corpus.clone() })
+}
+
+fn stage_plan_units(tool_id: &str) -> Result<Vec<BenchmarkStagePlanUnitMaterial>> {
+    let metrics_binding = match tool_id {
+        "picard" => "duplication_metrics",
+        "samtools" => "markdup_statistics",
+        _ => bail!("unsupported BAM duplication-metrics stage-plan tool"),
+    };
+    Ok(vec![single_bam_stage_plan_unit(
+        SAMPLE_ID,
+        "/input/ERR2112767.sorted.bam",
+        vec![
+            BenchmarkStagePlanOutputMaterial {
+                binding_name: metrics_binding.to_owned(),
+                relative_path: "duplication-metrics.tsv".into(),
+                role: ArtifactRole::SummaryTsv,
+            },
+            BenchmarkStagePlanOutputMaterial {
+                binding_name: "marked_bam".to_owned(),
+                relative_path: "marked.bam".into(),
+                role: ArtifactRole::DedupBam,
+            },
+        ],
+    )])
 }
 
 fn acceptance() -> BenchmarkExecutionAcceptance {
@@ -176,7 +206,7 @@ mod tests {
 
     use bijux_dna_bench_model::{AdmittedBamCorpus, AdmittedBamCorpusFile};
 
-    use super::prepare_bam_duplication_metrics_material_from_corpus;
+    use super::{prepare_bam_duplication_metrics_material_from_corpus, stage_plan_units};
 
     #[test]
     fn material_closes_both_run_2011_tools() -> anyhow::Result<()> {
@@ -211,7 +241,32 @@ mod tests {
             assert!(material.execution.measured_command[2].contains("duplication_metrics.awk"));
             assert_eq!(material.execution.required_files.len(), 18);
             assert_eq!(material.execution.acceptance.metrics.len(), 3);
+            assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(1));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn stage_plan_units_match_each_canonical_duplication_binding() -> anyhow::Result<()> {
+        let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+        for tool_id in ["picard", "samtools"] {
+            let units = stage_plan_units(tool_id)?;
+            let binding = bindings
+                .binding(
+                    &bijux_dna_core::ids::StageId::new(super::STAGE_ID),
+                    &bijux_dna_core::ids::ToolId::new(tool_id),
+                )
+                .expect("canonical duplication-metrics binding");
+            assert_eq!(
+                units[0]
+                    .outputs
+                    .iter()
+                    .map(|output| output.binding_name.as_str())
+                    .collect::<Vec<_>>(),
+                binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+            );
+        }
+        assert!(stage_plan_units("unknown").is_err());
         Ok(())
     }
 
