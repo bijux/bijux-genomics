@@ -32,6 +32,7 @@ pub const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1: &str =
     "bijux.bench.readiness.all_domain_parser_collector.v1";
 pub const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1: &str =
     "bijux.bench.readiness.all_domain_failure_classification.v1";
+pub const FULL_BENCHMARK_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.full_benchmark_report.v1";
 pub const STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1: &str =
     "bijux.bench.readiness.stage_registry_extra_pairs.v1";
 pub const BENCHMARK_DATA_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.data_source.v1";

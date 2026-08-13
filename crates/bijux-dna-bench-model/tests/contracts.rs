@@ -43,6 +43,8 @@ mod mod_contracts_dossier_index_rs;
 mod mod_contracts_essential_pipeline_readiness_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
+#[path = "contracts/full_benchmark_report.rs"]
+mod mod_contracts_full_benchmark_report_rs;
 #[path = "contracts/local_benchmark_summary.rs"]
 mod mod_contracts_local_benchmark_summary_rs;
 #[path = "contracts/local_corpus_run.rs"]

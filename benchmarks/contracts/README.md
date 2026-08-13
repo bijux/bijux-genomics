@@ -130,6 +130,13 @@ owns the eight required classes, exact class and trigger counts, missing-class
 closure, schema identity, and admission verdict; the CLI only executes the
 governed probes and supplies their evidence paths and observations.
 
+`schemas/full-benchmark-report.schema.json` defines the persisted aggregate
+FASTQ, BAM, and VCF report, including stage, tool, corpus, pipeline, runtime,
+memory, failure, missing-result, comparable-metric, and unsupported-pair
+sections. The benchmark model owns its records, generated schema, source-count
+closure, identity and path invariants, and admission verdict; the CLI collects
+the governed inputs and materializes JSON and Markdown presentations.
+
 `schemas/local-stage-inventory.schema.json` and
 `schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
 and aggregate local benchmark stage inventories. The benchmark model owns

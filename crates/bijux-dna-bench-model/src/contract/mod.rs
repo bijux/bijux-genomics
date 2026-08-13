@@ -23,6 +23,7 @@ mod domain_campaign;
 mod dossier_index;
 mod essential_pipeline_readiness;
 mod execution;
+mod full_benchmark_report;
 mod interfaces;
 mod lifecycle;
 mod local_benchmark_summary;
@@ -101,6 +102,9 @@ pub use domain_campaign::{
 pub use dossier_index::validate_benchmark_dossier_index;
 pub use essential_pipeline_readiness::validate_benchmark_essential_pipeline_readiness;
 pub use execution::validate_execution_spec;
+pub use full_benchmark_report::{
+    validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
+};
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
     validate_pipeline_parameter_config, validate_stage_interface_catalog,
@@ -268,12 +272,12 @@ pub use schema_versions::{
     CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_CENTRIC_REPORT_SCHEMA_V1, CORPUS_SCHEMA_V1,
     DECISION_SCHEMA_V1, FASTQ_COMPARABLE_METRICS_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1,
     FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
-    SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1,
-    VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, FULL_BENCHMARK_REPORT_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
+    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
 };
 pub use scope_views::{
     validate_all_domain_active_stage_tool_matrix, validate_all_domain_retained_tools,
