@@ -607,10 +607,27 @@ fn resolve_current_image(
         bail!("qualification tool does not resolve to exactly one admitted canonical image");
     };
     let image_path = resolve_governed_path(&source.governed_study_root, &candidate.path)?;
-    if hash(&image_path)? != digest {
+    let active_image_root = source.governed_study_root.join("containers/apptainer");
+    if image_path.parent() != Some(active_image_root.as_path())
+        || image_path.extension().and_then(|value| value.to_str()) != Some("sif")
+    {
+        bail!("qualification image is not a canonical SIF under the active image root");
+    }
+    let metadata = fs::symlink_metadata(&image_path)
+        .with_context(|| format!("inspect qualification image {}", image_path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("qualification image is not a regular file under the active image root");
+    }
+    let canonical_active_root =
+        active_image_root.canonicalize().context("canonicalize qualification active image root")?;
+    let canonical_image = image_path.canonicalize().context("canonicalize qualification image")?;
+    if canonical_image.parent() != Some(canonical_active_root.as_path()) {
+        bail!("qualification image resolves outside the active image root");
+    }
+    if hash(&canonical_image)? != digest {
         bail!("qualification image bytes differ from the selected inventory identity");
     }
-    Ok((image_path, digest.to_string()))
+    Ok((canonical_image, digest.to_string()))
 }
 
 fn render_context(
@@ -1006,6 +1023,7 @@ mod tests {
             anyhow::bail!("ANGSD lacks admitted external-artifact evidence in the test inventory");
         };
         assert!(!error.to_string().contains("retained distributable"));
+        assert_staged_image_refused(&request, &source)?;
         Ok(())
     }
 
@@ -1168,6 +1186,37 @@ mod tests {
             bail!("stale qualification registry identity was accepted");
         };
         assert!(error.to_string().contains("stale qualification registry"));
+        Ok(())
+    }
+
+    fn assert_staged_image_refused(
+        request: &QualificationSpecificationCompilationRequest,
+        source: &QualificationSpecificationSourceV1,
+    ) -> Result<()> {
+        let staged_image = source.governed_study_root.join("containers/staging/bedtools.sif");
+        fs::create_dir_all(staged_image.parent().context("staged image has no parent")?)?;
+        fs::write(&staged_image, b"immutable image bytes\n")?;
+        let mut inventory =
+            bijux_dna_containers::api::load_image_inventory_publication(&request.inventory_path)?;
+        let tool = inventory
+            .tools
+            .iter_mut()
+            .find(|tool| tool.tool == "bedtools")
+            .context("test inventory lacks bedtools")?;
+        let selected = tool.selected_image_sha256.as_deref().context("bedtools is not selected")?;
+        let candidate = tool
+            .candidates
+            .iter_mut()
+            .find(|candidate| candidate.sha256 == selected)
+            .context("bedtools selected image has no candidate")?;
+        candidate.path = "study://containers/staging/bedtools.sif".to_string();
+        bijux_dna_infra::atomic_write_json(&request.inventory_path, &inventory)?;
+        let mut staged = source.clone();
+        staged.inventory_sha256 = hash(&request.inventory_path)?;
+        let Err(error) = compile_container_qualification_specification(request, &staged) else {
+            anyhow::bail!("staged qualification image was accepted as active");
+        };
+        assert!(error.to_string().contains("active image root"));
         Ok(())
     }
 
