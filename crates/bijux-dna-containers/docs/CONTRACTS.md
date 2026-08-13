@@ -4,8 +4,10 @@ This crate owns the environment contracts consumed by API, runner, and environme
 
 `RepositoryFreezeArchiveReceipt` binds the governed snapshot-relative path, full commit, Git-bundle
 path and checksum, tracked-index checksum, sparse-checkout paths, and successful self-contained
-restoration proof. Retirement requires the receipt to revalidate; restoration publishes through a
-private staging checkout and re-applies read-only permissions before the original path is visible.
+bundle proof. The proof runs against an empty bare repository so storage-constrained archival does
+not duplicate a working tree. Retirement requires the receipt to revalidate; restoration publishes
+through a private staging checkout and re-applies read-only permissions before the original path is
+visible.
 
 ## Container Run Protocols
 
