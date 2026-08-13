@@ -102,6 +102,7 @@ fn material() -> BenchmarkExecutionMaterial {
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: None,
     }
 }
 
@@ -293,6 +294,26 @@ fn execution_authorities_recheck_selected_sif_bytes() -> anyhow::Result<()> {
     execution_material.source_contract_sha256 = authorities.source_contract_sha256().clone();
     let spec = authorities.build_execution_spec(&plan, &identity, &image, execution_material)?;
     assert_eq!(spec.image.sha256, image_sha256);
+    let units = [BenchmarkStagePlanUnitMaterial {
+        execution_unit_id: "sample-a".to_owned(),
+        inputs: vec![BenchmarkStagePlanInputMaterial {
+            binding_name: "reads_r1".to_owned(),
+            path: PathBuf::from(&spec.inputs[0].mount_path),
+            role: ArtifactRole::Reads,
+        }],
+        outputs: vec![BenchmarkStagePlanOutputMaterial {
+            binding_name: "length_distribution_tsv".to_owned(),
+            relative_path: "length-distribution.tsv".into(),
+            role: ArtifactRole::SummaryTsv,
+        }],
+        scientific_defaults: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+        input_derived: BTreeMap::new(),
+        operator_overrides: BTreeMap::new(),
+        immutable_parameters: ["threads".to_owned()].into_iter().collect(),
+    }];
+    let plans = authorities.build_stage_plans(&spec, &units)?;
+    assert_eq!(plans.len(), 3);
+    assert!(plans[0].io.outputs[0].path.starts_with("/result/repetitions"));
 
     let mut wrong_material = material();
     wrong_material.repository_path = temporary.path().to_path_buf();
@@ -445,6 +466,8 @@ fn stage_plan_builder_closes_every_repetition_and_execution_unit() -> anyhow::Re
     assert!(plans[0].io.outputs[0]
         .path
         .ends_with("measured-repetition-1--sample-a/length-distribution.tsv"));
+    assert!(plans[0].io.outputs[0].path.starts_with("/result/repetitions"));
+    assert!(plans[0].out_dir.starts_with(&spec.outputs.result_root));
 
     let mut escaping = unit.clone();
     escaping.outputs[0].relative_path = "../foreign.tsv".into();

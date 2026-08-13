@@ -146,6 +146,7 @@ pub fn prepare_bam_picard_cohort_material(
                 unit: "samples".to_string(),
             }],
         },
+        stage_plan_units: None,
     };
     Ok(BamPicardCohortMaterial {
         execution,

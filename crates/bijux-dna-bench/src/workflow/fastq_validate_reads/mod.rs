@@ -107,6 +107,7 @@ pub fn prepare_fastq_validate_reads_material_from_expectations(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: None,
     };
     Ok(FastqValidateReadsMaterial { execution, expectations: expectations.clone() })
 }

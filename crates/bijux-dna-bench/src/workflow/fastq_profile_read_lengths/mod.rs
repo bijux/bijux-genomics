@@ -6,7 +6,7 @@ mod inputs;
 mod parameters;
 mod report;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
@@ -16,13 +16,15 @@ use bijux_dna_bench_model::{
     BenchmarkAttemptIdentity, BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism,
     BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
-use self::inputs::execution_inputs;
+use self::inputs::{execution_inputs, CommandSample};
 use self::parameters::ensure_parameter_evidence;
 use super::{
     ensure_fastq_read_length_expectations, load_attempt_lifecycle, BenchmarkExecutionMaterial,
-    FastqReadLengthExpectationPublication,
+    BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial, FastqReadLengthExpectationPublication,
 };
 
 pub(crate) use report::publish_fastq_profile_read_lengths_stage_report_with_presentation_authority;
@@ -130,6 +132,7 @@ pub fn prepare_fastq_profile_read_lengths_material_from_expectations(
         &expectations.admitted_corpus,
     )?;
     let (inputs, samples) = execution_inputs(expectations)?;
+    let stage_plan_units = stage_plan_units(&identity.tool_id, &samples);
     let measured_repetitions = 3;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
@@ -155,8 +158,61 @@ pub fn prepare_fastq_profile_read_lengths_material_from_expectations(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: Some(stage_plan_units),
     };
     Ok(FastqProfileReadLengthsMaterial { execution, expectations: expectations.clone() })
+}
+
+fn stage_plan_units(
+    tool_id: &str,
+    samples: &[CommandSample],
+) -> Vec<BenchmarkStagePlanUnitMaterial> {
+    let (scientific_defaults, immutable_parameters) = if tool_id == "seqkit" {
+        (
+            BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+            BTreeSet::from(["threads".to_owned()]),
+        )
+    } else {
+        (BTreeMap::new(), BTreeSet::new())
+    };
+    samples
+        .iter()
+        .flat_map(|sample| {
+            let scientific_defaults = scientific_defaults.clone();
+            let immutable_parameters = immutable_parameters.clone();
+            sample.mounted_fastq.iter().enumerate().map(move |(index, mounted_fastq)| {
+                BenchmarkStagePlanUnitMaterial {
+                    execution_unit_id: format!(
+                        "{}-read-{}",
+                        canonical_unit_component(&sample.sample_id),
+                        index + 1
+                    ),
+                    inputs: vec![BenchmarkStagePlanInputMaterial {
+                        binding_name: "reads_r1".to_owned(),
+                        path: PathBuf::from(mounted_fastq),
+                        role: ArtifactRole::Reads,
+                    }],
+                    outputs: vec![BenchmarkStagePlanOutputMaterial {
+                        binding_name: "length_distribution_tsv".to_owned(),
+                        relative_path: "length-distribution.tsv".into(),
+                        role: ArtifactRole::SummaryTsv,
+                    }],
+                    scientific_defaults: scientific_defaults.clone(),
+                    input_derived: BTreeMap::new(),
+                    operator_overrides: BTreeMap::new(),
+                    immutable_parameters: immutable_parameters.clone(),
+                }
+            })
+        })
+        .collect()
+}
+
+fn canonical_unit_component(value: &str) -> String {
+    value
+        .to_ascii_lowercase()
+        .chars()
+        .map(|character| if character.is_ascii_alphanumeric() { character } else { '-' })
+        .collect()
 }
 
 fn acceptance() -> BenchmarkExecutionAcceptance {
@@ -191,5 +247,36 @@ fn metric(
         operator,
         expected: BenchmarkAcceptanceExpectedValue::Integer(expected),
         unit: unit.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{stage_plan_units, CommandSample};
+
+    #[test]
+    fn stage_plan_units_close_each_admitted_fastq_file() {
+        let samples = [CommandSample {
+            sample_id: "ERR-ONE".to_owned(),
+            input_layout: "paired_end",
+            mounted_fastq: vec![
+                "/input/one-r1.fastq.gz".to_owned(),
+                "/input/one-r2.fastq.gz".to_owned(),
+            ],
+            expected_summary_mount: "/input/one.summary.tsv".to_owned(),
+            expected_histogram_mount: "/input/one.histogram.tsv".to_owned(),
+            expected_exact_sha256: "a".repeat(64),
+        }];
+        let units = stage_plan_units("seqkit", &samples);
+        assert_eq!(units.len(), 2);
+        assert_eq!(units[0].execution_unit_id, "err-one-read-1");
+        assert_eq!(units[1].execution_unit_id, "err-one-read-2");
+        assert_eq!(units[0].scientific_defaults["threads"], "4");
+        assert!(units[0].immutable_parameters.contains("threads"));
+        assert_eq!(units[0].inputs[0].path.to_string_lossy(), "/input/one-r1.fastq.gz");
+        assert_eq!(units[0].outputs[0].relative_path.to_string_lossy(), "length-distribution.tsv");
+
+        let seqfu = stage_plan_units("seqfu", &samples);
+        assert!(seqfu.iter().all(|unit| unit.scientific_defaults.is_empty()));
     }
 }

@@ -103,6 +103,7 @@ pub fn prepare_fastq_detect_adapters_material_from_expectations(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: None,
     };
     Ok(FastqDetectAdaptersMaterial { execution, expectations: expectations.clone() })
 }

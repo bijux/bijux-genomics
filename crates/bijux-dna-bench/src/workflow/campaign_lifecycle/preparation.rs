@@ -11,8 +11,9 @@ use bijux_dna_bench_model::{
 };
 
 use super::{
-    ensure_execution_spec, ensure_stage_campaign_attempts, load_checked_in_benchmark_campaign_plan,
-    load_execution_authorities, load_execution_spec,
+    ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
+    load_checked_in_benchmark_campaign_plan, load_execution_authorities, load_execution_spec,
+    load_stage_plan_manifest,
 };
 use crate::workflow::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
@@ -82,8 +83,14 @@ pub fn prepare_checked_in_benchmark_campaign(
                     },
                     &evidence,
                 )?;
+                let stage_plan_units = material
+                    .stage_plan_units
+                    .clone()
+                    .context("campaign execution material omits stage-plan units")?;
                 let spec = authorities.build_execution_spec(&plan, identity, &image, material)?;
+                let stage_plans = authorities.build_stage_plans(&spec, &stage_plan_units)?;
                 ensure_execution_spec(&benchmark_root, &spec)?;
+                ensure_stage_plan_manifest(&benchmark_root, &spec, &stage_plans)?;
                 bijux_dna_runtime::record_attempt_ready(
                     &benchmark_root,
                     identity,
@@ -93,6 +100,7 @@ pub fn prepare_checked_in_benchmark_campaign(
             })(),
             Some(BenchmarkLifecycleStatus::Ready) => (|| -> Result<BenchmarkExecutionSpec> {
                 let spec = load_execution_spec(&benchmark_root, identity)?;
+                load_stage_plan_manifest(&benchmark_root, identity)?;
                 let image = authorities.resolve_current_image(&study_root, &identity.tool_id)?;
                 let indexed_input = spec
                     .inputs

@@ -143,6 +143,7 @@ pub fn prepare_bam_duplication_metrics_material_from_corpus(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: None,
     };
     Ok(BamDuplicationMetricsMaterial { execution, admitted_corpus: corpus.clone() })
 }

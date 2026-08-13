@@ -50,6 +50,7 @@ pub struct BenchmarkExecutionMaterial {
     pub random_seed: Option<i64>,
     pub determinism: BenchmarkExecutionDeterminism,
     pub acceptance: BenchmarkExecutionAcceptance,
+    pub stage_plan_units: Option<Vec<BenchmarkStagePlanUnitMaterial>>,
 }
 
 /// One binding-owned input path for an independently executable benchmark unit.
@@ -123,6 +124,7 @@ pub fn build_benchmark_stage_plans(
     }
 
     let attempt_directory = Path::new(&spec.outputs.result_root);
+    let container_result_root = Path::new(&spec.outputs.mount_path);
     let image = ContainerImageRefV1 {
         image: spec.image.path.clone(),
         digest: Some(format!("sha256:{}", spec.image.sha256)),
@@ -133,6 +135,7 @@ pub fn build_benchmark_stage_plans(
         for unit in &units {
             let instance = format!("measured-repetition-{repetition}--{}", unit.execution_unit_id);
             let out_dir = attempt_directory.join("repetitions").join(&instance);
+            let container_out_dir = container_result_root.join("repetitions").join(&instance);
             let effective = project_tool_parameters(&ToolParameterProjectionRequest {
                 binding,
                 scientific_defaults: &unit.scientific_defaults,
@@ -143,7 +146,7 @@ pub fn build_benchmark_stage_plans(
             })
             .context("project benchmark stage-plan parameters")?;
             let inputs = material_inputs(binding, &unit.inputs)?;
-            let outputs = material_outputs(binding, &unit.outputs, &out_dir)?;
+            let outputs = material_outputs(binding, &unit.outputs, &container_out_dir)?;
             plans.push(build_binding_stage_plan(BindingStagePlanRequest {
                 binding,
                 effective_parameters: &effective,

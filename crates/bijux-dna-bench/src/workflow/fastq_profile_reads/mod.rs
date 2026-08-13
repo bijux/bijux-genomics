@@ -148,6 +148,7 @@ pub fn prepare_fastq_profile_reads_material_from_expectations(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: None,
     };
     Ok(FastqProfileReadsMaterial { execution, expectations: expectations.clone() })
 }

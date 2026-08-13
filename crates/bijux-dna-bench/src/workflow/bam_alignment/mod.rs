@@ -119,6 +119,7 @@ pub fn prepare_bam_alignment_material(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: None,
     };
     Ok(BamAlignmentMaterial {
         execution,
