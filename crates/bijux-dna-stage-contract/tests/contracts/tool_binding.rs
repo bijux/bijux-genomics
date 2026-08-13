@@ -1,15 +1,16 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
-use bijux_dna_core::contract::ToolConstraints;
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
+use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
+use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_stage_contract::{
-    canonical_external_artifact_tool_bindings, canonical_retained_tool_bindings,
-    canonical_tool_bindings, project_tool_parameters, render_tool_command, validate_tool_binding,
-    BindingInputV1, BindingOutputV1, BindingParameterV1, EffectiveToolParameterSourceV1,
-    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext,
-    ToolBindingV1, ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
-    TOOL_BINDING_SCHEMA_V1,
+    build_binding_stage_plan, canonical_external_artifact_tool_bindings,
+    canonical_retained_tool_bindings, canonical_tool_bindings, project_tool_parameters,
+    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
+    BindingParameterV1, BindingStagePlanRequest, EffectiveToolParameterSourceV1, OutputDiscoveryV1,
+    ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1,
+    ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
 };
 
 const ALIGN_STAGE: &str = "bam.align";
@@ -2503,6 +2504,211 @@ fn parameter_projection_rejects_immutable_overrides_and_thread_drift() -> Result
         .ok_or_else(|| anyhow::anyhow!("CPU drift was accepted"))?;
     assert!(error.to_string().contains("binding threads"));
     Ok(())
+}
+
+#[test]
+fn binding_stage_plan_freezes_exact_contracts_parameters_and_command() -> Result<()> {
+    let binding = binding("fastq.trim_reads", catalog_source());
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let empty = BTreeMap::new();
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &empty,
+        operator_overrides: &empty,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+    let plan = build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 {
+            image: "/images/fastp.sif".to_owned(),
+            digest: Some("sha256:admitted".to_owned()),
+        },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: Some(StepId::new("measured-repetition-1")),
+        inputs: vec![artifact(
+            "reads",
+            "/evidence/input.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::Reads,
+        )],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/repetition-1/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence/repetition-1".into(),
+    })?;
+
+    assert_eq!(plan.stage_id.as_str(), "fastq.trim_reads");
+    assert_eq!(plan.tool_id.as_str(), "fastp");
+    assert_eq!(plan.stage_instance_id.as_ref().map(StepId::as_str), Some("measured-repetition-1"));
+    assert_eq!(
+        plan.command.template,
+        [
+            "/usr/local/bin/fastp",
+            "--in=/evidence/input.fastq.gz",
+            "--out",
+            "/evidence/repetition-1/trimmed.fastq.gz",
+            "--thread",
+            "8",
+        ]
+    );
+    assert_eq!(plan.params["threads"], "8");
+    assert_eq!(plan.effective_params["binding_id"], "fastq.trim_reads__fastp");
+    assert_eq!(plan.reason.details["normalizer_id"], "fastq.trim_reads.v1");
+    Ok(())
+}
+
+#[test]
+fn binding_stage_plan_rejects_artifact_and_parameter_authority_drift() -> Result<()> {
+    let binding = binding("fastq.trim_reads", catalog_source());
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let empty = BTreeMap::new();
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &empty,
+        operator_overrides: &empty,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+    let request = BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 {
+            image: "/images/fastp.sif".to_owned(),
+            digest: Some("sha256:admitted".to_owned()),
+        },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: None,
+        inputs: vec![artifact(
+            "reads",
+            "/evidence/input.fastq.gz",
+            "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+            ArtifactRole::Reads,
+        )],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence".into(),
+    };
+    let error = build_binding_stage_plan(request)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("input artifact contract drift was accepted"))?;
+    assert!(error.to_string().contains("input `reads` differs"));
+
+    let mut foreign_effective = effective;
+    foreign_effective.binding_id = "fastq.trim_reads__foreign".to_owned();
+    let error = build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &foreign_effective,
+        image: ContainerImageRefV1 { image: "/images/fastp.sif".to_owned(), digest: None },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: None,
+        inputs: vec![artifact(
+            "reads",
+            "/evidence/input.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::Reads,
+        )],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence".into(),
+    })
+    .err()
+    .ok_or_else(|| anyhow::anyhow!("foreign parameter authority was accepted"))?;
+    assert!(error.to_string().contains("parameter authority differs"));
+    Ok(())
+}
+
+#[test]
+fn binding_stage_plan_canonicalizes_multi_path_input_projection() -> Result<()> {
+    let mut binding = binding("fastq.trim_reads", catalog_source());
+    binding.command_template = vec![
+        "${executable}".to_owned(),
+        "${inputs:reads}".to_owned(),
+        "${output:trimmed}".to_owned(),
+        "${parameter:threads}".to_owned(),
+    ];
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let empty = BTreeMap::new();
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &empty,
+        operator_overrides: &empty,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+    let plan = build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 { image: "/images/fastp.sif".to_owned(), digest: None },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: None,
+        inputs: vec![
+            artifact(
+                "reads",
+                "/evidence/sample-r2.fastq.gz",
+                "bijux.fastq.artifact.reads.v1",
+                ArtifactRole::Reads,
+            ),
+            artifact(
+                "reads",
+                "/evidence/sample-r1.fastq.gz",
+                "bijux.fastq.artifact.reads.v1",
+                ArtifactRole::Reads,
+            ),
+        ],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence".into(),
+    })?;
+
+    assert_eq!(
+        plan.command.template,
+        [
+            "/usr/local/bin/fastp",
+            "/evidence/sample-r1.fastq.gz",
+            "/evidence/sample-r2.fastq.gz",
+            "/evidence/trimmed.fastq.gz",
+            "8",
+        ]
+    );
+    assert_eq!(plan.io.inputs[0].path.to_string_lossy(), "/evidence/sample-r1.fastq.gz");
+    Ok(())
+}
+
+fn artifact(name: &str, path: &str, contract: &str, role: ArtifactRole) -> ArtifactRef {
+    ArtifactRef {
+        name: ArtifactId::new(name),
+        path: path.into(),
+        role,
+        artifact_contract_id: Some(contract.to_owned()),
+        optional: false,
+    }
 }
 
 fn catalog_source() -> ToolArtifactSourceV1 {

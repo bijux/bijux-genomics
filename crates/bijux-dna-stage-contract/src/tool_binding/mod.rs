@@ -3,6 +3,7 @@ mod model;
 mod projection;
 mod registry;
 mod rendering;
+mod stage_plan;
 mod validation;
 
 pub use catalog::{
@@ -20,4 +21,5 @@ pub use projection::{
 };
 pub use registry::ToolBindingRegistry;
 pub use rendering::render_tool_command;
+pub use stage_plan::{build_binding_stage_plan, BindingStagePlanRequest};
 pub use validation::validate_tool_binding;

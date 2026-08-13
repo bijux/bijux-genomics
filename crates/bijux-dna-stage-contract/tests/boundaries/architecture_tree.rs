@@ -102,9 +102,10 @@ fn assert_source_layout(root: &Path) {
             "projection.rs",
             "registry.rs",
             "rendering.rs",
+            "stage_plan.rs",
             "validation.rs",
         ]),
-        "tool_binding must separate catalog, model, projection, registry, rendering, and validation"
+        "tool_binding must separate catalog, model, projection, registry, rendering, stage-plan construction, and validation"
     );
     assert_eq!(
         dir_entries(&root.join("src/tool_binding/catalog")),

@@ -70,7 +70,9 @@ One lifecycle handles every admitted stage/tool pair:
 1. Domain and catalog authorities identify the stage, supported tools, artifact contracts, and
    declared product-support dimensions.
 2. `bijux-dna-stage-contract` validates the `StageContract`, `ArtifactContract`, `ToolBinding`,
-   parameter projection, result normalizer, and downstream probe before execution is allocated.
+   parameter projection, result normalizer, and downstream probe before execution is allocated. It
+   constructs the immutable `StagePlanV1` from those admitted authorities; lifecycle owners do not
+   reconstruct tool commands or artifact mappings independently.
 3. `bijux-dna-bench` derives every dependency-ready case and execution unit without waiting for
    unrelated tools, stages, images, or campaigns.
 4. `bijux-dna-runner` submits the declared execution once and returns its durable backend identity.
