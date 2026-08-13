@@ -214,6 +214,7 @@ pub use full_benchmark_report::{
     build_full_benchmark_corpus_rows, build_full_benchmark_memory_rows,
     build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
     build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
+    render_full_benchmark_report_markdown,
 };
 pub use hardening_campaign::{
     derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,

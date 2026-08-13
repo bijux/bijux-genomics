@@ -148,6 +148,7 @@ fn thin_cli_uses_model_owned_full_benchmark_report_contract() {
         "fn build_pipeline_centric_rows",
         "fn build_runtime_rows",
         "fn build_memory_rows",
+        "fn render_full_benchmark_report_markdown",
     ] {
         assert!(!contents.contains(projection), "thin CLI reintroduced {projection}");
     }
@@ -163,6 +164,7 @@ fn thin_cli_uses_model_owned_full_benchmark_report_contract() {
         "build_full_benchmark_pipeline_rows",
         "build_full_benchmark_runtime_rows",
         "build_full_benchmark_memory_rows",
+        "render_full_benchmark_report_markdown",
     ] {
         assert!(workflow.contains(projection), "benchmark owner is missing {projection}");
     }

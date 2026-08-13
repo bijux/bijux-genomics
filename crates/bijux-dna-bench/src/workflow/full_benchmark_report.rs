@@ -5,8 +5,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use bijux_dna_bench_model::{
     FullBenchmarkCorpusSectionRow, FullBenchmarkMemoryRow, FullBenchmarkPipelineSection,
-    FullBenchmarkPipelineSectionRow, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
-    FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow,
+    FullBenchmarkPipelineSectionRow, FullBenchmarkReport, FullBenchmarkReportRow,
+    FullBenchmarkReportRowStatus, FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow,
+    FullBenchmarkToolSectionRow,
 };
 
 #[must_use]
@@ -187,6 +188,218 @@ pub fn build_full_benchmark_memory_rows(
         .collect()
 }
 
+#[must_use]
+pub fn render_full_benchmark_report_markdown(report: &FullBenchmarkReport) -> String {
+    let mut rendered = String::from("# FASTQ + BAM + VCF Benchmark Report\n\n");
+    rendered.push_str(&format!(
+        "- Report rows: {}\n- Expected-result rows: {}\n- Explicit unsupported rows: {}\n- Present rows: {}\n- Missing-result rows: {}\n- Unsupported-pair rows: {}\n- Failure rows: {}\n- Comparable metric rows: {}\n\n",
+        report.row_count,
+        report.expected_result_row_count,
+        report.explicit_unsupported_row_count,
+        report.present_row_count,
+        report.missing_result_row_count,
+        report.unsupported_pair_row_count,
+        report.failure_row_count,
+        report.comparable_metric_row_count
+    ));
+
+    rendered.push_str("## Stage-Centric\n\n");
+    rendered.push_str(
+        "| Domain | Stage | Rows | Present | Missing | Unsupported | Tools | Pipelines |\n",
+    );
+    rendered.push_str("| --- | --- | ---: | ---: | ---: | ---: | --- | --- |\n");
+    for row in &report.stage_centric {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.domain),
+            sanitize_markdown_cell(&row.stage_id),
+            row.row_count,
+            row.present_row_count,
+            row.missing_result_row_count,
+            row.unsupported_pair_row_count,
+            sanitize_markdown_cell(&row.tool_ids.join(", ")),
+            sanitize_markdown_cell(&row.pipeline_ids.join(", "))
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Tool-Centric\n\n");
+    rendered.push_str("| Tool | Rows | Present | Missing | Unsupported | Domains | Stages |\n");
+    rendered.push_str("| --- | ---: | ---: | ---: | ---: | --- | --- |\n");
+    for row in &report.tool_centric {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.tool_id),
+            row.row_count,
+            row.present_row_count,
+            row.missing_result_row_count,
+            row.unsupported_pair_row_count,
+            sanitize_markdown_cell(&row.domains.join(", ")),
+            sanitize_markdown_cell(&row.stage_ids.join(", "))
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Corpus-Centric\n\n");
+    rendered.push_str("| Corpus | Rows | Present | Missing | Unsupported | Domains | Stages |\n");
+    rendered.push_str("| --- | ---: | ---: | ---: | ---: | --- | --- |\n");
+    for row in &report.corpus_centric {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.corpus_id),
+            row.row_count,
+            row.present_row_count,
+            row.missing_result_row_count,
+            row.unsupported_pair_row_count,
+            sanitize_markdown_cell(&row.domains.join(", ")),
+            sanitize_markdown_cell(&row.stage_ids.join(", "))
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Pipeline-Centric\n\n");
+    rendered.push_str(&format!(
+        "- Pipeline rows: {}\n- Unmapped report rows: {}\n\n",
+        report.pipeline_centric.row_count, report.pipeline_centric.unmapped_row_count
+    ));
+    rendered.push_str("| Pipeline | Rows | Present | Missing | Unsupported | Domains | Stages |\n");
+    rendered.push_str("| --- | ---: | ---: | ---: | ---: | --- | --- |\n");
+    for row in &report.pipeline_centric.rows {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.pipeline_id),
+            row.row_count,
+            row.present_row_count,
+            row.missing_result_row_count,
+            row.unsupported_pair_row_count,
+            sanitize_markdown_cell(&row.domains.join(", ")),
+            sanitize_markdown_cell(&row.stage_ids.join(", "))
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Runtime\n\n");
+    rendered.push_str("| Report Row | Domain | Stage | Tool | Status | Simulated Elapsed Seconds | Real-Smoke Elapsed Seconds | Source |\n");
+    rendered.push_str("| --- | --- | --- | --- | --- | ---: | ---: | --- |\n");
+    for row in &report.runtime {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.report_row_id),
+            sanitize_markdown_cell(&row.domain),
+            sanitize_markdown_cell(&row.stage_id),
+            sanitize_markdown_cell(&row.tool_id),
+            report_row_status_label(row.row_status),
+            format_optional_f64(row.simulated_elapsed_seconds),
+            format_optional_f64(row.real_smoke_elapsed_seconds),
+            sanitize_markdown_cell(&row.runtime_source)
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Memory\n\n");
+    rendered.push_str("| Report Row | Domain | Stage | Tool | Status | Declared Memory MB | Declared CPU Threads | Real-Smoke Memory MB | Real-Smoke CPU Threads | Source |\n");
+    rendered.push_str("| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |\n");
+    for row in &report.memory {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.report_row_id),
+            sanitize_markdown_cell(&row.domain),
+            sanitize_markdown_cell(&row.stage_id),
+            sanitize_markdown_cell(&row.tool_id),
+            report_row_status_label(row.row_status),
+            format_optional_f64(row.declared_memory_mb),
+            format_optional_u32(row.declared_cpu_threads),
+            format_optional_f64(row.real_smoke_memory_mb),
+            format_optional_u32(row.real_smoke_cpu_threads),
+            sanitize_markdown_cell(&row.memory_source)
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Failures\n\n");
+    rendered.push_str(&format!(
+        "- Simulated failure rows: {}\n- Failure classification rows: {}\n\n",
+        report.failures.simulated_failure_row_count, report.failures.failure_class_row_count
+    ));
+    rendered
+        .push_str("| Failure Class | Domain | Stage | Tool | Source Surface | Status | Detail |\n");
+    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- |\n");
+    for row in &report.failures.classification_rows {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.class_id),
+            sanitize_markdown_cell(&row.domain),
+            sanitize_markdown_cell(&row.stage_id),
+            sanitize_markdown_cell(&row.tool_id),
+            sanitize_markdown_cell(&row.source_surface),
+            sanitize_markdown_cell(&row.observed_status),
+            sanitize_markdown_cell(&row.detail)
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Missing Results\n\n");
+    rendered.push_str(
+        "| Result ID | Domain | Stage | Tool | Corpus | Section | Manifest Path | Reason |\n",
+    );
+    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- | --- |\n");
+    for row in &report.missing_results {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.result_id),
+            sanitize_markdown_cell(&row.domain),
+            sanitize_markdown_cell(&row.stage_id),
+            sanitize_markdown_cell(&row.tool_id),
+            sanitize_markdown_cell(&row.corpus_id),
+            sanitize_markdown_cell(&row.report_section),
+            sanitize_markdown_cell(row.audit_manifest_path.as_deref().unwrap_or("")),
+            sanitize_markdown_cell(&row.reason)
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Comparable Metrics\n\n");
+    rendered.push_str("| Domain | Stage | Metric ID | Metric Name | Unit | Direction | Tolerance Kind | Tolerance | Pass Rule | Insufficiency Behavior | Required | Tools | Contract Status |\n");
+    rendered.push_str(
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n",
+    );
+    for row in &report.comparable_metrics {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.domain),
+            sanitize_markdown_cell(&row.stage_id),
+            sanitize_markdown_cell(&row.metric_id),
+            sanitize_markdown_cell(&row.metric_name),
+            sanitize_markdown_cell(row.unit.as_deref().unwrap_or("")),
+            sanitize_markdown_cell(&row.direction),
+            sanitize_markdown_cell(&row.tolerance_kind),
+            format_threshold_value(row.tolerance_value),
+            sanitize_markdown_cell(&row.pass_rule),
+            sanitize_markdown_cell(&row.insufficiency_behavior),
+            row.required,
+            sanitize_markdown_cell(&row.tool_ids.join(", ")),
+            sanitize_markdown_cell(&row.contract_status)
+        ));
+    }
+    rendered.push('\n');
+
+    rendered.push_str("## Unsupported Pairs\n\n");
+    rendered.push_str("| Domain | Stage | Tool | Evidence Path | Detail |\n");
+    rendered.push_str("| --- | --- | --- | --- | --- |\n");
+    for row in &report.unsupported_pairs {
+        rendered.push_str(&format!(
+            "| {} | {} | {} | {} | {} |\n",
+            sanitize_markdown_cell(&row.domain),
+            sanitize_markdown_cell(&row.stage_id),
+            sanitize_markdown_cell(&row.tool_id),
+            sanitize_markdown_cell(&row.evidence_path),
+            sanitize_markdown_cell(&row.detail)
+        ));
+    }
+
+    rendered
+}
+
 fn status_count(rows: &[&FullBenchmarkReportRow], status: FullBenchmarkReportRowStatus) -> usize {
     rows.iter().filter(|row| row.row_status == status).count()
 }
@@ -215,4 +428,29 @@ fn memory_source(row: &FullBenchmarkReportRow) -> &'static str {
     } else {
         "not_available"
     }
+}
+
+fn report_row_status_label(status: FullBenchmarkReportRowStatus) -> &'static str {
+    match status {
+        FullBenchmarkReportRowStatus::Present => "present",
+        FullBenchmarkReportRowStatus::MissingResult => "missing_result",
+        FullBenchmarkReportRowStatus::UnsupportedPair => "unsupported_pair",
+    }
+}
+
+fn sanitize_markdown_cell(value: &str) -> String {
+    value.replace('|', "\\|").replace('\n', " ")
+}
+
+fn format_optional_f64(value: Option<f64>) -> String {
+    value.map(|value| format!("{value:.3}")).unwrap_or_default()
+}
+
+fn format_optional_u32(value: Option<u32>) -> String {
+    value.map(|value| value.to_string()).unwrap_or_default()
+}
+
+fn format_threshold_value(value: f64) -> String {
+    let rendered = format!("{value:.6}");
+    rendered.trim_end_matches('0').trim_end_matches('.').to_string()
 }

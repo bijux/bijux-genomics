@@ -17,9 +17,9 @@ pub use crate::workflow::{
     publish_bam_benchmark_campaign_report, publish_benchmark_matrix,
     publish_cross_benchmark_campaign_report, publish_fastq_benchmark_campaign_report,
     publish_hardening_benchmark_campaign_report, publish_hardening_queue_report,
-    publish_vcf_benchmark_campaign_report, required_migration_stage_ids,
-    stage_set_contains_canonical_or_migration_alias, validate_benchmark_stage_result_path,
-    BenchmarkMatrixRequest, LegacyBenchmarkStageAlias,
+    publish_vcf_benchmark_campaign_report, render_full_benchmark_report_markdown,
+    required_migration_stage_ids, stage_set_contains_canonical_or_migration_alias,
+    validate_benchmark_stage_result_path, BenchmarkMatrixRequest, LegacyBenchmarkStageAlias,
 };
 pub use bijux_dna_bench_model::{
     all_domain_active_stage_tool_matrix_schema, all_domain_failure_classification_schema,
