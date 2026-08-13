@@ -12,12 +12,7 @@ use bijux_dna_api::v1::api::bench::{
     STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_SCOPE,
 };
 
-use super::bam_command_adapter_coverage::{
-    collect_bam_command_adapter_coverage_rows, BamBenchmarkStatus,
-};
-use super::fastq_command_adapter_coverage::{
-    collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
-};
+use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use super::tool_execution_modes::{
     load_runtime_probe, validate_tool_execution_modes_path, DEFAULT_TOOL_EXECUTION_MODES_PATH,
 };
@@ -104,8 +99,7 @@ pub(crate) fn render_stage_tool_containers(
 }
 
 fn collect_stage_tool_container_rows(repo_root: &Path) -> Result<Vec<StageToolContainerRow>> {
-    let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
-    let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let active_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
     let execution_mode_report = validate_tool_execution_modes_path(
         repo_root,
         &repo_root.join(DEFAULT_TOOL_EXECUTION_MODES_PATH),
@@ -117,26 +111,10 @@ fn collect_stage_tool_container_rows(repo_root: &Path) -> Result<Vec<StageToolCo
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::new();
-    for row in fastq_rows
-        .into_iter()
-        .filter(|row| row.benchmark_status == FastqBenchmarkStatus::BenchmarkReady)
-    {
+    for row in active_rows {
         rows.push(render_stage_tool_container_row(
             repo_root,
-            "fastq",
-            &row.stage_id,
-            &row.tool_id,
-            &execution_modes,
-        )?);
-    }
-
-    for row in bam_rows
-        .into_iter()
-        .filter(|row| row.benchmark_status == BamBenchmarkStatus::BenchmarkReady)
-    {
-        rows.push(render_stage_tool_container_row(
-            repo_root,
-            "bam",
+            &row.domain,
             &row.stage_id,
             &row.tool_id,
             &execution_modes,
@@ -234,10 +212,10 @@ fn render_stage_tool_containers_toml(config: &StageToolContainersConfig) -> Resu
     Ok(format!(
         "# schema_version = 1\n\
          # owner = bijux-dna-bench\n\
-         # purpose = Governed runtime declarations for benchmark-ready FASTQ and BAM stage-tool commands.\n\
+         # purpose = Governed runtime declarations for benchmark-ready FASTQ, BAM, and VCF stage-tool commands.\n\
          # authority = bijux-dna-bench\n\
          # stability = evolving\n\
-         # last_updated = 2026-06-25\n\n{body}"
+         # last_updated = 2026-08-13\n\n{body}"
     ))
 }
 
@@ -274,11 +252,12 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert!(report.row_count > 0);
+        assert_eq!(report.row_count, 148);
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.external_row_count, report.container_declared_row_count);
         assert_eq!(report.command_entrypoint_row_count, report.row_count);
         assert_eq!(report.domain_counts.values().sum::<usize>(), report.row_count);
+        assert_eq!(report.domain_counts.get("vcf"), Some(&28));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -342,10 +321,20 @@ mod tests {
                 && row.container_id.as_deref()
                     == Some("quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
         }));
-        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        for (stage_id, external_tool_id) in [
+            ("bam.damage", "ngsbriggs"),
+            ("bam.kinship", "angsd"),
+            ("bam.sex", "angsd"),
+            ("fastq.remove_duplicates", "fastuniq"),
+            ("vcf.call_gl", "angsd"),
+            ("vcf.call_pseudohaploid", "angsd"),
+            ("vcf.imputation_metrics", "impute5"),
+            ("vcf.impute", "impute5"),
+        ] {
             let expected_container = format!("external-artifact://{external_tool_id}");
             assert!(report.rows.iter().any(|row| {
-                row.tool_id == external_tool_id
+                row.stage_id == stage_id
+                    && row.tool_id == external_tool_id
                     && row.execution_mode == "external"
                     && row.container_id.as_deref() == Some(expected_container.as_str())
             }));
@@ -506,10 +495,20 @@ mod tests {
                 && row.container_id.as_deref()
                     == Some("quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
         }));
-        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        for (stage_id, external_tool_id) in [
+            ("bam.damage", "ngsbriggs"),
+            ("bam.kinship", "angsd"),
+            ("bam.sex", "angsd"),
+            ("fastq.remove_duplicates", "fastuniq"),
+            ("vcf.call_gl", "angsd"),
+            ("vcf.call_pseudohaploid", "angsd"),
+            ("vcf.imputation_metrics", "impute5"),
+            ("vcf.impute", "impute5"),
+        ] {
             let expected_container = format!("external-artifact://{external_tool_id}");
             assert!(config.rows.iter().any(|row| {
-                row.tool_id == external_tool_id
+                row.stage_id == stage_id
+                    && row.tool_id == external_tool_id
                     && row.execution_mode == "external"
                     && row.container_id.as_deref() == Some(expected_container.as_str())
             }));

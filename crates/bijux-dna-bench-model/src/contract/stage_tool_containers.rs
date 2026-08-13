@@ -61,7 +61,7 @@ fn validate_rows(rows: &[StageToolContainerRow]) -> Result<(), BenchError> {
     }
     let mut identities = BTreeSet::new();
     for row in rows {
-        if !matches!(row.domain.as_str(), "bam" | "fastq")
+        if !matches!(row.domain.as_str(), "bam" | "fastq" | "vcf")
             || !row.stage_id.starts_with(&format!("{}.", row.domain))
             || [
                 row.stage_id.as_str(),
@@ -100,7 +100,7 @@ fn runtime_shape_is_valid(row: &StageToolContainerRow) -> bool {
                 && row.container_id.is_none()
         }
         "container" => {
-            row.container_id.is_some()
+            row.container_id.as_deref().is_some_and(concrete_container_identity)
                 && row.command_entrypoint.is_some()
                 && row.host_binary_mode.is_none()
         }
@@ -114,6 +114,15 @@ fn runtime_shape_is_valid(row: &StageToolContainerRow) -> bool {
         }
         _ => false,
     }
+}
+
+fn concrete_container_identity(value: &str) -> bool {
+    !value.split(['@', '/']).any(|segment| {
+        matches!(
+            segment.trim().to_ascii_lowercase().as_str(),
+            "external" | "planned" | "todo" | "unknown"
+        )
+    })
 }
 
 fn optional_blank(value: Option<&str>) -> bool {

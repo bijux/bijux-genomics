@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "6dc53aaa7a8cd48beec0d641dc5e070078ae1d73",
-  "bundle_checksum_sha256": "b7fe161dc63f7aa064908a4d9e617e3fcc163254be2021f151f687dd045b0a7f",
+  "source_commit": "507d779d40ebb61f7bbc556a5900cea6e77afb76",
+  "bundle_checksum_sha256": "dcb337b69c3f867bf9fe4af0462f735cf7283ed3a5ca46db9abbb58f2d2b8f21",
   "domains": [
     {
       "domain_id": "bam",
@@ -4444,7 +4444,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "262fbb36965ce4fa083f5e8f977e0c743dbf7dbe3628109d55ff83dbb2400f7c"
+      "checksum_sha256": "3b249775394986764149295e4ac503de367b34341a2449fa402868c703594166"
     },
     {
       "domain_id": "fastq",
@@ -13619,7 +13619,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "aab2ebc278a4e8059d39c2d7947d2d7e7ce81404cf85cec3c88933b43980c79a"
+      "checksum_sha256": "f9c29dae853a998135eff876f73d1b6772b2ad64b04b006604b7653385946039"
     },
     {
       "domain_id": "vcf",
@@ -15646,14 +15646,14 @@
         },
         {
           "tool_id": "plink",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
+          "default_version": "1.90b7.2",
           "upstream": "https://www.cog-genomics.org/plink/",
-          "pin_strategy": "container_digest",
+          "pin_strategy": "source_sha256",
           "license": "GPL-3.0",
-          "citation": "planned",
+          "citation": "upstream:https://www.cog-genomics.org/plink/",
           "version_cmd": "plink --version",
           "help_cmd": "plink --help",
           "stage_ids": [
@@ -15673,10 +15673,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.population_structure.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Compare only within the same pinned profile, reference build, and analysis thresholds.",
           "container": {
-            "image": "containers/docker/Dockerfile.arm64.plink",
-            "digest": "planned"
+            "image": "containers/apptainer/plink.def",
+            "digest": "sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"
           }
         },
         {
@@ -15755,7 +15755,7 @@
           "role": "analysis",
           "default_version": "5.1.1",
           "upstream": "https://odelaneau.github.io/shapeit5/",
-          "pin_strategy": "external_tool",
+          "pin_strategy": "source_sha256",
           "license": "MIT",
           "citation": "paper:https://www.nature.com/articles/s41588-023-01415-w",
           "version_cmd": "shapeit5 --version",
@@ -15774,8 +15774,8 @@
           "metrics_schema_id": "bijux.vcf.phasing.v1",
           "comparability_notes": "Comparable only when panel build, genetic map, and pinned Shapeit5 profile stay identical.",
           "container": {
-            "image": "external",
-            "digest": "external"
+            "image": "containers/apptainer/shapeit5.def",
+            "digest": "sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8"
           }
         }
       ],
@@ -16859,7 +16859,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "43c3c06d0ce4d21db8020128630668b7667dc2b341410d6a55077b26be406c08"
+      "checksum_sha256": "b3653c01870d89e4ffcc8ab1adae8f52a6aa4708e40abac2f11604c0ed1cc270"
     }
   ]
 }

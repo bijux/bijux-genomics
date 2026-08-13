@@ -157,10 +157,13 @@ closure, schema generation, and admission.
 
 `schemas/stage-tool-containers.schema.json` and
 `schemas/stage-tool-containers-report.schema.json` define the canonical
-benchmark-ready runtime declarations, including container, external-artifact,
-command-entrypoint, and workspace-binary locations. Model-owned admission
+benchmark-ready FASTQ, BAM, and VCF runtime declarations, including container,
+external-artifact, command-entrypoint, and workspace-binary locations. The
+generic projection consumes the all-domain active stage/tool matrix rather
+than maintaining domain-specific scheduler branches. Model-owned admission
 rejects malformed runtime shapes, duplicate identities, unsafe report paths,
-and aggregate drift before these declarations reach lifecycle planning.
+placeholder container identities, and aggregate drift before these declarations
+reach lifecycle planning.
 
 `schemas/full-benchmark-report.schema.json` defines the persisted aggregate
 FASTQ, BAM, and VCF report, including stage, tool, corpus, pipeline, runtime,

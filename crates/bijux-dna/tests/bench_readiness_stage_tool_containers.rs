@@ -59,7 +59,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() -> anyh
         Some("benchmark_ready_runtime_declarations")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    assert!(row_count > 0);
+    assert_eq!(row_count, 148);
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -80,6 +80,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() -> anyh
     let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert!(support::object_u64(domain_counts, "fastq").is_some());
     assert!(support::object_u64(domain_counts, "bam").is_some());
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(28));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let execution_mode_counts = support::json_object(&payload, "execution_mode_counts")?;
@@ -99,12 +100,16 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() -> anyh
             row.get("execution_mode").and_then(serde_json::Value::as_str) == Some("external")
         })
         .collect::<Vec<_>>();
-    assert_eq!(external_artifact_rows.len(), 4);
+    assert_eq!(external_artifact_rows.len(), 8);
     for (stage_id, tool_id) in [
         ("bam.damage", "ngsbriggs"),
         ("bam.kinship", "angsd"),
         ("bam.sex", "angsd"),
         ("fastq.remove_duplicates", "fastuniq"),
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.impute", "impute5"),
     ] {
         let expected_container_id = format!("external-artifact://{tool_id}");
         assert!(

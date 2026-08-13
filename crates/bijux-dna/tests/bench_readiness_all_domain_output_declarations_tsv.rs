@@ -128,12 +128,7 @@ fn bench_readiness_all_domain_output_declarations_rejects_outside_path_before_wr
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args([
-            "bench",
-            "readiness",
-            "render-all-domain-output-declarations",
-            "--output",
-        ])
+        .args(["bench", "readiness", "render-all-domain-output-declarations", "--output"])
         .arg(&output_path)
         .output()
         .expect("run cli");

@@ -1,9 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-bench
-# purpose = Governed runtime declarations for benchmark-ready FASTQ and BAM stage-tool commands.
+# purpose = Governed runtime declarations for benchmark-ready FASTQ, BAM, and VCF stage-tool commands.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-06-25
+# last_updated = 2026-08-13
 
 schema_version = "bijux.bench.local_stage_tool_containers.v1"
 classification_scope = "benchmark_ready_runtime_declarations"
@@ -1206,4 +1206,284 @@ execution_mode = "containerized"
 install_kind = "container"
 container_id = "bijuxdna/seqtk@sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024"
 command_entrypoint = "seqtk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.admixture"
+tool_id = "plink2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/docker/Dockerfile.arm64.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
+command_entrypoint = "plink2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_diploid"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_gl"
+tool_id = "angsd"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_gl"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_pseudohaploid"
+tool_id = "angsd"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_pseudohaploid"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.damage_filter"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.demography"
+tool_id = "ibdne"
+execution_mode = "java"
+install_kind = "container"
+container_id = "containers/apptainer/ibdne.def@sha256:ba400ac39ae8e69794d839b409135ecb66e92159c3456825cf396bcad22b296d"
+command_entrypoint = "ibdne"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.filter"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.gl_propagation"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+tool_id = "germline"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/germline.def@sha256:3ff976e694067ce2252b79d3923a5e640a6b2aadc8c99e244db125f41d63a2a8"
+command_entrypoint = "germline"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+tool_id = "ibdseq"
+execution_mode = "java"
+install_kind = "container"
+container_id = "containers/apptainer/ibdseq.def@sha256:d8a2ed8f3822582ae74dea3831f65e01b0960d28d5d495019021526e12cda25e"
+command_entrypoint = "ibdseq"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+tool_id = "beagle"
+execution_mode = "java"
+install_kind = "container"
+container_id = "containers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
+command_entrypoint = "beagle"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+tool_id = "impute5"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://impute5"
+command_entrypoint = "impute5"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+tool_id = "beagle"
+execution_mode = "java"
+install_kind = "container"
+container_id = "containers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
+command_entrypoint = "beagle"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+tool_id = "impute5"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://impute5"
+command_entrypoint = "impute5"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.pca"
+tool_id = "eigensoft"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/eigensoft.def@sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"
+command_entrypoint = "smartpca"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.pca"
+tool_id = "plink2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/docker/Dockerfile.arm64.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
+command_entrypoint = "plink2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+tool_id = "shapeit5"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/shapeit5.def@sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8"
+command_entrypoint = "shapeit5"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+tool_id = "plink2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/docker/Dockerfile.arm64.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
+command_entrypoint = "plink2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.postprocess"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.prepare_reference_panel"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+tool_id = "plink"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/plink.def@sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"
+command_entrypoint = "plink"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+tool_id = "plink2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/docker/Dockerfile.arm64.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
+command_entrypoint = "plink2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.roh"
+tool_id = "plink2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/docker/Dockerfile.arm64.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
+command_entrypoint = "plink2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.stats"
+tool_id = "bcftools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+command_entrypoint = "bcftools"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"

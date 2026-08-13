@@ -24,6 +24,13 @@ fn stage_tool_container_schemas_match_checked_in_contracts() -> anyhow::Result<(
 fn stage_tool_container_contracts_admit_runtime_closure() -> anyhow::Result<()> {
     validate_stage_tool_containers_config(&valid_config())?;
     validate_stage_tool_containers_report(&valid_report())?;
+
+    let mut vcf_config = valid_config();
+    vcf_config.rows[0].domain = "vcf".to_string();
+    vcf_config.rows[0].stage_id = "vcf.impute".to_string();
+    vcf_config.rows[0].tool_id = "impute5".to_string();
+    vcf_config.rows[0].container_id = Some("external-artifact://impute5".to_string());
+    validate_stage_tool_containers_config(&vcf_config)?;
     Ok(())
 }
 
@@ -36,6 +43,14 @@ fn stage_tool_container_contracts_reject_shape_identity_and_aggregate_drift() {
     let mut config = valid_config();
     config.rows.push(config.rows[0].clone());
     assert!(validate_stage_tool_containers_config(&config).is_err());
+
+    for placeholder in ["external@external", "containers/apptainer/tool.def@planned"] {
+        let mut config = valid_config();
+        config.rows[0].execution_mode = "containerized".to_string();
+        config.rows[0].install_kind = "container".to_string();
+        config.rows[0].container_id = Some(placeholder.to_string());
+        assert!(validate_stage_tool_containers_config(&config).is_err());
+    }
 
     let mut report = valid_report();
     report.config_path = "../outside.toml".to_string();
