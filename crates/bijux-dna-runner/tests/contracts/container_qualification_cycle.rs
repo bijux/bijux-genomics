@@ -4,8 +4,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_runner::api::{
     advance_container_qualification_cycle, plan_container_qualification_cycle,
-    ContainerQualificationCycleAction, ContainerQualificationCycleRequest,
-    ContainerQualificationCycleState, SlurmClientPaths,
+    ContainerQualificationCycleAction, ContainerQualificationCyclePreparation,
+    ContainerQualificationCycleRequest, ContainerQualificationCycleState, SlurmClientPaths,
+    CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1,
     CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2,
 };
 
@@ -34,6 +35,7 @@ fn cycle_plan_and_closed_frontier_advance_are_idempotent() -> Result<()> {
         publication_root: repository_root.join("containers/runs"),
         submission_root: empty_submissions.path().to_path_buf(),
         external_artifact_admission_root: None,
+        preparation: None,
         observed_at_utc: "2026-08-09T12:00:00Z".to_string(),
     };
 
@@ -89,6 +91,61 @@ fn cycle_plan_and_closed_frontier_advance_are_idempotent() -> Result<()> {
 }
 
 #[test]
+fn cycle_plan_blocks_invalid_preparation_sources_before_submission() -> Result<()> {
+    let repository_root = repo_root()?;
+    let submissions = bijux_dna_infra::temp_dir("container-cycle-preparable-submissions")?;
+    let sources = bijux_dna_infra::temp_dir("container-cycle-preparable-sources")?;
+    let authorities = bijux_dna_infra::temp_dir("container-cycle-preparable-authorities")?;
+    for name in ["governance.json", "credential.json", "bijux-dna-dev"] {
+        std::fs::write(authorities.path().join(name), b"retained authority\n")?;
+    }
+    std::fs::write(sources.path().join("adapterremoval.json"), b"{}\n")?;
+    let evidence: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        repository_root.join("containers/runs/run-1002-adapterremoval/evidence.lock.json"),
+    )?)?;
+    let image_sha256 = evidence["image"]["sha256"]
+        .as_str()
+        .context("adapterremoval evidence omits image identity")?;
+    let inventory_root = bijux_dna_infra::temp_dir("container-cycle-preparable-inventory")?;
+    let inventory_path = source_current_inventory(
+        &repository_root,
+        inventory_root.path(),
+        &[("adapterremoval", image_sha256)],
+    )?;
+    let status = plan_container_qualification_cycle(&ContainerQualificationCycleRequest {
+        repository_root: repository_root.clone(),
+        registry_path: repository_root.join("containers/contracts/qualification-runs.toml"),
+        inventory_path,
+        publication_root: repository_root.join("containers/runs"),
+        submission_root: submissions.path().to_path_buf(),
+        external_artifact_admission_root: None,
+        preparation: Some(ContainerQualificationCyclePreparation {
+            schema_version: CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1.to_string(),
+            sources_root: sources.path().to_path_buf(),
+            governance_path: authorities.path().join("governance.json"),
+            credential_reference_path: authorities.path().join("credential.json"),
+            executor_program_path: authorities.path().join("bijux-dna-dev"),
+            hostname: "lunarc".to_string(),
+        }),
+        observed_at_utc: "2026-08-13T22:00:00Z".to_string(),
+    })?;
+
+    let unit = status
+        .units
+        .iter()
+        .find(|unit| unit.tool_id == "adapterremoval")
+        .context("qualification cycle omits adapterremoval")?;
+    assert_eq!(unit.state, ContainerQualificationCycleState::Blocked);
+    assert_eq!(unit.next_action, ContainerQualificationCycleAction::None);
+    assert!(unit
+        .detail
+        .as_deref()
+        .is_some_and(|detail| detail.contains("preparation source is invalid")));
+    assert_eq!(status.summary.ready_count, 0);
+    Ok(())
+}
+
+#[test]
 fn cycle_plan_verifies_governed_external_access_blockers() -> Result<()> {
     let repository_root = repo_root()?;
     let submissions = bijux_dna_infra::temp_dir("container-cycle-blocked-submissions")?;
@@ -116,6 +173,7 @@ fn cycle_plan_verifies_governed_external_access_blockers() -> Result<()> {
         publication_root: repository_root.join("containers/runs"),
         submission_root: submissions.path().to_path_buf(),
         external_artifact_admission_root: Some(admissions.path().to_path_buf()),
+        preparation: None,
         observed_at_utc: "2026-08-09T12:00:00Z".to_string(),
     })?;
 

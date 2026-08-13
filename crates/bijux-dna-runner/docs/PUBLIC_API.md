@@ -98,6 +98,7 @@
 - `status_container_qualification_cycle`
 - `collect_container_qualification_cycle`
 - `admit_container_qualification_cycle`
+- `load_container_qualification_cycle_preparation`
 - `archive_failed_container_qualification_attempt`
 - `rollback_failed_container_qualification_attempt_archive`
 - `ContainerQualificationPreparationRequest`
@@ -109,6 +110,7 @@
 - `ContainerQualificationSchedulerEvidence`
 - `ContainerQualificationSchedulerStatus`
 - `ContainerQualificationCycleAction`
+- `ContainerQualificationCyclePreparation`
 - `ContainerQualificationCycleRequest`
 - `ContainerQualificationCycleState`
 - `ContainerQualificationCycleStatus`
@@ -119,6 +121,7 @@
 - `CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5`
 - `CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1`
 - `CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1`
+- `CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1`
 - `CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1` (deserialize compatibility)
 - `CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2`
 - `CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1`

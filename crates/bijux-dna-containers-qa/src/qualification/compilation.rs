@@ -458,7 +458,7 @@ pub fn derive_qualification_specification_coverage(
                 "the current catalog-bound canonical image is unavailable".to_string(),
             )
         } else if let Some(path) = source_path.as_ref() {
-            match load_source(path).and_then(|source| {
+            match load_qualification_specification_source(path).and_then(|source| {
                 compile_container_qualification_specification(request, &source).map(|_| ())
             }) {
                 Ok(()) => (
@@ -758,13 +758,26 @@ fn resolve_governed_path(study_root: &Path, value: &str) -> Result<PathBuf> {
     Ok(study_root.join(relative))
 }
 
-fn load_source(path: &Path) -> Result<QualificationSpecificationSourceV1> {
-    let bytes =
-        fs::read(path).with_context(|| format!("read qualification source {}", path.display()))?;
-    if path.extension().and_then(|value| value.to_str()) == Some("json") {
-        serde_json::from_slice(&bytes).context("parse qualification source JSON")
-    } else {
-        serde_yaml::from_slice(&bytes).context("parse qualification source YAML")
+/// Load one declarative qualification source from JSON or YAML.
+///
+/// # Errors
+/// Returns an error when the source cannot be read or decoded.
+pub fn load_qualification_specification_source(
+    path: &Path,
+) -> Result<QualificationSpecificationSourceV1> {
+    let metadata = fs::symlink_metadata(path)
+        .with_context(|| format!("inspect qualification source {}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("qualification source is not a regular file: {}", path.display());
+    }
+    let bytes = bijux_dna_infra::read_to_end_bounded(path, 16 * 1024 * 1024)
+        .with_context(|| format!("read qualification source {}", path.display()))?;
+    match path.extension().and_then(|value| value.to_str()) {
+        Some("json") => serde_json::from_slice(&bytes).context("parse qualification source JSON"),
+        Some("yaml" | "yml") => {
+            serde_yaml::from_slice(&bytes).context("parse qualification source YAML")
+        }
+        _ => bail!("qualification source must use a JSON or YAML extension"),
     }
 }
 
@@ -813,6 +826,15 @@ fn require_path_under(path: &Path, root: &Path, label: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn qualification_source_loader_rejects_undeclared_encodings() -> Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("qualification-source-encoding")?;
+        let path = temporary.path().join("source.toml");
+        fs::write(&path, b"schema_version = 'unsupported'\n")?;
+        assert!(load_qualification_specification_source(&path).is_err());
+        Ok(())
+    }
 
     #[test]
     fn compiler_emits_current_stage_bound_pipeline_and_refuses_stale_authority() -> Result<()> {
