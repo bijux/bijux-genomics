@@ -59,7 +59,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() -> anyh
         Some("benchmark_ready_runtime_declarations")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    assert_eq!(row_count, 148);
+    assert_eq!(row_count, 159);
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -80,7 +80,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() -> anyh
     let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert!(support::object_u64(domain_counts, "fastq").is_some());
     assert!(support::object_u64(domain_counts, "bam").is_some());
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(28));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(39));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let execution_mode_counts = support::json_object(&payload, "execution_mode_counts")?;

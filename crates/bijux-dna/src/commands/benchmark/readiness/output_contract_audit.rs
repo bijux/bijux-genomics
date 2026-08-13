@@ -1260,7 +1260,7 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
-        assert_eq!(report.row_count, 148);
+        assert_eq!(report.row_count, 159);
         assert!(report.passed_row_count > 0, "report should keep real passing rows");
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),

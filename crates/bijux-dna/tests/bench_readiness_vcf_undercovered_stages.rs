@@ -49,102 +49,23 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(6)
+        Some(0)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(3)
+        None
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("limit_to_specialized_tool"))
             .and_then(serde_json::Value::as_u64),
-        Some(3)
+        None
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 6);
-
-    let has_row = |stage_id: &str,
-                   valid_tool_classes: &[&str],
-                   registered_tools: &[&str],
-                   missing_tools: &[&str],
-                   decision: &str| {
-        rows.iter().any(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
-                && row.get("valid_tool_classes").and_then(serde_json::Value::as_array).map(
-                    |values| {
-                        values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
-                    },
-                ) == Some(valid_tool_classes.to_vec())
-                && row.get("registered_tools").and_then(serde_json::Value::as_array).map(|values| {
-                    values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
-                }) == Some(registered_tools.to_vec())
-                && row.get("missing_tools").and_then(serde_json::Value::as_array).map(|values| {
-                    values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
-                }) == Some(missing_tools.to_vec())
-                && row.get("decision").and_then(serde_json::Value::as_str) == Some(decision)
-        })
-    };
-
-    assert!(has_row(
-        "vcf.admixture",
-        &["cohort_analysis"],
-        &["plink2"],
-        &["plink"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
-        "vcf.ibd",
-        &["relatedness"],
-        &["germline", "ibdseq"],
-        &["ibdhap"],
-        "limit_to_specialized_tool",
-    ));
-    assert!(has_row(
-        "vcf.phasing",
-        &["phasing"],
-        &["shapeit5"],
-        &["beagle", "eagle", "shapeit"],
-        "limit_to_specialized_tool",
-    ));
-    assert!(has_row(
-        "vcf.impute",
-        &["imputation", "phasing"],
-        &["beagle", "impute5"],
-        &["glimpse", "minimac4"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
-        "vcf.imputation_metrics",
-        &["imputation", "phasing"],
-        &["beagle", "impute5"],
-        &["glimpse", "minimac4"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
-        "vcf.population_structure",
-        &["cohort_analysis", "population_structure"],
-        &["plink2"],
-        &["eigensoft", "plink"],
-        "limit_to_specialized_tool",
-    ));
-    assert!(!rows
-        .iter()
-        .any(|row| { row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca") }));
-    assert!(!rows
-        .iter()
-        .any(|row| { row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc") }));
-    for stage_id in ["vcf.call_gl", "vcf.call_pseudohaploid"] {
-        assert!(
-            !rows.iter().any(|row| {
-                row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
-            }),
-            "licensed ANGSD binding must close undercoverage for {stage_id}"
-        );
-    }
+    assert!(rows.is_empty());
 }

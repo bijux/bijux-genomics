@@ -47,7 +47,7 @@ fn bench_readiness_vcf_descent_family_adapter_writes_governed_json_file() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(5)
     );
     assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(5));
 

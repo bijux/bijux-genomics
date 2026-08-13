@@ -1,75 +1,33 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::{anyhow, Result};
+use bijux_dna_bench::derive_supported_domain_stage_tool_pairs;
 use bijux_dna_domain_vcf::VcfDomainStage;
-use bijux_dna_stages_vcf::stage_specs::{
-    vcf_domain_stage_adapter_id, vcf_domain_stage_expected_output_ids, vcf_domain_stage_parser_id,
-};
 
 use super::local_vcf_stage_matrix::{build_vcf_stage_matrix_rows, VcfStageMatrixRow};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct ExplicitVcfBenchmarkBinding {
-    stage: VcfDomainStage,
-    tool_id: &'static str,
-    corpus_id: &'static str,
-    asset_profile_id: &'static str,
-}
-
-const EXPLICIT_VCF_BENCHMARK_BINDINGS: &[ExplicitVcfBenchmarkBinding] = &[
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::CallGl,
-        tool_id: "angsd",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "bam_bundle",
-    },
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::CallPseudohaploid,
-        tool_id: "angsd",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "bam_bundle",
-    },
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::ImputationMetrics,
-        tool_id: "impute5",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "vcf_cohort_with_panel",
-    },
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::Impute,
-        tool_id: "impute5",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "vcf_cohort_with_panel",
-    },
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::Qc,
-        tool_id: "bcftools",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "vcf_cohort",
-    },
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::Qc,
-        tool_id: "plink",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "vcf_cohort",
-    },
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::Pca,
-        tool_id: "eigensoft",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "vcf_cohort",
-    },
-    ExplicitVcfBenchmarkBinding {
-        stage: VcfDomainStage::Ibd,
-        tool_id: "ibdseq",
-        corpus_id: "vcf_production_regression",
-        asset_profile_id: "vcf_cohort",
-    },
-];
-
 pub(crate) fn collect_vcf_benchmark_binding_rows() -> Result<Vec<VcfStageMatrixRow>> {
-    let mut rows = build_vcf_stage_matrix_rows()?;
-    rows.extend(explicit_vcf_benchmark_binding_rows()?);
+    let repository_root = crate::commands::support::workspace_root::resolve_repo_root()?;
+    let templates = build_vcf_stage_matrix_rows()?
+        .into_iter()
+        .map(|row| (row.stage_id.clone(), row))
+        .collect::<BTreeMap<_, _>>();
+    let supported_pairs = derive_supported_domain_stage_tool_pairs(&repository_root, "vcf")?;
+    let mut rows = supported_pairs
+        .into_iter()
+        .map(|pair| {
+            let template = templates.get(pair.stage_id.as_str()).ok_or_else(|| {
+                anyhow!(
+                    "supported VCF binding `{}` / `{}` has no stage contract template",
+                    pair.stage_id,
+                    pair.tool_id
+                )
+            })?;
+            let mut row = template.clone();
+            row.tool_id = pair.tool_id;
+            Ok(row)
+        })
+        .collect::<Result<Vec<_>>>()?;
     rows.sort_by(|left, right| {
         left.stage_id
             .cmp(&right.stage_id)
@@ -122,49 +80,6 @@ pub(crate) fn collect_vcf_qc_benchmark_binding_rows() -> Result<Vec<VcfStageMatr
         .collect())
 }
 
-fn explicit_vcf_benchmark_binding_rows() -> Result<Vec<VcfStageMatrixRow>> {
-    EXPLICIT_VCF_BENCHMARK_BINDINGS
-        .iter()
-        .map(|binding| {
-            let adapter_id = vcf_domain_stage_adapter_id(binding.stage).ok_or_else(|| {
-                anyhow!(
-                    "VCF explicit benchmark binding `{}` / `{}` is missing an adapter contract id",
-                    binding.stage.as_str(),
-                    binding.tool_id
-                )
-            })?;
-            let parser_id = vcf_domain_stage_parser_id(binding.stage).ok_or_else(|| {
-                anyhow!(
-                    "VCF explicit benchmark binding `{}` / `{}` is missing a parser contract id",
-                    binding.stage.as_str(),
-                    binding.tool_id
-                )
-            })?;
-            let expected_outputs =
-                vcf_domain_stage_expected_output_ids(binding.stage).ok_or_else(|| {
-                    anyhow!(
-                        "VCF explicit benchmark binding `{}` / `{}` is missing expected output ids",
-                        binding.stage.as_str(),
-                        binding.tool_id
-                    )
-                })?;
-
-            Ok(VcfStageMatrixRow {
-                stage_id: binding.stage.as_str().to_string(),
-                tool_id: binding.tool_id.to_string(),
-                corpus_id: binding.corpus_id.to_string(),
-                asset_profile_id: binding.asset_profile_id.to_string(),
-                adapter_id: adapter_id.to_string(),
-                parser_id: parser_id.to_string(),
-                expected_outputs: expected_outputs
-                    .iter()
-                    .map(|value| (*value).to_string())
-                    .collect(),
-            })
-        })
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeSet;
@@ -186,5 +101,25 @@ mod tests {
         ]);
 
         assert!(expected.is_subset(&observed));
+    }
+
+    #[test]
+    fn supported_vcf_bindings_are_projected_without_tool_specific_exceptions() {
+        let rows = collect_vcf_benchmark_binding_rows().expect("collect VCF benchmark bindings");
+        assert_eq!(rows.len(), 39);
+        let observed = rows
+            .iter()
+            .map(|row| (row.stage_id.as_str(), row.tool_id.as_str()))
+            .collect::<BTreeSet<_>>();
+        for pair in [
+            ("vcf.admixture", "plink"),
+            ("vcf.ibd", "ibdhap"),
+            ("vcf.imputation_metrics", "glimpse"),
+            ("vcf.impute", "minimac4"),
+            ("vcf.phasing", "eagle"),
+            ("vcf.population_structure", "eigensoft"),
+        ] {
+            assert!(observed.contains(&pair), "missing supported VCF pair {pair:?}");
+        }
     }
 }

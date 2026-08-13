@@ -294,7 +294,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
             )?;
             if report.stage_count != 10
                 || report.multi_tool_stage_count != 10
-                || report.retained_tool_row_count != 28
+                || report.retained_tool_row_count != 29
                 || report.row_count != 29
             {
                 bail!("VCF comparable metrics report drifted from the governed retained slice");

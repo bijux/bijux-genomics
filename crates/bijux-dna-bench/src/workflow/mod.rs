@@ -262,8 +262,9 @@ pub use stage_result::{
     load_benchmark_stage_result_manifest, validate_benchmark_stage_result_path,
 };
 pub use stage_tool_closure::{
-    derive_benchmark_stage_tool_closure, publish_checked_in_benchmark_stage_tool_closure,
-    render_benchmark_stage_tool_closure_markdown, BenchmarkStageToolClosureWriteMode,
+    derive_benchmark_stage_tool_closure, derive_supported_domain_stage_tool_pairs,
+    publish_checked_in_benchmark_stage_tool_closure, render_benchmark_stage_tool_closure_markdown,
+    BenchmarkStageToolClosureWriteMode,
 };
 pub use stage_universe::{
     derive_stage_universe, publish_checked_in_stage_universe, render_stage_universe_markdown,

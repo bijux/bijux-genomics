@@ -107,7 +107,7 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() ->
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(8)
     );
     let imputation_bindings = rows
         .iter()
@@ -123,26 +123,30 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() ->
         imputation_bindings,
         BTreeSet::from([
             "vcf.imputation_metrics:beagle".to_string(),
+            "vcf.imputation_metrics:glimpse".to_string(),
             "vcf.imputation_metrics:impute5".to_string(),
+            "vcf.imputation_metrics:minimac4".to_string(),
             "vcf.impute:beagle".to_string(),
+            "vcf.impute:glimpse".to_string(),
             "vcf.impute:impute5".to_string(),
+            "vcf.impute:minimac4".to_string(),
         ])
     );
     assert_eq!(
         command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(4)
     );
     assert_eq!(
         command_source_counts.get("vcf_eigensoft_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(7)
     );
     assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(5)
     );
 
     let coverage_status_counts = support::json_object(&payload, "coverage_status_counts")?;

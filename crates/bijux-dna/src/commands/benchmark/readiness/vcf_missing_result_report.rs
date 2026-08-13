@@ -472,9 +472,9 @@ mod tests {
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
         assert_eq!(report.report_section_counts.get("variant_calling").copied(), Some(6));
-        assert_eq!(report.report_section_counts.get("imputation").copied(), Some(4));
+        assert_eq!(report.report_section_counts.get("imputation").copied(), Some(8));
         assert_eq!(report.report_section_counts.get("quality_control").copied(), Some(5));
-        assert_eq!(report.report_section_counts.get("population_structure").copied(), Some(4));
+        assert_eq!(report.report_section_counts.get("population_structure").copied(), Some(7));
         assert_eq!(report.report_section_counts.get("runs_of_homozygosity").copied(), Some(1));
 
         let removed_row = report

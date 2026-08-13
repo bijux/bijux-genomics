@@ -31,11 +31,13 @@ use super::vcf_orphan_tools::{render_vcf_orphan_tools, DEFAULT_VCF_ORPHAN_TOOLS_
 use super::vcf_phasing_family_adapter::{
     render_vcf_phasing_family_adapter, DEFAULT_VCF_BEAGLE_ADAPTER_PATH,
     DEFAULT_VCF_EAGLE_ADAPTER_PATH, DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH,
+    DEFAULT_VCF_SHAPEIT_ADAPTER_PATH,
 };
 use super::vcf_plink_family_adapter::{
     render_vcf_plink_family_adapter, DEFAULT_VCF_PLINK2_ADAPTER_PATH,
     DEFAULT_VCF_PLINK_ADAPTER_PATH,
 };
+use super::vcf_rendered_command_rows::collect_vcf_adapter_command_row_map;
 use super::vcf_rendered_commands::{render_vcf_commands, DEFAULT_VCF_RENDERED_COMMANDS_PATH};
 use super::vcf_tool_serving_map::{render_vcf_tool_serving_map, DEFAULT_VCF_TOOL_SERVING_MAP_PATH};
 use super::vcf_undercovered_stages::{
@@ -106,14 +108,7 @@ pub(crate) fn render_vcf_adapters_ready(
     let mut rendered_command_pair_count = 0usize;
 
     let mut tool_serving_map_report = None;
-    let mut bcftools_adapter_report = None;
-    let mut angsd_adapter_report = None;
-    let mut shapeit5_adapter_report = None;
-    let mut imputation_family_adapter_report = None;
-    let mut descent_family_adapter_report = None;
     let mut adapter_output_coverage_report = None;
-    let mut plink_adapter_report = None;
-    let mut plink2_family_adapter_report = None;
     let mut rendered_commands_report = None;
 
     record_goal_check(
@@ -159,18 +154,13 @@ pub(crate) fn render_vcf_adapters_ready(
                 render_vcf_orphan_tools(repo_root, PathBuf::from(DEFAULT_VCF_ORPHAN_TOOLS_PATH))?;
             if report.required_tool_count != 16
                 || report.registered_tool_count != 16
-                || report.served_tool_count + report.orphan_count != report.required_tool_count
-                || report.rows.iter().any(|row| matches!(row.tool_id.as_str(), "angsd" | "impute5"))
-                || report.rows.iter().any(|row| {
-                    row.served_stage_count != 0 || row.decision != "future_not_benchmark_ready"
-                })
+                || report.served_tool_count != report.required_tool_count
+                || report.orphan_count != 0
+                || !report.rows.is_empty()
             {
-                bail!("VCF orphan-tool report drifted from the governed orphan tool slice");
+                bail!("VCF orphan-tool report must be empty when every governed tool is served");
             }
-            Ok(format!(
-                "validated {} governed orphan VCF tools with explicit future_not_benchmark_ready decisions",
-                report.orphan_count
-            ))
+            Ok("validated that every governed VCF tool serves at least one stage".to_string())
         },
     );
 
@@ -184,26 +174,18 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_UNDERCOVERED_STAGES_PATH),
             )?;
-            if report.stage_count != 20 || report.undercovered_stage_count != 6 {
+            if report.stage_count != 20
+                || report.undercovered_stage_count != 0
+                || !report.decision_counts.is_empty()
+                || !report.rows.is_empty()
+            {
                 bail!(
                     "VCF undercovered-stage report drifted: stage_count={}, undercovered_stage_count={}",
                     report.stage_count,
                     report.undercovered_stage_count
                 );
             }
-            let future_not_benchmark_ready =
-                report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
-            let limit_to_specialized_tool =
-                report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 3 || limit_to_specialized_tool != 3 {
-                bail!(
-                    "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
-                );
-            }
-            Ok(
-                "validated 6 governed undercovered VCF stages with explicit future vs specialized decisions"
-                    .to_string(),
-            )
+            Ok("validated complete supported-tool coverage for every VCF stage".to_string())
         },
     );
 
@@ -261,7 +243,6 @@ pub(crate) fn render_vcf_adapters_ready(
                         && row.missing_input_test_passed
                 })
                 .count();
-            bcftools_adapter_report = Some(report);
             Ok("validated executable governed bcftools adapter rows with passing missing-input probes".to_string())
         },
     );
@@ -286,7 +267,6 @@ pub(crate) fn render_vcf_adapters_ready(
                     "VCF angsd adapter report drifted from the governed low-coverage row contract"
                 );
             }
-            angsd_adapter_report = Some(report);
             Ok("validated retained ANGSD VCF adapter rows and their missing-input behavior"
                 .to_string())
         },
@@ -309,7 +289,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_PLINK2_ADAPTER_PATH),
             )?;
             if plink_report.row_count != 3
-                || plink_report.benchmark_ready_row_count != 1
+                || plink_report.benchmark_ready_row_count != 3
                 || plink_report.parser_output_row_count != plink_report.row_count
                 || plink_report.normalized_metrics_row_count != plink_report.row_count
                 || plink_report.raw_output_declared_row_count != plink_report.row_count
@@ -349,8 +329,6 @@ pub(crate) fn render_vcf_adapters_ready(
                         && row.missing_input_test_passed
                 })
                 .count();
-            plink_adapter_report = Some(plink_report);
-            plink2_family_adapter_report = Some(plink2_family_report);
             Ok(
                 "validated governed plink and plink2 adapter rows with explicit raw and normalized outputs"
                     .to_string(),
@@ -369,7 +347,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH),
             )?;
             if report.row_count != 2
-                || report.benchmark_ready_row_count != 1
+                || report.benchmark_ready_row_count != 2
                 || report.conversion_output_row_count != report.row_count
                 || report.pca_output_row_count != report.row_count
                 || report.missing_input_test_passed_row_count != report.row_count
@@ -388,23 +366,22 @@ pub(crate) fn render_vcf_adapters_ready(
         "vcf phasing family adapters",
         Some(DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH.to_string()),
         || {
-            let shapeit5_report = render_vcf_phasing_family_adapter(
-                repo_root,
-                "shapeit5",
-                PathBuf::from(DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH),
-            )?;
-            let eagle_report = render_vcf_phasing_family_adapter(
-                repo_root,
-                "eagle",
-                PathBuf::from(DEFAULT_VCF_EAGLE_ADAPTER_PATH),
-            )?;
-            let beagle_report = render_vcf_phasing_family_adapter(
-                repo_root,
-                "beagle",
-                PathBuf::from(DEFAULT_VCF_BEAGLE_ADAPTER_PATH),
-            )?;
-            for report in [&shapeit5_report, &eagle_report] {
+            let mut reports = Vec::new();
+            for (tool_id, path) in [
+                ("shapeit", DEFAULT_VCF_SHAPEIT_ADAPTER_PATH),
+                ("shapeit5", DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH),
+                ("eagle", DEFAULT_VCF_EAGLE_ADAPTER_PATH),
+                ("beagle", DEFAULT_VCF_BEAGLE_ADAPTER_PATH),
+            ] {
+                reports.push(render_vcf_phasing_family_adapter(
+                    repo_root,
+                    tool_id,
+                    PathBuf::from(path),
+                )?);
+            }
+            for report in reports.iter().filter(|report| report.tool_id != "beagle") {
                 if report.row_count != 1
+                    || report.benchmark_ready_row_count != 1
                     || report.parser_output_row_count != 1
                     || report.indexed_row_count != 1
                     || report.missing_input_test_passed_row_count != 1
@@ -412,22 +389,19 @@ pub(crate) fn render_vcf_adapters_ready(
                     bail!("VCF phasing adapter report for `{}` drifted from the governed retained row contract", report.tool_id);
                 }
             }
+            let beagle_report = reports
+                .iter()
+                .find(|report| report.tool_id == "beagle")
+                .ok_or_else(|| anyhow!("VCF phasing family is missing beagle"))?;
             if beagle_report.row_count != 3
+                || beagle_report.benchmark_ready_row_count != 3
                 || beagle_report.parser_output_row_count != 3
                 || beagle_report.indexed_row_count != 3
                 || beagle_report.missing_input_test_passed_row_count != 3
             {
                 bail!("VCF phasing adapter report for `beagle` drifted from the governed retained row contract");
             }
-            if shapeit5_report.benchmark_ready_row_count != 1
-                || eagle_report.benchmark_ready_row_count != 0
-                || beagle_report.benchmark_ready_row_count != 2
-            {
-                bail!("VCF phasing benchmark-ready ownership drifted across retained backends");
-            }
-            shapeit5_adapter_report = Some(shapeit5_report);
-            Ok("validated retained phasing adapter rows for shapeit5, eagle, and beagle"
-                .to_string())
+            Ok("validated executable phasing adapter rows for every supported backend".to_string())
         },
     );
 
@@ -443,13 +417,12 @@ pub(crate) fn render_vcf_adapters_ready(
             )?;
             if report.row_count != 8
                 || report.tool_count != 4
-                || report.benchmark_ready_row_count != 4
+                || report.benchmark_ready_row_count != 8
                 || report.parser_output_row_count != report.row_count
                 || report.missing_input_test_passed_row_count != report.row_count
             {
                 bail!("VCF imputation-family adapter report drifted from the governed retained row contract");
             }
-            imputation_family_adapter_report = Some(report);
             Ok("validated retained imputation-family adapter rows with explicit parser outputs and missing-input probes".to_string())
         },
     );
@@ -466,13 +439,12 @@ pub(crate) fn render_vcf_adapters_ready(
             )?;
             if report.row_count != 5
                 || report.tool_count != 5
-                || report.benchmark_ready_row_count != 4
+                || report.benchmark_ready_row_count != 5
                 || report.parser_output_row_count != report.row_count
                 || report.missing_input_test_passed_row_count != report.row_count
             {
                 bail!("VCF descent-family adapter report drifted from the governed retained row contract");
             }
-            descent_family_adapter_report = Some(report);
             Ok("validated retained IBD, ROH, and demography adapter rows".to_string())
         },
     );
@@ -587,36 +559,9 @@ pub(crate) fn render_vcf_adapters_ready(
             let tool_serving_map_report = tool_serving_map_report
                 .as_ref()
                 .ok_or_else(|| anyhow!("VCF tool-serving map check did not produce a report"))?;
-            let bcftools_adapter_report = bcftools_adapter_report
-                .as_ref()
-                .ok_or_else(|| anyhow!("VCF bcftools adapter check did not produce a report"))?;
-            let angsd_adapter_report = angsd_adapter_report
-                .as_ref()
-                .ok_or_else(|| anyhow!("VCF angsd adapter check did not produce a report"))?;
-            let plink_adapter_report = plink_adapter_report
-                .as_ref()
-                .ok_or_else(|| anyhow!("VCF plink adapter check did not produce a report"))?;
-            let plink2_family_adapter_report = plink2_family_adapter_report
-                .as_ref()
-                .ok_or_else(|| anyhow!("VCF plink2 adapter check did not produce a report"))?;
             let adapter_output_coverage_report =
                 adapter_output_coverage_report.as_ref().ok_or_else(|| {
                     anyhow!("VCF adapter output coverage check did not produce a report")
-                })?;
-            let shapeit5_adapter_report = shapeit5_adapter_report
-                .as_ref()
-                .ok_or_else(|| anyhow!("VCF shapeit5 adapter check did not produce a report"))?;
-            let eigensoft_adapter_report = render_vcf_eigensoft_adapter(
-                repo_root,
-                PathBuf::from(DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH),
-            )?;
-            let imputation_family_adapter_report =
-                imputation_family_adapter_report.as_ref().ok_or_else(|| {
-                    anyhow!("VCF imputation-family adapter check did not produce a report")
-                })?;
-            let descent_family_adapter_report =
-                descent_family_adapter_report.as_ref().ok_or_else(|| {
-                    anyhow!("VCF descent-family adapter check did not produce a report")
                 })?;
             let rendered_commands_report = rendered_commands_report
                 .as_ref()
@@ -628,110 +573,11 @@ pub(crate) fn render_vcf_adapters_ready(
                 .filter(|row| row.benchmark_status == "benchmark_ready")
                 .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
                 .collect::<BTreeSet<_>>();
-            let mut adapter_pairs = BTreeSet::new();
-            adapter_pairs.extend(
-                bcftools_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.argv_validation_passed
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
-            adapter_pairs.extend(
-                angsd_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.argv_validation_passed
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
-            adapter_pairs.extend(
-                plink_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.argv_validation_passed
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
-            adapter_pairs.extend(
-                plink2_family_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.argv_validation_passed
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
-            adapter_pairs.extend(
-                shapeit5_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.argv_validation_passed
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
-            adapter_pairs.extend(
-                eigensoft_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
-            adapter_pairs.extend(
-                imputation_family_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.argv_validation_passed
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
-            adapter_pairs.extend(
-                descent_family_adapter_report
-                    .rows
-                    .iter()
-                    .filter(|row| {
-                        row.benchmark_status == "benchmark_ready"
-                            && row.argv_validation_passed
-                            && row.missing_input_test_passed
-                            && benchmark_ready_pairs
-                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
-                    })
-                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
-            );
+            let adapter_pairs = collect_vcf_adapter_command_row_map(repo_root)?
+                .into_values()
+                .filter(|row| row.benchmark_status == "benchmark_ready")
+                .map(|row| (row.stage_id, row.tool_id))
+                .collect::<BTreeSet<_>>();
             let output_pairs = adapter_output_coverage_report
                 .rows
                 .iter()

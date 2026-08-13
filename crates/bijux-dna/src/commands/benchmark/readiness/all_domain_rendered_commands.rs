@@ -628,12 +628,12 @@ mod tests {
             Some(&fastq_bam_count)
         );
         assert_eq!(report.command_source_counts.get("vcf_bcftools_adapter"), Some(&11));
-        assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&1));
-        assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&4));
+        assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&2));
+        assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&8));
         assert_eq!(report.command_source_counts.get("vcf_angsd_adapter"), Some(&2));
-        assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
-        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&5));
-        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&4));
+        assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&4));
+        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&7));
+        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&5));
         assert!(report.rows.iter().all(|row| !row.command_steps.is_empty()));
     }
 }

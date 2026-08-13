@@ -49,7 +49,7 @@ fn bench_readiness_vcf_comparable_metrics_reports_governed_metric_rows() {
     assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(
         payload.get("retained_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(28)
+        Some(29)
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(29));
 
@@ -99,6 +99,7 @@ fn bench_readiness_vcf_comparable_metrics_reports_governed_metric_rows() {
                     == &[
                         serde_json::Value::String("beagle".to_string()),
                         serde_json::Value::String("eagle".to_string()),
+                        serde_json::Value::String("shapeit".to_string()),
                         serde_json::Value::String("shapeit5".to_string()),
                     ]
             })

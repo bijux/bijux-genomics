@@ -72,6 +72,9 @@ pub fn parse_plink_stage_metrics(
     match stage {
         VcfDomainStage::Qc => parse_plink_qc_metrics(artifact_root),
         VcfDomainStage::Admixture => parse_plink_admixture_prep_metrics(artifact_root),
+        VcfDomainStage::PopulationStructure => {
+            parse_plink_population_structure_metrics(artifact_root)
+        }
         other => bail!("unsupported plink VCF parser stage `{}`", other.as_str()),
     }
 }
@@ -465,6 +468,100 @@ fn parse_plink2_population_structure_metrics(root: &Path) -> Result<serde_json::
         "distance_summary": distance_summary,
         "variant_count": pruned_variants,
         "status": source_status,
+    }))
+}
+
+fn parse_plink_population_structure_metrics(root: &Path) -> Result<serde_json::Value> {
+    let log = parse_key_value_lines(&root.join("raw.log"))?;
+    if log.get("toolchain").map(String::as_str) != Some(PLINK_TOOL_ID) {
+        bail!("plink population structure log is missing `toolchain=plink`");
+    }
+
+    let (metadata_header, metadata_rows) = read_table(&root.join("raw.sample_metadata.tsv"))?;
+    let metadata_sample_idx = index_for(&metadata_header, &["sample_id", "iid"])?;
+    let metadata_population_idx = index_for(&metadata_header, &["population_id", "fid"])?;
+    let population_by_sample = metadata_rows
+        .into_iter()
+        .map(|row| {
+            Ok((
+                field(&row, metadata_sample_idx, &root.join("raw.sample_metadata.tsv"))?
+                    .to_string(),
+                field(&row, metadata_population_idx, &root.join("raw.sample_metadata.tsv"))?
+                    .to_string(),
+            ))
+        })
+        .collect::<Result<BTreeMap<_, _>>>()?;
+
+    let (mds_header, mds_rows) = read_table(&root.join("raw.mds"))?;
+    let sample_idx = index_for(&mds_header, &["iid", "sample_id"])?;
+    let cluster_idx = index_for(&mds_header, &["sol", "cluster"])?;
+    let c1_idx = index_for(&mds_header, &["c1", "pc1"])?;
+    let c2_idx = index_for(&mds_header, &["c2", "pc2"])?;
+    let sample_groups = mds_rows
+        .into_iter()
+        .map(|row| {
+            let sample_id = field(&row, sample_idx, &root.join("raw.mds"))?;
+            let population_id = population_by_sample.get(sample_id).ok_or_else(|| {
+                anyhow!("plink population structure sample `{sample_id}` is missing metadata")
+            })?;
+            let cluster = field(&row, cluster_idx, &root.join("raw.mds"))?;
+            Ok(serde_json::json!({
+                "sample_id": sample_id,
+                "population_id": population_id,
+                "dominant_cluster": format!("cluster_{cluster}"),
+                "dominant_fraction": 1.0,
+                "pc1": parse_f64(field(&row, c1_idx, &root.join("raw.mds"))?, "C1")?,
+                "pc2": parse_f64(field(&row, c2_idx, &root.join("raw.mds"))?, "C2")?,
+                "status": "complete",
+            }))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if sample_groups.len() != population_by_sample.len() {
+        bail!(
+            "plink population structure sample coverage drifted: mds={}, metadata={}",
+            sample_groups.len(),
+            population_by_sample.len()
+        );
+    }
+
+    let distance_summary = build_distance_summary(&sample_groups)?;
+    let sample_count =
+        distance_summary.get("sample_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let pair_count =
+        distance_summary.get("pair_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let within_population_pair_count = distance_summary
+        .get("within_population_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let cross_population_pair_count = distance_summary
+        .get("cross_population_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let variant_count = log
+        .get("variant_count")
+        .map(|value| parse_u64(value, "variant_count"))
+        .transpose()?
+        .unwrap_or(0);
+    let tool_ok = log.get("tool_success").is_some_and(|value| value == "true");
+
+    Ok(serde_json::json!({
+        "schema_version": "bijux.vcf.population_structure.v1",
+        "stage_id": "vcf.population_structure",
+        "tool_id": PLINK_TOOL_ID,
+        "consumed_pca": {
+            "sample_count": sample_count,
+            "variant_count": variant_count,
+            "execution_mode": "native_mds",
+            "tool_ok": tool_ok,
+        },
+        "distance_summary": distance_summary,
+        "sample_count": sample_count,
+        "pair_count": pair_count,
+        "within_population_pair_count": within_population_pair_count,
+        "cross_population_pair_count": cross_population_pair_count,
+        "sample_groups": sample_groups,
+        "status": "complete",
+        "variant_count": variant_count,
     }))
 }
 

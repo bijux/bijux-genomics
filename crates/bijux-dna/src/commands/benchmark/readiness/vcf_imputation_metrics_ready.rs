@@ -604,7 +604,7 @@ mod tests {
     }
 
     #[test]
-    fn imputation_metrics_readiness_retains_unadmitted_impute5_blocker() {
+    fn imputation_metrics_readiness_covers_every_supported_backend() {
         let repo_root = repo_root();
         let output_root = tempfile::tempdir().expect("tempdir");
         let report = build_vcf_imputation_metrics_ready_report(
@@ -618,11 +618,20 @@ mod tests {
             report.output_path,
             "artifacts/benchmark-smoke/readiness/vcf/imputation-metrics-ready.json"
         );
-        assert_eq!(report.retained_row_count, 2);
-        assert_eq!(report.active_row_count, 2);
-        assert_eq!(report.complete_row_count + report.incomplete_row_count, 2);
+        assert_eq!(report.retained_row_count, 4);
+        assert_eq!(report.active_row_count, 4);
+        assert_eq!(report.complete_row_count + report.incomplete_row_count, 4);
         assert!(report.incomplete_row_count >= 1);
         assert!(!report.ok);
+        let tool_ids = report
+            .rows
+            .iter()
+            .map(|row| row.tool_id.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(
+            tool_ids,
+            std::collections::BTreeSet::from(["beagle", "glimpse", "impute5", "minimac4"])
+        );
 
         let row = report.rows.iter().find(|row| row.tool_id == "beagle").expect("beagle row");
         assert_eq!(row.stage_id, "vcf.imputation_metrics");

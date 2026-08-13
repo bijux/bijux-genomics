@@ -15,22 +15,24 @@ use crate::commands::benchmark::local_vcf_panel_workflow_smoke_support::{
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
 use crate::commands::benchmark::readiness::vcf_readiness_inputs::{
     load_governed_vcf_fixture_inputs, materialize_indexed_vcf_input,
 };
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH: &str =
     "artifacts/benchmark-smoke/readiness/adapters/shapeit5.vcf.json";
+pub(crate) const DEFAULT_VCF_SHAPEIT_ADAPTER_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/adapters/shapeit.vcf.json";
 pub(crate) const DEFAULT_VCF_EAGLE_ADAPTER_PATH: &str =
     "artifacts/benchmark-smoke/readiness/adapters/eagle.vcf.json";
 pub(crate) const DEFAULT_VCF_BEAGLE_ADAPTER_PATH: &str =
     "artifacts/benchmark-smoke/readiness/adapters/beagle.vcf.json";
 const VCF_SHAPEIT5_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_shapeit5_adapter.v1";
+const VCF_SHAPEIT_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_shapeit_adapter.v1";
 const VCF_EAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_eagle_adapter.v1";
 const VCF_BEAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_beagle_adapter.v1";
 const GOVERNED_COHORT_VCF_PATH: &str =
@@ -231,7 +233,7 @@ fn collect_vcf_phasing_family_adapter_rows(
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let matrix_by_stage = build_vcf_stage_matrix_rows()?
+    let matrix_by_stage = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .filter(|row| row.tool_id == registry_tool.tool_id)
         .map(|row| (row.stage_id.clone(), row))
@@ -413,6 +415,21 @@ fn build_stage_contract(
                 ),
             ],
         ),
+        "shapeit" => (
+            "domain/vcf/fixtures/vcf.phasing/shapeit.txt".to_string(),
+            vec![
+                "sh".to_string(),
+                "-lc".to_string(),
+                format!(
+                    "shapeit --input '{}' --reference '{}' --map '{}' --region 1:1-1000000 --thread 8 --seed 42 --output '{}' > '{}' 2>&1",
+                    GOVERNED_COHORT_VCF_PATH,
+                    materialized_inputs.panel_vcf_path,
+                    materialized_inputs.genetic_map_path,
+                    phased_vcf_path,
+                    logs_path
+                ),
+            ],
+        ),
         "eagle" => (
             "domain/vcf/fixtures/vcf.phasing/eagle.txt".to_string(),
             vec![
@@ -566,6 +583,7 @@ fn load_registry_tool_contract(repo_root: &Path, tool_id: &str) -> Result<Regist
 fn schema_version_for_tool(tool_id: &str) -> &'static str {
     match tool_id {
         "shapeit5" => VCF_SHAPEIT5_ADAPTER_SCHEMA_VERSION,
+        "shapeit" => VCF_SHAPEIT_ADAPTER_SCHEMA_VERSION,
         "eagle" => VCF_EAGLE_ADAPTER_SCHEMA_VERSION,
         "beagle" => VCF_BEAGLE_ADAPTER_SCHEMA_VERSION,
         other => panic!("unsupported VCF phasing-family schema tool `{other}`"),
@@ -620,6 +638,15 @@ fn validate_command_steps(
                 if !joined.contains(needle) {
                     return Err(anyhow!(
                         "VCF shapeit5 adapter row `{stage_id}` is missing `{needle}`: {joined}"
+                    ));
+                }
+            }
+        }
+        "shapeit" => {
+            for needle in ["shapeit", "--input", "--reference", "--map", "--output"] {
+                if !joined.contains(needle) {
+                    return Err(anyhow!(
+                        "VCF shapeit adapter row `{stage_id}` is missing `{needle}`: {joined}"
                     ));
                 }
             }
@@ -773,6 +800,7 @@ mod tests {
     use super::{
         render_vcf_phasing_family_adapter, DEFAULT_VCF_BEAGLE_ADAPTER_PATH,
         DEFAULT_VCF_EAGLE_ADAPTER_PATH, DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH,
+        DEFAULT_VCF_SHAPEIT_ADAPTER_PATH,
     };
 
     fn repo_root() -> PathBuf {
@@ -805,7 +833,22 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_eagle_adapter.v1");
         assert_eq!(report.tool_id, "eagle");
         assert_eq!(report.row_count, 1);
-        assert_eq!(report.benchmark_ready_row_count, 0);
+        assert_eq!(report.benchmark_ready_row_count, 1);
+        assert_eq!(report.indexed_row_count, 1);
+    }
+
+    #[test]
+    fn vcf_shapeit_adapter_tracks_governed_rows() {
+        let report = render_vcf_phasing_family_adapter(
+            &repo_root(),
+            "shapeit",
+            PathBuf::from(DEFAULT_VCF_SHAPEIT_ADAPTER_PATH),
+        )
+        .expect("render shapeit adapter");
+        assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_shapeit_adapter.v1");
+        assert_eq!(report.tool_id, "shapeit");
+        assert_eq!(report.row_count, 1);
+        assert_eq!(report.benchmark_ready_row_count, 1);
         assert_eq!(report.indexed_row_count, 1);
     }
 
@@ -820,7 +863,7 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_beagle_adapter.v1");
         assert_eq!(report.tool_id, "beagle");
         assert_eq!(report.row_count, 3);
-        assert_eq!(report.benchmark_ready_row_count, 2);
+        assert_eq!(report.benchmark_ready_row_count, 3);
         assert_eq!(report.indexed_row_count, 3);
     }
 }

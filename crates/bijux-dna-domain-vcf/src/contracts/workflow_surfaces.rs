@@ -594,7 +594,7 @@ pub fn vcf_phasing_imputation_boundary_contracts() -> &'static [VcfPhasingImputa
     &[
         VcfPhasingImputationBoundaryContract {
             stage: VcfDomainStage::Phasing,
-            accepted_tools: &["shapeit5", "eagle", "beagle"],
+            accepted_tools: &["shapeit", "shapeit5", "eagle", "beagle"],
             required_context: &[
                 "panel_identity",
                 "build_compatibility",

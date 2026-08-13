@@ -550,7 +550,7 @@ mod contracts {
     #[test]
     fn vcf_parser_fixture_inventory_covers_governed_tool_stage_rows() {
         let rows = vcf_parser_fixture_inventory();
-        assert_eq!(rows.len(), 37);
+        assert_eq!(rows.len(), 39);
 
         let unique_rows = rows
             .iter()
@@ -569,6 +569,11 @@ mod contracts {
             row.tool_id == "bcftools"
                 && row.stage == VcfDomainStage::Stats
                 && row.parser_id == "parse_bcftools_stats_metrics"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "shapeit"
+                && row.stage == VcfDomainStage::Phasing
+                && row.parser_id == "parse_shapeit_phasing_metrics"
         }));
         assert!(rows.iter().any(|row| {
             row.tool_id == "shapeit5"

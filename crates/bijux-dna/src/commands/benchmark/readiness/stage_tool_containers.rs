@@ -252,12 +252,12 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 148);
+        assert_eq!(report.row_count, 159);
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.external_row_count, report.container_declared_row_count);
         assert_eq!(report.command_entrypoint_row_count, report.row_count);
         assert_eq!(report.domain_counts.values().sum::<usize>(), report.row_count);
-        assert_eq!(report.domain_counts.get("vcf"), Some(&28));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&39));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()

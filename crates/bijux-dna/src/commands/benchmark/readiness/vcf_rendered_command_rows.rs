@@ -190,7 +190,7 @@ pub(crate) fn collect_vcf_adapter_command_row_map(
         }));
     }
 
-    for tool_id in ["shapeit5", "eagle", "beagle"] {
+    for tool_id in ["shapeit", "shapeit5", "eagle", "beagle"] {
         let report = render_vcf_phasing_family_adapter(
             repo_root,
             tool_id,
@@ -449,5 +449,6 @@ mod tests {
         assert!(rows.iter().any(|row| row.stage_id == "vcf.impute" && row.tool_id == "beagle"));
         assert!(rows.iter().any(|row| row.stage_id == "vcf.qc" && row.tool_id == "plink2"));
         assert!(rows.iter().any(|row| row.stage_id == "vcf.phasing" && row.tool_id == "shapeit5"));
+        assert!(rows.iter().any(|row| row.stage_id == "vcf.phasing" && row.tool_id == "shapeit"));
     }
 }

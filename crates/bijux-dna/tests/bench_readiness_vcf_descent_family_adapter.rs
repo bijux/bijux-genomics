@@ -50,7 +50,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(5)
     );
     assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
@@ -65,7 +65,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
         ("plink2", "vcf.roh", "benchmark_ready"),
         ("germline", "vcf.ibd", "benchmark_ready"),
         ("ibdseq", "vcf.ibd", "benchmark_ready"),
-        ("ibdhap", "vcf.ibd", "not_benchmark_ready"),
+        ("ibdhap", "vcf.ibd", "benchmark_ready"),
         ("ibdne", "vcf.demography", "benchmark_ready"),
     ] {
         let row = rows
@@ -174,7 +174,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
         ibdhap_argv
             .iter()
             .filter_map(serde_json::Value::as_str)
-            .any(|part| part.contains("ibdhap analyze-vcf")),
+            .any(|part| part.contains("ibdhap --vcf") && part.contains("--out")),
         "ibdhap argv must retain the retained ibdhap invocation"
     );
 

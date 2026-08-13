@@ -422,9 +422,9 @@ fn ensure_vcf_active_stage_tool_matrix_contract(
             "eagle",
             "production",
             "supported",
-            REMOVED_FROM_SCOPE_STATE,
-            BENCHMARK_NOT_READY_SCOPE_DETAIL,
-            BENCHMARK_NOT_READY_SCOPE_PROOF_PATH,
+            ACTIVE_SCOPE_STATE,
+            ACTIVE_SCOPE_DETAIL,
+            ACTIVE_SCOPE_PROOF_PATH,
         ),
     ];
 

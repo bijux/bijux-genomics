@@ -43,7 +43,7 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
     );
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("plink"));
-    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("planned"));
+    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/adapters/plink.vcf.json")
@@ -55,7 +55,7 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(3)
     );
     assert_eq!(
         payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
@@ -64,7 +64,7 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.population_structure")
             && row.get("benchmark_status").and_then(serde_json::Value::as_str)
-                == Some("not_benchmark_ready")
+                == Some("benchmark_ready")
     }));
 
     let qc_row = rows
@@ -109,7 +109,7 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
         .expect("plink admixture row");
     assert_eq!(
         admixture_row.get("benchmark_status").and_then(serde_json::Value::as_str),
-        Some("not_benchmark_ready")
+        Some("benchmark_ready")
     );
     assert_eq!(
         admixture_row.get("normalized_metrics_artifact_id").and_then(serde_json::Value::as_str),

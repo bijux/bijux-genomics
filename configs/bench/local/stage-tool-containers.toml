@@ -1211,6 +1211,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.admixture"
+tool_id = "plink"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/plink.def@sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"
+command_entrypoint = "plink"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.admixture"
 tool_id = "plink2"
 execution_mode = "containerized"
 install_kind = "container"
@@ -1331,6 +1341,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.ibd"
+tool_id = "ibdhap"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/ibdhap.def@sha256:5c34505e46021dbcddcbd0b0614f0fb9f818ef578613bb436c40ad61d934ca8a"
+command_entrypoint = "ibdhap"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
 tool_id = "ibdseq"
 execution_mode = "java"
 install_kind = "container"
@@ -1351,11 +1371,31 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.imputation_metrics"
+tool_id = "glimpse"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/glimpse.def@sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"
+command_entrypoint = "glimpse"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
 tool_id = "impute5"
 execution_mode = "external"
 install_kind = "external"
 container_id = "external-artifact://impute5"
 command_entrypoint = "impute5"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+tool_id = "minimac4"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/minimac4.def@sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"
+command_entrypoint = "minimac4"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
@@ -1371,11 +1411,31 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.impute"
+tool_id = "glimpse"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/glimpse.def@sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"
+command_entrypoint = "glimpse"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
 tool_id = "impute5"
 execution_mode = "external"
 install_kind = "external"
 container_id = "external-artifact://impute5"
 command_entrypoint = "impute5"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+tool_id = "minimac4"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/minimac4.def@sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"
+command_entrypoint = "minimac4"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
@@ -1401,11 +1461,61 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.phasing"
+tool_id = "beagle"
+execution_mode = "java"
+install_kind = "container"
+container_id = "containers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
+command_entrypoint = "beagle"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+tool_id = "eagle"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/eagle.def@sha256:6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255"
+command_entrypoint = "eagle"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+tool_id = "shapeit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/shapeit.def@sha256:2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9"
+command_entrypoint = "shapeit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
 tool_id = "shapeit5"
 execution_mode = "containerized"
 install_kind = "container"
 container_id = "containers/apptainer/shapeit5.def@sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8"
 command_entrypoint = "shapeit5"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+tool_id = "eigensoft"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/eigensoft.def@sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"
+command_entrypoint = "smartpca"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+tool_id = "plink"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "containers/apptainer/plink.def@sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"
+command_entrypoint = "plink"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
