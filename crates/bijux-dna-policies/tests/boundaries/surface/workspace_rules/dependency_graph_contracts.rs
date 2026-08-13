@@ -158,6 +158,8 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                 || dep == "bijux-dna-domain-fastq"
                 || dep == "bijux-dna-domain-vcf"
                 || dep == "bijux-dna-infra"
+                || dep == "bijux-dna-stages-bam"
+                || dep == "bijux-dna-stages-fastq"
                 || dep == "bijux-dna-stages-vcf",
             "bijux-dna-api must not depend on workspace crate {dep}"
         );
@@ -242,6 +244,8 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-policies",
         "bijux-dna-runtime",
         "bijux-dna-science",
+        "bijux-dna-stages-bam",
+        "bijux-dna-stages-fastq",
         "bijux-dna-stages-vcf",
         "bijux-dna-testkit",
     ]);

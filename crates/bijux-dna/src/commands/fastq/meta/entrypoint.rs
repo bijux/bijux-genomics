@@ -71,6 +71,9 @@ pub(crate) fn handle_meta_commands(
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
+            if matches!(&args.command, BenchCommand::Cycle { .. }) {
+                bijux_dna_api::v1::api::bench::validate_benchmark_stage_plugin_composition()?;
+            }
             match &args.command {
                 BenchCommand::Cycle { command } => match command {
                     cli::BenchCycleCommand::Admit(args) => {

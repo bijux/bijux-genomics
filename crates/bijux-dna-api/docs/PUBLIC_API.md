@@ -32,6 +32,10 @@ enter through `bijux_dna_api::v1::api`.
   into the API or CLI crates.
 - The `bench` namespace composes runner-owned corpus materialization Slurm preparation,
   submission, one-shot observation, and terminal collection without owning scheduler state.
+- The `bench` namespace exposes `BenchmarkStagePluginComposition` and
+  `validate_benchmark_stage_plugin_composition` so application entrypoints can
+  prove exact, non-ambiguous FASTQ/BAM/VCF plugin ownership before lifecycle
+  effects.
 - The `bench` namespace exposes the model-owned FASTQ, BAM, and VCF comparable-metric
   readiness contracts, typed status and direction vocabularies, schema generators, and
   fail-closed validators used by thin CLI renderers.

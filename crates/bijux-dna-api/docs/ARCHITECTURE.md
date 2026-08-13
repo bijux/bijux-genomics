@@ -26,8 +26,10 @@ runtime wiring, support helpers, and domain-specific adapters private.
   repository-relative or site-specific path.
 - `src/v1/bam/stage_planning/` isolates BAM stage argument planning from the
   public BAM namespace.
-- `src/v1/bench/`, `src/v1/env/`, `src/v1/fastq/`, and `src/v1/pipelines/`
-  expose narrow v1 helper namespaces.
+- `src/v1/bench/` exposes the narrow benchmark namespace and composes the
+  concrete FASTQ, BAM, and VCF stage plugins without moving plugin semantics
+  into the API boundary. `src/v1/env/`, `src/v1/fastq/`, and
+  `src/v1/pipelines/` expose the other narrow v1 helper namespaces.
 - `src/surface/` owns stable request/response contracts and explainability
   contracts used by the public API.
 - `src/runtime/` adapts public requests into execution, validation, persistence,
@@ -61,6 +63,10 @@ The API crate may depend on lower-level planner, runner, runtime, environment,
 domain, pipeline, stage-contract, analyzer, benchmark, and infrastructure crates
 to compose v1 workflows. Lower-level crates must not depend on
 `bijux-dna-api`.
+
+Benchmark stage plugins are dependencies of this integration boundary. The API
+may assemble them, but binding validation, lifecycle semantics, normalization,
+and downstream evaluation remain in their owning crates.
 
 The API crate must not bypass the runner/runtime boundary for process execution.
 Stage adapters may prepare arguments, validate inputs, and call typed runner or
