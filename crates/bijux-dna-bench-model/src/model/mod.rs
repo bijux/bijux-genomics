@@ -68,6 +68,7 @@ pub mod remediation_queue;
 pub mod replay;
 pub mod report;
 pub mod run_index;
+pub mod scientific_acceptance;
 pub mod scope_views;
 pub mod source_authority;
 pub mod stage_result;
@@ -546,6 +547,14 @@ pub use run_index::{
     BenchmarkRunCaseIndexEntry, BenchmarkRunIndex, BenchmarkRunIndexEntry,
     BenchmarkRunIndexFileReference, BenchmarkRunIndexPublication, BenchmarkRunIndexSummary,
     BenchmarkRunPublicationPointer,
+};
+#[allow(unused_imports)]
+pub use scientific_acceptance::{
+    scientific_acceptance_thresholds_report_schema, scientific_acceptance_thresholds_schema,
+    ScientificAcceptanceDirection, ScientificAcceptanceInsufficiencyBehavior,
+    ScientificAcceptancePassRule, ScientificAcceptanceThresholdRow,
+    ScientificAcceptanceThresholdsConfig, ScientificAcceptanceThresholdsReport,
+    ScientificAcceptanceToleranceKind,
 };
 #[allow(unused_imports)]
 pub use scope_views::{

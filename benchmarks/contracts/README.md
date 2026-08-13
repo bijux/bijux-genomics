@@ -144,6 +144,14 @@ The benchmark model owns its records, generated schema, source/status/domain
 closure, binding distinctions, safe evidence paths, and admission verdict; the
 CLI only collects governed source surfaces and materializes the admitted JSON.
 
+`schemas/scientific-acceptance-thresholds.schema.json` and
+`schemas/scientific-acceptance-thresholds-report.schema.json` define the
+persisted scientific comparison policy and its readiness projection. The
+benchmark model owns metric identity, direction, tolerance, pass-rule,
+insufficiency behavior, aggregate closure, schema generation, and admission;
+the CLI only derives rows from reviewed comparable-metric contracts and writes
+validated presentations.
+
 `schemas/local-stage-inventory.schema.json` and
 `schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
 and aggregate local benchmark stage inventories. The benchmark model owns

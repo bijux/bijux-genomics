@@ -68,6 +68,7 @@ mod replay;
 mod report;
 mod run_index;
 mod schema_versions;
+mod scientific_acceptance;
 mod scope_views;
 mod source_authority;
 mod stage_result;
@@ -282,8 +283,13 @@ pub use schema_versions::{
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
     STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, SUITE_SCHEMA_V1,
     SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub use scientific_acceptance::{
+    validate_scientific_acceptance_thresholds_config,
+    validate_scientific_acceptance_thresholds_report,
 };
 pub use scope_views::{
     validate_all_domain_active_stage_tool_matrix, validate_all_domain_retained_tools,

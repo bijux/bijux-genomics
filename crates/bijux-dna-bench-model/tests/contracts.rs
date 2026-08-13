@@ -121,6 +121,8 @@ mod mod_contracts_remediation_queue_rs;
 mod mod_contracts_replay_rs;
 #[path = "contracts/run_index.rs"]
 mod mod_contracts_run_index_rs;
+#[path = "contracts/scientific_acceptance.rs"]
+mod mod_contracts_scientific_acceptance_rs;
 #[path = "contracts/scope_views.rs"]
 mod mod_contracts_scope_views_rs;
 #[path = "contracts/source_authority.rs"]

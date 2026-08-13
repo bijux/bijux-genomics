@@ -837,6 +837,25 @@ fn thin_cli_uses_model_owned_local_stage_fake_run_contracts() {
     }
 }
 
+#[test]
+fn thin_cli_uses_model_owned_scientific_acceptance_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root.join(
+        "crates/bijux-dna/src/commands/benchmark/readiness/scientific_acceptance_thresholds.rs",
+    );
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_scientific_acceptance_thresholds_config"));
+    assert!(contents.contains("validate_scientific_acceptance_thresholds_report"));
+    assert!(!contents.contains("struct ScientificAcceptanceThresholdRow {"));
+    assert!(!contents.contains("struct ScientificAcceptanceThresholdsConfig {"));
+    assert!(!contents.contains("struct ScientificAcceptanceThresholdsReport {"));
+    assert!(!contents.contains("enum ScientificAcceptanceDirection {"));
+    assert!(!contents.contains("bijux.bench.local_scientific_acceptance_thresholds.v1"));
+    assert!(!contents.contains("bijux.bench.readiness.scientific_acceptance_thresholds.v1"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

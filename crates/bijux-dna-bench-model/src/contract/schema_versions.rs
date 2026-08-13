@@ -35,6 +35,10 @@ pub const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1: &str =
 pub const FULL_BENCHMARK_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.full_benchmark_report.v1";
 pub const FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1: &str =
     "bijux.bench.readiness.full_benchmark_result_collector.v1";
+pub const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1: &str =
+    "bijux.bench.local_scientific_acceptance_thresholds.v1";
+pub const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1: &str =
+    "bijux.bench.readiness.scientific_acceptance_thresholds.v1";
 pub const STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1: &str =
     "bijux.bench.readiness.stage_registry_extra_pairs.v1";
 pub const BENCHMARK_DATA_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.data_source.v1";
