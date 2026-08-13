@@ -102,7 +102,23 @@ fn material() -> BenchmarkExecutionMaterial {
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
-        stage_plan_units: None,
+        stage_plan_units: Some(vec![BenchmarkStagePlanUnitMaterial {
+            execution_unit_id: "sample-a".to_owned(),
+            inputs: vec![BenchmarkStagePlanInputMaterial {
+                binding_name: "reads_r1".to_owned(),
+                path: PathBuf::from("/input/ERR1.fastq.gz"),
+                role: ArtifactRole::Reads,
+            }],
+            outputs: vec![BenchmarkStagePlanOutputMaterial {
+                binding_name: "length_distribution_tsv".to_owned(),
+                relative_path: "length-distribution.tsv".into(),
+                role: ArtifactRole::SummaryTsv,
+            }],
+            scientific_defaults: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+            input_derived: BTreeMap::new(),
+            operator_overrides: BTreeMap::new(),
+            immutable_parameters: ["threads".to_owned()].into_iter().collect(),
+        }]),
     }
 }
 
@@ -294,6 +310,13 @@ fn execution_authorities_recheck_selected_sif_bytes() -> anyhow::Result<()> {
     execution_material.source_contract_sha256 = authorities.source_contract_sha256().clone();
     let spec = authorities.build_execution_spec(&plan, &identity, &image, execution_material)?;
     assert_eq!(spec.image.sha256, image_sha256);
+    assert!(spec.outputs.required_files.contains(
+        &"repetitions/measured-repetition-3--sample-a/length-distribution.tsv".to_owned()
+    ));
+    assert!(spec
+        .outputs
+        .required_files
+        .contains(&"repetitions/measured-repetition-3--sample-a/resource.tsv".to_owned()));
     let units = [BenchmarkStagePlanUnitMaterial {
         execution_unit_id: "sample-a".to_owned(),
         inputs: vec![BenchmarkStagePlanInputMaterial {

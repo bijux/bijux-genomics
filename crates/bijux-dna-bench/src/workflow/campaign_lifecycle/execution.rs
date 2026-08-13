@@ -267,7 +267,7 @@ pub fn build_execution_spec(
     plan: &BenchmarkCampaignPlan,
     identity: &BenchmarkAttemptIdentity,
     image: &CurrentApptainerImage,
-    material: BenchmarkExecutionMaterial,
+    mut material: BenchmarkExecutionMaterial,
 ) -> Result<BenchmarkExecutionSpec> {
     validate_stage_campaign_registry(registry).context("validate stage campaign registry")?;
     validate_stage_interface_catalog(interfaces).context("validate stage interface catalog")?;
@@ -348,6 +348,18 @@ pub fn build_execution_spec(
         bijux_dna_bench_model::BenchmarkCachePolicy::Cold => BenchmarkExecutionCachePolicy::Cold,
         bijux_dna_bench_model::BenchmarkCachePolicy::Warm => BenchmarkExecutionCachePolicy::Warm,
     };
+    let stage_plan_units = material
+        .stage_plan_units
+        .as_ref()
+        .context("campaign execution material omits stage-plan units")?;
+    material
+        .required_files
+        .extend(stage_plan_required_files(stage_plan_units, campaign.measured_repetitions)?);
+    if material.required_files.iter().collect::<BTreeSet<_>>().len()
+        != material.required_files.len()
+    {
+        bail!("benchmark required outputs collide with stage-plan output authority");
+    }
     let mut acceptance = material.acceptance;
     acceptance.version_regex.clone_from(&tool.expected_version_regex);
     let spec = BenchmarkExecutionSpec {
@@ -422,6 +434,33 @@ pub fn build_execution_spec(
     };
     validate_execution_spec(&spec).context("validate constructed benchmark execution spec")?;
     Ok(spec)
+}
+
+fn stage_plan_required_files(
+    units: &[BenchmarkStagePlanUnitMaterial],
+    measured_repetitions: u32,
+) -> Result<Vec<String>> {
+    let mut units = units.iter().collect::<Vec<_>>();
+    units.sort_by(|left, right| left.execution_unit_id.cmp(&right.execution_unit_id));
+    let mut required = Vec::new();
+    for repetition in 1..=measured_repetitions {
+        for unit in &units {
+            validate_execution_unit_id(&unit.execution_unit_id)?;
+            let root =
+                format!("repetitions/measured-repetition-{repetition}--{}", unit.execution_unit_id);
+            for output in &unit.outputs {
+                validate_relative_output_path(&output.relative_path)?;
+                required.push(
+                    Path::new(&root)
+                        .join(&output.relative_path)
+                        .to_string_lossy()
+                        .replace('\\', "/"),
+                );
+            }
+            required.push(format!("{root}/resource.tsv"));
+        }
+    }
+    Ok(required)
 }
 
 fn required_source_lock<'a>(locks: &'a BTreeMap<String, String>, name: &str) -> Result<&'a str> {
