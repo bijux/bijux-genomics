@@ -10,6 +10,7 @@
     clippy::uninlined_format_args
 )]
 
+pub mod attempt_sequence;
 pub mod environment;
 pub mod manifests;
 pub mod observability;
@@ -19,6 +20,11 @@ pub mod run;
 pub mod run_layout;
 pub mod runner;
 pub mod telemetry;
+
+pub use attempt_sequence::{
+    reserve_attempt_sequence, AttemptSequenceIdentity, AttemptSequenceReservation,
+    ATTEMPT_SEQUENCE_RESERVATION_SCHEMA_V1,
+};
 
 // Observability contracts
 pub use observability::{

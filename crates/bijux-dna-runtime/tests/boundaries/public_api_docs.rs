@@ -11,6 +11,7 @@ fn public_api_doc_matches_runtime_root_surface() {
     assert_eq!(
         section_items(&docs, "Public Modules"),
         entries([
+            "attempt_sequence",
             "environment",
             "manifests",
             "observability",
@@ -32,6 +33,10 @@ fn public_api_doc_matches_runtime_root_surface() {
     }
 
     for required_export in [
+        "reserve_attempt_sequence",
+        "AttemptSequenceIdentity",
+        "AttemptSequenceReservation",
+        "ATTEMPT_SEQUENCE_RESERVATION_SCHEMA_V1",
         "RunProvenanceV1",
         "RunContextV1",
         "TelemetryEventV1",
