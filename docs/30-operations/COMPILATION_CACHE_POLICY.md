@@ -33,9 +33,9 @@ targets, and isolated concurrent target roots.
   share the pinned toolchain, workspace lockfile, and sccache authority, and execute Cargo offline
   after the launcher has resolved its own locked dependencies.
 - On Unix, the `ci-fast` supervisor gives all groups in one invocation a single explicit
-  `SCCACHE_SERVER_UDS`. The socket path is absolute, normalized, and bounded to the platform
-  transport limit independently of the persistent cache directory, so deep evidence roots cannot
-  prevent the cache server from binding.
+  `SCCACHE_SERVER_UDS` and a short `/tmp` runtime directory. Both the server socket and sccache's
+  startup-notification socket are therefore bounded independently of the persistent cache and
+  evidence directories, so deep governed roots cannot prevent the cache server from binding.
 - A warm `ci-fast` timing observation is reference-eligible only when pre-run and post-run sccache
   receipts name the same cache authority, that authority is not scoped to the source commit, and
   the measured run reaches the contract's minimum cache-hit ratio without cache errors. A caller's
@@ -66,5 +66,6 @@ targets, and isolated concurrent target roots.
   interference.
 - Reusing one target root across independent workflow gates can serialize unrelated products;
   target sharing is restricted to groups inside the single `ci-fast` gate.
-- Letting sccache derive a Unix socket below a deep shared cache root can exceed the platform path
-  limit before compilation begins; use the supervisor-owned bounded socket authority.
+- Letting sccache derive either its server socket or startup-notification socket below a deep
+  shared root can exceed the platform path limit before compilation begins; use the
+  supervisor-owned bounded socket and runtime-temporary authorities.

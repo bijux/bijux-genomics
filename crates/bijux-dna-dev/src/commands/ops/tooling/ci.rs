@@ -21,6 +21,8 @@ const FAST_TIMING_SCHEMA_V3: &str = "bijux.ci.fast_timing.v3";
 const FAST_TIMING_HISTORY_SCHEMA_V3: &str = "bijux.ci.fast_timing_history.v3";
 #[cfg(unix)]
 const SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES: usize = 107;
+#[cfg(unix)]
+const SCCACHE_UNIX_RUNTIME_TMPDIR: &str = "/tmp";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -577,6 +579,8 @@ pub(in super::super) fn tooling_ci_fast(
                 "compiler_wrapper": actual_compiler_wrapper,
                 "sccache_server_uds": sccache_runtime_env.iter().find_map(|(key, value)|
                     (key == "SCCACHE_SERVER_UDS").then_some(value)),
+                "sccache_runtime_tmpdir": sccache_runtime_env.iter().find_map(|(key, value)|
+                    (key == "TMPDIR").then_some(value)),
                 "cache_state": cache_state,
                 "requested_cache_state": requested_cache_state,
                 "shared_cache_authority": shared_cache_authority,
@@ -654,7 +658,10 @@ fn resolve_ci_fast_sccache_runtime_env(
                 {SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES} bytes"
             );
         }
-        Ok(vec![("SCCACHE_SERVER_UDS".to_string(), socket.display().to_string())])
+        Ok(vec![
+            ("SCCACHE_SERVER_UDS".to_string(), socket.display().to_string()),
+            ("TMPDIR".to_string(), SCCACHE_UNIX_RUNTIME_TMPDIR.to_string()),
+        ])
     }
 
     #[cfg(not(unix))]
@@ -2189,6 +2196,7 @@ mod tests {
         assert!(first.iter().any(|(key, value)| {
             key == "SCCACHE_SERVER_UDS" && value.starts_with("/tmp/bijux-sccache-")
         }));
+        assert!(first.iter().any(|(key, value)| key == "TMPDIR" && value == "/tmp"));
         Ok(())
     }
 
@@ -2204,6 +2212,28 @@ mod tests {
             Some(std::path::PathBuf::from("relative.sock"))
         )
         .is_err());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sccache_transport_replaces_deep_inherited_runtime_tmpdir() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let authority = resolve_ci_fast_build_authority(&workspace, None)?;
+        let runtime_env = resolve_ci_fast_sccache_runtime_env(
+            Some("sccache"),
+            Some(std::path::PathBuf::from("/tmp/bijux-sccache-test.sock")),
+        )?;
+        let envs = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
+
+        let tmpdirs = envs
+            .iter()
+            .filter(|(key, _)| key == "TMPDIR")
+            .map(|(_, value)| value.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(tmpdirs, vec!["/tmp"]);
+        Ok(())
     }
 
     #[test]
