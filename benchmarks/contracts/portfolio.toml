@@ -100,16 +100,17 @@ status = "admitted"
 evidence_scope = "comparative"
 class = "production_real"
 sample_count = 20
-data_types = ["fastq"]
+data_types = ["fasta", "fastq"]
 roles = ["short_read_diversity", "ancient_and_modern_reads", "single_and_paired_reads"]
 source_specs = ["benchmarks/corpora/human-short-read-diversity.toml"]
-catalog_ids = ["human-short-read-diversity"]
+catalog_ids = ["grch38-reference", "human-short-read-diversity"]
 truth_strategy = "observational_only"
-scientific_rationale = "Twenty public human accessions balance ancient and modern libraries, single- and paired-end layouts, and multiple input-size bands for real workload and robustness measurements."
+scientific_rationale = "Twenty public human accessions balance ancient and modern libraries, single- and paired-end layouts, and multiple input-size bands for real workload and robustness measurements; the checksum-admitted GRCh38 assembly binds reference-dependent stages without changing the cohort's observational truth scope."
 limitations = [
   "The cohort is curated for workload diversity and is not population-representative.",
   "Library strategies and selections vary across studies, so comparisons must stratify or model this context.",
   "Observed biological reads do not by themselves provide base-level transformation truth.",
+  "GRCh38 provides reference identity, not read-placement or variant truth.",
 ]
 
 [[corpora]]
