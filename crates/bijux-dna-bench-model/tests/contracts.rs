@@ -41,6 +41,8 @@ mod mod_contracts_domain_campaign_rs;
 mod mod_contracts_dossier_index_rs;
 #[path = "contracts/essential_pipeline_readiness.rs"]
 mod mod_contracts_essential_pipeline_readiness_rs;
+#[path = "contracts/expected_benchmark_results.rs"]
+mod mod_contracts_expected_benchmark_results_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/full_benchmark_report.rs"]

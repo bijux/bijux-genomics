@@ -3,10 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_expected_benchmark_results, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainExpectedBenchmarkResultRow, AllDomainExpectedBenchmarkResultsReport,
+};
 use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_bam::stage_comparable_metric_fields_for_stage;
 use bijux_dna_domain_fastq::stage_sanity_metrics_for_stage;
-use serde::Serialize;
 
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
@@ -21,42 +26,12 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/expected-benchmark-results-all-domains.tsv";
-const ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_expected_benchmark_results.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainExpectedBenchmarkResultRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) expected_outputs: Vec<String>,
-    pub(crate) expected_metrics: Vec<String>,
-    pub(crate) report_section: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainExpectedBenchmarkResultsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) result_id_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) corpus_count: usize,
-    pub(crate) asset_profile_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) report_section_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainExpectedBenchmarkResultRow>,
 }
 
 pub(crate) fn run_render_all_domain_expected_benchmark_results(
@@ -105,8 +80,8 @@ pub(crate) fn render_all_domain_expected_benchmark_results(
         *report_section_counts.entry(row.report_section.clone()).or_default() += 1;
     }
 
-    Ok(AllDomainExpectedBenchmarkResultsReport {
-        schema_version: ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION,
+    let report = AllDomainExpectedBenchmarkResultsReport {
+        schema_version: ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         row_count,
         result_id_count,
@@ -117,7 +92,9 @@ pub(crate) fn render_all_domain_expected_benchmark_results(
         domain_counts,
         report_section_counts,
         rows,
-    })
+    };
+    validate_all_domain_expected_benchmark_results(&report)?;
+    Ok(report)
 }
 
 pub(crate) fn collect_all_domain_expected_benchmark_result_rows(
@@ -447,7 +424,20 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+    if let Ok(relative) = path.strip_prefix(repo_root) {
+        return relative.to_string_lossy().replace('\\', "/");
+    }
+    let components = path.components().collect::<Vec<_>>();
+    if let Some(start) = components.iter().position(
+        |component| matches!(component, std::path::Component::Normal(name) if *name == "artifacts"),
+    ) {
+        return components[start..]
+            .iter()
+            .collect::<PathBuf>()
+            .to_string_lossy()
+            .replace('\\', "/");
+    }
+    path.file_name().unwrap_or(path.as_os_str()).to_string_lossy().into_owned()
 }
 
 fn sanitize_tsv(value: &str) -> String {
@@ -460,8 +450,8 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_all_domain_expected_benchmark_results,
-        ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION,
+        path_relative_to_repo, render_all_domain_expected_benchmark_results,
+        ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
         DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
     };
 
@@ -478,7 +468,7 @@ mod tests {
         )
         .expect("render all-domain expected benchmark results");
 
-        assert_eq!(report.schema_version, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH);
         assert_eq!(report.result_id_count, report.row_count);
         assert_eq!(
@@ -546,5 +536,14 @@ mod tests {
         assert_eq!(vcf_call.report_section, "variant_calling");
         assert!(vcf_call.expected_outputs.iter().any(|value| value == "called_vcf"));
         assert!(vcf_call.expected_metrics.iter().any(|value| value == "variant_count"));
+    }
+
+    #[test]
+    fn report_path_never_persists_an_absolute_workspace_location() {
+        let root = repo_root();
+        let external = tempfile::tempdir().expect("temporary output");
+        let output = external.path().join("expected-results.tsv");
+
+        assert_eq!(path_relative_to_repo(&root, &output), "expected-results.tsv");
     }
 }

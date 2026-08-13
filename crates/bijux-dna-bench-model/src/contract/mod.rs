@@ -23,6 +23,7 @@ mod domain_campaign;
 mod dossier_index;
 mod essential_pipeline_readiness;
 mod execution;
+mod expected_benchmark_results;
 mod full_benchmark_report;
 mod full_benchmark_result_collector;
 mod interfaces;
@@ -104,6 +105,7 @@ pub use domain_campaign::{
 pub use dossier_index::validate_benchmark_dossier_index;
 pub use essential_pipeline_readiness::validate_benchmark_essential_pipeline_readiness;
 pub use execution::validate_execution_spec;
+pub use expected_benchmark_results::validate_all_domain_expected_benchmark_results;
 pub use full_benchmark_report::{
     validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
 };
@@ -215,10 +217,10 @@ pub use run_index::{
     validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
 };
 pub use schema_versions::{
-    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1,
-    ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
-    BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
+    ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
+    ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1, BAM_COMPARABLE_METRICS_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,

@@ -130,6 +130,13 @@ owns the eight required classes, exact class and trigger counts, missing-class
 closure, schema identity, and admission verdict; the CLI only executes the
 governed probes and supplies their evidence paths and observations.
 
+`schemas/all-domain-expected-benchmark-results.schema.json` defines the
+canonical expected-result inventory consumed by lifecycle, failure,
+completion, scheduler, dashboard, and report surfaces. The benchmark model
+owns row identity, aggregate closure, schema generation, and admission; the
+CLI derives the inventory from governed stage, tool, corpus, output, metric,
+and report-section authorities.
+
 `schemas/full-benchmark-report.schema.json` defines the persisted aggregate
 FASTQ, BAM, and VCF report, including stage, tool, corpus, pipeline, runtime,
 memory, failure, missing-result, comparable-metric, and unsupported-pair

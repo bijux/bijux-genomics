@@ -1,0 +1,132 @@
+{
+  "$defs": {
+    "AllDomainExpectedBenchmarkResultRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "expected_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "expected_outputs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "report_section": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "expected_outputs",
+        "expected_metrics",
+        "report_section"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "asset_profile_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpus_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "report_section_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "result_id_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainExpectedBenchmarkResultRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_expected_benchmark_results.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "result_id_count",
+    "stage_count",
+    "tool_count",
+    "corpus_count",
+    "asset_profile_count",
+    "domain_counts",
+    "report_section_counts",
+    "rows"
+  ],
+  "title": "AllDomainExpectedBenchmarkResultsReport",
+  "type": "object"
+}

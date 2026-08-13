@@ -21,6 +21,7 @@ pub mod domain_campaign;
 pub mod dossier_index;
 pub mod essential_pipeline_readiness;
 pub mod execution;
+pub mod expected_benchmark_results;
 pub mod full_benchmark_report;
 pub mod full_benchmark_result_collector;
 pub mod graph;
@@ -218,6 +219,11 @@ pub use execution::{
     BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
     BenchmarkExecutionSpec,
+};
+#[allow(unused_imports)]
+pub use expected_benchmark_results::{
+    all_domain_expected_benchmark_results_schema, AllDomainExpectedBenchmarkResultRow,
+    AllDomainExpectedBenchmarkResultsReport,
 };
 #[allow(unused_imports)]
 pub use full_benchmark_report::{
