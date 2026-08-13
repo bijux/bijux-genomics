@@ -110,12 +110,13 @@ pub struct ContainerQualificationCycleStatus {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AdvancePass {
     Collect,
+    ArchiveFailure,
     Admit,
     Submit,
 }
 
-const ADVANCE_PASS_ORDER: [AdvancePass; 3] =
-    [AdvancePass::Collect, AdvancePass::Admit, AdvancePass::Submit];
+const ADVANCE_PASS_ORDER: [AdvancePass; 4] =
+    [AdvancePass::Collect, AdvancePass::ArchiveFailure, AdvancePass::Admit, AdvancePass::Submit];
 
 /// Derive a scheduler-independent cycle plan from governed run and attempt evidence.
 ///
@@ -153,6 +154,7 @@ pub fn advance_container_qualification_cycle(
     for pass in ADVANCE_PASS_ORDER {
         let stage_failures = match pass {
             AdvancePass::Collect => collect_frontier(paths, request)?,
+            AdvancePass::ArchiveFailure => archive_failure_frontier(request)?,
             AdvancePass::Admit => admit_frontier(request)?,
             AdvancePass::Submit => submit_frontier(paths, request)?,
         };
@@ -161,6 +163,7 @@ pub fn advance_container_qualification_cycle(
                 "{}: {failure}",
                 match pass {
                     AdvancePass::Collect => "collect",
+                    AdvancePass::ArchiveFailure => "archive_failure",
                     AdvancePass::Admit => "admit",
                     AdvancePass::Submit => "submit",
                 }
@@ -172,6 +175,28 @@ pub fn advance_container_qualification_cycle(
     } else {
         bail!("one or more qualification advance actions failed: {}", failures.join("; "));
     }
+}
+
+fn archive_failure_frontier(request: &ContainerQualificationCycleRequest) -> Result<Vec<String>> {
+    let planned = plan_container_qualification_cycle(request)?;
+    let mut failures = Vec::new();
+    for unit in
+        planned.units.iter().filter(|unit| unit.state == ContainerQualificationCycleState::Failed)
+    {
+        let result = (|| -> Result<()> {
+            let path = unit
+                .specification_path
+                .as_ref()
+                .context("failed cycle unit lacks a specification")?;
+            let spec = load_container_qualification_slurm_spec(path)?;
+            super::archive_failed_container_qualification_attempt(&spec, &request.observed_at_utc)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
+            failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
+        }
+    }
+    Ok(failures)
 }
 
 fn submit_frontier(
@@ -837,7 +862,12 @@ mod tests {
     fn advance_runs_the_complete_one_shot_frontier_in_dependency_order() {
         assert_eq!(
             ADVANCE_PASS_ORDER,
-            [AdvancePass::Collect, AdvancePass::Admit, AdvancePass::Submit]
+            [
+                AdvancePass::Collect,
+                AdvancePass::ArchiveFailure,
+                AdvancePass::Admit,
+                AdvancePass::Submit,
+            ]
         );
     }
 
