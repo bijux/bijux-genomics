@@ -628,6 +628,26 @@ fn thin_cli_uses_model_owned_local_hpc_dependency_simulation_contract() {
     assert!(!contents.contains("\"bijux.bench.local_hpc_dependency_simulation.v1\""));
 }
 
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_stage_benchmark_array_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_hpc_stage_benchmark_array.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_hpc_stage_benchmark_array"));
+    assert!(!contents.contains("struct LocalHpcStageBenchmarkArrayRow {"));
+    assert!(!contents.contains("struct LocalHpcStageBenchmarkArrayReport {"));
+    assert!(!contents.contains("\"bijux.bench.local_hpc_stage_benchmark_array.v1\""));
+
+    let support_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_array_support.rs");
+    let support = fs::read_to_string(&support_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", support_source.display()));
+    assert!(!support.contains("struct LocalHpcArrayResources {"));
+}
+
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

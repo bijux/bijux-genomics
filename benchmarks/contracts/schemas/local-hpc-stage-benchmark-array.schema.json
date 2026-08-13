@@ -1,0 +1,194 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcArrayResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus_per_task": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "memory_mb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scratch_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "time_limit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpus_per_task",
+        "memory_mb",
+        "time_limit",
+        "scratch_gb"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcStageBenchmarkArrayRow": {
+      "additionalProperties": false,
+      "properties": {
+        "array_index": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "benchmark_result_argv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "benchmark_result_command": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "execution_mode": {
+          "type": "string"
+        },
+        "execution_mode_summary": {
+          "type": "string"
+        },
+        "input_links_root": {
+          "type": "string"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "log_root": {
+          "type": "string"
+        },
+        "output_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "output_root": {
+          "type": "string"
+        },
+        "resolution_kind": {
+          "type": "string"
+        },
+        "resolution_target": {
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/BenchmarkLocalHpcArrayResources"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "scratch_root": {
+          "type": "string"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stderr_path": {
+          "type": "string"
+        },
+        "stdout_path": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "unavailable_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "array_index",
+        "job_id_local",
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "execution_mode",
+        "execution_mode_summary",
+        "resolution_kind",
+        "resolution_target",
+        "script_path",
+        "benchmark_result_argv",
+        "benchmark_result_command",
+        "scratch_root",
+        "input_links_root",
+        "output_root",
+        "log_root",
+        "stdout_path",
+        "stderr_path",
+        "output_paths",
+        "resources"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "array_spec": {
+      "type": "string"
+    },
+    "benchmark_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "resource_envelope": {
+      "$ref": "#/$defs/BenchmarkLocalHpcArrayResources"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcStageBenchmarkArrayRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_stage_benchmark_array.v1",
+      "type": "string"
+    },
+    "script_path": {
+      "type": "string"
+    },
+    "wrapper_log_root": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "script_path",
+    "manifest_path",
+    "wrapper_log_root",
+    "array_spec",
+    "benchmark_job_count",
+    "resource_envelope",
+    "rows"
+  ],
+  "title": "BenchmarkLocalHpcStageBenchmarkArrayReport",
+  "type": "object"
+}

@@ -27,6 +27,7 @@ pub mod local_benchmark_summary;
 pub mod local_corpus_run;
 pub mod local_corpus_skip;
 pub mod local_corpus_stage_compatibility;
+pub mod local_hpc_array;
 pub mod local_hpc_asset_staging;
 pub mod local_hpc_candidate_run;
 pub mod local_hpc_dependency_simulation;
@@ -34,6 +35,7 @@ pub mod local_hpc_execution_resolver;
 pub mod local_hpc_result_collection_simulation;
 pub mod local_hpc_resume_simulation;
 pub mod local_hpc_scratch_layout;
+pub mod local_hpc_stage_benchmark_array;
 pub mod local_pipeline_dag;
 pub mod local_runtime_metrics;
 pub mod local_slurm_dependency;
@@ -258,6 +260,8 @@ pub use local_corpus_stage_compatibility::{
     BenchmarkLocalCorpusStageCompatibilityReport, BenchmarkLocalCorpusStageValidatedFixture,
 };
 #[allow(unused_imports)]
+pub use local_hpc_array::BenchmarkLocalHpcArrayResources;
+#[allow(unused_imports)]
 pub use local_hpc_asset_staging::{
     benchmark_local_hpc_asset_staging_schema, BenchmarkLocalHpcAssetStagingInput,
     BenchmarkLocalHpcAssetStagingJob, BenchmarkLocalHpcAssetStagingManifest,
@@ -308,6 +312,11 @@ pub use local_hpc_scratch_layout::{
     benchmark_local_hpc_scratch_layout_schema, BenchmarkLocalHpcScratchCleanupPolicy,
     BenchmarkLocalHpcScratchInputLink, BenchmarkLocalHpcScratchJobResources,
     BenchmarkLocalHpcScratchLayout, BenchmarkLocalHpcScratchLayoutJob,
+};
+#[allow(unused_imports)]
+pub use local_hpc_stage_benchmark_array::{
+    benchmark_local_hpc_stage_benchmark_array_schema, BenchmarkLocalHpcStageBenchmarkArrayReport,
+    BenchmarkLocalHpcStageBenchmarkArrayRow,
 };
 #[allow(unused_imports)]
 pub use local_pipeline_dag::{

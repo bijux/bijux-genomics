@@ -1,15 +1,9 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::BenchmarkLocalHpcArrayResources;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcArrayResources {
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-    pub(crate) scratch_gb: u32,
-}
+pub(crate) type LocalHpcArrayResources = BenchmarkLocalHpcArrayResources;
 
 pub(crate) fn time_limit_to_seconds(surface: &str, value: &str) -> Result<u64> {
     let parts = value.split(':').collect::<Vec<_>>();

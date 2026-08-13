@@ -128,6 +128,8 @@ pub const BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_result_collection_simulation.v1";
 pub const BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_scratch_layout.v1";
+pub const BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_stage_benchmark_array.v1";
 pub const BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1: &str =
     "bijux.bench.local_pipeline_dag_validation.v1";
 pub const BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1: &str =

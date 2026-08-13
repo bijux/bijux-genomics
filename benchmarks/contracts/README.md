@@ -161,6 +161,12 @@ owns reciprocal topology, simulated status and timing, descendant scope,
 continued independent work, seeded behavior proofs, exact counters, and schema
 generation; the CLI only simulates the graph and publishes the admitted report.
 
+`schemas/local-hpc-stage-benchmark-array.schema.json` defines the persisted
+homogeneous Slurm array for independent stage benchmark results. The benchmark
+model owns row identity, execution availability, paths, commands, resource
+envelopes, exact counters, and schema generation; the CLI only joins admitted
+planning inputs and renders the script plus manifest.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,
