@@ -8,7 +8,7 @@ use anyhow::{bail, Context};
 
 use super::{path_from_arg, write_utf8, ContainerCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers cycle plan <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle advance <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle status <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle collect <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle admit <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle book <runs-root> <json-output> <markdown-output>\n  bijux-dna-dev containers cycle replay <result-root> <empty-publication-root> <json-output> <markdown-output>";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers cycle plan <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle advance <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle status <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle collect <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle admit <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle book <runs-root> <json-output> <markdown-output>\n  bijux-dna-dev containers cycle replay <result-root> <empty-publication-root> <json-output> <markdown-output>";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -45,26 +45,31 @@ fn scheduler_pass(
 ) -> Result<ContainerCommandOutcome> {
     let (
         registry,
+        inventory,
         publication_root,
         submission_root,
         external_artifact_admission_root,
         observed_at_utc,
     ) = match args {
-        [registry, publication_root, submission_root, observed_at_utc] => {
-            (registry, publication_root, submission_root, None, observed_at_utc)
+        [registry, inventory, publication_root, submission_root, observed_at_utc] => {
+            (registry, inventory, publication_root, submission_root, None, observed_at_utc)
         }
-        [registry, publication_root, submission_root, admission_root, observed_at_utc] => (
-            registry,
-            publication_root,
-            submission_root,
-            Some(path_from_arg(workspace, admission_root)),
-            observed_at_utc,
-        ),
+        [registry, inventory, publication_root, submission_root, admission_root, observed_at_utc] => {
+            (
+                registry,
+                inventory,
+                publication_root,
+                submission_root,
+                Some(path_from_arg(workspace, admission_root)),
+                observed_at_utc,
+            )
+        }
         _ => bail!(USAGE),
     };
     let request = bijux_dna_runner::api::ContainerQualificationCycleRequest {
         repository_root: workspace.root.clone(),
         registry_path: path_from_arg(workspace, registry),
+        inventory_path: path_from_arg(workspace, inventory),
         publication_root: path_from_arg(workspace, publication_root),
         submission_root: path_from_arg(workspace, submission_root),
         external_artifact_admission_root,

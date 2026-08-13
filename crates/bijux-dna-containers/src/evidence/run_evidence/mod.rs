@@ -30,8 +30,8 @@ pub use schema::{
     write_run_evidence_index_schema,
 };
 pub use validation::{
-    load_run_evidence_index, validate_run_attempt_ledger, validate_run_evidence_index,
-    validate_run_evidence_root,
+    load_run_evidence_index, load_run_evidence_lock, validate_run_attempt_ledger,
+    validate_run_evidence_index, validate_run_evidence_root,
 };
 pub use workflow::{
     apply_final_run_evidence_plan, derive_run_evidence_index, ensure_container_attempt_layout,

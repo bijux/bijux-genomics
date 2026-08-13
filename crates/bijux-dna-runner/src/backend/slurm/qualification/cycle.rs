@@ -30,6 +30,7 @@ const DEFAULT_OBSERVATION_INTERVAL_SECONDS: i64 = 300;
 pub struct ContainerQualificationCycleRequest {
     pub repository_root: PathBuf,
     pub registry_path: PathBuf,
+    pub inventory_path: PathBuf,
     pub publication_root: PathBuf,
     pub submission_root: PathBuf,
     pub external_artifact_admission_root: Option<PathBuf>,
@@ -290,6 +291,23 @@ fn derive_cycle(
     let catalog = bijux_dna_containers::api::load_container_catalog(&request.repository_root)?;
     let repository_commit =
         bijux_dna_containers::api::repository_head_commit(&request.repository_root)?;
+    let inventory =
+        bijux_dna_containers::api::load_image_inventory_publication(&request.inventory_path)?;
+    if inventory.repository_commit != repository_commit {
+        bail!(
+            "qualification image inventory source {} differs from current repository commit {}",
+            inventory.repository_commit,
+            repository_commit
+        );
+    }
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &request.repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    bijux_dna_containers::api::validate_container_inventory_catalog(
+        &catalog_sha256,
+        &catalog,
+        &inventory,
+    )?;
     let specifications = discover_specifications(&request.submission_root)?;
     let mut units = Vec::new();
     for run in registry.runs.iter().filter(|run| {
@@ -299,63 +317,14 @@ fn derive_cycle(
                 | bijux_dna_containers::api::QualificationRunState::Allocated
         )
     }) {
-        let [tool_id] = run.tool_ids.as_slice() else {
-            bail!("current qualification run {} does not select exactly one tool", run.run_id);
-        };
-        let tool = catalog
-            .tools
-            .iter()
-            .find(|tool| tool.id == *tool_id)
-            .with_context(|| format!("qualification tool {tool_id} is absent from catalog"))?;
-        if tool.external_artifact_supported {
-            if let Some(blocker) = external_artifact_blocker(request, &run.run_id, tool_id)? {
-                units.push(blocker);
-                continue;
-            }
-        }
-        let publication = request.publication_root.join(format!("{}-{tool_id}", run.run_id));
-        if run.state == bijux_dna_containers::api::QualificationRunState::Active
-            && regular_file_exists(&publication.join("evidence.lock.json"))?
-        {
-            units.push(unit(
-                &run.run_id,
-                tool_id,
-                ContainerQualificationCycleState::Published,
-                ContainerQualificationCycleAction::None,
-                None,
-                None,
-                None,
-            ));
-            continue;
-        }
-        let key = (run.run_id.clone(), tool_id.clone());
-        let Some(paths) = specifications.get(&key) else {
-            let detail = if tool.external_artifact_supported {
-                "prepare an immutable qualification attempt bound to the admitted external artifact"
-            } else {
-                "prepare an immutable qualification attempt from the governed protocol"
-            };
-            units.push(unit(
-                &run.run_id,
-                tool_id,
-                ContainerQualificationCycleState::Blocked,
-                ContainerQualificationCycleAction::Prepare,
-                None,
-                None,
-                Some(detail),
-            ));
-            continue;
-        };
-        let [path] = paths.as_slice() else {
-            bail!("multiple live qualification specifications exist for {}:{}", key.0, key.1);
-        };
-        let spec = load_container_qualification_slurm_spec(path)?;
-        units.push(classify_spec(
-            path,
-            &spec,
+        units.push(derive_run_unit(
+            request,
+            &catalog,
+            &inventory,
+            run,
+            &specifications,
             &repository_commit,
             scheduler,
-            &request.observed_at_utc,
         )?);
     }
     let active = units.iter().any(|unit| {
@@ -379,13 +348,131 @@ fn derive_cycle(
     })
 }
 
-fn external_artifact_blocker(
+fn derive_run_unit(
+    request: &ContainerQualificationCycleRequest,
+    catalog: &bijux_dna_containers::api::ContainerCatalog,
+    inventory: &bijux_dna_containers::api::ContainerImageInventoryPublication,
+    run: &bijux_dna_containers::api::QualificationRunDefinition,
+    specifications: &BTreeMap<(String, String), Vec<PathBuf>>,
+    repository_commit: &str,
+    scheduler: Option<&SlurmClientPaths>,
+) -> Result<ContainerQualificationCycleUnit> {
+    let [tool_id] = run.tool_ids.as_slice() else {
+        bail!("current qualification run {} does not select exactly one tool", run.run_id);
+    };
+    let tool = catalog
+        .tools
+        .iter()
+        .find(|tool| tool.id == *tool_id)
+        .with_context(|| format!("qualification tool {tool_id} is absent from catalog"))?;
+    let artifact = if tool.external_artifact_supported {
+        external_artifact_resolution(request, &run.run_id, tool_id)?
+    } else {
+        inventory_artifact_resolution(inventory, &run.run_id, tool_id)?
+    };
+    let current_artifact_sha256 = match artifact {
+        CurrentArtifactResolution::Ready(sha256) => sha256,
+        CurrentArtifactResolution::Blocked(blocker) => return Ok(blocker),
+    };
+    let publication = request.publication_root.join(format!("{}-{tool_id}", run.run_id));
+    let mut publication_staleness = None;
+    if run.state == bijux_dna_containers::api::QualificationRunState::Active
+        && regular_file_exists(&publication.join("evidence.lock.json"))?
+    {
+        let evidence = bijux_dna_containers::api::load_run_evidence_lock(&publication)?;
+        publication_staleness =
+            publication_staleness_detail(&evidence, repository_commit, &current_artifact_sha256)?;
+        if publication_staleness.is_none() {
+            return Ok(unit(
+                &run.run_id,
+                tool_id,
+                ContainerQualificationCycleState::Published,
+                ContainerQualificationCycleAction::None,
+                None,
+                None,
+                None,
+            ));
+        }
+    }
+    let key = (run.run_id.clone(), tool_id.clone());
+    let Some(paths) = specifications.get(&key) else {
+        let default_detail = if tool.external_artifact_supported {
+            "prepare an immutable qualification attempt bound to the admitted external artifact"
+        } else {
+            "prepare an immutable qualification attempt from the governed protocol"
+        };
+        return Ok(unit(
+            &run.run_id,
+            tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::Prepare,
+            None,
+            None,
+            publication_staleness.as_deref().or(Some(default_detail)),
+        ));
+    };
+    let [path] = paths.as_slice() else {
+        bail!("multiple live qualification specifications exist for {}:{}", key.0, key.1);
+    };
+    let spec = load_container_qualification_slurm_spec(path)?;
+    classify_spec(
+        path,
+        &spec,
+        repository_commit,
+        &current_artifact_sha256,
+        scheduler,
+        &request.observed_at_utc,
+    )
+}
+
+enum CurrentArtifactResolution {
+    Ready(String),
+    Blocked(ContainerQualificationCycleUnit),
+}
+
+fn inventory_artifact_resolution(
+    inventory: &bijux_dna_containers::api::ContainerImageInventoryPublication,
+    run_id: &str,
+    tool_id: &str,
+) -> Result<CurrentArtifactResolution> {
+    let tool = inventory
+        .tools
+        .iter()
+        .find(|tool| tool.tool == tool_id)
+        .with_context(|| format!("qualification inventory omits tool {tool_id}"))?;
+    if tool.state == bijux_dna_containers::api::ContainerImageState::Current {
+        let sha256 = tool
+            .selected_image_sha256
+            .clone()
+            .context("current qualification image omits its selected identity")?;
+        return Ok(CurrentArtifactResolution::Ready(sha256));
+    }
+    let state = match tool.state {
+        bijux_dna_containers::api::ContainerImageState::Current => unreachable!(),
+        bijux_dna_containers::api::ContainerImageState::Historical => "historical",
+        bijux_dna_containers::api::ContainerImageState::Ambiguous => "ambiguous",
+        bijux_dna_containers::api::ContainerImageState::Missing => "missing",
+        bijux_dna_containers::api::ContainerImageState::NotApplicable => "not_applicable",
+    };
+    let detail = format!("current qualification image is unavailable: inventory state {state}");
+    Ok(CurrentArtifactResolution::Blocked(unit(
+        run_id,
+        tool_id,
+        ContainerQualificationCycleState::Blocked,
+        ContainerQualificationCycleAction::None,
+        None,
+        None,
+        Some(&detail),
+    )))
+}
+
+fn external_artifact_resolution(
     request: &ContainerQualificationCycleRequest,
     run_id: &str,
     tool_id: &str,
-) -> Result<Option<ContainerQualificationCycleUnit>> {
+) -> Result<CurrentArtifactResolution> {
     let Some(root) = &request.external_artifact_admission_root else {
-        return Ok(Some(unit(
+        return Ok(CurrentArtifactResolution::Blocked(unit(
             run_id,
             tool_id,
             ContainerQualificationCycleState::Blocked,
@@ -397,7 +484,7 @@ fn external_artifact_blocker(
     };
     let path = root.join(format!("{tool_id}.json"));
     if !regular_file_exists(&path)? {
-        return Ok(Some(unit(
+        return Ok(CurrentArtifactResolution::Blocked(unit(
             run_id,
             tool_id,
             ContainerQualificationCycleState::Blocked,
@@ -421,20 +508,57 @@ fn external_artifact_blocker(
         &path,
     )?;
     if admission.availability
-        == bijux_dna_containers::api::ExternalArtifactAdmissionStatus::BlockedExternalAccess
+        == bijux_dna_containers::api::ExternalArtifactAdmissionStatus::Admitted
     {
-        let detail = format!(
-            "external artifact access is blocked: {}",
+        let artifact = admission.artifact.context("admitted external artifact has no identity")?;
+        return Ok(CurrentArtifactResolution::Ready(artifact.sha256));
+    }
+    let detail = match admission.availability {
+        bijux_dna_containers::api::ExternalArtifactAdmissionStatus::BlockedExternalAccess => {
+            format!(
+                "external artifact access is blocked: {}",
+                admission.blocker_reason.as_deref().unwrap_or("unspecified governed blocker")
+            )
+        }
+        bijux_dna_containers::api::ExternalArtifactAdmissionStatus::Unavailable => format!(
+            "external artifact is unavailable: {}",
             admission.blocker_reason.as_deref().unwrap_or("unspecified governed blocker")
-        );
-        return Ok(Some(unit(
-            run_id,
-            tool_id,
-            ContainerQualificationCycleState::Blocked,
-            ContainerQualificationCycleAction::None,
-            None,
-            None,
-            Some(&detail),
+        ),
+        bijux_dna_containers::api::ExternalArtifactAdmissionStatus::Admitted => unreachable!(),
+    };
+    Ok(CurrentArtifactResolution::Blocked(unit(
+        run_id,
+        tool_id,
+        ContainerQualificationCycleState::Blocked,
+        ContainerQualificationCycleAction::None,
+        None,
+        None,
+        Some(&detail),
+    )))
+}
+
+fn publication_staleness_detail(
+    evidence: &bijux_dna_containers::api::RunEvidenceLock,
+    repository_commit: &str,
+    artifact_sha256: &str,
+) -> Result<Option<String>> {
+    if evidence.execution_status != bijux_dna_containers::api::AttemptExecutionStatus::Passed {
+        return Ok(Some("qualification publication execution is not passing".to_string()));
+    }
+    if evidence.repository_commit != repository_commit {
+        return Ok(Some(format!(
+            "qualification publication source {} differs from current repository commit {}",
+            evidence.repository_commit, repository_commit
+        )));
+    }
+    let published_sha256 = evidence
+        .image
+        .get("sha256")
+        .and_then(serde_json::Value::as_str)
+        .context("qualification publication image omits its SHA-256 identity")?;
+    if published_sha256 != artifact_sha256 {
+        return Ok(Some(format!(
+            "qualification publication artifact {published_sha256} differs from current artifact {artifact_sha256}"
         )));
     }
     Ok(None)
@@ -481,11 +605,35 @@ fn classify_spec(
     path: &Path,
     spec: &ContainerQualificationSlurmSpec,
     repository_commit: &str,
+    current_artifact_sha256: &str,
     scheduler: Option<&SlurmClientPaths>,
     observed_at_utc: &str,
 ) -> Result<ContainerQualificationCycleUnit> {
     if let Some(stale) = stale_specification_unit(path, spec, repository_commit) {
         return Ok(stale);
+    }
+    let pipeline = bijux_dna_containers::api::load_container_pipeline(&spec.pipeline_path)?;
+    let specification_artifact_sha256 = match pipeline {
+        bijux_dna_containers::api::ContainerPipelineContract::Legacy(pipeline) => {
+            pipeline.image.sha256
+        }
+        bijux_dna_containers::api::ContainerPipelineContract::Current(pipeline) => {
+            pipeline.image.sha256
+        }
+    };
+    if specification_artifact_sha256 != current_artifact_sha256 {
+        let detail = format!(
+            "qualification specification artifact {specification_artifact_sha256} does not match current artifact {current_artifact_sha256}"
+        );
+        return Ok(unit(
+            &spec.run_id,
+            &spec.tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::Prepare,
+            Some(path),
+            None,
+            Some(&detail),
+        ));
     }
     if let Some(evidence) = load_container_qualification_scheduler_evidence(spec)? {
         let (state, action) = match evidence.status {
@@ -753,6 +901,7 @@ mod tests {
             Path::new("/evidence/qualification-spec.json"),
             &spec,
             &"6".repeat(40),
+            &"7".repeat(64),
             None,
             "2026-08-09T23:14:00Z",
         )?;
@@ -805,6 +954,64 @@ mod tests {
             }))?;
 
         assert_eq!(status.earliest_observation_at_utc.as_deref(), Some("2026-08-10T12:05:00Z"));
+        Ok(())
+    }
+
+    #[test]
+    fn stale_specification_artifact_cannot_advance_or_book() -> anyhow::Result<()> {
+        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let repository_commit =
+            bijux_dna_containers::api::repository_head_commit(&repository_root)?;
+        let pipeline_path =
+            repository_root.join("containers/runs/run-1098-atropos/config-pipeline.yml");
+        let spec = ContainerQualificationSlurmSpec {
+            schema_version: super::super::CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5.to_string(),
+            submission_kind: ContainerQualificationSubmissionKind::default(),
+            historical_replay_source: None,
+            run_id: "run-1098".to_string(),
+            tool_id: "atropos".to_string(),
+            campaign_id: Some("public-fastq-adapter-trim-qualification".to_string()),
+            attempt_id: Some("attempt-001".to_string()),
+            job_name: "qualification-run-1098".to_string(),
+            hostname: "lunarc".to_string(),
+            repository_path: repository_root,
+            repository_commit: repository_commit.clone(),
+            governance_path: PathBuf::from("/governance.json"),
+            governance_sha256: "2".repeat(64),
+            pipeline_path,
+            pipeline_sha256: "3".repeat(64),
+            credential_reference_path: PathBuf::from("/credential.json"),
+            credential_reference_sha256: "4".repeat(64),
+            executor_program_path: PathBuf::from("/executor"),
+            executor_program_sha256: "5".repeat(64),
+            result_root: PathBuf::from("/result"),
+            evidence_root: PathBuf::from("/evidence"),
+            resources: ContainerQualificationSlurmResources {
+                account: "account".to_string(),
+                partition: "partition".to_string(),
+                cpus: 1,
+                memory_mb: 1024,
+                walltime: "00:10:00".to_string(),
+                scratch_mb: 1024,
+            },
+            dependencies: Vec::new(),
+        };
+
+        let unit = classify_spec(
+            Path::new("/evidence/qualification-spec.json"),
+            &spec,
+            &repository_commit,
+            &"7".repeat(64),
+            None,
+            "2026-08-09T23:14:00Z",
+        )?;
+
+        assert_eq!(unit.state, ContainerQualificationCycleState::Blocked);
+        assert_eq!(unit.next_action, ContainerQualificationCycleAction::Prepare);
+        assert!(unit.detail.is_some_and(|detail| {
+            detail.contains("qualification specification artifact")
+                && detail.contains("does not match current artifact")
+        }));
         Ok(())
     }
 }
