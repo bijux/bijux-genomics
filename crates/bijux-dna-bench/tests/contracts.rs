@@ -37,6 +37,8 @@ mod mod_contracts_execution_planning_rs;
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/benching/fastq_local_stage_matrix.rs"]
 mod mod_contracts_fastq_local_stage_matrix_rs;
+#[path = "contracts/benching/full_benchmark_report.rs"]
+mod mod_contracts_full_benchmark_report_rs;
 #[path = "contracts/benching/gate.rs"]
 mod mod_contracts_gate_rs;
 #[path = "contracts/generic_report_publication.rs"]

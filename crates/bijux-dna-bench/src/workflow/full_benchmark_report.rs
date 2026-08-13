@@ -4,10 +4,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use bijux_dna_bench_model::{
-    FullBenchmarkCorpusSectionRow, FullBenchmarkMemoryRow, FullBenchmarkPipelineSection,
-    FullBenchmarkPipelineSectionRow, FullBenchmarkReport, FullBenchmarkReportRow,
-    FullBenchmarkReportRowStatus, FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow,
-    FullBenchmarkToolSectionRow,
+    AllDomainFailureClassificationReport, BenchError, FullBenchmarkCorpusSectionRow,
+    FullBenchmarkFailureRow, FullBenchmarkFailuresSection, FullBenchmarkMemoryRow,
+    FullBenchmarkMissingResultRow, FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow,
+    FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
+    FullBenchmarkResultCollectorReport, FullBenchmarkResultSurfaceKind, FullBenchmarkRuntimeRow,
+    FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow, FullBenchmarkUnsupportedPairRow,
 };
 
 #[must_use]
@@ -184,6 +186,90 @@ pub fn build_full_benchmark_memory_rows(
             real_smoke_memory_mb: row.real_smoke_memory_mb,
             real_smoke_cpu_threads: row.real_smoke_cpu_threads,
             memory_source: memory_source(row).to_string(),
+        })
+        .collect()
+}
+
+pub fn build_full_benchmark_failures_section(
+    collector_report: &FullBenchmarkResultCollectorReport,
+    classification_report: &AllDomainFailureClassificationReport,
+) -> Result<FullBenchmarkFailuresSection, BenchError> {
+    let mut simulated_failure_domain_counts = BTreeMap::<String, usize>::new();
+    let mut rows = Vec::new();
+    for row in collector_report
+        .rows
+        .iter()
+        .filter(|row| row.surface_kind == FullBenchmarkResultSurfaceKind::FakeFailure)
+    {
+        *simulated_failure_domain_counts.entry(row.domain.clone()).or_default() += 1;
+        rows.push(FullBenchmarkFailureRow {
+            record_id: row.record_id.clone(),
+            domain: row.domain.clone(),
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            result_id: row.result_id.clone(),
+            evidence_path: row.evidence_path.clone(),
+            detail: row.detail.clone(),
+        });
+    }
+    if rows.len() != collector_report.fake_failure_row_count {
+        return Err(BenchError::InvalidObservation {
+            reason:
+                "full benchmark report failure section drifted from governed fake-failure coverage"
+                    .to_string(),
+        });
+    }
+
+    Ok(FullBenchmarkFailuresSection {
+        simulated_failure_row_count: rows.len(),
+        failure_class_row_count: classification_report.rows.len(),
+        simulated_failure_domain_counts,
+        rows,
+        classification_rows: classification_report.rows.clone(),
+    })
+}
+
+pub fn build_full_benchmark_missing_result_rows(
+    rows: &[FullBenchmarkReportRow],
+) -> Result<Vec<FullBenchmarkMissingResultRow>, BenchError> {
+    rows.iter()
+        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
+        .map(|row| {
+            let result_id =
+                row.result_id.clone().ok_or_else(|| BenchError::InvalidObservation {
+                    reason: format!(
+                        "full benchmark missing-result row `{}` has no result identity",
+                        row.report_row_id
+                    ),
+                })?;
+            Ok(FullBenchmarkMissingResultRow {
+                result_id,
+                domain: row.domain.clone(),
+                stage_id: row.stage_id.clone(),
+                tool_id: row.tool_id.clone(),
+                corpus_id: row.corpus_id.clone(),
+                asset_profile_id: row.asset_profile_id.clone(),
+                report_section: row.report_section.clone(),
+                audit_manifest_path: row.manifest_path.clone(),
+                evidence_path: row.evidence_path.clone(),
+                reason: row.detail.clone(),
+            })
+        })
+        .collect()
+}
+
+#[must_use]
+pub fn build_full_benchmark_unsupported_pair_rows(
+    rows: &[FullBenchmarkReportRow],
+) -> Vec<FullBenchmarkUnsupportedPairRow> {
+    rows.iter()
+        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
+        .map(|row| FullBenchmarkUnsupportedPairRow {
+            domain: row.domain.clone(),
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            evidence_path: row.evidence_path.clone(),
+            detail: row.detail.clone(),
         })
         .collect()
 }

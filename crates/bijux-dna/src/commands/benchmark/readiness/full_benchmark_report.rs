@@ -5,16 +5,17 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    build_full_benchmark_corpus_rows, build_full_benchmark_memory_rows,
+    build_full_benchmark_corpus_rows, build_full_benchmark_failures_section,
+    build_full_benchmark_memory_rows, build_full_benchmark_missing_result_rows,
     build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
     build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
-    render_full_benchmark_report_markdown, validate_full_benchmark_report,
-    FullBenchmarkReportAdmissionContext, FULL_BENCHMARK_REPORT_SCHEMA_V1,
+    build_full_benchmark_unsupported_pair_rows, render_full_benchmark_report_markdown,
+    validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
+    FULL_BENCHMARK_REPORT_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    FullBenchmarkComparableMetricRow, FullBenchmarkFailureRow, FullBenchmarkFailuresSection,
-    FullBenchmarkMissingResultRow, FullBenchmarkReport, FullBenchmarkReportRow,
-    FullBenchmarkReportRowStatus, FullBenchmarkUnsupportedPairRow,
+    FullBenchmarkComparableMetricRow, FullBenchmarkReport, FullBenchmarkReportRow,
+    FullBenchmarkReportRowStatus,
 };
 use serde_json::Value;
 
@@ -23,8 +24,7 @@ use super::all_domain_expected_benchmark_results::{
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
 };
 use super::all_domain_failure_classification::{
-    render_all_domain_failure_classification, AllDomainFailureClassificationReport,
-    DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
+    render_all_domain_failure_classification, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
 use super::bam_comparable_metrics::{
     render_bam_comparable_metrics, BamComparableMetricsReport, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
@@ -295,9 +295,10 @@ pub(crate) fn render_full_benchmark_report(
     let pipeline_centric = build_full_benchmark_pipeline_rows(&rows);
     let runtime = build_full_benchmark_runtime_rows(&rows);
     let memory = build_full_benchmark_memory_rows(&rows);
-    let failures = build_failures_section(&collector_report, &failure_classification_report)?;
-    let missing_results = build_missing_result_rows(&rows);
-    let unsupported_pairs = build_unsupported_pair_rows(&rows);
+    let failures =
+        build_full_benchmark_failures_section(&collector_report, &failure_classification_report)?;
+    let missing_results = build_full_benchmark_missing_result_rows(&rows)?;
+    let unsupported_pairs = build_full_benchmark_unsupported_pair_rows(&rows);
 
     let mut domain_counts = BTreeMap::<String, usize>::new();
     let mut row_status_counts = BTreeMap::<String, usize>::new();
@@ -441,78 +442,6 @@ fn collect_real_smoke_runtime_by_binding(
         );
     }
     Ok(rows)
-}
-
-fn build_failures_section(
-    collector_report: &FullBenchmarkResultCollectorReport,
-    failure_classification_report: &AllDomainFailureClassificationReport,
-) -> Result<FullBenchmarkFailuresSection> {
-    let mut simulated_failure_domain_counts = BTreeMap::<String, usize>::new();
-    let mut rows = Vec::new();
-    for row in collector_report
-        .rows
-        .iter()
-        .filter(|row| row.surface_kind == FullBenchmarkResultSurfaceKind::FakeFailure)
-    {
-        *simulated_failure_domain_counts.entry(row.domain.clone()).or_default() += 1;
-        rows.push(FullBenchmarkFailureRow {
-            record_id: row.record_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            result_id: row.result_id.clone(),
-            evidence_path: row.evidence_path.clone(),
-            detail: row.detail.clone(),
-        });
-    }
-    if rows.len() != collector_report.fake_failure_row_count {
-        return Err(anyhow!(
-            "full benchmark report failure section drifted from governed fake-failure coverage"
-        ));
-    }
-
-    Ok(FullBenchmarkFailuresSection {
-        simulated_failure_row_count: rows.len(),
-        failure_class_row_count: failure_classification_report.rows.len(),
-        simulated_failure_domain_counts,
-        rows,
-        classification_rows: failure_classification_report.rows.clone(),
-    })
-}
-
-fn build_missing_result_rows(
-    rows: &[FullBenchmarkReportRow],
-) -> Vec<FullBenchmarkMissingResultRow> {
-    rows.iter()
-        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-        .map(|row| FullBenchmarkMissingResultRow {
-            result_id: row.result_id.clone().expect("missing-result row result_id"),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            corpus_id: row.corpus_id.clone(),
-            asset_profile_id: row.asset_profile_id.clone(),
-            report_section: row.report_section.clone(),
-            audit_manifest_path: row.manifest_path.clone(),
-            evidence_path: row.evidence_path.clone(),
-            reason: row.detail.clone(),
-        })
-        .collect()
-}
-
-fn build_unsupported_pair_rows(
-    rows: &[FullBenchmarkReportRow],
-) -> Vec<FullBenchmarkUnsupportedPairRow> {
-    rows.iter()
-        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-        .map(|row| FullBenchmarkUnsupportedPairRow {
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            evidence_path: row.evidence_path.clone(),
-            detail: row.detail.clone(),
-        })
-        .collect()
 }
 
 fn collect_full_benchmark_comparable_metrics(
