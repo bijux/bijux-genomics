@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QualificationSourceSelectionV1",
+  "type": "object",
+  "properties": {
+    "campaign": {
+      "type": "string"
+    },
+    "corpus": {
+      "type": "string"
+    },
+    "corpus_role": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationSourceInputSelectionV1"
+      }
+    },
+    "negative_arguments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "sample": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool_id",
+    "campaign",
+    "corpus",
+    "corpus_role",
+    "sample",
+    "inputs",
+    "negative_arguments"
+  ],
+  "$defs": {
+    "QualificationSourceInputSelectionV1": {
+      "type": "object",
+      "properties": {
+        "binding_input": {
+          "type": "string"
+        },
+        "catalog_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/QualificationSpecificationInputKindV1"
+        },
+        "mount_path": {
+          "type": "string"
+        },
+        "study_uri": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "binding_input",
+        "id",
+        "kind",
+        "catalog_id",
+        "study_uri",
+        "mount_path"
+      ]
+    },
+    "QualificationSpecificationInputKindV1": {
+      "type": "string",
+      "enum": [
+        "data",
+        "reference",
+        "database",
+        "upstream_result"
+      ]
+    }
+  }
+}

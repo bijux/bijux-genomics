@@ -12,7 +12,8 @@ use bijux_dna_containers::api::{
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    canonical_tool_bindings, render_tool_command, ToolBinding, ToolBindingRenderContext,
+    canonical_tool_bindings, render_tool_command, OutputDiscoveryV1, ToolBinding,
+    ToolBindingRenderContext,
 };
 use schemars::{schema_for, JsonSchema, Schema};
 use serde::{Deserialize, Serialize};
@@ -316,13 +317,8 @@ fn materialize_pipeline(
     image_sha256: &str,
     command: &[String],
 ) -> Result<ContainerPipelineV2> {
-    let required_files = source
-        .outputs
-        .iter()
-        .map(|output| output.path.clone())
-        .chain([PathBuf::from("qualification-metrics.json")])
-        .collect::<Vec<_>>();
-    let real = wrap_real_command(command);
+    let required_files = required_qualification_files(source, binding)?;
+    let real = wrap_real_command(command, source, binding)?;
     let domain = run.stage_id.split_once('.').map_or(run.stage_id.as_str(), |value| value.0);
     let pipeline_value = json!({
         "schema_version": CONTAINER_PIPELINE_SCHEMA_V2,
@@ -415,6 +411,30 @@ fn materialize_pipeline(
         Box::new(pipeline.clone()),
     ))?;
     Ok(pipeline)
+}
+
+fn required_qualification_files(
+    source: &QualificationSpecificationSourceV1,
+    binding: &impl ToolBinding,
+) -> Result<Vec<PathBuf>> {
+    Ok(source
+        .outputs
+        .iter()
+        .map(|output| {
+            let binding_output = binding
+                .outputs()
+                .iter()
+                .find(|value| value.name == output.binding_output)
+                .context("qualification output disappeared from its binding")?;
+            Ok(match binding_output.discovery {
+                OutputDiscoveryV1::ExactPath => output.path.clone(),
+                OutputDiscoveryV1::Glob { .. } => glob_manifest_path(&output.path),
+            })
+        })
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .chain([PathBuf::from("qualification-metrics.json")])
+        .collect())
 }
 
 /// Derive per-tool readiness for the generic compiler without treating unrelated tools as gates.
@@ -698,15 +718,65 @@ fn validate_input(input: &QualificationSpecificationInputV1, study_root: &Path) 
     Ok(())
 }
 
-fn wrap_real_command(argv: &[String]) -> Vec<String> {
+fn wrap_real_command(
+    argv: &[String],
+    source: &QualificationSpecificationSourceV1,
+    binding: &impl ToolBinding,
+) -> Result<Vec<String>> {
     let command = argv.iter().map(|token| shell_quote(token)).collect::<Vec<_>>().join(" ");
-    vec![
+    let mut postconditions = Vec::new();
+    for output in &source.outputs {
+        let binding_output = binding
+            .outputs()
+            .iter()
+            .find(|value| value.name == output.binding_output)
+            .context("qualification output disappeared from its binding")?;
+        if let OutputDiscoveryV1::Glob { pattern } = &binding_output.discovery {
+            let expected = format!("${{output:{}}}*", output.binding_output);
+            if pattern != &expected {
+                bail!("qualification output uses an unsupported discovery pattern");
+            }
+            let parent = output.path.parent().unwrap_or_else(|| Path::new(""));
+            let base = output
+                .path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .context("qualification glob output has no UTF-8 basename")?;
+            let search_root = if parent.as_os_str().is_empty() {
+                PathBuf::from("/result")
+            } else {
+                Path::new("/result").join(parent)
+            };
+            let manifest = Path::new("/result").join(glob_manifest_path(&output.path));
+            let partial_manifest = Path::new("/result/.qualification-glob-manifests")
+                .join(format!("{}.txt.partial", output.binding_output));
+            postconditions.push(format!(
+                "mkdir -p {}; find {} -maxdepth 1 -mindepth 1 -name {} -print > {}; test -s {}; mv {} {}",
+                shell_quote("/result/.qualification-glob-manifests"),
+                shell_quote(&search_root.display().to_string()),
+                shell_quote(&format!("{base}*")),
+                shell_quote(&partial_manifest.display().to_string()),
+                shell_quote(&partial_manifest.display().to_string()),
+                shell_quote(&partial_manifest.display().to_string()),
+                shell_quote(&manifest.display().to_string()),
+            ));
+        }
+    }
+    let postconditions = postconditions.join("; ");
+    let separator = if postconditions.is_empty() { "" } else { "; " };
+    Ok(vec![
         "/bin/sh".to_string(),
         "-c".to_string(),
         format!(
-            "set -eu; {command}; printf '%s\\n' '{{\"tool_completed\":1}}' > /result/qualification-metrics.json"
+            "set -eu; {command}; {postconditions}{separator}printf '%s\\n' '{{\"tool_completed\":1}}' > /result/qualification-metrics.json"
         ),
-    ]
+    ])
+}
+
+fn glob_manifest_path(path: &Path) -> PathBuf {
+    let mut value = path.as_os_str().to_os_string();
+    value.push(".glob-manifest.txt");
+    PathBuf::from(value)
 }
 
 fn validate_negative_command(
@@ -1105,5 +1175,49 @@ mod tests {
     fn source_schema_refuses_unknown_fields() {
         let value = serde_json::json!({"schema_version": QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1, "unknown": true});
         assert!(serde_json::from_value::<QualificationSpecificationSourceV1>(value).is_err());
+    }
+
+    #[test]
+    fn glob_outputs_require_a_manifest_built_outside_the_matching_prefix() -> Result<()> {
+        let bindings = canonical_tool_bindings()?;
+        let binding = bindings
+            .binding(&StageId::new("vcf.pca"), &ToolId::new("plink2"))
+            .context("test binding is absent")?;
+        let source = QualificationSpecificationSourceV1 {
+            schema_version: QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1.to_string(),
+            catalog_sha256: "1".repeat(64),
+            registry_sha256: "2".repeat(64),
+            inventory_sha256: "3".repeat(64),
+            governed_study_root: PathBuf::from("/study"),
+            repository_path: PathBuf::from("/study/source"),
+            repository_commit: "4".repeat(40),
+            run_id: "run-1064".to_string(),
+            tool_id: "plink2".to_string(),
+            campaign: "qualification".to_string(),
+            corpus: "cohort".to_string(),
+            corpus_role: "vcf".to_string(),
+            sample: "sample".to_string(),
+            operator: "operator".to_string(),
+            submitted_at_utc: "2026-08-13T18:00:00Z".to_string(),
+            result_root: PathBuf::from("/study/results/run-1064-plink2"),
+            inputs: Vec::new(),
+            parameters: BTreeMap::new(),
+            outputs: vec![QualificationSpecificationOutputV1 {
+                binding_output: "pca_report".to_string(),
+                artifact_contract_id: "bijux.auxiliary.artifact.table.v1".to_string(),
+                path: PathBuf::from("pca_report"),
+            }],
+            negative_command: vec!["plink2".to_string(), "--bad".to_string()],
+            site: QualificationSpecificationSiteResourcesV1 {
+                account: "account".to_string(),
+                partition: "partition".to_string(),
+                walltime: "00:30:00".to_string(),
+            },
+        };
+        let command = wrap_real_command(&["true".to_string()], &source, binding)?;
+        assert!(command[2].contains("/result/.qualification-glob-manifests/pca_report.txt.partial"));
+        assert!(command[2].contains("/result/pca_report.glob-manifest.txt"));
+        assert!(!command[2].contains("> '/result/pca_report.glob-manifest.txt'; test"));
+        Ok(())
     }
 }

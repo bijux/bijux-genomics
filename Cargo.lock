@@ -421,6 +421,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-analyze",
+ "bijux-dna-bench-model",
  "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-domain-fastq",
@@ -429,6 +430,7 @@ dependencies = [
  "bijux-dna-runtime",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
+ "chrono",
  "clap",
  "regex",
  "rusqlite",
@@ -440,6 +442,7 @@ dependencies = [
  "tracing",
  "uuid",
  "wait-timeout",
+ "walkdir",
 ]
 
 [[package]]

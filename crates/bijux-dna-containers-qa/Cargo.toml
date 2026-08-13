@@ -19,12 +19,15 @@ rusqlite = "0.40.1"
 regex.workspace = true
 wait-timeout.workspace = true
 bijux-dna-containers = { path = "../bijux-dna-containers" }
+bijux-dna-bench-model = { path = "../bijux-dna-bench-model" }
 bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"] }
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
+chrono.workspace = true
+walkdir.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
