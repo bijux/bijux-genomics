@@ -1825,14 +1825,16 @@ fn bowtie2_align() -> ToolBindingV1 {
         &[
             input("reads_r1", FASTQ_PAIRED),
             input("reads_r2", FASTQ_PAIRED),
-            input("reference_index", "bijux.auxiliary.artifact.index.v1"),
+            input("reference", FASTA),
         ],
         &["threads", "read_group_id", "read_group_sample"],
         &[output("raw_sam", SAM)],
         &[
             "${executable}",
-            "-x",
-            "${input:reference_index}",
+            "--bijux-align-reference",
+            "${input:reference}",
+            "--bijux-index-threads",
+            "${parameter:threads}",
             "-1",
             "${input:reads_r1}",
             "-2",
@@ -1854,7 +1856,7 @@ fn bowtie2_align() -> ToolBindingV1 {
         &[
             "paired_end_binding",
             "canonical_preset_is_very_sensitive",
-            "reference_index_must_match_the_admitted_reference_fasta",
+            "scratch_reference_index_is_derived_from_the_admitted_reference_fasta",
         ],
     )
 }

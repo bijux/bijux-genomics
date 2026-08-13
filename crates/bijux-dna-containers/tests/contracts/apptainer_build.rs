@@ -88,6 +88,25 @@ fn seqpurge_wrapper_rejects_an_unusable_inherited_tmpdir() -> anyhow::Result<()>
     Ok(())
 }
 
+#[test]
+fn bowtie2_wrapper_derives_and_removes_a_scratch_reference_index() -> anyhow::Result<()> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let wrapper = std::fs::read_to_string(workspace.join("containers/tools/bowtie2/bowtie2"))?;
+
+    assert!(wrapper.contains("--bijux-align-reference"));
+    assert!(wrapper.contains("mktemp -d /scratch/bijux-bowtie2-index.XXXXXX"));
+    assert!(wrapper.contains("trap 'rm -rf \"$index_root\"' EXIT HUP INT TERM"));
+    assert!(wrapper.contains("/opt/bowtie2/bowtie2-build --threads \"$threads\""));
+    assert!(wrapper.contains("/opt/bowtie2/bowtie2 -x \"$index_root/reference\" \"$@\""));
+    for recipe in ["containers/apptainer/bowtie2.def", "containers/docker/Dockerfile.arm64.bowtie2"]
+    {
+        let recipe = std::fs::read_to_string(workspace.join(recipe))?;
+        assert!(recipe.contains("containers/tools/bowtie2/bowtie2"));
+        assert!(recipe.contains("bowtie2-build"));
+    }
+    Ok(())
+}
+
 fn build_request(
     temp: &tempfile::TempDir,
     executable: PathBuf,

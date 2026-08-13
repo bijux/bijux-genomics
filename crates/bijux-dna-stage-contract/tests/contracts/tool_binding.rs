@@ -2087,7 +2087,7 @@ fn canonical_genotyping_binding_closes_run_2001_native_execution() -> Result<()>
 }
 
 #[test]
-fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
+fn canonical_bam_align_bindings_render_native_commands() -> Result<()> {
     let registry = canonical_retained_tool_bindings()?;
     let bowtie2 = registry
         .binding(&StageId::new(ALIGN_STAGE), &ToolId::new("bowtie2"))
@@ -2104,7 +2104,7 @@ fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
                 inputs: BTreeMap::from([
                     ("reads_r1".to_owned(), "sample_R1.fastq.gz".to_owned()),
                     ("reads_r2".to_owned(), "sample_R2.fastq.gz".to_owned()),
-                    ("reference_index".to_owned(), "indexes/grch38".to_owned()),
+                    ("reference".to_owned(), "grch38.fa".to_owned()),
                 ]),
                 input_sets: BTreeMap::new(),
                 parameters: BTreeMap::from([
@@ -2117,8 +2117,10 @@ fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
         )?,
         [
             "/images/bowtie2.sif",
-            "-x",
-            "indexes/grch38",
+            "--bijux-align-reference",
+            "grch38.fa",
+            "--bijux-index-threads",
+            "8",
             "-1",
             "sample_R1.fastq.gz",
             "-2",
