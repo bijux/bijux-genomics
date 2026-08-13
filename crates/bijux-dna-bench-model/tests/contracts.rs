@@ -49,6 +49,8 @@ mod mod_contracts_local_corpus_run_rs;
 mod mod_contracts_local_corpus_skip_rs;
 #[path = "contracts/local_corpus_stage_compatibility.rs"]
 mod mod_contracts_local_corpus_stage_compatibility_rs;
+#[path = "contracts/local_essential_pipeline_fake_run.rs"]
+mod mod_contracts_local_essential_pipeline_fake_run_rs;
 #[path = "contracts/local_hpc_asset_staging.rs"]
 mod mod_contracts_local_hpc_asset_staging_rs;
 #[path = "contracts/local_hpc_candidate_run.rs"]

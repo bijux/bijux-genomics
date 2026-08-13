@@ -27,6 +27,7 @@ pub mod local_benchmark_summary;
 pub mod local_corpus_run;
 pub mod local_corpus_skip;
 pub mod local_corpus_stage_compatibility;
+pub mod local_essential_pipeline_fake_run;
 pub mod local_hpc_array;
 pub mod local_hpc_asset_staging;
 pub mod local_hpc_candidate_run;
@@ -262,6 +263,18 @@ pub use local_corpus_skip::{
 pub use local_corpus_stage_compatibility::{
     benchmark_local_corpus_stage_compatibility_schema, BenchmarkLocalCorpusStageCompatibilityEntry,
     BenchmarkLocalCorpusStageCompatibilityReport, BenchmarkLocalCorpusStageValidatedFixture,
+};
+#[allow(unused_imports)]
+pub use local_essential_pipeline_fake_run::{
+    benchmark_local_essential_pipeline_fake_run_node_metrics_schema,
+    benchmark_local_essential_pipeline_fake_run_pipeline_schema,
+    benchmark_local_essential_pipeline_fake_runs_schema,
+    BenchmarkLocalEssentialPipelineFakeRunInputBinding,
+    BenchmarkLocalEssentialPipelineFakeRunNodeMetrics,
+    BenchmarkLocalEssentialPipelineFakeRunNodeReport,
+    BenchmarkLocalEssentialPipelineFakeRunOutputEntry,
+    BenchmarkLocalEssentialPipelineFakeRunPipelineReport,
+    BenchmarkLocalEssentialPipelineFakeRunsReport,
 };
 #[allow(unused_imports)]
 pub use local_hpc_array::BenchmarkLocalHpcArrayResources;

@@ -28,6 +28,7 @@ mod local_benchmark_summary;
 mod local_corpus_run;
 mod local_corpus_skip;
 mod local_corpus_stage_compatibility;
+mod local_essential_pipeline_fake_run;
 mod local_hpc_asset_staging;
 mod local_hpc_candidate_run;
 mod local_hpc_dependency_simulation;
@@ -110,6 +111,12 @@ pub use local_benchmark_summary::validate_benchmark_local_summary;
 pub use local_corpus_run::validate_benchmark_local_corpus_run;
 pub use local_corpus_skip::validate_benchmark_local_corpus_skip_report;
 pub use local_corpus_stage_compatibility::validate_benchmark_local_corpus_stage_compatibility_report;
+pub use local_essential_pipeline_fake_run::{
+    validate_benchmark_local_essential_pipeline_fake_run_node_metrics,
+    validate_benchmark_local_essential_pipeline_fake_run_node_report,
+    validate_benchmark_local_essential_pipeline_fake_run_pipeline_report,
+    validate_benchmark_local_essential_pipeline_fake_runs_report,
+};
 pub use local_hpc_asset_staging::validate_benchmark_local_hpc_asset_staging_manifest;
 pub use local_hpc_candidate_run::validate_benchmark_local_hpc_candidate_run_manifest;
 pub use local_hpc_dependency_simulation::validate_benchmark_local_hpc_dependency_simulation;
@@ -217,6 +224,9 @@ pub use schema_versions::{
     BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1,

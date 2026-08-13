@@ -116,6 +116,14 @@ cardinality, successful-output closure, non-zero failure semantics, governed
 root containment, and semantic admission; the CLI only materializes simulated
 outputs and writes admitted records below the disposable run root.
 
+`schemas/local-essential-pipeline-fake-runs.schema.json`,
+`schemas/local-essential-pipeline-fake-run-pipeline.schema.json`, and
+`schemas/local-essential-pipeline-fake-run-node-metrics.schema.json` define
+disposable complete-pipeline execution simulations. The benchmark model owns
+their portfolio, topology, node, binding-lineage, counter, timing, output, and
+governed-path invariants; the CLI only resolves declared pipeline commands and
+materializes admitted simulation evidence.
+
 `schemas/local-stage-inventory.schema.json` and
 `schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
 and aggregate local benchmark stage inventories. The benchmark model owns

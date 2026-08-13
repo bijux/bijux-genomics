@@ -128,6 +128,37 @@ fn thin_cli_uses_model_owned_essential_pipeline_readiness_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_essential_pipeline_fake_run_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_essential_pipeline_fake_runs.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    for validator in [
+        "validate_benchmark_local_essential_pipeline_fake_run_node_metrics",
+        "validate_benchmark_local_essential_pipeline_fake_run_node_report",
+        "validate_benchmark_local_essential_pipeline_fake_run_pipeline_report",
+        "validate_benchmark_local_essential_pipeline_fake_runs_report",
+    ] {
+        assert!(contents.contains(validator), "thin CLI must invoke {validator}");
+    }
+    for forbidden in [
+        "struct EssentialPipelineFakeRunOutputEntry {",
+        "struct EssentialPipelineFakeRunInputBinding {",
+        "struct EssentialPipelineFakeRunNodeMetrics {",
+        "struct EssentialPipelineFakeRunNodeReport {",
+        "struct EssentialPipelineFakeRunPipelineReport {",
+        "struct EssentialPipelineFakeRunsReport {",
+        "\"bijux.bench.local_essential_pipeline_fake_runs.v1\"",
+        "\"bijux.bench.local_essential_pipeline_fake_run_pipeline.v1\"",
+        "\"bijux.bench.local_essential_pipeline_fake_run_node_metrics.v1\"",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_pipeline_dag_validation_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =
