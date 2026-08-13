@@ -34,6 +34,9 @@ pub const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1: &str =
     "bijux.bench.readiness.all_domain_failure_classification.v1";
 pub const ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1: &str =
     "bijux.bench.readiness.all_domain_expected_benchmark_results.v1";
+pub const LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1: &str = "bijux.bench.local_stage_tool_resources.v1";
+pub const STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1: &str =
+    "bijux.bench.readiness.stage_tool_resources.v1";
 pub const FULL_BENCHMARK_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.full_benchmark_report.v1";
 pub const FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1: &str =
     "bijux.bench.readiness.full_benchmark_result_collector.v1";

@@ -1,6 +1,15 @@
 //! Owner: bijux-dna-bench
 //! Stable public benchmark surface re-exported by the crate root.
 
+pub use bijux_dna_bench_model::{
+    stage_tool_resources_config_schema, stage_tool_resources_report_schema,
+    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
+    StageToolResourceRow, StageToolResourcesConfig, StageToolResourcesReport,
+    BAM_STAGE_TOOL_RESOURCE_ORIGIN, FASTQ_STAGE_TOOL_RESOURCE_ORIGIN,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_SCOPE, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
+};
+
 pub use crate::workflow::{
     appraise_matrix_report, build_full_benchmark_comparable_metric_rows,
     build_full_benchmark_corpus_rows, build_full_benchmark_failures_section,

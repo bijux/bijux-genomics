@@ -2,6 +2,15 @@
 //!
 //! Stability: v1 (stable).
 
+pub use bijux_dna_bench::{
+    stage_tool_resources_config_schema, stage_tool_resources_report_schema,
+    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
+    StageToolResourceRow, StageToolResourcesConfig, StageToolResourcesReport,
+    BAM_STAGE_TOOL_RESOURCE_ORIGIN, FASTQ_STAGE_TOOL_RESOURCE_ORIGIN,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_SCOPE, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
+};
+
 use std::path::Path;
 
 use anyhow::{Context, Result};

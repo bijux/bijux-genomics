@@ -137,6 +137,12 @@ owns row identity, aggregate closure, schema generation, and admission; the
 CLI derives the inventory from governed stage, tool, corpus, output, metric,
 and report-section authorities.
 
+`schemas/stage-tool-resources.schema.json` and
+`schemas/stage-tool-resources-report.schema.json` define the canonical
+resource configuration and its readiness projection. The benchmark model owns
+stage-tool identity, positive resource bounds, deterministic ordering,
+aggregate closure, schema generation, and admission.
+
 `schemas/full-benchmark-report.schema.json` defines the persisted aggregate
 FASTQ, BAM, and VCF report, including stage, tool, corpus, pipeline, runtime,
 memory, failure, missing-result, comparable-metric, and unsupported-pair

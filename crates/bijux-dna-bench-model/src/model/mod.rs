@@ -74,6 +74,7 @@ pub mod scope_views;
 pub mod source_authority;
 pub mod stage_result;
 pub mod stage_tool_closure;
+pub mod stage_tool_resources;
 pub mod suite;
 pub mod summary;
 
@@ -587,6 +588,12 @@ pub use stage_tool_closure::{
     BenchmarkStageToolClosureReport, BenchmarkStageToolClosureRow, BenchmarkStageToolClosureSource,
     BenchmarkStageToolClosureSummary, BenchmarkStageToolProtocolDisposition,
     BENCHMARK_STAGE_TOOL_CLOSURE_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use stage_tool_resources::{
+    stage_tool_resources_config_schema, stage_tool_resources_report_schema, StageToolResourceRow,
+    StageToolResourcesConfig, StageToolResourcesReport, BAM_STAGE_TOOL_RESOURCE_ORIGIN,
+    FASTQ_STAGE_TOOL_RESOURCE_ORIGIN, STAGE_TOOL_RESOURCES_SCOPE, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
 };
 #[allow(unused_imports)]
 pub use suite::{

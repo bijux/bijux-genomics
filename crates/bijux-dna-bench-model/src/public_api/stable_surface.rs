@@ -1,6 +1,16 @@
 //! Owner: bijux-dna-bench-model
 //! Stable crate-root re-exports.
 
+pub use crate::contract::{
+    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+};
+pub use crate::model::stage_tool_resources::{
+    stage_tool_resources_config_schema, stage_tool_resources_report_schema, StageToolResourceRow,
+    StageToolResourcesConfig, StageToolResourcesReport, BAM_STAGE_TOOL_RESOURCE_ORIGIN,
+    FASTQ_STAGE_TOOL_RESOURCE_ORIGIN, STAGE_TOOL_RESOURCES_SCOPE, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
+};
+
 pub use crate::compare;
 pub use crate::contract;
 pub use crate::contract::FullBenchmarkReportAdmissionContext;

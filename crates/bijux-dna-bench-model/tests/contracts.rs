@@ -133,5 +133,7 @@ mod mod_contracts_source_authority_rs;
 mod mod_contracts_stage_result_rs;
 #[path = "contracts/stage_tool_closure.rs"]
 mod mod_contracts_stage_tool_closure_rs;
+#[path = "contracts/stage_tool_resources.rs"]
+mod mod_contracts_stage_tool_resources_rs;
 #[path = "contracts/suite_validation.rs"]
 mod mod_contracts_suite_validation_rs;

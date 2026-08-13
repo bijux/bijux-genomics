@@ -33,7 +33,9 @@ use super::readiness::scientific_acceptance_thresholds::{
     scientific_acceptance_pass_rule_label, scientific_acceptance_tolerance_kind_label,
     ScientificAcceptanceThresholdRow, ScientificAcceptanceThresholdsConfig,
 };
-use super::readiness::stage_tool_resources::{StageToolResourceRow, StageToolResourcesConfig};
+use super::readiness::stage_tool_resources::{
+    validate_stage_tool_resources_config, StageToolResourceRow, StageToolResourcesConfig,
+};
 
 pub(crate) const DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH: &str =
     "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.md";
@@ -847,6 +849,7 @@ fn load_stage_tool_resources(
         .with_context(|| format!("read {}", config_path.display()))?;
     let config: StageToolResourcesConfig =
         toml::from_str(&payload).with_context(|| format!("parse {}", config_path.display()))?;
+    validate_stage_tool_resources_config(&config)?;
     Ok(config
         .rows
         .into_iter()
