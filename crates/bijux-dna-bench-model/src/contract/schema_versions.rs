@@ -120,6 +120,8 @@ pub const BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_candidate_run_manifest.v1";
 pub const BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_execution_resolver.v1";
+pub const BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_pipeline_node_array.v1";
 pub const BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_dependency_simulation.v1";
 pub const BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1: &str =

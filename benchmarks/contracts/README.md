@@ -167,6 +167,12 @@ model owns row identity, execution availability, paths, commands, resource
 envelopes, exact counters, and schema generation; the CLI only joins admitted
 planning inputs and renders the script plus manifest.
 
+`schemas/local-hpc-pipeline-node-array.schema.json` defines the persisted local
+HPC pipeline-node array. The benchmark model owns ordered dependency lineage,
+projected upstream results, expected outputs, paths, commands, exact counters,
+resource-envelope closure, and schema generation; the CLI only joins admitted
+planning inputs and renders the script plus manifest.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,

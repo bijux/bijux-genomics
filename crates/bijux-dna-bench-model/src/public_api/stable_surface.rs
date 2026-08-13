@@ -24,6 +24,7 @@ pub use crate::contract::{
     validate_benchmark_local_hpc_candidate_run_manifest,
     validate_benchmark_local_hpc_dependency_simulation,
     validate_benchmark_local_hpc_execution_resolver, validate_benchmark_local_hpc_job_graph,
+    validate_benchmark_local_hpc_pipeline_node_array,
     validate_benchmark_local_hpc_result_collection_simulation_report,
     validate_benchmark_local_hpc_resume_simulation, validate_benchmark_local_hpc_scratch_layout,
     validate_benchmark_local_hpc_stage_benchmark_array,
@@ -86,6 +87,7 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1, BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
@@ -293,6 +295,11 @@ pub use crate::model::local_hpc_dependency_simulation::{
 pub use crate::model::local_hpc_execution_resolver::{
     benchmark_local_hpc_execution_resolver_schema, BenchmarkLocalHpcExecutionResolverReport,
     BenchmarkLocalHpcExecutionResolverRow,
+};
+pub use crate::model::local_hpc_pipeline_node_array::{
+    benchmark_local_hpc_pipeline_node_array_schema, BenchmarkLocalHpcPipelineNodeArrayDependency,
+    BenchmarkLocalHpcPipelineNodeArrayExpectedOutput, BenchmarkLocalHpcPipelineNodeArrayReport,
+    BenchmarkLocalHpcPipelineNodeArrayRow,
 };
 pub use crate::model::local_hpc_result_collection_simulation::{
     benchmark_local_hpc_result_collection_simulation_schema,

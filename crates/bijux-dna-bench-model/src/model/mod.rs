@@ -32,6 +32,7 @@ pub mod local_hpc_asset_staging;
 pub mod local_hpc_candidate_run;
 pub mod local_hpc_dependency_simulation;
 pub mod local_hpc_execution_resolver;
+pub mod local_hpc_pipeline_node_array;
 pub mod local_hpc_result_collection_simulation;
 pub mod local_hpc_resume_simulation;
 pub mod local_hpc_scratch_layout;
@@ -290,6 +291,12 @@ pub use local_hpc_dependency_simulation::{
 pub use local_hpc_execution_resolver::{
     benchmark_local_hpc_execution_resolver_schema, BenchmarkLocalHpcExecutionResolverReport,
     BenchmarkLocalHpcExecutionResolverRow,
+};
+#[allow(unused_imports)]
+pub use local_hpc_pipeline_node_array::{
+    benchmark_local_hpc_pipeline_node_array_schema, BenchmarkLocalHpcPipelineNodeArrayDependency,
+    BenchmarkLocalHpcPipelineNodeArrayExpectedOutput, BenchmarkLocalHpcPipelineNodeArrayReport,
+    BenchmarkLocalHpcPipelineNodeArrayRow,
 };
 #[allow(unused_imports)]
 pub use local_hpc_result_collection_simulation::{

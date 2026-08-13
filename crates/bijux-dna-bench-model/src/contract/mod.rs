@@ -32,6 +32,7 @@ mod local_hpc_asset_staging;
 mod local_hpc_candidate_run;
 mod local_hpc_dependency_simulation;
 mod local_hpc_execution_resolver;
+mod local_hpc_pipeline_node_array;
 mod local_hpc_result_collection_simulation;
 mod local_hpc_resume_simulation;
 mod local_hpc_scratch_layout;
@@ -110,6 +111,7 @@ pub use local_hpc_asset_staging::validate_benchmark_local_hpc_asset_staging_mani
 pub use local_hpc_candidate_run::validate_benchmark_local_hpc_candidate_run_manifest;
 pub use local_hpc_dependency_simulation::validate_benchmark_local_hpc_dependency_simulation;
 pub use local_hpc_execution_resolver::validate_benchmark_local_hpc_execution_resolver;
+pub use local_hpc_pipeline_node_array::validate_benchmark_local_hpc_pipeline_node_array;
 pub use local_hpc_result_collection_simulation::validate_benchmark_local_hpc_result_collection_simulation_report;
 pub use local_hpc_resume_simulation::validate_benchmark_local_hpc_resume_simulation;
 pub use local_hpc_scratch_layout::validate_benchmark_local_hpc_scratch_layout;
@@ -208,6 +210,7 @@ pub use schema_versions::{
     BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1, BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
