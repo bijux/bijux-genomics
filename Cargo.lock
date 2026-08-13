@@ -862,6 +862,7 @@ dependencies = [
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runner",
+ "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "noodles-bgzf",
  "noodles-core",

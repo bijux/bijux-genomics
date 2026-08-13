@@ -11,6 +11,7 @@ fn public_api_docs_list_public_modules_and_root_exports() {
         "metrics",
         "path_contract",
         "pipeline",
+        "plugin",
         "stage_specs",
         "vcf_io",
         "wrappers",
@@ -25,11 +26,16 @@ fn public_api_docs_list_public_modules_and_root_exports() {
         public_api.contains("`implemented_stages`"),
         "docs/PUBLIC_API.md must list implemented_stages"
     );
+    assert!(
+        public_api.contains("`VcfStagePlugin`"),
+        "docs/PUBLIC_API.md must list VcfStagePlugin"
+    );
 }
 
 #[test]
 fn public_api_exports_remain_usable_from_crate_root() {
     let _ = bijux_dna_stages_vcf::implemented_stages();
+    let _ = std::any::type_name::<bijux_dna_stages_vcf::VcfStagePlugin>();
 
     let _ = std::any::type_name::<bijux_dna_stages_vcf::engine::VcfPipelineRequest>();
     let _ = std::any::type_name::<bijux_dna_stages_vcf::invariants::InvariantConfig>();

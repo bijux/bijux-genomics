@@ -37,6 +37,7 @@ mod contracts {
     include!("contracts/qc_and_invariants_tests.rs");
     include!("contracts/vcf_io_real_tools_tests.rs");
     include!("contracts/panel_and_phasing_tests.rs");
+    include!("contracts/plugin_contract_tests.rs");
     include!("contracts/imputation_tests.rs");
     include!("contracts/postprocess_population_and_ibd_tests.rs");
     include!("contracts/command_inventory_tests.rs");

@@ -23,10 +23,13 @@ pub mod invariants;
 pub mod metrics;
 pub mod path_contract;
 pub mod pipeline;
+pub mod plugin;
 mod repo_root;
 pub mod stage_specs;
 pub mod vcf_io;
 pub mod wrappers;
+
+pub use plugin::VcfStagePlugin;
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_dna_domain_vcf::VcfDomainStage> {
