@@ -17,8 +17,8 @@ use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
 const FULL_SHARDS_SCHEMA_V3: &str = "bijux.ci.full_shards.v3";
 const FAST_GROUPS_SCHEMA_V2: &str = "bijux.ci.fast_groups.v2";
-const FAST_TIMING_SCHEMA_V2: &str = "bijux.ci.fast_timing.v2";
-const FAST_TIMING_HISTORY_SCHEMA_V2: &str = "bijux.ci.fast_timing_history.v2";
+const FAST_TIMING_SCHEMA_V3: &str = "bijux.ci.fast_timing.v3";
+const FAST_TIMING_HISTORY_SCHEMA_V3: &str = "bijux.ci.fast_timing_history.v3";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -179,8 +179,16 @@ struct FastTimingObservation {
     #[serde(default)]
     cache_authority: String,
     #[serde(default)]
+    build_authority: String,
+    #[serde(default)]
     cache_hit_ratio_basis_points: u64,
     wall_time_milliseconds: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FastBuildAuthority {
+    target: PathBuf,
+    shared: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -357,6 +365,7 @@ pub(in super::super) fn tooling_ci_fast(
 
     let report_root = ci_output_path(workspace, &contract.report_root)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
+    let build_authority = ci_fast_build_authority(workspace)?;
     let compiler_wrapper = compiler_wrapper_program(workspace)?;
     let cache_before = compiler_wrapper
         .as_deref()
@@ -422,7 +431,7 @@ pub(in super::super) fn tooling_ci_fast(
                     label: group.id.clone(),
                     program: group.program.clone(),
                     args: group.args.clone(),
-                    envs: ci_fast_group_env(workspace)?,
+                    envs: ci_fast_group_env(workspace, &build_authority)?,
                     current_dir: None,
                 })
             })
@@ -485,8 +494,11 @@ pub(in super::super) fn tooling_ci_fast(
     let cache_delta = cache_stats_delta(cache_before.as_ref(), cache_after.as_ref());
     let shared_cache_authority =
         cache_delta.as_ref().is_some_and(|delta| !delta.cache_location.contains(&source_commit));
+    let shared_build_authority = build_authority.shared
+        && !build_authority.target.to_string_lossy().contains(&source_commit);
     let observed_warm_cache = requested_cache_state == "warm"
         && shared_cache_authority
+        && shared_build_authority
         && cache_delta.as_ref().is_some_and(|delta| {
             delta.requests_executed > 0
                 && delta.hit_ratio_basis_points >= contract.minimum_cache_hit_ratio_basis_points
@@ -519,6 +531,7 @@ pub(in super::super) fn tooling_ci_fast(
                 .as_ref()
                 .map(|delta| delta.cache_location.clone())
                 .unwrap_or_default(),
+            build_authority: build_authority.target.display().to_string(),
             cache_hit_ratio_basis_points: cache_delta
                 .as_ref()
                 .map_or(0, |delta| delta.hit_ratio_basis_points),
@@ -547,7 +560,7 @@ pub(in super::super) fn tooling_ci_fast(
     write_json_pretty(
         &ci_output_path(workspace, &contract.timing_report)?,
         &serde_json::json!({
-            "schema_version": FAST_TIMING_SCHEMA_V2,
+            "schema_version": FAST_TIMING_SCHEMA_V3,
             "source_commit": source_commit,
             "contract_sha256": bijux_dna_infra::hash_file_sha256(&contract_path)?,
             "observed_at_utc": chrono::Utc::now().to_rfc3339(),
@@ -559,6 +572,8 @@ pub(in super::super) fn tooling_ci_fast(
                 "cache_state": cache_state,
                 "requested_cache_state": requested_cache_state,
                 "shared_cache_authority": shared_cache_authority,
+                "build_authority": build_authority.target,
+                "shared_build_authority": shared_build_authority,
                 "cache_before": cache_before,
                 "cache_after": cache_after,
                 "cache_delta": cache_delta,
@@ -589,13 +604,48 @@ pub(in super::super) fn tooling_ci_fast(
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
 }
 
-fn ci_fast_group_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
+fn ci_fast_group_env(
+    workspace: &Workspace,
+    authority: &FastBuildAuthority,
+) -> Result<Vec<(String, String)>> {
     let mut envs = artifact_env_with_common_test_env(workspace)?;
-    let target = artifact_root_path(workspace)?.join("ci/ci-fast-target");
-    bijux_dna_infra::ensure_dir(&target)?;
-    envs.push(("CARGO_TARGET_DIR".to_string(), target.display().to_string()));
+    envs.push(("CARGO_TARGET_DIR".to_string(), authority.target.display().to_string()));
     envs.push(("CARGO_NET_OFFLINE".to_string(), "true".to_string()));
     Ok(envs)
+}
+
+fn ci_fast_build_authority(workspace: &Workspace) -> Result<FastBuildAuthority> {
+    resolve_ci_fast_build_authority(
+        workspace,
+        std::env::var_os("BIJUX_CI_FAST_TARGET_DIR").map(PathBuf::from),
+    )
+}
+
+fn resolve_ci_fast_build_authority(
+    workspace: &Workspace,
+    configured: Option<PathBuf>,
+) -> Result<FastBuildAuthority> {
+    let shared = configured.is_some();
+    let target = configured.unwrap_or(artifact_root_path(workspace)?.join("ci/ci-fast-target"));
+    if shared
+        && (!target.is_absolute()
+            || target
+                .components()
+                .any(|component| matches!(component, Component::ParentDir | Component::CurDir)))
+    {
+        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must be absolute and normalized");
+    }
+    bijux_dna_infra::ensure_dir(&target)?;
+    let canonical_target = target.canonicalize().context("canonicalize ci-fast build authority")?;
+    if shared && canonical_target != target {
+        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must not traverse symbolic path aliases");
+    }
+    let target = canonical_target;
+    let source = workspace.root.canonicalize().context("canonicalize ci-fast source root")?;
+    if shared && (target.starts_with(&source) || source.starts_with(&target)) {
+        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must be disjoint from the source workspace");
+    }
+    Ok(FastBuildAuthority { target, shared })
 }
 
 pub(in super::super) fn tooling_ci_slow(
@@ -1346,15 +1396,18 @@ fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
 fn load_fast_timing_history(path: &Path) -> Result<FastTimingHistory> {
     if !path.try_exists()? {
         return Ok(FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V2.to_string(),
+            schema_version: FAST_TIMING_HISTORY_SCHEMA_V3.to_string(),
             observations: Vec::new(),
         });
     }
     let mut history: FastTimingHistory = serde_json::from_slice(&fs::read(path)?)
         .with_context(|| format!("parse {}", path.display()))?;
-    if history.schema_version == "bijux.ci.fast_timing_history.v1" {
-        history.schema_version = FAST_TIMING_HISTORY_SCHEMA_V2.to_string();
-    } else if history.schema_version != FAST_TIMING_HISTORY_SCHEMA_V2 {
+    if matches!(
+        history.schema_version.as_str(),
+        "bijux.ci.fast_timing_history.v1" | "bijux.ci.fast_timing_history.v2"
+    ) {
+        history.schema_version = FAST_TIMING_HISTORY_SCHEMA_V3.to_string();
+    } else if history.schema_version != FAST_TIMING_HISTORY_SCHEMA_V3 {
         anyhow::bail!("unsupported ci-fast timing history schema");
     }
     Ok(history)
@@ -1523,6 +1576,7 @@ fn reference_timing_samples(
                 && observation.compiler_wrapper == reference.compiler_wrapper
                 && observation.cache_state == "warm_verified"
                 && !observation.cache_authority.is_empty()
+                && !observation.build_authority.is_empty()
                 && observation.cache_hit_ratio_basis_points > 0
         })
         .map(|observation| observation.wall_time_milliseconds)
@@ -1671,12 +1725,12 @@ mod tests {
         full_shard_env, full_shard_root_receipt, full_shard_roots, isolated_build_tree,
         materialize_full_shard_workspace, parse_compiler_wrapper_identity, parse_sccache_stats,
         percentile, read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
-        set_full_archive_readonly, validate_ci_test_executor_observation,
-        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
-        validate_full_shard_root_set, FastCacheStats, FastGroup, FastGroupContract,
-        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
-        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
-        FAST_TIMING_HISTORY_SCHEMA_V2,
+        resolve_ci_fast_build_authority, set_full_archive_readonly,
+        validate_ci_test_executor_observation, validate_fast_group_contract,
+        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
+        FastCacheStats, FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
+        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V3,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -2054,8 +2108,9 @@ mod tests {
         let root =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
-        let first = ci_fast_group_env(&workspace)?;
-        let second = ci_fast_group_env(&workspace)?;
+        let authority = resolve_ci_fast_build_authority(&workspace, None)?;
+        let first = ci_fast_group_env(&workspace, &authority)?;
+        let second = ci_fast_group_env(&workspace, &authority)?;
 
         assert!(first.iter().any(|(key, value)| key == "CARGO_NET_OFFLINE" && value == "true"));
         assert!(first.iter().any(|(key, value)| key == "TZ" && value == "UTC"));
@@ -2072,6 +2127,32 @@ mod tests {
             .map(|(_, value)| value.as_str());
         assert_eq!(first_target, second_target);
         assert!(first_target.is_some_and(|value| value.ends_with("ci/ci-fast-target")));
+        Ok(())
+    }
+
+    #[test]
+    fn explicit_fast_build_authority_is_stable_and_source_disjoint() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let root = root.path().canonicalize()?;
+        let source = root.join("workspaces/commit/source");
+        std::fs::create_dir_all(&source)?;
+        let workspace = Workspace { root: source.clone() };
+        let shared = root.join("shared/ci-fast-target");
+
+        let authority = resolve_ci_fast_build_authority(&workspace, Some(shared))?;
+
+        assert!(authority.shared);
+        assert_eq!(authority.target, root.join("shared/ci-fast-target").canonicalize()?);
+        assert!(resolve_ci_fast_build_authority(
+            &workspace,
+            Some(source.join("artifacts/ci-fast-target"))
+        )
+        .is_err());
+        assert!(resolve_ci_fast_build_authority(
+            &workspace,
+            Some(std::path::PathBuf::from("relative-target"))
+        )
+        .is_err());
         Ok(())
     }
 
@@ -2164,6 +2245,11 @@ mod tests {
                 } else {
                     String::new()
                 },
+                build_authority: if cache_state == "warm_verified" {
+                    "/shared/ci-fast-target".to_string()
+                } else {
+                    String::new()
+                },
                 cache_hit_ratio_basis_points: if cache_state == "warm_verified" {
                     9_000
                 } else {
@@ -2173,7 +2259,7 @@ mod tests {
             }
         };
         let history = FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V2.to_string(),
+            schema_version: FAST_TIMING_HISTORY_SCHEMA_V3.to_string(),
             observations: vec![
                 observation("linux", "x86_64", "1.95.0", "sccache", "warm_verified"),
                 observation("linux", "x86_64", "1.95.0", "sccache", "warm"),
