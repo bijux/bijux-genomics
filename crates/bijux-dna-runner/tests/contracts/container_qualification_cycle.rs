@@ -5,8 +5,10 @@ use anyhow::{Context, Result};
 use bijux_dna_runner::api::{
     advance_container_qualification_cycle, plan_container_qualification_cycle,
     ContainerQualificationCycleAction, ContainerQualificationCyclePreparation,
-    ContainerQualificationCycleRequest, ContainerQualificationCycleState, SlurmClientPaths,
+    ContainerQualificationCycleRequest, ContainerQualificationCycleState,
+    ContainerQualificationSourceMaterialization, SlurmClientPaths,
     CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2,
     CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2,
 };
 
@@ -126,6 +128,7 @@ fn cycle_plan_blocks_invalid_preparation_sources_before_submission() -> Result<(
             credential_reference_path: authorities.path().join("credential.json"),
             executor_program_path: authorities.path().join("bijux-dna-dev"),
             hostname: "lunarc".to_string(),
+            source_materialization: None,
         }),
         observed_at_utc: "2026-08-13T22:00:00Z".to_string(),
     })?;
@@ -142,6 +145,84 @@ fn cycle_plan_blocks_invalid_preparation_sources_before_submission() -> Result<(
         .as_deref()
         .is_some_and(|detail| detail.contains("preparation source is invalid")));
     assert_eq!(status.summary.ready_count, 0);
+    Ok(())
+}
+
+#[test]
+fn cycle_plan_exposes_each_declared_source_as_an_independent_materialization_unit() -> Result<()> {
+    let repository_root = repo_root()?;
+    let submissions = bijux_dna_infra::temp_dir("container-cycle-materialized-submissions")?;
+    let sources = bijux_dna_infra::temp_dir("container-cycle-materialized-sources")?;
+    let selections = bijux_dna_infra::temp_dir("container-cycle-materialized-selections")?;
+    let authorities = bijux_dna_infra::temp_dir("container-cycle-materialized-authorities")?;
+    for name in ["governance.json", "credential.json", "bijux-dna-dev", "data-index.json"] {
+        std::fs::write(authorities.path().join(name), b"retained authority\n")?;
+    }
+    let selection = bijux_dna_containers_qa::api::QualificationSourceSelectionV1 {
+        schema_version: bijux_dna_containers_qa::api::QUALIFICATION_SOURCE_SELECTION_SCHEMA_V1
+            .to_string(),
+        tool_id: "adapterremoval".to_string(),
+        campaign: "canonical-stage-qualification".to_string(),
+        corpus: "governed-fastq".to_string(),
+        corpus_role: "fastq".to_string(),
+        sample: "sample-1".to_string(),
+        inputs: vec![bijux_dna_containers_qa::api::QualificationSourceInputSelectionV1 {
+            binding_input: "reads_r1".to_string(),
+            id: "governed_fastq_r1".to_string(),
+            kind: bijux_dna_containers_qa::api::QualificationSpecificationInputKindV1::Data,
+            catalog_id: "governed-fastq".to_string(),
+            study_uri: "study://data/corpora/governed-fastq/reads.fastq.gz".to_string(),
+            mount_path: PathBuf::from("/input/reads-r1.fastq.gz"),
+        }],
+        parameters: BTreeMap::from([("threads".to_string(), "4".to_string())]),
+        negative_arguments: vec!["--definitely-invalid".to_string()],
+    };
+    bijux_dna_infra::atomic_create_json(
+        &selections.path().join("adapterremoval.json"),
+        &selection,
+    )?;
+    let evidence: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        repository_root.join("containers/runs/run-1002-adapterremoval/evidence.lock.json"),
+    )?)?;
+    let image_sha256 = evidence["image"]["sha256"]
+        .as_str()
+        .context("adapterremoval evidence omits image identity")?;
+    let inventory_root = bijux_dna_infra::temp_dir("container-cycle-materialized-inventory")?;
+    let inventory_path = source_current_inventory(
+        &repository_root,
+        inventory_root.path(),
+        &[("adapterremoval", image_sha256)],
+    )?;
+    let status = plan_container_qualification_cycle(&ContainerQualificationCycleRequest {
+        repository_root: repository_root.clone(),
+        registry_path: repository_root.join("containers/contracts/qualification-runs.toml"),
+        inventory_path,
+        publication_root: repository_root.join("containers/runs"),
+        submission_root: submissions.path().to_path_buf(),
+        external_artifact_admission_root: None,
+        preparation: Some(ContainerQualificationCyclePreparation {
+            schema_version: CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2.to_string(),
+            sources_root: sources.path().to_path_buf(),
+            governance_path: authorities.path().join("governance.json"),
+            credential_reference_path: authorities.path().join("credential.json"),
+            executor_program_path: authorities.path().join("bijux-dna-dev"),
+            hostname: "lunarc".to_string(),
+            source_materialization: Some(ContainerQualificationSourceMaterialization {
+                selections_root: selections.path().to_path_buf(),
+                data_index_path: authorities.path().join("data-index.json"),
+                operator: "bijux-dna-dev".to_string(),
+                walltime: "00:30:00".to_string(),
+            }),
+        }),
+        observed_at_utc: "2026-08-13T22:00:00Z".to_string(),
+    })?;
+    let unit = status
+        .units
+        .iter()
+        .find(|unit| unit.tool_id == "adapterremoval")
+        .context("qualification cycle omits adapterremoval")?;
+    assert_eq!(unit.state, ContainerQualificationCycleState::Ready);
+    assert_eq!(unit.next_action, ContainerQualificationCycleAction::Materialize);
     Ok(())
 }
 

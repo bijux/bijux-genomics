@@ -111,6 +111,7 @@
 - `ContainerQualificationSchedulerStatus`
 - `ContainerQualificationCycleAction`
 - `ContainerQualificationCyclePreparation`
+- `ContainerQualificationSourceMaterialization`
 - `ContainerQualificationCycleRequest`
 - `ContainerQualificationCycleState`
 - `ContainerQualificationCycleStatus`
@@ -122,6 +123,7 @@
 - `CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1`
 - `CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1`
 - `CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1`
+- `CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2`
 - `CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1` (deserialize compatibility)
 - `CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2`
 - `CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1`
@@ -143,6 +145,11 @@
 - Internal: support modules and any runner/backend helper not re-exported through the documented stable surfaces.
 
 ## Managed Slurm Workers
+
+Qualification preparation v2 binds a data index and per-tool selection root. A one-shot
+`advance` materializes every independently ready source through `bijux-dna-containers-qa`, binds it
+to the exact governed repository freeze, then replans before preparing and submitting attempts.
+Missing selections remain blocked per tool and do not form a portfolio barrier.
 
 `ManagedSlurmJobSpec` and its prepare, submit, observe, and collect functions expose the generic
 runner-owned lifecycle for an exact external worker. The API binds source, worker, resources,

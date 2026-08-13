@@ -32,7 +32,9 @@ pub use cycle::{
     ContainerQualificationCycleAction, ContainerQualificationCyclePreparation,
     ContainerQualificationCycleRequest, ContainerQualificationCycleState,
     ContainerQualificationCycleStatus, ContainerQualificationCycleSummary,
-    ContainerQualificationCycleUnit, CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1,
+    ContainerQualificationCycleUnit, ContainerQualificationSourceMaterialization,
+    CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2,
     CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1, CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2,
 };
 pub use execution::execute_container_qualification;

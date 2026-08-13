@@ -27,6 +27,8 @@ pub const CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2: &str =
     "bijux.runner.container_qualification_cycle_status.v2";
 pub const CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_cycle_preparation.v1";
+pub const CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2: &str =
+    "bijux.runner.container_qualification_cycle_preparation.v2";
 const DEFAULT_OBSERVATION_INTERVAL_SECONDS: i64 = 300;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -38,6 +40,17 @@ pub struct ContainerQualificationCyclePreparation {
     pub credential_reference_path: PathBuf,
     pub executor_program_path: PathBuf,
     pub hostname: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_materialization: Option<ContainerQualificationSourceMaterialization>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ContainerQualificationSourceMaterialization {
+    pub selections_root: PathBuf,
+    pub data_index_path: PathBuf,
+    pub operator: String,
+    pub walltime: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -72,6 +85,7 @@ pub enum ContainerQualificationCycleState {
 #[serde(rename_all = "snake_case")]
 pub enum ContainerQualificationCycleAction {
     None,
+    Materialize,
     Prepare,
     Submit,
     #[serde(alias = "poll")]
@@ -129,15 +143,17 @@ enum AdvancePass {
     ArchiveFailure,
     ArchiveSuperseded,
     Admit,
+    Materialize,
     Prepare,
     Submit,
 }
 
-const ADVANCE_PASS_ORDER: [AdvancePass; 6] = [
+const ADVANCE_PASS_ORDER: [AdvancePass; 7] = [
     AdvancePass::Collect,
     AdvancePass::ArchiveFailure,
     AdvancePass::ArchiveSuperseded,
     AdvancePass::Admit,
+    AdvancePass::Materialize,
     AdvancePass::Prepare,
     AdvancePass::Submit,
 ];
@@ -198,6 +214,7 @@ pub fn advance_container_qualification_cycle(
             AdvancePass::ArchiveFailure => archive_failure_frontier(request)?,
             AdvancePass::ArchiveSuperseded => archive_superseded_frontier(request)?,
             AdvancePass::Admit => admit_frontier(request)?,
+            AdvancePass::Materialize => materialize_source_frontier(request)?,
             AdvancePass::Prepare => prepare_frontier(request)?,
             AdvancePass::Submit => submit_frontier(paths, request)?,
         };
@@ -209,6 +226,7 @@ pub fn advance_container_qualification_cycle(
                     AdvancePass::ArchiveFailure => "archive_failure",
                     AdvancePass::ArchiveSuperseded => "archive_superseded",
                     AdvancePass::Admit => "admit",
+                    AdvancePass::Materialize => "materialize",
                     AdvancePass::Prepare => "prepare",
                     AdvancePass::Submit => "submit",
                 }
@@ -220,6 +238,77 @@ pub fn advance_container_qualification_cycle(
     } else {
         bail!("one or more qualification advance actions failed: {}", failures.join("; "));
     }
+}
+
+fn materialize_source_frontier(
+    request: &ContainerQualificationCycleRequest,
+) -> Result<Vec<String>> {
+    let planned = plan_container_qualification_cycle(request)?;
+    let Some(preparation) = request.preparation.as_ref() else {
+        return Ok(Vec::new());
+    };
+    let Some(materialization) = preparation.source_materialization.as_ref() else {
+        return Ok(Vec::new());
+    };
+    let governance =
+        bijux_dna_containers::api::load_container_governance(&preparation.governance_path)?;
+    let repository_commit =
+        bijux_dna_containers::api::repository_head_commit(&request.repository_root)?;
+    let frozen_repository = governance.paths.frozen_repositories.join(&repository_commit);
+    let partition = governance
+        .slurm
+        .partitions
+        .first()
+        .context("qualification governance has no Slurm partition")?;
+    let mut failures = Vec::new();
+    for unit in planned.units.iter().filter(|unit| {
+        unit.state == ContainerQualificationCycleState::Ready
+            && unit.next_action == ContainerQualificationCycleAction::Materialize
+    }) {
+        let result = (|| -> Result<()> {
+            let selection_path =
+                qualification_source_path(&materialization.selections_root, &unit.tool_id)?
+                    .context("materialization-ready qualification selection disappeared")?;
+            let selection =
+                bijux_dna_containers_qa::api::load_qualification_source_selection(&selection_path)?;
+            let source =
+                bijux_dna_containers_qa::api::materialize_qualification_specification_source(
+                    &bijux_dna_containers_qa::api::QualificationSourceMaterializationRequest {
+                        repository_root: request.repository_root.clone(),
+                        registry_path: request.registry_path.clone(),
+                        inventory_path: request.inventory_path.clone(),
+                        data_index_path: materialization.data_index_path.clone(),
+                        governed_study_root: governance.paths.study_root.clone(),
+                        repository_commit: repository_commit.clone(),
+                        operator: materialization.operator.clone(),
+                        submitted_at_utc: request.observed_at_utc.clone(),
+                        account: governance.slurm.account.clone(),
+                        partition: partition.clone(),
+                        walltime: materialization.walltime.clone(),
+                    },
+                    &selection,
+                )?;
+            if source.run_id != unit.run_id || source.tool_id != unit.tool_id {
+                bail!("materialized qualification source conflicts with cycle unit");
+            }
+            let bound =
+                bijux_dna_containers_qa::api::bind_qualification_source_to_frozen_repository(
+                    &source,
+                    &governance,
+                    &frozen_repository,
+                )?;
+            let mut bytes = serde_json::to_vec_pretty(&bound)?;
+            bytes.push(b'\n');
+            ensure_bytes_identity(
+                &preparation.sources_root.join(format!("{}.json", unit.tool_id)),
+                &bytes,
+            )
+        })();
+        if let Err(error) = result {
+            failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
+        }
+    }
+    Ok(failures)
 }
 
 fn prepare_frontier(request: &ContainerQualificationCycleRequest) -> Result<Vec<String>> {
@@ -621,47 +710,13 @@ fn derive_run_unit(
     }
     let key = (run.run_id.clone(), tool_id.clone());
     let Some(paths) = specifications.get(&key) else {
-        let default_detail = if tool.external_artifact_supported {
-            "prepare an immutable qualification attempt bound to the admitted external artifact"
-        } else {
-            "prepare an immutable qualification attempt from the governed protocol"
-        };
-        if let Some(preparation) = request.preparation.as_ref() {
-            if let Some(source_path) =
-                qualification_source_path(&preparation.sources_root, tool_id)?
-            {
-                let validation = validate_preparation_source(request, &source_path, run, tool_id);
-                return Ok(match validation {
-                    Ok(()) => unit(
-                        &run.run_id,
-                        tool_id,
-                        ContainerQualificationCycleState::Ready,
-                        ContainerQualificationCycleAction::Prepare,
-                        None,
-                        None,
-                        publication_staleness.as_deref().or(Some(default_detail)),
-                    ),
-                    Err(error) => unit(
-                        &run.run_id,
-                        tool_id,
-                        ContainerQualificationCycleState::Blocked,
-                        ContainerQualificationCycleAction::None,
-                        None,
-                        None,
-                        Some(&format!("qualification preparation source is invalid: {error:#}")),
-                    ),
-                });
-            }
-        }
-        return Ok(unit(
-            &run.run_id,
+        return derive_unprepared_unit(
+            request,
+            run,
+            tool,
             tool_id,
-            ContainerQualificationCycleState::Blocked,
-            ContainerQualificationCycleAction::Prepare,
-            None,
-            None,
-            publication_staleness.as_deref().or(Some(default_detail)),
-        ));
+            publication_staleness.as_deref(),
+        );
     };
     let [path] = paths.as_slice() else {
         bail!("multiple live qualification specifications exist for {}:{}", key.0, key.1);
@@ -676,6 +731,92 @@ fn derive_run_unit(
         scheduler,
         &request.observed_at_utc,
     )
+}
+
+fn derive_unprepared_unit(
+    request: &ContainerQualificationCycleRequest,
+    run: &bijux_dna_containers::api::QualificationRunDefinition,
+    tool: &bijux_dna_containers::api::ContainerCatalogTool,
+    tool_id: &str,
+    publication_staleness: Option<&str>,
+) -> Result<ContainerQualificationCycleUnit> {
+    let default_detail = if tool.external_artifact_supported {
+        "prepare an immutable qualification attempt bound to the admitted external artifact"
+    } else {
+        "prepare an immutable qualification attempt from the governed protocol"
+    };
+    let Some(preparation) = request.preparation.as_ref() else {
+        return Ok(unit(
+            &run.run_id,
+            tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::Prepare,
+            None,
+            None,
+            publication_staleness.or(Some(default_detail)),
+        ));
+    };
+    if let Some(source_path) = qualification_source_path(&preparation.sources_root, tool_id)? {
+        let validation = validate_preparation_source(request, &source_path, run, tool_id);
+        return Ok(match validation {
+            Ok(()) => unit(
+                &run.run_id,
+                tool_id,
+                ContainerQualificationCycleState::Ready,
+                ContainerQualificationCycleAction::Prepare,
+                None,
+                None,
+                publication_staleness.or(Some(default_detail)),
+            ),
+            Err(error) => unit(
+                &run.run_id,
+                tool_id,
+                ContainerQualificationCycleState::Blocked,
+                ContainerQualificationCycleAction::None,
+                None,
+                None,
+                Some(&format!("qualification preparation source is invalid: {error:#}")),
+            ),
+        });
+    }
+    let Some(materialization) = preparation.source_materialization.as_ref() else {
+        return Ok(unit(
+            &run.run_id,
+            tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::Prepare,
+            None,
+            None,
+            publication_staleness.or(Some(default_detail)),
+        ));
+    };
+    let Some(selection_path) =
+        qualification_source_path(&materialization.selections_root, tool_id)?
+    else {
+        return Ok(unit(
+            &run.run_id,
+            tool_id,
+            ContainerQualificationCycleState::Blocked,
+            ContainerQualificationCycleAction::Materialize,
+            None,
+            None,
+            publication_staleness.or(Some("declare an admitted qualification source selection")),
+        ));
+    };
+    let selection =
+        bijux_dna_containers_qa::api::load_qualification_source_selection(&selection_path)?;
+    if selection.tool_id != tool_id {
+        bail!("qualification selection identity conflicts with its file name");
+    }
+    Ok(unit(
+        &run.run_id,
+        tool_id,
+        ContainerQualificationCycleState::Ready,
+        ContainerQualificationCycleAction::Materialize,
+        None,
+        None,
+        publication_staleness.or(Some("materialize an admitted qualification source")),
+    ))
 }
 
 fn validate_preparation_source(
@@ -1141,8 +1282,22 @@ fn regular_file_exists(path: &Path) -> Result<bool> {
 }
 
 fn validate_cycle_preparation(preparation: &ContainerQualificationCyclePreparation) -> Result<()> {
-    if preparation.schema_version != CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1 {
+    if !matches!(
+        preparation.schema_version.as_str(),
+        CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1
+            | CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2
+    ) {
         bail!("unsupported container qualification cycle preparation schema");
+    }
+    if preparation.schema_version == CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1
+        && preparation.source_materialization.is_some()
+    {
+        bail!("v1 qualification preparation cannot declare source materialization");
+    }
+    if preparation.schema_version == CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2
+        && preparation.source_materialization.is_none()
+    {
+        bail!("v2 qualification preparation requires source materialization authority");
     }
     require_regular_directory(&preparation.sources_root, "qualification sources root")?;
     for (path, label) in [
@@ -1161,6 +1316,27 @@ fn validate_cycle_preparation(preparation: &ContainerQualificationCyclePreparati
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_'))
     {
         bail!("qualification preparation hostname is invalid");
+    }
+    if let Some(materialization) = preparation.source_materialization.as_ref() {
+        require_regular_directory(
+            &materialization.selections_root,
+            "qualification source selections root",
+        )?;
+        if !materialization.data_index_path.is_absolute()
+            || !regular_file_exists(&materialization.data_index_path)?
+        {
+            bail!(
+                "qualification data index is not an absolute regular file: {}",
+                materialization.data_index_path.display()
+            );
+        }
+        for (value, label) in
+            [(&materialization.operator, "operator"), (&materialization.walltime, "walltime")]
+        {
+            if value.trim().is_empty() || value != value.trim() {
+                bail!("qualification source materialization {label} is invalid");
+            }
+        }
     }
     Ok(())
 }
@@ -1225,6 +1401,7 @@ mod tests {
                 AdvancePass::ArchiveFailure,
                 AdvancePass::ArchiveSuperseded,
                 AdvancePass::Admit,
+                AdvancePass::Materialize,
                 AdvancePass::Prepare,
                 AdvancePass::Submit,
             ]
